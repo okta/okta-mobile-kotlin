@@ -1,91 +1,69 @@
 <?xml version="1.0" encoding="utf-8"?>
-<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+<navigation
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/LaunchFragment">
+    app:startDestination="@id/ScenarioSelectFragment"
+    >
 
     <fragment
-        android:id="@+id/LaunchFragment"
-        android:name="sample.okta.android.LaunchFragment"
-        tools:layout="@layout/fragment_launch">
+        android:id="@+id/ScenarioSelectFragment"
+        android:name="com.okta.idx.android.scenario.ScenarioSelectFragment"
+        tools:layout="@layout/fragment_scenario_select"
+        >
+
         <action
-            android:id="@+id/launch_to_browser"
-            app:destination="@id/BrowserFragment" />
-        <action
-            android:id="@+id/launch_to_resource_owner_flow"
-            app:destination="@id/ResourceOwnerFragment" />
-        <action
-            android:id="@+id/launch_to_device_authorization_flow"
-            app:destination="@id/DeviceAuthorizationFragment" />
-        <action
-            android:id="@+id/launch_to_dashboard"
-            app:destination="@id/DashboardFragment"
+            android:id="@+id/scenarioSelect_to_signIn"
+            app:destination="@id/SignInFragment"
             app:popUpTo="@+id/nav_graph"
-            app:popUpToInclusive="true" />
+            app:popUpToInclusive="true"
+            />
+
+        <action
+            android:id="@+id/scenarioSelect_to_dynamic"
+            app:destination="@id/DynamicFragment"
+            app:popUpTo="@+id/nav_graph"
+            app:popUpToInclusive="true"
+            />
     </fragment>
 
     <fragment
-        android:id="@+id/BrowserFragment"
-        android:name="sample.okta.android.browser.BrowserFragment"
-        tools:layout="@layout/fragment_browser">
+        android:id="@+id/SignInFragment"
+        android:name="com.okta.idx.android.signin.SignInFragment"
+        tools:layout="@layout/fragment_sign_in"
+        >
         <action
-            android:id="@+id/browser_to_dashboard"
+            android:id="@+id/signIn_to_dashboard"
             app:destination="@id/DashboardFragment"
             app:popUpTo="@+id/nav_graph"
-            app:popUpToInclusive="true" />
+            app:popUpToInclusive="true"
+            />
     </fragment>
 
     <fragment
-        android:id="@+id/ResourceOwnerFragment"
-        android:name="sample.okta.android.resourceowner.ResourceOwnerFragment"
-        tools:layout="@layout/fragment_resource_owner">
+        android:id="@+id/DynamicFragment"
+        android:name="com.okta.idx.android.dynamic.DynamicFragment"
+        tools:layout="@layout/fragment_dynamic"
+        >
         <action
-            android:id="@+id/resource_owner_to_dashboard"
+            android:id="@+id/dynamic_to_dashboard"
             app:destination="@id/DashboardFragment"
             app:popUpTo="@+id/nav_graph"
-            app:popUpToInclusive="true" />
-    </fragment>
-
-    <fragment
-        android:id="@+id/DeviceAuthorizationFragment"
-        android:name="sample.okta.android.deviceauthorization.DeviceAuthorizationFragment"
-        tools:layout="@layout/fragment_device_authorization">
-        <action
-            android:id="@+id/device_authorization_to_dashboard"
-            app:destination="@id/DashboardFragment"
-            app:popUpTo="@+id/nav_graph"
-            app:popUpToInclusive="true" />
+            app:popUpToInclusive="true"
+            />
     </fragment>
 
     <fragment
         android:id="@+id/DashboardFragment"
-        android:name="sample.okta.android.dashboard.DashboardFragment"
-        tools:layout="@layout/fragment_dashboard">
-        <argument
-            android:name="credentialTagNameValue"
-            android:defaultValue="@null"
-            app:argType="string"
-            app:nullable="true" />
-
+        android:name="com.okta.idx.android.dashboard.DashboardFragment"
+        tools:layout="@layout/fragment_dashboard"
+        >
         <action
-            android:id="@+id/dashboard_to_login"
-            app:destination="@id/LaunchFragment"
+            android:id="@+id/dashboard_to_scenarioSelect"
+            app:destination="@id/ScenarioSelectFragment"
             app:popUpTo="@+id/nav_graph"
-            app:popUpToInclusive="true" />
-        <action
-            android:id="@+id/dashboard_to_token_exchange"
-            app:destination="@id/TokenExchangeFragment" />
-    </fragment>
-
-    <fragment
-        android:id="@+id/TokenExchangeFragment"
-        android:name="sample.okta.android.tokenexchange.TokenExchangeFragment"
-        tools:layout="@layout/fragment_token_exchange">
-        <action
-            android:id="@+id/token_exchange_to_dashboard"
-            app:destination="@id/DashboardFragment"
-            app:popUpTo="@+id/nav_graph"
-            app:popUpToInclusive="true" />
+            app:popUpToInclusive="true"
+            />
     </fragment>
 </navigation>

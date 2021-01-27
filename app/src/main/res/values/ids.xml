@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <item name="claim" type="id"/>
+    <item name="enroll_item_content" type="id"/>
+    <item name="nested_content" type="id"/>
 </resources>

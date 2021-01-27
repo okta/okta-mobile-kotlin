@@ -1,0 +1,93 @@
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'androidx.navigation.safeargs.kotlin'
+
+android {
+    compileSdkVersion build_versions.compile_sdk
+
+    defaultConfig {
+        applicationId "com.okta.idx.android"
+        minSdkVersion build_versions.min_sdk
+        targetSdkVersion build_versions.target_sdk
+        versionCode 1
+        versionName '1.0'
+
+        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
+        testInstrumentationRunnerArgument 'listener', 'leakcanary.FailTestOnLeakRunListener'
+    }
+
+    sourceSets {
+        androidTest {
+            java.srcDirs += ['src/test/java']
+            resources.srcDirs += ['src/test/resources']
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        coreLibraryDesugaringEnabled true
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+    buildFeatures {
+        viewBinding true
+    }
+
+    packagingOptions {
+        exclude 'META-INF/AL2.0'
+        exclude 'META-INF/LGPL2.1'
+    }
+}
+
+dependencies {
+    coreLibraryDesugaring deps.desugar_libs
+
+    implementation deps.kotlin.stdlib
+    implementation deps.core_ktx
+    implementation deps.app_compat
+    implementation deps.constraint_layout
+    implementation deps.navigation.fragment_ktx
+    implementation deps.navigation.ui_ktx
+    implementation deps.lifecycle.viewmodel_ktx
+    implementation deps.lifecycle.livedata_ktx
+    implementation deps.lifecycle.runtime_ktx
+    implementation deps.lifecycle.java8
+    implementation deps.material
+    implementation deps.coroutines.android
+    implementation deps.okhttp.core
+    implementation deps.okhttp.tls
+    implementation deps.okhttp.mock_web_server
+    implementation deps.junit // Mock Web Server depends on junit :(
+    implementation deps.timber
+    implementation deps.okta.idx
+
+    debugImplementation deps.leakcanary.android
+
+    testImplementation deps.junit
+    testImplementation deps.okhttp.mock_web_server
+    testImplementation deps.okhttp.tls
+    testImplementation deps.truth
+
+    androidTestImplementation deps.leakcanary.instrumentation
+    androidTestImplementation deps.okhttp.mock_web_server
+    androidTestImplementation deps.okhttp.tls
+    androidTestImplementation deps.junit
+    androidTestImplementation deps.androidx_test.core
+    androidTestImplementation deps.androidx_test.ext_junit
+    androidTestImplementation deps.androidx_test.runner
+    androidTestImplementation deps.androidx_test.rules
+    androidTestImplementation deps.androidx_test.uiautomator
+    androidTestImplementation deps.coroutines.test
+    androidTestImplementation deps.espresso.core
+    androidTestImplementation deps.espresso.contrib
+    androidTestImplementation deps.espresso.intents
+    androidTestImplementation deps.truth
+}

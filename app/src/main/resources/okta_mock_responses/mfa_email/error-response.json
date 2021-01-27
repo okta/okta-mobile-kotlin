@@ -1,0 +1,18 @@
+{
+  "stateHandle": "02fe49t_FyYMIB_7PXce6jTcKZlo0sZE-tdfyO35MK",
+  "version": "1.0.0",
+  "expiresAt": "2021-01-19T22:20:04.000Z",
+  "intent": "LOGIN",
+  "messages": {
+    "type": "array",
+    "value": [
+      {
+        "message": "You do not have permission to perform the requested action.",
+        "i18n": {
+          "key": "security.access_denied"
+        },
+        "class": "ERROR"
+      }
+    ]
+  }
+}
