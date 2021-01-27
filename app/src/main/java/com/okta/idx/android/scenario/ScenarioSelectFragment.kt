@@ -27,6 +27,7 @@ import com.okta.idx.android.signin.SignInMockScenario
 import com.okta.idx.android.util.BaseFragment
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 internal class ScenarioSelectFragment : BaseFragment<FragmentScenarioSelectBinding>(
     FragmentScenarioSelectBinding::inflate
@@ -36,9 +37,10 @@ internal class ScenarioSelectFragment : BaseFragment<FragmentScenarioSelectBindi
 
         binding.oktaBackendButton.setOnClickListener {
             lifecycleScope.launch {
-                // TODO: Show a loading spinner until we're done!
+                binding.progress.visibility = View.VISIBLE
+                binding.scenarioContent.visibility = View.GONE
 
-                launch(Dispatchers.IO) {
+                withContext(Dispatchers.IO) {
                     OktaMockWebServer.mockingEnabled.set(false)
                 }
 
@@ -48,9 +50,10 @@ internal class ScenarioSelectFragment : BaseFragment<FragmentScenarioSelectBindi
 
         binding.usernamePasswordButton.setOnClickListener {
             lifecycleScope.launch {
-                // TODO: Show a loading spinner until we're done!
+                binding.progress.visibility = View.VISIBLE
+                binding.scenarioContent.visibility = View.GONE
 
-                launch(Dispatchers.IO) {
+                withContext(Dispatchers.IO) {
                     OktaMockWebServer.mockingEnabled.set(true)
                     SignInMockScenario.prepare()
                 }
@@ -61,9 +64,10 @@ internal class ScenarioSelectFragment : BaseFragment<FragmentScenarioSelectBindi
 
         binding.mfaButton.setOnClickListener {
             lifecycleScope.launch {
-                // TODO: Show a loading spinner until we're done!
+                binding.progress.visibility = View.VISIBLE
+                binding.scenarioContent.visibility = View.GONE
 
-                launch(Dispatchers.IO) {
+                withContext(Dispatchers.IO) {
                     OktaMockWebServer.mockingEnabled.set(true)
                     MfaEmailMockScenario.prepare()
                 }
@@ -74,9 +78,10 @@ internal class ScenarioSelectFragment : BaseFragment<FragmentScenarioSelectBindi
 
         binding.enrollButton.setOnClickListener {
             lifecycleScope.launch {
-                // TODO: Show a loading spinner until we're done!
+                binding.progress.visibility = View.VISIBLE
+                binding.scenarioContent.visibility = View.GONE
 
-                launch(Dispatchers.IO) {
+                withContext(Dispatchers.IO) {
                     OktaMockWebServer.mockingEnabled.set(true)
                     EnrollMockScenario.prepare()
                 }

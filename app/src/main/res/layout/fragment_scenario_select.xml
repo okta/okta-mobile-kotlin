@@ -6,47 +6,62 @@
     android:fillViewport="true"
     >
 
-    <LinearLayout
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center_horizontal"
-        android:orientation="vertical"
         >
 
-        <Button
-            android:id="@+id/okta_backend_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/okta_backend"
+        <ProgressBar
+            android:id="@+id/progress"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_gravity="center"
+            android:visibility="gone"
             />
 
-        <TextView
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:id="@+id/scenario_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/mock_scenarios"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            />
+            android:gravity="center_horizontal"
+            android:orientation="vertical"
+            >
 
-        <Button
-            android:id="@+id/username_password_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/username_password"
-            />
+            <Button
+                android:id="@+id/okta_backend_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/okta_backend"
+                />
 
-        <Button
-            android:id="@+id/mfa_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/mfa_email"
-            />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/mock_scenarios"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                />
 
-        <Button
-            android:id="@+id/enroll_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/enroll"
-            />
-    </LinearLayout>
+            <Button
+                android:id="@+id/username_password_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/username_password"
+                />
+
+            <Button
+                android:id="@+id/mfa_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/mfa_email"
+                />
+
+            <Button
+                android:id="@+id/enroll_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/enroll"
+                />
+        </LinearLayout>
+    </FrameLayout>
 </ScrollView>
