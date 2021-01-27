@@ -22,6 +22,7 @@ import com.okta.idx.sdk.api.request.AnswerChallengeRequestBuilder
 import com.okta.idx.sdk.api.request.ChallengeRequestBuilder
 import com.okta.idx.sdk.api.request.EnrollRequestBuilder
 import com.okta.idx.sdk.api.request.IdentifyRequestBuilder
+import com.okta.idx.sdk.api.request.SkipAuthenticatorEnrollmentRequestBuilder
 import com.okta.idx.sdk.api.response.IDXResponse
 import com.okta.idx.sdk.api.response.TokenResponse
 
@@ -80,5 +81,13 @@ data class StepState(
 
     fun cancel(): IDXResponse {
         return idxClient.cancel(stateHandle)
+    }
+
+    fun skip(): IDXResponse {
+        return idxClient.skip(
+            SkipAuthenticatorEnrollmentRequestBuilder.builder()
+                .withStateHandle(stateHandle)
+                .build()
+        )
     }
 }

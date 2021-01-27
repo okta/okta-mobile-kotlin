@@ -25,6 +25,8 @@ import com.okta.idx.android.sdk.steps.IdentifyUsernameStep
 import com.okta.idx.android.sdk.steps.IdentifyUsernameViewFactory
 import com.okta.idx.android.sdk.steps.SelectAuthenticatorStep
 import com.okta.idx.android.sdk.steps.SelectAuthenticatorViewFactory
+import com.okta.idx.android.sdk.steps.SkipStep
+import com.okta.idx.android.sdk.steps.SkipViewFactory
 import com.okta.idx.sdk.api.model.RemediationOption
 import com.okta.idx.sdk.api.response.IDXResponse
 
@@ -53,6 +55,7 @@ object IdxViewRegistry {
         register(IdentifyUsernameStep.Factory(), IdentifyUsernameViewFactory())
         register(SelectAuthenticatorStep.Factory(), SelectAuthenticatorViewFactory())
         register(EnrollAuthenticatorStep.Factory(), EnrollAuthenticatorViewFactory())
+        register(SkipStep.Factory(), SkipViewFactory())
     }
 
     fun <ViewModel> register(

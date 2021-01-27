@@ -26,6 +26,7 @@ import com.okta.idx.android.sdk.steps.EnrollAuthenticatorStep
 import com.okta.idx.android.sdk.steps.IdentifyUsernameAndPasswordStep
 import com.okta.idx.android.sdk.steps.IdentifyUsernameStep
 import com.okta.idx.android.sdk.steps.SelectAuthenticatorStep
+import com.okta.idx.android.sdk.steps.SkipStep
 import com.okta.idx.sdk.api.response.IDXResponse
 import okio.Buffer
 import org.junit.Test
@@ -87,7 +88,8 @@ internal class StepFactoryTest {
             assertThat(step.viewModel.options).hasSize(3)
             assertThat(step.viewModel.options[0].id).isEqualTo("aut2ihzk1gHl7ynhd1d6")
             assertThat(step.viewModel.options[0].label).isEqualTo("Email")
-            val method = step.viewModel.options[0].method as SelectAuthenticatorStep.Option.Method.Flat
+            val method =
+                step.viewModel.options[0].method as SelectAuthenticatorStep.Option.Method.Flat
             assertThat(method.value).isEqualTo("email")
         }
     }
@@ -108,7 +110,8 @@ internal class StepFactoryTest {
         ) { step ->
             assertThat(step.viewModel.options[0].label).isEqualTo("Security Question")
             assertThat(step.viewModel.options[0].id).isEqualTo("autzvyil7o5nQqC5j2o4")
-            val method = step.viewModel.options[0].method as SelectAuthenticatorStep.Option.Method.Flat
+            val method =
+                step.viewModel.options[0].method as SelectAuthenticatorStep.Option.Method.Flat
             assertThat(method.value).isEqualTo("security_question")
         }
     }
@@ -120,7 +123,8 @@ internal class StepFactoryTest {
         ) { step ->
             assertThat(step.viewModel.options[0].label).isEqualTo("Phone")
             assertThat(step.viewModel.options[0].id).isEqualTo("aut3jya5v26pKeUb30g7")
-            val method = step.viewModel.options[0].method as SelectAuthenticatorStep.Option.Method.Nested
+            val method =
+                step.viewModel.options[0].method as SelectAuthenticatorStep.Option.Method.Nested
             assertThat(method.options[0].label).isEqualTo("SMS")
             assertThat(method.options[0].value).isEqualTo("sms")
         }
@@ -146,6 +150,15 @@ internal class StepFactoryTest {
             assertThat(secondOption.optionLabel).isEqualTo("Create my own security question")
             assertThat(secondOption.fieldLabel).isEqualTo("Create a security question")
             assertThat(secondOption.questionKey).isEqualTo("custom")
+        }
+    }
+
+    @Test fun skip_returnsStep() {
+        assertFactoryReturnsNonNull(
+            "skip.json",
+            SkipStep.Factory()
+        ) { step ->
+            assertThat(step.viewModel).isNotNull()
         }
     }
 }

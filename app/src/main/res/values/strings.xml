@@ -17,4 +17,5 @@
     <string name="cancel">Cancel</string>
     <string name="okta_backend">Okta Backend</string>
     <string name="mock_scenarios">Mock Scenarios</string>
+    <string name="skip">Skip</string>
 </resources>
