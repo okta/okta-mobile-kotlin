@@ -66,10 +66,14 @@ data class StepState(
         return idxClient.answerChallenge(answerChallengeRequest)
     }
 
-    fun enroll(authenticator: Authenticator): IDXResponse {
+    fun enroll(authenticator: Authenticator? = null): IDXResponse {
         return idxClient.enroll(
             EnrollRequestBuilder.builder()
-                .withAuthenticator(authenticator)
+                .apply {
+                    if (authenticator != null) {
+                        withAuthenticator(authenticator)
+                    }
+                }
                 .withStateHandle(stateHandle)
                 .build()
         )

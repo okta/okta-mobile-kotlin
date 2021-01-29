@@ -61,8 +61,7 @@ class IdentifyUsernameStep private constructor(
         val usernameErrorsLiveData: LiveData<String> = _usernameErrorsLiveData
 
         fun isValid(): Boolean {
-            _usernameErrorsLiveData.emitValidation { username.isEmpty() }
-            return username.isNotEmpty()
+            return _usernameErrorsLiveData.emitValidation { username.isNotEmpty() }
         }
     }
 

@@ -62,6 +62,13 @@
                 android:layout_height="wrap_content"
                 android:text="@string/enroll"
                 />
+
+            <Button
+                android:id="@+id/enroll_passcode_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/enroll_passcode"
+                />
         </LinearLayout>
     </FrameLayout>
 </ScrollView>

@@ -55,8 +55,7 @@ class ChallengeAuthenticatorStep private constructor(
         val errorsLiveData: LiveData<String> = _errorsLiveData
 
         fun isValid(): Boolean {
-            _errorsLiveData.emitValidation { passcode.isEmpty() }
-            return passcode.isNotEmpty()
+            return _errorsLiveData.emitValidation { passcode.isNotEmpty() }
         }
     }
 

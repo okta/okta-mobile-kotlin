@@ -90,7 +90,7 @@ class EnrollTest {
             .check(matches(isDisplayed()))
         onView(withText("Choose a security question")).perform(click())
         onView(withId(R.id.submit_button)).perform(click())
-        onView(allOf(withId(R.id.error_text_view), withText("Field is required."))).check(matches(isDisplayed()))
+        onView(withText("Field is required.")).check(matches(isDisplayed()))
         onView(withId(R.id.spinner)).perform(click())
         onView(withText("What is your favorite security question?")).perform(click())
         SystemClock.sleep(1000) // The dialog takes some time to animate away.
@@ -114,6 +114,27 @@ class EnrollTest {
         onView(withHint("Create a security question")).perform(replaceText("1234"))
         onView(withHint("Answer#Custom")).perform(replaceText("1234"))
         SystemClock.sleep(1000) // The dialog takes some time to animate away.
+        onView(withId(R.id.submit_button)).perform(click())
+
+        waitForElement(ID_TOKEN_TYPE)
+        onView(withText("Token Type:")).check(matches(isDisplayed()))
+        onView(withText("Bearer")).check(matches(isDisplayed()))
+    }
+
+    @Test fun testEnrollPasscode() {
+        activityRule.scenario.moveToState(Lifecycle.State.RESUMED)
+        onView(withId(R.id.enroll_passcode_button)).perform(click())
+
+        waitForElement(ID_SUBMIT)
+        onView(withId(R.id.submit_button)).perform(click())
+        onView(withText("Field is required.")).check(matches(isDisplayed()))
+        onView(withId(R.id.passcode_edit_text)).perform(replaceText("Hi"))
+        onView(withId(R.id.submit_button)).perform(click())
+        onView(withText("Passwords must match.")).check(matches(isDisplayed()))
+        onView(withId(R.id.confirm_edit_text)).perform(replaceText("Not matching"))
+        onView(withId(R.id.submit_button)).perform(click())
+        onView(withText("Passwords must match.")).check(matches(isDisplayed()))
+        onView(withId(R.id.confirm_edit_text)).perform(replaceText("Hi"))
         onView(withId(R.id.submit_button)).perform(click())
 
         waitForElement(ID_TOKEN_TYPE)

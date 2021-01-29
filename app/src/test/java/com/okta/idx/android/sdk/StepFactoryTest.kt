@@ -26,6 +26,7 @@ import com.okta.idx.android.sdk.steps.EnrollAuthenticatorStep
 import com.okta.idx.android.sdk.steps.IdentifyUsernameAndPasswordStep
 import com.okta.idx.android.sdk.steps.IdentifyUsernameStep
 import com.okta.idx.android.sdk.steps.SelectAuthenticatorStep
+import com.okta.idx.android.sdk.steps.SelectEnrollProfileStep
 import com.okta.idx.android.sdk.steps.SkipStep
 import com.okta.idx.sdk.api.response.IDXResponse
 import okio.Buffer
@@ -137,7 +138,7 @@ internal class StepFactoryTest {
         ) { step ->
             assertThat(step.viewModel.options).hasSize(2)
 
-            val firstOption = step.viewModel.options[0] as EnrollAuthenticatorStep.Option.Select
+            val firstOption = step.viewModel.options[0] as EnrollAuthenticatorStep.Option.QuestionSelect
             assertThat(firstOption.answerLabel).isEqualTo("Answer#Select")
             assertThat(firstOption.optionLabel).isEqualTo("Choose a security question")
             assertThat(firstOption.fieldLabel).isEqualTo("Choose a security question #field label")
@@ -145,11 +146,23 @@ internal class StepFactoryTest {
             assertThat(firstQuestion.label).isEqualTo("What is the food you least liked as a child?")
             assertThat(firstQuestion.value).isEqualTo("disliked_food")
 
-            val secondOption = step.viewModel.options[1] as EnrollAuthenticatorStep.Option.Custom
+            val secondOption = step.viewModel.options[1] as EnrollAuthenticatorStep.Option.QuestionCustom
             assertThat(secondOption.answerLabel).isEqualTo("Answer#Custom")
             assertThat(secondOption.optionLabel).isEqualTo("Create my own security question")
             assertThat(secondOption.fieldLabel).isEqualTo("Create a security question")
             assertThat(secondOption.questionKey).isEqualTo("custom")
+        }
+    }
+
+    @Test fun `enroll-authenticator-password_returnsStep`() {
+        assertFactoryReturnsNonNull(
+            "enroll-authenticator-password.json",
+            EnrollAuthenticatorStep.Factory()
+        ) { step ->
+            assertThat(step.viewModel.options).hasSize(1)
+
+            val option = step.viewModel.options[0] as EnrollAuthenticatorStep.Option.Passcode
+            assertThat(option.optionLabel).isEqualTo("Enter password")
         }
     }
 

@@ -106,8 +106,8 @@ class SelectAuthenticatorStep private constructor(
         val errorsLiveData: LiveData<String> = _errorsLiveData
 
         fun isValid(): Boolean {
-            _errorsLiveData.emitValidation { selectedOption == null }
-            return selectedOption != null && selectedOption?.isValid() ?: false
+            val selectedOptionIsValid = _errorsLiveData.emitValidation { selectedOption != null }
+            return selectedOptionIsValid && selectedOption?.isValid() ?: false
         }
     }
 
@@ -157,9 +157,7 @@ class SelectAuthenticatorStep private constructor(
                     get() = selectedOption!!.value
 
                 override fun isValid(): Boolean {
-                    _errorsLiveData.emitValidation { selectedOption == null }
-
-                    return selectedOption != null
+                    return _errorsLiveData.emitValidation { selectedOption != null }
                 }
             }
 

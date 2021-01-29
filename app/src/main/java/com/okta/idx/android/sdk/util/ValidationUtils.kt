@@ -17,10 +17,15 @@ package com.okta.idx.android.sdk.util
 
 import androidx.lifecycle.MutableLiveData
 
-internal fun MutableLiveData<String>.emitValidation(validationFunction: () -> Boolean) {
-    value = if (validationFunction()) {
-        "Field is required."
-    } else {
+internal fun MutableLiveData<String>.emitValidation(
+    errorText: String = "Field is required.",
+    validationFunction: () -> Boolean,
+): Boolean {
+    val isValid = validationFunction()
+    value = if (isValid) {
         ""
+    } else {
+        errorText
     }
+    return isValid
 }

@@ -27,6 +27,7 @@ import com.okta.idx.android.R
 import com.okta.idx.android.databinding.StepEnrollAuthenticatorBinding
 import com.okta.idx.android.databinding.StepEnrollAuthenticatorCustomBinding
 import com.okta.idx.android.databinding.StepEnrollAuthenticatorOptionBinding
+import com.okta.idx.android.databinding.StepEnrollAuthenticatorPasscodeBinding
 import com.okta.idx.android.databinding.StepEnrollAuthenticatorSelectBinding
 import com.okta.idx.android.databinding.StepEnrollAuthenticatorSelectQuestionBinding
 import com.okta.idx.android.sdk.Step
@@ -56,17 +57,22 @@ class EnrollAuthenticatorStep private constructor(
 
         private fun RemediationOption.viewModel(): ViewModel {
             val credentials = form().first { it.name == "credentials" }
-            val options = mutableListOf<Option>()
-            options += credentials.options[0].viewModelOptionSelect()
-            options += credentials.options[1].viewModelOptionCustom()
-            return ViewModel(options)
+            if (credentials.options != null) {
+                val options = mutableListOf<Option>()
+                options += credentials.options[0].viewModelOptionSelect()
+                options += credentials.options[1].viewModelOptionCustom()
+                return ViewModel(options)
+            } else {
+                val passcode = credentials.form.value.first { it.name == "passcode" }
+                return ViewModel(listOf(passcode.viewModelOptionPasscode()))
+            }
         }
 
         private fun Options.viewModelOptionSelect(): Option {
             val values = (value as OptionsForm).form.value
             val questionsFormValue = values.first { it.name == "questionKey" }
             val answerFormValue = values.first { it.name == "answer" }
-            return Option.Select(
+            return Option.QuestionSelect(
                 answerLabel = answerFormValue.label,
                 optionLabel = label,
                 fieldLabel = questionsFormValue.label,
@@ -90,51 +96,87 @@ class EnrollAuthenticatorStep private constructor(
             val questionFormValue = values.first { it.name == "question" }
             val questionKeyFormValue = values.first { it.name == "questionKey" }
             val answerFormValue = values.first { it.name == "answer" }
-            return Option.Custom(
+            return Option.QuestionCustom(
                 answerLabel = answerFormValue.label,
                 optionLabel = label,
                 fieldLabel = questionFormValue.label,
                 questionKey = questionKeyFormValue.value as String,
             )
         }
+
+        private fun FormValue.viewModelOptionPasscode(): Option {
+            return Option.Passcode(
+                optionLabel = label,
+            )
+        }
     }
 
     sealed class Option {
-        data class Select(
-            override val answerLabel: String,
+        data class QuestionSelect(
             override val optionLabel: String,
+            val answerLabel: String,
             val fieldLabel: String,
             val questions: List<Question>,
             var selectedQuestion: Question? = null,
+            var answer: String = "",
         ) : Option() {
             private val _questionErrorsLiveData = MutableLiveData<String>("")
             val questionErrorsLiveData: LiveData<String> = _questionErrorsLiveData
 
+            private val _answerErrorsLiveData = MutableLiveData<String>("")
+            val answerErrorsLiveData: LiveData<String> = _answerErrorsLiveData
+
             override fun isValid(): Boolean {
-                _questionErrorsLiveData.emitValidation { selectedQuestion != null }
-                return selectedQuestion != null
+                val questionIsValid =
+                    _questionErrorsLiveData.emitValidation { selectedQuestion != null }
+                val answerIsValid = _answerErrorsLiveData.emitValidation { answer.isNotEmpty() }
+                return questionIsValid && answerIsValid
             }
         }
 
-        data class Custom(
-            override val answerLabel: String,
+        data class QuestionCustom(
             override val optionLabel: String,
+            val answerLabel: String,
             val fieldLabel: String,
             val questionKey: String,
             var question: String = "",
+            var answer: String = "",
         ) : Option() {
             private val _questionErrorsLiveData = MutableLiveData<String>("")
             val questionErrorsLiveData: LiveData<String> = _questionErrorsLiveData
 
+            private val _answerErrorsLiveData = MutableLiveData<String>("")
+            val answerErrorsLiveData: LiveData<String> = _answerErrorsLiveData
+
             override fun isValid(): Boolean {
-                _questionErrorsLiveData.emitValidation { question.isNotEmpty() }
-                return question.isNotEmpty()
+                val questionIsValid =
+                    _questionErrorsLiveData.emitValidation { question.isNotEmpty() }
+                val answerIsValid = _answerErrorsLiveData.emitValidation { answer.isNotEmpty() }
+                return questionIsValid && answerIsValid
+            }
+        }
+
+        data class Passcode(
+            override val optionLabel: String,
+            var passcode: String = "",
+            var confirmPasscode: String = "",
+        ) : Option() {
+            private val _errorsLiveData = MutableLiveData<String>("")
+            val errorsLiveData: LiveData<String> = _errorsLiveData
+
+            private val _confirmErrorsLiveData = MutableLiveData<String>("")
+            val confirmErrorsLiveData: LiveData<String> = _confirmErrorsLiveData
+
+            override fun isValid(): Boolean {
+                val passcodeIsValid = _errorsLiveData.emitValidation { passcode.isNotEmpty() }
+                val passcodesMatch =
+                    _confirmErrorsLiveData.emitValidation("Passwords must match.") { passcode == confirmPasscode }
+                return passcodeIsValid && passcodesMatch
             }
         }
 
         val viewId: Int by lazy { View.generateViewId() }
 
-        abstract val answerLabel: String
         abstract val optionLabel: String
         abstract fun isValid(): Boolean
     }
@@ -146,34 +188,44 @@ class EnrollAuthenticatorStep private constructor(
 
     class ViewModel internal constructor(
         val options: List<Option>,
-        var answer: String = "",
-        var selectedOption: Option? = null,
+        var selectedOption: Option? = defaultOption(options),
     ) {
+        companion object {
+            private fun defaultOption(options: List<Option>): Option? {
+                return if (options.size == 1) {
+                    options[0]
+                } else {
+                    null
+                }
+            }
+        }
+
         private val _selectOptionErrorsLiveData = MutableLiveData<String>("")
         val selectOptionErrorsLiveData: LiveData<String> = _selectOptionErrorsLiveData
 
-        private val _answerErrorsLiveData = MutableLiveData<String>("")
-        val answerErrorsLiveData: LiveData<String> = _answerErrorsLiveData
-
         fun isValid(): Boolean {
-            _selectOptionErrorsLiveData.emitValidation { selectedOption == null }
-            _answerErrorsLiveData.emitValidation { answer.isEmpty() }
-            return selectedOption?.isValid() ?: false && answer.isNotEmpty()
+            val optionIsValid =
+                _selectOptionErrorsLiveData.emitValidation { selectedOption != null }
+            return optionIsValid && selectedOption?.isValid() ?: false
         }
     }
 
     override fun proceed(state: StepState): IDXResponse {
         return state.answer(Credentials().apply {
             when (val selectedOption = viewModel.selectedOption) {
-                is Option.Custom -> {
+                is Option.QuestionCustom -> {
                     questionKey = selectedOption.questionKey
                     question = selectedOption.question
+                    answer = selectedOption.answer.toCharArray()
                 }
-                is Option.Select -> {
+                is Option.QuestionSelect -> {
                     questionKey = selectedOption.selectedQuestion!!.value
+                    answer = selectedOption.answer.toCharArray()
+                }
+                is Option.Passcode -> {
+                    passcode = selectedOption.passcode.toCharArray()
                 }
             }
-            answer = viewModel.answer.toCharArray()
         })
     }
 
@@ -195,51 +247,20 @@ class EnrollAuthenticatorViewFactory : ViewFactory<EnrollAuthenticatorStep.ViewM
                 binding.radioGroup.inflateBinding(StepEnrollAuthenticatorOptionBinding::inflate)
             itemBinding.radioButton.id = option.viewId
             itemBinding.radioButton.text = option.optionLabel
+            if (viewModel.options.size == 1) {
+                itemBinding.radioButton.visibility = View.GONE
+            }
             binding.radioGroup.addView(itemBinding.root)
 
             val contentView = when (option) {
-                is EnrollAuthenticatorStep.Option.Select -> {
-                    val optionBinding =
-                        binding.radioGroup.inflateBinding(StepEnrollAuthenticatorSelectBinding::inflate)
-
-                    optionBinding.titleTextView.text = option.fieldLabel
-                    optionBinding.spinner.adapter = QuestionAdapter(option.questions)
-                    optionBinding.spinner.onItemSelectedListener =
-                        object : AdapterView.OnItemSelectedListener {
-                            override fun onNothingSelected(parent: AdapterView<*>?) {
-                                option.selectedQuestion = null
-                            }
-
-                            override fun onItemSelected(
-                                parent: AdapterView<*>?,
-                                view: View?,
-                                position: Int,
-                                id: Long
-                            ) {
-                                option.selectedQuestion = option.questions[position]
-                            }
-                        }
-                    option.selectedQuestion?.also {
-                        optionBinding.spinner.setSelection(option.questions.indexOf(it))
-                    }
-
-                    option.questionErrorsLiveData.observe(viewLifecycleOwner) { errorMessage ->
-                        optionBinding.errorTextView.text = errorMessage
-                    }
-                    optionBinding.root
+                is EnrollAuthenticatorStep.Option.QuestionSelect -> {
+                    questionSelectView(option, binding.radioGroup, viewLifecycleOwner)
                 }
-                is EnrollAuthenticatorStep.Option.Custom -> {
-                    val optionBinding =
-                        binding.radioGroup.inflateBinding(StepEnrollAuthenticatorCustomBinding::inflate)
-                    optionBinding.textInputLayout.hint = option.fieldLabel
-                    optionBinding.editText.setText(option.question)
-                    optionBinding.editText.doOnTextChanged { question ->
-                        option.question = question
-                    }
-                    option.questionErrorsLiveData.observe(viewLifecycleOwner) { errorMessage ->
-                        optionBinding.textInputLayout.error = errorMessage
-                    }
-                    optionBinding.root
+                is EnrollAuthenticatorStep.Option.QuestionCustom -> {
+                    questionCustomView(option, binding.radioGroup, viewLifecycleOwner)
+                }
+                is EnrollAuthenticatorStep.Option.Passcode -> {
+                    passcodeView(option, binding.radioGroup, viewLifecycleOwner)
                 }
             }
             contentView.visibility = View.GONE
@@ -256,14 +277,11 @@ class EnrollAuthenticatorViewFactory : ViewFactory<EnrollAuthenticatorStep.ViewM
                     .getTag(R.id.enroll_item_content) as View
 
                 contentView.visibility = if (option == viewModel.selectedOption) {
-                    binding.answerTextInputLayout.hint = option.answerLabel
                     View.VISIBLE
                 } else {
                     View.GONE
                 }
             }
-
-            binding.answerTextInputLayout.visibility = View.VISIBLE
         }
 
         viewModel.selectedOption?.also { selectedOption ->
@@ -274,13 +292,102 @@ class EnrollAuthenticatorViewFactory : ViewFactory<EnrollAuthenticatorStep.ViewM
             binding.radioGroupErrorTextView.text = errorMessage
         }
 
-        binding.answerEditText.setText(viewModel.answer)
-        binding.answerEditText.doOnTextChanged { answer ->
-            viewModel.answer = answer
+        return binding.root
+    }
+
+    private fun questionSelectView(
+        option: EnrollAuthenticatorStep.Option.QuestionSelect,
+        parent: ViewGroup,
+        viewLifecycleOwner: LifecycleOwner,
+    ): View {
+        val binding = parent.inflateBinding(StepEnrollAuthenticatorSelectBinding::inflate)
+
+        binding.titleTextView.text = option.fieldLabel
+        binding.spinner.adapter = QuestionAdapter(option.questions)
+        binding.spinner.onItemSelectedListener =
+            object : AdapterView.OnItemSelectedListener {
+                override fun onNothingSelected(parent: AdapterView<*>?) {
+                    option.selectedQuestion = null
+                }
+
+                override fun onItemSelected(
+                    parent: AdapterView<*>?,
+                    view: View?,
+                    position: Int,
+                    id: Long
+                ) {
+                    option.selectedQuestion = option.questions[position]
+                }
+            }
+        option.selectedQuestion?.also {
+            binding.spinner.setSelection(option.questions.indexOf(it))
         }
 
-        viewModel.answerErrorsLiveData.observe(viewLifecycleOwner) { errorMessage ->
+        option.questionErrorsLiveData.observe(viewLifecycleOwner) { errorMessage ->
+            binding.errorTextView.text = errorMessage
+        }
+
+        binding.answerTextInputLayout.hint = option.answerLabel
+        binding.answerEditText.setText(option.answer)
+        binding.answerEditText.doOnTextChanged { answer ->
+            option.answer = answer
+        }
+
+        option.answerErrorsLiveData.observe(viewLifecycleOwner) { errorMessage ->
             binding.answerTextInputLayout.error = errorMessage
+        }
+
+        return binding.root
+    }
+
+    private fun questionCustomView(
+        option: EnrollAuthenticatorStep.Option.QuestionCustom,
+        parent: ViewGroup,
+        viewLifecycleOwner: LifecycleOwner,
+    ): View {
+        val binding = parent.inflateBinding(StepEnrollAuthenticatorCustomBinding::inflate)
+        binding.textInputLayout.hint = option.fieldLabel
+        binding.editText.setText(option.question)
+        binding.editText.doOnTextChanged { question ->
+            option.question = question
+        }
+        option.questionErrorsLiveData.observe(viewLifecycleOwner) { errorMessage ->
+            binding.textInputLayout.error = errorMessage
+        }
+
+        binding.answerTextInputLayout.hint = option.answerLabel
+        binding.answerEditText.setText(option.answer)
+        binding.answerEditText.doOnTextChanged { answer ->
+            option.answer = answer
+        }
+
+        option.answerErrorsLiveData.observe(viewLifecycleOwner) { errorMessage ->
+            binding.answerTextInputLayout.error = errorMessage
+        }
+
+        return binding.root
+    }
+
+    private fun passcodeView(
+        option: EnrollAuthenticatorStep.Option.Passcode,
+        parent: ViewGroup,
+        viewLifecycleOwner: LifecycleOwner,
+    ): View {
+        val binding = parent.inflateBinding(StepEnrollAuthenticatorPasscodeBinding::inflate)
+        binding.passcodeEditText.setText(option.passcode)
+        binding.passcodeEditText.doOnTextChanged { passcode ->
+            option.passcode = passcode
+        }
+        option.errorsLiveData.observe(viewLifecycleOwner) { errorMessage ->
+            binding.passcodeTextInputLayout.error = errorMessage
+        }
+
+        binding.confirmEditText.setText(option.confirmPasscode)
+        binding.confirmEditText.doOnTextChanged { confirmPasscode ->
+            option.confirmPasscode = confirmPasscode
+        }
+        option.confirmErrorsLiveData.observe(viewLifecycleOwner) { errorMessage ->
+            binding.confirmTextInputLayout.error = errorMessage
         }
 
         return binding.root

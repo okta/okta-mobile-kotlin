@@ -75,9 +75,9 @@ class IdentifyUsernameAndPasswordStep private constructor(
         val passwordErrorsLiveData: LiveData<String> = _passwordErrorsLiveData
 
         fun isValid(): Boolean {
-            _usernameErrorsLiveData.emitValidation { username.isEmpty() }
-            _passwordErrorsLiveData.emitValidation { password.isEmpty() }
-            return username.isNotEmpty() && password.isNotEmpty()
+            val usernameValid = _usernameErrorsLiveData.emitValidation { username.isNotEmpty() }
+            val passwordValid = _passwordErrorsLiveData.emitValidation { password.isNotEmpty() }
+            return usernameValid && passwordValid
         }
     }
 

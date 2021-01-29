@@ -18,4 +18,7 @@
     <string name="okta_backend">Okta Backend</string>
     <string name="mock_scenarios">Mock Scenarios</string>
     <string name="skip">Skip</string>
+    <string name="select_enroll_profile">Select Enroll Profile</string>
+    <string name="confirm_password">Confirm Password</string>
+    <string name="enroll_passcode">Enroll Passcode</string>
 </resources>
