@@ -18,9 +18,12 @@ package com.okta.idx.android.sdk
 import com.okta.idx.sdk.api.client.IDXClient
 import com.okta.idx.sdk.api.model.Authenticator
 import com.okta.idx.sdk.api.model.Credentials
+import com.okta.idx.sdk.api.model.RemediationOption
+import com.okta.idx.sdk.api.model.UserProfile
 import com.okta.idx.sdk.api.request.AnswerChallengeRequestBuilder
 import com.okta.idx.sdk.api.request.ChallengeRequestBuilder
 import com.okta.idx.sdk.api.request.EnrollRequestBuilder
+import com.okta.idx.sdk.api.request.EnrollUserProfileUpdateRequestBuilder
 import com.okta.idx.sdk.api.request.IdentifyRequestBuilder
 import com.okta.idx.sdk.api.request.SkipAuthenticatorEnrollmentRequestBuilder
 import com.okta.idx.sdk.api.response.IDXResponse
@@ -31,20 +34,18 @@ data class StepState(
     private val stateHandle: String,
 ) {
     fun identify(
-        username: String,
-        rememberMe: Boolean,
+        remediationOption: RemediationOption,
         requestMutator: IdentifyRequestBuilder.() -> Unit = {}
     ): IDXResponse {
         val identifyRequest = IdentifyRequestBuilder.builder()
-            .withIdentifier(username)
-            .withRememberMe(rememberMe)
             .withStateHandle(stateHandle)
             .apply(requestMutator)
             .build()
-        return idxClient.identify(identifyRequest)
+        return remediationOption.proceed(idxClient, identifyRequest)
     }
 
     fun challenge(
+        remediationOption: RemediationOption,
         id: String,
         methodType: String
     ): IDXResponse {
@@ -55,19 +56,23 @@ data class StepState(
             .withStateHandle(stateHandle)
             .withAuthenticator(authenticator)
             .build()
-        return idxClient.challenge(challengeRequest)
+        return remediationOption.proceed(idxClient, challengeRequest)
     }
 
-    fun answer(credentials: Credentials): IDXResponse {
+    fun answer(remediationOption: RemediationOption, credentials: Credentials): IDXResponse {
         val answerChallengeRequest = AnswerChallengeRequestBuilder.builder()
             .withStateHandle(stateHandle)
             .withCredentials(credentials)
             .build()
-        return idxClient.answerChallenge(answerChallengeRequest)
+        return remediationOption.proceed(idxClient, answerChallengeRequest)
     }
 
-    fun enroll(authenticator: Authenticator? = null): IDXResponse {
-        return idxClient.enroll(
+    fun enroll(
+        remediationOption: RemediationOption,
+        authenticator: Authenticator? = null
+    ): IDXResponse {
+        return remediationOption.proceed(
+            idxClient,
             EnrollRequestBuilder.builder()
                 .apply {
                     if (authenticator != null) {
@@ -79,6 +84,21 @@ data class StepState(
         )
     }
 
+    fun enrollUserProfile(
+        remediationOption: RemediationOption,
+        attributes: Map<String, Any>,
+    ): IDXResponse {
+        val userProfile = UserProfile()
+        for (attribute in attributes) {
+            userProfile.addAttribute(attribute.key, attribute.value)
+        }
+        val request = EnrollUserProfileUpdateRequestBuilder.builder()
+            .withUserProfile(userProfile)
+            .withStateHandle(stateHandle)
+            .build()
+        return remediationOption.proceed(idxClient, request)
+    }
+
     fun token(response: IDXResponse): TokenResponse {
         return response.successWithInteractionCode.exchangeCode(idxClient)
     }
@@ -87,8 +107,9 @@ data class StepState(
         return idxClient.cancel(stateHandle)
     }
 
-    fun skip(): IDXResponse {
-        return idxClient.skip(
+    fun skip(remediationOption: RemediationOption, ): IDXResponse {
+        return remediationOption.proceed(
+            idxClient,
             SkipAuthenticatorEnrollmentRequestBuilder.builder()
                 .withStateHandle(stateHandle)
                 .build()

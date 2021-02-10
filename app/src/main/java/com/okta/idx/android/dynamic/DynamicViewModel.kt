@@ -22,6 +22,7 @@ import androidx.lifecycle.viewModelScope
 import com.okta.idx.android.network.Network
 import com.okta.idx.android.sdk.DisplayableStep
 import com.okta.idx.android.sdk.IdxViewRegistry
+import com.okta.idx.android.sdk.Step
 import com.okta.idx.android.sdk.StepState
 import com.okta.idx.sdk.api.exception.ProcessingException
 import com.okta.idx.sdk.api.model.MessageValue
@@ -37,29 +38,35 @@ internal class DynamicViewModel : ViewModel() {
     val stateLiveData: LiveData<State> = _stateLiveData
 
     init {
+        start()
+    }
+
+    fun start() {
+        _stateLiveData.value = State.Loading
+
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val idxClient = Network.idxClient()
                 val interactHandle = idxClient.interact().interactionHandle
                 val response: IDXResponse = idxClient.introspect(Optional.of(interactHandle))
                 val stateHandle = response.stateHandle
-                // TODO: Handle multiple steps.
+
                 _stateLiveData.postValue(
                     State.Form(
-                        IdxViewRegistry.asDisplaySteps(response)[0],
+                        IdxViewRegistry.asDisplaySteps(response),
                         StepState(idxClient, stateHandle)
                     )
                 )
             } catch (e: Exception) {
                 Timber.e(e, "An error occurred.")
-                TODO()
+                _stateLiveData.postValue(State.FailedToLoad(messagesFromException(e)))
             }
         }
     }
 
-    fun signIn(form: State.Form) {
+    fun signIn(form: State.Form, step: Step) {
         callIdxClient(form) {
-            form.displayableStep.proceed(form.stepState)
+            step.proceed(form.stepState)
         }
     }
 
@@ -79,47 +86,41 @@ internal class DynamicViewModel : ViewModel() {
                 if (response.isLoginSuccessful) {
                     _stateLiveData.postValue(State.Success(form.stepState.token(response)))
                 } else {
-                    // TODO: Handle multiple steps.
                     _stateLiveData.postValue(
                         State.Form(
-                            IdxViewRegistry.asDisplaySteps(response)[0],
+                            IdxViewRegistry.asDisplaySteps(response),
                             form.stepState
                         )
                     )
                 }
             } catch (e: Exception) {
                 Timber.e(e, "An error occurred.")
-
-                when (e) {
-                    is ProcessingException -> {
-                        val messages = e.errorResponse.messages
-                        _stateLiveData.postValue(
-                            form.copy(
-                                messages = messages?.value?.map {
-                                    it.asFormMessage()
-                                } ?: listOf(State.Form.Message.Error("An error occurred."))
-                            )
-                        )
-                    }
-                    else -> {
-                        _stateLiveData.postValue(
-                            form.copy(
-                                messages = listOf(State.Form.Message.Error("An error occurred."))
-                            )
-                        )
-                    }
-                }
+                _stateLiveData.postValue(form.copy(messages = messagesFromException(e)))
             }
         }
     }
 
-    private fun MessageValue.asFormMessage(): State.Form.Message {
+    private fun messagesFromException(e: Exception): List<State.Message> {
+        return when (e) {
+            is ProcessingException -> {
+                val messages = e.errorResponse.messages
+                messages?.value?.map {
+                    it.asFormMessage()
+                } ?: listOf(State.Message.Error("An error occurred."))
+            }
+            else -> {
+                listOf(State.Message.Error("An error occurred."))
+            }
+        }
+    }
+
+    private fun MessageValue.asFormMessage(): State.Message {
         return when (value) {
             "ERROR" -> {
-                State.Form.Message.Error(message)
+                State.Message.Error(message)
             }
             "INFO" -> {
-                State.Form.Message.Info(message)
+                State.Message.Info(message)
             }
             else -> {
                 throw IllegalStateException("Unknown MessageValue value: $value")
@@ -129,25 +130,26 @@ internal class DynamicViewModel : ViewModel() {
 
     internal sealed class State {
         data class Form(
-            val displayableStep: DisplayableStep<*>,
+            val displayableSteps: List<DisplayableStep<*>>,
             val stepState: StepState,
             val messages: List<Message> = emptyList(),
-        ) : State() {
-            sealed class Message {
-                abstract val message: String
-                abstract val textColor: Int
-
-                data class Error(override val message: String) : Message() {
-                    override val textColor: Int = android.graphics.Color.RED
-                }
-
-                data class Info(override val message: String) : Message() {
-                    override val textColor: Int = android.graphics.Color.BLACK
-                }
-            }
-        }
+        ) : State()
 
         object Loading : State()
         class Success(val tokenResponse: TokenResponse) : State()
+        class FailedToLoad(val messages: List<Message>) : State()
+
+        sealed class Message {
+            abstract val message: String
+            abstract val textColor: Int
+
+            data class Error(override val message: String) : Message() {
+                override val textColor: Int = android.graphics.Color.RED
+            }
+
+            data class Info(override val message: String) : Message() {
+                override val textColor: Int = android.graphics.Color.BLACK
+            }
+        }
     }
 }

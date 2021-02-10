@@ -16,8 +16,6 @@
 package com.okta.idx.android.sdk.steps
 
 import android.view.View
-import android.view.ViewGroup
-import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.observe
@@ -34,20 +32,21 @@ import com.okta.idx.sdk.api.model.RemediationOption
 import com.okta.idx.sdk.api.response.IDXResponse
 
 class ChallengeAuthenticatorStep private constructor(
-    override val viewModel: ViewModel,
-) : Step<ChallengeAuthenticatorStep.ViewModel> {
-    class Factory : StepFactory<ViewModel> {
-        override fun get(remediationOption: RemediationOption): Step<ViewModel>? {
+    val viewModel: ViewModel,
+) : Step {
+    class Factory : StepFactory<ChallengeAuthenticatorStep> {
+        override fun get(remediationOption: RemediationOption): ChallengeAuthenticatorStep? {
             if (remediationOption.name == "challenge-authenticator") {
                 val credentials = remediationOption.form().first { it.name == "credentials" }
                 val passcodeLabel = credentials.form.value.first { it.name == "passcode" }.label
-                return ChallengeAuthenticatorStep(ViewModel(passcodeLabel))
+                return ChallengeAuthenticatorStep(ViewModel(remediationOption, passcodeLabel))
             }
             return null
         }
     }
 
     class ViewModel internal constructor(
+        internal val remediationOption: RemediationOption,
         val passcodeLabel: String,
         var passcode: String = ""
     ) {
@@ -60,7 +59,7 @@ class ChallengeAuthenticatorStep private constructor(
     }
 
     override fun proceed(state: StepState): IDXResponse {
-        return state.answer(Credentials().apply {
+        return state.answer(viewModel.remediationOption, Credentials().apply {
             passcode = viewModel.passcode.toCharArray()
         })
     }
@@ -70,20 +69,19 @@ class ChallengeAuthenticatorStep private constructor(
     }
 }
 
-class ChallengeAuthenticatorViewFactory : ViewFactory<ChallengeAuthenticatorStep.ViewModel> {
+class ChallengeAuthenticatorViewFactory : ViewFactory<ChallengeAuthenticatorStep> {
     override fun createUi(
-        parent: ViewGroup,
-        viewLifecycleOwner: LifecycleOwner,
-        viewModel: ChallengeAuthenticatorStep.ViewModel
+        references: ViewFactory.References,
+        step: ChallengeAuthenticatorStep
     ): View {
-        val binding = parent.inflateBinding(StepChallengeAuthenticatorBinding::inflate)
+        val binding = references.parent.inflateBinding(StepChallengeAuthenticatorBinding::inflate)
 
-        binding.passcodeTextInputLayout.hint = viewModel.passcodeLabel
-        binding.passcodeEditText.setText(viewModel.passcode)
+        binding.passcodeTextInputLayout.hint = step.viewModel.passcodeLabel
+        binding.passcodeEditText.setText(step.viewModel.passcode)
         binding.passcodeEditText.doOnTextChanged { passcode ->
-            viewModel.passcode = passcode
+            step.viewModel.passcode = passcode
         }
-        viewModel.errorsLiveData.observe(viewLifecycleOwner) { errorMessage ->
+        step.viewModel.errorsLiveData.observe(references.viewLifecycleOwner) { errorMessage ->
             binding.passcodeTextInputLayout.error = errorMessage
         }
 

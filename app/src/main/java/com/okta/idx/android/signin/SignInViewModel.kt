@@ -22,6 +22,7 @@ import androidx.lifecycle.viewModelScope
 import com.okta.idx.android.network.Network
 import com.okta.idx.sdk.api.client.IDXClient
 import com.okta.idx.sdk.api.model.Credentials
+import com.okta.idx.sdk.api.model.RemediationOption
 import com.okta.idx.sdk.api.request.AnswerChallengeRequestBuilder
 import com.okta.idx.sdk.api.request.IdentifyRequestBuilder
 import com.okta.idx.sdk.api.response.IDXResponse
@@ -61,13 +62,15 @@ internal class SignInViewModel : ViewModel() {
             val steps = mutableListOf<(previousResponse: IDXResponse) -> IDXResponse>()
 
             steps += { previousResponse ->
-                val formValues = previousResponse.remediation().remediationOptions()[0].form()
+                val remediationOption = previousResponse.remediation().remediationOptions()[0]
+                val formValues = remediationOption.form()
                 val requiresPassword = formValues.any { it.name == "credentials" }
-                identify(requiresPassword)
+                identify(remediationOption, requiresPassword)
             }
 
-            steps += {
-                answer(Credentials().apply { passcode = password.toCharArray() })
+            steps += { previousResponse ->
+                val remediationOption = previousResponse.remediation().remediationOptions()[0]
+                answer(remediationOption, Credentials().apply { passcode = password.toCharArray() })
             }
 
             return steps
@@ -93,7 +96,10 @@ internal class SignInViewModel : ViewModel() {
             }
         }
 
-        private fun identify(requiresPassword: Boolean): IDXResponse {
+        private fun identify(
+            remediationOption: RemediationOption,
+            requiresPassword: Boolean
+        ): IDXResponse {
             val identifyRequest = IdentifyRequestBuilder.builder()
                 .withIdentifier(username)
                 .apply {
@@ -104,15 +110,18 @@ internal class SignInViewModel : ViewModel() {
                 .withRememberMe(false)
                 .withStateHandle(stateHandle)
                 .build()
-            return idxClient.identify(identifyRequest)
+            return remediationOption.proceed(idxClient, identifyRequest)
         }
 
-        private fun answer(credentials: Credentials): IDXResponse {
+        private fun answer(
+            remediationOption: RemediationOption,
+            credentials: Credentials
+        ): IDXResponse {
             val answerChallengeRequest = AnswerChallengeRequestBuilder.builder()
                 .withStateHandle(stateHandle)
                 .withCredentials(credentials)
                 .build()
-            return idxClient.answerChallenge(answerChallengeRequest)
+            return remediationOption.proceed(idxClient, answerChallengeRequest)
         }
     }
 }

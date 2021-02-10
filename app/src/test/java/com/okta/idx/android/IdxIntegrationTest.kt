@@ -78,7 +78,8 @@ class IdxIntegrationTest {
             .withRememberMe(false)
             .withStateHandle("stateHandle")
             .build()
-        val identifyResponse = idxClient.identify(identifyRequest)
+        val introspectRemediationOption = introspectResponse.remediation().remediationOptions()[0]
+        val identifyResponse = introspectRemediationOption.proceed(idxClient, identifyRequest)
         assertThat(identifyResponse).isNotNull()
         assertThat(identifyResponse.remediation()).isNotNull()
         assertThat(identifyResponse.remediation().remediationOptions()).isNotNull()

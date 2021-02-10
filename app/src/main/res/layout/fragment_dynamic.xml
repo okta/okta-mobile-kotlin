@@ -13,10 +13,11 @@
         android:orientation="vertical"
         >
 
-        <FrameLayout
+        <LinearLayout
             android:id="@+id/messages_content"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:orientation="vertical"
             android:padding="15dp"
             />
 
@@ -38,6 +39,14 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/cancel"
+            />
+
+        <LinearLayout
+            android:id="@+id/button_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:orientation="vertical"
             />
     </LinearLayout>
 </ScrollView>

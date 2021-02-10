@@ -141,4 +141,19 @@ class EnrollTest {
         onView(withText("Token Type:")).check(matches(isDisplayed()))
         onView(withText("Bearer")).check(matches(isDisplayed()))
     }
+
+    @Test fun testEnrollProfile() {
+        activityRule.scenario.moveToState(Lifecycle.State.RESUMED)
+        onView(withId(R.id.enroll_profile_button)).perform(click())
+
+        waitForElement(ID_SUBMIT)
+        onView(withHint("Last name")).perform(replaceText("Hi"))
+        onView(withHint("First name")).perform(replaceText("Hi"))
+        onView(withHint("Email")).perform(replaceText("Hi"))
+        onView(withId(R.id.submit_button)).perform(click())
+
+        waitForElement(ID_TOKEN_TYPE)
+        onView(withText("Token Type:")).check(matches(isDisplayed()))
+        onView(withText("Bearer")).check(matches(isDisplayed()))
+    }
 }

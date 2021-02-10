@@ -16,8 +16,6 @@
 package com.okta.idx.android.sdk.steps
 
 import android.view.View
-import android.view.ViewGroup
-import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.observe
@@ -34,10 +32,10 @@ import com.okta.idx.sdk.api.model.RemediationOption
 import com.okta.idx.sdk.api.response.IDXResponse
 
 class IdentifyUsernameAndPasswordStep private constructor(
-    override val viewModel: ViewModel,
-) : Step<IdentifyUsernameAndPasswordStep.ViewModel> {
-    class Factory : StepFactory<ViewModel> {
-        override fun get(remediationOption: RemediationOption): Step<ViewModel>? {
+    val viewModel: ViewModel,
+) : Step {
+    class Factory : StepFactory<IdentifyUsernameAndPasswordStep> {
+        override fun get(remediationOption: RemediationOption): IdentifyUsernameAndPasswordStep? {
             if (remediationOption.name == "identify") {
                 val usernameLabel = remediationOption.form().first { it.name == "identifier" }.label
                 val rememberMeLabel =
@@ -47,9 +45,10 @@ class IdentifyUsernameAndPasswordStep private constructor(
                         remediationOption.form().first { it.name == "credentials" }.label
                     return IdentifyUsernameAndPasswordStep(
                         ViewModel(
-                            usernameLabel,
-                            passwordLabel,
-                            rememberMeLabel
+                            remediationOption = remediationOption,
+                            usernameLabel = usernameLabel,
+                            passwordLabel = passwordLabel,
+                            rememberMeLabel = rememberMeLabel
                         )
                     )
                 } else {
@@ -61,6 +60,7 @@ class IdentifyUsernameAndPasswordStep private constructor(
     }
 
     class ViewModel internal constructor(
+        internal val remediationOption: RemediationOption,
         val usernameLabel: String,
         val passwordLabel: String,
         val rememberMeLabel: String,
@@ -82,8 +82,12 @@ class IdentifyUsernameAndPasswordStep private constructor(
     }
 
     override fun proceed(state: StepState): IDXResponse {
-        return state.identify(viewModel.username, viewModel.rememberMe) {
+        return state.identify(
+            remediationOption = viewModel.remediationOption,
+        ) {
             withCredentials(Credentials().apply { passcode = viewModel.password.toCharArray() })
+            withIdentifier(viewModel.username)
+            withRememberMe(viewModel.rememberMe)
         }
     }
 
@@ -92,37 +96,36 @@ class IdentifyUsernameAndPasswordStep private constructor(
     }
 }
 
-class IdentifyUsernameAndPasswordViewFactory :
-    ViewFactory<IdentifyUsernameAndPasswordStep.ViewModel> {
+class IdentifyUsernameAndPasswordViewFactory : ViewFactory<IdentifyUsernameAndPasswordStep> {
     override fun createUi(
-        parent: ViewGroup,
-        viewLifecycleOwner: LifecycleOwner,
-        viewModel: IdentifyUsernameAndPasswordStep.ViewModel
+        references: ViewFactory.References,
+        step: IdentifyUsernameAndPasswordStep
     ): View {
-        val binding = parent.inflateBinding(StepIdentifyUsernameAndPasswordBinding::inflate)
+        val binding =
+            references.parent.inflateBinding(StepIdentifyUsernameAndPasswordBinding::inflate)
 
-        binding.usernameTextInputLayout.hint = viewModel.usernameLabel
-        binding.usernameEditText.setText(viewModel.username)
+        binding.usernameTextInputLayout.hint = step.viewModel.usernameLabel
+        binding.usernameEditText.setText(step.viewModel.username)
         binding.usernameEditText.doOnTextChanged { username ->
-            viewModel.username = username
+            step.viewModel.username = username
         }
-        viewModel.usernameErrorsLiveData.observe(viewLifecycleOwner) { errorMessage ->
+        step.viewModel.usernameErrorsLiveData.observe(references.viewLifecycleOwner) { errorMessage ->
             binding.usernameTextInputLayout.error = errorMessage
         }
 
-        binding.passwordTextInputLayout.hint = viewModel.passwordLabel
-        binding.passwordEditText.setText(viewModel.password)
+        binding.passwordTextInputLayout.hint = step.viewModel.passwordLabel
+        binding.passwordEditText.setText(step.viewModel.password)
         binding.passwordEditText.doOnTextChanged { password ->
-            viewModel.password = password
+            step.viewModel.password = password
         }
-        viewModel.passwordErrorsLiveData.observe(viewLifecycleOwner) { errorMessage ->
+        step.viewModel.passwordErrorsLiveData.observe(references.viewLifecycleOwner) { errorMessage ->
             binding.passwordTextInputLayout.error = errorMessage
         }
 
-        binding.rememberMeCheckBox.isChecked = viewModel.rememberMe
-        binding.rememberMeCheckBox.text = viewModel.rememberMeLabel
+        binding.rememberMeCheckBox.isChecked = step.viewModel.rememberMe
+        binding.rememberMeCheckBox.text = step.viewModel.rememberMeLabel
         binding.rememberMeCheckBox.setOnCheckedChangeListener { _, checked ->
-            viewModel.rememberMe = checked
+            step.viewModel.rememberMe = checked
         }
 
         return binding.root

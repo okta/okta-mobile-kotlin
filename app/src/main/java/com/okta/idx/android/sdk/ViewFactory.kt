@@ -19,6 +19,16 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.LifecycleOwner
 
-interface ViewFactory<ViewModel> {
-    fun createUi(parent: ViewGroup, viewLifecycleOwner: LifecycleOwner, viewModel: ViewModel): View
+interface ViewFactory<S : Step> {
+    interface Callback {
+        fun proceed(step: Step)
+    }
+
+    data class References internal constructor(
+        val parent: ViewGroup,
+        val viewLifecycleOwner: LifecycleOwner,
+        val callback: Callback,
+    )
+
+    fun createUi(references: References, step: S): View
 }

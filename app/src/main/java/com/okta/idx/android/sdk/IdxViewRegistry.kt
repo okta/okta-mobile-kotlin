@@ -15,27 +15,29 @@
  */
 package com.okta.idx.android.sdk
 
+import com.okta.idx.android.sdk.steps.ButtonStep
+import com.okta.idx.android.sdk.steps.ButtonViewFactory
 import com.okta.idx.android.sdk.steps.ChallengeAuthenticatorStep
 import com.okta.idx.android.sdk.steps.ChallengeAuthenticatorViewFactory
 import com.okta.idx.android.sdk.steps.EnrollAuthenticatorStep
 import com.okta.idx.android.sdk.steps.EnrollAuthenticatorViewFactory
+import com.okta.idx.android.sdk.steps.EnrollProfileStep
+import com.okta.idx.android.sdk.steps.EnrollProfileViewFactory
 import com.okta.idx.android.sdk.steps.IdentifyUsernameAndPasswordStep
 import com.okta.idx.android.sdk.steps.IdentifyUsernameAndPasswordViewFactory
 import com.okta.idx.android.sdk.steps.IdentifyUsernameStep
 import com.okta.idx.android.sdk.steps.IdentifyUsernameViewFactory
 import com.okta.idx.android.sdk.steps.SelectAuthenticatorStep
 import com.okta.idx.android.sdk.steps.SelectAuthenticatorViewFactory
-import com.okta.idx.android.sdk.steps.SkipStep
-import com.okta.idx.android.sdk.steps.SkipViewFactory
 import com.okta.idx.sdk.api.model.RemediationOption
 import com.okta.idx.sdk.api.response.IDXResponse
 
 object IdxViewRegistry {
-    private class FactoryWrapper<ViewModel>(
-        val stepFactory: StepFactory<ViewModel>,
-        val viewFactory: ViewFactory<ViewModel>,
+    private class FactoryWrapper<S : Step>(
+        val stepFactory: StepFactory<S>,
+        val viewFactory: ViewFactory<S>,
     ) {
-        fun displayableStep(remediationOption: RemediationOption): DisplayableStep<ViewModel>? {
+        fun displayableStep(remediationOption: RemediationOption): DisplayableStep<S>? {
             val step = stepFactory.get(remediationOption)
             if (step != null) {
                 return DisplayableStep(viewFactory, step)
@@ -55,12 +57,13 @@ object IdxViewRegistry {
         register(IdentifyUsernameStep.Factory(), IdentifyUsernameViewFactory())
         register(SelectAuthenticatorStep.Factory(), SelectAuthenticatorViewFactory())
         register(EnrollAuthenticatorStep.Factory(), EnrollAuthenticatorViewFactory())
-        register(SkipStep.Factory(), SkipViewFactory())
+        register(ButtonStep.Factory(), ButtonViewFactory())
+        register(EnrollProfileStep.Factory(), EnrollProfileViewFactory())
     }
 
-    fun <ViewModel> register(
-        stepFactory: StepFactory<ViewModel>,
-        viewFactory: ViewFactory<ViewModel>,
+    fun <S : Step> register(
+        stepFactory: StepFactory<S>,
+        viewFactory: ViewFactory<S>,
     ) {
         stepHandlers[stepFactory.javaClass] = FactoryWrapper(stepFactory, viewFactory)
     }

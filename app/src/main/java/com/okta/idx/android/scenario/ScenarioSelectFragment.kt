@@ -22,6 +22,7 @@ import androidx.navigation.fragment.findNavController
 import com.okta.idx.android.databinding.FragmentScenarioSelectBinding
 import com.okta.idx.android.dynamic.EnrollMockScenario
 import com.okta.idx.android.dynamic.EnrollPasscodeMockScenario
+import com.okta.idx.android.dynamic.EnrollProfileMockScenario
 import com.okta.idx.android.dynamic.MfaEmailMockScenario
 import com.okta.idx.android.network.mock.OktaMockWebServer
 import com.okta.idx.android.signin.SignInMockScenario
@@ -99,6 +100,20 @@ internal class ScenarioSelectFragment : BaseFragment<FragmentScenarioSelectBindi
                 withContext(Dispatchers.IO) {
                     OktaMockWebServer.mockingEnabled.set(true)
                     EnrollPasscodeMockScenario.prepare()
+                }
+
+                findNavController().navigate(ScenarioSelectFragmentDirections.scenarioSelectToDynamic())
+            }
+        }
+
+        binding.enrollProfileButton.setOnClickListener {
+            lifecycleScope.launch {
+                binding.progress.visibility = View.VISIBLE
+                binding.scenarioContent.visibility = View.GONE
+
+                withContext(Dispatchers.IO) {
+                    OktaMockWebServer.mockingEnabled.set(true)
+                    EnrollProfileMockScenario.prepare()
                 }
 
                 findNavController().navigate(ScenarioSelectFragmentDirections.scenarioSelectToDynamic())

@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<TextView
+<Button
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/skip_button"
+    android:id="@+id/button"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:text="@string/skip"
+    android:layout_gravity="center"
+    android:text="@string/try_again"
     />

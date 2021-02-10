@@ -21,4 +21,6 @@
     <string name="select_enroll_profile">Select Enroll Profile</string>
     <string name="confirm_password">Confirm Password</string>
     <string name="enroll_passcode">Enroll Passcode</string>
+    <string name="try_again">Try Again</string>
+    <string name="enroll_profile">Enroll Profile</string>
 </resources>

@@ -17,6 +17,6 @@ package com.okta.idx.android.sdk
 
 import com.okta.idx.sdk.api.model.RemediationOption
 
-interface StepFactory<ViewModel> {
-    fun get(remediationOption: RemediationOption): Step<ViewModel>?
+interface StepFactory<S : Step> {
+    fun get(remediationOption: RemediationOption): S?
 }

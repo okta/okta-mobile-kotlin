@@ -17,8 +17,7 @@ package com.okta.idx.android.sdk
 
 import com.okta.idx.sdk.api.response.IDXResponse
 
-interface Step<ViewModel> {
-    val viewModel: ViewModel
+interface Step {
     fun proceed(state: StepState): IDXResponse
     fun isValid(): Boolean
 }

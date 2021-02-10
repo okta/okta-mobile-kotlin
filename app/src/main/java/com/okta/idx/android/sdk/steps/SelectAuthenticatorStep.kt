@@ -16,9 +16,7 @@
 package com.okta.idx.android.sdk.steps
 
 import android.view.View
-import android.view.ViewGroup
 import android.widget.RadioGroup
-import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.observe
@@ -40,10 +38,10 @@ import com.okta.idx.sdk.api.model.RemediationOption
 import com.okta.idx.sdk.api.response.IDXResponse
 
 class SelectAuthenticatorStep private constructor(
-    override val viewModel: ViewModel,
-) : Step<SelectAuthenticatorStep.ViewModel> {
-    class Factory : StepFactory<ViewModel> {
-        override fun get(remediationOption: RemediationOption): Step<ViewModel>? {
+    val viewModel: ViewModel,
+) : Step {
+    class Factory : StepFactory<SelectAuthenticatorStep> {
+        override fun get(remediationOption: RemediationOption): SelectAuthenticatorStep? {
             if (remediationOption.name == "select-authenticator-authenticate") {
                 return SelectAuthenticatorStep(
                     remediationOption.viewModel(AuthenticatorType.Authenticate)
@@ -60,6 +58,7 @@ class SelectAuthenticatorStep private constructor(
         private fun RemediationOption.viewModel(authenticatorType: AuthenticatorType): ViewModel {
             val authenticator = form().first { it.name == "authenticator" }
             return ViewModel(
+                remediationOption = this,
                 authenticatorType = authenticatorType,
                 options = authenticator.stepOptions(),
             )
@@ -98,6 +97,7 @@ class SelectAuthenticatorStep private constructor(
     }
 
     class ViewModel internal constructor(
+        internal val remediationOption: RemediationOption,
         internal val authenticatorType: AuthenticatorType,
         val options: List<Option>,
         var selectedOption: Option? = null
@@ -115,14 +115,18 @@ class SelectAuthenticatorStep private constructor(
         object Authenticate : AuthenticatorType() {
             override fun proceed(viewModel: ViewModel, state: StepState): IDXResponse {
                 val selectedOption = viewModel.selectedOption!!
-                return state.challenge(selectedOption.id, selectedOption.method.value)
+                return state.challenge(
+                    remediationOption = viewModel.remediationOption,
+                    id = selectedOption.id,
+                    methodType = selectedOption.method.value
+                )
             }
         }
 
         object Enroll : AuthenticatorType() {
             override fun proceed(viewModel: ViewModel, state: StepState): IDXResponse {
                 val selectedOption = viewModel.selectedOption!!
-                return state.enroll(Authenticator().apply {
+                return state.enroll(viewModel.remediationOption, Authenticator().apply {
                     id = selectedOption.id
                 })
             }
@@ -188,15 +192,14 @@ class SelectAuthenticatorStep private constructor(
     }
 }
 
-class SelectAuthenticatorViewFactory : ViewFactory<SelectAuthenticatorStep.ViewModel> {
+class SelectAuthenticatorViewFactory : ViewFactory<SelectAuthenticatorStep> {
     override fun createUi(
-        parent: ViewGroup,
-        viewLifecycleOwner: LifecycleOwner,
-        viewModel: SelectAuthenticatorStep.ViewModel
+        references: ViewFactory.References,
+        step: SelectAuthenticatorStep
     ): View {
-        val binding = parent.inflateBinding(StepSelectAuthenticatorBinding::inflate)
+        val binding = references.parent.inflateBinding(StepSelectAuthenticatorBinding::inflate)
 
-        for (option in viewModel.options) {
+        for (option in step.viewModel.options) {
             val itemBinding =
                 binding.radioGroup.inflateBinding(StepSelectAuthenticatorItemBinding::inflate)
             itemBinding.radioButton.id = option.viewId
@@ -207,7 +210,7 @@ class SelectAuthenticatorViewFactory : ViewFactory<SelectAuthenticatorStep.ViewM
                 val methodBinding =
                     binding.radioGroup.inflateBinding(StepSelectAuthenticatorMethodBinding::inflate)
                 itemBinding.radioButton.setTag(R.id.nested_content, methodBinding.root)
-                option.method.errorsLiveData.observe(viewLifecycleOwner) { errorMessage ->
+                option.method.errorsLiveData.observe(references.viewLifecycleOwner) { errorMessage ->
                     methodBinding.errorTextView.text = errorMessage
                 }
 
@@ -217,19 +220,19 @@ class SelectAuthenticatorViewFactory : ViewFactory<SelectAuthenticatorStep.ViewM
         }
 
         binding.radioGroup.setOnCheckedChangeListener { _, checkedId ->
-            val selectedOption = viewModel.options.first { it.viewId == checkedId }
-            viewModel.selectedOption = selectedOption
+            val selectedOption = step.viewModel.options.first { it.viewId == checkedId }
+            step.viewModel.selectedOption = selectedOption
 
-            binding.radioGroup.updateNestedVisibility(viewModel)
+            binding.radioGroup.updateNestedVisibility(step.viewModel)
         }
 
-        viewModel.selectedOption?.also { selectedOption ->
+        step.viewModel.selectedOption?.also { selectedOption ->
             binding.radioGroup.check(selectedOption.viewId)
         }
 
-        binding.radioGroup.updateNestedVisibility(viewModel)
+        binding.radioGroup.updateNestedVisibility(step.viewModel)
 
-        viewModel.errorsLiveData.observe(viewLifecycleOwner) { error ->
+        step.viewModel.errorsLiveData.observe(references.viewLifecycleOwner) { error ->
             binding.errorTextView.text = error
             binding.errorTextView.visibility = if (error.isEmpty()) View.GONE else View.VISIBLE
         }

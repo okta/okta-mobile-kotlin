@@ -21,13 +21,13 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.google.common.truth.Truth.assertThat
+import com.okta.idx.android.sdk.steps.ButtonStep
 import com.okta.idx.android.sdk.steps.ChallengeAuthenticatorStep
 import com.okta.idx.android.sdk.steps.EnrollAuthenticatorStep
+import com.okta.idx.android.sdk.steps.EnrollProfileStep
 import com.okta.idx.android.sdk.steps.IdentifyUsernameAndPasswordStep
 import com.okta.idx.android.sdk.steps.IdentifyUsernameStep
 import com.okta.idx.android.sdk.steps.SelectAuthenticatorStep
-import com.okta.idx.android.sdk.steps.SelectEnrollProfileStep
-import com.okta.idx.android.sdk.steps.SkipStep
 import com.okta.idx.sdk.api.response.IDXResponse
 import okio.Buffer
 import org.junit.Test
@@ -48,10 +48,10 @@ internal class StepFactoryTest {
         return objectMapper.convertValue(responseJsonNode, IDXResponse::class.java)
     }
 
-    private fun <T> assertFactoryReturnsNonNull(
+    private fun <T : Step> assertFactoryReturnsNonNull(
         filename: String,
         factory: StepFactory<T>,
-        stepAssertionCallback: (step: Step<T>) -> Unit,
+        stepAssertionCallback: (step: T) -> Unit,
     ) {
         val response = idxResponse(filename)
         val remediationOption = response.remediation().remediationOptions()[0]
@@ -138,7 +138,8 @@ internal class StepFactoryTest {
         ) { step ->
             assertThat(step.viewModel.options).hasSize(2)
 
-            val firstOption = step.viewModel.options[0] as EnrollAuthenticatorStep.Option.QuestionSelect
+            val firstOption =
+                step.viewModel.options[0] as EnrollAuthenticatorStep.Option.QuestionSelect
             assertThat(firstOption.answerLabel).isEqualTo("Answer#Select")
             assertThat(firstOption.optionLabel).isEqualTo("Choose a security question")
             assertThat(firstOption.fieldLabel).isEqualTo("Choose a security question #field label")
@@ -146,7 +147,8 @@ internal class StepFactoryTest {
             assertThat(firstQuestion.label).isEqualTo("What is the food you least liked as a child?")
             assertThat(firstQuestion.value).isEqualTo("disliked_food")
 
-            val secondOption = step.viewModel.options[1] as EnrollAuthenticatorStep.Option.QuestionCustom
+            val secondOption =
+                step.viewModel.options[1] as EnrollAuthenticatorStep.Option.QuestionCustom
             assertThat(secondOption.answerLabel).isEqualTo("Answer#Custom")
             assertThat(secondOption.optionLabel).isEqualTo("Create my own security question")
             assertThat(secondOption.fieldLabel).isEqualTo("Create a security question")
@@ -169,9 +171,45 @@ internal class StepFactoryTest {
     @Test fun skip_returnsStep() {
         assertFactoryReturnsNonNull(
             "skip.json",
-            SkipStep.Factory()
+            ButtonStep.Factory()
         ) { step ->
             assertThat(step.viewModel).isNotNull()
+        }
+    }
+
+    @Test fun `select-enroll-profile_returnsStep`() {
+        assertFactoryReturnsNonNull(
+            "select-enroll-profile.json",
+            ButtonStep.Factory()
+        ) { step ->
+            assertThat(step.viewModel).isNotNull()
+        }
+    }
+
+    @Test fun `select-identify_returnsStep`() {
+        assertFactoryReturnsNonNull(
+            "select-identify.json",
+            ButtonStep.Factory()
+        ) { step ->
+            assertThat(step.viewModel).isNotNull()
+        }
+    }
+
+    @Test fun `enroll-profile_returnsStep`() {
+        assertFactoryReturnsNonNull(
+            "enroll-profile.json",
+            EnrollProfileStep.Factory()
+        ) { step ->
+            assertThat(step.viewModel).isNotNull()
+            assertThat(step.viewModel.attributes.size).isEqualTo(3)
+
+            assertThat(step.viewModel.attributes[0].name).isEqualTo("lastName")
+            assertThat(step.viewModel.attributes[0].label).isEqualTo("Last name")
+            assertThat(step.viewModel.attributes[0].required).isEqualTo(false)
+
+            assertThat(step.viewModel.attributes[1].name).isEqualTo("firstName")
+            assertThat(step.viewModel.attributes[1].label).isEqualTo("First name")
+            assertThat(step.viewModel.attributes[1].required).isEqualTo(true)
         }
     }
 }

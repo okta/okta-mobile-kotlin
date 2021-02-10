@@ -1,0 +1,57 @@
+{
+  "stateHandle": "02eZRnjT5ZncNwERSrcCHD2pf877lfFCT5MPhIpBsS",
+  "version": "1.0.0",
+  "expiresAt": "2021-01-27T21:24:14.000Z",
+  "intent": "LOGIN",
+  "remediation": {
+    "type": "array",
+    "value": [
+      {
+        "rel": [
+          "create-form"
+        ],
+        "name": "select-enroll-profile",
+        "href": "https://foo.oktapreview.com/idp/idx/enroll",
+        "method": "POST",
+        "produces": "application/ion+json; okta-version=1.0.0",
+        "value": [
+          {
+            "name": "stateHandle",
+            "required": true,
+            "value": "02eZRnjT5ZncNwERSrcCHD2pf877lfFCT5MPhIpBsS",
+            "visible": false,
+            "mutable": false
+          }
+        ],
+        "accepts": "application/json; okta-version=1.0.0"
+      }
+    ]
+  },
+  "cancel": {
+    "rel": [
+      "create-form"
+    ],
+    "name": "cancel",
+    "href": "https://foo.oktapreview.com/idp/idx/cancel",
+    "method": "POST",
+    "produces": "application/ion+json; okta-version=1.0.0",
+    "value": [
+      {
+        "name": "stateHandle",
+        "required": true,
+        "value": "02eZRnjT5ZncNwERSrcCHD2pf877lfFCT5MPhIpBsS",
+        "visible": false,
+        "mutable": false
+      }
+    ],
+    "accepts": "application/json; okta-version=1.0.0"
+  },
+  "app": {
+    "type": "object",
+    "value": {
+      "name": "oidc_client",
+      "label": "App",
+      "id": "0oa3kwpkybLg4AQHH0g7"
+    }
+  }
+}

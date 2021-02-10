@@ -45,10 +45,10 @@ import com.okta.idx.sdk.api.model.RemediationOption
 import com.okta.idx.sdk.api.response.IDXResponse
 
 class EnrollAuthenticatorStep private constructor(
-    override val viewModel: ViewModel
-) : Step<EnrollAuthenticatorStep.ViewModel> {
-    class Factory : StepFactory<ViewModel> {
-        override fun get(remediationOption: RemediationOption): Step<ViewModel>? {
+    val viewModel: ViewModel
+) : Step {
+    class Factory : StepFactory<EnrollAuthenticatorStep> {
+        override fun get(remediationOption: RemediationOption): EnrollAuthenticatorStep? {
             if (remediationOption.name == "enroll-authenticator") {
                 return EnrollAuthenticatorStep(remediationOption.viewModel())
             }
@@ -61,10 +61,10 @@ class EnrollAuthenticatorStep private constructor(
                 val options = mutableListOf<Option>()
                 options += credentials.options[0].viewModelOptionSelect()
                 options += credentials.options[1].viewModelOptionCustom()
-                return ViewModel(options)
+                return ViewModel(this, options)
             } else {
                 val passcode = credentials.form.value.first { it.name == "passcode" }
-                return ViewModel(listOf(passcode.viewModelOptionPasscode()))
+                return ViewModel(this, listOf(passcode.viewModelOptionPasscode()))
             }
         }
 
@@ -187,6 +187,7 @@ class EnrollAuthenticatorStep private constructor(
     )
 
     class ViewModel internal constructor(
+        internal val remediationOption: RemediationOption,
         val options: List<Option>,
         var selectedOption: Option? = defaultOption(options),
     ) {
@@ -211,7 +212,7 @@ class EnrollAuthenticatorStep private constructor(
     }
 
     override fun proceed(state: StepState): IDXResponse {
-        return state.answer(Credentials().apply {
+        return state.answer(viewModel.remediationOption, Credentials().apply {
             when (val selectedOption = viewModel.selectedOption) {
                 is Option.QuestionCustom -> {
                     questionKey = selectedOption.questionKey
@@ -234,33 +235,32 @@ class EnrollAuthenticatorStep private constructor(
     }
 }
 
-class EnrollAuthenticatorViewFactory : ViewFactory<EnrollAuthenticatorStep.ViewModel> {
+class EnrollAuthenticatorViewFactory : ViewFactory<EnrollAuthenticatorStep> {
     override fun createUi(
-        parent: ViewGroup,
-        viewLifecycleOwner: LifecycleOwner,
-        viewModel: EnrollAuthenticatorStep.ViewModel
+        references: ViewFactory.References,
+        step: EnrollAuthenticatorStep
     ): View {
-        val binding = parent.inflateBinding(StepEnrollAuthenticatorBinding::inflate)
+        val binding = references.parent.inflateBinding(StepEnrollAuthenticatorBinding::inflate)
 
-        for (option in viewModel.options) {
+        for (option in step.viewModel.options) {
             val itemBinding =
                 binding.radioGroup.inflateBinding(StepEnrollAuthenticatorOptionBinding::inflate)
             itemBinding.radioButton.id = option.viewId
             itemBinding.radioButton.text = option.optionLabel
-            if (viewModel.options.size == 1) {
+            if (step.viewModel.options.size == 1) {
                 itemBinding.radioButton.visibility = View.GONE
             }
             binding.radioGroup.addView(itemBinding.root)
 
             val contentView = when (option) {
                 is EnrollAuthenticatorStep.Option.QuestionSelect -> {
-                    questionSelectView(option, binding.radioGroup, viewLifecycleOwner)
+                    questionSelectView(option, binding.radioGroup, references.viewLifecycleOwner)
                 }
                 is EnrollAuthenticatorStep.Option.QuestionCustom -> {
-                    questionCustomView(option, binding.radioGroup, viewLifecycleOwner)
+                    questionCustomView(option, binding.radioGroup, references.viewLifecycleOwner)
                 }
                 is EnrollAuthenticatorStep.Option.Passcode -> {
-                    passcodeView(option, binding.radioGroup, viewLifecycleOwner)
+                    passcodeView(option, binding.radioGroup, references.viewLifecycleOwner)
                 }
             }
             contentView.visibility = View.GONE
@@ -269,14 +269,14 @@ class EnrollAuthenticatorViewFactory : ViewFactory<EnrollAuthenticatorStep.ViewM
         }
 
         binding.radioGroup.setOnCheckedChangeListener { _, checkedId ->
-            viewModel.selectedOption = viewModel.options.first { it.viewId == checkedId }
+            step.viewModel.selectedOption = step.viewModel.options.first { it.viewId == checkedId }
 
-            for (option in viewModel.options) {
+            for (option in step.viewModel.options) {
                 val contentView = binding.radioGroup
                     .findViewById<View>(option.viewId)
                     .getTag(R.id.enroll_item_content) as View
 
-                contentView.visibility = if (option == viewModel.selectedOption) {
+                contentView.visibility = if (option == step.viewModel.selectedOption) {
                     View.VISIBLE
                 } else {
                     View.GONE
@@ -284,11 +284,11 @@ class EnrollAuthenticatorViewFactory : ViewFactory<EnrollAuthenticatorStep.ViewM
             }
         }
 
-        viewModel.selectedOption?.also { selectedOption ->
+        step.viewModel.selectedOption?.also { selectedOption ->
             binding.radioGroup.check(selectedOption.viewId)
         }
 
-        viewModel.selectOptionErrorsLiveData.observe(viewLifecycleOwner) { errorMessage ->
+        step.viewModel.selectOptionErrorsLiveData.observe(references.viewLifecycleOwner) { errorMessage ->
             binding.radioGroupErrorTextView.text = errorMessage
         }
 

@@ -16,8 +16,6 @@
 package com.okta.idx.android.sdk.steps
 
 import android.view.View
-import android.view.ViewGroup
-import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.observe
@@ -33,10 +31,10 @@ import com.okta.idx.sdk.api.model.RemediationOption
 import com.okta.idx.sdk.api.response.IDXResponse
 
 class IdentifyUsernameStep private constructor(
-    override val viewModel: ViewModel,
-) : Step<IdentifyUsernameStep.ViewModel> {
-    class Factory : StepFactory<ViewModel> {
-        override fun get(remediationOption: RemediationOption): Step<ViewModel>? {
+    val viewModel: ViewModel,
+) : Step {
+    class Factory : StepFactory<IdentifyUsernameStep> {
+        override fun get(remediationOption: RemediationOption): IdentifyUsernameStep? {
             if (remediationOption.name == "identify") {
                 val usernameLabel = remediationOption.form().first { it.name == "identifier" }.label
                 val rememberMeLabel =
@@ -44,7 +42,13 @@ class IdentifyUsernameStep private constructor(
                 if (remediationOption.form().any { it.name == "credentials" }) {
                     return null
                 } else {
-                    return IdentifyUsernameStep(ViewModel(usernameLabel, rememberMeLabel))
+                    return IdentifyUsernameStep(
+                        ViewModel(
+                            remediationOption = remediationOption,
+                            usernameLabel = usernameLabel,
+                            rememberMeLabel = rememberMeLabel
+                        )
+                    )
                 }
             }
             return null
@@ -52,6 +56,7 @@ class IdentifyUsernameStep private constructor(
     }
 
     class ViewModel internal constructor(
+        internal val remediationOption: RemediationOption,
         val usernameLabel: String,
         val rememberMeLabel: String,
         var username: String = "",
@@ -66,7 +71,10 @@ class IdentifyUsernameStep private constructor(
     }
 
     override fun proceed(state: StepState): IDXResponse {
-        return state.identify(viewModel.username, viewModel.rememberMe)
+        return state.identify(viewModel.remediationOption) {
+            withIdentifier(viewModel.username)
+            withRememberMe(viewModel.rememberMe)
+        }
     }
 
     override fun isValid(): Boolean {
@@ -74,27 +82,26 @@ class IdentifyUsernameStep private constructor(
     }
 }
 
-class IdentifyUsernameViewFactory : ViewFactory<IdentifyUsernameStep.ViewModel> {
+class IdentifyUsernameViewFactory : ViewFactory<IdentifyUsernameStep> {
     override fun createUi(
-        parent: ViewGroup,
-        viewLifecycleOwner: LifecycleOwner,
-        viewModel: IdentifyUsernameStep.ViewModel
+        references: ViewFactory.References,
+        step: IdentifyUsernameStep
     ): View {
-        val binding = parent.inflateBinding(StepIdentifyUsernameBinding::inflate)
+        val binding = references.parent.inflateBinding(StepIdentifyUsernameBinding::inflate)
 
-        binding.usernameTextInputLayout.hint = viewModel.usernameLabel
-        binding.usernameEditText.setText(viewModel.username)
+        binding.usernameTextInputLayout.hint = step.viewModel.usernameLabel
+        binding.usernameEditText.setText(step.viewModel.username)
         binding.usernameEditText.doOnTextChanged { username ->
-            viewModel.username = username
+            step.viewModel.username = username
         }
-        viewModel.usernameErrorsLiveData.observe(viewLifecycleOwner) { errorMessage ->
+        step.viewModel.usernameErrorsLiveData.observe(references.viewLifecycleOwner) { errorMessage ->
             binding.usernameTextInputLayout.error = errorMessage
         }
 
-        binding.rememberMeCheckBox.isChecked = viewModel.rememberMe
-        binding.rememberMeCheckBox.text = viewModel.rememberMeLabel
+        binding.rememberMeCheckBox.isChecked = step.viewModel.rememberMe
+        binding.rememberMeCheckBox.text = step.viewModel.rememberMeLabel
         binding.rememberMeCheckBox.setOnCheckedChangeListener { _, checked ->
-            viewModel.rememberMe = checked
+            step.viewModel.rememberMe = checked
         }
 
         return binding.root
