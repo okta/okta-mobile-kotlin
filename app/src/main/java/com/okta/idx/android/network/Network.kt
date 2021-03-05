@@ -43,7 +43,6 @@ object Network {
         return Clients.builder()
             .setIssuer("https://this.does.not.exist.com")
             .setClientId("test-client-id")
-            .setClientSecret("test-client-secret")
             .setScopes(setOf("test-scope-1", "test-scope-2"))
             .setRedirectUri("http://okta.com")
             .build()
