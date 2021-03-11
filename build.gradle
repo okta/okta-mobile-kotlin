@@ -1,6 +1,8 @@
 buildscript {
     apply from: 'versions.gradle'
     addRepos(repositories)
+    forceVersions(configurations)
+
     dependencies {
         classpath deps.android_gradle_plugin
         classpath deps.kotlin.plugin
@@ -10,6 +12,7 @@ buildscript {
 
 allprojects {
     addRepos(repositories)
+    forceVersions(configurations)
 }
 
 task clean(type: Delete) {
