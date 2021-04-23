@@ -2,7 +2,7 @@
     <!-- Base application theme. -->
     <style name="Theme.OktaIDXAndroid" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
         <!-- Primary brand color. -->
-        <item name="colorPrimary">@color/purple_500</item>
+        <item name="colorPrimary">@color/primary_color</item>
         <item name="colorPrimaryVariant">@color/purple_700</item>
         <item name="colorOnPrimary">@color/white</item>
         <!-- Secondary brand color. -->
@@ -17,5 +17,9 @@
     <style name="Theme.OktaIDXAndroid.NoActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
+    </style>
+
+    <style name="BorderlessButton" parent="Widget.AppCompat.Button.Borderless">
+        <item name="android:textColor">#777777</item>
     </style>
 </resources>

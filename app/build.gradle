@@ -82,6 +82,8 @@ dependencies {
     androidTestImplementation deps.junit
     androidTestImplementation deps.androidx_test.core
     androidTestImplementation deps.androidx_test.ext_junit
+    debugImplementation deps.androidx_test.fragment
+    androidTestImplementation deps.androidx_test.navigation
     androidTestImplementation deps.androidx_test.runner
     androidTestImplementation deps.androidx_test.rules
     androidTestImplementation deps.androidx_test.uiautomator

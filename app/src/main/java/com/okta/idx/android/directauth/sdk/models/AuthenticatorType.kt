@@ -13,14 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.okta.idx.android
+package com.okta.idx.android.directauth.sdk.models
 
-import com.okta.idx.sdk.api.response.TokenResponse
+import com.okta.idx.sdk.api.model.AuthenticatorType as JavaAuthenticatorType
 
-internal object TokenViewModel {
-    var _tokenResponse: TokenResponse? = null
-    val tokenResponse: TokenResponse
-        get() {
-            return _tokenResponse!!
-        }
+enum class AuthenticatorType(
+    internal val authenticatorTypeText: String,
+    internal val authenticatorType: JavaAuthenticatorType,
+) {
+    PASSWORD("password", JavaAuthenticatorType.PASSWORD),
+    EMAIL("email", JavaAuthenticatorType.EMAIL),
+    SMS("sms", JavaAuthenticatorType.SMS),
+    //
+    ;
 }

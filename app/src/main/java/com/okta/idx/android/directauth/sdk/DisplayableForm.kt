@@ -13,14 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.okta.idx.android
+package com.okta.idx.android.directauth.sdk
 
-import com.okta.idx.sdk.api.response.TokenResponse
+import android.view.View
 
-internal object TokenViewModel {
-    var _tokenResponse: TokenResponse? = null
-    val tokenResponse: TokenResponse
-        get() {
-            return _tokenResponse!!
-        }
+class DisplayableForm<F : Form> internal constructor(
+    private val formViewFactory: FormViewFactory<F>,
+    val form: F,
+) {
+    fun createUi(references: FormViewFactory.References): View {
+        return formViewFactory.createUi(references, form)
+    }
 }

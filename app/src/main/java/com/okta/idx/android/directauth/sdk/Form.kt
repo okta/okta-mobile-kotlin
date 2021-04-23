@@ -13,14 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.okta.idx.android
+package com.okta.idx.android.directauth.sdk
 
-import com.okta.idx.sdk.api.response.TokenResponse
-
-internal object TokenViewModel {
-    var _tokenResponse: TokenResponse? = null
-    val tokenResponse: TokenResponse
-        get() {
-            return _tokenResponse!!
-        }
-}
+interface Form

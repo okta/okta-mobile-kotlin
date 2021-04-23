@@ -23,4 +23,12 @@
     <string name="enroll_passcode">Enroll Passcode</string>
     <string name="try_again">Try Again</string>
     <string name="enroll_profile">Enroll Profile</string>
+    <string name="last_name">Last Name</string>
+    <string name="first_name">First Name</string>
+    <string name="primary_email">Primary Email</string>
+    <string name="register">Register</string>
+    <string name="already_have_an_account">Already have an account?</string>
+    <string name="sign_up">Sign up</string>
+    <string name="select_factor">Select</string>
+    <string name="forgot_password">Forgot Password</string>
 </resources>
