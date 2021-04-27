@@ -21,13 +21,12 @@ import com.okta.idx.android.directauth.sdk.forms.ForgotPasswordSelectAuthenticat
 import com.okta.idx.android.directauth.sdk.forms.RegisterSelectAuthenticatorForm
 import com.okta.idx.android.directauth.sdk.forms.UsernamePasswordForm
 import com.okta.idx.android.directauth.sdk.models.AuthenticatorType
-import com.okta.idx.sdk.api.client.IDXClient
+import com.okta.idx.sdk.api.client.IDXAuthenticationWrapper
 import com.okta.idx.sdk.api.exception.ProcessingException
 import com.okta.idx.sdk.api.model.AuthenticationStatus
 import com.okta.idx.sdk.api.model.IDXClientContext
 import com.okta.idx.sdk.api.response.AuthenticationResponse
 import com.okta.idx.sdk.api.response.TokenResponse
-import com.okta.idx.sdk.api.wrapper.AuthenticationWrapper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -39,7 +38,7 @@ import timber.log.Timber
 data class FormAction internal constructor(
     private val viewModelScope: CoroutineScope,
     private val stateLiveData: MutableLiveData<State>,
-    private val idxClient: IDXClient,
+    private val authenticationWrapper: IDXAuthenticationWrapper,
 ) {
     sealed class State {
         data class Data(
@@ -59,7 +58,7 @@ data class FormAction internal constructor(
     }
 
     internal class ProceedData(
-        val idxClient: IDXClient
+        val authenticationWrapper: IDXAuthenticationWrapper
     ) {
         fun handleKnownTransitions(response: AuthenticationResponse): ProceedTransition? {
             if (response.tokenResponse != null) {
@@ -82,7 +81,7 @@ data class FormAction internal constructor(
             }
 
             val options =
-                AuthenticationWrapper.populateAuthenticatorUIOptions(idxClient, idxClientContext)
+                authenticationWrapper.populateAuthenticatorUIOptions(idxClientContext)
                     .map { uiOption ->
                         when (uiOption.type) {
                             AuthenticatorType.EMAIL.authenticatorTypeText -> {
@@ -110,12 +109,6 @@ data class FormAction internal constructor(
             previousResponse: AuthenticationResponse,
             formAction: FormAction
         ): ProceedTransition {
-            if (AuthenticationWrapper.isSkipAuthenticatorPresent(idxClient, previousResponse.idxClientContext)) {
-                val response =
-                    AuthenticationWrapper.skipAuthenticatorEnrollment(idxClient, previousResponse.idxClientContext)
-                handleKnownTransitions(response)?.let { return@forgotPasswordSelectAuthenticatorForm it }
-            }
-
             if (previousResponse.authenticationStatus == AuthenticationStatus.AWAITING_PASSWORD_RESET) {
                 return ProceedTransition.FormTransition(
                     ForgotPasswordResetForm(viewModel = ForgotPasswordResetForm.ViewModel(
@@ -125,8 +118,7 @@ data class FormAction internal constructor(
                 )
             }
 
-            val options = AuthenticationWrapper.populateForgotPasswordAuthenticatorUIOptions(
-                idxClient,
+            val options = authenticationWrapper.populateForgotPasswordAuthenticatorUIOptions(
                 previousResponse.idxClientContext
             ).map { uiOption ->
                 when (uiOption.type) {
@@ -160,7 +152,7 @@ data class FormAction internal constructor(
 
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                ProceedData(idxClient)
+                ProceedData(authenticationWrapper)
                     .invokeTransitionFactory(transitionFactory)
                     .handle(initialState)
             } catch (e: Exception) {

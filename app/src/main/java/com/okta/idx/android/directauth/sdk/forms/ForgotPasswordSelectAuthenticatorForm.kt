@@ -19,7 +19,6 @@ import com.okta.idx.android.directauth.sdk.Form
 import com.okta.idx.android.directauth.sdk.FormAction
 import com.okta.idx.android.directauth.sdk.models.AuthenticatorType
 import com.okta.idx.sdk.api.model.IDXClientContext
-import com.okta.idx.sdk.api.wrapper.AuthenticationWrapper
 import java.lang.UnsupportedOperationException
 
 class ForgotPasswordSelectAuthenticatorForm internal constructor(
@@ -33,8 +32,7 @@ class ForgotPasswordSelectAuthenticatorForm internal constructor(
 
     fun forgotPassword(type: AuthenticatorType) {
         formAction.proceed {
-            val response = AuthenticationWrapper.selectForgotPasswordAuthenticator(
-                idxClient,
+            val response = authenticationWrapper.selectForgotPasswordAuthenticator(
                 viewModel.idxClientContext,
                 type.authenticatorTypeText
             )

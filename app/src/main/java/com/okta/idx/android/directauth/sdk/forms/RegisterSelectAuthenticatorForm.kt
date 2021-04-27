@@ -19,7 +19,6 @@ import com.okta.idx.android.directauth.sdk.Form
 import com.okta.idx.android.directauth.sdk.FormAction
 import com.okta.idx.android.directauth.sdk.models.AuthenticatorType
 import com.okta.idx.sdk.api.model.IDXClientContext
-import com.okta.idx.sdk.api.wrapper.AuthenticationWrapper
 
 class RegisterSelectAuthenticatorForm internal constructor(
     val viewModel: ViewModel,
@@ -32,8 +31,7 @@ class RegisterSelectAuthenticatorForm internal constructor(
 
     fun register(type: AuthenticatorType) {
         formAction.proceed {
-            val response = AuthenticationWrapper.enrollAuthenticator(
-                idxClient,
+            val response = authenticationWrapper.enrollAuthenticator(
                 viewModel.idxClientContext,
                 type.authenticatorTypeText
             )

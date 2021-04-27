@@ -20,7 +20,6 @@ import androidx.lifecycle.MutableLiveData
 import com.okta.idx.android.directauth.sdk.Form
 import com.okta.idx.android.directauth.sdk.FormAction
 import com.okta.idx.android.directauth.sdk.util.emitValidation
-import com.okta.idx.sdk.api.wrapper.AuthenticationWrapper
 
 class ForgotPasswordForm internal constructor(
     val viewModel: ViewModel = ViewModel(),
@@ -42,7 +41,7 @@ class ForgotPasswordForm internal constructor(
 
         formAction.proceed {
             val response =
-                AuthenticationWrapper.recoverPassword(idxClient, viewModel.username)
+                authenticationWrapper.recoverPassword(viewModel.username)
             handleKnownTransitions(response)?.let { return@proceed it }
 
             forgotPasswordSelectAuthenticatorForm(response, formAction)

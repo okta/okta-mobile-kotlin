@@ -21,13 +21,13 @@ internal class DashboardViewModel : ViewModel() {
             try {
                 if (TokenViewModel.tokenResponse.refreshToken != null) {
                     // Revoking the refresh token revokes both!
-                    Network.idxClient().revokeToken(
-                        TokenType.REFRESH_TOKEN.toString(),
+                    Network.authenticationWrapper().revokeToken(
+                        TokenType.REFRESH_TOKEN,
                         TokenViewModel.tokenResponse.refreshToken
                     )
                 } else {
-                    Network.idxClient().revokeToken(
-                        TokenType.ACCESS_TOKEN.toString(),
+                    Network.authenticationWrapper().revokeToken(
+                        TokenType.ACCESS_TOKEN,
                         TokenViewModel.tokenResponse.accessToken
                     )
                 }

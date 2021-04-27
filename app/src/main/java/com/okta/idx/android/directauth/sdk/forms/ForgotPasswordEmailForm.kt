@@ -22,7 +22,6 @@ import com.okta.idx.android.directauth.sdk.FormAction
 import com.okta.idx.android.directauth.sdk.util.emitValidation
 import com.okta.idx.sdk.api.model.IDXClientContext
 import com.okta.idx.sdk.api.model.VerifyAuthenticatorOptions
-import com.okta.idx.sdk.api.wrapper.AuthenticationWrapper
 
 class ForgotPasswordEmailForm internal constructor(
     val viewModel: ViewModel,
@@ -47,8 +46,7 @@ class ForgotPasswordEmailForm internal constructor(
             val authenticatorOptions = VerifyAuthenticatorOptions().apply {
                 code = viewModel.code
             }
-            val response = AuthenticationWrapper.verifyAuthenticator(
-                idxClient,
+            val response = authenticationWrapper.verifyAuthenticator(
                 viewModel.idxClientContext,
                 authenticatorOptions,
             )

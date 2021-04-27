@@ -21,7 +21,6 @@ import com.okta.idx.android.directauth.sdk.Form
 import com.okta.idx.android.directauth.sdk.FormAction
 import com.okta.idx.android.directauth.sdk.util.emitValidation
 import com.okta.idx.sdk.api.model.IDXClientContext
-import com.okta.idx.sdk.api.wrapper.AuthenticationWrapper
 
 class RegisterPasswordForm internal constructor(
     val viewModel: ViewModel,
@@ -55,8 +54,7 @@ class RegisterPasswordForm internal constructor(
         if (!viewModel.isValid()) return
 
         formAction.proceed {
-            val response = AuthenticationWrapper.verifyPasswordAuthenticator(
-                idxClient,
+            val response = authenticationWrapper.verifyPasswordAuthenticator(
                 viewModel.idxClientContext,
                 viewModel.password,
             )

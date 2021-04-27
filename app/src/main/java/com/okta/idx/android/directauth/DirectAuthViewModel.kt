@@ -19,16 +19,14 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.okta.idx.android.directauth.sdk.DisplayableForm
 import com.okta.idx.android.directauth.sdk.FormAction
 import com.okta.idx.android.network.Network
-import com.okta.idx.sdk.api.response.TokenResponse
 
 internal class DirectAuthViewModel : ViewModel() {
     private val _stateLiveData = MutableLiveData<FormAction.State>()
     val stateLiveData: LiveData<FormAction.State> = _stateLiveData
 
-    private val formAction = FormAction(viewModelScope, _stateLiveData, Network.idxClient())
+    private val formAction = FormAction(viewModelScope, _stateLiveData, Network.authenticationWrapper())
 
     init {
         formAction.signOut()

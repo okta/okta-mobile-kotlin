@@ -21,7 +21,6 @@ import com.okta.idx.android.directauth.sdk.Form
 import com.okta.idx.android.directauth.sdk.FormAction
 import com.okta.idx.android.directauth.sdk.util.emitValidation
 import com.okta.idx.sdk.api.model.AuthenticationOptions
-import com.okta.idx.sdk.api.wrapper.AuthenticationWrapper
 
 class UsernamePasswordForm internal constructor(
     val viewModel: ViewModel = ViewModel(),
@@ -49,7 +48,7 @@ class UsernamePasswordForm internal constructor(
 
         formAction.proceed {
             val options = AuthenticationOptions(viewModel.username, viewModel.password)
-            val response = AuthenticationWrapper.authenticate(idxClient, options)
+            val response = authenticationWrapper.authenticate(options)
             handleKnownTransitions(response)?.let { return@proceed it }
             TODO("Ensure policy is properly set up.")
         }

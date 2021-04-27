@@ -21,7 +21,6 @@ import com.okta.idx.android.directauth.sdk.Form
 import com.okta.idx.android.directauth.sdk.FormAction
 import com.okta.idx.android.directauth.sdk.util.emitValidation
 import com.okta.idx.sdk.api.model.UserProfile
-import com.okta.idx.sdk.api.wrapper.AuthenticationWrapper
 
 class RegisterForm internal constructor(
     val viewModel: ViewModel = ViewModel(),
@@ -54,7 +53,7 @@ class RegisterForm internal constructor(
         if (!viewModel.isValid()) return
 
         formAction.proceed {
-            val newUserRegistrationResponse = AuthenticationWrapper.fetchSignUpFormValues(idxClient)
+            val newUserRegistrationResponse = authenticationWrapper.fetchSignUpFormValues()
 
             val userProfile = UserProfile()
             userProfile.addAttribute("lastName", viewModel.lastName)
@@ -63,7 +62,7 @@ class RegisterForm internal constructor(
 
             val idxClientContext = newUserRegistrationResponse.idxClientContext
 
-            val response = AuthenticationWrapper.register(idxClient, idxClientContext, userProfile)
+            val response = authenticationWrapper.register(idxClientContext, userProfile)
             handleKnownTransitions(response)?.let { return@proceed it }
 
             registerSelectAuthenticatorForm(idxClientContext, formAction)
