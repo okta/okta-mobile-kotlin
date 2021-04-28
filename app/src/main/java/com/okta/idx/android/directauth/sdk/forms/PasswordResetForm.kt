@@ -23,7 +23,7 @@ import com.okta.idx.android.directauth.sdk.util.emitValidation
 import com.okta.idx.sdk.api.model.ChangePasswordOptions
 import com.okta.idx.sdk.api.model.IDXClientContext
 
-class ForgotPasswordResetForm internal constructor(
+class PasswordResetForm internal constructor(
     val viewModel: ViewModel,
     private val formAction: FormAction,
 ) : Form {

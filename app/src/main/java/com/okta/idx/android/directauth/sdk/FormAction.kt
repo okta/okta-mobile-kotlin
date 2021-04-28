@@ -16,7 +16,7 @@
 package com.okta.idx.android.directauth.sdk
 
 import androidx.lifecycle.MutableLiveData
-import com.okta.idx.android.directauth.sdk.forms.ForgotPasswordResetForm
+import com.okta.idx.android.directauth.sdk.forms.PasswordResetForm
 import com.okta.idx.android.directauth.sdk.forms.ForgotPasswordSelectAuthenticatorForm
 import com.okta.idx.android.directauth.sdk.forms.RegisterSelectAuthenticatorForm
 import com.okta.idx.android.directauth.sdk.forms.UsernamePasswordForm
@@ -59,7 +59,8 @@ data class FormAction internal constructor(
     }
 
     internal class ProceedData(
-        val authenticationWrapper: IDXAuthenticationWrapper
+        val authenticationWrapper: IDXAuthenticationWrapper,
+        private val formAction: FormAction,
     ) {
         fun handleKnownTransitions(response: AuthenticationResponse): ProceedTransition? {
             if (response.tokenResponse != null) {
@@ -70,6 +71,16 @@ data class FormAction internal constructor(
             }
             if (response.authenticationStatus == null && response.errors.isNotEmpty()) {
                 return ProceedTransition.ErrorTransition(response.errors)
+            }
+            if (response.authenticationStatus == AuthenticationStatus.PASSWORD_EXPIRED) {
+                return ProceedTransition.FormTransition(
+                    PasswordResetForm(
+                        viewModel = PasswordResetForm.ViewModel(
+                            idxClientContext = response.idxClientContext
+                        ),
+                        formAction = formAction,
+                    )
+                )
             }
             return null
         }
@@ -111,8 +122,8 @@ data class FormAction internal constructor(
         ): ProceedTransition {
             if (previousResponse.authenticationStatus == AuthenticationStatus.AWAITING_PASSWORD_RESET) {
                 return ProceedTransition.FormTransition(
-                    ForgotPasswordResetForm(
-                        viewModel = ForgotPasswordResetForm.ViewModel(
+                    PasswordResetForm(
+                        viewModel = PasswordResetForm.ViewModel(
                             idxClientContext = previousResponse.idxClientContext
                         ),
                         formAction = formAction
@@ -159,9 +170,10 @@ data class FormAction internal constructor(
 
         stateLiveData.value = State.Loading
 
+        val proceedData = ProceedData(authenticationWrapper, this)
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                ProceedData(authenticationWrapper)
+                proceedData
                     .invokeTransitionFactory(transitionFactory)
                     .handle(initialState)
             } catch (e: Exception) {

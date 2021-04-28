@@ -16,19 +16,19 @@
 package com.okta.idx.android.directauth.sdk.viewFactories
 
 import android.view.View
-import com.okta.idx.android.databinding.FormForgotPasswordResetBinding
+import com.okta.idx.android.databinding.FormPasswordResetBinding
 import com.okta.idx.android.directauth.sdk.FormViewFactory
-import com.okta.idx.android.directauth.sdk.forms.ForgotPasswordResetForm
+import com.okta.idx.android.directauth.sdk.forms.PasswordResetForm
 import com.okta.idx.android.directauth.sdk.util.bindText
 import com.okta.idx.android.directauth.sdk.util.inflateBinding
 
-internal class ForgotPasswordResetFormViewFactory :
-    FormViewFactory<ForgotPasswordResetForm> {
+internal class PasswordResetFormViewFactory :
+    FormViewFactory<PasswordResetForm> {
     override fun createUi(
         references: FormViewFactory.References,
-        form: ForgotPasswordResetForm
+        form: PasswordResetForm
     ): View {
-        val binding = references.parent.inflateBinding(FormForgotPasswordResetBinding::inflate)
+        val binding = references.parent.inflateBinding(FormPasswordResetBinding::inflate)
 
         bindText(
             editText = binding.passwordEditText,
