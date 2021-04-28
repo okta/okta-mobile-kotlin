@@ -34,7 +34,12 @@ internal class RegisterSelectAuthenticatorFormViewFactory :
             references.parent.inflateBinding(FormRegisterSelectAuthenticatorBinding::inflate)
 
         for (option in form.viewModel.options) {
-            binding.root.addView(option.createView(binding.root, form), binding.root.childCount - 1)
+            binding.root.addView(option.createView(binding.root, form), binding.root.childCount - 2)
+        }
+
+        binding.skipButton.visibility = if (form.viewModel.canSkip) View.VISIBLE else View.GONE
+        binding.skipButton.setOnClickListener {
+            form.skip()
         }
 
         binding.signOutButton.setOnClickListener {

@@ -26,6 +26,7 @@ class RegisterSelectAuthenticatorForm internal constructor(
 ) : Form {
     class ViewModel internal constructor(
         val options: List<AuthenticatorType>,
+        val canSkip: Boolean,
         internal val idxClientContext: IDXClientContext,
     )
 
@@ -58,6 +59,15 @@ class RegisterSelectAuthenticatorForm internal constructor(
                     TODO()
                 }
             }
+        }
+    }
+
+    fun skip() {
+        formAction.proceed {
+            val response =
+                authenticationWrapper.skipAuthenticatorEnrollment(viewModel.idxClientContext)
+            handleKnownTransitions(response)?.let { return@proceed it }
+            TODO("Unsupported policy")
         }
     }
 

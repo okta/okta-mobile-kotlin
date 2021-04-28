@@ -9,6 +9,14 @@
     >
 
     <Button
+        android:id="@+id/skip_button"
+        style="@style/BorderlessButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/skip"
+        />
+
+    <Button
         android:id="@+id/sign_out_button"
         style="@style/BorderlessButton"
         android:layout_width="match_parent"

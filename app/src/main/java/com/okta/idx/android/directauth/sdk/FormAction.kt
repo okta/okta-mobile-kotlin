@@ -55,6 +55,7 @@ data class FormAction internal constructor(
         class TokenTransition(val tokenResponse: TokenResponse) : ProceedTransition()
         class FormTransition(val form: Form) : ProceedTransition()
         class ErrorTransition(val errors: List<String>) : ProceedTransition()
+        class TerminalTransition(val errors: List<String>) : ProceedTransition()
     }
 
     internal class ProceedData(
@@ -63,6 +64,9 @@ data class FormAction internal constructor(
         fun handleKnownTransitions(response: AuthenticationResponse): ProceedTransition? {
             if (response.tokenResponse != null) {
                 return ProceedTransition.TokenTransition(response.tokenResponse)
+            }
+            if (response.authenticationStatus == AuthenticationStatus.SKIP_COMPLETE) {
+                return ProceedTransition.TerminalTransition(response.errors ?: emptyList())
             }
             if (response.authenticationStatus == null && response.errors.isNotEmpty()) {
                 return ProceedTransition.ErrorTransition(response.errors)
@@ -74,12 +78,6 @@ data class FormAction internal constructor(
             idxClientContext: IDXClientContext,
             formAction: FormAction
         ): ProceedTransition {
-            if (AuthenticationWrapper.isSkipAuthenticatorPresent(idxClient, idxClientContext)) {
-                val response =
-                    AuthenticationWrapper.skipAuthenticatorEnrollment(idxClient, idxClientContext)
-                handleKnownTransitions(response)?.let { return@registerSelectAuthenticatorForm it }
-            }
-
             val options =
                 authenticationWrapper.populateAuthenticatorUIOptions(idxClientContext)
                     .map { uiOption ->
@@ -97,9 +95,11 @@ data class FormAction internal constructor(
                         }
                     }
 
+            val canSkip = authenticationWrapper.isSkipAuthenticatorPresent(idxClientContext)
+
             return ProceedTransition.FormTransition(
                 RegisterSelectAuthenticatorForm(
-                    RegisterSelectAuthenticatorForm.ViewModel(options, idxClientContext),
+                    RegisterSelectAuthenticatorForm.ViewModel(options, canSkip, idxClientContext),
                     formAction
                 )
             )
@@ -111,8 +111,10 @@ data class FormAction internal constructor(
         ): ProceedTransition {
             if (previousResponse.authenticationStatus == AuthenticationStatus.AWAITING_PASSWORD_RESET) {
                 return ProceedTransition.FormTransition(
-                    ForgotPasswordResetForm(viewModel = ForgotPasswordResetForm.ViewModel(
-                        idxClientContext = previousResponse.idxClientContext),
+                    ForgotPasswordResetForm(
+                        viewModel = ForgotPasswordResetForm.ViewModel(
+                            idxClientContext = previousResponse.idxClientContext
+                        ),
                         formAction = formAction
                     )
                 )
@@ -132,9 +134,16 @@ data class FormAction internal constructor(
                 }
             }
 
+            val canSkip =
+                authenticationWrapper.isSkipAuthenticatorPresent(previousResponse.idxClientContext)
+
             return ProceedTransition.FormTransition(
                 ForgotPasswordSelectAuthenticatorForm(
-                    ForgotPasswordSelectAuthenticatorForm.ViewModel(options, previousResponse.idxClientContext),
+                    ForgotPasswordSelectAuthenticatorForm.ViewModel(
+                        options,
+                        canSkip,
+                        previousResponse.idxClientContext
+                    ),
                     formAction
                 )
             )
@@ -179,6 +188,9 @@ data class FormAction internal constructor(
                     State.Data(form)
                 )
             }
+            is ProceedTransition.TerminalTransition -> stateLiveData.postValue(
+                State.Data(initialForm(), messages = errors)
+            )
         }
     }
 
@@ -197,6 +209,10 @@ data class FormAction internal constructor(
     }
 
     fun signOut() {
-        transitionToForm(UsernamePasswordForm(formAction = this))
+        transitionToForm(initialForm())
+    }
+
+    private fun initialForm(): Form {
+        return UsernamePasswordForm(formAction = this)
     }
 }

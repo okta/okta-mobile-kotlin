@@ -19,7 +19,6 @@ import com.okta.idx.android.directauth.sdk.Form
 import com.okta.idx.android.directauth.sdk.FormAction
 import com.okta.idx.android.directauth.sdk.models.AuthenticatorType
 import com.okta.idx.sdk.api.model.IDXClientContext
-import java.lang.UnsupportedOperationException
 
 class ForgotPasswordSelectAuthenticatorForm internal constructor(
     val viewModel: ViewModel,
@@ -27,6 +26,7 @@ class ForgotPasswordSelectAuthenticatorForm internal constructor(
 ) : Form {
     class ViewModel internal constructor(
         val options: List<AuthenticatorType>,
+        val canSkip: Boolean,
         internal val idxClientContext: IDXClientContext,
     )
 
@@ -52,6 +52,15 @@ class ForgotPasswordSelectAuthenticatorForm internal constructor(
                 }
                 else -> throw UnsupportedOperationException("Unsupported authenticator type: $type")
             }
+        }
+    }
+
+    fun skip() {
+        formAction.proceed {
+            val response =
+                authenticationWrapper.skipAuthenticatorEnrollment(viewModel.idxClientContext)
+            handleKnownTransitions(response)?.let { return@proceed it }
+            TODO("Unsupported policy")
         }
     }
 
