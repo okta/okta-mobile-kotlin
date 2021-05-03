@@ -23,44 +23,32 @@ import com.okta.idx.android.directauth.sdk.util.emitValidation
 import com.okta.idx.sdk.api.model.IDXClientContext
 import com.okta.idx.sdk.api.model.VerifyAuthenticatorOptions
 
-class RegisterPasswordForm internal constructor(
+class AuthenticateEmailForm internal constructor(
     val viewModel: ViewModel,
     private val formAction: FormAction,
 ) : Form {
     class ViewModel internal constructor(
-        var password: String = "",
-        var confirmedPassword: String = "",
+        var code: String = "",
         internal val idxClientContext: IDXClientContext,
     ) {
-        private val _passwordErrorsLiveData = MutableLiveData("")
-        val passwordErrorsLiveData: LiveData<String> = _passwordErrorsLiveData
-
-        private val _confirmedPasswordErrorsLiveData = MutableLiveData("")
-        val confirmedPasswordErrorsLiveData: LiveData<String> = _confirmedPasswordErrorsLiveData
-
-        private val _passwordsMatchErrorsLiveData = MutableLiveData("")
-        val passwordsMatchErrorsLiveData: LiveData<String> = _passwordsMatchErrorsLiveData
+        private val _codeErrorsLiveData = MutableLiveData("")
+        val codeErrorsLiveData: LiveData<String> = _codeErrorsLiveData
 
         fun isValid(): Boolean {
-            val passwordValid = _passwordErrorsLiveData.emitValidation { password.isNotEmpty() }
-            val confirmedPasswordValid =
-                _confirmedPasswordErrorsLiveData.emitValidation { confirmedPassword.isNotEmpty() }
-            val passwordsMatch =
-                _passwordsMatchErrorsLiveData.emitValidation("Passwords must match.") { password == confirmedPassword }
-            return passwordValid && confirmedPasswordValid && passwordsMatch
+            return _codeErrorsLiveData.emitValidation { code.isNotEmpty() }
         }
     }
 
-    fun verify() {
+    fun authenticate() {
         if (!viewModel.isValid()) return
 
         formAction.proceed {
             val response = authenticationWrapper.verifyAuthenticator(
                 viewModel.idxClientContext,
-                VerifyAuthenticatorOptions(viewModel.password),
+                VerifyAuthenticatorOptions(viewModel.code),
             )
             handleKnownTransitions(response)?.let { return@proceed it }
-            registerSelectAuthenticatorForm(response.idxClientContext, formAction)
+            authenticateSelectAuthenticatorForm(response.idxClientContext)
         }
     }
 

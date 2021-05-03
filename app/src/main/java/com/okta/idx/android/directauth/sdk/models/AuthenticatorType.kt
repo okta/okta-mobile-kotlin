@@ -24,6 +24,7 @@ enum class AuthenticatorType(
     PASSWORD("password", JavaAuthenticatorType.PASSWORD),
     EMAIL("email", JavaAuthenticatorType.EMAIL),
     SMS("sms", JavaAuthenticatorType.SMS),
+    VOICE("voice", JavaAuthenticatorType.VOICE),
     //
     ;
 }

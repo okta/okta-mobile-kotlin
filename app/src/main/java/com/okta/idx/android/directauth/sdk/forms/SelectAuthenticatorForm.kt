@@ -20,7 +20,7 @@ import com.okta.idx.android.directauth.sdk.FormAction
 import com.okta.idx.android.directauth.sdk.models.AuthenticatorType
 import com.okta.idx.sdk.api.model.IDXClientContext
 
-class RegisterSelectAuthenticatorForm internal constructor(
+class SelectAuthenticatorForm internal constructor(
     val viewModel: ViewModel,
     private val formAction: FormAction,
 ) : Form {
@@ -30,9 +30,9 @@ class RegisterSelectAuthenticatorForm internal constructor(
         internal val idxClientContext: IDXClientContext,
     )
 
-    fun register(type: AuthenticatorType) {
+    fun authenticate(type: AuthenticatorType) {
         formAction.proceed {
-            val response = authenticationWrapper.enrollAuthenticator(
+            val response = authenticationWrapper.selectAuthenticator(
                 viewModel.idxClientContext,
                 type.authenticatorTypeText
             )
@@ -41,19 +41,14 @@ class RegisterSelectAuthenticatorForm internal constructor(
             when (type) {
                 AuthenticatorType.EMAIL -> {
                     FormAction.ProceedTransition.FormTransition(
-                        RegisterEmailForm(
-                            RegisterEmailForm.ViewModel(idxClientContext = response.idxClientContext),
+                        AuthenticateEmailForm(
+                            AuthenticateEmailForm.ViewModel(idxClientContext = response.idxClientContext),
                             formAction
                         )
                     )
                 }
                 AuthenticatorType.PASSWORD -> {
-                    FormAction.ProceedTransition.FormTransition(
-                        RegisterPasswordForm(
-                            RegisterPasswordForm.ViewModel(idxClientContext = response.idxClientContext),
-                            formAction
-                        )
-                    )
+                    TODO("This should be done automatically in the authenticate SDK wrapper.")
                 }
                 AuthenticatorType.SMS -> {
                     TODO()

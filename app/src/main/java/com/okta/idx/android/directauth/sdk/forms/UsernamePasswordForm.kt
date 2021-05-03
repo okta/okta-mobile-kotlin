@@ -50,6 +50,7 @@ class UsernamePasswordForm internal constructor(
             val options = AuthenticationOptions(viewModel.username, viewModel.password)
             val response = authenticationWrapper.authenticate(options)
             handleKnownTransitions(response)?.let { return@proceed it }
+            // TODO: Select authenticator enroll - setup new factor
             TODO("Ensure policy is properly set up.")
         }
     }

@@ -21,6 +21,7 @@ import com.okta.idx.android.directauth.sdk.Form
 import com.okta.idx.android.directauth.sdk.FormAction
 import com.okta.idx.android.directauth.sdk.util.emitValidation
 import com.okta.idx.sdk.api.model.IDXClientContext
+import com.okta.idx.sdk.api.model.VerifyAuthenticatorOptions
 
 class RegisterEmailForm internal constructor(
     val viewModel: ViewModel,
@@ -42,9 +43,9 @@ class RegisterEmailForm internal constructor(
         if (!viewModel.isValid()) return
 
         formAction.proceed {
-            val response = authenticationWrapper.verifyEmailAuthenticator(
+            val response = authenticationWrapper.verifyAuthenticator(
                 viewModel.idxClientContext,
-                viewModel.code,
+                VerifyAuthenticatorOptions(viewModel.code),
             )
             handleKnownTransitions(response)?.let { return@proceed it }
             registerSelectAuthenticatorForm(response.idxClientContext, formAction)

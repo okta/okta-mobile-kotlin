@@ -43,9 +43,7 @@ class ForgotPasswordEmailForm internal constructor(
         if (!viewModel.isValid()) return
 
         formAction.proceed {
-            val authenticatorOptions = VerifyAuthenticatorOptions().apply {
-                code = viewModel.code
-            }
+            val authenticatorOptions = VerifyAuthenticatorOptions(viewModel.code)
             val response = authenticationWrapper.verifyAuthenticator(
                 viewModel.idxClientContext,
                 authenticatorOptions,
