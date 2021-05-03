@@ -41,8 +41,8 @@ class RegisterSelectAuthenticatorForm internal constructor(
             when (type) {
                 AuthenticatorType.EMAIL -> {
                     FormAction.ProceedTransition.FormTransition(
-                        RegisterEmailForm(
-                            RegisterEmailForm.ViewModel(idxClientContext = response.idxClientContext),
+                        RegisterVerifyCodeForm(
+                            RegisterVerifyCodeForm.ViewModel(idxClientContext = response.idxClientContext),
                             formAction
                         )
                     )
@@ -56,22 +56,33 @@ class RegisterSelectAuthenticatorForm internal constructor(
                     )
                 }
                 AuthenticatorType.SMS -> {
-                    TODO()
+                    FormAction.ProceedTransition.FormTransition(
+                        RegisterPhoneForm(
+                            RegisterPhoneForm.ViewModel(
+                                idxClientContext = response.idxClientContext,
+                                authenticatorType = AuthenticatorType.SMS
+                            ),
+                            formAction
+                        )
+                    )
                 }
                 AuthenticatorType.VOICE -> {
-                    TODO()
+                    FormAction.ProceedTransition.FormTransition(
+                        RegisterPhoneForm(
+                            RegisterPhoneForm.ViewModel(
+                                idxClientContext = response.idxClientContext,
+                                authenticatorType = AuthenticatorType.VOICE
+                            ),
+                            formAction
+                        )
+                    )
                 }
             }
         }
     }
 
     fun skip() {
-        formAction.proceed {
-            val response =
-                authenticationWrapper.skipAuthenticatorEnrollment(viewModel.idxClientContext)
-            handleKnownTransitions(response)?.let { return@proceed it }
-            TODO("Unsupported policy")
-        }
+        formAction.skip(viewModel.idxClientContext)
     }
 
     fun signOut() {

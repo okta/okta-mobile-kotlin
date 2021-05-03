@@ -16,24 +16,24 @@
 package com.okta.idx.android.directauth.sdk.viewFactories
 
 import android.view.View
-import com.okta.idx.android.databinding.FormRegisterEmailBinding
+import com.okta.idx.android.databinding.FormForgotPasswordVerifyCodeBinding
 import com.okta.idx.android.directauth.sdk.FormViewFactory
-import com.okta.idx.android.directauth.sdk.forms.RegisterEmailForm
+import com.okta.idx.android.directauth.sdk.forms.ForgotPasswordVerifyCodeForm
 import com.okta.idx.android.directauth.sdk.util.bindText
 import com.okta.idx.android.directauth.sdk.util.inflateBinding
 
-internal class RegisterEmailFormViewFactory :
-    FormViewFactory<RegisterEmailForm> {
+internal class ForgotPasswordVerifyCodeFormViewFactory :
+    FormViewFactory<ForgotPasswordVerifyCodeForm> {
     override fun createUi(
         references: FormViewFactory.References,
-        form: RegisterEmailForm
+        form: ForgotPasswordVerifyCodeForm
     ): View {
         val binding =
-            references.parent.inflateBinding(FormRegisterEmailBinding::inflate)
+            references.parent.inflateBinding(FormForgotPasswordVerifyCodeBinding::inflate)
 
         bindText(
-            editText = binding.emailCodeEditText,
-            textInputLayout = binding.emailCodeInputLayout,
+            editText = binding.codeEditText,
+            textInputLayout = binding.codeTextInputLayout,
             valueField = form.viewModel::code,
             errorsLiveData = form.viewModel.codeErrorsLiveData,
             references = references

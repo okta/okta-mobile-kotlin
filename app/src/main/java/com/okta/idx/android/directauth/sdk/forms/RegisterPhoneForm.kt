@@ -19,36 +19,45 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.okta.idx.android.directauth.sdk.Form
 import com.okta.idx.android.directauth.sdk.FormAction
+import com.okta.idx.android.directauth.sdk.models.AuthenticatorType
 import com.okta.idx.android.directauth.sdk.util.emitValidation
 import com.okta.idx.sdk.api.model.IDXClientContext
-import com.okta.idx.sdk.api.model.VerifyAuthenticatorOptions
 
-class AuthenticateEmailForm internal constructor(
+class RegisterPhoneForm internal constructor(
     val viewModel: ViewModel,
     private val formAction: FormAction,
 ) : Form {
     class ViewModel internal constructor(
-        var code: String = "",
+        var phoneNumber: String = "",
+        val authenticatorType: AuthenticatorType,
         internal val idxClientContext: IDXClientContext,
     ) {
-        private val _codeErrorsLiveData = MutableLiveData("")
-        val codeErrorsLiveData: LiveData<String> = _codeErrorsLiveData
+        private val _phoneNumberErrorsLiveData = MutableLiveData("")
+        val phoneNumberErrorsLiveData: LiveData<String> = _phoneNumberErrorsLiveData
 
         fun isValid(): Boolean {
-            return _codeErrorsLiveData.emitValidation { code.isNotEmpty() }
+            return _phoneNumberErrorsLiveData.emitValidation { phoneNumber.isNotEmpty() }
         }
     }
 
-    fun authenticate() {
+    fun register() {
         if (!viewModel.isValid()) return
 
         formAction.proceed {
-            val response = authenticationWrapper.verifyAuthenticator(
+            val response = authenticationWrapper.submitPhoneAuthenticator(
                 viewModel.idxClientContext,
-                VerifyAuthenticatorOptions(viewModel.code),
+                viewModel.phoneNumber,
+                viewModel.authenticatorType.authenticatorTypeText,
             )
             handleKnownTransitions(response)?.let { return@proceed it }
-            authenticateSelectAuthenticatorForm(response.idxClientContext)
+            FormAction.ProceedTransition.FormTransition(
+                RegisterVerifyCodeForm(
+                    viewModel = RegisterVerifyCodeForm.ViewModel(
+                        idxClientContext = viewModel.idxClientContext
+                    ),
+                    formAction = formAction
+                )
+            )
         }
     }
 

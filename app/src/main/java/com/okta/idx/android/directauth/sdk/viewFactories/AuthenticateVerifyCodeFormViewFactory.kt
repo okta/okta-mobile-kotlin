@@ -16,31 +16,31 @@
 package com.okta.idx.android.directauth.sdk.viewFactories
 
 import android.view.View
-import com.okta.idx.android.databinding.FormAuthenticateEmailBinding
+import com.okta.idx.android.databinding.FormAuthenticateVerifyCodeBinding
 import com.okta.idx.android.directauth.sdk.FormViewFactory
-import com.okta.idx.android.directauth.sdk.forms.AuthenticateEmailForm
+import com.okta.idx.android.directauth.sdk.forms.AuthenticateVerifyCodeForm
 import com.okta.idx.android.directauth.sdk.util.bindText
 import com.okta.idx.android.directauth.sdk.util.inflateBinding
 
-internal class AuthenticateEmailFormViewFactory :
-    FormViewFactory<AuthenticateEmailForm> {
+internal class AuthenticateVerifyCodeFormViewFactory :
+    FormViewFactory<AuthenticateVerifyCodeForm> {
     override fun createUi(
         references: FormViewFactory.References,
-        form: AuthenticateEmailForm
+        form: AuthenticateVerifyCodeForm
     ): View {
         val binding =
-            references.parent.inflateBinding(FormAuthenticateEmailBinding::inflate)
+            references.parent.inflateBinding(FormAuthenticateVerifyCodeBinding::inflate)
 
         bindText(
-            editText = binding.emailCodeEditText,
-            textInputLayout = binding.emailCodeInputLayout,
+            editText = binding.codeEditText,
+            textInputLayout = binding.codeTextInputLayout,
             valueField = form.viewModel::code,
             errorsLiveData = form.viewModel.codeErrorsLiveData,
             references = references
         )
 
         binding.submitButton.setOnClickListener {
-            form.authenticate()
+            form.verify()
         }
 
         binding.signOutButton.setOnClickListener {

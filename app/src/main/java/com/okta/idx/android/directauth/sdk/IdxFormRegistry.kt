@@ -15,25 +15,27 @@
  */
 package com.okta.idx.android.directauth.sdk
 
-import com.okta.idx.android.directauth.sdk.forms.AuthenticateEmailForm
-import com.okta.idx.android.directauth.sdk.forms.ForgotPasswordEmailForm
+import com.okta.idx.android.directauth.sdk.forms.AuthenticateVerifyCodeForm
+import com.okta.idx.android.directauth.sdk.forms.ForgotPasswordVerifyCodeForm
 import com.okta.idx.android.directauth.sdk.forms.ForgotPasswordForm
 import com.okta.idx.android.directauth.sdk.forms.PasswordResetForm
 import com.okta.idx.android.directauth.sdk.forms.ForgotPasswordSelectAuthenticatorForm
-import com.okta.idx.android.directauth.sdk.forms.RegisterEmailForm
+import com.okta.idx.android.directauth.sdk.forms.RegisterVerifyCodeForm
 import com.okta.idx.android.directauth.sdk.forms.RegisterForm
 import com.okta.idx.android.directauth.sdk.forms.RegisterPasswordForm
+import com.okta.idx.android.directauth.sdk.forms.RegisterPhoneForm
 import com.okta.idx.android.directauth.sdk.forms.RegisterSelectAuthenticatorForm
 import com.okta.idx.android.directauth.sdk.forms.SelectAuthenticatorForm
 import com.okta.idx.android.directauth.sdk.forms.UsernamePasswordForm
-import com.okta.idx.android.directauth.sdk.viewFactories.AuthenticateEmailFormViewFactory
-import com.okta.idx.android.directauth.sdk.viewFactories.ForgotPasswordEmailFormViewFactory
+import com.okta.idx.android.directauth.sdk.viewFactories.AuthenticateVerifyCodeFormViewFactory
+import com.okta.idx.android.directauth.sdk.viewFactories.ForgotPasswordVerifyCodeFormViewFactory
 import com.okta.idx.android.directauth.sdk.viewFactories.ForgotPasswordFormViewFactory
 import com.okta.idx.android.directauth.sdk.viewFactories.PasswordResetFormViewFactory
 import com.okta.idx.android.directauth.sdk.viewFactories.ForgotPasswordSelectAuthenticatorFormViewFactory
-import com.okta.idx.android.directauth.sdk.viewFactories.RegisterEmailFormViewFactory
+import com.okta.idx.android.directauth.sdk.viewFactories.RegisterVerifyCodeFormViewFactory
 import com.okta.idx.android.directauth.sdk.viewFactories.RegisterFormViewFactory
 import com.okta.idx.android.directauth.sdk.viewFactories.RegisterPasswordFormViewFactory
+import com.okta.idx.android.directauth.sdk.viewFactories.RegisterPhoneFormViewFactory
 import com.okta.idx.android.directauth.sdk.viewFactories.RegisterSelectAuthenticatorFormViewFactory
 import com.okta.idx.android.directauth.sdk.viewFactories.SelectAuthenticatorFormViewFactory
 import com.okta.idx.android.directauth.sdk.viewFactories.UsernamePasswordFormViewFactory
@@ -48,17 +50,18 @@ object IdxFormRegistry {
             RegisterSelectAuthenticatorForm::class.java,
             RegisterSelectAuthenticatorFormViewFactory()
         )
-        register(RegisterEmailForm::class.java, RegisterEmailFormViewFactory())
+        register(RegisterVerifyCodeForm::class.java, RegisterVerifyCodeFormViewFactory())
         register(RegisterPasswordForm::class.java, RegisterPasswordFormViewFactory())
+        register(RegisterPhoneForm::class.java, RegisterPhoneFormViewFactory())
         register(ForgotPasswordForm::class.java, ForgotPasswordFormViewFactory())
         register(
             ForgotPasswordSelectAuthenticatorForm::class.java,
             ForgotPasswordSelectAuthenticatorFormViewFactory()
         )
-        register(ForgotPasswordEmailForm::class.java, ForgotPasswordEmailFormViewFactory())
+        register(ForgotPasswordVerifyCodeForm::class.java, ForgotPasswordVerifyCodeFormViewFactory())
         register(PasswordResetForm::class.java, PasswordResetFormViewFactory())
         register(SelectAuthenticatorForm::class.java, SelectAuthenticatorFormViewFactory())
-        register(AuthenticateEmailForm::class.java, AuthenticateEmailFormViewFactory())
+        register(AuthenticateVerifyCodeForm::class.java, AuthenticateVerifyCodeFormViewFactory())
     }
 
     fun <F : Form> register(

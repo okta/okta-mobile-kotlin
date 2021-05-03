@@ -63,7 +63,7 @@ class RegisterForm internal constructor(
             val idxClientContext = newUserRegistrationResponse.idxClientContext
 
             val response = authenticationWrapper.register(idxClientContext, userProfile)
-            handleKnownTransitions(response)?.let { return@proceed it }
+            handleTerminalTransitions(response)?.let { return@proceed it }
 
             registerSelectAuthenticatorForm(idxClientContext, formAction)
         }

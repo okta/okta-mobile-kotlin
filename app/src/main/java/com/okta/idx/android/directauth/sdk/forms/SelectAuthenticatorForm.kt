@@ -36,37 +36,43 @@ class SelectAuthenticatorForm internal constructor(
                 viewModel.idxClientContext,
                 type.authenticatorTypeText
             )
-            handleKnownTransitions(response)?.let { return@proceed it }
+            handleTerminalTransitions(response)?.let { return@proceed it }
 
             when (type) {
                 AuthenticatorType.EMAIL -> {
                     FormAction.ProceedTransition.FormTransition(
-                        AuthenticateEmailForm(
-                            AuthenticateEmailForm.ViewModel(idxClientContext = response.idxClientContext),
+                        AuthenticateVerifyCodeForm(
+                            AuthenticateVerifyCodeForm.ViewModel(idxClientContext = response.idxClientContext),
                             formAction
                         )
                     )
                 }
                 AuthenticatorType.PASSWORD -> {
-                    TODO("This should be done automatically in the authenticate SDK wrapper.")
+                    // This should be done automatically in the authenticate SDK wrapper.
+                    unsupportedPolicy()
                 }
                 AuthenticatorType.SMS -> {
-                    TODO()
+                    FormAction.ProceedTransition.FormTransition(
+                        AuthenticateVerifyCodeForm(
+                            AuthenticateVerifyCodeForm.ViewModel(idxClientContext = response.idxClientContext),
+                            formAction
+                        )
+                    )
                 }
                 AuthenticatorType.VOICE -> {
-                    TODO()
+                    FormAction.ProceedTransition.FormTransition(
+                        AuthenticateVerifyCodeForm(
+                            AuthenticateVerifyCodeForm.ViewModel(idxClientContext = response.idxClientContext),
+                            formAction
+                        )
+                    )
                 }
             }
         }
     }
 
     fun skip() {
-        formAction.proceed {
-            val response =
-                authenticationWrapper.skipAuthenticatorEnrollment(viewModel.idxClientContext)
-            handleKnownTransitions(response)?.let { return@proceed it }
-            TODO("Unsupported policy")
-        }
+        formAction.skip(viewModel.idxClientContext)
     }
 
     fun signOut() {

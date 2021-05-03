@@ -9,14 +9,14 @@
     >
 
     <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/email_code_input_layout"
+        android:id="@+id/code_text_input_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="@string/email_code"
+        android:hint="@string/code"
         >
 
         <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/email_code_edit_text"
+            android:id="@+id/code_edit_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:lines="1"

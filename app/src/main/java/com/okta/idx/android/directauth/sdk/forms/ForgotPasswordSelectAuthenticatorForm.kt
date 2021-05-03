@@ -41,14 +41,27 @@ class ForgotPasswordSelectAuthenticatorForm internal constructor(
             when (type) {
                 AuthenticatorType.EMAIL -> {
                     FormAction.ProceedTransition.FormTransition(
-                        ForgotPasswordEmailForm(
-                            ForgotPasswordEmailForm.ViewModel(idxClientContext = response.idxClientContext),
+                        ForgotPasswordVerifyCodeForm(
+                            ForgotPasswordVerifyCodeForm.ViewModel(idxClientContext = response.idxClientContext),
                             formAction
                         )
                     )
                 }
                 AuthenticatorType.SMS -> {
-                    TODO()
+                    FormAction.ProceedTransition.FormTransition(
+                        ForgotPasswordVerifyCodeForm(
+                            ForgotPasswordVerifyCodeForm.ViewModel(idxClientContext = response.idxClientContext),
+                            formAction
+                        )
+                    )
+                }
+                AuthenticatorType.VOICE -> {
+                    FormAction.ProceedTransition.FormTransition(
+                        ForgotPasswordVerifyCodeForm(
+                            ForgotPasswordVerifyCodeForm.ViewModel(idxClientContext = response.idxClientContext),
+                            formAction
+                        )
+                    )
                 }
                 else -> throw UnsupportedOperationException("Unsupported authenticator type: $type")
             }
@@ -56,12 +69,7 @@ class ForgotPasswordSelectAuthenticatorForm internal constructor(
     }
 
     fun skip() {
-        formAction.proceed {
-            val response =
-                authenticationWrapper.skipAuthenticatorEnrollment(viewModel.idxClientContext)
-            handleKnownTransitions(response)?.let { return@proceed it }
-            TODO("Unsupported policy")
-        }
+        formAction.skip(viewModel.idxClientContext)
     }
 
     fun signOut() {
