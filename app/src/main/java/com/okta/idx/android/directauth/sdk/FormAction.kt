@@ -193,9 +193,6 @@ data class FormAction internal constructor(
 
             val authenticatorTypes = mutableListOf<AuthenticatorType>()
             for (authenticatorUIOption in this) {
-                if (authenticatorUIOption.type == "enrollmentId") {
-                    continue
-                }
                 val authenticatorType = map[authenticatorUIOption.type]
                 if (authenticatorType != null) {
                     authenticatorTypes += authenticatorType

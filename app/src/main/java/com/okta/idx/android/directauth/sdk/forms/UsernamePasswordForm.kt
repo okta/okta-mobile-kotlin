@@ -56,7 +56,10 @@ class UsernamePasswordForm internal constructor(
     }
 
     fun register() {
-        formAction.transitionToForm(RegisterForm(formAction = formAction))
+        formAction.transitionToForm(RegisterForm(
+            formAction = formAction,
+            viewModel = RegisterForm.ViewModel(primaryEmail = viewModel.username),
+        ))
     }
 
     fun forgotPassword() {
