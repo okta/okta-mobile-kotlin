@@ -17,62 +17,38 @@ package com.okta.idx.android.directauth.sdk.forms
 
 import com.okta.idx.android.directauth.sdk.Form
 import com.okta.idx.android.directauth.sdk.FormAction
-import com.okta.idx.android.directauth.sdk.models.AuthenticatorType
-import com.okta.idx.sdk.api.model.IDXClientContext
+import com.okta.idx.sdk.api.client.Authenticator
+import com.okta.idx.sdk.api.client.ProceedContext
 
 class SelectAuthenticatorForm internal constructor(
     val viewModel: ViewModel,
     private val formAction: FormAction,
 ) : Form {
     class ViewModel internal constructor(
-        val options: List<AuthenticatorType>,
+        val authenticators: List<Authenticator>,
         val canSkip: Boolean,
-        internal val idxClientContext: IDXClientContext,
+        internal val proceedContext: ProceedContext,
     )
 
-    fun authenticate(type: AuthenticatorType) {
+    fun authenticate(factor: Authenticator.Factor) {
         formAction.proceed {
             val response = authenticationWrapper.selectAuthenticator(
-                viewModel.idxClientContext,
-                type.authenticatorTypeText
+                viewModel.proceedContext,
+                factor
             )
             handleTerminalTransitions(response)?.let { return@proceed it }
 
-            when (type) {
-                AuthenticatorType.EMAIL -> {
-                    FormAction.ProceedTransition.FormTransition(
-                        AuthenticateVerifyCodeForm(
-                            AuthenticateVerifyCodeForm.ViewModel(idxClientContext = response.idxClientContext),
-                            formAction
-                        )
-                    )
-                }
-                AuthenticatorType.PASSWORD -> {
-                    // This should be done automatically in the authenticate SDK wrapper.
-                    unsupportedPolicy()
-                }
-                AuthenticatorType.SMS -> {
-                    FormAction.ProceedTransition.FormTransition(
-                        AuthenticateVerifyCodeForm(
-                            AuthenticateVerifyCodeForm.ViewModel(idxClientContext = response.idxClientContext),
-                            formAction
-                        )
-                    )
-                }
-                AuthenticatorType.VOICE -> {
-                    FormAction.ProceedTransition.FormTransition(
-                        AuthenticateVerifyCodeForm(
-                            AuthenticateVerifyCodeForm.ViewModel(idxClientContext = response.idxClientContext),
-                            formAction
-                        )
-                    )
-                }
-            }
+            FormAction.ProceedTransition.FormTransition(
+                AuthenticateVerifyCodeForm(
+                    AuthenticateVerifyCodeForm.ViewModel(proceedContext = response.proceedContext),
+                    formAction
+                )
+            )
         }
     }
 
     fun skip() {
-        formAction.skip(viewModel.idxClientContext)
+        formAction.skip(viewModel.proceedContext)
     }
 
     fun signOut() {

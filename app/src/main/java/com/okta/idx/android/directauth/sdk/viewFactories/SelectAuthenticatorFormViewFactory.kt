@@ -21,8 +21,8 @@ import com.okta.idx.android.databinding.FormSelectAuthenticatorBinding
 import com.okta.idx.android.databinding.RowFactorBinding
 import com.okta.idx.android.directauth.sdk.FormViewFactory
 import com.okta.idx.android.directauth.sdk.forms.SelectAuthenticatorForm
-import com.okta.idx.android.directauth.sdk.models.AuthenticatorType
 import com.okta.idx.android.directauth.sdk.util.inflateBinding
+import com.okta.idx.sdk.api.client.Authenticator
 
 internal class SelectAuthenticatorFormViewFactory :
     FormViewFactory<SelectAuthenticatorForm> {
@@ -33,8 +33,10 @@ internal class SelectAuthenticatorFormViewFactory :
         val binding =
             references.parent.inflateBinding(FormSelectAuthenticatorBinding::inflate)
 
-        for (option in form.viewModel.options) {
-            binding.root.addView(option.createView(binding.root, form), binding.root.childCount - 2)
+        for (authenticator in form.viewModel.authenticators) {
+            for (factor in authenticator.factors) {
+                binding.root.addView(factor.createView(binding.root, form), binding.root.childCount - 2)
+            }
         }
 
         binding.skipButton.visibility = if (form.viewModel.canSkip) View.VISIBLE else View.GONE
@@ -49,12 +51,12 @@ internal class SelectAuthenticatorFormViewFactory :
         return binding.root
     }
 
-    private fun AuthenticatorType.createView(
+    private fun Authenticator.Factor.createView(
         parent: ViewGroup,
         form: SelectAuthenticatorForm
     ): View {
         val binding = parent.inflateBinding(RowFactorBinding::inflate)
-        binding.typeTextView.text = toString()
+        binding.typeTextView.text = method
         binding.selectButton.setOnClickListener {
             form.authenticate(this)
         }

@@ -20,8 +20,8 @@ import androidx.lifecycle.MutableLiveData
 import com.okta.idx.android.directauth.sdk.Form
 import com.okta.idx.android.directauth.sdk.FormAction
 import com.okta.idx.android.directauth.sdk.util.emitValidation
+import com.okta.idx.sdk.api.client.ProceedContext
 import com.okta.idx.sdk.api.model.ChangePasswordOptions
-import com.okta.idx.sdk.api.model.IDXClientContext
 
 class PasswordResetForm internal constructor(
     val viewModel: ViewModel,
@@ -30,7 +30,7 @@ class PasswordResetForm internal constructor(
     class ViewModel internal constructor(
         var password: String = "",
         var confirmedPassword: String = "",
-        internal val idxClientContext: IDXClientContext,
+        internal val proceedContext: ProceedContext,
     ) {
         private val _passwordErrorsLiveData = MutableLiveData("")
         val passwordErrorsLiveData: LiveData<String> = _passwordErrorsLiveData
@@ -59,7 +59,7 @@ class PasswordResetForm internal constructor(
                 newPassword = viewModel.password
             }
             val response = authenticationWrapper.changePassword(
-                viewModel.idxClientContext,
+                viewModel.proceedContext,
                 options,
             )
             handleKnownTransitions(response)?.let { return@proceed it }

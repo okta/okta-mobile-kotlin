@@ -20,7 +20,7 @@ import androidx.lifecycle.MutableLiveData
 import com.okta.idx.android.directauth.sdk.Form
 import com.okta.idx.android.directauth.sdk.FormAction
 import com.okta.idx.android.directauth.sdk.util.emitValidation
-import com.okta.idx.sdk.api.model.IDXClientContext
+import com.okta.idx.sdk.api.client.ProceedContext
 import com.okta.idx.sdk.api.model.VerifyAuthenticatorOptions
 
 class RegisterPasswordForm internal constructor(
@@ -30,7 +30,7 @@ class RegisterPasswordForm internal constructor(
     class ViewModel internal constructor(
         var password: String = "",
         var confirmedPassword: String = "",
-        internal val idxClientContext: IDXClientContext,
+        internal val proceedContext: ProceedContext,
     ) {
         private val _passwordErrorsLiveData = MutableLiveData("")
         val passwordErrorsLiveData: LiveData<String> = _passwordErrorsLiveData
@@ -56,11 +56,11 @@ class RegisterPasswordForm internal constructor(
 
         formAction.proceed {
             val response = authenticationWrapper.verifyAuthenticator(
-                viewModel.idxClientContext,
+                viewModel.proceedContext,
                 VerifyAuthenticatorOptions(viewModel.password),
             )
             handleKnownTransitions(response)?.let { return@proceed it }
-            registerSelectAuthenticatorForm(response.idxClientContext, formAction)
+            registerSelectAuthenticatorForm(response.authenticators, response.proceedContext, formAction)
         }
     }
 

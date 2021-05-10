@@ -21,12 +21,11 @@ import com.okta.idx.android.directauth.sdk.forms.PasswordResetForm
 import com.okta.idx.android.directauth.sdk.forms.RegisterSelectAuthenticatorForm
 import com.okta.idx.android.directauth.sdk.forms.SelectAuthenticatorForm
 import com.okta.idx.android.directauth.sdk.forms.UsernamePasswordForm
-import com.okta.idx.android.directauth.sdk.models.AuthenticatorType
+import com.okta.idx.sdk.api.client.Authenticator
 import com.okta.idx.sdk.api.client.IDXAuthenticationWrapper
+import com.okta.idx.sdk.api.client.ProceedContext
 import com.okta.idx.sdk.api.exception.ProcessingException
 import com.okta.idx.sdk.api.model.AuthenticationStatus
-import com.okta.idx.sdk.api.model.AuthenticatorUIOption
-import com.okta.idx.sdk.api.model.IDXClientContext
 import com.okta.idx.sdk.api.response.AuthenticationResponse
 import com.okta.idx.sdk.api.response.TokenResponse
 import kotlinx.coroutines.CoroutineScope
@@ -84,33 +83,32 @@ data class FormAction internal constructor(
                 return ProceedTransition.FormTransition(
                     PasswordResetForm(
                         viewModel = PasswordResetForm.ViewModel(
-                            idxClientContext = response.idxClientContext
+                            proceedContext = response.proceedContext
                         ),
                         formAction = formAction,
                     )
                 )
             }
             if (response.authenticationStatus == AuthenticationStatus.AWAITING_AUTHENTICATOR_SELECTION) {
-                return authenticateSelectAuthenticatorForm(response.idxClientContext)
+                return authenticateSelectAuthenticatorForm(response)
             }
             return null
         }
 
         fun registerSelectAuthenticatorForm(
-            idxClientContext: IDXClientContext,
+            authenticators: List<Authenticator>,
+            proceedContext: ProceedContext,
             formAction: FormAction
         ): ProceedTransition {
-            val response = authenticationWrapper.populateAuthenticatorUIOptions(idxClientContext)
-            if (response.hasErrors()) {
-                return ProceedTransition.ErrorTransition(response.errors)
-            }
-            val options = response.options.toAuthenticatorTypes()
-
-            val canSkip = authenticationWrapper.isSkipAuthenticatorPresent(idxClientContext)
+            val canSkip = authenticationWrapper.isSkipAuthenticatorPresent(proceedContext)
 
             return ProceedTransition.FormTransition(
                 RegisterSelectAuthenticatorForm(
-                    RegisterSelectAuthenticatorForm.ViewModel(options, canSkip, idxClientContext),
+                    RegisterSelectAuthenticatorForm.ViewModel(
+                        authenticators,
+                        canSkip,
+                        proceedContext
+                    ),
                     formAction
                 )
             )
@@ -124,30 +122,22 @@ data class FormAction internal constructor(
                 return ProceedTransition.FormTransition(
                     PasswordResetForm(
                         viewModel = PasswordResetForm.ViewModel(
-                            idxClientContext = previousResponse.idxClientContext
+                            proceedContext = previousResponse.proceedContext
                         ),
                         formAction = formAction
                     )
                 )
             }
 
-            val response = authenticationWrapper.populateForgotPasswordAuthenticatorUIOptions(
-                previousResponse.idxClientContext
-            )
-            if (response.hasErrors()) {
-                return ProceedTransition.ErrorTransition(response.errors)
-            }
-            val options = response.options.toAuthenticatorTypes(setOf(AuthenticatorType.PASSWORD))
-
             val canSkip =
-                authenticationWrapper.isSkipAuthenticatorPresent(previousResponse.idxClientContext)
+                authenticationWrapper.isSkipAuthenticatorPresent(previousResponse.proceedContext)
 
             return ProceedTransition.FormTransition(
                 ForgotPasswordSelectAuthenticatorForm(
                     ForgotPasswordSelectAuthenticatorForm.ViewModel(
-                        options,
+                        previousResponse.authenticators,
                         canSkip,
-                        previousResponse.idxClientContext
+                        previousResponse.proceedContext
                     ),
                     formAction
                 )
@@ -155,19 +145,18 @@ data class FormAction internal constructor(
         }
 
         fun authenticateSelectAuthenticatorForm(
-            idxClientContext: IDXClientContext
+            previousResponse: AuthenticationResponse
         ): ProceedTransition {
-            val response = authenticationWrapper.populateAuthenticatorUIOptions(idxClientContext)
-            if (response.hasErrors()) {
-                return ProceedTransition.ErrorTransition(response.errors)
-            }
-            val options = response.options.toAuthenticatorTypes()
-
-            val canSkip = authenticationWrapper.isSkipAuthenticatorPresent(idxClientContext)
+            val canSkip =
+                authenticationWrapper.isSkipAuthenticatorPresent(previousResponse.proceedContext)
 
             return ProceedTransition.FormTransition(
                 SelectAuthenticatorForm(
-                    SelectAuthenticatorForm.ViewModel(options, canSkip, idxClientContext),
+                    SelectAuthenticatorForm.ViewModel(
+                        previousResponse.authenticators,
+                        canSkip,
+                        previousResponse.proceedContext
+                    ),
                     formAction
                 )
             )
@@ -179,28 +168,6 @@ data class FormAction internal constructor(
 
         suspend fun invokeTransitionFactory(transitionFactory: suspend ProceedData.() -> ProceedTransition): ProceedTransition {
             return transitionFactory()
-        }
-
-        private fun List<AuthenticatorUIOption>.toAuthenticatorTypes(
-            unsupportedOptions: Set<AuthenticatorType> = emptySet()
-        ): List<AuthenticatorType> {
-            val map = mutableMapOf<String, AuthenticatorType>()
-            for (authenticatorType in AuthenticatorType.values()) {
-                if (!unsupportedOptions.contains(authenticatorType)) {
-                    map[authenticatorType.authenticatorTypeText] = authenticatorType
-                }
-            }
-
-            val authenticatorTypes = mutableListOf<AuthenticatorType>()
-            for (authenticatorUIOption in this) {
-                val authenticatorType = map[authenticatorUIOption.type]
-                if (authenticatorType != null) {
-                    authenticatorTypes += authenticatorType
-                } else {
-                    throw IllegalArgumentException("Unsupported option: ${authenticatorUIOption.type}")
-                }
-            }
-            return authenticatorTypes
         }
     }
 
@@ -263,9 +230,9 @@ data class FormAction internal constructor(
         transitionToForm(initialForm())
     }
 
-    fun skip(idxClientContext: IDXClientContext) {
+    fun skip(proceedContext: ProceedContext) {
         proceed {
-            val response = authenticationWrapper.skipAuthenticatorEnrollment(idxClientContext)
+            val response = authenticationWrapper.skipAuthenticatorEnrollment(proceedContext)
             handleKnownTransitions(response)?.let { return@proceed it }
             unsupportedPolicy()
         }

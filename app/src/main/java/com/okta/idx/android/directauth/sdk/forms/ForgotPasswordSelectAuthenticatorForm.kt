@@ -17,59 +17,38 @@ package com.okta.idx.android.directauth.sdk.forms
 
 import com.okta.idx.android.directauth.sdk.Form
 import com.okta.idx.android.directauth.sdk.FormAction
-import com.okta.idx.android.directauth.sdk.models.AuthenticatorType
-import com.okta.idx.sdk.api.model.IDXClientContext
+import com.okta.idx.sdk.api.client.Authenticator
+import com.okta.idx.sdk.api.client.ProceedContext
 
 class ForgotPasswordSelectAuthenticatorForm internal constructor(
     val viewModel: ViewModel,
     private val formAction: FormAction,
 ) : Form {
     class ViewModel internal constructor(
-        val options: List<AuthenticatorType>,
+        val authenticators: List<Authenticator>,
         val canSkip: Boolean,
-        internal val idxClientContext: IDXClientContext,
+        internal val proceedContext: ProceedContext,
     )
 
-    fun forgotPassword(type: AuthenticatorType) {
+    fun forgotPassword(factor: Authenticator.Factor) {
         formAction.proceed {
-            val response = authenticationWrapper.selectForgotPasswordAuthenticator(
-                viewModel.idxClientContext,
-                type.authenticatorTypeText
+            val response = authenticationWrapper.selectAuthenticator(
+                viewModel.proceedContext,
+                factor
             )
             handleKnownTransitions(response)?.let { return@proceed it }
 
-            when (type) {
-                AuthenticatorType.EMAIL -> {
-                    FormAction.ProceedTransition.FormTransition(
-                        ForgotPasswordVerifyCodeForm(
-                            ForgotPasswordVerifyCodeForm.ViewModel(idxClientContext = response.idxClientContext),
-                            formAction
-                        )
-                    )
-                }
-                AuthenticatorType.SMS -> {
-                    FormAction.ProceedTransition.FormTransition(
-                        ForgotPasswordVerifyCodeForm(
-                            ForgotPasswordVerifyCodeForm.ViewModel(idxClientContext = response.idxClientContext),
-                            formAction
-                        )
-                    )
-                }
-                AuthenticatorType.VOICE -> {
-                    FormAction.ProceedTransition.FormTransition(
-                        ForgotPasswordVerifyCodeForm(
-                            ForgotPasswordVerifyCodeForm.ViewModel(idxClientContext = response.idxClientContext),
-                            formAction
-                        )
-                    )
-                }
-                else -> throw UnsupportedOperationException("Unsupported authenticator type: $type")
-            }
+            FormAction.ProceedTransition.FormTransition(
+                ForgotPasswordVerifyCodeForm(
+                    ForgotPasswordVerifyCodeForm.ViewModel(proceedContext = response.proceedContext),
+                    formAction
+                )
+            )
         }
     }
 
     fun skip() {
-        formAction.skip(viewModel.idxClientContext)
+        formAction.skip(viewModel.proceedContext)
     }
 
     fun signOut() {

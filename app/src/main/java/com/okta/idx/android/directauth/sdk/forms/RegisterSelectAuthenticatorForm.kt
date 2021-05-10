@@ -17,72 +17,73 @@ package com.okta.idx.android.directauth.sdk.forms
 
 import com.okta.idx.android.directauth.sdk.Form
 import com.okta.idx.android.directauth.sdk.FormAction
-import com.okta.idx.android.directauth.sdk.models.AuthenticatorType
-import com.okta.idx.sdk.api.model.IDXClientContext
+import com.okta.idx.sdk.api.client.Authenticator
+import com.okta.idx.sdk.api.client.ProceedContext
 
 class RegisterSelectAuthenticatorForm internal constructor(
     val viewModel: ViewModel,
     private val formAction: FormAction,
 ) : Form {
     class ViewModel internal constructor(
-        val options: List<AuthenticatorType>,
+        val authenticators: List<Authenticator>,
         val canSkip: Boolean,
-        internal val idxClientContext: IDXClientContext,
+        internal val proceedContext: ProceedContext,
     )
 
-    fun register(type: AuthenticatorType) {
+    fun register(factor: Authenticator.Factor) {
         formAction.proceed {
             val response = authenticationWrapper.enrollAuthenticator(
-                viewModel.idxClientContext,
-                type.authenticatorTypeText
+                viewModel.proceedContext,
+                factor
             )
             handleKnownTransitions(response)?.let { return@proceed it }
 
-            when (type) {
-                AuthenticatorType.EMAIL -> {
+            when (factor.method) {
+                "email" -> {
                     FormAction.ProceedTransition.FormTransition(
                         RegisterVerifyCodeForm(
-                            RegisterVerifyCodeForm.ViewModel(idxClientContext = response.idxClientContext),
+                            RegisterVerifyCodeForm.ViewModel(proceedContext = response.proceedContext),
                             formAction
                         )
                     )
                 }
-                AuthenticatorType.PASSWORD -> {
+                "password" -> {
                     FormAction.ProceedTransition.FormTransition(
                         RegisterPasswordForm(
-                            RegisterPasswordForm.ViewModel(idxClientContext = response.idxClientContext),
+                            RegisterPasswordForm.ViewModel(proceedContext = response.proceedContext),
                             formAction
                         )
                     )
                 }
-                AuthenticatorType.SMS -> {
+                "sms" -> {
                     FormAction.ProceedTransition.FormTransition(
                         RegisterPhoneForm(
                             RegisterPhoneForm.ViewModel(
-                                idxClientContext = response.idxClientContext,
-                                authenticatorType = AuthenticatorType.SMS
+                                proceedContext = response.proceedContext,
+                                factor = factor
                             ),
                             formAction
                         )
                     )
                 }
-                AuthenticatorType.VOICE -> {
+                "voice" -> {
                     FormAction.ProceedTransition.FormTransition(
                         RegisterPhoneForm(
                             RegisterPhoneForm.ViewModel(
-                                idxClientContext = response.idxClientContext,
-                                authenticatorType = AuthenticatorType.VOICE
+                                proceedContext = response.proceedContext,
+                                factor = factor
                             ),
                             formAction
                         )
                     )
                 }
+                else -> unsupportedPolicy()
             }
         }
     }
 
     fun skip() {
-        formAction.skip(viewModel.idxClientContext)
+        formAction.skip(viewModel.proceedContext)
     }
 
     fun signOut() {

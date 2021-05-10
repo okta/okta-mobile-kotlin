@@ -60,12 +60,12 @@ class RegisterForm internal constructor(
             userProfile.addAttribute("firstName", viewModel.firstName)
             userProfile.addAttribute("email", viewModel.primaryEmail)
 
-            val idxClientContext = newUserRegistrationResponse.idxClientContext
+            val proceedContext = newUserRegistrationResponse.proceedContext
 
-            val response = authenticationWrapper.register(idxClientContext, userProfile)
+            val response = authenticationWrapper.register(proceedContext, userProfile)
             handleTerminalTransitions(response)?.let { return@proceed it }
 
-            registerSelectAuthenticatorForm(idxClientContext, formAction)
+            registerSelectAuthenticatorForm(response.authenticators, response.proceedContext, formAction)
         }
     }
 
