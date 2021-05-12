@@ -23,6 +23,8 @@ import java.util.concurrent.atomic.AtomicReference
 object Network {
     private val clientConfiguratorReference = AtomicReference<OkHttpConfigurator?>()
 
+    const val baseUrl: String = "https://this.does.not.exist.com"
+
     fun okHttpClient(): OkHttpClient {
         val builder = OkHttpClient.Builder()
         builder.cookieJar(CookieJar.NO_COOKIES)
@@ -40,11 +42,11 @@ object Network {
 
     fun authenticationWrapper(): IDXAuthenticationWrapper {
         return IDXAuthenticationWrapper(
-            "https://this.does.not.exist.com",
+            baseUrl,
             "test-client-id",
             null, // Client secret should not be used on Android.
-            setOf("test-scope-1", "test-scope-2"),
-            "http://okta.com",
+            setOf("openid", "email", "profile", "offline_access"),
+            "com.okta.sample.android:/login",
         )
     }
 }

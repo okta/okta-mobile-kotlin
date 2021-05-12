@@ -22,6 +22,8 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.okta.idx.android.TokenViewModel
 import com.okta.idx.android.databinding.FragmentDashboardBinding
+import com.okta.idx.android.databinding.RowDashboardClaimBinding
+import com.okta.idx.android.directauth.sdk.util.inflateBinding
 import com.okta.idx.android.util.BaseFragment
 
 internal class DashboardFragment : BaseFragment<FragmentDashboardBinding>(
@@ -38,6 +40,15 @@ internal class DashboardFragment : BaseFragment<FragmentDashboardBinding>(
 
         binding.signOutButton.setOnClickListener {
             viewModel.logout()
+        }
+
+        viewModel.userInfoLiveData.observe(viewLifecycleOwner) { userInfo ->
+            for (entry in userInfo) {
+                val nestedBinding = binding.linearLayout.inflateBinding(RowDashboardClaimBinding::inflate)
+                nestedBinding.textViewKey.text = entry.key
+                nestedBinding.textViewValue.text = entry.value
+                binding.linearLayout.addView(nestedBinding.root, binding.linearLayout.childCount - 1)
+            }
         }
 
         viewModel.logoutStateLiveData.observe(viewLifecycleOwner) { state ->

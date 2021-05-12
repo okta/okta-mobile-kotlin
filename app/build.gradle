@@ -69,6 +69,8 @@ dependencies {
     implementation deps.timber
     implementation deps.okta.idx
 
+    implementation deps.jackson_databind
+
     debugImplementation deps.leakcanary.android
 
     testImplementation deps.junit
