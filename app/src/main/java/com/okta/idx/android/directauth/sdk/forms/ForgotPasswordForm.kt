@@ -40,11 +40,8 @@ class ForgotPasswordForm internal constructor(
         if (!viewModel.isValid()) return
 
         formAction.proceed {
-            val response =
-                authenticationWrapper.recoverPassword(viewModel.username)
-            handleTerminalTransitions(response)?.let { return@proceed it }
-
-            forgotPasswordSelectAuthenticatorForm(response, formAction)
+            val response = authenticationWrapper.recoverPassword(viewModel.username)
+            handleKnownTransitions(response)
         }
     }
 

@@ -16,10 +16,11 @@
 package com.okta.idx.android.directauth.sdk
 
 import androidx.lifecycle.MutableLiveData
-import com.okta.idx.android.directauth.sdk.forms.ForgotPasswordSelectAuthenticatorForm
-import com.okta.idx.android.directauth.sdk.forms.PasswordResetForm
-import com.okta.idx.android.directauth.sdk.forms.RegisterSelectAuthenticatorForm
+import com.okta.idx.android.directauth.sdk.forms.VerifyCodeForm
+import com.okta.idx.android.directauth.sdk.forms.RegisterPasswordForm
+import com.okta.idx.android.directauth.sdk.forms.RegisterPhoneForm
 import com.okta.idx.android.directauth.sdk.forms.SelectAuthenticatorForm
+import com.okta.idx.android.directauth.sdk.forms.SelectFactorForm
 import com.okta.idx.android.directauth.sdk.forms.UsernamePasswordForm
 import com.okta.idx.sdk.api.client.Authenticator
 import com.okta.idx.sdk.api.client.IDXAuthenticationWrapper
@@ -76,75 +77,30 @@ data class FormAction internal constructor(
             return null
         }
 
-        fun handleKnownTransitions(response: AuthenticationResponse): ProceedTransition? {
+        fun handleKnownTransitions(response: AuthenticationResponse): ProceedTransition {
             handleTerminalTransitions(response)?.let { return it }
 
-            if (response.authenticationStatus == AuthenticationStatus.PASSWORD_EXPIRED) {
-                return ProceedTransition.FormTransition(
-                    PasswordResetForm(
-                        viewModel = PasswordResetForm.ViewModel(
-                            proceedContext = response.proceedContext
-                        ),
-                        formAction = formAction,
-                    )
-                )
+            return when (response.authenticationStatus) {
+                AuthenticationStatus.AWAITING_PASSWORD_RESET -> {
+                    registerPasswordForm(response)
+                }
+                AuthenticationStatus.PASSWORD_EXPIRED -> {
+                    registerPasswordForm(response)
+                }
+                AuthenticationStatus.AWAITING_AUTHENTICATOR_SELECTION -> {
+                    selectAuthenticatorForm(response)
+                }
+                AuthenticationStatus.AWAITING_AUTHENTICATOR_VERIFICATION -> {
+                    verifyForm(response)
+                }
+                AuthenticationStatus.AWAITING_AUTHENTICATOR_ENROLLMENT_SELECTION -> {
+                    selectAuthenticatorForm(response)
+                }
+                else -> unsupportedPolicy()
             }
-            if (response.authenticationStatus == AuthenticationStatus.AWAITING_AUTHENTICATOR_SELECTION) {
-                return authenticateSelectAuthenticatorForm(response)
-            }
-            return null
         }
 
-        fun registerSelectAuthenticatorForm(
-            authenticators: List<Authenticator>,
-            proceedContext: ProceedContext,
-            formAction: FormAction
-        ): ProceedTransition {
-            val canSkip = authenticationWrapper.isSkipAuthenticatorPresent(proceedContext)
-
-            return ProceedTransition.FormTransition(
-                RegisterSelectAuthenticatorForm(
-                    RegisterSelectAuthenticatorForm.ViewModel(
-                        authenticators,
-                        canSkip,
-                        proceedContext
-                    ),
-                    formAction
-                )
-            )
-        }
-
-        fun forgotPasswordSelectAuthenticatorForm(
-            previousResponse: AuthenticationResponse,
-            formAction: FormAction
-        ): ProceedTransition {
-            if (previousResponse.authenticationStatus == AuthenticationStatus.AWAITING_PASSWORD_RESET) {
-                return ProceedTransition.FormTransition(
-                    PasswordResetForm(
-                        viewModel = PasswordResetForm.ViewModel(
-                            proceedContext = previousResponse.proceedContext
-                        ),
-                        formAction = formAction
-                    )
-                )
-            }
-
-            val canSkip =
-                authenticationWrapper.isSkipAuthenticatorPresent(previousResponse.proceedContext)
-
-            return ProceedTransition.FormTransition(
-                ForgotPasswordSelectAuthenticatorForm(
-                    ForgotPasswordSelectAuthenticatorForm.ViewModel(
-                        previousResponse.authenticators,
-                        canSkip,
-                        previousResponse.proceedContext
-                    ),
-                    formAction
-                )
-            )
-        }
-
-        fun authenticateSelectAuthenticatorForm(
+        private fun selectAuthenticatorForm(
             previousResponse: AuthenticationResponse
         ): ProceedTransition {
             val canSkip =
@@ -162,7 +118,84 @@ data class FormAction internal constructor(
             )
         }
 
-        fun unsupportedPolicy(): ProceedTransition {
+        fun selectFactorForm(
+            response: AuthenticationResponse,
+            factors: List<Authenticator.Factor>
+        ): ProceedTransition {
+            val canSkip = authenticationWrapper.isSkipAuthenticatorPresent(response.proceedContext)
+            return ProceedTransition.FormTransition(
+                SelectFactorForm(
+                    viewModel = SelectFactorForm.ViewModel(
+                        factors = factors,
+                        canSkip = canSkip,
+                        proceedContext = response.proceedContext,
+                    ),
+                    formAction = formAction,
+                )
+            )
+        }
+
+        fun registerVerifyForm(
+            response: AuthenticationResponse,
+            factor: Authenticator.Factor,
+        ): ProceedTransition {
+            return when (factor.method) {
+                "email" -> {
+                    ProceedTransition.FormTransition(
+                        VerifyCodeForm(
+                            VerifyCodeForm.ViewModel(proceedContext = response.proceedContext),
+                            formAction
+                        )
+                    )
+                }
+                "password" -> {
+                    registerPasswordForm(response)
+                }
+                "sms" -> {
+                    ProceedTransition.FormTransition(
+                        RegisterPhoneForm(
+                            RegisterPhoneForm.ViewModel(
+                                proceedContext = response.proceedContext,
+                                factor = factor
+                            ),
+                            formAction
+                        )
+                    )
+                }
+                "voice" -> {
+                    ProceedTransition.FormTransition(
+                        RegisterPhoneForm(
+                            RegisterPhoneForm.ViewModel(
+                                proceedContext = response.proceedContext,
+                                factor = factor
+                            ),
+                            formAction
+                        )
+                    )
+                }
+                else -> unsupportedPolicy()
+            }
+        }
+
+        private fun registerPasswordForm(response: AuthenticationResponse): ProceedTransition {
+            return ProceedTransition.FormTransition(
+                RegisterPasswordForm(
+                    RegisterPasswordForm.ViewModel(proceedContext = response.proceedContext),
+                    formAction
+                )
+            )
+        }
+
+        fun verifyForm(response: AuthenticationResponse): ProceedTransition {
+            return ProceedTransition.FormTransition(
+                VerifyCodeForm(
+                    VerifyCodeForm.ViewModel(proceedContext = response.proceedContext),
+                    formAction
+                )
+            )
+        }
+
+        private fun unsupportedPolicy(): ProceedTransition {
             return ProceedTransition.TerminalTransition(listOf("Unsupported policy"))
         }
 
@@ -233,8 +266,7 @@ data class FormAction internal constructor(
     fun skip(proceedContext: ProceedContext) {
         proceed {
             val response = authenticationWrapper.skipAuthenticatorEnrollment(proceedContext)
-            handleKnownTransitions(response)?.let { return@proceed it }
-            unsupportedPolicy()
+            handleKnownTransitions(response)
         }
     }
 

@@ -16,40 +16,27 @@
 package com.okta.idx.android.directauth.sdk.viewFactories
 
 import android.view.View
-import com.okta.idx.android.databinding.FormPasswordResetBinding
+import com.okta.idx.android.databinding.FormVerifyCodeBinding
 import com.okta.idx.android.directauth.sdk.FormViewFactory
-import com.okta.idx.android.directauth.sdk.forms.PasswordResetForm
+import com.okta.idx.android.directauth.sdk.forms.VerifyCodeForm
 import com.okta.idx.android.directauth.sdk.util.bindText
 import com.okta.idx.android.directauth.sdk.util.inflateBinding
 
-internal class PasswordResetFormViewFactory :
-    FormViewFactory<PasswordResetForm> {
+internal class VerifyCodeFormViewFactory :
+    FormViewFactory<VerifyCodeForm> {
     override fun createUi(
         references: FormViewFactory.References,
-        form: PasswordResetForm
+        form: VerifyCodeForm
     ): View {
-        val binding = references.parent.inflateBinding(FormPasswordResetBinding::inflate)
+        val binding = references.parent.inflateBinding(FormVerifyCodeBinding::inflate)
 
         bindText(
-            editText = binding.passwordEditText,
-            textInputLayout = binding.passwordInputLayout,
-            valueField = form.viewModel::password,
-            errorsLiveData = form.viewModel.passwordErrorsLiveData,
+            editText = binding.codeEditText,
+            textInputLayout = binding.codeTextInputLayout,
+            valueField = form.viewModel::code,
+            errorsLiveData = form.viewModel.codeErrorsLiveData,
             references = references
         )
-
-        bindText(
-            editText = binding.confirmedPasswordEditText,
-            textInputLayout = binding.confirmedPasswordInputLayout,
-            valueField = form.viewModel::confirmedPassword,
-            errorsLiveData = form.viewModel.confirmedPasswordErrorsLiveData,
-            references = references
-        )
-
-        form.viewModel.passwordsMatchErrorsLiveData.observe(references.viewLifecycleOwner) { error ->
-            binding.errorTextView.text = error
-            binding.errorTextView.visibility = if (error.isEmpty()) View.GONE else View.VISIBLE
-        }
 
         binding.submitButton.setOnClickListener {
             form.verify()

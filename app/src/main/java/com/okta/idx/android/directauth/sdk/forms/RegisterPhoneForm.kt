@@ -49,10 +49,10 @@ class RegisterPhoneForm internal constructor(
                 viewModel.phoneNumber,
                 viewModel.factor,
             )
-            handleKnownTransitions(response)?.let { return@proceed it }
+            handleTerminalTransitions(response)?.let { return@proceed it }
             FormAction.ProceedTransition.FormTransition(
-                RegisterVerifyCodeForm(
-                    viewModel = RegisterVerifyCodeForm.ViewModel(
+                VerifyCodeForm(
+                    viewModel = VerifyCodeForm.ViewModel(
                         proceedContext = response.proceedContext
                     ),
                     formAction = formAction

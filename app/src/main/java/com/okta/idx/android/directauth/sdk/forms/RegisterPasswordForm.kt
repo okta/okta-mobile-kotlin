@@ -59,8 +59,7 @@ class RegisterPasswordForm internal constructor(
                 viewModel.proceedContext,
                 VerifyAuthenticatorOptions(viewModel.password),
             )
-            handleKnownTransitions(response)?.let { return@proceed it }
-            registerSelectAuthenticatorForm(response.authenticators, response.proceedContext, formAction)
+            handleKnownTransitions(response)
         }
     }
 

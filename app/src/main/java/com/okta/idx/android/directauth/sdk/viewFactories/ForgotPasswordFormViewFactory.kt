@@ -28,8 +28,7 @@ internal class ForgotPasswordFormViewFactory :
         references: FormViewFactory.References,
         form: ForgotPasswordForm
     ): View {
-        val binding =
-            references.parent.inflateBinding(FormForgotPasswordBinding::inflate)
+        val binding = references.parent.inflateBinding(FormForgotPasswordBinding::inflate)
 
         bindText(
             editText = binding.usernameEditText,

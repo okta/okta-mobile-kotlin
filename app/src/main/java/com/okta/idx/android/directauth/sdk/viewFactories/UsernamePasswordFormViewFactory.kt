@@ -27,8 +27,7 @@ internal class UsernamePasswordFormViewFactory : FormViewFactory<UsernamePasswor
         references: FormViewFactory.References,
         form: UsernamePasswordForm
     ): View {
-        val binding =
-            references.parent.inflateBinding(FormUsernameAndPasswordBinding::inflate)
+        val binding = references.parent.inflateBinding(FormUsernameAndPasswordBinding::inflate)
 
         bindText(
             editText = binding.usernameEditText,

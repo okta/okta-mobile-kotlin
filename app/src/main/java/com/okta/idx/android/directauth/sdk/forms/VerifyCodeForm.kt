@@ -15,40 +15,40 @@
  */
 package com.okta.idx.android.directauth.sdk.forms
 
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import com.okta.idx.android.directauth.sdk.Form
 import com.okta.idx.android.directauth.sdk.FormAction
-import com.okta.idx.sdk.api.client.Authenticator
+import com.okta.idx.android.directauth.sdk.util.emitValidation
 import com.okta.idx.sdk.api.client.ProceedContext
+import com.okta.idx.sdk.api.model.VerifyAuthenticatorOptions
 
-class ForgotPasswordSelectAuthenticatorForm internal constructor(
+class VerifyCodeForm internal constructor(
     val viewModel: ViewModel,
     private val formAction: FormAction,
 ) : Form {
     class ViewModel internal constructor(
-        val authenticators: List<Authenticator>,
-        val canSkip: Boolean,
+        var code: String = "",
         internal val proceedContext: ProceedContext,
-    )
+    ) {
+        private val _codeErrorsLiveData = MutableLiveData("")
+        val codeErrorsLiveData: LiveData<String> = _codeErrorsLiveData
 
-    fun forgotPassword(factor: Authenticator.Factor) {
-        formAction.proceed {
-            val response = authenticationWrapper.selectAuthenticator(
-                viewModel.proceedContext,
-                factor
-            )
-            handleKnownTransitions(response)?.let { return@proceed it }
-
-            FormAction.ProceedTransition.FormTransition(
-                ForgotPasswordVerifyCodeForm(
-                    ForgotPasswordVerifyCodeForm.ViewModel(proceedContext = response.proceedContext),
-                    formAction
-                )
-            )
+        fun isValid(): Boolean {
+            return _codeErrorsLiveData.emitValidation { code.isNotEmpty() }
         }
     }
 
-    fun skip() {
-        formAction.skip(viewModel.proceedContext)
+    fun verify() {
+        if (!viewModel.isValid()) return
+
+        formAction.proceed {
+            val response = authenticationWrapper.verifyAuthenticator(
+                viewModel.proceedContext,
+                VerifyAuthenticatorOptions(viewModel.code),
+            )
+            handleKnownTransitions(response)
+        }
     }
 
     fun signOut() {

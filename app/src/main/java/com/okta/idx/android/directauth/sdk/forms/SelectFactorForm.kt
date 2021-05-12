@@ -15,42 +15,43 @@
  */
 package com.okta.idx.android.directauth.sdk.forms
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import com.okta.idx.android.directauth.sdk.Form
 import com.okta.idx.android.directauth.sdk.FormAction
-import com.okta.idx.android.directauth.sdk.util.emitValidation
+import com.okta.idx.sdk.api.client.Authenticator
 import com.okta.idx.sdk.api.client.ProceedContext
-import com.okta.idx.sdk.api.model.VerifyAuthenticatorOptions
+import com.okta.idx.sdk.api.model.AuthenticationStatus
 
-class ForgotPasswordVerifyCodeForm internal constructor(
+class SelectFactorForm internal constructor(
     val viewModel: ViewModel,
     private val formAction: FormAction,
 ) : Form {
     class ViewModel internal constructor(
-        var code: String = "",
+        val factors: List<Authenticator.Factor>,
+        val canSkip: Boolean,
         internal val proceedContext: ProceedContext,
-    ) {
-        private val _codeErrorsLiveData = MutableLiveData("")
-        val codeErrorsLiveData: LiveData<String> = _codeErrorsLiveData
+    )
 
-        fun isValid(): Boolean {
-            return _codeErrorsLiveData.emitValidation { code.isNotEmpty() }
+    fun select(factor: Authenticator.Factor) {
+        formAction.proceed {
+            val response = authenticationWrapper.selectFactor(
+                viewModel.proceedContext,
+                factor
+            )
+            handleTerminalTransitions(response)
+            when (response.authenticationStatus) {
+                AuthenticationStatus.AWAITING_AUTHENTICATOR_VERIFICATION_DATA -> {
+                    verifyForm(response)
+                }
+                AuthenticationStatus.AWAITING_AUTHENTICATOR_ENROLLMENT_DATA -> {
+                    registerVerifyForm(response, factor)
+                }
+                else -> handleKnownTransitions(response)
+            }
         }
     }
 
-    fun verify() {
-        if (!viewModel.isValid()) return
-
-        formAction.proceed {
-            val authenticatorOptions = VerifyAuthenticatorOptions(viewModel.code)
-            val response = authenticationWrapper.verifyAuthenticator(
-                viewModel.proceedContext,
-                authenticatorOptions,
-            )
-            handleKnownTransitions(response)?.let { return@proceed it }
-            forgotPasswordSelectAuthenticatorForm(response, formAction)
-        }
+    fun skip() {
+        formAction.skip(viewModel.proceedContext)
     }
 
     fun signOut() {

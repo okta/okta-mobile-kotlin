@@ -17,26 +17,23 @@ package com.okta.idx.android.directauth.sdk.viewFactories
 
 import android.view.View
 import android.view.ViewGroup
-import com.okta.idx.android.databinding.FormForgotPasswordSelectAuthenticatorBinding
+import com.okta.idx.android.databinding.FormSelectFactorBinding
 import com.okta.idx.android.databinding.RowFactorBinding
 import com.okta.idx.android.directauth.sdk.FormViewFactory
-import com.okta.idx.android.directauth.sdk.forms.ForgotPasswordSelectAuthenticatorForm
+import com.okta.idx.android.directauth.sdk.forms.SelectFactorForm
 import com.okta.idx.android.directauth.sdk.util.inflateBinding
 import com.okta.idx.sdk.api.client.Authenticator
 
-internal class ForgotPasswordSelectAuthenticatorFormViewFactory :
-    FormViewFactory<ForgotPasswordSelectAuthenticatorForm> {
+internal class SelectFactorFormViewFactory :
+    FormViewFactory<SelectFactorForm> {
     override fun createUi(
         references: FormViewFactory.References,
-        form: ForgotPasswordSelectAuthenticatorForm
+        form: SelectFactorForm
     ): View {
-        val binding =
-            references.parent.inflateBinding(FormForgotPasswordSelectAuthenticatorBinding::inflate)
+        val binding = references.parent.inflateBinding(FormSelectFactorBinding::inflate)
 
-        for (authenticator in form.viewModel.authenticators) {
-            for (factor in authenticator.factors) {
-                binding.root.addView(factor.createView(binding.root, form), binding.root.childCount - 2)
-            }
+        for (factor in form.viewModel.factors) {
+            binding.root.addView(factor.createView(binding.root, form), binding.root.childCount - 2)
         }
 
         binding.skipButton.visibility = if (form.viewModel.canSkip) View.VISIBLE else View.GONE
@@ -53,12 +50,12 @@ internal class ForgotPasswordSelectAuthenticatorFormViewFactory :
 
     private fun Authenticator.Factor.createView(
         parent: ViewGroup,
-        form: ForgotPasswordSelectAuthenticatorForm
+        form: SelectFactorForm
     ): View {
         val binding = parent.inflateBinding(RowFactorBinding::inflate)
-        binding.typeTextView.text = method
+        binding.typeTextView.text = label
         binding.selectButton.setOnClickListener {
-            form.forgotPassword(this)
+            form.select(this)
         }
         return binding.root
     }

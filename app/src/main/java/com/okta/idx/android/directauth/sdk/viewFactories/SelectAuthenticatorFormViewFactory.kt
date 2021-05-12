@@ -30,13 +30,10 @@ internal class SelectAuthenticatorFormViewFactory :
         references: FormViewFactory.References,
         form: SelectAuthenticatorForm
     ): View {
-        val binding =
-            references.parent.inflateBinding(FormSelectAuthenticatorBinding::inflate)
+        val binding = references.parent.inflateBinding(FormSelectAuthenticatorBinding::inflate)
 
-        for (authenticator in form.viewModel.authenticators) {
-            for (factor in authenticator.factors) {
-                binding.root.addView(factor.createView(binding.root, form), binding.root.childCount - 2)
-            }
+        for (authenticator in form.viewModel.authenticators.filterToSupported()) {
+            binding.root.addView(authenticator.createView(binding.root, form), binding.root.childCount - 2)
         }
 
         binding.skipButton.visibility = if (form.viewModel.canSkip) View.VISIBLE else View.GONE
@@ -51,14 +48,28 @@ internal class SelectAuthenticatorFormViewFactory :
         return binding.root
     }
 
-    private fun Authenticator.Factor.createView(
+    private fun List<Authenticator>.filterToSupported(): List<Authenticator> {
+        val supported = setOf("sms", "voice", "password", "email")
+        val result = mutableListOf<Authenticator>()
+        for (authenticator in this) {
+            for (factor in authenticator.factors) {
+                if (supported.contains(factor.method)) {
+                    result += authenticator
+                    break
+                }
+            }
+        }
+        return result
+    }
+
+    private fun Authenticator.createView(
         parent: ViewGroup,
         form: SelectAuthenticatorForm
     ): View {
         val binding = parent.inflateBinding(RowFactorBinding::inflate)
-        binding.typeTextView.text = method
+        binding.typeTextView.text = label
         binding.selectButton.setOnClickListener {
-            form.authenticate(this)
+            form.select(this)
         }
         return binding.root
     }

@@ -28,8 +28,7 @@ internal class RegisterPhoneFormViewFactory :
         references: FormViewFactory.References,
         form: RegisterPhoneForm
     ): View {
-        val binding =
-            references.parent.inflateBinding(FormRegisterPhoneBinding::inflate)
+        val binding = references.parent.inflateBinding(FormRegisterPhoneBinding::inflate)
 
         bindText(
             editText = binding.phoneEditText,
