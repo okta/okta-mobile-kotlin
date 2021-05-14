@@ -1,0 +1,73 @@
+{
+  "stateHandle": "029ZAB",
+  "version": "1.0.0",
+  "expiresAt": "2020-12-21T18:10:16.000Z",
+  "intent": "LOGIN",
+  "remediation": {
+    "type": "array",
+    "value": [
+      {
+        "rel": [
+          "create-form"
+        ],
+        "name": "identify",
+        "href": "https://foo.oktapreview.com/idp/idx/identify",
+        "method": "POST",
+        "value": [
+          {
+            "name": "identifier",
+            "label": "Username"
+          },
+          {
+            "name": "rememberMe",
+            "type": "boolean",
+            "label": "Remember this device"
+          },
+          {
+            "name": "stateHandle",
+            "required": true,
+            "value": "029ZAB",
+            "visible": false,
+            "mutable": false
+          }
+        ],
+        "accepts": "application/ion+json; okta-version=1.0.0"
+      }
+    ]
+  },
+  "cancel": {
+    "rel": [
+      "create-form"
+    ],
+    "name": "cancel",
+    "href": "https://foo.oktapreview.com/idp/idx/cancel",
+    "method": "POST",
+    "value": [
+      {
+        "name": "stateHandle",
+        "required": true,
+        "value": "029ZAB",
+        "visible": false,
+        "mutable": false
+      }
+    ],
+    "accepts": "application/ion+json; okta-version=1.0.0"
+  },
+  "app": {
+    "type": "object",
+    "value": {
+      "name": "oidc_client",
+      "label": "ak-test-oie-app",
+      "id": "0oazsmpxZpVEg4chS2o4"
+    }
+  },
+  "messages": {
+    "type": "array",
+    "value": [
+      {
+        "message": "User is not assigned to this application",
+        "class": "ERROR"
+      }
+    ]
+  }
+}

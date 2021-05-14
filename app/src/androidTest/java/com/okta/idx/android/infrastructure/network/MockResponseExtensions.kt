@@ -19,7 +19,7 @@ import okhttp3.mockwebserver.MockResponse
 import okio.Buffer
 
 fun MockResponse.testBodyFromFile(filename: String): MockResponse {
-    val inputStream = MockResponse::class.java.classLoader.getResourceAsStream("okta_test_responses/$filename")
+    val inputStream = MockResponse::class.java.classLoader.getResourceAsStream(filename)
     val buffer = Buffer()
     buffer.readFrom(inputStream)
     setBody(buffer)

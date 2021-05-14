@@ -18,8 +18,10 @@ android {
 
     sourceSets {
         androidTest {
-            java.srcDirs += ['src/test/java']
-            resources.srcDirs += ['src/test/resources']
+            java.srcDirs += ['src/sharedTest/java']
+        }
+        test {
+            java.srcDirs += ['src/sharedTest/java']
         }
     }
 
