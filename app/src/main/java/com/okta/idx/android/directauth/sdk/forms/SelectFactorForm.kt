@@ -28,6 +28,7 @@ class SelectFactorForm internal constructor(
     class ViewModel internal constructor(
         val factors: List<Authenticator.Factor>,
         val canSkip: Boolean,
+        val title: String,
         internal val proceedContext: ProceedContext,
     )
 

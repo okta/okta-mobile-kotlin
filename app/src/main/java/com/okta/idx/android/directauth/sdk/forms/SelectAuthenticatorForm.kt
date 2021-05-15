@@ -28,6 +28,7 @@ class SelectAuthenticatorForm internal constructor(
     class ViewModel internal constructor(
         val authenticators: List<Authenticator>,
         val canSkip: Boolean,
+        val title: String,
         internal val proceedContext: ProceedContext,
     )
 
@@ -43,21 +44,21 @@ class SelectAuthenticatorForm internal constructor(
                     if (authenticator.factors.size == 1) {
                         verifyForm(response)
                     } else {
-                        selectFactorForm(response, authenticator.factors)
+                        selectFactorForm(response, authenticator.factors, "Select Factor")
                     }
                 }
                 AuthenticationStatus.AWAITING_AUTHENTICATOR_ENROLLMENT_DATA -> {
                     if (authenticator.factors.size == 1) {
                         registerVerifyForm(response, authenticator.factors.first())
                     } else {
-                        selectFactorForm(response, authenticator.factors)
+                        selectFactorForm(response, authenticator.factors, "Enroll Factor")
                     }
                 }
                 AuthenticationStatus.AWAITING_AUTHENTICATOR_ENROLLMENT -> {
                     if (authenticator.factors.size == 1) {
                         registerVerifyForm(response, authenticator.factors.first())
                     } else {
-                        selectFactorForm(response, authenticator.factors)
+                        selectFactorForm(response, authenticator.factors, "Enroll Factor")
                     }
                 }
                 else -> handleKnownTransitions(response)

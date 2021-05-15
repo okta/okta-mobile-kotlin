@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Okta IDX Android</string>
     <string name="username_password">Username Password</string>
@@ -33,4 +34,8 @@
     <string name="forgot_password">Forgot Password</string>
     <string name="phone_number">Phone Number</string>
     <string name="code">Code</string>
+    <string name="register_phone">Register Phone</string>
+    <string name="phone_number_details">Format: (+) {country code} {area code} {number}\nFor e.g. +1 555 666 7777 (US)</string>
+    <string name="verify_code">Verify Code</string>
+    <string name="you_are_logged_in">You\'re logged in!</string>
 </resources>

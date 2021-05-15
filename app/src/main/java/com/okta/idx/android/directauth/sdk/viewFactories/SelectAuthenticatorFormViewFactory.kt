@@ -32,6 +32,8 @@ internal class SelectAuthenticatorFormViewFactory :
     ): View {
         val binding = references.parent.inflateBinding(FormSelectAuthenticatorBinding::inflate)
 
+        binding.titleTextView.text = form.viewModel.title
+
         for (authenticator in form.viewModel.authenticators.filterToSupported()) {
             binding.root.addView(authenticator.createView(binding.root, form), binding.root.childCount - 2)
         }

@@ -16,12 +16,12 @@
 package com.okta.idx.android.directauth.sdk
 
 import androidx.lifecycle.MutableLiveData
-import com.okta.idx.android.directauth.sdk.forms.VerifyCodeForm
 import com.okta.idx.android.directauth.sdk.forms.RegisterPasswordForm
 import com.okta.idx.android.directauth.sdk.forms.RegisterPhoneForm
 import com.okta.idx.android.directauth.sdk.forms.SelectAuthenticatorForm
 import com.okta.idx.android.directauth.sdk.forms.SelectFactorForm
 import com.okta.idx.android.directauth.sdk.forms.UsernamePasswordForm
+import com.okta.idx.android.directauth.sdk.forms.VerifyCodeForm
 import com.okta.idx.sdk.api.client.Authenticator
 import com.okta.idx.sdk.api.client.IDXAuthenticationWrapper
 import com.okta.idx.sdk.api.client.ProceedContext
@@ -82,26 +82,27 @@ data class FormAction internal constructor(
 
             return when (response.authenticationStatus) {
                 AuthenticationStatus.AWAITING_PASSWORD_RESET -> {
-                    registerPasswordForm(response)
+                    registerPasswordForm(response, "Reset Password")
                 }
                 AuthenticationStatus.PASSWORD_EXPIRED -> {
-                    registerPasswordForm(response)
+                    registerPasswordForm(response, "Password Expired")
                 }
                 AuthenticationStatus.AWAITING_AUTHENTICATOR_SELECTION -> {
-                    selectAuthenticatorForm(response)
+                    selectAuthenticatorForm(response, "Select Authenticator")
                 }
                 AuthenticationStatus.AWAITING_AUTHENTICATOR_VERIFICATION -> {
                     verifyForm(response)
                 }
                 AuthenticationStatus.AWAITING_AUTHENTICATOR_ENROLLMENT_SELECTION -> {
-                    selectAuthenticatorForm(response)
+                    selectAuthenticatorForm(response, "Enroll Authenticator")
                 }
                 else -> unsupportedPolicy()
             }
         }
 
         private fun selectAuthenticatorForm(
-            previousResponse: AuthenticationResponse
+            previousResponse: AuthenticationResponse,
+            title: String,
         ): ProceedTransition {
             val canSkip =
                 authenticationWrapper.isSkipAuthenticatorPresent(previousResponse.proceedContext)
@@ -111,6 +112,7 @@ data class FormAction internal constructor(
                     SelectAuthenticatorForm.ViewModel(
                         previousResponse.authenticators,
                         canSkip,
+                        title,
                         previousResponse.proceedContext
                     ),
                     formAction
@@ -120,7 +122,8 @@ data class FormAction internal constructor(
 
         fun selectFactorForm(
             response: AuthenticationResponse,
-            factors: List<Authenticator.Factor>
+            factors: List<Authenticator.Factor>,
+            title: String,
         ): ProceedTransition {
             val canSkip = authenticationWrapper.isSkipAuthenticatorPresent(response.proceedContext)
             return ProceedTransition.FormTransition(
@@ -128,6 +131,7 @@ data class FormAction internal constructor(
                     viewModel = SelectFactorForm.ViewModel(
                         factors = factors,
                         canSkip = canSkip,
+                        title = title,
                         proceedContext = response.proceedContext,
                     ),
                     formAction = formAction,
@@ -141,15 +145,10 @@ data class FormAction internal constructor(
         ): ProceedTransition {
             return when (factor.method) {
                 "email" -> {
-                    ProceedTransition.FormTransition(
-                        VerifyCodeForm(
-                            VerifyCodeForm.ViewModel(proceedContext = response.proceedContext),
-                            formAction
-                        )
-                    )
+                    verifyForm(response)
                 }
                 "password" -> {
-                    registerPasswordForm(response)
+                    registerPasswordForm(response, "Setup Password")
                 }
                 "sms" -> {
                     ProceedTransition.FormTransition(
@@ -177,10 +176,16 @@ data class FormAction internal constructor(
             }
         }
 
-        private fun registerPasswordForm(response: AuthenticationResponse): ProceedTransition {
+        private fun registerPasswordForm(
+            response: AuthenticationResponse,
+            title: String
+        ): ProceedTransition {
             return ProceedTransition.FormTransition(
                 RegisterPasswordForm(
-                    RegisterPasswordForm.ViewModel(proceedContext = response.proceedContext),
+                    RegisterPasswordForm.ViewModel(
+                        title = title,
+                        proceedContext = response.proceedContext
+                    ),
                     formAction
                 )
             )
@@ -189,7 +194,9 @@ data class FormAction internal constructor(
         fun verifyForm(response: AuthenticationResponse): ProceedTransition {
             return ProceedTransition.FormTransition(
                 VerifyCodeForm(
-                    VerifyCodeForm.ViewModel(proceedContext = response.proceedContext),
+                    VerifyCodeForm.ViewModel(
+                        proceedContext = response.proceedContext
+                    ),
                     formAction
                 )
             )

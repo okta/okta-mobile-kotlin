@@ -16,6 +16,14 @@
         >
 
         <TextView
+            android:id="@+id/title_text_view"
+            style="@style/TitleTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/you_are_logged_in"
+            />
+
+        <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/token_type"

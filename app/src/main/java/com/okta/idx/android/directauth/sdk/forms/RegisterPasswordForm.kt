@@ -28,6 +28,7 @@ class RegisterPasswordForm internal constructor(
     private val formAction: FormAction,
 ) : Form {
     class ViewModel internal constructor(
+        val title: String,
         var password: String = "",
         var confirmedPassword: String = "",
         internal val proceedContext: ProceedContext,

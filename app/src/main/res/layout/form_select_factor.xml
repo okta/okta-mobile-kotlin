@@ -8,6 +8,13 @@
     android:padding="16dp"
     >
 
+    <TextView
+        android:id="@+id/title_text_view"
+        style="@style/TitleTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        />
+
     <Button
         android:id="@+id/skip_button"
         style="@style/BorderlessButton"

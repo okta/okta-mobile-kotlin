@@ -30,6 +30,8 @@ internal class RegisterPasswordFormViewFactory :
     ): View {
         val binding = references.parent.inflateBinding(FormRegisterPasswordBinding::inflate)
 
+        binding.titleTextView.text = form.viewModel.title
+
         bindText(
             editText = binding.passwordEditText,
             textInputLayout = binding.passwordInputLayout,
