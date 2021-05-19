@@ -38,4 +38,9 @@
     <string name="phone_number_details">Format: (+) {country code} {area code} {number}\nFor e.g. +1 555 666 7777 (US)</string>
     <string name="verify_code">Verify Code</string>
     <string name="you_are_logged_in">You\'re logged in!</string>
+    <string name="basic_login">Basic Login</string>
+    <string name="password_recovery">Password Recovery</string>
+    <string name="self_service_registration">Self Service Registration</string>
+    <string name="basic_social_login">Basic Social Login</string>
+    <string name="welcome_to_oie_sample">Welcome to the Okta OIE Sample App!</string>
 </resources>

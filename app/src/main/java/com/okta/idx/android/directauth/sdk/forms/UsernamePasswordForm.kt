@@ -21,6 +21,7 @@ import com.okta.idx.android.directauth.sdk.Form
 import com.okta.idx.android.directauth.sdk.FormAction
 import com.okta.idx.android.directauth.sdk.util.emitValidation
 import com.okta.idx.sdk.api.model.AuthenticationOptions
+import com.okta.idx.sdk.api.model.Idp
 
 class UsernamePasswordForm internal constructor(
     val viewModel: ViewModel = ViewModel(),
@@ -28,7 +29,8 @@ class UsernamePasswordForm internal constructor(
 ) : Form {
     class ViewModel internal constructor(
         var username: String = "",
-        var password: String = ""
+        var password: String = "",
+        val socialIdps: List<Idp> = emptyList(),
     ) {
         private val _usernameErrorsLiveData = MutableLiveData("")
         val usernameErrorsLiveData: LiveData<String> = _usernameErrorsLiveData
@@ -54,10 +56,12 @@ class UsernamePasswordForm internal constructor(
     }
 
     fun register() {
-        formAction.transitionToForm(RegisterForm(
-            formAction = formAction,
-            viewModel = RegisterForm.ViewModel(primaryEmail = viewModel.username),
-        ))
+        formAction.transitionToForm(
+            RegisterForm(
+                formAction = formAction,
+                viewModel = RegisterForm.ViewModel(primaryEmail = viewModel.username),
+            )
+        )
     }
 
     fun forgotPassword() {

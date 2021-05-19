@@ -31,7 +31,6 @@ class RegisterPasswordForm internal constructor(
         val title: String,
         var password: String = "",
         var confirmedPassword: String = "",
-        internal val proceedContext: ProceedContext,
     ) {
         private val _passwordErrorsLiveData = MutableLiveData("")
         val passwordErrorsLiveData: LiveData<String> = _passwordErrorsLiveData
@@ -57,7 +56,7 @@ class RegisterPasswordForm internal constructor(
 
         formAction.proceed {
             val response = authenticationWrapper.verifyAuthenticator(
-                viewModel.proceedContext,
+                proceedContext,
                 VerifyAuthenticatorOptions(viewModel.password),
             )
             handleKnownTransitions(response)

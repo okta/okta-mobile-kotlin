@@ -20,16 +20,14 @@ import androidx.lifecycle.MutableLiveData
 import com.okta.idx.android.directauth.sdk.Form
 import com.okta.idx.android.directauth.sdk.FormAction
 import com.okta.idx.android.directauth.sdk.util.emitValidation
-import com.okta.idx.sdk.api.client.ProceedContext
 import com.okta.idx.sdk.api.model.VerifyAuthenticatorOptions
 
 class VerifyCodeForm internal constructor(
-    val viewModel: ViewModel,
+    val viewModel: ViewModel = ViewModel(),
     private val formAction: FormAction,
 ) : Form {
     class ViewModel internal constructor(
         var code: String = "",
-        internal val proceedContext: ProceedContext,
     ) {
         private val _codeErrorsLiveData = MutableLiveData("")
         val codeErrorsLiveData: LiveData<String> = _codeErrorsLiveData
@@ -44,7 +42,7 @@ class VerifyCodeForm internal constructor(
 
         formAction.proceed {
             val response = authenticationWrapper.verifyAuthenticator(
-                viewModel.proceedContext,
+                proceedContext,
                 VerifyAuthenticatorOptions(viewModel.code),
             )
             handleKnownTransitions(response)

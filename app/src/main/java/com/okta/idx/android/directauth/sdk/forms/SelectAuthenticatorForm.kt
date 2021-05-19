@@ -29,13 +29,12 @@ class SelectAuthenticatorForm internal constructor(
         val authenticators: List<Authenticator>,
         val canSkip: Boolean,
         val title: String,
-        internal val proceedContext: ProceedContext,
     )
 
     fun select(authenticator: Authenticator) {
         formAction.proceed {
             val response = authenticationWrapper.selectAuthenticator(
-                viewModel.proceedContext,
+                proceedContext,
                 authenticator
             )
             handleTerminalTransitions(response)
@@ -67,7 +66,7 @@ class SelectAuthenticatorForm internal constructor(
     }
 
     fun skip() {
-        formAction.skip(viewModel.proceedContext)
+        formAction.skip()
     }
 
     fun signOut() {

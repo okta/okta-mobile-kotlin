@@ -20,7 +20,7 @@ import com.okta.idx.android.directauth.sdk.forms.RegisterPasswordForm
 import com.okta.idx.android.directauth.sdk.forms.RegisterPhoneForm
 import com.okta.idx.android.directauth.sdk.forms.SelectAuthenticatorForm
 import com.okta.idx.android.directauth.sdk.forms.SelectFactorForm
-import com.okta.idx.android.directauth.sdk.forms.UsernamePasswordForm
+import com.okta.idx.android.directauth.sdk.forms.TableOfContentsForm
 import com.okta.idx.android.directauth.sdk.forms.VerifyCodeForm
 import com.okta.idx.sdk.api.client.Authenticator
 import com.okta.idx.sdk.api.client.IDXAuthenticationWrapper
@@ -46,6 +46,7 @@ data class FormAction internal constructor(
         data class Data(
             val form: Form,
             val messages: List<String> = emptyList(),
+            val proceedContext: ProceedContext? = null,
         ) : State()
 
         object Loading : State()
@@ -55,13 +56,16 @@ data class FormAction internal constructor(
 
     internal sealed class ProceedTransition {
         class TokenTransition(val tokenResponse: TokenResponse) : ProceedTransition()
-        class FormTransition(val form: Form) : ProceedTransition()
+        class FormTransition(val form: Form, val proceedContext: ProceedContext?) :
+            ProceedTransition()
+
         class ErrorTransition(val errors: List<String>) : ProceedTransition()
         class TerminalTransition(val errors: List<String>) : ProceedTransition()
     }
 
     internal class ProceedData(
         val authenticationWrapper: IDXAuthenticationWrapper,
+        val proceedContext: ProceedContext?,
         private val formAction: FormAction,
     ) {
         fun handleTerminalTransitions(response: AuthenticationResponse): ProceedTransition? {
@@ -113,10 +117,10 @@ data class FormAction internal constructor(
                         previousResponse.authenticators,
                         canSkip,
                         title,
-                        previousResponse.proceedContext
                     ),
                     formAction
-                )
+                ),
+                previousResponse.proceedContext
             )
         }
 
@@ -132,10 +136,10 @@ data class FormAction internal constructor(
                         factors = factors,
                         canSkip = canSkip,
                         title = title,
-                        proceedContext = response.proceedContext,
                     ),
                     formAction = formAction,
-                )
+                ),
+                response.proceedContext
             )
         }
 
@@ -154,22 +158,22 @@ data class FormAction internal constructor(
                     ProceedTransition.FormTransition(
                         RegisterPhoneForm(
                             RegisterPhoneForm.ViewModel(
-                                proceedContext = response.proceedContext,
                                 factor = factor
                             ),
                             formAction
-                        )
+                        ),
+                        response.proceedContext
                     )
                 }
                 "voice" -> {
                     ProceedTransition.FormTransition(
                         RegisterPhoneForm(
                             RegisterPhoneForm.ViewModel(
-                                proceedContext = response.proceedContext,
                                 factor = factor
                             ),
                             formAction
-                        )
+                        ),
+                        response.proceedContext
                     )
                 }
                 else -> unsupportedPolicy()
@@ -184,21 +188,17 @@ data class FormAction internal constructor(
                 RegisterPasswordForm(
                     RegisterPasswordForm.ViewModel(
                         title = title,
-                        proceedContext = response.proceedContext
                     ),
                     formAction
-                )
+                ),
+                response.proceedContext
             )
         }
 
         fun verifyForm(response: AuthenticationResponse): ProceedTransition {
             return ProceedTransition.FormTransition(
-                VerifyCodeForm(
-                    VerifyCodeForm.ViewModel(
-                        proceedContext = response.proceedContext
-                    ),
-                    formAction
-                )
+                VerifyCodeForm(formAction = formAction),
+                response.proceedContext
             )
         }
 
@@ -216,7 +216,7 @@ data class FormAction internal constructor(
 
         stateLiveData.value = State.Loading
 
-        val proceedData = ProceedData(authenticationWrapper, this)
+        val proceedData = ProceedData(authenticationWrapper, initialState.proceedContext, this)
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 proceedData
@@ -243,7 +243,7 @@ data class FormAction internal constructor(
             }
             is ProceedTransition.FormTransition -> {
                 stateLiveData.postValue(
-                    State.Data(form)
+                    State.Data(form = form, proceedContext = proceedContext)
                 )
             }
             is ProceedTransition.TerminalTransition -> stateLiveData.postValue(
@@ -270,7 +270,7 @@ data class FormAction internal constructor(
         transitionToForm(initialForm())
     }
 
-    fun skip(proceedContext: ProceedContext) {
+    fun skip() {
         proceed {
             val response = authenticationWrapper.skipAuthenticatorEnrollment(proceedContext)
             handleKnownTransitions(response)
@@ -278,6 +278,6 @@ data class FormAction internal constructor(
     }
 
     private fun initialForm(): Form {
-        return UsernamePasswordForm(formAction = this)
+        return TableOfContentsForm(formAction = this)
     }
 }

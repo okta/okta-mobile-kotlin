@@ -15,6 +15,7 @@
  */
 package com.okta.idx.android.directauth
 
+import android.net.Uri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -34,5 +35,30 @@ internal class DirectAuthViewModel : ViewModel() {
 
     fun signOut() {
         formAction.signOut()
+    }
+
+    fun handleSocialRedirectUri(uri: Uri) {
+        val errorQueryParameter = uri.getQueryParameter("error")
+//        if (errorQueryParameter == "interaction_required") {
+//            formAction.proceed {
+//                val response = authenticationWrapper.introspect(proceedContext?.clientContext)
+//                handleKnownTransitions(response)
+//            }
+//            return
+//        }
+        if (errorQueryParameter != null) {
+            formAction.proceed {
+                val errorDescription = uri.getQueryParameter("error_description") ?: "An error occurred."
+                FormAction.ProceedTransition.ErrorTransition(listOf(errorDescription))
+            }
+            return
+        }
+        val interactionCodeQueryParameter = uri.getQueryParameter("interaction_code")
+        if (interactionCodeQueryParameter != null) {
+            formAction.proceed {
+                val response = authenticationWrapper.fetchTokenWithInteractionCode(Network.baseUrl, proceedContext, interactionCodeQueryParameter)
+                handleKnownTransitions(response)
+            }
+        }
     }
 }

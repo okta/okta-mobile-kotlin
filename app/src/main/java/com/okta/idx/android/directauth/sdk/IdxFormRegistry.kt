@@ -21,6 +21,7 @@ import com.okta.idx.android.directauth.sdk.forms.RegisterPasswordForm
 import com.okta.idx.android.directauth.sdk.forms.RegisterPhoneForm
 import com.okta.idx.android.directauth.sdk.forms.SelectAuthenticatorForm
 import com.okta.idx.android.directauth.sdk.forms.SelectFactorForm
+import com.okta.idx.android.directauth.sdk.forms.TableOfContentsForm
 import com.okta.idx.android.directauth.sdk.forms.UsernamePasswordForm
 import com.okta.idx.android.directauth.sdk.forms.VerifyCodeForm
 import com.okta.idx.android.directauth.sdk.viewFactories.ForgotPasswordFormViewFactory
@@ -29,6 +30,7 @@ import com.okta.idx.android.directauth.sdk.viewFactories.RegisterPasswordFormVie
 import com.okta.idx.android.directauth.sdk.viewFactories.RegisterPhoneFormViewFactory
 import com.okta.idx.android.directauth.sdk.viewFactories.SelectAuthenticatorFormViewFactory
 import com.okta.idx.android.directauth.sdk.viewFactories.SelectFactorFormViewFactory
+import com.okta.idx.android.directauth.sdk.viewFactories.TableOfContentsFormViewFactory
 import com.okta.idx.android.directauth.sdk.viewFactories.UsernamePasswordFormViewFactory
 import com.okta.idx.android.directauth.sdk.viewFactories.VerifyCodeFormViewFactory
 
@@ -44,6 +46,7 @@ object IdxFormRegistry {
         register(SelectAuthenticatorForm::class.java, SelectAuthenticatorFormViewFactory())
         register(SelectFactorForm::class.java, SelectFactorFormViewFactory())
         register(VerifyCodeForm::class.java, VerifyCodeFormViewFactory())
+        register(TableOfContentsForm::class.java, TableOfContentsFormViewFactory())
     }
 
     fun <F : Form> register(

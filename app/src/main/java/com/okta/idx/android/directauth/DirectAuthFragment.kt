@@ -18,8 +18,10 @@ package com.okta.idx.android.directauth
 import android.graphics.Color
 import android.os.Bundle
 import android.view.View
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
+import com.okta.idx.android.MainActivityViewModel
 import com.okta.idx.android.TokenViewModel
 import com.okta.idx.android.databinding.ErrorBinding
 import com.okta.idx.android.databinding.ErrorFieldBinding
@@ -35,6 +37,17 @@ internal class DirectAuthFragment : BaseFragment<FragmentDirectAuthBinding>(
     FragmentDirectAuthBinding::inflate
 ) {
     private val viewModel by viewModels<DirectAuthViewModel>()
+    private val activityViewModel by activityViewModels<MainActivityViewModel>()
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        activityViewModel.socialRedirectListener = viewModel::handleSocialRedirectUri
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        activityViewModel.socialRedirectListener = null
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         binding.formContent.isSaveFromParentEnabled = false

@@ -15,12 +15,19 @@
  */
 package com.okta.idx.android.directauth.sdk.viewFactories
 
+import android.content.ActivityNotFoundException
+import android.content.Intent
+import android.net.Uri
 import android.view.View
+import android.view.ViewGroup
 import com.okta.idx.android.databinding.FormUsernameAndPasswordBinding
+import com.okta.idx.android.databinding.RowFactorBinding
 import com.okta.idx.android.directauth.sdk.FormViewFactory
 import com.okta.idx.android.directauth.sdk.forms.UsernamePasswordForm
 import com.okta.idx.android.directauth.sdk.util.bindText
 import com.okta.idx.android.directauth.sdk.util.inflateBinding
+import com.okta.idx.sdk.api.model.Idp
+import timber.log.Timber
 
 internal class UsernamePasswordFormViewFactory : FormViewFactory<UsernamePasswordForm> {
     override fun createUi(
@@ -45,6 +52,10 @@ internal class UsernamePasswordFormViewFactory : FormViewFactory<UsernamePasswor
             references = references
         )
 
+        for (idp in form.viewModel.socialIdps) {
+            binding.idpLayout.addView(idp.createView(binding.idpLayout))
+        }
+
         binding.submitButton.setOnClickListener {
             form.signIn()
         }
@@ -57,6 +68,22 @@ internal class UsernamePasswordFormViewFactory : FormViewFactory<UsernamePasswor
             form.forgotPassword()
         }
 
+        return binding.root
+    }
+
+    private fun Idp.createView(
+        parent: ViewGroup,
+    ): View {
+        val binding = parent.inflateBinding(RowFactorBinding::inflate)
+        binding.typeTextView.text = type
+        binding.selectButton.setOnClickListener {
+            try {
+                val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(href))
+                parent.context.startActivity(browserIntent)
+            } catch (e: ActivityNotFoundException) {
+                Timber.e(e, "Failed to load URL.")
+            }
+        }
         return binding.root
     }
 }

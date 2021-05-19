@@ -17,28 +17,17 @@ package com.okta.idx.android
 
 import android.content.Intent
 import android.os.Bundle
-import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 
-class MainActivity : AppCompatActivity() {
-    companion object {
-        const val SOCIAL_REDIRECT_ACTION = "SocialRedirect"
-    }
-
-    private val viewModel by viewModels<MainActivityViewModel>()
-
+class SocialRedirectActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-    }
 
-    override fun onNewIntent(intent: Intent?) {
-        super.onNewIntent(intent)
-
-        if (intent?.action == SOCIAL_REDIRECT_ACTION) {
-            intent.data?.let {
-                viewModel.socialRedirectListener?.invoke(it)
-            }
-        }
+        val intent = Intent(this, MainActivity::class.java)
+        intent.action = MainActivity.SOCIAL_REDIRECT_ACTION
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+        intent.data = getIntent().data
+        startActivity(intent)
+        finish()
     }
 }

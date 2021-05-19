@@ -21,7 +21,6 @@ import com.okta.idx.android.directauth.sdk.Form
 import com.okta.idx.android.directauth.sdk.FormAction
 import com.okta.idx.android.directauth.sdk.util.emitValidation
 import com.okta.idx.sdk.api.client.Authenticator
-import com.okta.idx.sdk.api.client.ProceedContext
 
 class RegisterPhoneForm internal constructor(
     val viewModel: ViewModel,
@@ -30,7 +29,6 @@ class RegisterPhoneForm internal constructor(
     class ViewModel internal constructor(
         var phoneNumber: String = "",
         val factor: Authenticator.Factor,
-        internal val proceedContext: ProceedContext,
     ) {
         private val _phoneNumberErrorsLiveData = MutableLiveData("")
         val phoneNumberErrorsLiveData: LiveData<String> = _phoneNumberErrorsLiveData
@@ -45,18 +43,16 @@ class RegisterPhoneForm internal constructor(
 
         formAction.proceed {
             val response = authenticationWrapper.submitPhoneAuthenticator(
-                viewModel.proceedContext,
+                proceedContext,
                 viewModel.phoneNumber,
                 viewModel.factor,
             )
             handleTerminalTransitions(response)?.let { return@proceed it }
             FormAction.ProceedTransition.FormTransition(
                 VerifyCodeForm(
-                    viewModel = VerifyCodeForm.ViewModel(
-                        proceedContext = response.proceedContext
-                    ),
                     formAction = formAction
-                )
+                ),
+                response.proceedContext
             )
         }
     }

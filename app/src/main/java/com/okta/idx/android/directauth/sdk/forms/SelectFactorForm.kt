@@ -18,7 +18,6 @@ package com.okta.idx.android.directauth.sdk.forms
 import com.okta.idx.android.directauth.sdk.Form
 import com.okta.idx.android.directauth.sdk.FormAction
 import com.okta.idx.sdk.api.client.Authenticator
-import com.okta.idx.sdk.api.client.ProceedContext
 import com.okta.idx.sdk.api.model.AuthenticationStatus
 
 class SelectFactorForm internal constructor(
@@ -29,13 +28,12 @@ class SelectFactorForm internal constructor(
         val factors: List<Authenticator.Factor>,
         val canSkip: Boolean,
         val title: String,
-        internal val proceedContext: ProceedContext,
     )
 
     fun select(factor: Authenticator.Factor) {
         formAction.proceed {
             val response = authenticationWrapper.selectFactor(
-                viewModel.proceedContext,
+                proceedContext,
                 factor
             )
             handleTerminalTransitions(response)
@@ -52,7 +50,7 @@ class SelectFactorForm internal constructor(
     }
 
     fun skip() {
-        formAction.skip(viewModel.proceedContext)
+        formAction.skip()
     }
 
     fun signOut() {
