@@ -53,7 +53,7 @@ class RegisterForm internal constructor(
         if (!viewModel.isValid()) return
 
         formAction.proceed {
-            val newUserRegistrationResponse = authenticationWrapper.fetchSignUpFormValues()
+            val newUserRegistrationResponse = authenticationWrapper.fetchSignUpFormValues(proceedContext)
 
             val userProfile = UserProfile()
             userProfile.addAttribute("lastName", viewModel.lastName)

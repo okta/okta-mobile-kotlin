@@ -22,29 +22,8 @@ class TableOfContentsForm internal constructor(
     private val formAction: FormAction
 ) : Form {
     fun login() {
-        formAction.transitionToForm(UsernamePasswordForm(formAction = formAction))
-    }
-
-    fun register() {
-        formAction.transitionToForm(
-            RegisterForm(
-                formAction = formAction,
-                viewModel = RegisterForm.ViewModel(),
-            )
-        )
-    }
-
-    fun forgotPassword() {
-        formAction.transitionToForm(
-            ForgotPasswordForm(
-                formAction = formAction,
-            )
-        )
-    }
-
-    fun loginWithSocial() {
         formAction.proceed {
-            val response = authenticationWrapper.redirectIdps
+            val response = authenticationWrapper.begin()
             handleTerminalTransitions(response)?.let { return@proceed it }
             FormAction.ProceedTransition.FormTransition(
                 form = UsernamePasswordForm(
@@ -52,6 +31,20 @@ class TableOfContentsForm internal constructor(
                     viewModel = UsernamePasswordForm.ViewModel(
                         socialIdps = response.idps ?: emptyList()
                     )
+                ),
+                proceedContext = response.proceedContext
+            )
+        }
+    }
+
+    fun register() {
+        formAction.proceed {
+            val response = authenticationWrapper.begin()
+            handleTerminalTransitions(response)?.let { return@proceed it }
+            FormAction.ProceedTransition.FormTransition(
+                RegisterForm(
+                    formAction = formAction,
+                    viewModel = RegisterForm.ViewModel(),
                 ),
                 proceedContext = response.proceedContext
             )

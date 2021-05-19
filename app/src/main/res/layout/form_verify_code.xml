@@ -40,6 +40,14 @@
         />
 
     <Button
+        android:id="@+id/resend_button"
+        style="@style/BorderlessButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/resend"
+        />
+
+    <Button
         android:id="@+id/sign_out_button"
         style="@style/BorderlessButton"
         android:layout_width="match_parent"

@@ -52,4 +52,14 @@ class VerifyCodeForm internal constructor(
     fun signOut() {
         formAction.signOut()
     }
+
+    fun resend() {
+        formAction.proceed {
+            val response = authenticationWrapper.resend(
+                proceedContext,
+            )
+            handleTerminalTransitions(response)?.let { return@proceed it }
+            FormAction.ProceedTransition.IgnoredTransition
+        }
+    }
 }

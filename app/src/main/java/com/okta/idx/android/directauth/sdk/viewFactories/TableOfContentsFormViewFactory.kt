@@ -36,14 +36,6 @@ internal class TableOfContentsFormViewFactory : FormViewFactory<TableOfContentsF
             form.register()
         }
 
-        binding.passwordRecoveryButton.setOnClickListener {
-            form.forgotPassword()
-        }
-
-        binding.socialLoginButton.setOnClickListener {
-            form.loginWithSocial()
-        }
-
         return binding.root
     }
 }

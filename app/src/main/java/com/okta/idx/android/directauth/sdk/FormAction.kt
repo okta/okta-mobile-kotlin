@@ -61,6 +61,8 @@ data class FormAction internal constructor(
 
         class ErrorTransition(val errors: List<String>) : ProceedTransition()
         class TerminalTransition(val errors: List<String>) : ProceedTransition()
+
+        object IgnoredTransition : ProceedTransition()
     }
 
     internal class ProceedData(
@@ -229,8 +231,8 @@ data class FormAction internal constructor(
         }
     }
 
-    internal fun transitionToForm(form: Form) {
-        stateLiveData.value = State.Data(form)
+    internal fun transitionToForm(form: Form, proceedContext: ProceedContext?) {
+        stateLiveData.value = State.Data(form = form, proceedContext = proceedContext)
     }
 
     private fun ProceedTransition.handle(initialState: State.Data) {
@@ -246,9 +248,12 @@ data class FormAction internal constructor(
                     State.Data(form = form, proceedContext = proceedContext)
                 )
             }
-            is ProceedTransition.TerminalTransition -> stateLiveData.postValue(
-                State.Data(initialForm(), messages = errors)
-            )
+            is ProceedTransition.TerminalTransition -> {
+                stateLiveData.postValue(State.Data(initialForm(), messages = errors))
+            }
+            is ProceedTransition.IgnoredTransition -> {
+                stateLiveData.postValue(initialState)
+            }
         }
     }
 
@@ -267,7 +272,7 @@ data class FormAction internal constructor(
     }
 
     fun signOut() {
-        transitionToForm(initialForm())
+        transitionToForm(form = initialForm(), proceedContext = null)
     }
 
     fun skip() {

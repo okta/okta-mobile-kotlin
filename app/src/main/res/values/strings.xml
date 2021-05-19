@@ -43,4 +43,5 @@
     <string name="self_service_registration">Self Service Registration</string>
     <string name="basic_social_login">Basic Social Login</string>
     <string name="welcome_to_oie_sample">Welcome to the Okta OIE Sample App!</string>
+    <string name="resend">Resend</string>
 </resources>

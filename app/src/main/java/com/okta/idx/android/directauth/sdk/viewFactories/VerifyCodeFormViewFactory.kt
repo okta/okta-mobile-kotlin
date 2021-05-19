@@ -42,6 +42,10 @@ internal class VerifyCodeFormViewFactory :
             form.verify()
         }
 
+        binding.resendButton.setOnClickListener {
+            form.resend()
+        }
+
         binding.signOutButton.setOnClickListener {
             form.signOut()
         }

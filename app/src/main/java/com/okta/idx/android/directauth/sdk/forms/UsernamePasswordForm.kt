@@ -50,25 +50,31 @@ class UsernamePasswordForm internal constructor(
 
         formAction.proceed {
             val options = AuthenticationOptions(viewModel.username, viewModel.password)
-            val response = authenticationWrapper.authenticate(options)
+            val response = authenticationWrapper.authenticate(options, proceedContext)
             handleKnownTransitions(response)
         }
     }
 
     fun register() {
-        formAction.transitionToForm(
-            RegisterForm(
-                formAction = formAction,
-                viewModel = RegisterForm.ViewModel(primaryEmail = viewModel.username),
+        formAction.proceed {
+            FormAction.ProceedTransition.FormTransition(
+                RegisterForm(
+                    formAction = formAction,
+                    viewModel = RegisterForm.ViewModel(primaryEmail = viewModel.username),
+                ),
+                proceedContext
             )
-        )
+        }
     }
 
     fun forgotPassword() {
-        formAction.transitionToForm(
-            ForgotPasswordForm(
-                formAction = formAction,
+        formAction.proceed {
+            FormAction.ProceedTransition.FormTransition(
+                ForgotPasswordForm(
+                    formAction = formAction,
+                ),
+                proceedContext
             )
-        )
+        }
     }
 }
