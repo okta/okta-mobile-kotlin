@@ -20,7 +20,7 @@ import com.okta.idx.android.directauth.sdk.forms.RegisterPasswordForm
 import com.okta.idx.android.directauth.sdk.forms.RegisterPhoneForm
 import com.okta.idx.android.directauth.sdk.forms.SelectAuthenticatorForm
 import com.okta.idx.android.directauth.sdk.forms.SelectFactorForm
-import com.okta.idx.android.directauth.sdk.forms.TableOfContentsForm
+import com.okta.idx.android.directauth.sdk.forms.LaunchForm
 import com.okta.idx.android.directauth.sdk.forms.VerifyCodeForm
 import com.okta.idx.sdk.api.client.Authenticator
 import com.okta.idx.sdk.api.client.IDXAuthenticationWrapper
@@ -283,6 +283,6 @@ data class FormAction internal constructor(
     }
 
     private fun initialForm(): Form {
-        return TableOfContentsForm(formAction = this)
+        return LaunchForm(formAction = this)
     }
 }

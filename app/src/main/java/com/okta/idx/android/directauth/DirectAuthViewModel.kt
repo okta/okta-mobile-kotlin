@@ -33,7 +33,7 @@ internal class DirectAuthViewModel : ViewModel() {
         formAction.signOut()
     }
 
-    fun goToTableOfContents() {
+    fun goToLaunchPage() {
         formAction.signOut()
     }
 

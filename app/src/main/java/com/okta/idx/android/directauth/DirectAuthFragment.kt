@@ -32,7 +32,7 @@ import com.okta.idx.android.databinding.LoadingBinding
 import com.okta.idx.android.directauth.sdk.FormAction
 import com.okta.idx.android.directauth.sdk.FormViewFactory
 import com.okta.idx.android.directauth.sdk.IdxFormRegistry
-import com.okta.idx.android.directauth.sdk.forms.TableOfContentsForm
+import com.okta.idx.android.directauth.sdk.forms.LaunchForm
 import com.okta.idx.android.directauth.sdk.util.inflateBinding
 import com.okta.idx.android.util.BaseFragment
 
@@ -46,7 +46,7 @@ internal class DirectAuthFragment : BaseFragment<FragmentDirectAuthBinding>(
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         backPressedCallback = requireActivity().onBackPressedDispatcher.addCallback(this) {
-            viewModel.goToTableOfContents()
+            viewModel.goToLaunchPage()
         }
 
         activityViewModel.socialRedirectListener = viewModel::handleSocialRedirectUri
@@ -66,7 +66,7 @@ internal class DirectAuthFragment : BaseFragment<FragmentDirectAuthBinding>(
 
             when (state) {
                 is FormAction.State.Data -> {
-                    backPressedCallback.isEnabled = state.form !is TableOfContentsForm
+                    backPressedCallback.isEnabled = state.form !is LaunchForm
 
                     binding.messagesContent.removeAllViews()
                     addMessageViews(state.messages)
@@ -121,7 +121,7 @@ internal class DirectAuthFragment : BaseFragment<FragmentDirectAuthBinding>(
         parent.removeAllViews()
         val binding = parent.inflateBinding(ErrorBinding::inflate)
         binding.button.setOnClickListener {
-            viewModel.goToTableOfContents()
+            viewModel.goToLaunchPage()
         }
         parent.addView(binding.root)
     }

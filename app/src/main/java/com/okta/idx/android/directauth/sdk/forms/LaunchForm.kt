@@ -18,7 +18,7 @@ package com.okta.idx.android.directauth.sdk.forms
 import com.okta.idx.android.directauth.sdk.Form
 import com.okta.idx.android.directauth.sdk.FormAction
 
-class TableOfContentsForm internal constructor(
+class LaunchForm internal constructor(
     private val formAction: FormAction
 ) : Form {
     fun login() {

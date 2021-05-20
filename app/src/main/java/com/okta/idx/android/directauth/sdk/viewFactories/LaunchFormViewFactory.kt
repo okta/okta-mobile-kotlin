@@ -16,17 +16,17 @@
 package com.okta.idx.android.directauth.sdk.viewFactories
 
 import android.view.View
-import com.okta.idx.android.databinding.FormTableOfContentsBinding
+import com.okta.idx.android.databinding.FormLaunchBinding
 import com.okta.idx.android.directauth.sdk.FormViewFactory
-import com.okta.idx.android.directauth.sdk.forms.TableOfContentsForm
+import com.okta.idx.android.directauth.sdk.forms.LaunchForm
 import com.okta.idx.android.directauth.sdk.util.inflateBinding
 
-internal class TableOfContentsFormViewFactory : FormViewFactory<TableOfContentsForm> {
+internal class LaunchFormViewFactory : FormViewFactory<LaunchForm> {
     override fun createUi(
         references: FormViewFactory.References,
-        form: TableOfContentsForm
+        form: LaunchForm
     ): View {
-        val binding = references.parent.inflateBinding(FormTableOfContentsBinding::inflate)
+        val binding = references.parent.inflateBinding(FormLaunchBinding::inflate)
 
         binding.loginButton.setOnClickListener {
             form.login()
