@@ -42,6 +42,7 @@ import org.junit.runner.RunWith
 class LogoutTest {
     companion object {
         private const val ID_TOKEN_TYPE_TEXT_VIEW = "com.okta.idx.android:id/token_type"
+        private const val USERNAME_EDIT_TEXT = "com.okta.idx.android:id/username_edit_text"
     }
 
     @get:Rule val activityRule = ActivityScenarioRule(MainActivity::class.java)
@@ -83,6 +84,9 @@ class LogoutTest {
         }
 
         activityRule.scenario.moveToState(Lifecycle.State.RESUMED)
+        onView(withId(R.id.login_button)).perform(click())
+        waitForElement(USERNAME_EDIT_TEXT)
+
         onView(withId(R.id.username_edit_text)).perform(replaceText("Mary@example.com"))
         onView(withId(R.id.password_edit_text)).perform(replaceText("superSecret"))
         onView(withId(R.id.submit_button)).perform(click())
@@ -91,6 +95,6 @@ class LogoutTest {
         onView(withText("Token Type:")).check(matches(isDisplayed()))
         onView(withText("Bearer")).check(matches(isDisplayed()))
         onView(withId(R.id.sign_out_button)).perform(scrollTo(), click())
-        onView(withId(R.id.username_edit_text)).check(matches(isDisplayed()))
+        onView(withText(R.string.welcome_to_oie_sample_description)).check(matches(isDisplayed()))
     }
 }

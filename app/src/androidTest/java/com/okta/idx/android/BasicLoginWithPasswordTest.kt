@@ -42,6 +42,7 @@ class BasicLoginWithPasswordTest {
     companion object {
         private const val ID_TOKEN_TYPE_TEXT_VIEW = "com.okta.idx.android:id/token_type"
         private const val ERROR_TEXT_VIEW = "com.okta.idx.android:id/error_text_view"
+        private const val USERNAME_EDIT_TEXT = "com.okta.idx.android:id/username_edit_text"
     }
 
     @get:Rule val activityRule = ActivityScenarioRule(MainActivity::class.java)
@@ -80,6 +81,9 @@ class BasicLoginWithPasswordTest {
         }
 
         activityRule.scenario.moveToState(Lifecycle.State.RESUMED)
+        onView(withId(R.id.login_button)).perform(click())
+        waitForElement(USERNAME_EDIT_TEXT)
+
         onView(withId(R.id.username_edit_text)).perform(replaceText("Mary@example.com"))
         onView(withId(R.id.password_edit_text)).perform(replaceText("superSecret"))
         onView(withId(R.id.submit_button)).perform(click())
@@ -105,6 +109,9 @@ class BasicLoginWithPasswordTest {
         }
 
         activityRule.scenario.moveToState(Lifecycle.State.RESUMED)
+        onView(withId(R.id.login_button)).perform(click())
+        waitForElement(USERNAME_EDIT_TEXT)
+
         onView(withId(R.id.username_edit_text)).perform(replaceText("mary@unknown.com"))
         onView(withId(R.id.password_edit_text)).perform(replaceText("superSecret"))
         onView(withId(R.id.submit_button)).perform(click())
@@ -131,6 +138,9 @@ class BasicLoginWithPasswordTest {
         }
 
         activityRule.scenario.moveToState(Lifecycle.State.RESUMED)
+        onView(withId(R.id.login_button)).perform(click())
+        waitForElement(USERNAME_EDIT_TEXT)
+
         onView(withId(R.id.username_edit_text)).perform(replaceText("mary@example.com"))
         onView(withId(R.id.password_edit_text)).perform(replaceText("wrongo"))
         onView(withId(R.id.submit_button)).perform(click())
@@ -157,6 +167,9 @@ class BasicLoginWithPasswordTest {
         }
 
         activityRule.scenario.moveToState(Lifecycle.State.RESUMED)
+        onView(withId(R.id.login_button)).perform(click())
+        waitForElement(USERNAME_EDIT_TEXT)
+
         onView(withId(R.id.username_edit_text)).perform(replaceText("mary@example.com"))
         onView(withId(R.id.password_edit_text)).perform(replaceText("superSecret"))
         onView(withId(R.id.submit_button)).perform(click())
@@ -183,6 +196,9 @@ class BasicLoginWithPasswordTest {
         }
 
         activityRule.scenario.moveToState(Lifecycle.State.RESUMED)
+        onView(withId(R.id.login_button)).perform(click())
+        waitForElement(USERNAME_EDIT_TEXT)
+
         onView(withId(R.id.username_edit_text)).perform(replaceText("mary@example.com"))
         onView(withId(R.id.password_edit_text)).perform(replaceText("superSecret"))
         onView(withId(R.id.submit_button)).perform(click())
@@ -209,6 +225,9 @@ class BasicLoginWithPasswordTest {
         }
 
         activityRule.scenario.moveToState(Lifecycle.State.RESUMED)
+        onView(withId(R.id.login_button)).perform(click())
+        waitForElement(USERNAME_EDIT_TEXT)
+
         onView(withId(R.id.username_edit_text)).perform(replaceText("mary@example.com"))
         onView(withId(R.id.password_edit_text)).perform(replaceText("superSecret"))
         onView(withId(R.id.submit_button)).perform(click())
@@ -235,6 +254,9 @@ class BasicLoginWithPasswordTest {
         }
 
         activityRule.scenario.moveToState(Lifecycle.State.RESUMED)
+        onView(withId(R.id.login_button)).perform(click())
+        waitForElement(USERNAME_EDIT_TEXT)
+
         onView(withId(R.id.username_edit_text)).perform(replaceText("mary@example.com"))
         onView(withId(R.id.password_edit_text)).perform(replaceText("superSecret"))
         onView(withId(R.id.submit_button)).perform(click())

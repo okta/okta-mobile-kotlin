@@ -49,6 +49,7 @@ class SelfServicePasswordRecoveryTest {
         private const val CODE_EDIT_TEXT = "com.okta.idx.android:id/code_edit_text"
         private const val CONFIRMED_PASSWORD_EDIT_TEXT = "com.okta.idx.android:id/confirmed_password_edit_text"
         private const val SELECT_BUTTON = "com.okta.idx.android:id/select_button"
+        private const val USERNAME_EDIT_TEXT = "com.okta.idx.android:id/username_edit_text"
     }
 
     @get:Rule val activityRule = ActivityScenarioRule(MainActivity::class.java)
@@ -100,6 +101,9 @@ class SelfServicePasswordRecoveryTest {
         }
 
         activityRule.scenario.moveToState(Lifecycle.State.RESUMED)
+        onView(withId(R.id.login_button)).perform(click())
+        waitForElement(USERNAME_EDIT_TEXT)
+
         onView(withId(R.id.forgot_password_button)).perform(click())
         onView(withId(R.id.username_edit_text)).perform(replaceText("Mary@example.com"))
         onView(withId(R.id.forgot_password_button)).perform(click())
@@ -137,6 +141,9 @@ class SelfServicePasswordRecoveryTest {
         }
 
         activityRule.scenario.moveToState(Lifecycle.State.RESUMED)
+        onView(withId(R.id.login_button)).perform(click())
+        waitForElement(USERNAME_EDIT_TEXT)
+
         onView(withId(R.id.forgot_password_button)).perform(click())
         onView(withId(R.id.username_edit_text)).perform(replaceText("Mary@unknown.com"))
         onView(withId(R.id.forgot_password_button)).perform(click())
