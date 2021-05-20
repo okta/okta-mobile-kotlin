@@ -33,19 +33,25 @@ internal class DirectAuthViewModel : ViewModel() {
         formAction.signOut()
     }
 
-    fun signOut() {
+    fun goToTableOfContents() {
         formAction.signOut()
     }
 
     fun handleSocialRedirectUri(uri: Uri) {
         val errorQueryParameter = uri.getQueryParameter("error")
-//        if (errorQueryParameter == "interaction_required") {
-//            formAction.proceed {
-//                val response = authenticationWrapper.introspect(proceedContext?.clientContext)
-//                handleKnownTransitions(response)
-//            }
-//            return
-//        }
+        val stateQueryParameter = uri.getQueryParameter("state")
+        if (errorQueryParameter == "interaction_required") {
+            formAction.proceed {
+                // Validate the state matches. This is a security assurance.
+                if (proceedContext?.clientContext?.state != stateQueryParameter) {
+                    val error = "IDP redirect failed due to state mismatch."
+                    return@proceed FormAction.ProceedTransition.ErrorTransition(listOf(error))
+                }
+                val response = authenticationWrapper.introspect(proceedContext?.clientContext)
+                handleKnownTransitions(response)
+            }
+            return
+        }
         if (errorQueryParameter != null) {
             formAction.proceed {
                 val errorDescription = uri.getQueryParameter("error_description") ?: "An error occurred."
@@ -56,6 +62,11 @@ internal class DirectAuthViewModel : ViewModel() {
         val interactionCodeQueryParameter = uri.getQueryParameter("interaction_code")
         if (interactionCodeQueryParameter != null) {
             formAction.proceed {
+                // Validate the state matches. This is a security assurance.
+                if (proceedContext?.clientContext?.state != stateQueryParameter) {
+                    val error = "IDP redirect failed due to state mismatch."
+                    return@proceed FormAction.ProceedTransition.ErrorTransition(listOf(error))
+                }
                 val response = authenticationWrapper.fetchTokenWithInteractionCode(Network.baseUrl, proceedContext, interactionCodeQueryParameter)
                 handleKnownTransitions(response)
             }

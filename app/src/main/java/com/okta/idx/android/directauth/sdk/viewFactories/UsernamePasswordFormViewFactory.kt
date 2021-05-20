@@ -20,6 +20,7 @@ import android.content.Intent
 import android.net.Uri
 import android.view.View
 import android.view.ViewGroup
+import com.okta.idx.android.R
 import com.okta.idx.android.databinding.FormUsernameAndPasswordBinding
 import com.okta.idx.android.databinding.RowFactorBinding
 import com.okta.idx.android.directauth.sdk.FormViewFactory
@@ -28,6 +29,7 @@ import com.okta.idx.android.directauth.sdk.util.bindText
 import com.okta.idx.android.directauth.sdk.util.inflateBinding
 import com.okta.idx.sdk.api.model.Idp
 import timber.log.Timber
+import java.util.Locale
 
 internal class UsernamePasswordFormViewFactory : FormViewFactory<UsernamePasswordForm> {
     override fun createUi(
@@ -75,7 +77,8 @@ internal class UsernamePasswordFormViewFactory : FormViewFactory<UsernamePasswor
         parent: ViewGroup,
     ): View {
         val binding = parent.inflateBinding(RowFactorBinding::inflate)
-        binding.typeTextView.text = type
+        val idpName = type.toLowerCase(Locale.US).capitalize(Locale.US)
+        binding.typeTextView.text = parent.context.getString(R.string.login_with_idp, idpName)
         binding.selectButton.setOnClickListener {
             try {
                 val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(href))

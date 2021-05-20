@@ -16,17 +16,24 @@
         android:text="@string/welcome_to_oie_sample"
         />
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:text="@string/welcome_to_oie_sample_description"
+        />
+
     <Button
         android:id="@+id/login_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/basic_login"
+        android:text="@string/login"
         />
 
     <Button
         android:id="@+id/self_service_registration_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/self_service_registration"
+        android:text="@string/register"
         />
 </LinearLayout>

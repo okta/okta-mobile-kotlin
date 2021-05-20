@@ -18,6 +18,8 @@ package com.okta.idx.android.directauth
 import android.graphics.Color
 import android.os.Bundle
 import android.view.View
+import androidx.activity.OnBackPressedCallback
+import androidx.activity.addCallback
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
@@ -30,6 +32,7 @@ import com.okta.idx.android.databinding.LoadingBinding
 import com.okta.idx.android.directauth.sdk.FormAction
 import com.okta.idx.android.directauth.sdk.FormViewFactory
 import com.okta.idx.android.directauth.sdk.IdxFormRegistry
+import com.okta.idx.android.directauth.sdk.forms.TableOfContentsForm
 import com.okta.idx.android.directauth.sdk.util.inflateBinding
 import com.okta.idx.android.util.BaseFragment
 
@@ -38,9 +41,14 @@ internal class DirectAuthFragment : BaseFragment<FragmentDirectAuthBinding>(
 ) {
     private val viewModel by viewModels<DirectAuthViewModel>()
     private val activityViewModel by activityViewModels<MainActivityViewModel>()
+    private lateinit var backPressedCallback: OnBackPressedCallback
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        backPressedCallback = requireActivity().onBackPressedDispatcher.addCallback(this) {
+            viewModel.goToTableOfContents()
+        }
+
         activityViewModel.socialRedirectListener = viewModel::handleSocialRedirectUri
     }
 
@@ -53,8 +61,13 @@ internal class DirectAuthFragment : BaseFragment<FragmentDirectAuthBinding>(
         binding.formContent.isSaveFromParentEnabled = false
 
         viewModel.stateLiveData.observe(viewLifecycleOwner) { state ->
+            // Only enabled when not table of contents form.
+            backPressedCallback.isEnabled = false
+
             when (state) {
                 is FormAction.State.Data -> {
+                    backPressedCallback.isEnabled = state.form !is TableOfContentsForm
+
                     binding.messagesContent.removeAllViews()
                     addMessageViews(state.messages)
 
@@ -108,7 +121,7 @@ internal class DirectAuthFragment : BaseFragment<FragmentDirectAuthBinding>(
         parent.removeAllViews()
         val binding = parent.inflateBinding(ErrorBinding::inflate)
         binding.button.setOnClickListener {
-            viewModel.signOut()
+            viewModel.goToTableOfContents()
         }
         parent.addView(binding.root)
     }

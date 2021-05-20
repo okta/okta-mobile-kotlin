@@ -59,7 +59,7 @@ class VerifyCodeForm internal constructor(
                 proceedContext,
             )
             handleTerminalTransitions(response)?.let { return@proceed it }
-            FormAction.ProceedTransition.IgnoredTransition
+            FormAction.ProceedTransition.ClearErrorsTransition
         }
     }
 }

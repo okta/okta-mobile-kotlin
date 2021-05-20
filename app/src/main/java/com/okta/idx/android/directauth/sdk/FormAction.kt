@@ -62,7 +62,7 @@ data class FormAction internal constructor(
         class ErrorTransition(val errors: List<String>) : ProceedTransition()
         class TerminalTransition(val errors: List<String>) : ProceedTransition()
 
-        object IgnoredTransition : ProceedTransition()
+        object ClearErrorsTransition : ProceedTransition()
     }
 
     internal class ProceedData(
@@ -88,7 +88,7 @@ data class FormAction internal constructor(
 
             return when (response.authenticationStatus) {
                 AuthenticationStatus.AWAITING_PASSWORD_RESET -> {
-                    registerPasswordForm(response, "Reset Password")
+                    registerPasswordForm(response, "Reset my Password")
                 }
                 AuthenticationStatus.PASSWORD_EXPIRED -> {
                     registerPasswordForm(response, "Password Expired")
@@ -231,8 +231,8 @@ data class FormAction internal constructor(
         }
     }
 
-    internal fun transitionToForm(form: Form, proceedContext: ProceedContext?) {
-        stateLiveData.value = State.Data(form = form, proceedContext = proceedContext)
+    private fun transitionToForm(form: Form) {
+        stateLiveData.value = State.Data(form = form)
     }
 
     private fun ProceedTransition.handle(initialState: State.Data) {
@@ -251,8 +251,8 @@ data class FormAction internal constructor(
             is ProceedTransition.TerminalTransition -> {
                 stateLiveData.postValue(State.Data(initialForm(), messages = errors))
             }
-            is ProceedTransition.IgnoredTransition -> {
-                stateLiveData.postValue(initialState)
+            is ProceedTransition.ClearErrorsTransition -> {
+                stateLiveData.postValue(initialState.copy(messages = emptyList()))
             }
         }
     }
@@ -272,7 +272,7 @@ data class FormAction internal constructor(
     }
 
     fun signOut() {
-        transitionToForm(form = initialForm(), proceedContext = null)
+        transitionToForm(form = initialForm())
     }
 
     fun skip() {
