@@ -103,6 +103,14 @@ data class FormAction internal constructor(
                 AuthenticationStatus.AWAITING_AUTHENTICATOR_ENROLLMENT_SELECTION -> {
                     selectAuthenticatorForm(response, "Enroll Authenticator")
                 }
+                AuthenticationStatus.AWAITING_AUTHENTICATOR_VERIFICATION_DATA -> {
+                    // This is possible when email is not required and you're authenticating without verifying email.
+                    if (response.authenticators.size == 1) {
+                        selectFactorForm(response, response.authenticators.first().factors, "Select Factor")
+                    } else {
+                        unsupportedPolicy()
+                    }
+                }
                 else -> unsupportedPolicy()
             }
         }
