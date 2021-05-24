@@ -77,6 +77,7 @@ dependencies {
     testImplementation deps.okhttp.tls
     testImplementation deps.truth
 
+    androidTestImplementation deps.jackson_yaml
     androidTestImplementation deps.okhttp.tls
     androidTestImplementation deps.junit
     androidTestImplementation deps.androidx_test.core

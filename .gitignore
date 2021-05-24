@@ -13,3 +13,4 @@
 .externalNativeBuild
 .cxx
 local.properties
+e2eCredentials.yaml
