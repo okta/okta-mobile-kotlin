@@ -25,6 +25,10 @@ import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.espresso.matcher.ViewMatchers.withText
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.okta.idx.android.infrastructure.ERROR_TEXT_VIEW
+import com.okta.idx.android.infrastructure.ID_TOKEN_TYPE_TEXT_VIEW
+import com.okta.idx.android.infrastructure.SIGN_OUT_BUTTON
+import com.okta.idx.android.infrastructure.USERNAME_EDIT_TEXT
 import com.okta.idx.android.infrastructure.espresso.waitForElement
 import com.okta.idx.android.infrastructure.network.NetworkRule
 import com.okta.idx.android.infrastructure.network.testBodyFromFile
@@ -37,13 +41,6 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class BasicLoginWithPasswordTest {
-    companion object {
-        private const val ID_TOKEN_TYPE_TEXT_VIEW = "com.okta.idx.android:id/token_type"
-        private const val ERROR_TEXT_VIEW = "com.okta.idx.android:id/error_text_view"
-        private const val USERNAME_EDIT_TEXT = "com.okta.idx.android:id/username_edit_text"
-        private const val SIGN_OUT_BUTTON = "com.okta.idx.android:id/sign_out_button"
-    }
-
     @get:Rule val activityRule = ActivityScenarioRule(MainActivity::class.java)
     @get:Rule val networkRule = NetworkRule()
 

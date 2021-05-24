@@ -25,6 +25,13 @@ import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.espresso.matcher.ViewMatchers.withText
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.okta.idx.android.infrastructure.CODE_EDIT_TEXT
+import com.okta.idx.android.infrastructure.CONFIRMED_PASSWORD_EDIT_TEXT
+import com.okta.idx.android.infrastructure.ERROR_TEXT_VIEW
+import com.okta.idx.android.infrastructure.FIRST_NAME_EDIT_TEXT
+import com.okta.idx.android.infrastructure.ID_TOKEN_TYPE_TEXT_VIEW
+import com.okta.idx.android.infrastructure.PHONE_EDIT_TEXT
+import com.okta.idx.android.infrastructure.SELECT_BUTTON
 import com.okta.idx.android.infrastructure.espresso.selectAuthenticator
 import com.okta.idx.android.infrastructure.espresso.waitForElement
 import com.okta.idx.android.infrastructure.network.NetworkRule
@@ -40,17 +47,6 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class SelfServiceRegistrationTest {
-    companion object {
-        private const val ID_TOKEN_TYPE_TEXT_VIEW = "com.okta.idx.android:id/token_type"
-        private const val CODE_EDIT_TEXT = "com.okta.idx.android:id/code_edit_text"
-        private const val CONFIRMED_PASSWORD_EDIT_TEXT =
-            "com.okta.idx.android:id/confirmed_password_edit_text"
-        private const val SELECT_BUTTON = "com.okta.idx.android:id/select_button"
-        private const val FIRST_NAME_EDIT_TEXT = "com.okta.idx.android:id/first_name_edit_text"
-        private const val PHONE_EDIT_TEXT = "com.okta.idx.android:id/phone_edit_text"
-        private const val ERROR_TEXT_VIEW = "com.okta.idx.android:id/error_text_view"
-    }
-
     @get:Rule val activityRule = ActivityScenarioRule(MainActivity::class.java)
     @get:Rule val networkRule = NetworkRule()
 

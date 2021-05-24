@@ -23,6 +23,7 @@ import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
 import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.okta.idx.android.infrastructure.FORGOT_PASSWORD_BUTTON
 import com.okta.idx.android.infrastructure.espresso.waitForElement
 import org.junit.Rule
 import org.junit.Test
@@ -30,11 +31,6 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class BasicLoginWithPasswordMockFreeTest {
-
-    companion object {
-        private const val FORGOT_PASSWORD_BUTTON = "com.okta.idx.android:id/forgot_password_button"
-    }
-
     @get:Rule val activityRule = ActivityScenarioRule(MainActivity::class.java)
 
     @Test fun scenario_1_1_8_Mary_clicks_on_the_forgot_password_link() {

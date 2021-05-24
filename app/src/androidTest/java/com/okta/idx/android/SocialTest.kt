@@ -34,6 +34,8 @@ import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.okta.idx.android.directauth.TestingGlobals
+import com.okta.idx.android.infrastructure.ID_TOKEN_TYPE_TEXT_VIEW
+import com.okta.idx.android.infrastructure.USERNAME_EDIT_TEXT
 import com.okta.idx.android.infrastructure.espresso.selectAuthenticator
 import com.okta.idx.android.infrastructure.espresso.waitForElement
 import com.okta.idx.android.infrastructure.network.NetworkRule
@@ -48,11 +50,6 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class SocialTest {
-    companion object {
-        private const val USERNAME_EDIT_TEXT = "com.okta.idx.android:id/username_edit_text"
-        private const val ID_TOKEN_TYPE_TEXT_VIEW = "com.okta.idx.android:id/token_type"
-    }
-
     @get:Rule val activityRule = ActivityScenarioRule(MainActivity::class.java)
     @get:Rule val networkRule = NetworkRule()
 
