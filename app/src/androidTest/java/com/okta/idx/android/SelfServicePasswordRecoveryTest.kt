@@ -56,7 +56,8 @@ class SelfServicePasswordRecoveryTest {
         OktaMockWebServer.dispatcher.consumeResponses = true
     }
 
-    @Test fun scenario_3_1_1_Mary_resets_her_password_from_login_page() {
+    // Mary resets her password
+    @Test fun scenario_3_1_1() {
         val mockPrefix = "scenario_3_1_1"
         networkRule.enqueue(path("oauth2/default/v1/interact")) { response ->
             response.testBodyFromFile("$mockPrefix/interact.json")
@@ -119,7 +120,8 @@ class SelfServicePasswordRecoveryTest {
         onView(withText("Bearer")).check(matches(isDisplayed()))
     }
 
-    @Test fun scenario_3_1_2_Mary_tries_to_reset_a_password_with_the_wrong_email() {
+    // Mary tries to reset a password with the wrong email
+    @Test fun scenario_3_1_2() {
         val mockPrefix = "scenario_3_1_2"
         networkRule.enqueue(path("oauth2/default/v1/interact")) { response ->
             response.testBodyFromFile("$mockPrefix/interact.json")

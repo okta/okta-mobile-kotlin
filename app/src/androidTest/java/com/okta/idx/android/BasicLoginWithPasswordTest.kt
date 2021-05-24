@@ -41,6 +41,7 @@ class BasicLoginWithPasswordTest {
         private const val ID_TOKEN_TYPE_TEXT_VIEW = "com.okta.idx.android:id/token_type"
         private const val ERROR_TEXT_VIEW = "com.okta.idx.android:id/error_text_view"
         private const val USERNAME_EDIT_TEXT = "com.okta.idx.android:id/username_edit_text"
+        private const val SIGN_OUT_BUTTON = "com.okta.idx.android:id/sign_out_button"
     }
 
     @get:Rule val activityRule = ActivityScenarioRule(MainActivity::class.java)
@@ -50,7 +51,8 @@ class BasicLoginWithPasswordTest {
         OktaMockWebServer.dispatcher.consumeResponses = true
     }
 
-    @Test fun scenario_1_1_1_Mary_logs_in_with_a_Password() {
+    // Mary logs in with a Password
+    @Test fun scenario_1_1_1() {
         val mockPrefix = "scenario_1_1_1"
         networkRule.enqueue(path("oauth2/default/v1/interact")) { response ->
             response.testBodyFromFile("$mockPrefix/interact.json")
@@ -84,7 +86,8 @@ class BasicLoginWithPasswordTest {
         onView(withText("Bearer")).check(matches(isDisplayed()))
     }
 
-    @Test fun scenario_1_1_2_Mary_doesn_t_know_her_username() {
+    // Mary doesn't know her username
+    @Test fun scenario_1_1_2() {
         val mockPrefix = "scenario_1_1_2"
         networkRule.enqueue(path("oauth2/default/v1/interact")) { response ->
             response.testBodyFromFile("$mockPrefix/interact.json")
@@ -111,7 +114,8 @@ class BasicLoginWithPasswordTest {
         onView(withId(R.id.error_text_view)).check(matches(withText("There is no account with the Username mary@unknown.com.")))
     }
 
-    @Test fun scenario_1_1_3_Mary_doesn_t_know_her_password() {
+    // Mary doesn't know her password
+    @Test fun scenario_1_1_3() {
         val mockPrefix = "scenario_1_1_3"
         networkRule.enqueue(path("oauth2/default/v1/interact")) { response ->
             response.testBodyFromFile("$mockPrefix/interact.json")
@@ -140,7 +144,8 @@ class BasicLoginWithPasswordTest {
         onView(withId(R.id.error_text_view)).check(matches(withText("Password is incorrect")))
     }
 
-    @Test fun scenario_1_1_4_Mary_is_not_assigned_to_the_application() {
+    // Mary is not assigned to the application
+    @Test fun scenario_1_1_4() {
         val mockPrefix = "scenario_1_1_4"
         networkRule.enqueue(path("oauth2/default/v1/interact")) { response ->
             response.testBodyFromFile("$mockPrefix/interact.json")
@@ -169,7 +174,8 @@ class BasicLoginWithPasswordTest {
         onView(withId(R.id.error_text_view)).check(matches(withText("User is not assigned to this application")))
     }
 
-    @Test fun scenario_1_1_5_Marys_account_is_suspended() {
+    // Mary's account is suspended
+    @Test fun scenario_1_1_5() {
         val mockPrefix = "scenario_1_1_5"
         networkRule.enqueue(path("oauth2/default/v1/interact")) { response ->
             response.testBodyFromFile("$mockPrefix/interact.json")
@@ -198,7 +204,8 @@ class BasicLoginWithPasswordTest {
         onView(withId(R.id.error_text_view)).check(matches(withText("Authentication failed")))
     }
 
-    @Test fun scenario_1_1_6_Marys_account_is_locked() {
+    // Mary's account is locked
+    @Test fun scenario_1_1_6() {
         val mockPrefix = "scenario_1_1_6"
         networkRule.enqueue(path("oauth2/default/v1/interact")) { response ->
             response.testBodyFromFile("$mockPrefix/interact.json")
@@ -227,7 +234,8 @@ class BasicLoginWithPasswordTest {
         onView(withId(R.id.error_text_view)).check(matches(withText("This factor is suspended for your account due to too many failed attempts")))
     }
 
-    @Test fun scenario_1_1_7_Marys_account_is_locked() {
+    // Mary's account is deactivated
+    @Test fun scenario_1_1_7() {
         val mockPrefix = "scenario_1_1_7"
         networkRule.enqueue(path("oauth2/default/v1/interact")) { response ->
             response.testBodyFromFile("$mockPrefix/interact.json")
@@ -254,5 +262,25 @@ class BasicLoginWithPasswordTest {
 
         waitForElement(ERROR_TEXT_VIEW)
         onView(withId(R.id.error_text_view)).check(matches(withText("Authentication failed")))
+    }
+
+    // Mary clicks on the "Forgot Password Link"
+    @Test fun scenario_1_1_8() {
+        val mockPrefix = "scenario_1_1_8"
+        networkRule.enqueue(path("oauth2/default/v1/interact")) { response ->
+            response.testBodyFromFile("$mockPrefix/interact.json")
+        }
+        networkRule.enqueue(path("idp/idx/introspect")) { response ->
+            response.testBodyFromFile("$mockPrefix/introspect.json")
+        }
+
+        activityRule.scenario.moveToState(Lifecycle.State.RESUMED)
+        onView(withId(R.id.login_button)).perform(click())
+        waitForElement(USERNAME_EDIT_TEXT)
+
+        onView(withId(R.id.forgot_password_button)).perform(click())
+
+        waitForElement(SIGN_OUT_BUTTON)
+        onView(withId(R.id.title_text_view)).check(matches(withText("Forgot Password")))
     }
 }

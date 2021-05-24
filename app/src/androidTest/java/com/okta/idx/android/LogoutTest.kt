@@ -50,8 +50,9 @@ class LogoutTest {
         OktaMockWebServer.dispatcher.consumeResponses = true
     }
 
-    @Test fun scenario_2_1_1_Mary_logs_out_of_the_sample_app() {
-        val mockPrefix = "scenario_2_1_1"
+    // Mary logs out of the app
+    @Test fun scenario_0_1_3() {
+        val mockPrefix = "scenario_0_1_3"
         networkRule.enqueue(path("oauth2/default/v1/interact")) { response ->
             response.testBodyFromFile("$mockPrefix/interact.json")
         }

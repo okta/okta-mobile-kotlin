@@ -32,6 +32,7 @@ import com.okta.idx.android.infrastructure.network.testBodyFromFile
 import com.okta.idx.android.network.mock.OktaMockWebServer
 import com.okta.idx.android.network.mock.RequestMatchers.bodyWithJsonPath
 import com.okta.idx.android.network.mock.RequestMatchers.path
+import org.hamcrest.CoreMatchers.allOf
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -47,6 +48,7 @@ class SelfServiceRegistrationTest {
         private const val SELECT_BUTTON = "com.okta.idx.android:id/select_button"
         private const val FIRST_NAME_EDIT_TEXT = "com.okta.idx.android:id/first_name_edit_text"
         private const val PHONE_EDIT_TEXT = "com.okta.idx.android:id/phone_edit_text"
+        private const val ERROR_TEXT_VIEW = "com.okta.idx.android:id/error_text_view"
     }
 
     @get:Rule val activityRule = ActivityScenarioRule(MainActivity::class.java)
@@ -268,5 +270,162 @@ class SelfServiceRegistrationTest {
         waitForElement(ID_TOKEN_TYPE_TEXT_VIEW)
         onView(withText("Token Type:")).check(matches(isDisplayed()))
         onView(withText("Bearer")).check(matches(isDisplayed()))
+    }
+
+    // Mary signs up with an invalid Email
+    @Test fun scenario_4_1_3() {
+        val mockPrefix = "scenario_4_1_3"
+        networkRule.enqueue(path("oauth2/default/v1/interact")) { response ->
+            response.testBodyFromFile("$mockPrefix/interact.json")
+        }
+        networkRule.enqueue(path("idp/idx/introspect")) { response ->
+            response.testBodyFromFile("$mockPrefix/introspect.json")
+        }
+        networkRule.enqueue(path("idp/idx/enroll")) { response ->
+            response.testBodyFromFile("$mockPrefix/enroll.json")
+        }
+        networkRule.enqueue(path("idp/idx/enroll/new")) { response ->
+            response.testBodyFromFile("$mockPrefix/enrollNew.json")
+            response.setResponseCode(400)
+            response.addHeader("content-type", "application/json")
+        }
+
+        activityRule.scenario.moveToState(Lifecycle.State.RESUMED)
+        onView(withId(R.id.self_service_registration_button)).perform(click())
+        waitForElement(FIRST_NAME_EDIT_TEXT)
+
+        onView(withId(R.id.first_name_edit_text)).perform(replaceText("Mary"))
+        onView(withId(R.id.last_name_edit_text)).perform(replaceText("Jo"))
+        onView(withId(R.id.primary_email_edit_text)).perform(replaceText("Mary@example.com"))
+        onView(withId(R.id.register_button)).perform(click())
+
+        waitForElement(ERROR_TEXT_VIEW)
+        onView(
+            allOf(
+                withId(R.id.error_text_view),
+                withText("'Email' must be in the form of an email address")
+            )
+        ).check(matches(isDisplayed()))
+        onView(
+            allOf(
+                withId(R.id.error_text_view),
+                withText("Provided value for property 'Email' does not match required pattern")
+            )
+        ).check(matches(isDisplayed()))
+    }
+
+    // Mary signs up for an account with Password, sets up required Email factor, AND sets up
+    // optional SMS with an invalid phone number
+    @Test fun scenario_4_1_4() {
+        val mockPrefix = "scenario_4_1_4"
+        networkRule.enqueue(path("oauth2/default/v1/interact")) { response ->
+            response.testBodyFromFile("$mockPrefix/interact.json")
+        }
+        networkRule.enqueue(path("idp/idx/introspect")) { response ->
+            response.testBodyFromFile("$mockPrefix/introspect.json")
+        }
+        networkRule.enqueue(path("idp/idx/enroll")) { response ->
+            response.testBodyFromFile("$mockPrefix/enroll.json")
+        }
+        networkRule.enqueue(path("idp/idx/enroll/new")) { response ->
+            response.testBodyFromFile("$mockPrefix/enrollNew.json")
+        }
+        networkRule.enqueue(
+            path("idp/idx/credential/enroll"),
+            bodyWithJsonPath("/authenticator/id") {
+                it.textValue() == "autkx2th9yt4eRdhM5d6"
+            }) { response ->
+            response.testBodyFromFile("$mockPrefix/credentialEnrollPassword.json")
+        }
+        networkRule.enqueue(
+            path("idp/idx/challenge/answer"),
+            bodyWithJsonPath("/credentials/passcode") {
+                it.textValue() == "Abcd1234"
+            }) { response ->
+            response.testBodyFromFile("$mockPrefix/challengeAnswerPassword.json")
+        }
+        networkRule.enqueue(
+            path("idp/idx/credential/enroll"),
+            bodyWithJsonPath("/authenticator/id") {
+                it.textValue() == "autkx2thaMq4XkX2I5d6"
+            }) { response ->
+            response.testBodyFromFile("$mockPrefix/credentialEnrollEmail.json")
+        }
+        networkRule.enqueue(
+            path("idp/idx/challenge/answer"),
+            bodyWithJsonPath("/credentials/passcode") {
+                it.textValue() == "471537"
+            }) { response ->
+            response.testBodyFromFile("$mockPrefix/challengeAnswerEmail.json")
+        }
+        networkRule.enqueue(
+            path("idp/idx/credential/enroll"),
+            bodyWithJsonPath("/authenticator/id") {
+                it.textValue() == "autkx2thbuHB4hZa75d6"
+            }) { response ->
+            response.testBodyFromFile("$mockPrefix/credentialEnrollPhone.json")
+        }
+        networkRule.enqueue(
+            path("idp/idx/credential/enroll"),
+            bodyWithJsonPath("/authenticator/id") {
+                it.textValue() == "autkx2thbuHB4hZa75d6"
+            }, bodyWithJsonPath("/authenticator/methodType") {
+                it.textValue() == "sms"
+            }) { response ->
+            response.testBodyFromFile("$mockPrefix/credentialEnrollSms.json")
+        }
+        networkRule.enqueue(
+            path("idp/idx/credential/enroll"),
+            bodyWithJsonPath("/authenticator/id") {
+                it.textValue() == "autkx2thbuHB4hZa75d6"
+            }, bodyWithJsonPath("/authenticator/methodType") {
+                it.textValue() == "sms"
+            }, bodyWithJsonPath("/authenticator/phoneNumber") {
+                it.textValue() == "+1402123456789012"
+            }) { response ->
+            response.testBodyFromFile("$mockPrefix/credentialEnrollPhoneNumber.json")
+        }
+
+        activityRule.scenario.moveToState(Lifecycle.State.RESUMED)
+        onView(withId(R.id.self_service_registration_button)).perform(click())
+        waitForElement(FIRST_NAME_EDIT_TEXT)
+
+        onView(withId(R.id.first_name_edit_text)).perform(replaceText("Mary"))
+        onView(withId(R.id.last_name_edit_text)).perform(replaceText("Jo"))
+        onView(withId(R.id.primary_email_edit_text)).perform(replaceText("Mary@example.com"))
+        onView(withId(R.id.register_button)).perform(click())
+
+        waitForElement(SELECT_BUTTON)
+        selectAuthenticator("Password")
+
+        waitForElement(CONFIRMED_PASSWORD_EDIT_TEXT)
+        onView(withId(R.id.password_edit_text)).perform(replaceText("Abcd1234"))
+        onView(withId(R.id.confirmed_password_edit_text)).perform(replaceText("Abcd1234"))
+        onView(withId(R.id.submit_button)).perform(click())
+
+        waitForElement(SELECT_BUTTON)
+        selectAuthenticator("Email")
+
+        waitForElement(CODE_EDIT_TEXT)
+        onView(withId(R.id.code_edit_text)).perform(replaceText("471537"))
+        onView(withId(R.id.submit_button)).perform(click())
+
+        waitForElement(SELECT_BUTTON)
+        selectAuthenticator("Phone")
+
+        waitForElement(SELECT_BUTTON)
+        selectAuthenticator("SMS")
+
+        waitForElement(PHONE_EDIT_TEXT)
+        onView(withId(R.id.phone_edit_text)).perform(replaceText("+1402123456789012"))
+        onView(withId(R.id.submit_button)).perform(click())
+
+        waitForElement(ERROR_TEXT_VIEW)
+        onView(
+            allOf(
+                withId(R.id.error_text_view),
+                withText("Unable to initiate factor enrollment: Invalid Phone Number.")
+            )
+        ).check(matches(isDisplayed()))
     }
 }
