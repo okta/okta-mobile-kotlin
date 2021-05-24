@@ -25,9 +25,7 @@ import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.espresso.matcher.ViewMatchers.withText
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import androidx.test.platform.app.InstrumentationRegistry
-import androidx.test.uiautomator.UiDevice
-import androidx.test.uiautomator.UiSelector
+import com.okta.idx.android.infrastructure.espresso.waitForElement
 import com.okta.idx.android.infrastructure.network.NetworkRule
 import com.okta.idx.android.infrastructure.network.testBodyFromFile
 import com.okta.idx.android.network.mock.OktaMockWebServer
@@ -48,15 +46,8 @@ class BasicLoginWithPasswordTest {
     @get:Rule val activityRule = ActivityScenarioRule(MainActivity::class.java)
     @get:Rule val networkRule = NetworkRule()
 
-    private lateinit var uiDevice: UiDevice
-
     @Before fun setup() {
         OktaMockWebServer.dispatcher.consumeResponses = true
-        uiDevice = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
-    }
-
-    private fun waitForElement(resourceId: String) {
-        uiDevice.findObject(UiSelector().resourceId(resourceId)).waitForExists(10_000)
     }
 
     @Test fun scenario_1_1_1_Mary_logs_in_with_a_Password() {

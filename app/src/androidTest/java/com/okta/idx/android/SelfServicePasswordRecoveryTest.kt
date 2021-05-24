@@ -21,21 +21,17 @@ import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.action.ViewActions.replaceText
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
-import androidx.test.espresso.matcher.ViewMatchers.withChild
 import androidx.test.espresso.matcher.ViewMatchers.withId
-import androidx.test.espresso.matcher.ViewMatchers.withParent
 import androidx.test.espresso.matcher.ViewMatchers.withText
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import androidx.test.platform.app.InstrumentationRegistry
-import androidx.test.uiautomator.UiDevice
-import androidx.test.uiautomator.UiSelector
+import com.okta.idx.android.infrastructure.espresso.selectAuthenticator
+import com.okta.idx.android.infrastructure.espresso.waitForElement
 import com.okta.idx.android.infrastructure.network.NetworkRule
 import com.okta.idx.android.infrastructure.network.testBodyFromFile
 import com.okta.idx.android.network.mock.OktaMockWebServer
 import com.okta.idx.android.network.mock.RequestMatchers.bodyWithJsonPath
 import com.okta.idx.android.network.mock.RequestMatchers.path
-import org.hamcrest.Matchers.allOf
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -47,7 +43,8 @@ class SelfServicePasswordRecoveryTest {
         private const val ERROR_TEXT_VIEW = "com.okta.idx.android:id/error_text_view"
         private const val ID_TOKEN_TYPE_TEXT_VIEW = "com.okta.idx.android:id/token_type"
         private const val CODE_EDIT_TEXT = "com.okta.idx.android:id/code_edit_text"
-        private const val CONFIRMED_PASSWORD_EDIT_TEXT = "com.okta.idx.android:id/confirmed_password_edit_text"
+        private const val CONFIRMED_PASSWORD_EDIT_TEXT =
+            "com.okta.idx.android:id/confirmed_password_edit_text"
         private const val SELECT_BUTTON = "com.okta.idx.android:id/select_button"
         private const val USERNAME_EDIT_TEXT = "com.okta.idx.android:id/username_edit_text"
     }
@@ -55,15 +52,8 @@ class SelfServicePasswordRecoveryTest {
     @get:Rule val activityRule = ActivityScenarioRule(MainActivity::class.java)
     @get:Rule val networkRule = NetworkRule()
 
-    private lateinit var uiDevice: UiDevice
-
     @Before fun setup() {
         OktaMockWebServer.dispatcher.consumeResponses = true
-        uiDevice = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
-    }
-
-    private fun waitForElement(resourceId: String) {
-        uiDevice.findObject(UiSelector().resourceId(resourceId)).waitForExists(10_000)
     }
 
     @Test fun scenario_3_1_1_Mary_resets_her_password_from_login_page() {
@@ -83,14 +73,18 @@ class SelfServicePasswordRecoveryTest {
         networkRule.enqueue(path("idp/idx/challenge")) { response ->
             response.testBodyFromFile("$mockPrefix/challenge.json")
         }
-        networkRule.enqueue(path("idp/idx/challenge/answer"), bodyWithJsonPath("/credentials/passcode"){
-            it.textValue().equals("123456")
-        }) { response ->
+        networkRule.enqueue(
+            path("idp/idx/challenge/answer"),
+            bodyWithJsonPath("/credentials/passcode") {
+                it.textValue().equals("123456")
+            }) { response ->
             response.testBodyFromFile("$mockPrefix/answerEmailCode.json")
         }
-        networkRule.enqueue(path("idp/idx/challenge/answer"), bodyWithJsonPath("/credentials/passcode"){
-            it.textValue().equals("abc123")
-        }) { response ->
+        networkRule.enqueue(
+            path("idp/idx/challenge/answer"),
+            bodyWithJsonPath("/credentials/passcode") {
+                it.textValue().equals("abc123")
+            }) { response ->
             response.testBodyFromFile("$mockPrefix/answerNewPassword.json")
         }
         networkRule.enqueue(path("oauth2/v1/token")) { response ->
@@ -109,7 +103,7 @@ class SelfServicePasswordRecoveryTest {
         onView(withId(R.id.forgot_password_button)).perform(click())
 
         waitForElement(SELECT_BUTTON)
-        onView(allOf(withParent(withChild(withText("Email"))), withId(R.id.select_button))).perform(click())
+        selectAuthenticator("Email")
 
         waitForElement(CODE_EDIT_TEXT)
         onView(withId(R.id.code_edit_text)).perform(replaceText("123456"))

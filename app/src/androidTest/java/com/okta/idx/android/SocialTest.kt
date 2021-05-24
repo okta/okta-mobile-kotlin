@@ -15,32 +15,42 @@
  */
 package com.okta.idx.android
 
+import android.app.Instrumentation
+import android.content.Intent
+import android.content.IntentFilter
+import android.net.Uri
 import androidx.lifecycle.Lifecycle
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions.click
-import androidx.test.espresso.action.ViewActions.replaceText
-import androidx.test.espresso.action.ViewActions.scrollTo
 import androidx.test.espresso.assertion.ViewAssertions.matches
+import androidx.test.espresso.intent.Intents
+import androidx.test.espresso.intent.Intents.intended
+import androidx.test.espresso.intent.matcher.IntentMatchers.hasAction
+import androidx.test.espresso.intent.matcher.IntentMatchers.hasData
 import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
 import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.espresso.matcher.ViewMatchers.withText
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
+import com.okta.idx.android.directauth.TestingGlobals
+import com.okta.idx.android.infrastructure.espresso.selectAuthenticator
 import com.okta.idx.android.infrastructure.espresso.waitForElement
 import com.okta.idx.android.infrastructure.network.NetworkRule
 import com.okta.idx.android.infrastructure.network.testBodyFromFile
 import com.okta.idx.android.network.mock.OktaMockWebServer
 import com.okta.idx.android.network.mock.RequestMatchers.path
+import org.hamcrest.Matchers.allOf
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
-class LogoutTest {
+class SocialTest {
     companion object {
-        private const val ID_TOKEN_TYPE_TEXT_VIEW = "com.okta.idx.android:id/token_type"
         private const val USERNAME_EDIT_TEXT = "com.okta.idx.android:id/username_edit_text"
+        private const val ID_TOKEN_TYPE_TEXT_VIEW = "com.okta.idx.android:id/token_type"
     }
 
     @get:Rule val activityRule = ActivityScenarioRule(MainActivity::class.java)
@@ -48,44 +58,53 @@ class LogoutTest {
 
     @Before fun setup() {
         OktaMockWebServer.dispatcher.consumeResponses = true
+        Intents.init()
+
+        val intentFilter = IntentFilter()
+        intentFilter.addAction(Intent.ACTION_VIEW)
+        intentFilter.addDataScheme("https")
+        val am = Instrumentation.ActivityMonitor(intentFilter, null, true)
+        InstrumentationRegistry.getInstrumentation().addMonitor(am)
     }
 
-    @Test fun scenario_2_1_1_Mary_logs_out_of_the_sample_app() {
-        val mockPrefix = "scenario_2_1_1"
+    // Mary Logs in with Social IDP
+    @Test fun scenario_5_1_1() {
+        val mockPrefix = "scenario_5_1_1"
         networkRule.enqueue(path("oauth2/default/v1/interact")) { response ->
             response.testBodyFromFile("$mockPrefix/interact.json")
         }
         networkRule.enqueue(path("idp/idx/introspect")) { response ->
             response.testBodyFromFile("$mockPrefix/introspect.json")
         }
-        networkRule.enqueue(path("idp/idx/identify")) { response ->
-            response.testBodyFromFile("$mockPrefix/identify.json")
-        }
-        networkRule.enqueue(path("idp/idx/challenge/answer")) { response ->
-            response.testBodyFromFile("$mockPrefix/answer.json")
-        }
-        networkRule.enqueue(path("oauth2/v1/token")) { response ->
+        networkRule.enqueue(path("oauth2/default/v1/token")) { response ->
             response.testBodyFromFile("$mockPrefix/tokens.json")
         }
         networkRule.enqueue(path("oauth2/default/v1/userinfo")) { response ->
             response.testBodyFromFile("$mockPrefix/userinfo.json")
         }
-        networkRule.enqueue(path("oauth2/default/v1/revoke")) { response ->
-            response.addHeader("content-length", "0")
-        }
 
         activityRule.scenario.moveToState(Lifecycle.State.RESUMED)
         onView(withId(R.id.login_button)).perform(click())
         waitForElement(USERNAME_EDIT_TEXT)
+        selectAuthenticator("Login With Google")
 
-        onView(withId(R.id.username_edit_text)).perform(replaceText("Mary@example.com"))
-        onView(withId(R.id.password_edit_text)).perform(replaceText("superSecret"))
-        onView(withId(R.id.submit_button)).perform(click())
+        intended(
+            allOf(
+                hasAction(Intent.ACTION_VIEW),
+                hasData("https://foo.oktapreview.com/oauth2/ausko2zk1B3kDU2d65d6/v1/authorize?client_id=0oal2s4yhspmifyt65d6&request_uri=urn:okta:bGNlQkY4NzltNXRWeHNheUlOVVJwOWN2Rk1DSElfS0JQVUlSaE5LWlQtTTowb2Fyc2Q5dWZmUjh0alNBTDVkNg")
+            )
+        )
+
+        val state = TestingGlobals.CURRENT_PROCEED_CONTEXT.get().clientContext?.state
+        // Send the callback.
+        val redirectIntent = Intent(
+            MainActivity.SOCIAL_REDIRECT_ACTION,
+            Uri.parse("com.okta.sample.android:/login?interaction_code=o8NoWT5_t7NsDy_L625JWuIT_AOOuhtDZIiiqfB6qIQ&state=$state")
+        )
+        activityRule.scenario.onActivity { it.onNewIntent(redirectIntent) }
 
         waitForElement(ID_TOKEN_TYPE_TEXT_VIEW)
         onView(withText("Token Type:")).check(matches(isDisplayed()))
         onView(withText("Bearer")).check(matches(isDisplayed()))
-        onView(withId(R.id.sign_out_button)).perform(scrollTo(), click())
-        onView(withText(R.string.welcome_to_oie_sample_description)).check(matches(isDisplayed()))
     }
 }

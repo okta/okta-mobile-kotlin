@@ -32,7 +32,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
     }
 
-    override fun onNewIntent(intent: Intent?) {
+    public override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
 
         if (intent?.action == SOCIAL_REDIRECT_ACTION) {

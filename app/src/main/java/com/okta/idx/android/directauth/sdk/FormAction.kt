@@ -16,6 +16,7 @@
 package com.okta.idx.android.directauth.sdk
 
 import androidx.lifecycle.MutableLiveData
+import com.okta.idx.android.directauth.TestingGlobals
 import com.okta.idx.android.directauth.sdk.forms.RegisterPasswordForm
 import com.okta.idx.android.directauth.sdk.forms.RegisterPhoneForm
 import com.okta.idx.android.directauth.sdk.forms.SelectAuthenticatorForm
@@ -244,6 +245,7 @@ data class FormAction internal constructor(
                 stateLiveData.postValue(initialState.copy(messages = errors))
             }
             is ProceedTransition.FormTransition -> {
+                TestingGlobals.CURRENT_PROCEED_CONTEXT.set(proceedContext)
                 stateLiveData.postValue(
                     State.Data(form = form, proceedContext = proceedContext)
                 )
