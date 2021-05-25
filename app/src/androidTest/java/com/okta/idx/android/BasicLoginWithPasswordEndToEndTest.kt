@@ -133,7 +133,7 @@ class BasicLoginWithPasswordEndToEndTest {
         onView(withId(R.id.submit_button)).perform(click())
 
         waitForElement(ERROR_TEXT_VIEW)
-        onView(withId(R.id.error_text_view)).check(matches(withText("This factor is suspended for your account due to too many failed attempts")))
+        onView(withId(R.id.error_text_view)).check(matches(withText("Authentication failed")))
     }
 
     // Mary's account is deactivated
