@@ -85,7 +85,7 @@ class BasicLoginWithPasswordEndToEndTest {
         onView(withId(R.id.submit_button)).perform(click())
 
         waitForElement(ERROR_TEXT_VIEW)
-        onView(withId(R.id.error_text_view)).check(matches(withText("Password is incorrect")))
+        onView(withId(R.id.error_text_view)).check(matches(withText("Authentication failed")))
     }
 
     // Mary is not assigned to the application
