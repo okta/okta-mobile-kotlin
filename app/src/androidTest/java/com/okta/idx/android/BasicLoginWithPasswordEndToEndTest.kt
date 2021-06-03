@@ -149,7 +149,7 @@ class BasicLoginWithPasswordEndToEndTest {
         onView(withId(R.id.submit_button)).perform(click())
 
         waitForElement(ERROR_TEXT_VIEW)
-        onView(withId(R.id.error_text_view)).check(matches(withText("Authentication failed")))
+        onView(withId(R.id.error_text_view)).check(matches(withText("User is not assigned to this application")))
     }
 
     // Mary clicks on the "Forgot Password Link"
