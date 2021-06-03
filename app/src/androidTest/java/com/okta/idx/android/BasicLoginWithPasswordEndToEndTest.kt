@@ -64,12 +64,14 @@ class BasicLoginWithPasswordEndToEndTest {
         onView(withId(R.id.login_button)).perform(click())
         waitForElement(USERNAME_EDIT_TEXT)
 
-        onView(withId(R.id.username_edit_text)).perform(replaceText(EndToEndCredentials["$prefix/username"]))
+        val username = EndToEndCredentials["$prefix/username"]
+
+        onView(withId(R.id.username_edit_text)).perform(replaceText(username))
         onView(withId(R.id.password_edit_text)).perform(replaceText(EndToEndCredentials["$prefix/password"]))
         onView(withId(R.id.submit_button)).perform(click())
 
         waitForElement(ERROR_TEXT_VIEW)
-        onView(withId(R.id.error_text_view)).check(matches(withText("There is no account with the Username mary@unknown.com.")))
+        onView(withId(R.id.error_text_view)).check(matches(withText("There is no account with the Username $username.")))
     }
 
     // Mary doesn't know her password
