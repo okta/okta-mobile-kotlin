@@ -1,17 +1,30 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-# Okta IDX Android
-
-* [Need help?](#need-help)
-* [Getting started](#getting-started)
-* [Dependencies](#dependencies)
-* [Running This Sample](#running-this-sample)
-* [Contributing](#contributing)
+# Okta IDX Android - embedded-auth-with-sdk
 
 This repository contains a sample Android application which can be used a reference for using 
 [Okta IDX Java][okta-idx-java-github] on Android. 
 
-> :grey_exclamation: The use of this project requires you to be a part of our limited general availability (LGA) program with access to Okta Identity Engine. If you want to request to be a part of our LGA program for Okta Identity Engine, please reach out to your account manager. If you do not have an account manager, please reach out to oie@okta.com for more information.
+* [Introduction](#introduction)
+* [Need help?](#need-help)
+* [Getting started](#installation--running-the-app)
+* [Contributing](#contributing)
+
+## Introduction
+> :grey_exclamation: The use of this Sample uses an SDK that requires usage of the Okta Identity Engine. 
+This functionality is in general availability but is being gradually rolled out to customers. If you want
+to request to gain access to the Okta Identity Engine, please reach out to your account manager. If you 
+do not have an account manager, please reach out to oie@okta.com for more information.
+
+This Sample Application will show you the best practices for integrating Authentication into your app
+using [Okta's Identity Engine](https://developer.okta.com/docs/concepts/ie-intro/). Specifically, this 
+application will cover some basic needed use cases to get you up and running quickly with Okta.
+These Examples are:
+1. Sign In
+2. Sign Out
+3. Sign Up
+4. Sign In/Sign Up with Social Identity Providers
+5. Sign In with Multifactor Authentication using Email or Phone
 
 ## Need help?
 
@@ -20,7 +33,7 @@ If you run into problems using the SDK, you can
 * Ask questions on the [Okta Developer Forums][devforum]
 * Post [issues][github-issues] here on GitHub (for code errors)
 
-## Getting started
+## Installation & Running The App
 
 ### Prerequisites
 
@@ -67,12 +80,7 @@ fun idxClient(): IDXClient {
 }
 ```
 
-**Notes:**
-- `discovery_uri` can be customized for specific authorization servers. See [Discovery URI Guidance](https://github.com/okta/okta-oidc-android#discovery-uri-guidance) for more info.
-- To receive a **refresh_token**, you must include the `offline_access` scope.
-- `end_session_redirect_uri` is a mandatory parameter.
-
-## Dependencies
+### Dependencies
 
 This sample uses [Okta IDX Java Library][okta-idx-java-github] dependency in `build.gradle` file:
 
@@ -82,7 +90,7 @@ implementation "com.okta.idx.sdk:okta-idx-java-impl::${okta.sdk.version}"
 
 See the latest release [here][okta-idx-java-releases].
 
-## Running This Sample
+### Running This Sample
 
 You can open this sample into Android Studio or build it using gradle.
 
