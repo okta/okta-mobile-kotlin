@@ -13,19 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.okta.idx.android.infrastructure.a18n
+package com.okta.idx.android.infrastructure.management
 
-import com.fasterxml.jackson.annotation.JsonProperty
+import com.okta.idx.android.infrastructure.EndToEndCredentials
+import com.okta.sdk.client.Client
+import com.okta.sdk.client.Clients
 
-data class A18NProfile(
-    @JsonProperty("profileId")
-    val profileId: String,
-    @JsonProperty("phoneNumber")
-    val phoneNumber: String,
-    @JsonProperty("emailAddress")
-    val emailAddress: String,
-    @JsonProperty("displayName")
-    val displayName: String,
-    @JsonProperty("url")
-    val url: String
-)
+object OktaManagementSdk {
+    val client: Client = Clients.builder()
+        .setClientId(EndToEndCredentials["/managementSdk/clientId"])
+        .setOrgUrl(EndToEndCredentials["/managementSdk/orgUrl"])
+        .setClientCredentials { EndToEndCredentials["/managementSdk/token"] }
+        .build()
+}

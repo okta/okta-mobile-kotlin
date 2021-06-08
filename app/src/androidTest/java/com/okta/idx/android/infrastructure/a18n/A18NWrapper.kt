@@ -22,14 +22,16 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request.Builder
 import okhttp3.RequestBody.Companion.toRequestBody
+import java.lang.AssertionError
 import java.util.regex.Pattern
 
-private const val RETRY_COUNT = 5
+private const val RETRY_COUNT = 90
 
 object A18NWrapper {
 
     private val client = OkHttpClient()
     private val objectMapper = ObjectMapper()
+
     init {
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
     }
@@ -51,10 +53,10 @@ object A18NWrapper {
 
     fun deleteProfile(profile: A18NProfile) {
         val request = Builder()
-                .url(profile.url)
-                .delete()
-                .header("x-api-key", EndToEndCredentials["/a18n/token"])
-                .build()
+            .url(profile.url)
+            .delete()
+            .header("x-api-key", EndToEndCredentials["/a18n/token"])
+            .build()
         client.newCall(request).execute()
     }
 
@@ -67,28 +69,43 @@ object A18NWrapper {
         while (retryCount > 0 && result == null) {
             Thread.sleep(500)
             client.newCall(request).execute().use {
-                result = fetchCodeFromRegistrationEmail(it.body!!.string())
+                val emailContent = it.body?.string()
+                if (emailContent != null) {
+                    result = fetchCodeFromRegistrationEmail(emailContent)
+                    if (result == null) {
+                        result = fetchCodeFromPasswordResetEmail(emailContent)
+                    }
+                }
             }
             retryCount--
         }
+        if (result == null) {
+            throw AssertionError("Couldn't get code.")
+        }
         return result!!
     }
-    
+
     fun getCodeFromPhone(profile: A18NProfile): String {
         val request = Builder()
-                .url(profile.url + "/sms/latest/content")
-                .build()
+            .url(profile.url + "/sms/latest/content")
+            .build()
         var result: String? = null
         var retryCount = RETRY_COUNT
         while (retryCount > 0 && result == null) {
-            Thread.sleep(500)
+            Thread.sleep(1000)
             client.newCall(request).execute().use {
                 val codeSubstring = "code is "
                 val body = it.body!!.string()
-                val codeStarts = body.indexOf(codeSubstring) + codeSubstring.length
-                result = body.substring(codeStarts, codeStarts + 6)
+                val indexOf = body.indexOf(codeSubstring)
+                if (indexOf >= 0) {
+                    val codeStarts = indexOf + codeSubstring.length
+                    result = body.substring(codeStarts, codeStarts + 6)
+                }
             }
             retryCount--
+        }
+        if (result == null) {
+            throw AssertionError("Couldn't get code.")
         }
         return result!!
     }

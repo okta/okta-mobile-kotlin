@@ -13,19 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.okta.idx.android.infrastructure.a18n
+package com.okta.idx.android.test
 
-import com.fasterxml.jackson.annotation.JsonProperty
+import io.cucumber.junit.CucumberOptions
 
-data class A18NProfile(
-    @JsonProperty("profileId")
-    val profileId: String,
-    @JsonProperty("phoneNumber")
-    val phoneNumber: String,
-    @JsonProperty("emailAddress")
-    val emailAddress: String,
-    @JsonProperty("displayName")
-    val displayName: String,
-    @JsonProperty("url")
-    val url: String
+@CucumberOptions(
+    features = ["features"],
+    glue = ["com.okta.idx.android.cucumber"],
 )
+class CucumberSetup

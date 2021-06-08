@@ -12,7 +12,10 @@ android {
         versionCode 1
         versionName '1.0'
 
-        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
+        testInstrumentationRunner 'io.cucumber.android.runner.CucumberAndroidJUnitRunner'
+        testInstrumentationRunnerArguments = [
+                cucumberUseAndroidJUnitRunner: findProperty("cucumberUseAndroidJUnitRunner") ?: 'true',
+        ]
     }
 
     sourceSets {
@@ -91,4 +94,8 @@ dependencies {
     androidTestImplementation deps.espresso.contrib
     androidTestImplementation deps.espresso.intents
     androidTestImplementation deps.truth
+
+    androidTestImplementation deps.cucumber.android
+    androidTestImplementation deps.cucumber.pico_container
+    androidTestImplementation deps.okta.management_sdk
 }

@@ -35,6 +35,7 @@ internal class DashboardFragment : BaseFragment<FragmentDashboardBinding>(
         binding.tokenType.text = TokenViewModel.tokenResponse.tokenType
         binding.expiresIn.text = TokenViewModel.tokenResponse.expiresIn.toString()
         binding.accessToken.text = TokenViewModel.tokenResponse.accessToken
+        binding.refreshToken.text = TokenViewModel.tokenResponse.refreshToken
         binding.idToken.text = TokenViewModel.tokenResponse.idToken
         binding.scope.text = TokenViewModel.tokenResponse.scope
 

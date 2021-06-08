@@ -13,19 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.okta.idx.android.infrastructure.a18n
+package com.okta.idx.android.cucumber.hooks
 
-import com.fasterxml.jackson.annotation.JsonProperty
+import com.okta.idx.android.infrastructure.a18n.A18NProfile
+import com.okta.sdk.resource.user.User
+import io.cucumber.java.After
 
-data class A18NProfile(
-    @JsonProperty("profileId")
-    val profileId: String,
-    @JsonProperty("phoneNumber")
-    val phoneNumber: String,
-    @JsonProperty("emailAddress")
-    val emailAddress: String,
-    @JsonProperty("displayName")
-    val displayName: String,
-    @JsonProperty("url")
-    val url: String
-)
+class SharedState {
+    companion object {
+        var user: User? = null
+        var a18NProfile: A18NProfile? = null
+    }
+
+    @After(order = Int.MIN_VALUE) fun clearSharedState() {
+        user = null
+        a18NProfile = null
+    }
+}

@@ -13,19 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.okta.idx.android.infrastructure.a18n
+package com.okta.idx.android.cucumber.hooks
 
-import com.fasterxml.jackson.annotation.JsonProperty
+import com.okta.idx.android.infrastructure.a18n.A18NWrapper
+import io.cucumber.java.After
+import io.cucumber.java.Before
 
-data class A18NProfile(
-    @JsonProperty("profileId")
-    val profileId: String,
-    @JsonProperty("phoneNumber")
-    val phoneNumber: String,
-    @JsonProperty("emailAddress")
-    val emailAddress: String,
-    @JsonProperty("displayName")
-    val displayName: String,
-    @JsonProperty("url")
-    val url: String
-)
+class RequireA18NProfile {
+    @Before("@requireA18NProfile", order = 0) fun createA18NProfileBeforeScenario() {
+        SharedState.a18NProfile = A18NWrapper.createProfile()
+    }
+
+    @After("@requireA18NProfile")
+    fun removeA18NProfileAfterScenario() {
+        SharedState.a18NProfile?.let {
+            A18NWrapper.deleteProfile(it)
+        }
+    }
+}

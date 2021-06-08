@@ -13,19 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.okta.idx.android.infrastructure.a18n
+package com.okta.idx.android.cucumber.hooks
 
-import com.fasterxml.jackson.annotation.JsonProperty
+import androidx.lifecycle.Lifecycle
+import androidx.test.core.app.ActivityScenario
+import com.okta.idx.android.MainActivity
+import io.cucumber.java.After
+import io.cucumber.java.Before
 
-data class A18NProfile(
-    @JsonProperty("profileId")
-    val profileId: String,
-    @JsonProperty("phoneNumber")
-    val phoneNumber: String,
-    @JsonProperty("emailAddress")
-    val emailAddress: String,
-    @JsonProperty("displayName")
-    val displayName: String,
-    @JsonProperty("url")
-    val url: String
-)
+class ActivityHooks {
+    private lateinit var activityScenario: ActivityScenario<MainActivity>
+
+    @Before fun launchActivity() {
+        activityScenario = ActivityScenario.launch(MainActivity::class.java)
+        activityScenario.moveToState(Lifecycle.State.RESUMED)
+    }
+
+    @After fun finishActivity() {
+        activityScenario.close()
+    }
+}
