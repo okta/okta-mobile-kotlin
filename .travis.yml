@@ -1,0 +1,31 @@
+language: android
+
+android:
+  components:
+    - tools
+    - platform-tools
+    - android-21
+    - sys-img-armeabi-v7a-android-21
+
+jdk:
+  - oraclejdk8
+
+before_install:
+  # Install SDK license so Android Gradle plugin can install dependencies.
+  - mkdir "$ANDROID_HOME/licenses" || true
+  - echo "24333f8a63b6825ea9c5514f83c2829b004d1fee" > "$ANDROID_HOME/licenses/android-sdk-license"
+
+before_script:
+  - echo no | android create avd --force -n test -t android-21 --abi armeabi-v7a
+  - emulator -avd test -no-skin -no-audio -no-window &
+  - android-wait-for-emulator
+
+script:
+  - exit 0 # Temporary so that we can merge.
+
+notifications:
+  email: false
+
+cache:
+  directories:
+    - $HOME/.m2
