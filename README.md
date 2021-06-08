@@ -66,18 +66,13 @@ Open the project in Android Studio
 
 ### Configuration
 
-Update the `Network` class at `Network.kt` in the projects `app/src/main/java/com/okta/idx/android/network/` directory with
+Update the `okta.properties` file in the projects root directory with
 the contents created from the [okta admin dashboard](#Okta-Admin-Dashboard):
 
-```kotlin
-fun idxClient(): IDXClient {
-    return Clients.builder()
-        .setIssuer("https://YOUR_ORG.okta.com/oauth2/default")
-        .setClientId("{client_id}")
-        .setScopes(setOf("openid", "profile", "offline_access"))
-        .setRedirectUri("{redirect_uri}") // example: com.oktasample.oie:/callback
-        .build()
-}
+```
+issuer=https://YOUR_ORG.okta.com/oauth2/default
+clientId=test-client-id
+redirectUri=com.okta.sample.android:/login
 ```
 
 ### Dependencies
@@ -96,6 +91,37 @@ You can open this sample into Android Studio or build it using gradle.
 
 ```bash
 ./gradlew :app:assembleDebug
+```
+
+#### Running tests with mock data
+
+```bash
+./gradlew connectedCheck
+```
+
+#### Running end to end tests
+
+Add a file called `e2eCredentials.yaml` to `app/src/androidTest/resources` directory.
+Supply contents to the yaml file:
+```yaml
+cucumber:
+  username: example-change-me
+  password: example-change-me
+  invalidUsername: example-change-me
+  invalidPassword: example-change-me
+  firstName: example-change-me
+  newPassword: example-change-me
+managementSdk:
+  clientId: example-change-me
+  orgUrl: example-change-me
+  token: example-change-me
+a18n:
+  token: example-change-me
+```
+
+Run the cucumber tests from the command line.
+```bash
+./gradlew connectedCheck -PcucumberUseAndroidJUnitRunner=false
 ```
 
 ## Contributing

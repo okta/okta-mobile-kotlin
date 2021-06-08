@@ -40,7 +40,7 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
-                <data android:scheme="com.okta.sample.android" />
+                <data android:scheme="${oktaIdxRedirectScheme}" />
             </intent-filter>
         </activity>
     </application>

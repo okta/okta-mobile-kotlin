@@ -2,6 +2,9 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'androidx.navigation.safeargs.kotlin'
 
+def oktaProperties = new Properties()
+rootProject.file("okta.properties").withInputStream { oktaProperties.load(it) }
+
 android {
     compileSdkVersion build_versions.compile_sdk
 
@@ -11,6 +14,14 @@ android {
         targetSdkVersion build_versions.target_sdk
         versionCode 1
         versionName '1.0'
+
+        buildConfigField "String", 'ISSUER', "\"${oktaProperties.getProperty('issuer')}\""
+        buildConfigField "String", 'CLIENT_ID', "\"${oktaProperties.getProperty('clientId')}\""
+        buildConfigField "String", 'REDIRECT_URI', "\"${oktaProperties.getProperty('redirectUri')}\""
+
+        manifestPlaceholders = [
+                "oktaIdxRedirectScheme": parseScheme(oktaProperties.getProperty('redirectUri'))
+        ]
 
         testInstrumentationRunner 'io.cucumber.android.runner.CucumberAndroidJUnitRunner'
         testInstrumentationRunnerArguments = [
@@ -98,4 +109,12 @@ dependencies {
     androidTestImplementation deps.cucumber.android
     androidTestImplementation deps.cucumber.pico_container
     androidTestImplementation deps.okta.management_sdk
+}
+
+static def parseScheme(String uri) {
+    def index = uri.indexOf(':/')
+    if (index == -1) {
+        throw new IllegalStateException("Scheme is not in a valid format.")
+    }
+    return uri.substring(0, index)
 }

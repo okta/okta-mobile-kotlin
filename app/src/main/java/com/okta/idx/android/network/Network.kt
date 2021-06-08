@@ -15,6 +15,7 @@
  */
 package com.okta.idx.android.network
 
+import com.okta.idx.android.BuildConfig
 import com.okta.idx.sdk.api.client.IDXAuthenticationWrapper
 import okhttp3.CookieJar
 import okhttp3.OkHttpClient
@@ -23,7 +24,7 @@ import java.util.concurrent.atomic.AtomicReference
 object Network {
     private val clientConfiguratorReference = AtomicReference<OkHttpConfigurator?>()
 
-    const val baseUrl: String = "https://this.does.not.exist.com"
+    const val baseUrl: String = BuildConfig.ISSUER
 
     fun okHttpClient(): OkHttpClient {
         val builder = OkHttpClient.Builder()
@@ -43,10 +44,10 @@ object Network {
     fun authenticationWrapper(): IDXAuthenticationWrapper {
         return IDXAuthenticationWrapper(
             baseUrl,
-            "test-client-id",
+            BuildConfig.CLIENT_ID,
             null, // Client secret should not be used on Android.
             setOf("openid", "email", "profile", "offline_access"),
-            "com.okta.sample.android:/login",
+            BuildConfig.REDIRECT_URI
         )
     }
 }
