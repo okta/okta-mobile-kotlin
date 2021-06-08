@@ -47,4 +47,5 @@
     <string name="resend">Resend</string>
     <string name="login_with_idp">Login With %1$s</string>
     <string name="refresh_token">Refresh Token:</string>
+    <string name="claims">Claims</string>
 </resources>

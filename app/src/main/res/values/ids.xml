@@ -2,4 +2,5 @@
 <resources>
     <item name="enroll_item_content" type="id"/>
     <item name="nested_content" type="id"/>
+    <item name="claim" type="id"/>
 </resources>

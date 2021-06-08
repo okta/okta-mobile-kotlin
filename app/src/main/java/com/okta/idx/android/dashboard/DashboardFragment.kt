@@ -20,6 +20,7 @@ import android.view.View
 import android.widget.Toast
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
+import com.okta.idx.android.R
 import com.okta.idx.android.TokenViewModel
 import com.okta.idx.android.databinding.FragmentDashboardBinding
 import com.okta.idx.android.databinding.RowDashboardClaimBinding
@@ -44,11 +45,13 @@ internal class DashboardFragment : BaseFragment<FragmentDashboardBinding>(
         }
 
         viewModel.userInfoLiveData.observe(viewLifecycleOwner) { userInfo ->
+            binding.claimsTitle.visibility = if (userInfo.isEmpty()) View.GONE else View.VISIBLE
             for (entry in userInfo) {
                 val nestedBinding = binding.linearLayout.inflateBinding(RowDashboardClaimBinding::inflate)
                 nestedBinding.textViewKey.text = entry.key
                 nestedBinding.textViewValue.text = entry.value
-                binding.linearLayout.addView(nestedBinding.root, binding.linearLayout.childCount - 1)
+                nestedBinding.textViewValue.setTag(R.id.claim, entry.key)
+                binding.claimsLinearLayout.addView(nestedBinding.root)
             }
         }
 

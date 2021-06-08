@@ -16,18 +16,29 @@
 package com.okta.idx.android.cucumber.definitions
 
 import androidx.test.espresso.Espresso.onView
+import androidx.test.espresso.ViewInteraction
+import androidx.test.espresso.action.ViewActions.click
+import androidx.test.espresso.action.ViewActions.scrollTo
+import androidx.test.espresso.assertion.ViewAssertions.doesNotExist
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
+import androidx.test.espresso.matcher.ViewMatchers.withChild
 import androidx.test.espresso.matcher.ViewMatchers.withId
+import androidx.test.espresso.matcher.ViewMatchers.withParent
+import androidx.test.espresso.matcher.ViewMatchers.withTagKey
 import androidx.test.espresso.matcher.ViewMatchers.withText
 import com.okta.idx.android.R
+import com.okta.idx.android.infrastructure.EndToEndCredentials
 import com.okta.idx.android.infrastructure.ID_TOKEN_TYPE_TEXT_VIEW
 import com.okta.idx.android.infrastructure.espresso.waitForElement
 import io.cucumber.java.en.And
 import io.cucumber.java.en.Then
+import io.cucumber.java.en.When
 import org.hamcrest.Matchers.allOf
+import org.hamcrest.Matchers.equalTo
 import org.hamcrest.Matchers.isEmptyOrNullString
 import org.hamcrest.Matchers.not
+import javax.annotation.CheckReturnValue
 
 class DashboardDefinitions {
     @Then("^she is redirected to the Root View$") fun redirected_to_root_view() {
@@ -72,6 +83,44 @@ class DashboardDefinitions {
                     isDisplayed(),
                     withText(not(isEmptyOrNullString()))
                 )
+            )
+        )
+    }
+
+    @Then("^Mary sees a table with the claims from the /userinfo response$")
+    fun mary_sees_a_table_with_the_claims_from_the_userinfo_response() {
+        claimViewInteraction("email", EndToEndCredentials["/cucumber/username"])
+            .perform(scrollTo()).check(matches(isDisplayed()))
+        claimViewInteraction("preferred_username", EndToEndCredentials["/cucumber/username"])
+            .perform(scrollTo()).check(matches(isDisplayed()))
+    }
+
+    @And("^she does not see claims from /userinfo$")
+    fun she_does_not_see_claims_from_userinfo() {
+        claimViewInteraction("email", EndToEndCredentials["/cucumber/username"])
+            .check(doesNotExist())
+        claimViewInteraction("preferred_username", EndToEndCredentials["/cucumber/username"])
+            .check(doesNotExist())
+    }
+
+    @And("^Mary sees a logout button$")
+    fun mary_sees_a_logout_button() {
+        onView(withId(R.id.sign_out_button)).perform(scrollTo())
+    }
+
+    @When("^Mary clicks the logout button$")
+    fun when_mary_clicks_the_logout_button() {
+        onView(withId(R.id.sign_out_button)).perform(scrollTo()).perform(click())
+    }
+
+    @CheckReturnValue
+    private fun claimViewInteraction(key: String, value: String): ViewInteraction {
+        return onView(
+            allOf(
+                withParent(withChild(withText(key))),
+                withId(R.id.text_view_value),
+                withTagKey(R.id.claim, equalTo(key)),
+                withText(value)
             )
         )
     }
