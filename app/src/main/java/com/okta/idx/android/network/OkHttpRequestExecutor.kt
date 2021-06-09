@@ -59,10 +59,10 @@ internal class OkHttpRequestExecutor constructor(
         val urlBuilder = request.resourceUrl.toHttpUrlOrNull()!!.newBuilder()
 
         // query parms
-        request.queryString.forEach { name: String?, value: String? ->
+        for (entry in request.queryString) {
             urlBuilder.addQueryParameter(
-                name!!,
-                value
+                entry.key,
+                entry.value
             )
         }
         val okRequestBuilder = OkHttpRequest.Builder()

@@ -21,7 +21,7 @@ before_script:
   - android-wait-for-emulator
 
 script:
-  - exit 0 # Temporary so that we can merge.
+  - ./gradlew build connectedCheck
 
 notifications:
   email: false
