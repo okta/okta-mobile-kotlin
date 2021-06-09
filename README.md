@@ -80,7 +80,7 @@ redirectUri=com.okta.sample.android:/login
 This sample uses [Okta IDX Java Library][okta-idx-java-github] dependency in `build.gradle` file:
 
 ```bash
-implementation "com.okta.idx.sdk:okta-idx-java-impl::${okta.sdk.version}"
+implementation "com.okta.idx.sdk:okta-idx-java-api::${okta.sdk.version}"
 ```
 
 See the latest release [here][okta-idx-java-releases].
