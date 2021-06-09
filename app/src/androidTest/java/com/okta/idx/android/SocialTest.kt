@@ -19,42 +19,30 @@ import android.app.Instrumentation
 import android.content.Intent
 import android.content.IntentFilter
 import android.net.Uri
-import androidx.lifecycle.Lifecycle
 import androidx.test.espresso.Espresso.onView
-import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.intent.Intents
 import androidx.test.espresso.intent.Intents.intended
 import androidx.test.espresso.intent.matcher.IntentMatchers.hasAction
 import androidx.test.espresso.intent.matcher.IntentMatchers.hasData
 import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
-import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.espresso.matcher.ViewMatchers.withText
-import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.okta.idx.android.directauth.TestingGlobals
 import com.okta.idx.android.infrastructure.ID_TOKEN_TYPE_TEXT_VIEW
-import com.okta.idx.android.infrastructure.USERNAME_EDIT_TEXT
 import com.okta.idx.android.infrastructure.espresso.selectAuthenticator
 import com.okta.idx.android.infrastructure.espresso.waitForElement
-import com.okta.idx.android.infrastructure.network.NetworkRule
 import com.okta.idx.android.infrastructure.network.testBodyFromFile
-import com.okta.idx.android.network.mock.OktaMockWebServer
 import com.okta.idx.android.network.mock.RequestMatchers.path
 import org.hamcrest.Matchers.allOf
 import org.junit.Before
-import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
-class SocialTest {
-    @get:Rule val activityRule = ActivityScenarioRule(MainActivity::class.java)
-    @get:Rule val networkRule = NetworkRule()
-
-    @Before fun setup() {
-        OktaMockWebServer.dispatcher.consumeResponses = true
+class SocialTest : BaseMainActivityTest() {
+    @Before fun setupSocial() {
         Intents.init()
 
         val intentFilter = IntentFilter()
@@ -80,9 +68,7 @@ class SocialTest {
             response.testBodyFromFile("$mockPrefix/userinfo.json")
         }
 
-        activityRule.scenario.moveToState(Lifecycle.State.RESUMED)
-        onView(withId(R.id.login_button)).perform(click())
-        waitForElement(USERNAME_EDIT_TEXT)
+        goToLogin()
         selectAuthenticator("Login With Google")
 
         intended(

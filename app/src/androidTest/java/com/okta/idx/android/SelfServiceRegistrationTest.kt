@@ -15,7 +15,6 @@
  */
 package com.okta.idx.android
 
-import androidx.lifecycle.Lifecycle
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.action.ViewActions.replaceText
@@ -23,37 +22,24 @@ import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
 import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.espresso.matcher.ViewMatchers.withText
-import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.okta.idx.android.infrastructure.CODE_EDIT_TEXT
 import com.okta.idx.android.infrastructure.CONFIRMED_PASSWORD_EDIT_TEXT
 import com.okta.idx.android.infrastructure.ERROR_TEXT_VIEW
-import com.okta.idx.android.infrastructure.FIRST_NAME_EDIT_TEXT
 import com.okta.idx.android.infrastructure.ID_TOKEN_TYPE_TEXT_VIEW
 import com.okta.idx.android.infrastructure.PHONE_EDIT_TEXT
 import com.okta.idx.android.infrastructure.SELECT_BUTTON
 import com.okta.idx.android.infrastructure.espresso.selectAuthenticator
 import com.okta.idx.android.infrastructure.espresso.waitForElement
-import com.okta.idx.android.infrastructure.network.NetworkRule
 import com.okta.idx.android.infrastructure.network.testBodyFromFile
-import com.okta.idx.android.network.mock.OktaMockWebServer
 import com.okta.idx.android.network.mock.RequestMatchers.bodyWithJsonPath
 import com.okta.idx.android.network.mock.RequestMatchers.path
 import org.hamcrest.CoreMatchers.allOf
-import org.junit.Before
-import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
-class SelfServiceRegistrationTest {
-    @get:Rule val activityRule = ActivityScenarioRule(MainActivity::class.java)
-    @get:Rule val networkRule = NetworkRule()
-
-    @Before fun setup() {
-        OktaMockWebServer.dispatcher.consumeResponses = true
-    }
-
+class SelfServiceRegistrationTest : BaseMainActivityTest() {
     // Mary signs up for an account with Password, sets up required Email factor, then skips
     // optional SMS.
     @Test fun scenario_4_1_1() {
@@ -108,9 +94,7 @@ class SelfServiceRegistrationTest {
             response.testBodyFromFile("$mockPrefix/userinfo.json")
         }
 
-        activityRule.scenario.moveToState(Lifecycle.State.RESUMED)
-        onView(withId(R.id.self_service_registration_button)).perform(click())
-        waitForElement(FIRST_NAME_EDIT_TEXT)
+        goToSelfServiceRegistration()
 
         onView(withId(R.id.first_name_edit_text)).perform(replaceText("Mary"))
         onView(withId(R.id.last_name_edit_text)).perform(replaceText("Jo"))
@@ -225,9 +209,7 @@ class SelfServiceRegistrationTest {
             response.testBodyFromFile("$mockPrefix/userinfo.json")
         }
 
-        activityRule.scenario.moveToState(Lifecycle.State.RESUMED)
-        onView(withId(R.id.self_service_registration_button)).perform(click())
-        waitForElement(FIRST_NAME_EDIT_TEXT)
+        goToSelfServiceRegistration()
 
         onView(withId(R.id.first_name_edit_text)).perform(replaceText("Mary"))
         onView(withId(R.id.last_name_edit_text)).perform(replaceText("Jo"))
@@ -286,9 +268,7 @@ class SelfServiceRegistrationTest {
             response.addHeader("content-type", "application/json")
         }
 
-        activityRule.scenario.moveToState(Lifecycle.State.RESUMED)
-        onView(withId(R.id.self_service_registration_button)).perform(click())
-        waitForElement(FIRST_NAME_EDIT_TEXT)
+        goToSelfServiceRegistration()
 
         onView(withId(R.id.first_name_edit_text)).perform(replaceText("Mary"))
         onView(withId(R.id.last_name_edit_text)).perform(replaceText("Jo"))
@@ -382,9 +362,7 @@ class SelfServiceRegistrationTest {
             response.testBodyFromFile("$mockPrefix/credentialEnrollPhoneNumber.json")
         }
 
-        activityRule.scenario.moveToState(Lifecycle.State.RESUMED)
-        onView(withId(R.id.self_service_registration_button)).perform(click())
-        waitForElement(FIRST_NAME_EDIT_TEXT)
+        goToSelfServiceRegistration()
 
         onView(withId(R.id.first_name_edit_text)).perform(replaceText("Mary"))
         onView(withId(R.id.last_name_edit_text)).perform(replaceText("Jo"))

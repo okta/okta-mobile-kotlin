@@ -15,7 +15,6 @@
  */
 package com.okta.idx.android
 
-import androidx.lifecycle.Lifecycle
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.action.ViewActions.replaceText
@@ -23,31 +22,18 @@ import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
 import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.espresso.matcher.ViewMatchers.withText
-import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.okta.idx.android.infrastructure.ERROR_TEXT_VIEW
 import com.okta.idx.android.infrastructure.ID_TOKEN_TYPE_TEXT_VIEW
 import com.okta.idx.android.infrastructure.SIGN_OUT_BUTTON
-import com.okta.idx.android.infrastructure.USERNAME_EDIT_TEXT
 import com.okta.idx.android.infrastructure.espresso.waitForElement
-import com.okta.idx.android.infrastructure.network.NetworkRule
 import com.okta.idx.android.infrastructure.network.testBodyFromFile
-import com.okta.idx.android.network.mock.OktaMockWebServer
 import com.okta.idx.android.network.mock.RequestMatchers.path
-import org.junit.Before
-import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
-class BasicLoginWithPasswordTest {
-    @get:Rule val activityRule = ActivityScenarioRule(MainActivity::class.java)
-    @get:Rule val networkRule = NetworkRule()
-
-    @Before fun setup() {
-        OktaMockWebServer.dispatcher.consumeResponses = true
-    }
-
+class BasicLoginWithPasswordTest : BaseMainActivityTest() {
     // Mary logs in with a Password
     @Test fun scenario_1_1_1() {
         val mockPrefix = "scenario_1_1_1"
@@ -70,9 +56,7 @@ class BasicLoginWithPasswordTest {
             response.testBodyFromFile("$mockPrefix/userinfo.json")
         }
 
-        activityRule.scenario.moveToState(Lifecycle.State.RESUMED)
-        onView(withId(R.id.login_button)).perform(click())
-        waitForElement(USERNAME_EDIT_TEXT)
+        goToLogin()
 
         onView(withId(R.id.username_edit_text)).perform(replaceText("Mary@example.com"))
         onView(withId(R.id.password_edit_text)).perform(replaceText("superSecret"))
@@ -99,9 +83,7 @@ class BasicLoginWithPasswordTest {
             response.testBodyFromFile("$mockPrefix/answer.json")
         }
 
-        activityRule.scenario.moveToState(Lifecycle.State.RESUMED)
-        onView(withId(R.id.login_button)).perform(click())
-        waitForElement(USERNAME_EDIT_TEXT)
+        goToLogin()
 
         onView(withId(R.id.username_edit_text)).perform(replaceText("mary@unknown.com"))
         onView(withId(R.id.password_edit_text)).perform(replaceText("superSecret"))
@@ -129,9 +111,7 @@ class BasicLoginWithPasswordTest {
             response.addHeader("content-type", "application/json")
         }
 
-        activityRule.scenario.moveToState(Lifecycle.State.RESUMED)
-        onView(withId(R.id.login_button)).perform(click())
-        waitForElement(USERNAME_EDIT_TEXT)
+        goToLogin()
 
         onView(withId(R.id.username_edit_text)).perform(replaceText("mary@example.com"))
         onView(withId(R.id.password_edit_text)).perform(replaceText("wrongo"))
@@ -159,9 +139,7 @@ class BasicLoginWithPasswordTest {
             response.addHeader("content-type", "application/json")
         }
 
-        activityRule.scenario.moveToState(Lifecycle.State.RESUMED)
-        onView(withId(R.id.login_button)).perform(click())
-        waitForElement(USERNAME_EDIT_TEXT)
+        goToLogin()
 
         onView(withId(R.id.username_edit_text)).perform(replaceText("mary@example.com"))
         onView(withId(R.id.password_edit_text)).perform(replaceText("superSecret"))
@@ -189,9 +167,7 @@ class BasicLoginWithPasswordTest {
             response.addHeader("content-type", "application/json")
         }
 
-        activityRule.scenario.moveToState(Lifecycle.State.RESUMED)
-        onView(withId(R.id.login_button)).perform(click())
-        waitForElement(USERNAME_EDIT_TEXT)
+        goToLogin()
 
         onView(withId(R.id.username_edit_text)).perform(replaceText("mary@example.com"))
         onView(withId(R.id.password_edit_text)).perform(replaceText("superSecret"))
@@ -219,9 +195,7 @@ class BasicLoginWithPasswordTest {
             response.addHeader("content-type", "application/json")
         }
 
-        activityRule.scenario.moveToState(Lifecycle.State.RESUMED)
-        onView(withId(R.id.login_button)).perform(click())
-        waitForElement(USERNAME_EDIT_TEXT)
+        goToLogin()
 
         onView(withId(R.id.username_edit_text)).perform(replaceText("mary@example.com"))
         onView(withId(R.id.password_edit_text)).perform(replaceText("superSecret"))
@@ -249,9 +223,7 @@ class BasicLoginWithPasswordTest {
             response.addHeader("content-type", "application/json")
         }
 
-        activityRule.scenario.moveToState(Lifecycle.State.RESUMED)
-        onView(withId(R.id.login_button)).perform(click())
-        waitForElement(USERNAME_EDIT_TEXT)
+        goToLogin()
 
         onView(withId(R.id.username_edit_text)).perform(replaceText("mary@example.com"))
         onView(withId(R.id.password_edit_text)).perform(replaceText("superSecret"))
@@ -271,9 +243,7 @@ class BasicLoginWithPasswordTest {
             response.testBodyFromFile("$mockPrefix/introspect.json")
         }
 
-        activityRule.scenario.moveToState(Lifecycle.State.RESUMED)
-        onView(withId(R.id.login_button)).perform(click())
-        waitForElement(USERNAME_EDIT_TEXT)
+        goToLogin()
 
         onView(withId(R.id.forgot_password_button)).perform(click())
 
