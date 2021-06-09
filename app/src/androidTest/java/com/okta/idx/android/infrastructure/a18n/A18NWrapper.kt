@@ -60,14 +60,12 @@ object A18NWrapper {
         client.newCall(request).execute()
     }
 
-    fun getCodeFromEmail(profile: A18NProfile): String {
+    fun getCodeFromEmail(profile: A18NProfile, resendLambda: () -> Unit): String {
         val request = Builder()
             .url(profile.url + "/email/latest/content")
             .build()
-        var result: String? = null
-        var retryCount = RETRY_COUNT
-        while (retryCount > 0 && result == null) {
-            Thread.sleep(500)
+        return runWithRetry(500, resendLambda) {
+            var result: String? = null
             client.newCall(request).execute().use {
                 val emailContent = it.body?.string()
                 if (emailContent != null) {
@@ -76,23 +74,17 @@ object A18NWrapper {
                         result = fetchCodeFromPasswordResetEmail(emailContent)
                     }
                 }
+                result
             }
-            retryCount--
         }
-        if (result == null) {
-            throw AssertionError("Couldn't get code.")
-        }
-        return result!!
     }
 
-    fun getCodeFromPhone(profile: A18NProfile): String {
+    fun getCodeFromPhone(profile: A18NProfile, resendLambda: () -> Unit): String {
         val request = Builder()
             .url(profile.url + "/sms/latest/content")
             .build()
-        var result: String? = null
-        var retryCount = RETRY_COUNT
-        while (retryCount > 0 && result == null) {
-            Thread.sleep(1000)
+        return runWithRetry(1000, resendLambda) {
+            var result: String? = null
             client.newCall(request).execute().use {
                 val codeSubstring = "code is "
                 val body = it.body!!.string()
@@ -102,8 +94,33 @@ object A18NWrapper {
                     result = body.substring(codeStarts, codeStarts + 6)
                 }
             }
-            retryCount--
+            result
         }
+    }
+
+    private fun runWithRetry(
+        pauseDuration: Long,
+        resendLambda: () -> Unit,
+        codeFetcher: () -> String?
+    ): String {
+        var result: String? = null
+
+        fun fetchCode() {
+            var retryCount = RETRY_COUNT
+            while (retryCount > 0 && result == null) {
+                Thread.sleep(pauseDuration)
+                result = codeFetcher()
+                retryCount--
+            }
+        }
+
+        fetchCode()
+        if (result == null) {
+            // If we fail to get the code, try to resend it, then try the fetch one last time.
+            resendLambda()
+            fetchCode()
+        }
+
         if (result == null) {
             throw AssertionError("Couldn't get code.")
         }

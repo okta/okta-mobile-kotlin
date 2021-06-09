@@ -45,7 +45,7 @@ internal class VerifyDefinitions {
 
     @When("^she fills in the correct code$")
     fun she_fills_in_the_correct_code() {
-        val code = A18NWrapper.getCodeFromEmail(SharedState.a18NProfile!!)
+        val code = A18NWrapper.getCodeFromEmail(SharedState.a18NProfile!!, ::resendCode)
         Timber.i("Code: %s", code)
         onView(withId(R.id.code_edit_text)).perform(replaceText(code))
     }
@@ -68,7 +68,7 @@ internal class VerifyDefinitions {
 
     @When("^she inputs the correct code from the SMS$")
     fun she_inputs_the_correct_code_from_the_SMS() {
-        val code = A18NWrapper.getCodeFromPhone(SharedState.a18NProfile!!)
+        val code = A18NWrapper.getCodeFromPhone(SharedState.a18NProfile!!, ::resendCode)
         Timber.i("Code: %s", code)
         onView(withId(R.id.code_edit_text)).perform(replaceText(code))
     }
@@ -90,8 +90,14 @@ internal class VerifyDefinitions {
 
     @When("^she inputs the correct code from her email$")
     fun she_inputs_the_correct_code_from_her_email() {
-        val code = A18NWrapper.getCodeFromEmail(SharedState.a18NProfile!!)
+        val code = A18NWrapper.getCodeFromEmail(SharedState.a18NProfile!!, ::resendCode)
         Timber.i("Code: %s", code)
         onView(withId(R.id.code_edit_text)).perform(replaceText(code))
+    }
+
+    private fun resendCode() {
+        Timber.i("Resending the code.")
+        onView(withId(R.id.resend_button)).perform(click())
+        waitForElement(CODE_EDIT_TEXT)
     }
 }
