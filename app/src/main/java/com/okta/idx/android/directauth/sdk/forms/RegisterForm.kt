@@ -53,16 +53,24 @@ class RegisterForm internal constructor(
         if (!viewModel.isValid()) return
 
         formAction.proceed {
-            val newUserRegistrationResponse = authenticationWrapper.fetchSignUpFormValues(proceedContext)
+            // Need to begin the transaction again, in case an error occurred.
+            val beginResponse = authenticationWrapper.begin()
+            handleTerminalTransitions(beginResponse)?.let { return@proceed it }
+
+            val newUserRegistrationResponse = authenticationWrapper.fetchSignUpFormValues(
+                beginResponse.proceedContext
+            )
+            handleTerminalTransitions(newUserRegistrationResponse)?.let { return@proceed it }
 
             val userProfile = UserProfile()
             userProfile.addAttribute("lastName", viewModel.lastName)
             userProfile.addAttribute("firstName", viewModel.firstName)
             userProfile.addAttribute("email", viewModel.primaryEmail)
 
-            val proceedContext = newUserRegistrationResponse.proceedContext
-
-            val response = authenticationWrapper.register(proceedContext, userProfile)
+            val response = authenticationWrapper.register(
+                newUserRegistrationResponse.proceedContext,
+                userProfile
+            )
             handleKnownTransitions(response)
         }
     }

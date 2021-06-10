@@ -50,6 +50,12 @@ class SelfServiceRegistrationTest : BaseMainActivityTest() {
         networkRule.enqueue(path("idp/idx/introspect")) { response ->
             response.testBodyFromFile("$mockPrefix/introspect.json")
         }
+        networkRule.enqueue(path("oauth2/default/v1/interact")) { response ->
+            response.testBodyFromFile("$mockPrefix/interact.json")
+        }
+        networkRule.enqueue(path("idp/idx/introspect")) { response ->
+            response.testBodyFromFile("$mockPrefix/introspect.json")
+        }
         networkRule.enqueue(path("idp/idx/enroll")) { response ->
             response.testBodyFromFile("$mockPrefix/enroll.json")
         }
@@ -128,6 +134,12 @@ class SelfServiceRegistrationTest : BaseMainActivityTest() {
     // optional SMS
     @Test fun scenario_4_1_2() {
         val mockPrefix = "scenario_4_1_2"
+        networkRule.enqueue(path("oauth2/default/v1/interact")) { response ->
+            response.testBodyFromFile("$mockPrefix/interact.json")
+        }
+        networkRule.enqueue(path("idp/idx/introspect")) { response ->
+            response.testBodyFromFile("$mockPrefix/introspect.json")
+        }
         networkRule.enqueue(path("oauth2/default/v1/interact")) { response ->
             response.testBodyFromFile("$mockPrefix/interact.json")
         }
@@ -259,6 +271,12 @@ class SelfServiceRegistrationTest : BaseMainActivityTest() {
         networkRule.enqueue(path("idp/idx/introspect")) { response ->
             response.testBodyFromFile("$mockPrefix/introspect.json")
         }
+        networkRule.enqueue(path("oauth2/default/v1/interact")) { response ->
+            response.testBodyFromFile("$mockPrefix/interact.json")
+        }
+        networkRule.enqueue(path("idp/idx/introspect")) { response ->
+            response.testBodyFromFile("$mockPrefix/introspect.json")
+        }
         networkRule.enqueue(path("idp/idx/enroll")) { response ->
             response.testBodyFromFile("$mockPrefix/enroll.json")
         }
@@ -294,6 +312,12 @@ class SelfServiceRegistrationTest : BaseMainActivityTest() {
     // optional SMS with an invalid phone number
     @Test fun scenario_4_1_4() {
         val mockPrefix = "scenario_4_1_4"
+        networkRule.enqueue(path("oauth2/default/v1/interact")) { response ->
+            response.testBodyFromFile("$mockPrefix/interact.json")
+        }
+        networkRule.enqueue(path("idp/idx/introspect")) { response ->
+            response.testBodyFromFile("$mockPrefix/introspect.json")
+        }
         networkRule.enqueue(path("oauth2/default/v1/interact")) { response ->
             response.testBodyFromFile("$mockPrefix/interact.json")
         }
