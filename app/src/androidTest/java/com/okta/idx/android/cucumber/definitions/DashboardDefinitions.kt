@@ -66,25 +66,29 @@ class DashboardDefinitions {
     }
 
     @And("^the id_token is stored in session$") fun id_token_stored() {
-        onView(withId(R.id.id_token)).check(
-            matches(
-                allOf(
-                    isDisplayed(),
-                    withText(not(isEmptyOrNullString()))
+        onView(withId(R.id.id_token))
+            .perform(scrollTo())
+            .check(
+                matches(
+                    allOf(
+                        isDisplayed(),
+                        withText(not(isEmptyOrNullString()))
+                    )
                 )
             )
-        )
     }
 
     @And("^the refresh_token is stored in session$") fun refresh_token_stored() {
-        onView(withId(R.id.refresh_token)).check(
-            matches(
-                allOf(
-                    isDisplayed(),
-                    withText(not(isEmptyOrNullString()))
+        onView(withId(R.id.refresh_token))
+            .perform(scrollTo())
+            .check(
+                matches(
+                    allOf(
+                        isDisplayed(),
+                        withText(not(isEmptyOrNullString()))
+                    )
                 )
             )
-        )
     }
 
     @Then("^Mary sees a table with the claims from the /userinfo response$")
