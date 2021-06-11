@@ -63,6 +63,8 @@ android {
 
     testOptions {
         animationsDisabled true
+
+        execution = "ANDROIDX_TEST_ORCHESTRATOR"
     }
 }
 
@@ -94,6 +96,8 @@ dependencies {
     testImplementation deps.okhttp.mock_web_server
     testImplementation deps.okhttp.tls
     testImplementation deps.truth
+
+    androidTestUtil deps.androidx_test.orchestrator
 
     androidTestImplementation deps.jackson_yaml
     androidTestImplementation deps.okhttp.tls
