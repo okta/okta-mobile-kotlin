@@ -1,12 +1,5 @@
 language: android
 
-android:
-  components:
-    - tools
-    - platform-tools
-    - android-21
-    - sys-img-armeabi-v7a-android-21
-
 jdk:
   - oraclejdk8
 
@@ -14,19 +7,18 @@ before_install:
   # Install SDK license so Android Gradle plugin can install dependencies.
   - mkdir "$ANDROID_HOME/licenses" || true
   - echo "24333f8a63b6825ea9c5514f83c2829b004d1fee" > "$ANDROID_HOME/licenses/android-sdk-license"
+  - sudo apt-get install python3.5
+  - export CLOUDSDK_PYTHON=python3.5
 
 before_script:
-  - echo no | android create avd --force -n test -t android-21 --abi armeabi-v7a
-  - emulator -avd test -no-skin -no-audio -no-window &
-  - android-wait-for-emulator
+  - ./signInToGcloud.sh && source $HOME/google-cloud-sdk/path.bash.inc && export CLOUDSDK_CORE_DISABLE_PROMPTS=1
   - ruby createSecretsFilesFromEnv.rb
 
 script:
   - set -e # Fail on error.
-  - set -o pipefail # If the pipe command returns a bad exit code, fail the build.
   - ./gradlew build assembleAndroidTest --parallel
-  - ./gradlew connectedCheck --info --stacktrace | grep --line-buffered -E 'SUCCESS|FAILED'
-  - ./gradlew connectedCheck -PcucumberUseAndroidJUnitRunner=false --info --stacktrace | grep --line-buffered -E 'SUCCESS|FAILED'
+  - gcloud firebase test android run --no-auto-google-login --type instrumentation --app app/build/outputs/apk/debug/app-debug.apk --test app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk --device model=Nexus6,version=21,locale=en_US,orientation=portrait --timeout 15m --no-record-video --no-performance-metrics --environment-variables cucumberUseAndroidJUnitRunner=false --use-orchestrator
+  - gcloud firebase test android run --no-auto-google-login --type instrumentation --app app/build/outputs/apk/debug/app-debug.apk --test app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk --device model=Nexus6,version=21,locale=en_US,orientation=portrait --timeout 15m --no-record-video --no-performance-metrics --environment-variables cucumberUseAndroidJUnitRunner=true --use-orchestrator
 
 notifications:
   email: false
