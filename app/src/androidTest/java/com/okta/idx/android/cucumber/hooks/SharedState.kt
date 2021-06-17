@@ -15,6 +15,7 @@
  */
 package com.okta.idx.android.cucumber.hooks
 
+import android.app.Activity
 import com.okta.idx.android.infrastructure.a18n.A18NProfile
 import com.okta.sdk.resource.user.User
 import io.cucumber.java.After
@@ -23,6 +24,7 @@ class SharedState {
     companion object {
         var user: User? = null
         var a18NProfile: A18NProfile? = null
+        var activity: Activity? = null
     }
 
     @After(order = Int.MIN_VALUE) fun clearSharedState() {

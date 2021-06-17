@@ -82,7 +82,7 @@ class SocialTest : BaseMainActivityTest() {
         // Send the callback.
         val redirectIntent = Intent(
             MainActivity.SOCIAL_REDIRECT_ACTION,
-            Uri.parse("com.okta.sample.android:/login?interaction_code=o8NoWT5_t7NsDy_L625JWuIT_AOOuhtDZIiiqfB6qIQ&state=$state")
+            Uri.parse("${BuildConfig.REDIRECT_URI}?interaction_code=o8NoWT5_t7NsDy_L625JWuIT_AOOuhtDZIiiqfB6qIQ&state=$state")
         )
         activityRule.scenario.onActivity { it.onNewIntent(redirectIntent) }
 

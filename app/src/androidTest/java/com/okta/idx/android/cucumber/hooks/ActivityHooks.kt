@@ -15,21 +15,68 @@
  */
 package com.okta.idx.android.cucumber.hooks
 
-import androidx.lifecycle.Lifecycle
-import androidx.test.core.app.ActivityScenario
+import android.app.Activity
+import android.app.Application
+import android.content.Intent
+import android.os.Bundle
+import androidx.test.core.app.ApplicationProvider
+import com.google.common.truth.Truth.assertThat
 import com.okta.idx.android.MainActivity
 import io.cucumber.java.After
 import io.cucumber.java.Before
+import timber.log.Timber
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
-class ActivityHooks {
-    private lateinit var activityScenario: ActivityScenario<MainActivity>
+class ActivityHooks : Application.ActivityLifecycleCallbacks {
+    private lateinit var countDownLatch: CountDownLatch
 
     @Before fun launchActivity() {
-        activityScenario = ActivityScenario.launch(MainActivity::class.java)
-        activityScenario.moveToState(Lifecycle.State.RESUMED)
+        // Not using activity scenario due to the way it launches multiple activities affects
+        // working with our social redirects.
+
+        val application = ApplicationProvider.getApplicationContext<Application>()
+        application.registerActivityLifecycleCallbacks(this)
+        countDownLatch = CountDownLatch(1)
+        val intent = Intent(application, MainActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        application.startActivity(intent)
+        assertThat(countDownLatch.await(10, TimeUnit.SECONDS)).isTrue()
     }
 
     @After fun finishActivity() {
-        activityScenario.close()
+        countDownLatch = CountDownLatch(1)
+        SharedState.activity?.let {
+            it.finish()
+            countDownLatch.await(10, TimeUnit.SECONDS)
+            val application = ApplicationProvider.getApplicationContext<Application>()
+            application.unregisterActivityLifecycleCallbacks(this)
+        }
+    }
+
+    override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
+        Timber.d("Created: %s", activity)
+        SharedState.activity = activity
+        countDownLatch.countDown()
+    }
+
+    override fun onActivityStarted(activity: Activity) {
+    }
+
+    override fun onActivityResumed(activity: Activity) {
+    }
+
+    override fun onActivityPaused(activity: Activity) {
+    }
+
+    override fun onActivityStopped(activity: Activity) {
+    }
+
+    override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {
+    }
+
+    override fun onActivityDestroyed(activity: Activity) {
+        Timber.d("Destroying: %s", activity)
+        countDownLatch.countDown()
     }
 }

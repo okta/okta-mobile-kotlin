@@ -28,6 +28,7 @@ class SocialRedirectActivity : AppCompatActivity() {
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
         intent.data = getIntent().data
         startActivity(intent)
+
         finish()
     }
 }

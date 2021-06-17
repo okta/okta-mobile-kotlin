@@ -21,8 +21,10 @@ import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.action.ViewActions.scrollTo
 import androidx.test.espresso.assertion.ViewAssertions.doesNotExist
 import androidx.test.espresso.assertion.ViewAssertions.matches
+import androidx.test.espresso.matcher.ViewMatchers
 import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
 import androidx.test.espresso.matcher.ViewMatchers.withChild
+import androidx.test.espresso.matcher.ViewMatchers.withEffectiveVisibility
 import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.espresso.matcher.ViewMatchers.withParent
 import androidx.test.espresso.matcher.ViewMatchers.withTagKey
@@ -115,6 +117,27 @@ class DashboardDefinitions {
     @When("^Mary clicks the logout button$")
     fun when_mary_clicks_the_logout_button() {
         onView(withId(R.id.sign_out_button)).perform(scrollTo()).perform(click())
+    }
+
+    @And("^she sees a table with her profile info$")
+    fun she_sees_a_table_with_her_profile_info() {
+        onView(withId(R.id.claims_linear_layout))
+            .check(matches(withEffectiveVisibility(ViewMatchers.Visibility.VISIBLE)))
+    }
+
+    @And("^the cell for the value of \"email\" is shown and contains her email$")
+    fun the_cell_for_the_value_of_email_is_shown_and_contains_her_email() {
+        Thread.sleep(1000)
+        claimViewInteraction("email", EndToEndCredentials["/cucumber/facebookEmail"])
+            .perform(scrollTo())
+            .check(matches(isDisplayed()))
+    }
+
+    @And("^the cell for the value of \"name\" is shown and contains her first name and last name$")
+    fun the_name_cell_contains_first_and_last_name() {
+        claimViewInteraction("name", EndToEndCredentials["/cucumber/facebookName"])
+            .perform(scrollTo())
+            .check(matches(isDisplayed()))
     }
 
     @CheckReturnValue

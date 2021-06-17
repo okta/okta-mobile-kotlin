@@ -27,7 +27,9 @@ import androidx.test.espresso.matcher.ViewMatchers.withResourceName
 import androidx.test.espresso.matcher.ViewMatchers.withText
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.UiDevice
+import androidx.test.uiautomator.UiScrollable
 import androidx.test.uiautomator.UiSelector
+import com.google.common.truth.Truth.assertThat
 import com.okta.idx.android.R
 import org.hamcrest.Matchers.allOf
 
@@ -51,4 +53,36 @@ fun waitForElement(resourceId: String) {
         // This will fail and nicely show the view hierarchy.
         onView(withResourceName(resourceId)).check(matches(isDisplayed()))
     }
+}
+
+fun waitForElementWithText(text: String) {
+    val uiDevice = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
+    val selector = UiSelector().text(text)
+    if (!uiDevice.findObject(selector).waitForExists(10_000)) {
+        // This will fail and nicely show the view hierarchy.
+        onView(withText(text)).check(matches(isDisplayed()))
+    }
+}
+
+fun scrollToToBottom() {
+    val appViews = UiScrollable(UiSelector().scrollable(true))
+    assertThat(appViews.scrollToEnd(20, 5)).isTrue()
+}
+
+fun fillInEditText(resourceId: String, text: String) {
+    val uiDevice = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
+    val selector = UiSelector().resourceId(resourceId)
+    assertThat(uiDevice.findObject(selector).setText(text)).isTrue()
+}
+
+fun clickButtonWithText(text: String) {
+    val uiDevice = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
+    val selector = UiSelector().text(text)
+    assertThat(uiDevice.findObject(selector).click()).isTrue()
+}
+
+fun clickButtonWithTextMatching(text: String) {
+    val uiDevice = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
+    val selector = UiSelector().textMatches(text)
+    assertThat(uiDevice.findObject(selector).click()).isTrue()
 }
