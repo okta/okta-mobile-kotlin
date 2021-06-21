@@ -55,7 +55,7 @@ internal class UsernamePasswordFormViewFactory : FormViewFactory<UsernamePasswor
         )
 
         for (idp in form.viewModel.socialIdps) {
-            binding.idpLayout.addView(idp.createView(binding.idpLayout))
+            binding.idpLayout.addView(idp.createView(binding.idpLayout, form.viewModel))
         }
 
         binding.submitButton.setOnClickListener {
@@ -75,11 +75,14 @@ internal class UsernamePasswordFormViewFactory : FormViewFactory<UsernamePasswor
 
     private fun Idp.createView(
         parent: ViewGroup,
+        viewModel: UsernamePasswordForm.ViewModel,
     ): View {
         val binding = parent.inflateBinding(RowFactorBinding::inflate)
         val idpName = type.toLowerCase(Locale.US).capitalize(Locale.US)
         binding.typeTextView.text = parent.context.getString(R.string.login_with_idp, idpName)
         binding.selectButton.setOnClickListener {
+            viewModel.hasSelectedIdp = true
+
             try {
                 val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(href))
                 parent.context.startActivity(browserIntent)

@@ -15,9 +15,9 @@
  */
 package com.okta.idx.android
 
-import android.net.Uri
 import androidx.lifecycle.ViewModel
+import com.okta.idx.android.directauth.sdk.SocialRedirectListener
 
 class MainActivityViewModel : ViewModel() {
-    var socialRedirectListener: ((uri: Uri) -> Unit)? = null
+    var socialRedirectListener: SocialRedirectListener? = null
 }

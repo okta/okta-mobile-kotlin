@@ -43,6 +43,12 @@ class BasicLoginWithPasswordTest : BaseMainActivityTest() {
         networkRule.enqueue(path("idp/idx/introspect")) { response ->
             response.testBodyFromFile("$mockPrefix/introspect.json")
         }
+        networkRule.enqueue(path("oauth2/default/v1/interact")) { response ->
+            response.testBodyFromFile("$mockPrefix/interact.json")
+        }
+        networkRule.enqueue(path("idp/idx/introspect")) { response ->
+            response.testBodyFromFile("$mockPrefix/introspect.json")
+        }
         networkRule.enqueue(path("idp/idx/identify")) { response ->
             response.testBodyFromFile("$mockPrefix/identify.json")
         }
@@ -76,6 +82,12 @@ class BasicLoginWithPasswordTest : BaseMainActivityTest() {
         networkRule.enqueue(path("idp/idx/introspect")) { response ->
             response.testBodyFromFile("$mockPrefix/introspect.json")
         }
+        networkRule.enqueue(path("oauth2/default/v1/interact")) { response ->
+            response.testBodyFromFile("$mockPrefix/interact.json")
+        }
+        networkRule.enqueue(path("idp/idx/introspect")) { response ->
+            response.testBodyFromFile("$mockPrefix/introspect.json")
+        }
         networkRule.enqueue(path("idp/idx/identify")) { response ->
             response.testBodyFromFile("$mockPrefix/identify.json")
         }
@@ -96,6 +108,12 @@ class BasicLoginWithPasswordTest : BaseMainActivityTest() {
     // Mary doesn't know her password
     @Test fun scenario_1_1_3() {
         val mockPrefix = "scenario_1_1_3"
+        networkRule.enqueue(path("oauth2/default/v1/interact")) { response ->
+            response.testBodyFromFile("$mockPrefix/interact.json")
+        }
+        networkRule.enqueue(path("idp/idx/introspect")) { response ->
+            response.testBodyFromFile("$mockPrefix/introspect.json")
+        }
         networkRule.enqueue(path("oauth2/default/v1/interact")) { response ->
             response.testBodyFromFile("$mockPrefix/interact.json")
         }
@@ -130,6 +148,12 @@ class BasicLoginWithPasswordTest : BaseMainActivityTest() {
         networkRule.enqueue(path("idp/idx/introspect")) { response ->
             response.testBodyFromFile("$mockPrefix/introspect.json")
         }
+        networkRule.enqueue(path("oauth2/default/v1/interact")) { response ->
+            response.testBodyFromFile("$mockPrefix/interact.json")
+        }
+        networkRule.enqueue(path("idp/idx/introspect")) { response ->
+            response.testBodyFromFile("$mockPrefix/introspect.json")
+        }
         networkRule.enqueue(path("idp/idx/identify")) { response ->
             response.testBodyFromFile("$mockPrefix/identify.json")
         }
@@ -152,6 +176,12 @@ class BasicLoginWithPasswordTest : BaseMainActivityTest() {
     // Mary's account is suspended
     @Test fun scenario_1_1_5() {
         val mockPrefix = "scenario_1_1_5"
+        networkRule.enqueue(path("oauth2/default/v1/interact")) { response ->
+            response.testBodyFromFile("$mockPrefix/interact.json")
+        }
+        networkRule.enqueue(path("idp/idx/introspect")) { response ->
+            response.testBodyFromFile("$mockPrefix/introspect.json")
+        }
         networkRule.enqueue(path("oauth2/default/v1/interact")) { response ->
             response.testBodyFromFile("$mockPrefix/interact.json")
         }
@@ -186,6 +216,12 @@ class BasicLoginWithPasswordTest : BaseMainActivityTest() {
         networkRule.enqueue(path("idp/idx/introspect")) { response ->
             response.testBodyFromFile("$mockPrefix/introspect.json")
         }
+        networkRule.enqueue(path("oauth2/default/v1/interact")) { response ->
+            response.testBodyFromFile("$mockPrefix/interact.json")
+        }
+        networkRule.enqueue(path("idp/idx/introspect")) { response ->
+            response.testBodyFromFile("$mockPrefix/introspect.json")
+        }
         networkRule.enqueue(path("idp/idx/identify")) { response ->
             response.testBodyFromFile("$mockPrefix/identify.json")
         }
@@ -208,6 +244,12 @@ class BasicLoginWithPasswordTest : BaseMainActivityTest() {
     // Mary's account is deactivated
     @Test fun scenario_1_1_7() {
         val mockPrefix = "scenario_1_1_7"
+        networkRule.enqueue(path("oauth2/default/v1/interact")) { response ->
+            response.testBodyFromFile("$mockPrefix/interact.json")
+        }
+        networkRule.enqueue(path("idp/idx/introspect")) { response ->
+            response.testBodyFromFile("$mockPrefix/introspect.json")
+        }
         networkRule.enqueue(path("oauth2/default/v1/interact")) { response ->
             response.testBodyFromFile("$mockPrefix/interact.json")
         }

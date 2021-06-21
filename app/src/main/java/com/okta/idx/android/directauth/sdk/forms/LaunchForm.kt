@@ -22,19 +22,7 @@ class LaunchForm internal constructor(
     private val formAction: FormAction
 ) : Form {
     fun login() {
-        formAction.proceed {
-            val response = authenticationWrapper.begin()
-            handleTerminalTransitions(response)?.let { return@proceed it }
-            FormAction.ProceedTransition.FormTransition(
-                form = UsernamePasswordForm(
-                    formAction = formAction,
-                    viewModel = UsernamePasswordForm.ViewModel(
-                        socialIdps = response.idps ?: emptyList()
-                    )
-                ),
-                proceedContext = response.proceedContext
-            )
-        }
+        formAction.proceedToUsernameAndPassword()
     }
 
     fun register() {

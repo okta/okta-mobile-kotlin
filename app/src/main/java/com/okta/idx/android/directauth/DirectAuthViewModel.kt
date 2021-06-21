@@ -15,12 +15,13 @@
  */
 package com.okta.idx.android.directauth
 
-import android.net.Uri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.okta.idx.android.directauth.sdk.FormAction
+import com.okta.idx.android.directauth.sdk.SocialRedirect
+import com.okta.idx.android.directauth.sdk.forms.UsernamePasswordForm
 import com.okta.idx.android.network.Network
 
 internal class DirectAuthViewModel : ViewModel() {
@@ -37,38 +38,54 @@ internal class DirectAuthViewModel : ViewModel() {
         formAction.signOut()
     }
 
-    fun handleSocialRedirectUri(uri: Uri) {
-        val errorQueryParameter = uri.getQueryParameter("error")
-        val stateQueryParameter = uri.getQueryParameter("state")
-        if (errorQueryParameter == "interaction_required") {
-            formAction.proceed {
-                // Validate the state matches. This is a security assurance.
-                if (proceedContext?.clientContext?.state != stateQueryParameter) {
-                    val error = "IDP redirect failed due to state mismatch."
-                    return@proceed FormAction.ProceedTransition.ErrorTransition(listOf(error))
+    fun handleSocialRedirectUri(socialRedirect: SocialRedirect) {
+        if (socialRedirect is SocialRedirect.Cancelled) {
+            // Check the form to see if social was clicked, if it was, refresh it.
+            ((stateLiveData.value as? FormAction.State.Data)?.form as? UsernamePasswordForm)?.let {
+                if (it.viewModel.hasSelectedIdp) {
+                    formAction.proceedToUsernameAndPassword()
                 }
-                val response = authenticationWrapper.introspect(proceedContext?.clientContext)
-                handleKnownTransitions(response)
             }
-            return
         }
-        if (errorQueryParameter != null) {
-            formAction.proceed {
-                val errorDescription = uri.getQueryParameter("error_description") ?: "An error occurred."
-                FormAction.ProceedTransition.ErrorTransition(listOf(errorDescription))
-            }
-            return
-        }
-        val interactionCodeQueryParameter = uri.getQueryParameter("interaction_code")
-        if (interactionCodeQueryParameter != null) {
-            formAction.proceed {
-                // Validate the state matches. This is a security assurance.
-                if (proceedContext?.clientContext?.state != stateQueryParameter) {
-                    val error = "IDP redirect failed due to state mismatch."
-                    return@proceed FormAction.ProceedTransition.ErrorTransition(listOf(error))
+        if (socialRedirect is SocialRedirect.Data) {
+            val uri = socialRedirect.uri
+            val errorQueryParameter = uri.getQueryParameter("error")
+            val stateQueryParameter = uri.getQueryParameter("state")
+            if (errorQueryParameter == "interaction_required") {
+                formAction.proceed {
+                    // Validate the state matches. This is a security assurance.
+                    if (proceedContext?.clientContext?.state != stateQueryParameter) {
+                        val error = "IDP redirect failed due to state mismatch."
+                        return@proceed FormAction.ProceedTransition.ErrorTransition(listOf(error))
+                    }
+                    val response = authenticationWrapper.introspect(proceedContext?.clientContext)
+                    handleKnownTransitions(response)
                 }
-                val response = authenticationWrapper.fetchTokenWithInteractionCode(Network.baseUrl, proceedContext, interactionCodeQueryParameter)
-                handleKnownTransitions(response)
+                return
+            }
+            if (errorQueryParameter != null) {
+                formAction.proceed {
+                    val errorDescription =
+                        uri.getQueryParameter("error_description") ?: "An error occurred."
+                    FormAction.ProceedTransition.ErrorTransition(listOf(errorDescription))
+                }
+                return
+            }
+            val interactionCodeQueryParameter = uri.getQueryParameter("interaction_code")
+            if (interactionCodeQueryParameter != null) {
+                formAction.proceed {
+                    // Validate the state matches. This is a security assurance.
+                    if (proceedContext?.clientContext?.state != stateQueryParameter) {
+                        val error = "IDP redirect failed due to state mismatch."
+                        return@proceed FormAction.ProceedTransition.ErrorTransition(listOf(error))
+                    }
+                    val response = authenticationWrapper.fetchTokenWithInteractionCode(
+                        Network.baseUrl,
+                        proceedContext,
+                        interactionCodeQueryParameter
+                    )
+                    handleKnownTransitions(response)
+                }
             }
         }
     }

@@ -19,6 +19,7 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import com.okta.idx.android.directauth.sdk.SocialRedirect
 
 class MainActivity : AppCompatActivity() {
     companion object {
@@ -27,9 +28,21 @@ class MainActivity : AppCompatActivity() {
 
     private val viewModel by viewModels<MainActivityViewModel>()
 
+    private var gotSocialRedirect: Boolean = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         setContentView(R.layout.activity_main)
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        if (!gotSocialRedirect) {
+            viewModel.socialRedirectListener?.invoke(SocialRedirect.Cancelled)
+        }
+        gotSocialRedirect = false
     }
 
     public override fun onNewIntent(intent: Intent?) {
@@ -37,7 +50,8 @@ class MainActivity : AppCompatActivity() {
 
         if (intent?.action == SOCIAL_REDIRECT_ACTION) {
             intent.data?.let {
-                viewModel.socialRedirectListener?.invoke(it)
+                gotSocialRedirect = true
+                viewModel.socialRedirectListener?.invoke(SocialRedirect.Data(it))
             }
         }
     }

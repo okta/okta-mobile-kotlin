@@ -22,6 +22,7 @@ import com.okta.idx.android.directauth.sdk.forms.RegisterPhoneForm
 import com.okta.idx.android.directauth.sdk.forms.SelectAuthenticatorForm
 import com.okta.idx.android.directauth.sdk.forms.SelectFactorForm
 import com.okta.idx.android.directauth.sdk.forms.LaunchForm
+import com.okta.idx.android.directauth.sdk.forms.UsernamePasswordForm
 import com.okta.idx.android.directauth.sdk.forms.VerifyCodeForm
 import com.okta.idx.sdk.api.client.Authenticator
 import com.okta.idx.sdk.api.client.IDXAuthenticationWrapper
@@ -289,6 +290,22 @@ data class FormAction internal constructor(
         proceed {
             val response = authenticationWrapper.skipAuthenticatorEnrollment(proceedContext)
             handleKnownTransitions(response)
+        }
+    }
+
+    fun proceedToUsernameAndPassword() {
+        proceed {
+            val response = authenticationWrapper.begin()
+            handleTerminalTransitions(response)?.let { return@proceed it }
+            ProceedTransition.FormTransition(
+                form = UsernamePasswordForm(
+                    formAction = this@FormAction,
+                    viewModel = UsernamePasswordForm.ViewModel(
+                        socialIdps = response.idps ?: emptyList()
+                    )
+                ),
+                proceedContext = response.proceedContext
+            )
         }
     }
 

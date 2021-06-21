@@ -42,6 +42,12 @@ class LogoutTest : BaseMainActivityTest() {
         networkRule.enqueue(path("idp/idx/introspect")) { response ->
             response.testBodyFromFile("$mockPrefix/introspect.json")
         }
+        networkRule.enqueue(path("oauth2/default/v1/interact")) { response ->
+            response.testBodyFromFile("$mockPrefix/interact.json")
+        }
+        networkRule.enqueue(path("idp/idx/introspect")) { response ->
+            response.testBodyFromFile("$mockPrefix/introspect.json")
+        }
         networkRule.enqueue(path("idp/idx/identify")) { response ->
             response.testBodyFromFile("$mockPrefix/identify.json")
         }

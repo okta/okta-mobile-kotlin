@@ -31,6 +31,7 @@ class UsernamePasswordForm internal constructor(
         var username: String = "",
         var password: String = "",
         val socialIdps: List<Idp> = emptyList(),
+        var hasSelectedIdp: Boolean = false,
     ) {
         private val _usernameErrorsLiveData = MutableLiveData("")
         val usernameErrorsLiveData: LiveData<String> = _usernameErrorsLiveData
@@ -49,8 +50,12 @@ class UsernamePasswordForm internal constructor(
         if (!viewModel.isValid()) return
 
         formAction.proceed {
+            // Need to begin the transaction again, in case an error occurred.
+            val beginResponse = authenticationWrapper.begin()
+            handleTerminalTransitions(beginResponse)?.let { return@proceed it }
+
             val options = AuthenticationOptions(viewModel.username, viewModel.password)
-            val response = authenticationWrapper.authenticate(options, proceedContext)
+            val response = authenticationWrapper.authenticate(options, beginResponse.proceedContext)
             handleKnownTransitions(response)
         }
     }

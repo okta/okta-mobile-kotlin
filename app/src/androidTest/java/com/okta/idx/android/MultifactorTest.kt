@@ -47,6 +47,12 @@ class MultifactorTest : BaseMainActivityTest() {
         networkRule.enqueue(path("idp/idx/introspect")) { response ->
             response.testBodyFromFile("$mockPrefix/introspect.json")
         }
+        networkRule.enqueue(path("oauth2/default/v1/interact")) { response ->
+            response.testBodyFromFile("$mockPrefix/interact.json")
+        }
+        networkRule.enqueue(path("idp/idx/introspect")) { response ->
+            response.testBodyFromFile("$mockPrefix/introspect.json")
+        }
         networkRule.enqueue(path("idp/idx/identify")) { response ->
             response.testBodyFromFile("$mockPrefix/identify.json")
         }
@@ -90,6 +96,12 @@ class MultifactorTest : BaseMainActivityTest() {
         networkRule.enqueue(path("idp/idx/introspect")) { response ->
             response.testBodyFromFile("$mockPrefix/introspect.json")
         }
+        networkRule.enqueue(path("oauth2/default/v1/interact")) { response ->
+            response.testBodyFromFile("$mockPrefix/interact.json")
+        }
+        networkRule.enqueue(path("idp/idx/introspect")) { response ->
+            response.testBodyFromFile("$mockPrefix/introspect.json")
+        }
         networkRule.enqueue(path("idp/idx/identify")) { response ->
             response.testBodyFromFile("$mockPrefix/identify.json")
         }
@@ -122,6 +134,12 @@ class MultifactorTest : BaseMainActivityTest() {
     // Enroll in SMS Factor prompt when authenticating
     @Test fun scenario_6_2_1() {
         val mockPrefix = "scenario_6_2_1"
+        networkRule.enqueue(path("oauth2/default/v1/interact")) { response ->
+            response.testBodyFromFile("$mockPrefix/interact.json")
+        }
+        networkRule.enqueue(path("idp/idx/introspect")) { response ->
+            response.testBodyFromFile("$mockPrefix/introspect.json")
+        }
         networkRule.enqueue(path("oauth2/default/v1/interact")) { response ->
             response.testBodyFromFile("$mockPrefix/interact.json")
         }
@@ -222,6 +240,12 @@ class MultifactorTest : BaseMainActivityTest() {
         networkRule.enqueue(path("idp/idx/introspect")) { response ->
             response.testBodyFromFile("$mockPrefix/introspect.json")
         }
+        networkRule.enqueue(path("oauth2/default/v1/interact")) { response ->
+            response.testBodyFromFile("$mockPrefix/interact.json")
+        }
+        networkRule.enqueue(path("idp/idx/introspect")) { response ->
+            response.testBodyFromFile("$mockPrefix/introspect.json")
+        }
         networkRule.enqueue(path("idp/idx/identify")) { response ->
             response.testBodyFromFile("$mockPrefix/identify.json")
         }
@@ -277,6 +301,12 @@ class MultifactorTest : BaseMainActivityTest() {
     // Enroll with Invalid Phone Number
     @Test fun scenario_6_2_3() {
         val mockPrefix = "scenario_6_2_3"
+        networkRule.enqueue(path("oauth2/default/v1/interact")) { response ->
+            response.testBodyFromFile("$mockPrefix/interact.json")
+        }
+        networkRule.enqueue(path("idp/idx/introspect")) { response ->
+            response.testBodyFromFile("$mockPrefix/introspect.json")
+        }
         networkRule.enqueue(path("oauth2/default/v1/interact")) { response ->
             response.testBodyFromFile("$mockPrefix/interact.json")
         }
@@ -355,6 +385,12 @@ class MultifactorTest : BaseMainActivityTest() {
     // Mary enters a wrong verification code on verify
     @Test fun scenario_6_2_4() {
         val mockPrefix = "scenario_6_2_4"
+        networkRule.enqueue(path("oauth2/default/v1/interact")) { response ->
+            response.testBodyFromFile("$mockPrefix/interact.json")
+        }
+        networkRule.enqueue(path("idp/idx/introspect")) { response ->
+            response.testBodyFromFile("$mockPrefix/introspect.json")
+        }
         networkRule.enqueue(path("oauth2/default/v1/interact")) { response ->
             response.testBodyFromFile("$mockPrefix/interact.json")
         }
