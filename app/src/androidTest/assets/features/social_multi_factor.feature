@@ -1,5 +1,6 @@
 Feature: 5.2 Direct Auth Social Login with MFA
 
+  @skipScenario
   @logOutOfFacebook
   Scenario: 5.2.1 Mary logs in with a social IDP and gets MFA screen
     Given Mary navigates to the Basic Login View

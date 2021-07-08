@@ -121,7 +121,7 @@ class MfaDefinitions {
     @Then("^she should see a message \"Unable to initiate factor enrollment: Invalid Phone Number\"$")
     fun she_should_see_a_message_invalid_phone_number() {
         waitForElement(ERROR_TEXT_VIEW)
-        onView(withId(R.id.error_text_view)).check(matches(withText("Unable to initiate factor enrollment: Invalid Phone Number.")))
+        onView(withId(R.id.error_text_view)).check(matches(withText("Invalid Phone Number.")))
     }
 
     @When("^she selects \"Skip\" on SMS$")

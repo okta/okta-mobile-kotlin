@@ -1,5 +1,6 @@
 Feature: 5.1 Direct Auth Social Login with 1 Social IDP
 
+  @skipScenario
   @logOutOfFacebook
   Scenario: 5.1.1 Mary Logs in with Social IDP
     Given Mary navigates to the Basic Login View
