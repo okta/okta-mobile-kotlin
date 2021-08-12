@@ -1,2 +1,3 @@
-include ':app'
 rootProject.name = "okta-idx-android"
+include ':app'
+include ':idx-kotlin'
