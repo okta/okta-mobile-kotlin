@@ -16,7 +16,9 @@
 package com.okta.idx.android.directauth.sdk.viewFactories
 
 import android.view.View
+import android.view.ViewGroup
 import com.okta.idx.android.databinding.FormRegisterBinding
+import com.okta.idx.android.databinding.RowRegisterAttributeBinding
 import com.okta.idx.android.directauth.sdk.FormViewFactory
 import com.okta.idx.android.directauth.sdk.forms.RegisterForm
 import com.okta.idx.android.directauth.sdk.util.bindText
@@ -29,29 +31,9 @@ internal class RegisterFormViewFactory : FormViewFactory<RegisterForm> {
     ): View {
         val binding = references.parent.inflateBinding(FormRegisterBinding::inflate)
 
-        bindText(
-            editText = binding.lastNameEditText,
-            textInputLayout = binding.lastNameTextInputLayout,
-            valueField = form.viewModel::lastName,
-            errorsLiveData = form.viewModel.lastNameErrorsLiveData,
-            references = references
-        )
-
-        bindText(
-            editText = binding.firstNameEditText,
-            textInputLayout = binding.firstNameTextInputLayout,
-            valueField = form.viewModel::firstName,
-            errorsLiveData = form.viewModel.firstNameErrorsLiveData,
-            references = references
-        )
-
-        bindText(
-            editText = binding.primaryEmailEditText,
-            textInputLayout = binding.primaryEmailTextInputLayout,
-            valueField = form.viewModel::primaryEmail,
-            errorsLiveData = form.viewModel.primaryEmailErrorsLiveData,
-            references = references
-        )
+        for (attribute in form.viewModel.attributes) {
+            attribute.bind(binding.root, references)
+        }
 
         binding.registerButton.setOnClickListener {
             form.register()
@@ -62,5 +44,21 @@ internal class RegisterFormViewFactory : FormViewFactory<RegisterForm> {
         }
 
         return binding.root
+    }
+
+    private fun RegisterForm.Attribute.bind(parent: ViewGroup, references: FormViewFactory.References) {
+        val binding = parent.inflateBinding(RowRegisterAttributeBinding::inflate)
+
+        binding.textInputLayout.hint = label
+
+        bindText(
+            editText = binding.editText,
+            textInputLayout = binding.textInputLayout,
+            valueField = ::value,
+            errorsLiveData = errorsLiveData,
+            references = references
+        )
+
+        parent.addView(binding.root, parent.childCount - 2)
     }
 }

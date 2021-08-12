@@ -15,7 +15,6 @@
  */
 package com.okta.idx.android.directauth.sdk.forms
 
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.okta.idx.android.directauth.sdk.Form
 import com.okta.idx.android.directauth.sdk.FormAction
@@ -23,29 +22,25 @@ import com.okta.idx.android.directauth.sdk.util.emitValidation
 import com.okta.idx.sdk.api.model.UserProfile
 
 class RegisterForm internal constructor(
-    val viewModel: ViewModel = ViewModel(),
+    val viewModel: ViewModel,
     private val formAction: FormAction
 ) : Form {
+    class Attribute(
+        val key: String,
+        val label: String,
+        @Volatile var value: String = "",
+        val errorsLiveData: MutableLiveData<String> = MutableLiveData("")
+    )
+
     class ViewModel internal constructor(
-        var lastName: String = "",
-        var firstName: String = "",
-        var primaryEmail: String = "",
+        val attributes: List<Attribute>
     ) {
-        private val _lastNameErrorsLiveData = MutableLiveData("")
-        val lastNameErrorsLiveData: LiveData<String> = _lastNameErrorsLiveData
-
-        private val _firstNameErrorsLiveData = MutableLiveData("")
-        val firstNameErrorsLiveData: LiveData<String> = _firstNameErrorsLiveData
-
-        private val _primaryEmailErrorsLiveData = MutableLiveData("")
-        val primaryEmailErrorsLiveData: LiveData<String> = _primaryEmailErrorsLiveData
-
         fun isValid(): Boolean {
-            val lastNameValid = _lastNameErrorsLiveData.emitValidation { lastName.isNotEmpty() }
-            val firstNameValid = _firstNameErrorsLiveData.emitValidation { firstName.isNotEmpty() }
-            val primaryEmailValid =
-                _primaryEmailErrorsLiveData.emitValidation { primaryEmail.isNotEmpty() }
-            return lastNameValid && firstNameValid && primaryEmailValid
+            return attributes.map {
+                it.errorsLiveData.emitValidation { it.value.isNotEmpty() }
+            }.reduce { acc, b ->
+                acc && b
+            }
         }
     }
 
@@ -63,9 +58,9 @@ class RegisterForm internal constructor(
             handleTerminalTransitions(newUserRegistrationResponse)?.let { return@proceed it }
 
             val userProfile = UserProfile()
-            userProfile.addAttribute("lastName", viewModel.lastName)
-            userProfile.addAttribute("firstName", viewModel.firstName)
-            userProfile.addAttribute("email", viewModel.primaryEmail)
+            for (attribute in viewModel.attributes) {
+                userProfile.addAttribute(attribute.key, attribute.value)
+            }
 
             val response = authenticationWrapper.register(
                 newUserRegistrationResponse.proceedContext,

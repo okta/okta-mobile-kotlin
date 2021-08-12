@@ -16,54 +16,6 @@
         android:text="@string/register"
         />
 
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/first_name_text_input_layout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        android:hint="@string/first_name"
-        >
-
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/first_name_edit_text"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:lines="1"
-            />
-    </com.google.android.material.textfield.TextInputLayout>
-
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/last_name_text_input_layout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        android:hint="@string/last_name"
-        >
-
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/last_name_edit_text"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:lines="1"
-            />
-    </com.google.android.material.textfield.TextInputLayout>
-
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/primary_email_text_input_layout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        android:hint="@string/email"
-        >
-
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/primary_email_edit_text"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:lines="1"
-            />
-    </com.google.android.material.textfield.TextInputLayout>
-
     <Button
         android:id="@+id/register_button"
         android:layout_width="match_parent"

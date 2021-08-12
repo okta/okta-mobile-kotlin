@@ -20,6 +20,7 @@ import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.action.ViewActions.replaceText
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
+import androidx.test.espresso.matcher.ViewMatchers.withHint
 import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.espresso.matcher.ViewMatchers.withText
 import com.okta.idx.android.R
@@ -27,10 +28,10 @@ import com.okta.idx.android.cucumber.hooks.SharedState
 import com.okta.idx.android.infrastructure.CONFIRMED_PASSWORD_EDIT_TEXT
 import com.okta.idx.android.infrastructure.ERROR_TEXT_VIEW
 import com.okta.idx.android.infrastructure.EndToEndCredentials
-import com.okta.idx.android.infrastructure.FIRST_NAME_EDIT_TEXT
 import com.okta.idx.android.infrastructure.SELECT_BUTTON
 import com.okta.idx.android.infrastructure.espresso.selectAuthenticator
 import com.okta.idx.android.infrastructure.espresso.waitForElement
+import com.okta.idx.android.infrastructure.espresso.waitForElementWithText
 import io.cucumber.java.en.And
 import io.cucumber.java.en.Then
 import io.cucumber.java.en.When
@@ -39,22 +40,22 @@ import org.hamcrest.CoreMatchers.allOf
 class RegistrationDefinitions {
     @When("^she fills out her First Name$")
     fun she_fills_out_her_first_name() {
-        waitForElement(FIRST_NAME_EDIT_TEXT)
+        waitForElementWithText("First name")
         val firstName = EndToEndCredentials["/cucumber/firstName"]
-        onView(withId(R.id.first_name_edit_text)).perform(replaceText(firstName))
+        onView(withHint("First name")).perform(replaceText(firstName))
     }
 
     @And("^she fills out her Last Name$")
     fun she_fills_out_her_last_name() {
         var profileSuffix = "self-service-registration"
         SharedState.a18NProfile?.let { profileSuffix = it.profileId }
-        onView(withId(R.id.last_name_edit_text)).perform(replaceText("e2e-$profileSuffix"))
+        onView(withHint("Last name")).perform(replaceText("e2e-$profileSuffix"))
     }
 
     @And("^she fills out her Email$")
     fun she_fills_out_her_email() {
         val email = SharedState.a18NProfile!!.emailAddress
-        onView(withId(R.id.primary_email_edit_text)).perform(replaceText(email))
+        onView(withHint("Email")).perform(replaceText(email))
     }
 
     @And("^she submits the registration form$")
@@ -96,7 +97,7 @@ class RegistrationDefinitions {
 
     @And("^she fills out her Email with an invalid email format$")
     fun she_fills_out_her_email_with_an_invalid_email_format() {
-        onView(withId(R.id.primary_email_edit_text)).perform(replaceText("e2e-ssr@acme"))
+        onView(withHint("Email")).perform(replaceText("e2e-ssr@acme"))
     }
 
     @Then("^she sees an error message \"'Email' must be in the form of an email address, Provided value for property 'Email' does not match required pattern\"$")

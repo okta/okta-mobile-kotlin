@@ -20,6 +20,7 @@ import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.action.ViewActions.replaceText
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
+import androidx.test.espresso.matcher.ViewMatchers.withHint
 import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.espresso.matcher.ViewMatchers.withText
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -49,6 +50,9 @@ class SelfServiceRegistrationTest : BaseMainActivityTest() {
         }
         networkRule.enqueue(path("idp/idx/introspect")) { response ->
             response.testBodyFromFile("$mockPrefix/introspect.json")
+        }
+        networkRule.enqueue(path("idp/idx/enroll")) { response ->
+            response.testBodyFromFile("$mockPrefix/enroll.json")
         }
         networkRule.enqueue(path("oauth2/default/v1/interact")) { response ->
             response.testBodyFromFile("$mockPrefix/interact.json")
@@ -102,9 +106,9 @@ class SelfServiceRegistrationTest : BaseMainActivityTest() {
 
         goToSelfServiceRegistration()
 
-        onView(withId(R.id.first_name_edit_text)).perform(replaceText("Mary"))
-        onView(withId(R.id.last_name_edit_text)).perform(replaceText("Jo"))
-        onView(withId(R.id.primary_email_edit_text)).perform(replaceText("Mary@example.com"))
+        onView(withHint("First name")).perform(replaceText("Mary"))
+        onView(withHint("Last name")).perform(replaceText("Jo"))
+        onView(withHint("Email")).perform(replaceText("Mary@example.com"))
         onView(withId(R.id.register_button)).perform(click())
 
         waitForElement(SELECT_BUTTON)
@@ -139,6 +143,9 @@ class SelfServiceRegistrationTest : BaseMainActivityTest() {
         }
         networkRule.enqueue(path("idp/idx/introspect")) { response ->
             response.testBodyFromFile("$mockPrefix/introspect.json")
+        }
+        networkRule.enqueue(path("idp/idx/enroll")) { response ->
+            response.testBodyFromFile("$mockPrefix/enroll.json")
         }
         networkRule.enqueue(path("oauth2/default/v1/interact")) { response ->
             response.testBodyFromFile("$mockPrefix/interact.json")
@@ -223,9 +230,9 @@ class SelfServiceRegistrationTest : BaseMainActivityTest() {
 
         goToSelfServiceRegistration()
 
-        onView(withId(R.id.first_name_edit_text)).perform(replaceText("Mary"))
-        onView(withId(R.id.last_name_edit_text)).perform(replaceText("Jo"))
-        onView(withId(R.id.primary_email_edit_text)).perform(replaceText("Mary@example.com"))
+        onView(withHint("First name")).perform(replaceText("Mary"))
+        onView(withHint("Last name")).perform(replaceText("Jo"))
+        onView(withHint("Email")).perform(replaceText("Mary@example.com"))
         onView(withId(R.id.register_button)).perform(click())
 
         waitForElement(SELECT_BUTTON)
@@ -271,6 +278,9 @@ class SelfServiceRegistrationTest : BaseMainActivityTest() {
         networkRule.enqueue(path("idp/idx/introspect")) { response ->
             response.testBodyFromFile("$mockPrefix/introspect.json")
         }
+        networkRule.enqueue(path("idp/idx/enroll")) { response ->
+            response.testBodyFromFile("$mockPrefix/enroll.json")
+        }
         networkRule.enqueue(path("oauth2/default/v1/interact")) { response ->
             response.testBodyFromFile("$mockPrefix/interact.json")
         }
@@ -288,9 +298,9 @@ class SelfServiceRegistrationTest : BaseMainActivityTest() {
 
         goToSelfServiceRegistration()
 
-        onView(withId(R.id.first_name_edit_text)).perform(replaceText("Mary"))
-        onView(withId(R.id.last_name_edit_text)).perform(replaceText("Jo"))
-        onView(withId(R.id.primary_email_edit_text)).perform(replaceText("Mary@example.com"))
+        onView(withHint("First name")).perform(replaceText("Mary"))
+        onView(withHint("Last name")).perform(replaceText("Jo"))
+        onView(withHint("Email")).perform(replaceText("Mary@example.com"))
         onView(withId(R.id.register_button)).perform(click())
 
         waitForElement(ERROR_TEXT_VIEW)
@@ -317,6 +327,9 @@ class SelfServiceRegistrationTest : BaseMainActivityTest() {
         }
         networkRule.enqueue(path("idp/idx/introspect")) { response ->
             response.testBodyFromFile("$mockPrefix/introspect.json")
+        }
+        networkRule.enqueue(path("idp/idx/enroll")) { response ->
+            response.testBodyFromFile("$mockPrefix/enroll.json")
         }
         networkRule.enqueue(path("oauth2/default/v1/interact")) { response ->
             response.testBodyFromFile("$mockPrefix/interact.json")
@@ -388,9 +401,9 @@ class SelfServiceRegistrationTest : BaseMainActivityTest() {
 
         goToSelfServiceRegistration()
 
-        onView(withId(R.id.first_name_edit_text)).perform(replaceText("Mary"))
-        onView(withId(R.id.last_name_edit_text)).perform(replaceText("Jo"))
-        onView(withId(R.id.primary_email_edit_text)).perform(replaceText("Mary@example.com"))
+        onView(withHint("First name")).perform(replaceText("Mary"))
+        onView(withHint("Last name")).perform(replaceText("Jo"))
+        onView(withHint("Email")).perform(replaceText("Mary@example.com"))
         onView(withId(R.id.register_button)).perform(click())
 
         waitForElement(SELECT_BUTTON)

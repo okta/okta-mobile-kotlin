@@ -61,15 +61,7 @@ class UsernamePasswordForm internal constructor(
     }
 
     fun register() {
-        formAction.proceed {
-            FormAction.ProceedTransition.FormTransition(
-                RegisterForm(
-                    formAction = formAction,
-                    viewModel = RegisterForm.ViewModel(primaryEmail = viewModel.username),
-                ),
-                proceedContext
-            )
-        }
+        formAction.proceedToRegister()
     }
 
     fun forgotPassword() {

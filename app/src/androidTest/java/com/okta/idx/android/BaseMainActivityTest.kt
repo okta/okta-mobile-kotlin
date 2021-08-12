@@ -20,10 +20,10 @@ import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.ext.junit.rules.ActivityScenarioRule
-import com.okta.idx.android.infrastructure.FIRST_NAME_EDIT_TEXT
 import com.okta.idx.android.infrastructure.LAUNCH_TITLE_TEXT_VIEW
 import com.okta.idx.android.infrastructure.USERNAME_EDIT_TEXT
 import com.okta.idx.android.infrastructure.espresso.waitForElement
+import com.okta.idx.android.infrastructure.espresso.waitForElementWithText
 import com.okta.idx.android.infrastructure.network.NetworkRule
 import com.okta.idx.android.network.mock.OktaMockWebServer
 import org.junit.Before
@@ -48,6 +48,6 @@ open class BaseMainActivityTest {
         activityRule.scenario.moveToState(Lifecycle.State.RESUMED)
         waitForElement(LAUNCH_TITLE_TEXT_VIEW)
         onView(withId(R.id.self_service_registration_button)).perform(click())
-        waitForElement(FIRST_NAME_EDIT_TEXT)
+        waitForElementWithText("First name")
     }
 }

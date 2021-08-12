@@ -26,16 +26,6 @@ class LaunchForm internal constructor(
     }
 
     fun register() {
-        formAction.proceed {
-            val response = authenticationWrapper.begin()
-            handleTerminalTransitions(response)?.let { return@proceed it }
-            FormAction.ProceedTransition.FormTransition(
-                RegisterForm(
-                    formAction = formAction,
-                    viewModel = RegisterForm.ViewModel(),
-                ),
-                proceedContext = response.proceedContext
-            )
-        }
+        formAction.proceedToRegister()
     }
 }
