@@ -1,3 +1,4 @@
 rootProject.name = "okta-idx-android"
 include ':app'
+include ':dynamic-app'
 include ':idx-kotlin'

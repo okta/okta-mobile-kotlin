@@ -20,7 +20,7 @@ package com.okta.idx.kotlin.dto
  */
 class IdxAuthenticatorCollection internal constructor(
     internal val authenticators: List<IdxAuthenticator>,
-) {
+) : List<IdxAuthenticator> by authenticators {
     /**
      * The current authenticator, if one is actively being enrolled or authenticated.
      */

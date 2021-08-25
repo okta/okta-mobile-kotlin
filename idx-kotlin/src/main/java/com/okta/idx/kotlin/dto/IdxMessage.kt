@@ -23,7 +23,7 @@ class IdxMessageCollection internal constructor(
      * The collection of messages at the form level.
      */
     val messages: List<IdxMessage>,
-)
+) : List<IdxMessage> by messages
 
 /**
  * Represents messages sent from the server to indicate error or warning conditions related to responses or form values.

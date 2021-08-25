@@ -1,0 +1,7 @@
+<androidx.appcompat.widget.AppCompatCheckBox
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/checkbox"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="16dp"
+    />

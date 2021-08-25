@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/LaunchFragment"
+    >
+    <fragment
+        android:id="@+id/LaunchFragment"
+        android:name="com.okta.idx.android.dynamic.LaunchFragment"
+        tools:layout="@layout/fragment_launch"
+        >
+        <action
+            android:id="@+id/launch_to_dynamic"
+            app:destination="@id/DynamicAuthFragment"
+            app:popUpTo="@+id/nav_graph"
+            app:popUpToInclusive="true"
+            />
+    </fragment>
+
+    <fragment
+        android:id="@+id/DynamicAuthFragment"
+        android:name="com.okta.idx.android.dynamic.auth.DynamicAuthFragment"
+        tools:layout="@layout/fragment_dynamic_auth"
+        >
+        <action
+            android:id="@+id/directAuth_to_dashboard"
+            app:destination="@id/DashboardFragment"
+            app:popUpTo="@+id/nav_graph"
+            app:popUpToInclusive="true"
+            />
+    </fragment>
+
+    <fragment
+        android:id="@+id/DashboardFragment"
+        android:name="com.okta.idx.android.dashboard.DashboardFragment"
+        tools:layout="@layout/fragment_dashboard"
+        >
+        <action
+            android:id="@+id/dashboard_to_login"
+            app:destination="@id/LaunchFragment"
+            app:popUpTo="@+id/nav_graph"
+            app:popUpToInclusive="true"
+            />
+    </fragment>
+</navigation>

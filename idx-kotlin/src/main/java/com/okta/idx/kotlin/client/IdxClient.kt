@@ -29,6 +29,9 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.FormBody
@@ -144,7 +147,37 @@ class IdxClient internal constructor(
      *
      */
     suspend fun proceed(remediation: IdxRemediation): IdxClientResult<IdxResponse> {
-        TODO()
+        val request: Request
+
+        withContext(configuration.computationDispatcher) {
+            val urlBuilder = remediation.href.newBuilder()
+
+            val requestBuilder = Request.Builder()
+                .url(urlBuilder.build())
+
+            if (remediation.method == "POST") {
+                val jsonBody = remediation.toJsonContent().toString()
+                requestBuilder.post(jsonBody.toRequestBody("application/ion+json; okta-version=1.0.0".toMediaType()))
+            }
+
+            remediation.accepts?.let {
+                requestBuilder.addHeader("accept", it)
+            }
+
+            request = requestBuilder
+                .build()
+        }
+
+        return withContext(configuration.ioDispatcher) {
+            try {
+                val response = configuration.performRequest(request)
+                val v1Response = configuration.json.decodeFromString<V1Response>(response.body!!.string())
+
+                IdxClientResult.Response(v1Response.toIdxResponse())
+            } catch (e: Exception) {
+                IdxClientResult.Error(e)
+            }
+        }
     }
 
     /**
@@ -160,6 +193,36 @@ class IdxClient internal constructor(
      */
     suspend fun redirectResult(url: HttpUrl) {
         TODO()
+    }
+}
+
+private fun IdxRemediation.toJsonContent(): JsonElement {
+    return form.toJsonContent()
+}
+
+private fun IdxRemediation.Form.toJsonContent(): JsonElement {
+    val result = mutableMapOf<String, JsonElement>()
+
+    for (field in allFields) {
+        val name = field.name ?: continue
+        field.form?.toJsonContent()?.let {
+            result[name] = it
+        }
+        field.value?.asJsonElement()?.let {
+            result[name] = it
+        }
+    }
+
+    return JsonObject(result)
+}
+
+private fun Any.asJsonElement(): JsonElement {
+    return when (this) {
+        is JsonElement -> this
+        is Boolean -> JsonPrimitive(this)
+        is String -> JsonPrimitive(this)
+        is Number -> JsonPrimitive(this)
+        else -> throw IllegalStateException("Unknown type")
     }
 }
 

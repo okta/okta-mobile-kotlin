@@ -29,7 +29,7 @@ class TokenResponse internal constructor(
     val idToken: String,
 
     /** The refresh token, if available. */
-    val refreshToken: String,
+    val refreshToken: String?,
 
     /** The access scopes for this token. */
     val scope: String,

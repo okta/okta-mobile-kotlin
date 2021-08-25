@@ -23,7 +23,7 @@ import java.util.Date
  */
 class IdxRemediationCollection internal constructor(
     private val remediations: List<IdxRemediation>,
-) {
+) : List<IdxRemediation> by remediations {
     /**
      * Returns a remediation based on its name.
      */
@@ -170,7 +170,7 @@ class IdxRemediation internal constructor(
             /** The user-readable label describing this form value. */
             val label: String?,
             /** The type of value expected from the client. */
-            val type: String?,
+            val type: String,
 
             /** This is the backing field, without the restrictions of the public field. */
             @Volatile private var _value: Any?,

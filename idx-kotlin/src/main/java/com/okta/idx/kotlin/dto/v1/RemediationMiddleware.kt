@@ -71,7 +71,7 @@ private fun FormValue.toIdxField(): IdxRemediation.Form.Field {
     return IdxRemediation.Form.Field(
         name = name,
         label = label,
-        type = type,
+        type = type ?: "string",
         _value = value,
         isVisible = actualVisibility,
         isMutable = mutable ?: true,
