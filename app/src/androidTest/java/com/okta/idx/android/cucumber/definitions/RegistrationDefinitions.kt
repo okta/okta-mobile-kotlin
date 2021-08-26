@@ -58,6 +58,11 @@ class RegistrationDefinitions {
         onView(withHint("Email")).perform(replaceText(email))
     }
 
+    @And("^she fills out her Random Property$")
+    fun she_fills_out_her_random_property() {
+        onView(withHint("Random")).perform(replaceText("Not blank!"))
+    }
+
     @And("^she submits the registration form$")
     fun she_submits_the_registration_form() {
         onView(withId(R.id.register_button)).perform(click())

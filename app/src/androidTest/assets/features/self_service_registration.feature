@@ -7,6 +7,7 @@ Feature: 4.1 Self Service Registration with Email Activation And optional SMS
     When she fills out her First Name
     And she fills out her Last Name
     And she fills out her Email
+    And she fills out her Random Property
     And she submits the registration form
     Then she sees a list of required factors to setup
     When she selects Password
@@ -30,6 +31,7 @@ Feature: 4.1 Self Service Registration with Email Activation And optional SMS
     When she fills out her First Name
     And she fills out her Last Name
     And she fills out her Email
+    And she fills out her Random Property
     And she submits the registration form
     Then she sees a list of required factors to setup
     When she selects Password
@@ -57,6 +59,7 @@ Feature: 4.1 Self Service Registration with Email Activation And optional SMS
     When she fills out her First Name
     And she fills out her Last Name
     And she fills out her Email with an invalid email format
+    And she fills out her Random Property
     And she submits the registration form
     Then she sees an error message "'Email' must be in the form of an email address, Provided value for property 'Email' does not match required pattern"
 
@@ -67,6 +70,7 @@ Feature: 4.1 Self Service Registration with Email Activation And optional SMS
     When she fills out her First Name
     And she fills out her Last Name
     And she fills out her Email
+    And she fills out her Random Property
     And she submits the registration form
     Then she sees a list of required factors to setup
     When she selects Password
