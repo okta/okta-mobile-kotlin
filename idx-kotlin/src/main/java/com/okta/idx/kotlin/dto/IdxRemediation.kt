@@ -83,6 +83,7 @@ class IdxRemediation internal constructor(
      */
     enum class Type {
         UNKNOWN,
+        ISSUE,
         IDENTIFY,
         IDENTIFY_RECOVERY,
         SELECT_IDENTIFY,

@@ -25,7 +25,7 @@
         tools:layout="@layout/fragment_dynamic_auth"
         >
         <action
-            android:id="@+id/directAuth_to_dashboard"
+            android:id="@+id/dynamicAuth_to_dashboard"
             app:destination="@id/DashboardFragment"
             app:popUpTo="@+id/nav_graph"
             app:popUpToInclusive="true"

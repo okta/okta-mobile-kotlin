@@ -21,7 +21,9 @@ import android.text.method.PasswordTransformationMethod
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import androidx.fragment.app.viewModels
+import androidx.navigation.fragment.findNavController
 import com.google.android.material.textfield.TextInputLayout
+import com.okta.idx.android.dashboard.TokenViewModel
 import com.okta.idx.android.dynamic.databinding.ErrorBinding
 import com.okta.idx.android.dynamic.databinding.ErrorFieldBinding
 import com.okta.idx.android.dynamic.databinding.FormActionPrimaryBinding
@@ -55,6 +57,10 @@ internal class DynamicAuthFragment : BaseFragment<FragmentDynamicAuthBinding>(
                 }
                 DynamicAuthState.Loading -> {
                     addLoadingView()
+                }
+                is DynamicAuthState.Tokens -> {
+                    TokenViewModel._tokenResponse = state.tokenResponse
+                    findNavController().navigate(DynamicAuthFragmentDirections.dynamicAuthToDashboard())
                 }
             }
         }

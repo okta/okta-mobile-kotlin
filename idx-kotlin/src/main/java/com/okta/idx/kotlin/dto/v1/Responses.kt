@@ -197,12 +197,12 @@ internal data class Message(
 
 @Serializable
 internal data class Token(
-    val tokenType: String,
-    val expiresIn: Int,
-    val accessToken: String,
+    @SerialName("token_type") val tokenType: String,
+    @SerialName("expires_in") val expiresIn: Int,
+    @SerialName("access_token") val accessToken: String,
     val scope: String,
-    val refreshToken: String? = null,
-    val idToken: String? = null,
+    @SerialName("refresh_token") val refreshToken: String? = null,
+    @SerialName("id_token") val idToken: String,
 )
 
 @Serializable

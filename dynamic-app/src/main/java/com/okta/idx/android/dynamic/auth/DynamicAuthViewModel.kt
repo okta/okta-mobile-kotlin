@@ -49,7 +49,7 @@ internal class DynamicAuthViewModel : ViewModel() {
                             _state.value = DynamicAuthState.Error("Failed to call resume")
                         }
                         is IdxClientResult.Response -> {
-                            _state.value = createForm(resumeResult.response)
+                            handleResponse(resumeResult.response)
                         }
                     }
                 }
@@ -67,7 +67,7 @@ internal class DynamicAuthViewModel : ViewModel() {
                         _state.value = DynamicAuthState.Error("Failed to call resume")
                     }
                     is IdxClientResult.Response -> {
-                        _state.value = createForm(resumeResult.response)
+                        handleResponse(resumeResult.response)
                     }
                 }
             }
@@ -76,7 +76,18 @@ internal class DynamicAuthViewModel : ViewModel() {
         }
     }
 
-    private fun createForm(response: IdxResponse): DynamicAuthState.Form {
+    private suspend fun handleResponse(response: IdxResponse) {
+        if (response.isLoginSuccessful) {
+            when (val exchangeCodesResult = client?.exchangeCodes(response.remediations[IdxRemediation.Type.ISSUE]!!)) {
+                is IdxClientResult.Error -> {
+                    _state.value = DynamicAuthState.Error("Failed to call resume")
+                }
+                is IdxClientResult.Response -> {
+                    _state.value = DynamicAuthState.Tokens(exchangeCodesResult.response)
+                }
+            }
+            return
+        }
         val fields = mutableListOf<DynamicAuthField>()
         for (remediation in response.remediations) {
             for (visibleField in remediation.form.visibleFields) {
@@ -88,7 +99,7 @@ internal class DynamicAuthViewModel : ViewModel() {
         for (message in response.messages) {
             messages += message.message
         }
-        return DynamicAuthState.Form(response, fields, messages)
+        _state.value = DynamicAuthState.Form(response, fields, messages)
     }
 
     private fun IdxRemediation.Form.Field.asDynamicAuthFields(): List<DynamicAuthField> {
@@ -132,7 +143,7 @@ internal class DynamicAuthViewModel : ViewModel() {
                         _state.value = DynamicAuthState.Error("Failed to call proceed")
                     }
                     is IdxClientResult.Response -> {
-                        _state.value = createForm(resumeResult.response)
+                        handleResponse(resumeResult.response)
                     }
                 }
             }

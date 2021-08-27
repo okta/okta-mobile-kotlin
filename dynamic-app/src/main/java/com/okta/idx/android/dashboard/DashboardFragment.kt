@@ -33,7 +33,7 @@ internal class DashboardFragment : BaseFragment<FragmentDashboardBinding>(
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         binding.tokenType.text = TokenViewModel.tokenResponse.tokenType
-        binding.expiresIn.text = TokenViewModel.tokenResponse.expiresIn
+        binding.expiresIn.text = TokenViewModel.tokenResponse.expiresIn.toString()
         binding.accessToken.text = TokenViewModel.tokenResponse.accessToken
         binding.refreshToken.text = TokenViewModel.tokenResponse.refreshToken
         binding.idToken.text = TokenViewModel.tokenResponse.idToken

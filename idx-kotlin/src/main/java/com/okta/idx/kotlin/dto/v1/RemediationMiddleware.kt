@@ -87,6 +87,7 @@ private fun FormValue.toIdxField(): IdxRemediation.Form.Field {
 
 private fun String.toRemediationType(): IdxRemediation.Type {
     return when (this) {
+        "issue" -> IdxRemediation.Type.ISSUE
         "identify" -> IdxRemediation.Type.IDENTIFY
         "identify-recovery" -> IdxRemediation.Type.IDENTIFY_RECOVERY
         "select-identify" -> IdxRemediation.Type.SELECT_IDENTIFY

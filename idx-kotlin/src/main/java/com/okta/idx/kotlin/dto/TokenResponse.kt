@@ -23,7 +23,7 @@ class TokenResponse internal constructor(
     val accessToken: String,
 
     /** The time interval after which this token will expire. */
-    val expiresIn: String,
+    val expiresIn: Int,
 
     /** The id token. */
     val idToken: String,

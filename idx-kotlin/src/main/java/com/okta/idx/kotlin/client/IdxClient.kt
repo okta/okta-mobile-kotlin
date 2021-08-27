@@ -20,6 +20,7 @@ import com.okta.idx.kotlin.dto.IdxResponse
 import com.okta.idx.kotlin.dto.TokenResponse
 import com.okta.idx.kotlin.dto.v1.InteractResponse
 import com.okta.idx.kotlin.dto.v1.IntrospectRequest
+import com.okta.idx.kotlin.dto.v1.Token
 import com.okta.idx.kotlin.dto.v1.toIdxResponse
 import com.okta.idx.kotlin.util.PkceGenerator
 import kotlinx.coroutines.CancellableContinuation
@@ -143,8 +144,6 @@ class IdxClient internal constructor(
      * Executes the remediation option and proceeds through the workflow using the supplied form parameters.
      *
      * This method is used to proceed through the authentication flow, using the data assigned to the nested fields' `value` to make selections.
-     *
-     *
      */
     suspend fun proceed(remediation: IdxRemediation): IdxClientResult<IdxResponse> {
         val request: Request
@@ -181,13 +180,57 @@ class IdxClient internal constructor(
     }
 
     /**
-     *
+     * Exchange the IdxRemediation.Type.ISSUE remediation type for tokens.
      */
     suspend fun exchangeCodes(remediation: IdxRemediation): IdxClientResult<TokenResponse> {
-        TODO()
+        if (remediation.name != "issue") {
+            throw IllegalStateException("Invalid remediation.")
+        }
+        val request: Request
+
+        withContext(configuration.computationDispatcher) {
+            remediation["code_verifier"]?.value = clientContext.codeVerifier
+
+            val formBodyBuilder = FormBody.Builder()
+            remediation.form.allFields.forEach { field ->
+                val value = when (val fieldValue = field.value) {
+                    is JsonPrimitive -> fieldValue.content
+                    null -> ""
+                    else -> fieldValue.toString()
+                }
+                if (field.name != null) {
+                    formBodyBuilder.add(field.name, value)
+                }
+            }
+
+            request = Request.Builder()
+                .url(remediation.href)
+                .post(formBodyBuilder.build())
+                .build()
+        }
+
+        return withContext(configuration.ioDispatcher) {
+            try {
+                val response = configuration.performRequest(request)
+                val tokenResponse =
+                    configuration.json.decodeFromString<Token>(response.body!!.string())
+
+                IdxClientResult.Response(
+                    TokenResponse(
+                        accessToken = tokenResponse.accessToken,
+                        expiresIn = tokenResponse.expiresIn,
+                        refreshToken = tokenResponse.refreshToken,
+                        idToken = tokenResponse.idToken,
+                        scope = tokenResponse.scope,
+                        tokenType = tokenResponse.tokenType,
+                    )
+                )
+            } catch (e: Exception) {
+                IdxClientResult.Error(e)
+            }
+        }
     }
 
-    // TODO: Exchange codes automatically if success. Return sealed class or something
     /**
      * Evaluates the given redirect url to determine what next steps can be performed. This is usually used when receiving a redirection from an IDP authentication flow.
      */
