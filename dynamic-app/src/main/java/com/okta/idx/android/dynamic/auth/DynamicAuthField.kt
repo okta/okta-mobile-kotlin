@@ -18,6 +18,7 @@ package com.okta.idx.android.dynamic.auth
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.okta.idx.android.util.emitValidation
+import com.okta.idx.kotlin.dto.IdxRemediation
 
 sealed class DynamicAuthField {
     data class Text(
@@ -49,6 +50,17 @@ sealed class DynamicAuthField {
         private val valueUpdater: (Boolean) -> Unit
     ) : DynamicAuthField() {
         var value: Boolean = false
+            set(value) {
+                field = value
+                valueUpdater(value)
+            }
+    }
+
+    data class Options(
+        val fields: List<IdxRemediation.Form.Field>,
+        private val valueUpdater: (IdxRemediation.Form.Field?) -> Unit,
+    ) : DynamicAuthField() {
+        var field: IdxRemediation.Form.Field? = null
             set(value) {
                 field = value
                 valueUpdater(value)

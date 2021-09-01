@@ -24,16 +24,20 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.textfield.TextInputLayout
 import com.okta.idx.android.dashboard.TokenViewModel
+import com.okta.idx.android.dynamic.R
 import com.okta.idx.android.dynamic.databinding.ErrorBinding
 import com.okta.idx.android.dynamic.databinding.ErrorFieldBinding
 import com.okta.idx.android.dynamic.databinding.FormActionPrimaryBinding
 import com.okta.idx.android.dynamic.databinding.FormCheckBoxBinding
+import com.okta.idx.android.dynamic.databinding.FormOptionBinding
+import com.okta.idx.android.dynamic.databinding.FormOptionsBinding
 import com.okta.idx.android.dynamic.databinding.FormTextBinding
 import com.okta.idx.android.dynamic.databinding.FragmentDynamicAuthBinding
 import com.okta.idx.android.dynamic.databinding.LoadingBinding
 import com.okta.idx.android.util.BaseFragment
 import com.okta.idx.android.util.bindText
 import com.okta.idx.android.util.inflateBinding
+import com.okta.idx.kotlin.dto.IdxRemediation
 
 internal class DynamicAuthFragment : BaseFragment<FragmentDynamicAuthBinding>(
     FragmentDynamicAuthBinding::inflate
@@ -133,6 +137,19 @@ internal class DynamicAuthFragment : BaseFragment<FragmentDynamicAuthBinding>(
                 actionBinding.button.text = label
                 actionBinding.button.setOnClickListener { onClick() }
                 actionBinding.root
+            }
+            is DynamicAuthField.Options -> {
+                val optionsBinding = binding.formContent.inflateBinding(FormOptionsBinding::inflate)
+                for (field in fields) {
+                    val optionBinding = optionsBinding.radioGroup.inflateBinding(FormOptionBinding::inflate, attachToParent = true)
+                    optionBinding.radioButton.text = field.label
+                    optionBinding.radioButton.setTag(R.id.field, field)
+                    optionBinding.radioButton.id = View.generateViewId()
+                }
+                optionsBinding.radioGroup.setOnCheckedChangeListener { group, checkedId ->
+                    field = group.findViewById<View>(checkedId).getTag(R.id.field) as IdxRemediation.Form.Field
+                }
+                optionsBinding.root
             }
         }
     }

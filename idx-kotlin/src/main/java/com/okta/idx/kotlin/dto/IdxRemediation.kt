@@ -218,24 +218,12 @@ class IdxRemediation internal constructor(
                     return _value
                 }
 
-            /** Indicates if this field is the selected option within a parent field's `options` array. */
-            @Volatile var isSelectedOption: Boolean = false
-                private set
-
             /**
              * Allows a developer to set the selected option for a field that contains multiple `options`.
              *
              * This will update the `isSelectedOption` on all relevant fields.
              */
             @Volatile var selectedOption: Field? = null
-                set(value) {
-                    field = value
-                    options?.let { options ->
-                        for (option in options) {
-                            option.isSelectedOption = (option === selectedOption)
-                        }
-                    }
-                }
 
             internal val hasVisibleFields: Boolean by lazy {
                 computeHasVisibleFields()

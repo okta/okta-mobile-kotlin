@@ -24,6 +24,7 @@ import com.okta.idx.kotlin.client.IdxClientResult
 import com.okta.idx.kotlin.dto.IdxRemediation
 import com.okta.idx.kotlin.dto.IdxResponse
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 internal class DynamicAuthViewModel : ViewModel() {
     private val _state = MutableLiveData<DynamicAuthState>(DynamicAuthState.Loading)
@@ -103,23 +104,37 @@ internal class DynamicAuthViewModel : ViewModel() {
     }
 
     private fun IdxRemediation.Form.Field.asDynamicAuthFields(): List<DynamicAuthField> {
-        return when (type) {
-            "boolean" -> {
-                listOf(DynamicAuthField.CheckBox(label ?: "") {
-                    value = it
-                })
-            }
-            "object" -> {
+        return when (true) {
+            form?.visibleFields?.isNullOrEmpty() == false -> {
                 val result = mutableListOf<DynamicAuthField>()
                 form?.visibleFields?.forEach {
                     result += it.asDynamicAuthFields()
                 }
                 result
             }
-            else -> {
+            options?.isNullOrEmpty() == false -> {
+                val result = mutableListOf<DynamicAuthField>()
+                options?.let { options ->
+                    result += DynamicAuthField.Options(options) {
+                        selectedOption = it
+                    }
+                }
+
+                result
+            }
+            type == "boolean" -> {
+                listOf(DynamicAuthField.CheckBox(label ?: "") {
+                    value = it
+                })
+            }
+            type == "string" -> {
                 listOf(DynamicAuthField.Text(label ?: "", isRequired, isSecret) {
                     value = it
                 })
+            }
+            else -> {
+                Timber.d("Unknown field type: %s", this)
+                emptyList()
             }
         }
     }
@@ -136,17 +151,20 @@ internal class DynamicAuthViewModel : ViewModel() {
             else -> "Continue"
         }
         return listOf(DynamicAuthField.Action(title) {
-            val remediation = this
-            viewModelScope.launch {
-                when (val resumeResult = client?.proceed(remediation)) {
-                    is IdxClientResult.Error -> {
-                        _state.value = DynamicAuthState.Error("Failed to call proceed")
-                    }
-                    is IdxClientResult.Response -> {
-                        handleResponse(resumeResult.response)
-                    }
+            proceed(this)
+        })
+    }
+
+    private fun proceed(remediation: IdxRemediation) {
+        viewModelScope.launch {
+            when (val resumeResult = client?.proceed(remediation)) {
+                is IdxClientResult.Error -> {
+                    _state.value = DynamicAuthState.Error("Failed to call proceed")
+                }
+                is IdxClientResult.Response -> {
+                    handleResponse(resumeResult.response)
                 }
             }
-        })
+        }
     }
 }

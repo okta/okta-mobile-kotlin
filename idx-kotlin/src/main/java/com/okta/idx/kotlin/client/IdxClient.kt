@@ -30,7 +30,9 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import okhttp3.Call
@@ -239,7 +241,7 @@ class IdxClient internal constructor(
     }
 }
 
-private fun IdxRemediation.toJsonContent(): JsonElement {
+internal fun IdxRemediation.toJsonContent(): JsonElement {
     return form.toJsonContent()
 }
 
@@ -254,19 +256,46 @@ private fun IdxRemediation.Form.toJsonContent(): JsonElement {
         field.value?.asJsonElement()?.let {
             result[name] = it
         }
+        field.selectedOption?.selectedOptionToJsonContent()?.let {
+            result[name] = it
+        }
     }
 
     return JsonObject(result)
 }
 
-private fun Any.asJsonElement(): JsonElement {
+private fun Any?.asJsonElement(): JsonElement {
     return when (this) {
+        null -> JsonNull
         is JsonElement -> this
         is Boolean -> JsonPrimitive(this)
         is String -> JsonPrimitive(this)
         is Number -> JsonPrimitive(this)
         else -> throw IllegalStateException("Unknown type")
     }
+}
+
+private fun IdxRemediation.Form.Field.selectedOptionToJsonContent(): JsonElement? {
+    if (value == null) {
+        return null
+    }
+    val jsonObject = value as? JsonObject ?: return null
+    val formElement = jsonObject["form"] as? JsonObject ?: return null
+    val values = formElement["value"] as? JsonArray ?: return null
+
+    val result = mutableMapOf<String, JsonElement>()
+    values.forEach { valueJson ->
+        val valueJsonObject = valueJson as? JsonObject
+        if (valueJsonObject?.containsKey("name") == true && valueJsonObject.containsKey("value")) {
+            val name = valueJsonObject["name"] as? JsonPrimitive
+            val value = valueJsonObject["value"]
+            if (name != null && value != null) {
+                result[name.content] = value
+            }
+        }
+    }
+
+    return JsonObject(result)
 }
 
 private suspend fun IdxClientConfiguration.performRequest(request: Request): Response {

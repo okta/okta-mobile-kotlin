@@ -36,10 +36,11 @@ internal fun <B> ViewGroup.inflateBinding(
         inflater: LayoutInflater,
         container: ViewGroup?,
         attachToParent: Boolean
-    ) -> B
+    ) -> B,
+    attachToParent: Boolean = false
 ): B {
     val inflater = LayoutInflater.from(context)
-    return bindingFactory(inflater, this, false)
+    return bindingFactory(inflater, this, attachToParent)
 }
 
 internal fun EditText.doOnTextChanged(listener: (text: String) -> Unit) {

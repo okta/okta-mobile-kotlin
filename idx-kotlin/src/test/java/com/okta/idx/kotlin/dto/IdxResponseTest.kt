@@ -16,6 +16,7 @@
 package com.okta.idx.kotlin.dto
 
 import com.google.common.truth.Truth.assertThat
+import com.okta.idx.kotlin.client.toJsonContent
 import com.okta.idx.kotlin.dto.v1.Response
 import com.okta.idx.kotlin.dto.v1.toIdxResponse
 import com.okta.idx.kotlin.infrastructure.stringFromResources
@@ -33,5 +34,17 @@ class IdxResponseTest {
         assertThat(response).isNotNull()
         val idxResponse = response.toIdxResponse()
         assertThat(idxResponse).isNotNull()
+    }
+
+    @Test fun testAuthenticators() {
+        val response = json.decodeFromString<Response>(stringFromResources("dto/select_authenticator.json"))
+        assertThat(response).isNotNull()
+        val idxResponse = response.toIdxResponse()
+        assertThat(idxResponse).isNotNull()
+        val remediation = idxResponse.remediations[IdxRemediation.Type.SELECT_AUTHENTICATOR_AUTHENTICATE]!!
+        val field = remediation.form["authenticator"]
+        field?.selectedOption = field?.options!![0]
+        val requestJson = remediation.toJsonContent().toString()
+        assertThat(requestJson).isEqualTo("""{"authenticator":{"id":"auttbu5xxmIlrSqER5d6","methodType":"email"},"stateHandle":"02jbM3ltYruI-MEq8h8RCpHfnjPy-kJxpVq2HlfO2l"}""")
     }
 }
