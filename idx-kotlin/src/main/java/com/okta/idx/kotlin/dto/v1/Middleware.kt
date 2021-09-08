@@ -20,6 +20,7 @@ import com.okta.idx.kotlin.dto.IdxRemediation
 import com.okta.idx.kotlin.dto.IdxResponse
 import com.okta.idx.kotlin.dto.IdxUser
 import com.okta.idx.kotlin.dto.IdxMessageCollection
+import com.okta.idx.kotlin.dto.TokenResponse
 
 internal fun Response.toIdxResponse(): IdxResponse {
     val remediations = toIdxRemediationCollection()
@@ -63,4 +64,15 @@ private fun String?.toIdxResponseIntent(): IdxResponse.Intent {
         "CREDENTIAL_MODIFY" -> IdxResponse.Intent.CREDENTIAL_MODIFY
         else -> IdxResponse.Intent.UNKNOWN
     }
+}
+
+internal fun Token.toIdxResponse(): TokenResponse {
+    return TokenResponse(
+        accessToken = accessToken,
+        expiresIn = expiresIn,
+        refreshToken = refreshToken,
+        idToken = idToken,
+        scope = scope,
+        tokenType = tokenType,
+    )
 }

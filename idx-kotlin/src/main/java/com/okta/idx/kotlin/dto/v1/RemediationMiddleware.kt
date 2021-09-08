@@ -43,17 +43,33 @@ internal fun Response.toIdxRemediationCollection(): IdxRemediationCollection {
 private fun Form.toIdxRemediation(): IdxRemediation {
     val form = IdxRemediation.Form(value?.map { it.toIdxField() } ?: emptyList())
     val remediationType = name.toRemediationType()
+
     return IdxRemediation(
         type = remediationType,
         name = name,
         form = form,
         authenticators = IdxAuthenticatorCollection(emptyList()), // TODO:
+        idp = toIdxRemediationIdp(),
         method = method,
         href = href,
         accepts = accepts,
         refresh = null, // TODO:
         relatesTo = relatesTo
     )
+}
+
+private fun Form.toIdxRemediationIdp(): IdxRemediation.Idp? {
+    val v1Idp = idp ?: return null
+    val id = v1Idp["id"]
+    val name = v1Idp["name"]
+    if (id != null && name != null) {
+        return IdxRemediation.Idp(
+            id = id,
+            name = name,
+            redirectUrl = href,
+        )
+    }
+    return null
 }
 
 private fun FormValue.toIdxField(): IdxRemediation.Form.Field {

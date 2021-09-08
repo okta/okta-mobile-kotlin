@@ -15,6 +15,7 @@
  */
 package com.okta.idx.android.dynamic.auth
 
+import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.okta.idx.android.util.emitValidation
@@ -69,7 +70,7 @@ sealed class DynamicAuthField {
 
     data class Action(
         val label: String,
-        val onClick: () -> Unit
+        val onClick: (context: Context) -> Unit
     ) : DynamicAuthField()
 
     open fun validate(): Boolean {

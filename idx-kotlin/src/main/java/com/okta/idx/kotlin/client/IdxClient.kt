@@ -15,6 +15,8 @@
  */
 package com.okta.idx.kotlin.client
 
+import android.net.Uri
+import com.okta.idx.kotlin.dto.IdxRedirectResult
 import com.okta.idx.kotlin.dto.IdxRemediation
 import com.okta.idx.kotlin.dto.IdxResponse
 import com.okta.idx.kotlin.dto.TokenResponse
@@ -38,7 +40,6 @@ import kotlinx.serialization.json.JsonPrimitive
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.FormBody
-import okhttp3.HttpUrl
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -86,25 +87,16 @@ class IdxClient internal constructor(
                     .build()
             }
 
-            return withContext(configuration.ioDispatcher) {
-                try {
-                    val response = configuration.performRequest(request)
-                    val interactResponse = configuration.json.decodeFromString<InteractResponse>(response.body!!.string())
-
-                    val clientContext = IdxClientContext(
-                        codeVerifier = codeVerifier,
-                        interactionHandle = interactResponse.interactionHandle,
-                        state = state,
-                    )
-                    IdxClientResult.Response(
-                        IdxClient(
-                            configuration = configuration,
-                            clientContext = clientContext,
-                        )
-                    )
-                } catch (e: Exception) {
-                    IdxClientResult.Error(e)
-                }
+            return configuration.performRequest<InteractResponse, IdxClient>(request) {
+                val clientContext = IdxClientContext(
+                    codeVerifier = codeVerifier,
+                    interactionHandle = it.interactionHandle,
+                    state = state,
+                )
+                IdxClient(
+                    configuration = configuration,
+                    clientContext = clientContext,
+                )
             }
         }
     }
@@ -130,16 +122,7 @@ class IdxClient internal constructor(
                 .build()
         }
 
-        return withContext(configuration.ioDispatcher) {
-            try {
-                val response = configuration.performRequest(request)
-                val v1Response = configuration.json.decodeFromString<V1Response>(response.body!!.string())
-
-                IdxClientResult.Response(v1Response.toIdxResponse())
-            } catch (e: Exception) {
-                IdxClientResult.Error(e)
-            }
-        }
+        return configuration.performRequest(request, V1Response::toIdxResponse)
     }
 
     /**
@@ -169,23 +152,14 @@ class IdxClient internal constructor(
                 .build()
         }
 
-        return withContext(configuration.ioDispatcher) {
-            try {
-                val response = configuration.performRequest(request)
-                val v1Response = configuration.json.decodeFromString<V1Response>(response.body!!.string())
-
-                IdxClientResult.Response(v1Response.toIdxResponse())
-            } catch (e: Exception) {
-                IdxClientResult.Error(e)
-            }
-        }
+        return configuration.performRequest(request, V1Response::toIdxResponse)
     }
 
     /**
      * Exchange the IdxRemediation.Type.ISSUE remediation type for tokens.
      */
     suspend fun exchangeCodes(remediation: IdxRemediation): IdxClientResult<TokenResponse> {
-        if (remediation.name != "issue") {
+        if (remediation.type != IdxRemediation.Type.ISSUE) {
             throw IllegalStateException("Invalid remediation.")
         }
         val request: Request
@@ -211,33 +185,74 @@ class IdxClient internal constructor(
                 .build()
         }
 
-        return withContext(configuration.ioDispatcher) {
-            try {
-                val response = configuration.performRequest(request)
-                val tokenResponse =
-                    configuration.json.decodeFromString<Token>(response.body!!.string())
-
-                IdxClientResult.Response(
-                    TokenResponse(
-                        accessToken = tokenResponse.accessToken,
-                        expiresIn = tokenResponse.expiresIn,
-                        refreshToken = tokenResponse.refreshToken,
-                        idToken = tokenResponse.idToken,
-                        scope = tokenResponse.scope,
-                        tokenType = tokenResponse.tokenType,
-                    )
-                )
-            } catch (e: Exception) {
-                IdxClientResult.Error(e)
-            }
-        }
+        return configuration.performRequest(request, Token::toIdxResponse)
     }
 
     /**
      * Evaluates the given redirect url to determine what next steps can be performed. This is usually used when receiving a redirection from an IDP authentication flow.
      */
-    suspend fun redirectResult(url: HttpUrl) {
-        TODO()
+    suspend fun redirectResult(uri: Uri): IdxRedirectResult {
+        val errorQueryParameter = uri.getQueryParameter("error")
+        val stateQueryParameter = uri.getQueryParameter("state")
+        if (errorQueryParameter == "interaction_required") {
+            // Validate the state matches. This is a security assurance.
+            if (clientContext.state != stateQueryParameter) {
+                val error = "IDP redirect failed due to state mismatch."
+                return IdxRedirectResult.Error(error)
+            }
+            return when (val resumeResult = resume()) {
+                is IdxClientResult.Error -> {
+                    IdxRedirectResult.Error("Failed to resume.", resumeResult.exception)
+                }
+                is IdxClientResult.Response -> {
+                    IdxRedirectResult.InteractionRequired(resumeResult.response)
+                }
+            }
+        }
+        if (errorQueryParameter != null) {
+            val errorDescription =
+                uri.getQueryParameter("error_description") ?: "An error occurred."
+            return IdxRedirectResult.Error(errorDescription)
+        }
+        val interactionCodeQueryParameter = uri.getQueryParameter("interaction_code")
+        if (interactionCodeQueryParameter != null) {
+            // Validate the state matches. This is a security assurance.
+            if (clientContext.state != stateQueryParameter) {
+                val error = "IDP redirect failed due to state mismatch."
+                return IdxRedirectResult.Error(error)
+            }
+            return when (val result = exchangeCodes(interactionCodeQueryParameter)) {
+                is IdxClientResult.Error -> {
+                    IdxRedirectResult.Error("Failed to exchangeCodes.", result.exception)
+                }
+                is IdxClientResult.Response -> {
+                    IdxRedirectResult.Tokens(result.response)
+                }
+            }
+        }
+        return IdxRedirectResult.Error("Unable to handle redirect url.")
+    }
+
+    private suspend fun exchangeCodes(interactionCode: String): IdxClientResult<TokenResponse> {
+        val request: Request
+        withContext(configuration.computationDispatcher) {
+            val formBodyBuilder = FormBody.Builder()
+                .add("grant_type", "interaction_code")
+                .add("client_id", configuration.clientId)
+                .add("interaction_code", interactionCode)
+                .add("code_verifier", clientContext.codeVerifier)
+
+            val url = configuration.issuer.newBuilder()
+                .addPathSegments("v1/token")
+                .build()
+
+            request = Request.Builder()
+                .url(url)
+                .post(formBodyBuilder.build())
+                .build()
+        }
+
+        return configuration.performRequest(request, Token::toIdxResponse)
     }
 }
 
@@ -298,8 +313,20 @@ private fun IdxRemediation.Form.Field.selectedOptionToJsonContent(): JsonElement
     return JsonObject(result)
 }
 
-private suspend fun IdxClientConfiguration.performRequest(request: Request): Response {
-    return okHttpCallFactory.newCall(request).await()
+private suspend inline fun <reified Raw, Dto> IdxClientConfiguration.performRequest(
+    request: Request,
+    crossinline responseMapper: (Raw) -> Dto
+): IdxClientResult<Dto> {
+    return withContext(ioDispatcher) {
+        try {
+            val okHttpResponse = okHttpCallFactory.newCall(request).await()
+            val responseBody = okHttpResponse.body!!.string()
+            val rawResponse = json.decodeFromString<Raw>(responseBody)
+            IdxClientResult.Response(responseMapper(rawResponse))
+        } catch (e: Exception) {
+            IdxClientResult.Error(e)
+        }
+    }
 }
 
 private suspend fun Call.await(): Response {

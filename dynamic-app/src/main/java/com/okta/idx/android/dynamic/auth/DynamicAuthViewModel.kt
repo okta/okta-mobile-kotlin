@@ -15,12 +15,18 @@
  */
 package com.okta.idx.android.dynamic.auth
 
+import android.content.ActivityNotFoundException
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.okta.idx.android.dynamic.SocialRedirectCoordinator
 import com.okta.idx.kotlin.client.IdxClient
 import com.okta.idx.kotlin.client.IdxClientResult
+import com.okta.idx.kotlin.dto.IdxRedirectResult
 import com.okta.idx.kotlin.dto.IdxRemediation
 import com.okta.idx.kotlin.dto.IdxResponse
 import kotlinx.coroutines.launch
@@ -34,6 +40,11 @@ internal class DynamicAuthViewModel : ViewModel() {
 
     init {
         createClient()
+        SocialRedirectCoordinator.listener = ::handleRedirect
+    }
+
+    override fun onCleared() {
+        SocialRedirectCoordinator.listener = null
     }
 
     private fun createClient() {
@@ -74,6 +85,26 @@ internal class DynamicAuthViewModel : ViewModel() {
             }
         } else {
             createClient()
+        }
+    }
+
+    fun handleRedirect(uri: Uri) {
+        viewModelScope.launch {
+            when (val redirectResult = client?.redirectResult(uri)) {
+                is IdxRedirectResult.Error -> {
+                    Timber.e(redirectResult.exception, redirectResult.errorMessage)
+                    _state.value = DynamicAuthState.Error(redirectResult.errorMessage)
+                }
+                is IdxRedirectResult.InteractionRequired -> {
+                    handleResponse(redirectResult.response)
+                }
+                is IdxRedirectResult.Tokens -> {
+                    _state.value = DynamicAuthState.Tokens(redirectResult.response)
+                }
+                null -> {
+                    Timber.d("No client for handleRedirect.")
+                }
+            }
         }
     }
 
@@ -144,18 +175,31 @@ internal class DynamicAuthViewModel : ViewModel() {
             IdxRemediation.Type.SKIP -> "Skip"
             IdxRemediation.Type.ENROLL_PROFILE, IdxRemediation.Type.SELECT_ENROLL_PROFILE -> "Sign Up"
             IdxRemediation.Type.SELECT_IDENTIFY, IdxRemediation.Type.IDENTIFY -> "Sign In"
-            IdxRemediation.Type.REDIRECT_IDP -> "Social Login" // TODO:
             IdxRemediation.Type.SELECT_AUTHENTICATOR_AUTHENTICATE -> "Choose"
             IdxRemediation.Type.LAUNCH_AUTHENTICATOR -> "Launch Authenticator"
             IdxRemediation.Type.CANCEL -> "Restart"
+            IdxRemediation.Type.REDIRECT_IDP -> {
+                idp?.name?.let { idpName ->
+                    "Login with $idpName"
+                } ?: "Social Login"
+            }
             else -> "Continue"
         }
-        return listOf(DynamicAuthField.Action(title) {
-            proceed(this)
+        return listOf(DynamicAuthField.Action(title) { context ->
+            proceed(this, context)
         })
     }
 
-    private fun proceed(remediation: IdxRemediation) {
+    private fun proceed(remediation: IdxRemediation, context: Context) {
+        if (remediation.type == IdxRemediation.Type.REDIRECT_IDP) {
+            try {
+                val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(remediation.idp!!.redirectUrl.toString()))
+                context.startActivity(browserIntent)
+            } catch (e: ActivityNotFoundException) {
+                Timber.e(e, "Failed to load URL.")
+            }
+            return
+        }
         viewModelScope.launch {
             when (val resumeResult = client?.proceed(remediation)) {
                 is IdxClientResult.Error -> {

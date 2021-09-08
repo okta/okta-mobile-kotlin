@@ -135,7 +135,7 @@ internal class DynamicAuthFragment : BaseFragment<FragmentDynamicAuthBinding>(
             is DynamicAuthField.Action -> {
                 val actionBinding = binding.formContent.inflateBinding(FormActionPrimaryBinding::inflate)
                 actionBinding.button.text = label
-                actionBinding.button.setOnClickListener { onClick() }
+                actionBinding.button.setOnClickListener { onClick(requireContext()) }
                 actionBinding.root
             }
             is DynamicAuthField.Options -> {

@@ -63,6 +63,9 @@ class IdxRemediation internal constructor(
     /** The set of authenticators associated with this remediation. */
     val authenticators: IdxAuthenticatorCollection,
 
+    /** The IdP associated with a remediation of type [Type.REDIRECT_IDP]. */
+    val idp: Idp?,
+
     internal val method: String,
     internal val href: HttpUrl,
     internal val accepts: String?,
@@ -241,4 +244,14 @@ class IdxRemediation internal constructor(
             }
         }
     }
+
+    /** Describes the IdP associated with a remediation of type [Type.REDIRECT_IDP]. */
+    class Idp internal constructor(
+        /** The IdPs id. */
+        val id: String,
+        /** The IdPs name. */
+        val name: String,
+        /** The IdPs redirectUrl. */
+        val redirectUrl: HttpUrl,
+    )
 }

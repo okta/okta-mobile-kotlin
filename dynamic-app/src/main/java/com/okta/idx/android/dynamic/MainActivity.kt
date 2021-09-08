@@ -15,6 +15,7 @@
  */
 package com.okta.idx.android.dynamic
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 
@@ -27,5 +28,15 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         setContentView(R.layout.activity_main)
+    }
+
+    public override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+
+        if (intent?.action == SOCIAL_REDIRECT_ACTION) {
+            intent.data?.let {
+                SocialRedirectCoordinator.listener?.invoke(it)
+            }
+        }
     }
 }
