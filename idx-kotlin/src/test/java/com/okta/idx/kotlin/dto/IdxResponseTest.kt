@@ -47,4 +47,20 @@ class IdxResponseTest {
         val requestJson = remediation.toJsonContent().toString()
         assertThat(requestJson).isEqualTo("""{"authenticator":{"id":"auttbu5xxmIlrSqER5d6","methodType":"email"},"stateHandle":"02jbM3ltYruI-MEq8h8RCpHfnjPy-kJxpVq2HlfO2l"}""")
     }
+
+    @Test fun testEnrollSms() {
+        val response = json.decodeFromString<Response>(stringFromResources("dto/enroll_sms.json"))
+        assertThat(response).isNotNull()
+        val idxResponse = response.toIdxResponse()
+        assertThat(idxResponse).isNotNull()
+        val remediation = idxResponse.remediations[IdxRemediation.Type.AUTHENTICATOR_ENROLLMENT_DATA]!!
+        val field = remediation.form["authenticator"]!!
+        val methodTypeField = field.form!!["methodType"]!!
+        methodTypeField.selectedOption = methodTypeField.options!![0]
+        val phoneNumberField = field.form!!["phoneNumber"]!!
+        phoneNumberField.value = "+11234567"
+        assertThat(phoneNumberField.label).isEqualTo("Phone")
+        val requestJson = remediation.toJsonContent().toString()
+        assertThat(requestJson).isEqualTo("""{"authenticator":{"id":"auttbu5xyM4W2p68j5d6","methodType":"sms","phoneNumber":"+11234567"},"stateHandle":"02lJ5iq1Q9wj50tLVyHYid1OnjAGmQG3taz6A521u9"}""")
+    }
 }

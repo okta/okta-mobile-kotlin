@@ -41,7 +41,7 @@ internal fun Response.toIdxRemediationCollection(): IdxRemediationCollection {
 }
 
 private fun Form.toIdxRemediation(): IdxRemediation {
-    val form = IdxRemediation.Form(value?.map { it.toIdxField() } ?: emptyList())
+    val form = IdxRemediation.Form(value?.map { it.toIdxField(null) } ?: emptyList())
     val remediationType = name.toRemediationType()
 
     return IdxRemediation(
@@ -72,7 +72,7 @@ private fun Form.toIdxRemediationIdp(): IdxRemediation.Idp? {
     return null
 }
 
-private fun FormValue.toIdxField(): IdxRemediation.Form.Field {
+private fun FormValue.toIdxField(parentFormValue: FormValue?): IdxRemediation.Form.Field {
     // Fields default to visible, except there are circumstances where
     // fields (such as `id`) don't properly include a `visible: false`. As a result,
     // we need to infer visibility from other values.
@@ -86,7 +86,7 @@ private fun FormValue.toIdxField(): IdxRemediation.Form.Field {
 
     return IdxRemediation.Form.Field(
         name = name,
-        label = label,
+        label = label ?: parentFormValue?.label,
         type = type ?: "string",
         _value = value,
         isVisible = actualVisibility,
@@ -94,8 +94,8 @@ private fun FormValue.toIdxField(): IdxRemediation.Form.Field {
         isRequired = required ?: false,
         isSecret = secret ?: false,
         relatesTo = relatesTo,
-        form = form?.value?.toForm(),
-        options = options?.map { it.toIdxField() },
+        form = form?.value?.toForm(this),
+        options = options?.map { it.toIdxField(this) },
         messages = IdxMessageCollection(messages?.value?.map { it.toIdxMessage() } ?: emptyList()),
         authenticator = null, //TODO: Might not be able to initialize here, might need to do a late init.
     )
@@ -149,11 +149,11 @@ private fun String.toRemediationType(): IdxRemediation.Type {
     }
 }
 
-private fun List<FormValue>?.toForm(): IdxRemediation.Form? {
+private fun List<FormValue>?.toForm(parentFormValue: FormValue): IdxRemediation.Form? {
     if (isNullOrEmpty()) {
         return null
     }
     return IdxRemediation.Form(
-        map { it.toIdxField() }
+        map { it.toIdxField(parentFormValue) }
     )
 }

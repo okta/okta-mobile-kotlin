@@ -291,10 +291,11 @@ private fun Any?.asJsonElement(): JsonElement {
 }
 
 private fun IdxRemediation.Form.Field.selectedOptionToJsonContent(): JsonElement? {
-    if (value == null) {
-        return null
+    val localValue = value ?: return null
+    if (localValue is JsonPrimitive) {
+        return localValue
     }
-    val jsonObject = value as? JsonObject ?: return null
+    val jsonObject = localValue as? JsonObject ?: return null
     val formElement = jsonObject["form"] as? JsonObject ?: return null
     val values = formElement["value"] as? JsonArray ?: return null
 
