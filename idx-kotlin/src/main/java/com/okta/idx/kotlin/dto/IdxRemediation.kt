@@ -69,7 +69,6 @@ class IdxRemediation internal constructor(
     internal val method: String,
     internal val href: HttpUrl,
     internal val accepts: String?,
-    internal val refresh: Date?,
     internal val relatesTo: List<String>?,
 ) {
     /**
@@ -208,7 +207,6 @@ class IdxRemediation internal constructor(
                 return form?.get(name)
             }
 
-            // TODO: Is it worth making this an interface instead of Any?
             /** The value to send, if a default is provided from the Identity Engine. */
             var value: Any?
                 set(value) {

@@ -21,9 +21,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.okta.idx.android.dynamic.BuildConfig
 import com.okta.idx.android.network.Network
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import okhttp3.FormBody
 import okhttp3.Request
 import timber.log.Timber
 import java.io.IOException
@@ -50,11 +52,12 @@ internal class DashboardViewModel : ViewModel() {
 
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                if (TokenViewModel.tokenResponse.refreshToken != null) {
+                val refreshToken = TokenViewModel.tokenResponse.refreshToken
+                if (refreshToken != null) {
                     // Revoking the refresh token revokes both!
-                    // TODO: revoke refresh token.
+                    revokeToken("refresh_token", refreshToken)
                 } else {
-                    // TODO: revoke access token.
+                    revokeToken("access_token", TokenViewModel.tokenResponse.accessToken)
                 }
 
                 _logoutStateLiveData.postValue(LogoutState.Success)
@@ -82,6 +85,22 @@ internal class DashboardViewModel : ViewModel() {
         }
 
         return null
+    }
+
+    private fun revokeToken(tokenType: String, token: String) {
+        val formBody = FormBody.Builder()
+            .add("client_id", BuildConfig.CLIENT_ID)
+            .add("token_type_hint", tokenType)
+            .add("token", token)
+            .build()
+
+        val request = Request.Builder()
+            .url("${Network.baseUrl}/v1/revoke")
+            .post(formBody)
+            .build()
+
+        val response = Network.okHttpClient().newCall(request).execute()
+        Timber.d("Revoke Token Response: %s", response)
     }
 
     fun acknowledgeLogoutSuccess() {

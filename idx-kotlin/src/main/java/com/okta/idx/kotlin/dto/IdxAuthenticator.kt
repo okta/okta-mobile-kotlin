@@ -76,8 +76,6 @@ class IdxAuthenticator internal constructor(
 
     /** The [IdxTraitCollection] associated with this authenticator. */
     val traits: IdxTraitCollection,
-
-    internal val jsonPaths: List<String>,
 ) {
     /**
      * The state of an authenticator.

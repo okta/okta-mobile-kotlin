@@ -54,12 +54,11 @@ internal fun Form.toIdxRemediation(): IdxRemediation {
         type = remediationType,
         name = name,
         form = form,
-        authenticators = IdxAuthenticatorCollection(emptyList()), // TODO:
+        authenticators = IdxAuthenticatorCollection(emptyList()),
         traits = IdxTraitCollection(traits),
         method = method,
         href = href,
         accepts = accepts,
-        refresh = null, // TODO:
         relatesTo = relatesTo
     )
 }
@@ -87,9 +86,6 @@ private fun FormValue.toIdxField(parentFormValue: FormValue?): IdxRemediation.Fo
         actualVisibility = false
     }
 
-    // TODO: Use middleware context?
-    // TODO: There are some odd interactions how form/value is handled. Might need to do some conversions here.
-
     return IdxRemediation.Form.Field(
         name = name,
         label = label ?: parentFormValue?.label,
@@ -103,7 +99,7 @@ private fun FormValue.toIdxField(parentFormValue: FormValue?): IdxRemediation.Fo
         form = form?.value?.toForm(this),
         options = options?.map { it.toIdxField(this) },
         messages = IdxMessageCollection(messages?.value?.map { it.toIdxMessage() } ?: emptyList()),
-        authenticator = null, //TODO: Might not be able to initialize here, might need to do a late init.
+        authenticator = null,
     )
 }
 

@@ -67,7 +67,6 @@ private fun Authenticator.toIdxAuthenticator(state: IdxAuthenticator.State): Idx
         methods = methods.asIdxAuthenticatorMethods(),
         methodNames = methods.asMethodNames(),
         traits = IdxTraitCollection(traits),
-        jsonPaths = emptyList(), // TODO:
     )
 }
 
