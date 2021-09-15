@@ -74,6 +74,9 @@ class IdxAuthenticator internal constructor(
     /** Describes the various methods this authenticator can perform, as string values. */
     val methodNames: List<String>?,
 
+    /** The [IdxTraitCollection] associated with this authenticator. */
+    val traits: IdxTraitCollection,
+
     internal val jsonPaths: List<String>,
 ) {
     /**

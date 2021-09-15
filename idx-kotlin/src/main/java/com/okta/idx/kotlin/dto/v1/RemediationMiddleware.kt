@@ -15,10 +15,13 @@
  */
 package com.okta.idx.kotlin.dto.v1
 
+import com.okta.idx.kotlin.dto.IdxIdpTrait
 import com.okta.idx.kotlin.dto.IdxAuthenticatorCollection
 import com.okta.idx.kotlin.dto.IdxMessageCollection
 import com.okta.idx.kotlin.dto.IdxRemediation
 import com.okta.idx.kotlin.dto.IdxRemediationCollection
+import com.okta.idx.kotlin.dto.IdxTrait
+import com.okta.idx.kotlin.dto.IdxTraitCollection
 
 internal fun Response.toIdxRemediationCollection(): IdxRemediationCollection {
     val remediations = mutableListOf<IdxRemediation>()
@@ -40,16 +43,19 @@ internal fun Response.toIdxRemediationCollection(): IdxRemediationCollection {
     return IdxRemediationCollection(remediations)
 }
 
-private fun Form.toIdxRemediation(): IdxRemediation {
+internal fun Form.toIdxRemediation(): IdxRemediation {
     val form = IdxRemediation.Form(value?.map { it.toIdxField(null) } ?: emptyList())
     val remediationType = name.toRemediationType()
+    val traits = mutableSetOf<IdxTrait>()
+
+    toIdxIdpTrait()?.let { traits += it }
 
     return IdxRemediation(
         type = remediationType,
         name = name,
         form = form,
         authenticators = IdxAuthenticatorCollection(emptyList()), // TODO:
-        idp = toIdxRemediationIdp(),
+        traits = IdxTraitCollection(traits),
         method = method,
         href = href,
         accepts = accepts,
@@ -58,12 +64,12 @@ private fun Form.toIdxRemediation(): IdxRemediation {
     )
 }
 
-private fun Form.toIdxRemediationIdp(): IdxRemediation.Idp? {
+private fun Form.toIdxIdpTrait(): IdxIdpTrait? {
     val v1Idp = idp ?: return null
     val id = v1Idp["id"]
     val name = v1Idp["name"]
     if (id != null && name != null) {
-        return IdxRemediation.Idp(
+        return IdxIdpTrait(
             id = id,
             name = name,
             redirectUrl = href,

@@ -26,6 +26,8 @@ import androidx.lifecycle.viewModelScope
 import com.okta.idx.android.dynamic.SocialRedirectCoordinator
 import com.okta.idx.kotlin.client.IdxClient
 import com.okta.idx.kotlin.client.IdxClientResult
+import com.okta.idx.kotlin.dto.IdxIdpTrait
+import com.okta.idx.kotlin.dto.IdxRecoverTrait
 import com.okta.idx.kotlin.dto.IdxRedirectResult
 import com.okta.idx.kotlin.dto.IdxRemediation
 import com.okta.idx.kotlin.dto.IdxResponse
@@ -127,6 +129,7 @@ internal class DynamicAuthViewModel : ViewModel() {
             }
             fields += remediation.asDynamicAuthFieldActions()
         }
+        fields += response.recoverDynamicAuthFieldAction()
         val messages = mutableListOf<String>()
         for (message in response.messages) {
             messages += message.message
@@ -179,8 +182,8 @@ internal class DynamicAuthViewModel : ViewModel() {
             IdxRemediation.Type.LAUNCH_AUTHENTICATOR -> "Launch Authenticator"
             IdxRemediation.Type.CANCEL -> "Restart"
             IdxRemediation.Type.REDIRECT_IDP -> {
-                idp?.name?.let { idpName ->
-                    "Login with $idpName"
+                traits.get<IdxIdpTrait>()?.let { trait ->
+                    "Login with ${trait.name}"
                 } ?: "Social Login"
             }
             else -> "Continue"
@@ -190,10 +193,18 @@ internal class DynamicAuthViewModel : ViewModel() {
         })
     }
 
+    private fun IdxResponse.recoverDynamicAuthFieldAction(): List<DynamicAuthField> {
+        val recoverTrait = authenticators.current?.traits?.get<IdxRecoverTrait>() ?: return emptyList()
+        return listOf(DynamicAuthField.Action("Recover") { context ->
+            proceed(recoverTrait.remediation, context)
+        })
+    }
+
     private fun proceed(remediation: IdxRemediation, context: Context) {
-        if (remediation.type == IdxRemediation.Type.REDIRECT_IDP) {
+        val idpTrait = remediation.traits.get<IdxIdpTrait>()
+        if (idpTrait != null) {
             try {
-                val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(remediation.idp!!.redirectUrl.toString()))
+                val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(idpTrait.redirectUrl.toString()))
                 context.startActivity(browserIntent)
             } catch (e: ActivityNotFoundException) {
                 Timber.e(e, "Failed to load URL.")

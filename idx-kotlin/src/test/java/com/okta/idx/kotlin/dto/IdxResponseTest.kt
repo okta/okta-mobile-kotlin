@@ -63,4 +63,23 @@ class IdxResponseTest {
         val requestJson = remediation.toJsonContent().toString()
         assertThat(requestJson).isEqualTo("""{"authenticator":{"id":"auttbu5xyM4W2p68j5d6","methodType":"sms","phoneNumber":"+11234567"},"stateHandle":"02lJ5iq1Q9wj50tLVyHYid1OnjAGmQG3taz6A521u9"}""")
     }
+
+    @Test fun testRecover() {
+        val response = json.decodeFromString<Response>(stringFromResources("dto/idx_response.json"))
+        assertThat(response).isNotNull()
+        val idxResponse = response.toIdxResponse()
+        assertThat(idxResponse).isNotNull()
+        val idxAuthenticator = idxResponse.authenticators.current!!
+        assertThat(idxAuthenticator).isNotNull()
+        assertThat(idxAuthenticator.traits.get<IdxRecoverTrait>()).isNotNull()
+    }
+
+    @Test fun testIdp() {
+        val response = json.decodeFromString<Response>(stringFromResources("dto/idx_response.json"))
+        assertThat(response).isNotNull()
+        val idxResponse = response.toIdxResponse()
+        assertThat(idxResponse).isNotNull()
+        val idxRemediation = idxResponse.remediations[IdxRemediation.Type.REDIRECT_IDP]!!
+        assertThat(idxRemediation.traits.get<IdxIdpTrait>()).isNotNull()
+    }
 }
