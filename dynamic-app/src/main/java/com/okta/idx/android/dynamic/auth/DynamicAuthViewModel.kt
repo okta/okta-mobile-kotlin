@@ -30,6 +30,7 @@ import com.okta.idx.kotlin.dto.IdxIdpTrait
 import com.okta.idx.kotlin.dto.IdxRecoverTrait
 import com.okta.idx.kotlin.dto.IdxRedirectResult
 import com.okta.idx.kotlin.dto.IdxRemediation
+import com.okta.idx.kotlin.dto.IdxResendTrait
 import com.okta.idx.kotlin.dto.IdxResponse
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -127,6 +128,7 @@ internal class DynamicAuthViewModel : ViewModel() {
             for (visibleField in remediation.form.visibleFields) {
                 fields += visibleField.asDynamicAuthFields()
             }
+            fields += remediation.asDynamicAuthFieldResendAction()
             fields += remediation.asDynamicAuthFieldActions()
         }
         fields += response.recoverDynamicAuthFieldAction()
@@ -171,6 +173,17 @@ internal class DynamicAuthViewModel : ViewModel() {
                 emptyList()
             }
         }
+    }
+
+    private fun IdxRemediation.asDynamicAuthFieldResendAction(): List<DynamicAuthField> {
+        val resendAuthenticator = authenticators.firstOrNull { it.traits.get<IdxResendTrait>() != null } ?: return emptyList()
+        val resendTrait = resendAuthenticator.traits.get<IdxResendTrait>() ?: return emptyList()
+        if (form.visibleFields.find { it.type != "string" } == null) {
+            return emptyList() // There is no way to type in the code yet.
+        }
+        return listOf(DynamicAuthField.Action("Resend Code") { context ->
+            proceed(resendTrait.remediation, context)
+        })
     }
 
     private fun IdxRemediation.asDynamicAuthFieldActions(): List<DynamicAuthField> {

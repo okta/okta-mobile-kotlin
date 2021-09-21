@@ -82,4 +82,18 @@ class IdxResponseTest {
         val idxRemediation = idxResponse.remediations[IdxRemediation.Type.REDIRECT_IDP]!!
         assertThat(idxRemediation.traits.get<IdxIdpTrait>()).isNotNull()
     }
+
+    @Test fun testAuthenticatorMapping() {
+        val response = json.decodeFromString<Response>(stringFromResources("dto/enroll_sms.json"))
+        val idxResponse = response.toIdxResponse()
+
+        val enrollmentDataRemediation = idxResponse.remediations[IdxRemediation.Type.AUTHENTICATOR_ENROLLMENT_DATA]!!
+        assertThat(enrollmentDataRemediation.authenticators.size).isEqualTo(1)
+        assertThat(enrollmentDataRemediation.authenticators[0].traits.get<IdxResendTrait>()?.remediation).isNotNull()
+
+        val selectAuthenticatorEnrollRemediation = idxResponse.remediations[IdxRemediation.Type.SELECT_AUTHENTICATOR_ENROLL]!!
+        val phoneAuthenticator = selectAuthenticatorEnrollRemediation["authenticator"]!!.options!![0].authenticator!!
+        assertThat(phoneAuthenticator).isNotNull()
+        assertThat(phoneAuthenticator.id).isEqualTo("auttbu5xyM4W2p68j5d6")
+    }
 }

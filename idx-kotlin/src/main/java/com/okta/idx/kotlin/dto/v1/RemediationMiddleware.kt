@@ -15,6 +15,7 @@
  */
 package com.okta.idx.kotlin.dto.v1
 
+import com.okta.idx.kotlin.dto.IdxAuthenticator
 import com.okta.idx.kotlin.dto.IdxIdpTrait
 import com.okta.idx.kotlin.dto.IdxAuthenticatorCollection
 import com.okta.idx.kotlin.dto.IdxMessageCollection
@@ -23,38 +24,47 @@ import com.okta.idx.kotlin.dto.IdxRemediationCollection
 import com.okta.idx.kotlin.dto.IdxTrait
 import com.okta.idx.kotlin.dto.IdxTraitCollection
 
-internal fun Response.toIdxRemediationCollection(): IdxRemediationCollection {
+internal fun Response.toIdxRemediationCollection(parsingContext: ParsingContext): IdxRemediationCollection {
     val remediations = mutableListOf<IdxRemediation>()
 
     if (remediation?.value != null) {
         for (form in remediation.value) {
-            remediations += form.toIdxRemediation()
+            remediations += form.toIdxRemediation(parsingContext)
         }
     }
 
     if (cancel != null) {
-        remediations += cancel.toIdxRemediation()
+        remediations += cancel.toIdxRemediation(parsingContext)
     }
 
     if (successWithInteractionCode != null) {
-        remediations += successWithInteractionCode.toIdxRemediation()
+        remediations += successWithInteractionCode.toIdxRemediation(parsingContext)
     }
 
     return IdxRemediationCollection(remediations)
 }
 
-internal fun Form.toIdxRemediation(): IdxRemediation {
-    val form = IdxRemediation.Form(value?.map { it.toIdxField(null) } ?: emptyList())
+internal fun Form.toIdxRemediation(parsingContext: ParsingContext? = null): IdxRemediation {
+    val form = IdxRemediation.Form(value?.map { it.toIdxField(parsingContext, null) } ?: emptyList())
     val remediationType = name.toRemediationType()
     val traits = mutableSetOf<IdxTrait>()
 
     toIdxIdpTrait()?.let { traits += it }
 
+    val authenticatorsList = mutableListOf<IdxAuthenticator>()
+    relatesTo?.let {
+        for (relatesToElement in it) {
+            parsingContext.authenticatorFor(relatesToElement)?.let { authenticator ->
+                authenticatorsList += authenticator
+            }
+        }
+    }
+
     return IdxRemediation(
         type = remediationType,
         name = name,
         form = form,
-        authenticators = IdxAuthenticatorCollection(emptyList()),
+        authenticators = IdxAuthenticatorCollection(authenticatorsList),
         traits = IdxTraitCollection(traits),
         method = method,
         href = href,
@@ -77,7 +87,10 @@ private fun Form.toIdxIdpTrait(): IdxIdpTrait? {
     return null
 }
 
-private fun FormValue.toIdxField(parentFormValue: FormValue?): IdxRemediation.Form.Field {
+private fun FormValue.toIdxField(
+    parsingContext: ParsingContext?,
+    parentFormValue: FormValue?
+): IdxRemediation.Form.Field {
     // Fields default to visible, except there are circumstances where
     // fields (such as `id`) don't properly include a `visible: false`. As a result,
     // we need to infer visibility from other values.
@@ -96,10 +109,10 @@ private fun FormValue.toIdxField(parentFormValue: FormValue?): IdxRemediation.Fo
         isRequired = required ?: false,
         isSecret = secret ?: false,
         relatesTo = relatesTo,
-        form = form?.value?.toForm(this),
-        options = options?.map { it.toIdxField(this) },
+        form = form?.value?.toForm(parsingContext, this),
+        options = options?.map { it.toIdxField(parsingContext, this) },
         messages = IdxMessageCollection(messages?.value?.map { it.toIdxMessage() } ?: emptyList()),
-        authenticator = null,
+        authenticator = parsingContext.authenticatorFor(relatesTo),
     )
 }
 
@@ -151,11 +164,11 @@ private fun String.toRemediationType(): IdxRemediation.Type {
     }
 }
 
-private fun List<FormValue>?.toForm(parentFormValue: FormValue): IdxRemediation.Form? {
+private fun List<FormValue>?.toForm(parsingContext: ParsingContext?, parentFormValue: FormValue): IdxRemediation.Form? {
     if (isNullOrEmpty()) {
         return null
     }
     return IdxRemediation.Form(
-        map { it.toIdxField(parentFormValue) }
+        map { it.toIdxField(parsingContext, parentFormValue) }
     )
 }

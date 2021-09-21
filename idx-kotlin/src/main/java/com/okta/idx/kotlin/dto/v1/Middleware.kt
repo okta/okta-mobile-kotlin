@@ -23,14 +23,15 @@ import com.okta.idx.kotlin.dto.IdxMessageCollection
 import com.okta.idx.kotlin.dto.TokenResponse
 
 internal fun Response.toIdxResponse(): IdxResponse {
-    val remediations = toIdxRemediationCollection()
+    val parsingContext = ParsingContext.create(this)
+    val remediations = toIdxRemediationCollection(parsingContext)
     val topLevelMessages = messages?.value?.map { it.toIdxMessage() } ?: emptyList()
     val messageCollection = IdxMessageCollection(topLevelMessages)
     return IdxResponse(
         expiresAt = expiresAt,
         intent = intent.toIdxResponseIntent(),
         remediations = remediations,
-        authenticators = toIdxAuthenticatorCollection(),
+        authenticators = parsingContext.authenticatorCollection,
         app = app?.value?.toIdxApplication(),
         user = user?.value?.toIdxUser(),
         messages = messageCollection,

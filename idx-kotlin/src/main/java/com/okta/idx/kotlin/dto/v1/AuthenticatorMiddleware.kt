@@ -16,7 +16,6 @@
 package com.okta.idx.kotlin.dto.v1
 
 import com.okta.idx.kotlin.dto.IdxAuthenticator
-import com.okta.idx.kotlin.dto.IdxAuthenticatorCollection
 import com.okta.idx.kotlin.dto.IdxPollTrait
 import com.okta.idx.kotlin.dto.IdxProfileTrait
 import com.okta.idx.kotlin.dto.IdxRecoverTrait
@@ -25,28 +24,28 @@ import com.okta.idx.kotlin.dto.IdxSendTrait
 import com.okta.idx.kotlin.dto.IdxTrait
 import com.okta.idx.kotlin.dto.IdxTraitCollection
 
-internal fun Response.toIdxAuthenticatorCollection(): IdxAuthenticatorCollection {
-    val result = mutableListOf<IdxAuthenticator>()
+internal fun Response.toIdxAuthenticatorPathPairs(): List<AuthenticatorPathPair> {
+    val result = mutableListOf<AuthenticatorPathPair>()
     currentAuthenticatorEnrollment?.value?.apply {
-        result += toIdxAuthenticator(IdxAuthenticator.State.ENROLLING)
+        result += toIdxAuthenticator(IdxAuthenticator.State.ENROLLING).toPathPair("$.currentAuthenticatorEnrollment")
     }
     currentAuthenticator?.value?.apply {
-        result += toIdxAuthenticator(IdxAuthenticator.State.AUTHENTICATING)
+        result += toIdxAuthenticator(IdxAuthenticator.State.AUTHENTICATING).toPathPair("$.currentAuthenticator")
     }
     recoveryAuthenticator?.value?.apply {
-        result += toIdxAuthenticator(IdxAuthenticator.State.RECOVERY)
+        result += toIdxAuthenticator(IdxAuthenticator.State.RECOVERY).toPathPair("$.recoveryAuthenticator")
     }
     authenticatorEnrollments?.value?.let {
-        for (authenticator in it) {
-            result += authenticator.toIdxAuthenticator(IdxAuthenticator.State.ENROLLED)
+        it.forEachIndexed { index, authenticator ->
+            result += authenticator.toIdxAuthenticator(IdxAuthenticator.State.ENROLLED).toPathPair("$.authenticatorEnrollments.value[${index}]")
         }
     }
     authenticators?.value?.let {
-        for (authenticator in it) {
-            result += authenticator.toIdxAuthenticator(IdxAuthenticator.State.NORMAL)
+        it.forEachIndexed { index, authenticator ->
+            result += authenticator.toIdxAuthenticator(IdxAuthenticator.State.NORMAL).toPathPair("$.authenticators.value[${index}]")
         }
     }
-    return IdxAuthenticatorCollection(result)
+    return result
 }
 
 private fun Authenticator.toIdxAuthenticator(state: IdxAuthenticator.State): IdxAuthenticator {
