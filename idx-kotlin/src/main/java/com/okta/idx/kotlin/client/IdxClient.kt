@@ -192,6 +192,10 @@ class IdxClient internal constructor(
      * Evaluates the given redirect url to determine what next steps can be performed. This is usually used when receiving a redirection from an IDP authentication flow.
      */
     suspend fun redirectResult(uri: Uri): IdxRedirectResult {
+        if (!uri.toString().startsWith(configuration.redirectUri)) {
+            val error = "IDP redirect failed due not matching the configured redirect uri."
+            return IdxRedirectResult.Error(error)
+        }
         val errorQueryParameter = uri.getQueryParameter("error")
         val stateQueryParameter = uri.getQueryParameter("state")
         if (errorQueryParameter == "interaction_required") {
