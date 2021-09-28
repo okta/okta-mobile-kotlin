@@ -27,7 +27,6 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonObject
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import java.text.SimpleDateFormat
@@ -63,23 +62,6 @@ internal object DateSerializer : KSerializer<Date> {
         encoder.encodeString(simpleDateFormat.get()!!.format(value))
     }
 }
-
-@Serializable
-internal data class OAuth2Error(
-    val errorSummary: String,
-    val errorCode: String? = null,
-    val errorUri: String? = null,
-    val errorLink: String? = null,
-    val errorId: String? = null,
-)
-
-@Serializable
-internal data class IdxError(
-    val error: String,
-    val errorDescription: String? = null,
-    val errorUri: String? = null,
-    val interactionHandle: String,
-)
 
 @Serializable
 internal data class Response(

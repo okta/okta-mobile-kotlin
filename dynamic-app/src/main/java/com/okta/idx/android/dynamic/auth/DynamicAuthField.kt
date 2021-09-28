@@ -27,9 +27,10 @@ sealed class DynamicAuthField {
         val label: String,
         val isRequired: Boolean,
         val isSecure: Boolean,
+        val errorMessage: String?,
         private val valueUpdater: (String) -> Unit
     ) : DynamicAuthField() {
-        private val _errorsLiveData = MutableLiveData("")
+        private val _errorsLiveData = MutableLiveData(errorMessage ?: "")
         val errorsLiveData: LiveData<String> = _errorsLiveData
 
         var value: String = ""

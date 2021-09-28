@@ -163,14 +163,11 @@ internal class DynamicAuthViewModel : ViewModel() {
                 result
             }
             options?.isNullOrEmpty() == false -> {
-                val result = mutableListOf<DynamicAuthField>()
                 options?.let { options ->
-                    result += DynamicAuthField.Options(options) {
+                    listOf(DynamicAuthField.Options(options) {
                         selectedOption = it
-                    }
-                }
-
-                result
+                    })
+                } ?: emptyList()
             }
             type == "boolean" -> {
                 listOf(DynamicAuthField.CheckBox(label ?: "") {
@@ -178,7 +175,8 @@ internal class DynamicAuthViewModel : ViewModel() {
                 })
             }
             type == "string" -> {
-                listOf(DynamicAuthField.Text(label ?: "", isRequired, isSecret) {
+                val displayMessages = messages.joinToString(separator = "\n") { it.message }
+                listOf(DynamicAuthField.Text(label ?: "", isRequired, isSecret, displayMessages) {
                     value = it
                 })
             }

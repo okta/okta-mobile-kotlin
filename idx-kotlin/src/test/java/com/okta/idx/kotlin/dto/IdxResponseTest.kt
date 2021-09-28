@@ -108,4 +108,34 @@ class IdxResponseTest {
 
         assertThat(idxResponse.remediations[0].authenticators[0]).isEqualTo(currentAuthenticator)
     }
+
+    @Test fun testFieldError() {
+        val response = json.decodeFromString<Response>(stringFromResources("dto/field_error.json"))
+        val idxResponse = response.toIdxResponse()
+
+        val remediation = idxResponse.remediations.first()
+        val userProfileForm = remediation.form.visibleFields.first()
+
+        val lastNameField = userProfileForm.form!!.visibleFields[1]
+        assertThat(lastNameField.messages).hasSize(0)
+
+        val emailField = userProfileForm.form!!.visibleFields[2]
+        assertThat(emailField.messages).hasSize(2)
+        assertThat(emailField.messages[0].message).isEqualTo("'Email' must be in the form of an email address")
+        assertThat(emailField.messages[0].localizationKey).isEqualTo("registration.error.invalidLoginEmail")
+        assertThat(emailField.messages[0].type).isEqualTo(IdxMessage.Severity.ERROR)
+        assertThat(emailField.messages[1].message).isEqualTo("Provided value for property 'Email' does not match required pattern")
+        assertThat(emailField.messages[1].localizationKey).isEqualTo("registration.error.doesNotMatchPattern")
+        assertThat(emailField.messages[1].type).isEqualTo(IdxMessage.Severity.ERROR)
+    }
+
+    @Test fun testTopLevelError() {
+        val response = json.decodeFromString<Response>(stringFromResources("dto/top_level_error.json"))
+        val idxResponse = response.toIdxResponse()
+
+        assertThat(idxResponse.messages).hasSize(1)
+        assertThat(idxResponse.messages[0].type).isEqualTo(IdxMessage.Severity.ERROR)
+        assertThat(idxResponse.messages[0].localizationKey).isEqualTo("errors.E0000004")
+        assertThat(idxResponse.messages[0].message).isEqualTo("Authentication failed")
+    }
 }
