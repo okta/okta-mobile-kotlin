@@ -21,8 +21,12 @@ import com.okta.idx.kotlin.dto.IdxProfileTrait
 import com.okta.idx.kotlin.dto.IdxRecoverTrait
 import com.okta.idx.kotlin.dto.IdxResendTrait
 import com.okta.idx.kotlin.dto.IdxSendTrait
+import com.okta.idx.kotlin.dto.IdxTotpTrait
 import com.okta.idx.kotlin.dto.IdxTrait
 import com.okta.idx.kotlin.dto.IdxTraitCollection
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 
 internal fun Response.toIdxAuthenticatorPathPairs(): List<AuthenticatorPathPair> {
     val result = mutableListOf<AuthenticatorPathPair>()
@@ -37,12 +41,14 @@ internal fun Response.toIdxAuthenticatorPathPairs(): List<AuthenticatorPathPair>
     }
     authenticatorEnrollments?.value?.let {
         it.forEachIndexed { index, authenticator ->
-            result += authenticator.toIdxAuthenticator(IdxAuthenticator.State.ENROLLED).toPathPair("$.authenticatorEnrollments.value[${index}]")
+            result += authenticator.toIdxAuthenticator(IdxAuthenticator.State.ENROLLED)
+                .toPathPair("$.authenticatorEnrollments.value[${index}]")
         }
     }
     authenticators?.value?.let {
         it.forEachIndexed { index, authenticator ->
-            result += authenticator.toIdxAuthenticator(IdxAuthenticator.State.NORMAL).toPathPair("$.authenticators.value[${index}]")
+            result += authenticator.toIdxAuthenticator(IdxAuthenticator.State.NORMAL)
+                .toPathPair("$.authenticators.value[${index}]")
         }
     }
     return result
@@ -56,6 +62,7 @@ private fun Authenticator.toIdxAuthenticator(state: IdxAuthenticator.State): Idx
     resend?.toIdxRemediation()?.let { traits += IdxResendTrait(it) }
     poll?.toIdxRemediation()?.let { traits += IdxPollTrait(it) }
     profile?.let { traits += IdxProfileTrait(it) }
+    contextualData?.toQrCodeTrait()?.let { traits += it }
 
     return IdxAuthenticator(
         id = id,
@@ -70,7 +77,7 @@ private fun Authenticator.toIdxAuthenticator(state: IdxAuthenticator.State): Idx
 }
 
 private fun String.asIdxAuthenticatorType(): IdxAuthenticator.Kind {
-    return when(this) {
+    return when (this) {
         "app" -> IdxAuthenticator.Kind.APP
         "email" -> IdxAuthenticator.Kind.EMAIL
         "phone" -> IdxAuthenticator.Kind.PHONE
@@ -121,4 +128,15 @@ private fun List<Map<String, String>>?.asMethodNames(): List<String>? {
         }
     }
     return result
+}
+
+private fun Map<String, JsonElement>.toQrCodeTrait(): IdxTrait? {
+    val qrCode = get("qrcode") as? JsonObject? ?: return null
+    val imageData = qrCode.stringValue("href") ?: return null
+    val sharedSecret = (get("sharedSecret") as? JsonPrimitive?)?.content
+    return IdxTotpTrait(imageData = imageData, sharedSecret = sharedSecret)
+}
+
+private fun JsonObject.stringValue(key: String): String? {
+    return (get(key) as? JsonPrimitive?)?.content
 }

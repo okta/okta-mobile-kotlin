@@ -29,6 +29,7 @@ import com.okta.idx.android.dynamic.databinding.ErrorBinding
 import com.okta.idx.android.dynamic.databinding.ErrorFieldBinding
 import com.okta.idx.android.dynamic.databinding.FormActionPrimaryBinding
 import com.okta.idx.android.dynamic.databinding.FormCheckBoxBinding
+import com.okta.idx.android.dynamic.databinding.FormImageBinding
 import com.okta.idx.android.dynamic.databinding.FormOptionBinding
 import com.okta.idx.android.dynamic.databinding.FormOptionsBinding
 import com.okta.idx.android.dynamic.databinding.FormTextBinding
@@ -38,6 +39,12 @@ import com.okta.idx.android.util.BaseFragment
 import com.okta.idx.android.util.bindText
 import com.okta.idx.android.util.inflateBinding
 import com.okta.idx.kotlin.dto.IdxRemediation
+
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.widget.Toast
+
+import androidx.core.content.ContextCompat.getSystemService
 
 internal class DynamicAuthFragment : BaseFragment<FragmentDynamicAuthBinding>(
     FragmentDynamicAuthBinding::inflate
@@ -150,6 +157,21 @@ internal class DynamicAuthFragment : BaseFragment<FragmentDynamicAuthBinding>(
                     field = group.findViewById<View>(checkedId).getTag(R.id.field) as IdxRemediation.Form.Field
                 }
                 optionsBinding.root
+            }
+            is DynamicAuthField.Image -> {
+                val imageBinding = binding.formContent.inflateBinding(FormImageBinding::inflate)
+                imageBinding.labelTextView.text = label
+                imageBinding.imageView.setImageBitmap(bitmap)
+                if (sharedSecret != null) {
+                    imageBinding.imageView.setOnLongClickListener {
+                        val clipboard = getSystemService(requireContext(), ClipboardManager::class.java)
+                        val clip = ClipData.newPlainText(sharedSecret, sharedSecret)
+                        clipboard?.setPrimaryClip(clip)
+                        Toast.makeText(requireContext(), "Shared secret copied to clipboard.", Toast.LENGTH_LONG).show()
+                        true
+                    }
+                }
+                imageBinding.root
             }
         }
     }

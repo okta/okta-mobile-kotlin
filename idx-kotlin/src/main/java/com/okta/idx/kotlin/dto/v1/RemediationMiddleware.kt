@@ -108,7 +108,6 @@ private fun FormValue.toIdxField(
         isMutable = mutable ?: true,
         isRequired = required ?: false,
         isSecret = secret ?: false,
-        relatesTo = relatesTo,
         form = form?.value?.toForm(parsingContext, this),
         options = options?.map { it.toIdxField(parsingContext, this) },
         messages = IdxMessageCollection(messages?.value?.map { it.toIdxMessage() } ?: emptyList()),

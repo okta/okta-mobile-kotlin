@@ -16,7 +16,6 @@
 package com.okta.idx.kotlin.dto
 
 import okhttp3.HttpUrl
-import java.util.Date
 
 /**
  * Represents a collection of remediation options.
@@ -198,7 +197,6 @@ class IdxRemediation internal constructor(
             val authenticator: IdxAuthenticator?,
 
             internal val isVisible: Boolean,
-            internal val relatesTo: String?
         ) {
             /**
              * Returns the nested `form` field with the given name.

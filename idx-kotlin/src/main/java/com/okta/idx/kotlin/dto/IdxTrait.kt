@@ -15,8 +15,11 @@
  */
 package com.okta.idx.kotlin.dto
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import com.okta.idx.kotlin.dto.IdxRemediation.Type
 import okhttp3.HttpUrl
+import okio.ByteString.Companion.decodeBase64
 
 /**
  * Represents a collection of [IdxTrait]s.
@@ -77,3 +80,18 @@ class IdxProfileTrait internal constructor(
     /** Profile information describing the authenticator. This usually contains redacted information relevant to display to the user. */
     val profile: Map<String, String>,
 ) : IdxTrait
+
+/** Describes the TOTP information associated with an [IdxAuthenticator]. */
+class IdxTotpTrait internal constructor(
+    /** The base64 encoded image data associated with the QR code. */
+    val imageData: String,
+
+    /** The shared secret associated with the authenticator used for setup without a QR code. */
+    val sharedSecret: String?
+) : IdxTrait {
+    /** The [Bitmap] associated with the QR code TOTP registration information. */
+    fun asImage(): Bitmap? {
+        val bytes = imageData.substringAfter("data:image/png;base64,").decodeBase64()?.toByteArray() ?: return null
+        return BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+    }
+}

@@ -131,8 +131,8 @@ internal data class Authenticator(
     val type: String,
     val key: String? = null,
     val methods: List<Map<String, String>>? = null,
-    val settings: Map<String, JsonObject>? = null,
-    val contextualData: Map<String, JsonObject>? = null,
+    val settings: Map<String, JsonElement>? = null,
+    val contextualData: Map<String, JsonElement>? = null,
     val profile: Map<String, String>? = null,
     val send: Form? = null,
     val resend: Form? = null,
@@ -154,11 +154,6 @@ internal data class Form(
     val refresh: Double? = null,
     val type: String? = null,
     val idp: Map<String, String>? = null,
-)
-
-@Serializable
-internal data class CompositeForm(
-    val form: CompositeFormValue,
 )
 
 @Serializable

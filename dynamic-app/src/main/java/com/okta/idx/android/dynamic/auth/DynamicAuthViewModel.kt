@@ -32,7 +32,10 @@ import com.okta.idx.kotlin.dto.IdxRedirectResult
 import com.okta.idx.kotlin.dto.IdxRemediation
 import com.okta.idx.kotlin.dto.IdxResendTrait
 import com.okta.idx.kotlin.dto.IdxResponse
+import com.okta.idx.kotlin.dto.IdxTotpTrait
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 internal class DynamicAuthViewModel : ViewModel() {
@@ -125,6 +128,7 @@ internal class DynamicAuthViewModel : ViewModel() {
         }
         val fields = mutableListOf<DynamicAuthField>()
         for (remediation in response.remediations) {
+            fields += remediation.asTotpImageDynamicAuthField()
             for (visibleField in remediation.form.visibleFields) {
                 fields += visibleField.asDynamicAuthFields()
             }
@@ -137,6 +141,16 @@ internal class DynamicAuthViewModel : ViewModel() {
             messages += message.message
         }
         _state.value = DynamicAuthState.Form(response, fields, messages)
+    }
+
+    private suspend fun IdxRemediation.asTotpImageDynamicAuthField(): List<DynamicAuthField> {
+        val totpAuthenticator = authenticators.firstOrNull { it.traits.get<IdxTotpTrait>() != null } ?: return emptyList()
+        val totpTrait = totpAuthenticator.traits.get<IdxTotpTrait>() ?: return emptyList()
+        val bitmap = withContext(Dispatchers.Default) {
+            totpTrait.asImage()
+        } ?: return emptyList()
+        val label = "Launch Google Authenticator, tap the \"+\" icon, then select \"Scan a QR code\"."
+        return listOf(DynamicAuthField.Image(label, bitmap, totpTrait.sharedSecret))
     }
 
     private fun IdxRemediation.Form.Field.asDynamicAuthFields(): List<DynamicAuthField> {
