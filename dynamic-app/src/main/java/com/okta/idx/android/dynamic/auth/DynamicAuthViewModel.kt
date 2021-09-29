@@ -136,6 +136,7 @@ internal class DynamicAuthViewModel : ViewModel() {
             fields += remediation.asDynamicAuthFieldActions()
         }
         fields += response.recoverDynamicAuthFieldAction()
+        fields += response.fatalErrorFieldAction()
         val messages = mutableListOf<String>()
         for (message in response.messages) {
             messages += message.message
@@ -222,6 +223,15 @@ internal class DynamicAuthViewModel : ViewModel() {
         val recoverTrait = authenticators.current?.traits?.get<IdxRecoverTrait>() ?: return emptyList()
         return listOf(DynamicAuthField.Action("Recover") { context ->
             proceed(recoverTrait.remediation, context)
+        })
+    }
+
+    private fun IdxResponse.fatalErrorFieldAction(): List<DynamicAuthField> {
+        if (remediations.isNotEmpty()) {
+            return emptyList()
+        }
+        return listOf(DynamicAuthField.Action("Go to login") {
+            createClient()
         })
     }
 
