@@ -38,13 +38,15 @@ import com.okta.idx.android.dynamic.databinding.LoadingBinding
 import com.okta.idx.android.util.BaseFragment
 import com.okta.idx.android.util.bindText
 import com.okta.idx.android.util.inflateBinding
-import com.okta.idx.kotlin.dto.IdxRemediation
 
 import android.content.ClipData
 import android.content.ClipboardManager
+import android.widget.RadioGroup
 import android.widget.Toast
 
 import androidx.core.content.ContextCompat.getSystemService
+import androidx.core.view.iterator
+import com.okta.idx.android.dynamic.databinding.FormOptionNestedBinding
 
 internal class DynamicAuthFragment : BaseFragment<FragmentDynamicAuthBinding>(
     FragmentDynamicAuthBinding::inflate
@@ -146,16 +148,46 @@ internal class DynamicAuthFragment : BaseFragment<FragmentDynamicAuthBinding>(
                 actionBinding.root
             }
             is DynamicAuthField.Options -> {
+                fun showSelectedContent(group: RadioGroup) {
+                    for (view in group) {
+                        val tagOption = view.getTag(R.id.option) as? DynamicAuthField.Options.Option?
+                        if (tagOption != null) {
+                            val nestedContentView = view.getTag(R.id.nested_content) as View
+                            nestedContentView.visibility = if (tagOption == option) {
+                                View.VISIBLE
+                            } else {
+                                View.GONE
+                            }
+                        }
+                    }
+                }
+
                 val optionsBinding = binding.formContent.inflateBinding(FormOptionsBinding::inflate)
-                for (field in fields) {
+                optionsBinding.labelTextView.text = label
+                optionsBinding.labelTextView.visibility = if (label == null) View.GONE else View.VISIBLE
+                for (option in options) {
                     val optionBinding = optionsBinding.radioGroup.inflateBinding(FormOptionBinding::inflate, attachToParent = true)
-                    optionBinding.radioButton.text = field.label
-                    optionBinding.radioButton.setTag(R.id.field, field)
                     optionBinding.radioButton.id = View.generateViewId()
+                    optionBinding.radioButton.text = option.label
+                    optionBinding.radioButton.setTag(R.id.option, option)
+                    val nestedContentBinding = optionsBinding.radioGroup.inflateBinding(FormOptionNestedBinding::inflate, attachToParent = true)
+                    optionBinding.radioButton.setTag(R.id.nested_content, nestedContentBinding.root)
+                    for (field in option.fields) {
+                        nestedContentBinding.nestedContent.addView(field.createView())
+                    }
                 }
                 optionsBinding.radioGroup.setOnCheckedChangeListener { group, checkedId ->
-                    field = group.findViewById<View>(checkedId).getTag(R.id.field) as IdxRemediation.Form.Field
+                    val radioButton = group.findViewById<View>(checkedId)
+                    option = radioButton.getTag(R.id.option) as DynamicAuthField.Options.Option
+                    showSelectedContent(group)
                 }
+
+                errorsLiveData.observe(viewLifecycleOwner) {
+                    optionsBinding.errorTextView.text = it
+                    optionsBinding.errorTextView.visibility = if (it.isNullOrEmpty()) View.GONE else View.VISIBLE
+                }
+
+                showSelectedContent(optionsBinding.radioGroup)
                 optionsBinding.root
             }
             is DynamicAuthField.Image -> {

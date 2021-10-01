@@ -60,14 +60,45 @@ sealed class DynamicAuthField {
     }
 
     data class Options(
-        val fields: List<IdxRemediation.Form.Field>,
+        val label: String?,
+        val options: List<Option>,
+        val isRequired: Boolean,
+        val errorMessage: String?,
         private val valueUpdater: (IdxRemediation.Form.Field?) -> Unit,
     ) : DynamicAuthField() {
-        var field: IdxRemediation.Form.Field? = null
+        data class Option(
+            private val field: IdxRemediation.Form.Field,
+            val label: String?,
+            val fields: List<DynamicAuthField>,
+        ) {
+            fun update(valueUpdater: (IdxRemediation.Form.Field?) -> Unit) {
+                valueUpdater(field)
+            }
+        }
+
+        private val _errorsLiveData = MutableLiveData(errorMessage ?: "")
+        val errorsLiveData: LiveData<String> = _errorsLiveData
+
+        var option: Option? = null
             set(value) {
                 field = value
-                valueUpdater(value)
+                value?.update(valueUpdater) ?: valueUpdater(null)
             }
+
+        override fun validate(): Boolean {
+            if (isRequired) {
+                val nestedFieldsAreValid: Boolean = options.flatMap { option ->
+                    option.fields.map { field ->
+                        field.validate()
+                    }
+                }.reduce { acc, b ->
+                    acc && b
+                }
+                return _errorsLiveData.emitValidation { option != null } && nestedFieldsAreValid
+            } else {
+                return true
+            }
+        }
     }
 
     data class Action(

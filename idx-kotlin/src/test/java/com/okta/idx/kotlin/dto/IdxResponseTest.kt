@@ -29,6 +29,10 @@ class IdxResponseTest {
         ignoreUnknownKeys = true
     }
 
+    private fun Response.toIdxResponse(): IdxResponse {
+        return toIdxResponse(json)
+    }
+
     @Test fun testJson() {
         val response = json.decodeFromString<Response>(stringFromResources("dto/idx_response.json"))
         assertThat(response).isNotNull()
@@ -137,5 +141,49 @@ class IdxResponseTest {
         assertThat(idxResponse.messages[0].type).isEqualTo(IdxMessage.Severity.ERROR)
         assertThat(idxResponse.messages[0].localizationKey).isEqualTo("errors.E0000004")
         assertThat(idxResponse.messages[0].message).isEqualTo("Authentication failed")
+    }
+
+    @Test fun testSecurityQuestionsSelectFromList() {
+        val response = json.decodeFromString<Response>(stringFromResources("dto/enroll_security_question.json"))
+        val idxResponse = response.toIdxResponse()
+
+        val remediation = idxResponse.remediations.first()
+        assertThat(remediation).isNotNull()
+
+        val field = remediation.form["credentials"]!!
+
+        val chooseSecurityQuestionOption = field.options!![0]
+        field.selectedOption = chooseSecurityQuestionOption
+
+        val questionField = chooseSecurityQuestionOption.form!!.visibleFields[0]
+        questionField.selectedOption = questionField.options!![0]
+
+        val answerOption = chooseSecurityQuestionOption.form!!.visibleFields[1]
+        answerOption.value = "Green eggs and ham"
+
+        val requestJson = remediation.toJsonContent().toString()
+        assertThat(requestJson).isEqualTo("""{"credentials":{"questionKey":"disliked_food","answer":"Green eggs and ham"},"stateHandle":"02QPkKzfnfgzF5qcKwWW-o39cODD1_MNgnPoiOclXg"}""")
+    }
+
+    @Test fun testSecurityQuestionsCustom() {
+        val response = json.decodeFromString<Response>(stringFromResources("dto/enroll_security_question.json"))
+        val idxResponse = response.toIdxResponse()
+
+        val remediation = idxResponse.remediations.first()
+        assertThat(remediation).isNotNull()
+
+        val field = remediation.form["credentials"]!!
+
+        val createSecurityQuestionOption = field.options!![1]
+        field.selectedOption = createSecurityQuestionOption
+
+        val questionField = createSecurityQuestionOption.form!!.visibleFields[0]
+        questionField.value = "Favorite Marvel Movie"
+
+        val answerOption = createSecurityQuestionOption.form!!.visibleFields[1]
+        answerOption.value = "Iron Man"
+
+        val requestJson = remediation.toJsonContent().toString()
+        assertThat(requestJson).isEqualTo("""{"credentials":{"questionKey":"custom","question":"Favorite Marvel Movie","answer":"Iron Man"},"stateHandle":"02QPkKzfnfgzF5qcKwWW-o39cODD1_MNgnPoiOclXg"}""")
     }
 }

@@ -24,43 +24,49 @@ import com.okta.idx.kotlin.dto.IdxSendTrait
 import com.okta.idx.kotlin.dto.IdxTotpTrait
 import com.okta.idx.kotlin.dto.IdxTrait
 import com.okta.idx.kotlin.dto.IdxTraitCollection
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 
-internal fun Response.toIdxAuthenticatorPathPairs(): List<AuthenticatorPathPair> {
+internal fun Response.toIdxAuthenticatorPathPairs(
+    json: Json,
+): List<AuthenticatorPathPair> {
     val result = mutableListOf<AuthenticatorPathPair>()
     currentAuthenticatorEnrollment?.value?.apply {
-        result += toIdxAuthenticator(IdxAuthenticator.State.ENROLLING).toPathPair("$.currentAuthenticatorEnrollment")
+        result += toIdxAuthenticator(json, IdxAuthenticator.State.ENROLLING).toPathPair("$.currentAuthenticatorEnrollment")
     }
     currentAuthenticator?.value?.apply {
-        result += toIdxAuthenticator(IdxAuthenticator.State.AUTHENTICATING).toPathPair("$.currentAuthenticator")
+        result += toIdxAuthenticator(json, IdxAuthenticator.State.AUTHENTICATING).toPathPair("$.currentAuthenticator")
     }
     recoveryAuthenticator?.value?.apply {
-        result += toIdxAuthenticator(IdxAuthenticator.State.RECOVERY).toPathPair("$.recoveryAuthenticator")
+        result += toIdxAuthenticator(json, IdxAuthenticator.State.RECOVERY).toPathPair("$.recoveryAuthenticator")
     }
     authenticatorEnrollments?.value?.let {
         it.forEachIndexed { index, authenticator ->
-            result += authenticator.toIdxAuthenticator(IdxAuthenticator.State.ENROLLED)
+            result += authenticator.toIdxAuthenticator(json, IdxAuthenticator.State.ENROLLED)
                 .toPathPair("$.authenticatorEnrollments.value[${index}]")
         }
     }
     authenticators?.value?.let {
         it.forEachIndexed { index, authenticator ->
-            result += authenticator.toIdxAuthenticator(IdxAuthenticator.State.NORMAL)
+            result += authenticator.toIdxAuthenticator(json, IdxAuthenticator.State.NORMAL)
                 .toPathPair("$.authenticators.value[${index}]")
         }
     }
     return result
 }
 
-private fun Authenticator.toIdxAuthenticator(state: IdxAuthenticator.State): IdxAuthenticator {
+private fun Authenticator.toIdxAuthenticator(
+    json: Json,
+    state: IdxAuthenticator.State,
+): IdxAuthenticator {
     val traits = mutableSetOf<IdxTrait>()
 
-    recover?.toIdxRemediation()?.let { traits += IdxRecoverTrait(it) }
-    send?.toIdxRemediation()?.let { traits += IdxSendTrait(it) }
-    resend?.toIdxRemediation()?.let { traits += IdxResendTrait(it) }
-    poll?.toIdxRemediation()?.let { traits += IdxPollTrait(it) }
+    recover?.toIdxRemediation(json)?.let { traits += IdxRecoverTrait(it) }
+    send?.toIdxRemediation(json)?.let { traits += IdxSendTrait(it) }
+    resend?.toIdxRemediation(json)?.let { traits += IdxResendTrait(it) }
+    poll?.toIdxRemediation(json)?.let { traits += IdxPollTrait(it) }
     profile?.let { traits += IdxProfileTrait(it) }
     contextualData?.toQrCodeTrait()?.let { traits += it }
 

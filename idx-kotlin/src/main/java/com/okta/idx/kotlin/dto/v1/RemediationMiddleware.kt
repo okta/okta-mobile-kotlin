@@ -23,29 +23,38 @@ import com.okta.idx.kotlin.dto.IdxRemediation
 import com.okta.idx.kotlin.dto.IdxRemediationCollection
 import com.okta.idx.kotlin.dto.IdxTrait
 import com.okta.idx.kotlin.dto.IdxTraitCollection
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.serializer
 
-internal fun Response.toIdxRemediationCollection(parsingContext: ParsingContext): IdxRemediationCollection {
+internal fun Response.toIdxRemediationCollection(
+    json: Json,
+    parsingContext: ParsingContext,
+): IdxRemediationCollection {
     val remediations = mutableListOf<IdxRemediation>()
 
     if (remediation?.value != null) {
         for (form in remediation.value) {
-            remediations += form.toIdxRemediation(parsingContext)
+            remediations += form.toIdxRemediation(json, parsingContext)
         }
     }
 
     if (cancel != null) {
-        remediations += cancel.toIdxRemediation(parsingContext)
+        remediations += cancel.toIdxRemediation(json, parsingContext)
     }
 
     if (successWithInteractionCode != null) {
-        remediations += successWithInteractionCode.toIdxRemediation(parsingContext)
+        remediations += successWithInteractionCode.toIdxRemediation(json, parsingContext)
     }
 
     return IdxRemediationCollection(remediations)
 }
 
-internal fun Form.toIdxRemediation(parsingContext: ParsingContext? = null): IdxRemediation {
-    val form = IdxRemediation.Form(value?.map { it.toIdxField(parsingContext, null) } ?: emptyList())
+internal fun Form.toIdxRemediation(
+    json: Json,
+    parsingContext: ParsingContext? = null
+): IdxRemediation {
+    val form = IdxRemediation.Form(value?.map { it.toIdxField(json, parsingContext, null) } ?: emptyList())
     val remediationType = name.toRemediationType()
     val traits = mutableSetOf<IdxTrait>()
 
@@ -88,6 +97,7 @@ private fun Form.toIdxIdpTrait(): IdxIdpTrait? {
 }
 
 private fun FormValue.toIdxField(
+    json: Json,
     parsingContext: ParsingContext?,
     parentFormValue: FormValue?
 ): IdxRemediation.Form.Field {
@@ -99,17 +109,29 @@ private fun FormValue.toIdxField(
         actualVisibility = false
     }
 
+    var valueAsForm: CompositeFormValue? = null
+    var actualValue = value
+    if (value is JsonObject) {
+        val serializer = json.serializersModule.serializer<CompositeFormValue?>()
+        valueAsForm = json.decodeFromJsonElement(serializer, value["form"]!!)
+        if (valueAsForm != null) {
+            actualValue = null
+        } else {
+            actualValue = value
+        }
+    }
+
     return IdxRemediation.Form.Field(
-        name = name,
+        name = name ?: parentFormValue?.name,
         label = label ?: parentFormValue?.label,
         type = type ?: "string",
-        _value = value,
+        _value = actualValue,
         isVisible = actualVisibility,
         isMutable = mutable ?: true,
         isRequired = required ?: false,
         isSecret = secret ?: false,
-        form = form?.value?.toForm(parsingContext, this),
-        options = options?.map { it.toIdxField(parsingContext, this) },
+        form = (form ?: valueAsForm)?.value?.toForm(json, parsingContext, this),
+        options = options?.map { it.toIdxField(json, parsingContext, this) },
         messages = IdxMessageCollection(messages?.value?.map { it.toIdxMessage() } ?: emptyList()),
         authenticator = parsingContext.authenticatorFor(relatesTo),
     )
@@ -163,11 +185,15 @@ private fun String.toRemediationType(): IdxRemediation.Type {
     }
 }
 
-private fun List<FormValue>?.toForm(parsingContext: ParsingContext?, parentFormValue: FormValue): IdxRemediation.Form? {
+private fun List<FormValue>?.toForm(
+    json: Json,
+    parsingContext: ParsingContext?,
+    parentFormValue: FormValue,
+): IdxRemediation.Form? {
     if (isNullOrEmpty()) {
         return null
     }
     return IdxRemediation.Form(
-        map { it.toIdxField(parsingContext, parentFormValue) }
+        map { it.toIdxField(json, parsingContext, parentFormValue) }
     )
 }

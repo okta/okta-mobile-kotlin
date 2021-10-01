@@ -65,8 +65,6 @@ internal object DateSerializer : KSerializer<Date> {
 
 @Serializable
 internal data class Response(
-    val stateHandle: String? = null,
-    val version: String,
     val expiresAt: Date? = null,
     val intent: String? = null,
     val remediation: IonCollection<Form>? = null,
@@ -120,8 +118,6 @@ internal data class Authenticator(
     val resend: Form? = null,
     val poll: Form? = null,
     val recover: Form? = null,
-    var relatableIdentifier: String? = id,
-    var jsonPath: String? = null,
 )
 
 @Serializable

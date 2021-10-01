@@ -17,14 +17,15 @@ package com.okta.idx.kotlin.dto.v1
 
 import com.okta.idx.kotlin.dto.IdxAuthenticator
 import com.okta.idx.kotlin.dto.IdxAuthenticatorCollection
+import kotlinx.serialization.json.Json
 
 internal data class ParsingContext(
     val authenticatorCollection: IdxAuthenticatorCollection,
     val authenticatorPathPairMap: Map<String, IdxAuthenticator>,
 ) {
     companion object {
-        fun create(response: Response): ParsingContext {
-            val authenticatorPathPairs = response.toIdxAuthenticatorPathPairs()
+        fun create(json: Json, response: Response): ParsingContext {
+            val authenticatorPathPairs = response.toIdxAuthenticatorPathPairs(json)
             val authenticatorCollection = IdxAuthenticatorCollection(authenticatorPathPairs.map { it.authenticator })
             val authenticatorPathPairMap = authenticatorPathPairs.associateBy({ it.path }, { it.authenticator })
             return ParsingContext(authenticatorCollection, authenticatorPathPairMap)

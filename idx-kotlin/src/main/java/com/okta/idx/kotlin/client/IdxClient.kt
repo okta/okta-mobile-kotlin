@@ -32,7 +32,6 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
@@ -122,7 +121,9 @@ class IdxClient internal constructor(
                 .build()
         }
 
-        return configuration.performRequest(request, V1Response::toIdxResponse)
+        return configuration.performRequest<V1Response, IdxResponse>(request) {
+            it.toIdxResponse(configuration.json)
+        }
     }
 
     /**
@@ -152,7 +153,9 @@ class IdxClient internal constructor(
                 .build()
         }
 
-        return configuration.performRequest(request, V1Response::toIdxResponse)
+        return configuration.performRequest<V1Response, IdxResponse>(request) {
+            it.toIdxResponse(configuration.json)
+        }
     }
 
     /**
@@ -269,18 +272,18 @@ private fun IdxRemediation.Form.toJsonContent(): JsonElement {
 
     for (field in allFields) {
         val name = field.name ?: continue
-        field.form?.toJsonContent()?.let {
-            result[name] = it
-        }
-        field.value?.asJsonElement()?.let {
-            result[name] = it
-        }
-        field.selectedOption?.selectedOptionToJsonContent()?.let {
-            result[name] = it
-        }
+        val value = field.toJsonContent() ?: continue
+        result[name] = value
     }
 
     return JsonObject(result)
+}
+
+private fun IdxRemediation.Form.Field.toJsonContent(): JsonElement? {
+    value?.asJsonElement()?.let { return it }
+    selectedOption?.toJsonContent()?.let { return it }
+    form?.toJsonContent()?.let { return it }
+    return null
 }
 
 private fun Any?.asJsonElement(): JsonElement {
@@ -292,30 +295,6 @@ private fun Any?.asJsonElement(): JsonElement {
         is Number -> JsonPrimitive(this)
         else -> throw IllegalStateException("Unknown type")
     }
-}
-
-private fun IdxRemediation.Form.Field.selectedOptionToJsonContent(): JsonElement? {
-    val localValue = value ?: return null
-    if (localValue is JsonPrimitive) {
-        return localValue
-    }
-    val jsonObject = localValue as? JsonObject ?: return null
-    val formElement = jsonObject["form"] as? JsonObject ?: return null
-    val values = formElement["value"] as? JsonArray ?: return null
-
-    val result = mutableMapOf<String, JsonElement>()
-    values.forEach { valueJson ->
-        val valueJsonObject = valueJson as? JsonObject
-        if (valueJsonObject?.containsKey("name") == true && valueJsonObject.containsKey("value")) {
-            val name = valueJsonObject["name"] as? JsonPrimitive
-            val value = valueJsonObject["value"]
-            if (name != null && value != null) {
-                result[name.content] = value
-            }
-        }
-    }
-
-    return JsonObject(result)
 }
 
 private suspend inline fun <reified Raw, Dto> IdxClientConfiguration.performRequest(

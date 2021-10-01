@@ -165,7 +165,12 @@ internal class DynamicAuthViewModel : ViewModel() {
             }
             options?.isNullOrEmpty() == false -> {
                 options?.let { options ->
-                    listOf(DynamicAuthField.Options(options) {
+                    val transformed = options.map {
+                        val fields = it.form?.visibleFields?.flatMap { field -> field.asDynamicAuthFields() } ?: emptyList()
+                        DynamicAuthField.Options.Option(it, it.label, fields)
+                    }
+                    val displayMessages = messages.joinToString(separator = "\n") { it.message }
+                    listOf(DynamicAuthField.Options(label, transformed, isRequired, displayMessages) {
                         selectedOption = it
                     })
                 } ?: emptyList()

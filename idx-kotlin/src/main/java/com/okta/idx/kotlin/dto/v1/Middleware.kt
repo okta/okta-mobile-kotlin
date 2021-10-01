@@ -21,10 +21,11 @@ import com.okta.idx.kotlin.dto.IdxResponse
 import com.okta.idx.kotlin.dto.IdxUser
 import com.okta.idx.kotlin.dto.IdxMessageCollection
 import com.okta.idx.kotlin.dto.TokenResponse
+import kotlinx.serialization.json.Json
 
-internal fun Response.toIdxResponse(): IdxResponse {
-    val parsingContext = ParsingContext.create(this)
-    val remediations = toIdxRemediationCollection(parsingContext)
+internal fun Response.toIdxResponse(json: Json): IdxResponse {
+    val parsingContext = ParsingContext.create(json, this)
+    val remediations = toIdxRemediationCollection(json, parsingContext)
     val topLevelMessages = messages?.value?.map { it.toIdxMessage() } ?: emptyList()
     val messageCollection = IdxMessageCollection(topLevelMessages)
     return IdxResponse(
