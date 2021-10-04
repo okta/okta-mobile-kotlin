@@ -82,13 +82,11 @@ internal data class Response(
 
 @Serializable
 internal data class IonObject<T>(
-    val type: String? = null,
     val value: T,
 )
 
 @Serializable
 internal data class IonCollection<T>(
-    val type: String? = null,
     val value: List<T>,
 )
 
@@ -130,7 +128,6 @@ internal data class Form(
     val accepts: String? = null,
     val relatesTo: List<String>? = null,
     val refresh: Double? = null,
-    val type: String? = null,
     val idp: Map<String, String>? = null,
 )
 

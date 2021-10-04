@@ -186,4 +186,19 @@ class IdxResponseTest {
         val requestJson = remediation.toJsonContent().toString()
         assertThat(requestJson).isEqualTo("""{"credentials":{"questionKey":"custom","question":"Favorite Marvel Movie","answer":"Iron Man"},"stateHandle":"02QPkKzfnfgzF5qcKwWW-o39cODD1_MNgnPoiOclXg"}""")
     }
+
+    @Test fun testPoll() {
+        val response = json.decodeFromString<Response>(stringFromResources("dto/challenge_email.json"))
+        val idxResponse = response.toIdxResponse()
+
+        val remediation = idxResponse.remediations.first()
+        val authenticator = remediation.authenticators.first()
+        val pollTrait = authenticator.traits.get<IdxPollTrait>()!!
+
+        assertThat(pollTrait.wait).isEqualTo(4000)
+        assertThat(pollTrait.authenticatorId).isEqualTo("eaewrvclbBPr2PAxl5d6")
+
+        val requestJson = pollTrait.remediation.toJsonContent().toString()
+        assertThat(requestJson).isEqualTo("""{"stateHandle":"02ifdLyhqQ9Il4OtUU50jCdhFeCH-bzojwfpOci9EO"}""")
+    }
 }

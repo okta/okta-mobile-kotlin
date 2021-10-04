@@ -17,7 +17,10 @@ package com.okta.idx.kotlin.dto
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import com.okta.idx.kotlin.client.IdxClient
+import com.okta.idx.kotlin.client.IdxClientResult
 import com.okta.idx.kotlin.dto.IdxRemediation.Type
+import kotlinx.coroutines.delay
 import okhttp3.HttpUrl
 import okio.ByteString.Companion.decodeBase64
 
@@ -72,8 +75,31 @@ class IdxResendTrait internal constructor(
 /** Describes the poll action associated with an [IdxAuthenticator]. */
 class IdxPollTrait internal constructor(
     /** The [IdxRemediation] associated with the poll action. */
-    val remediation: IdxRemediation,
-) : IdxTrait
+    internal val remediation: IdxRemediation,
+    /** The wait between each poll in milliseconds. */
+    internal val wait: Int,
+    /** The id of the authenticator */
+    internal val authenticatorId: String?,
+) : IdxTrait {
+    /**
+     * Poll the IDX APIs with the configuration provided from the [IdxAuthenticator].
+     *
+     * All polling delay/retry logic is handled internally.
+     *
+     * @return the [IdxClientResult] when the state changes.
+     */
+    suspend fun poll(client: IdxClient): IdxClientResult<IdxResponse> {
+        var result: IdxClientResult<IdxResponse>
+        do {
+            delay(wait.toLong())
+            result = client.proceed(remediation)
+            if (result is IdxClientResult.Error) {
+                return result
+            }
+        } while (authenticatorId == (result as? IdxClientResult.Response<IdxResponse>)?.response?.authenticators?.current?.id)
+        return result
+    }
+}
 
 /** Describes the profile information associated with an [IdxAuthenticator]. */
 class IdxProfileTrait internal constructor(

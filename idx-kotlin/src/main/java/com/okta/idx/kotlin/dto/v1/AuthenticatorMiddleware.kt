@@ -66,7 +66,7 @@ private fun Authenticator.toIdxAuthenticator(
     recover?.toIdxRemediation(json)?.let { traits += IdxRecoverTrait(it) }
     send?.toIdxRemediation(json)?.let { traits += IdxSendTrait(it) }
     resend?.toIdxRemediation(json)?.let { traits += IdxResendTrait(it) }
-    poll?.toIdxRemediation(json)?.let { traits += IdxPollTrait(it) }
+    poll?.toIdxRemediation(json)?.let { traits += IdxPollTrait(it, poll.refresh?.toInt() ?: 0, id) }
     profile?.let { traits += IdxProfileTrait(it) }
     contextualData?.toQrCodeTrait()?.let { traits += it }
 

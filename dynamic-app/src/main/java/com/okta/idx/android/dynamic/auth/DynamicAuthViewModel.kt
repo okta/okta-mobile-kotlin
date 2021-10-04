@@ -27,6 +27,7 @@ import com.okta.idx.android.dynamic.SocialRedirectCoordinator
 import com.okta.idx.kotlin.client.IdxClient
 import com.okta.idx.kotlin.client.IdxClientResult
 import com.okta.idx.kotlin.dto.IdxIdpTrait
+import com.okta.idx.kotlin.dto.IdxPollTrait
 import com.okta.idx.kotlin.dto.IdxRecoverTrait
 import com.okta.idx.kotlin.dto.IdxRedirectResult
 import com.okta.idx.kotlin.dto.IdxRemediation
@@ -34,6 +35,7 @@ import com.okta.idx.kotlin.dto.IdxResendTrait
 import com.okta.idx.kotlin.dto.IdxResponse
 import com.okta.idx.kotlin.dto.IdxTotpTrait
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -43,6 +45,7 @@ internal class DynamicAuthViewModel : ViewModel() {
     val state: LiveData<DynamicAuthState> = _state
 
     @Volatile private var client: IdxClient? = null
+    @Volatile private var pollingJob: Job? = null
 
     init {
         createClient()
@@ -115,6 +118,7 @@ internal class DynamicAuthViewModel : ViewModel() {
     }
 
     private suspend fun handleResponse(response: IdxResponse) {
+        cancelPolling()
         if (response.isLoginSuccessful) {
             when (val exchangeCodesResult = client?.exchangeCodes(response.remediations[IdxRemediation.Type.ISSUE]!!)) {
                 is IdxClientResult.Error -> {
@@ -134,6 +138,7 @@ internal class DynamicAuthViewModel : ViewModel() {
             }
             fields += remediation.asDynamicAuthFieldResendAction()
             fields += remediation.asDynamicAuthFieldActions()
+            remediation.startPolling()
         }
         fields += response.recoverDynamicAuthFieldAction()
         fields += response.fatalErrorFieldAction()
@@ -240,7 +245,29 @@ internal class DynamicAuthViewModel : ViewModel() {
         })
     }
 
+    private suspend fun IdxRemediation.startPolling() {
+        val pollAuthenticator = authenticators.firstOrNull { it.traits.get<IdxPollTrait>() != null } ?: return
+        val pollTrait = pollAuthenticator.traits.get<IdxPollTrait>() ?: return
+        val localClient = client ?: return
+        pollingJob = viewModelScope.launch {
+            when (val result = pollTrait.poll(localClient)) {
+                is IdxClientResult.Error -> {
+                    _state.value = DynamicAuthState.Error("Failed to poll")
+                }
+                is IdxClientResult.Response -> {
+                    handleResponse(result.response)
+                }
+            }
+        }
+    }
+
+    private fun cancelPolling() {
+        pollingJob?.cancel()
+        pollingJob = null
+    }
+
     private fun proceed(remediation: IdxRemediation, context: Context) {
+        cancelPolling()
         val idpTrait = remediation.traits.get<IdxIdpTrait>()
         if (idpTrait != null) {
             try {
