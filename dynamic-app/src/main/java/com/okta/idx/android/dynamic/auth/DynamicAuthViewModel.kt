@@ -118,7 +118,6 @@ internal class DynamicAuthViewModel : ViewModel() {
     }
 
     private suspend fun handleResponse(response: IdxResponse) {
-        cancelPolling()
         if (response.isLoginSuccessful) {
             when (val exchangeCodesResult = client?.exchangeCodes(response.remediations[IdxRemediation.Type.ISSUE]!!)) {
                 is IdxClientResult.Error -> {
@@ -130,6 +129,7 @@ internal class DynamicAuthViewModel : ViewModel() {
             }
             return
         }
+        cancelPolling()
         val fields = mutableListOf<DynamicAuthField>()
         for (remediation in response.remediations) {
             fields += remediation.asTotpImageDynamicAuthField()
@@ -245,7 +245,7 @@ internal class DynamicAuthViewModel : ViewModel() {
         })
     }
 
-    private suspend fun IdxRemediation.startPolling() {
+    private fun IdxRemediation.startPolling() {
         val pollAuthenticator = authenticators.firstOrNull { it.traits.get<IdxPollTrait>() != null } ?: return
         val pollTrait = pollAuthenticator.traits.get<IdxPollTrait>() ?: return
         val localClient = client ?: return
