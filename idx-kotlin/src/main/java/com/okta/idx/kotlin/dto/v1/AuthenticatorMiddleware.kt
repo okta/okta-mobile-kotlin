@@ -22,7 +22,6 @@ import com.okta.idx.kotlin.dto.IdxRecoverTrait
 import com.okta.idx.kotlin.dto.IdxResendTrait
 import com.okta.idx.kotlin.dto.IdxSendTrait
 import com.okta.idx.kotlin.dto.IdxTotpTrait
-import com.okta.idx.kotlin.dto.IdxTrait
 import com.okta.idx.kotlin.dto.IdxTraitCollection
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
@@ -61,7 +60,7 @@ private fun Authenticator.toIdxAuthenticator(
     json: Json,
     state: IdxAuthenticator.State,
 ): IdxAuthenticator {
-    val traits = mutableSetOf<IdxTrait>()
+    val traits = mutableSetOf<IdxAuthenticator.Trait>()
 
     recover?.toIdxRemediation(json)?.let { traits += IdxRecoverTrait(it) }
     send?.toIdxRemediation(json)?.let { traits += IdxSendTrait(it) }
@@ -136,7 +135,7 @@ private fun List<Map<String, String>>?.asMethodNames(): List<String>? {
     return result
 }
 
-private fun Map<String, JsonElement>.toQrCodeTrait(): IdxTrait? {
+private fun Map<String, JsonElement>.toQrCodeTrait(): IdxAuthenticator.Trait? {
     val qrCode = get("qrcode") as? JsonObject? ?: return null
     val imageData = qrCode.stringValue("href") ?: return null
     val sharedSecret = (get("sharedSecret") as? JsonPrimitive?)?.content

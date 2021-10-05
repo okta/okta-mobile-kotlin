@@ -25,24 +25,19 @@ import okhttp3.HttpUrl
 import okio.ByteString.Companion.decodeBase64
 
 /**
- * Represents a collection of [IdxTrait]s.
+ * Represents a collection of traits.
  */
-class IdxTraitCollection internal constructor(
-    private val traits: Set<IdxTrait>,
-) : Set<IdxTrait> by traits {
+class IdxTraitCollection<T> internal constructor(
+    private val traits: Set<T>,
+) : Set<T> by traits {
     /**
      * Returns a trait based on its type.
      */
-    inline fun <reified T : IdxTrait> get(): T? {
-        val matched = firstOrNull { it is T } ?: return null
-        return matched as T
+    inline fun <reified Trait : T> get(): Trait? {
+        val matched = firstOrNull { it is Trait } ?: return null
+        return matched as Trait
     }
 }
-
-/**
- * Marker interface for traits.
- */
-interface IdxTrait
 
 /** Describes the IdP associated with a remediation of type [Type.REDIRECT_IDP]. */
 class IdxIdpTrait internal constructor(
@@ -52,25 +47,25 @@ class IdxIdpTrait internal constructor(
     val name: String,
     /** The IdPs redirectUrl. */
     val redirectUrl: HttpUrl,
-) : IdxTrait
+) : IdxRemediation.Trait
 
 /** Describes the recover action associated with an [IdxAuthenticator]. */
 class IdxRecoverTrait internal constructor(
     /** The [IdxRemediation] associated with the recover action. */
     val remediation: IdxRemediation,
-) : IdxTrait
+) : IdxAuthenticator.Trait
 
 /** Describes the send action associated with an [IdxAuthenticator]. */
 class IdxSendTrait internal constructor(
     /** The [IdxRemediation] associated with the send action. */
     val remediation: IdxRemediation,
-) : IdxTrait
+) : IdxAuthenticator.Trait
 
 /** Describes the resend action associated with an [IdxAuthenticator]. */
 class IdxResendTrait internal constructor(
     /** The [IdxRemediation] associated with the resend action. */
     val remediation: IdxRemediation,
-) : IdxTrait
+) : IdxAuthenticator.Trait
 
 /** Describes the poll action associated with an [IdxAuthenticator]. */
 class IdxPollTrait internal constructor(
@@ -80,7 +75,7 @@ class IdxPollTrait internal constructor(
     internal val wait: Int,
     /** The id of the authenticator */
     internal val authenticatorId: String?,
-) : IdxTrait {
+) : IdxAuthenticator.Trait {
     /**
      * Poll the IDX APIs with the configuration provided from the [IdxAuthenticator].
      *
@@ -105,7 +100,7 @@ class IdxPollTrait internal constructor(
 class IdxProfileTrait internal constructor(
     /** Profile information describing the authenticator. This usually contains redacted information relevant to display to the user. */
     val profile: Map<String, String>,
-) : IdxTrait
+) : IdxAuthenticator.Trait
 
 /** Describes the TOTP information associated with an [IdxAuthenticator]. */
 class IdxTotpTrait internal constructor(
@@ -114,7 +109,7 @@ class IdxTotpTrait internal constructor(
 
     /** The shared secret associated with the authenticator used for setup without a QR code. */
     val sharedSecret: String?
-) : IdxTrait {
+) : IdxAuthenticator.Trait {
     /** The [Bitmap] associated with the QR code TOTP registration information. */
     fun asImage(): Bitmap? {
         val bytes = imageData.substringAfter("data:image/png;base64,").decodeBase64()?.toByteArray() ?: return null

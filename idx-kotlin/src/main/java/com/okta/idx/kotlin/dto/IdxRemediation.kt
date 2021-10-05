@@ -63,7 +63,7 @@ class IdxRemediation internal constructor(
     val authenticators: IdxAuthenticatorCollection,
 
     /** The [IdxTraitCollection] associated with this remediation. */
-    val traits: IdxTraitCollection,
+    val traits: IdxTraitCollection<Trait>,
 
     internal val method: String,
     internal val href: HttpUrl,
@@ -78,6 +78,11 @@ class IdxRemediation internal constructor(
     operator fun get(name: String): Form.Field? {
         return form[name]
     }
+
+    /**
+     * Marker interface for [IdxRemediation] traits.
+     */
+    interface Trait
 
     /**
      * Enumeration describing the possible remediation types. This is expanded from the possible option values that may be present in the `name` property.

@@ -21,7 +21,6 @@ import com.okta.idx.kotlin.dto.IdxAuthenticatorCollection
 import com.okta.idx.kotlin.dto.IdxMessageCollection
 import com.okta.idx.kotlin.dto.IdxRemediation
 import com.okta.idx.kotlin.dto.IdxRemediationCollection
-import com.okta.idx.kotlin.dto.IdxTrait
 import com.okta.idx.kotlin.dto.IdxTraitCollection
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
@@ -56,7 +55,7 @@ internal fun Form.toIdxRemediation(
 ): IdxRemediation {
     val form = IdxRemediation.Form(value?.map { it.toIdxField(json, parsingContext, null) } ?: emptyList())
     val remediationType = name.toRemediationType()
-    val traits = mutableSetOf<IdxTrait>()
+    val traits = mutableSetOf<IdxRemediation.Trait>()
 
     toIdxIdpTrait()?.let { traits += it }
 

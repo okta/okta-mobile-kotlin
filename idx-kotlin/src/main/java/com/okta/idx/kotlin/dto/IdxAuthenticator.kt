@@ -75,8 +75,13 @@ class IdxAuthenticator internal constructor(
     val methodNames: List<String>?,
 
     /** The [IdxTraitCollection] associated with this authenticator. */
-    val traits: IdxTraitCollection,
+    val traits: IdxTraitCollection<Trait>,
 ) {
+    /**
+     * Marker interface for [IdxAuthenticator] traits.
+     */
+    interface Trait
+
     /**
      * The state of an authenticator.
      */
