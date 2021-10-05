@@ -22,7 +22,7 @@ import androidx.lifecycle.viewModelScope
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.okta.idx.android.dynamic.BuildConfig
-import com.okta.idx.android.network.Network
+import com.okta.idx.android.dynamic.auth.IdxClientConfigurationProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import okhttp3.FormBody
@@ -71,9 +71,9 @@ internal class DashboardViewModel : ViewModel() {
         val accessToken = TokenViewModel.tokenResponse.accessToken
         val request = Request.Builder()
             .addHeader("authorization", "Bearer $accessToken")
-            .url("${Network.baseUrl}/v1/userinfo")
+            .url("${BuildConfig.ISSUER}/v1/userinfo")
             .build()
-        val response = Network.okHttpClient().newCall(request).execute()
+        val response = IdxClientConfigurationProvider.get().okHttpCallFactory.newCall(request).execute()
         if (response.isSuccessful) {
             val parser = ObjectMapper().createParser(response.body?.byteStream())
             val json = parser.readValueAsTree<JsonNode>()
@@ -95,11 +95,11 @@ internal class DashboardViewModel : ViewModel() {
             .build()
 
         val request = Request.Builder()
-            .url("${Network.baseUrl}/v1/revoke")
+            .url("${BuildConfig.ISSUER}/v1/revoke")
             .post(formBody)
             .build()
 
-        val response = Network.okHttpClient().newCall(request).execute()
+        val response = IdxClientConfigurationProvider.get().okHttpCallFactory.newCall(request).execute()
         Timber.d("Revoke Token Response: %s", response)
     }
 

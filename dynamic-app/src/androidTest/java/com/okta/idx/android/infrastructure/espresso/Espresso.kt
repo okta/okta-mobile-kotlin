@@ -30,14 +30,14 @@ import androidx.test.uiautomator.UiDevice
 import androidx.test.uiautomator.UiScrollable
 import androidx.test.uiautomator.UiSelector
 import com.google.common.truth.Truth.assertThat
-import com.okta.idx.android.R
+import com.okta.idx.android.dynamic.R
 import org.hamcrest.Matchers.allOf
 
 fun authenticatorViewInteraction(authenticatorTitle: String): ViewInteraction {
     return onView(
         allOf(
             withParent(withChild(withText(authenticatorTitle))),
-            withId(R.id.select_button)
+            withId(R.id.button)
         )
     )
 }

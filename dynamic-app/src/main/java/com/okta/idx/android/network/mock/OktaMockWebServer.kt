@@ -15,7 +15,6 @@
  */
 package com.okta.idx.android.network.mock
 
-import com.okta.idx.android.network.Network
 import com.okta.idx.android.network.OkHttpConfigurator
 import okhttp3.HttpUrl
 import okhttp3.Interceptor
@@ -39,7 +38,6 @@ object OktaMockWebServer {
     val localhostCertificate: HeldCertificate = localhostCertificate()
 
     init {
-        Network.setConfigurator(okHttpConfigurationHelper)
         mockWebServer.dispatcher = dispatcher
         mockWebServer.useHttps(sslSocketFactory(localhostCertificate), false)
         mockWebServer.start()
