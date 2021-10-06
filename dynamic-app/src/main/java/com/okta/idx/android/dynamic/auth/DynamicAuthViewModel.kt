@@ -26,10 +26,10 @@ import androidx.lifecycle.viewModelScope
 import com.okta.idx.android.dynamic.SocialRedirectCoordinator
 import com.okta.idx.kotlin.client.IdxClient
 import com.okta.idx.kotlin.client.IdxClientResult
+import com.okta.idx.kotlin.client.IdxRedirectResult
 import com.okta.idx.kotlin.dto.IdxIdpTrait
 import com.okta.idx.kotlin.dto.IdxPollTrait
 import com.okta.idx.kotlin.dto.IdxRecoverTrait
-import com.okta.idx.kotlin.dto.IdxRedirectResult
 import com.okta.idx.kotlin.dto.IdxRemediation
 import com.okta.idx.kotlin.dto.IdxResendTrait
 import com.okta.idx.kotlin.dto.IdxResponse

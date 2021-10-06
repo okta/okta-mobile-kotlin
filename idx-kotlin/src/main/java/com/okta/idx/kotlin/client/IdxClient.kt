@@ -16,7 +16,6 @@
 package com.okta.idx.kotlin.client
 
 import android.net.Uri
-import com.okta.idx.kotlin.dto.IdxRedirectResult
 import com.okta.idx.kotlin.dto.IdxRemediation
 import com.okta.idx.kotlin.dto.IdxResponse
 import com.okta.idx.kotlin.dto.TokenResponse

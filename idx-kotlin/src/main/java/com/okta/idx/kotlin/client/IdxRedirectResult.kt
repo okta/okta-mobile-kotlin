@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.okta.idx.kotlin.dto
+package com.okta.idx.kotlin.client
 
-import com.okta.idx.kotlin.client.IdxClient
+import com.okta.idx.kotlin.dto.IdxResponse
+import com.okta.idx.kotlin.dto.TokenResponse
 
 /**
  * Describes the result when using [IdxClient.redirectResult].
