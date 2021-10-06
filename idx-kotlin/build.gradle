@@ -32,7 +32,8 @@ dependencies {
     api deps.kotlin.stdlib
     api deps.okhttp.core
     api deps.coroutines.android
-    api deps.kotlin.serialization_json
+
+    implementation deps.kotlin.serialization_json
 
     testImplementation deps.junit
     testImplementation deps.okhttp.mock_web_server
