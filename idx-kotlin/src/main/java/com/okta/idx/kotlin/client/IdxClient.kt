@@ -153,7 +153,9 @@ class IdxClient internal constructor(
         }
 
         return configuration.performRequest<V1Response, IdxResponse>(request) {
-            it.toIdxResponse(configuration.json)
+            it.toIdxResponse(configuration.json).also { response ->
+                response.remediations.firstOrNull()?.copyValuesFromPrevious(remediation)
+            }
         }
     }
 
@@ -293,6 +295,26 @@ private fun Any?.asJsonElement(): JsonElement {
         is String -> JsonPrimitive(this)
         is Number -> JsonPrimitive(this)
         else -> throw IllegalStateException("Unknown type")
+    }
+}
+
+internal fun IdxRemediation.copyValuesFromPrevious(previous: IdxRemediation) {
+    if (name != previous.name) return
+    form.copyValuesFromPrevious(previous.form)
+}
+
+private fun IdxRemediation.Form.copyValuesFromPrevious(previous: IdxRemediation.Form?) {
+    if (previous == null) return
+    if (visibleFields.size != previous.visibleFields.size) return
+
+    visibleFields.forEachIndexed { index, field ->
+        val previousField = previous.visibleFields[index]
+        if (field.name != previousField.name) return
+        if (field.type != previousField.type) return
+        if (field.isMutable) {
+            field.value = previousField.value
+        }
+        field.form?.copyValuesFromPrevious(previousField.form)
     }
 }
 

@@ -187,9 +187,13 @@ internal class DynamicAuthViewModel : ViewModel() {
             }
             type == "string" -> {
                 val displayMessages = messages.joinToString(separator = "\n") { it.message }
-                listOf(DynamicAuthField.Text(label ?: "", isRequired, isSecret, displayMessages) {
+                val field = DynamicAuthField.Text(label ?: "", isRequired, isSecret, displayMessages) {
                     value = it
-                })
+                }
+                (value as? String?)?.let {
+                    field.value = it
+                }
+                listOf(field)
             }
             else -> {
                 Timber.d("Unknown field type: %s", this)
