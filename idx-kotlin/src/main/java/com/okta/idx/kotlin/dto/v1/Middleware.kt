@@ -16,7 +16,6 @@
 package com.okta.idx.kotlin.dto.v1
 
 import com.okta.idx.kotlin.dto.IdxApplication
-import com.okta.idx.kotlin.dto.IdxRemediation
 import com.okta.idx.kotlin.dto.IdxResponse
 import com.okta.idx.kotlin.dto.IdxUser
 import com.okta.idx.kotlin.dto.IdxMessageCollection
@@ -37,7 +36,6 @@ internal fun Response.toIdxResponse(json: Json): IdxResponse {
         user = user?.value?.toIdxUser(),
         messages = messageCollection,
         isLoginSuccessful = successWithInteractionCode != null,
-        canCancel = remediations[IdxRemediation.Type.CANCEL] != null,
     )
 }
 

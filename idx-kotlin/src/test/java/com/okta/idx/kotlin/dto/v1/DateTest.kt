@@ -22,7 +22,7 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 
 internal class DateTest {
-    val json = Json {
+    private val json = Json {
         ignoreUnknownKeys = true
     }
 

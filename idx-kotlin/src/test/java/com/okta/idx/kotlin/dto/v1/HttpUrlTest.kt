@@ -21,7 +21,7 @@ import okhttp3.HttpUrl
 import org.junit.Test
 
 internal class HttpUrlTest {
-    val json = Json {
+    private val json = Json {
         ignoreUnknownKeys = true
     }
 

@@ -56,7 +56,7 @@ internal fun Response.toIdxAuthenticatorPathPairs(
     return result
 }
 
-private fun Authenticator.toIdxAuthenticator(
+internal fun Authenticator.toIdxAuthenticator(
     json: Json,
     state: IdxAuthenticator.State,
 ): IdxAuthenticator {

@@ -16,18 +16,20 @@
 package com.okta.idx.kotlin.dto.v1
 
 import com.google.common.truth.Truth.assertThat
-import com.okta.idx.kotlin.infrastructure.stringFromResources
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import org.junit.Test
 
-class ResponseTest {
-    val json = Json {
-        ignoreUnknownKeys = true
-    }
+class InteractResponseTest {
+    private val json = Json { ignoreUnknownKeys = true }
 
-    @Test fun testJson() {
-        val response = json.decodeFromString<Response>(stringFromResources("dto/idx_response.json"))
-        assertThat(response).isNotNull()
+    @Test fun testDeserialization() {
+        val interactJson = """
+        {
+          "interaction_handle": "NYwq2ADoLvH32XnnQXn-r0d4RhsFORIscEgo-26NyAM"
+        }
+        """.trimIndent()
+        val token = json.decodeFromString<InteractResponse>(interactJson)
+        assertThat(token.interactionHandle).isEqualTo("NYwq2ADoLvH32XnnQXn-r0d4RhsFORIscEgo-26NyAM")
     }
 }

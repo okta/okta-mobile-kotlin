@@ -68,7 +68,6 @@ class IdxRemediation internal constructor(
     internal val method: String,
     internal val href: HttpUrl,
     internal val accepts: String?,
-    internal val relatesTo: List<String>?,
 ) {
     /**
      * Returns the field within this remediation with the given name or key-path.

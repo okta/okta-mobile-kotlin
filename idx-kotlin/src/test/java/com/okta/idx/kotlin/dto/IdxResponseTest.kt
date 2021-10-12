@@ -16,34 +16,26 @@
 package com.okta.idx.kotlin.dto
 
 import com.google.common.truth.Truth.assertThat
-import com.okta.idx.kotlin.client.toJsonContent
 import com.okta.idx.kotlin.dto.v1.Response
 import com.okta.idx.kotlin.dto.v1.toIdxResponse
+import com.okta.idx.kotlin.dto.v1.toJsonContent
 import com.okta.idx.kotlin.infrastructure.stringFromResources
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import org.junit.Test
 
 class IdxResponseTest {
-    val json = Json {
+    private val json = Json {
         ignoreUnknownKeys = true
     }
 
-    private fun Response.toIdxResponse(): IdxResponse {
-        return toIdxResponse(json)
-    }
-
-    @Test fun testJson() {
-        val response = json.decodeFromString<Response>(stringFromResources("dto/idx_response.json"))
-        assertThat(response).isNotNull()
-        val idxResponse = response.toIdxResponse()
-        assertThat(idxResponse).isNotNull()
+    private fun getIdxResponse(filename: String): IdxResponse {
+        val response = json.decodeFromString<Response>(stringFromResources("dto/$filename"))
+        return response.toIdxResponse(json)
     }
 
     @Test fun testAuthenticators() {
-        val response = json.decodeFromString<Response>(stringFromResources("dto/select_authenticator.json"))
-        assertThat(response).isNotNull()
-        val idxResponse = response.toIdxResponse()
+        val idxResponse = getIdxResponse("select_authenticator.json")
         assertThat(idxResponse).isNotNull()
         val remediation = idxResponse.remediations[IdxRemediation.Type.SELECT_AUTHENTICATOR_AUTHENTICATE]!!
         val field = remediation.form["authenticator"]
@@ -53,9 +45,7 @@ class IdxResponseTest {
     }
 
     @Test fun testEnrollSms() {
-        val response = json.decodeFromString<Response>(stringFromResources("dto/enroll_sms.json"))
-        assertThat(response).isNotNull()
-        val idxResponse = response.toIdxResponse()
+        val idxResponse = getIdxResponse("enroll_sms.json")
         assertThat(idxResponse).isNotNull()
         val remediation = idxResponse.remediations[IdxRemediation.Type.AUTHENTICATOR_ENROLLMENT_DATA]!!
         val field = remediation.form["authenticator"]!!
@@ -69,9 +59,7 @@ class IdxResponseTest {
     }
 
     @Test fun testRecover() {
-        val response = json.decodeFromString<Response>(stringFromResources("dto/idx_response.json"))
-        assertThat(response).isNotNull()
-        val idxResponse = response.toIdxResponse()
+        val idxResponse = getIdxResponse("idx_response.json")
         assertThat(idxResponse).isNotNull()
         val idxAuthenticator = idxResponse.authenticators.current!!
         assertThat(idxAuthenticator).isNotNull()
@@ -79,17 +67,14 @@ class IdxResponseTest {
     }
 
     @Test fun testIdp() {
-        val response = json.decodeFromString<Response>(stringFromResources("dto/idx_response.json"))
-        assertThat(response).isNotNull()
-        val idxResponse = response.toIdxResponse()
+        val idxResponse = getIdxResponse("idx_response.json")
         assertThat(idxResponse).isNotNull()
         val idxRemediation = idxResponse.remediations[IdxRemediation.Type.REDIRECT_IDP]!!
         assertThat(idxRemediation.traits.get<IdxIdpTrait>()).isNotNull()
     }
 
     @Test fun testAuthenticatorMapping() {
-        val response = json.decodeFromString<Response>(stringFromResources("dto/enroll_sms.json"))
-        val idxResponse = response.toIdxResponse()
+        val idxResponse = getIdxResponse("enroll_sms.json")
 
         val enrollmentDataRemediation = idxResponse.remediations[IdxRemediation.Type.AUTHENTICATOR_ENROLLMENT_DATA]!!
         assertThat(enrollmentDataRemediation.authenticators.size).isEqualTo(1)
@@ -102,8 +87,7 @@ class IdxResponseTest {
     }
 
     @Test fun testTotp() {
-        val response = json.decodeFromString<Response>(stringFromResources("dto/totp.json"))
-        val idxResponse = response.toIdxResponse()
+        val idxResponse = getIdxResponse("totp.json")
 
         val currentAuthenticator = idxResponse.authenticators.current!!
         val totpTrait = currentAuthenticator.traits.get<IdxTotpTrait>()!!
@@ -114,8 +98,7 @@ class IdxResponseTest {
     }
 
     @Test fun testFieldError() {
-        val response = json.decodeFromString<Response>(stringFromResources("dto/field_error.json"))
-        val idxResponse = response.toIdxResponse()
+        val idxResponse = getIdxResponse("field_error.json")
 
         val remediation = idxResponse.remediations.first()
         val userProfileForm = remediation.form.visibleFields.first()
@@ -134,8 +117,7 @@ class IdxResponseTest {
     }
 
     @Test fun testTopLevelError() {
-        val response = json.decodeFromString<Response>(stringFromResources("dto/top_level_error.json"))
-        val idxResponse = response.toIdxResponse()
+        val idxResponse = getIdxResponse("top_level_error.json")
 
         assertThat(idxResponse.messages).hasSize(1)
         assertThat(idxResponse.messages[0].type).isEqualTo(IdxMessage.Severity.ERROR)
@@ -144,8 +126,7 @@ class IdxResponseTest {
     }
 
     @Test fun testSecurityQuestionsSelectFromList() {
-        val response = json.decodeFromString<Response>(stringFromResources("dto/enroll_security_question.json"))
-        val idxResponse = response.toIdxResponse()
+        val idxResponse = getIdxResponse("enroll_security_question.json")
 
         val remediation = idxResponse.remediations.first()
         assertThat(remediation).isNotNull()
@@ -166,8 +147,7 @@ class IdxResponseTest {
     }
 
     @Test fun testSecurityQuestionsCustom() {
-        val response = json.decodeFromString<Response>(stringFromResources("dto/enroll_security_question.json"))
-        val idxResponse = response.toIdxResponse()
+        val idxResponse = getIdxResponse("enroll_security_question.json")
 
         val remediation = idxResponse.remediations.first()
         assertThat(remediation).isNotNull()
@@ -188,8 +168,7 @@ class IdxResponseTest {
     }
 
     @Test fun testPoll() {
-        val response = json.decodeFromString<Response>(stringFromResources("dto/challenge_email.json"))
-        val idxResponse = response.toIdxResponse()
+        val idxResponse = getIdxResponse("challenge_email.json")
 
         val remediation = idxResponse.remediations.first()
         val authenticator = remediation.authenticators.first()

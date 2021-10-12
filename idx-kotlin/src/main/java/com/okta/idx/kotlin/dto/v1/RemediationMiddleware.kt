@@ -77,7 +77,6 @@ internal fun Form.toIdxRemediation(
         method = method,
         href = href,
         accepts = accepts,
-        relatesTo = relatesTo
     )
 }
 

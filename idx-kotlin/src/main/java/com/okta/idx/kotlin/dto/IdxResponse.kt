@@ -50,9 +50,6 @@ class IdxResponse internal constructor(
 
     /** Indicates whether or not the user has logged in successfully. If this is `true`, this response object should be exchanged for access tokens utilizing the `exchangeCode` method. */
     val isLoginSuccessful: Boolean,
-
-    /** Indicates whether or not the response can be cancelled. */
-    val canCancel: Boolean,
 ) {
     /**
      * The intent of the authentication workflow, as returned from the server.
