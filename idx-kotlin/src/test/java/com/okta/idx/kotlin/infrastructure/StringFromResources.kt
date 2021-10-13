@@ -15,6 +15,7 @@
  */
 package com.okta.idx.kotlin.infrastructure
 
+import okhttp3.mockwebserver.MockResponse
 import okio.Buffer
 
 fun stringFromResources(filename: String): String {
@@ -22,4 +23,9 @@ fun stringFromResources(filename: String): String {
     val buffer = Buffer()
     buffer.readFrom(inputStream)
     return buffer.readUtf8()
+}
+
+fun MockResponse.testBodyFromFile(filename: String): MockResponse {
+    setBody(stringFromResources(filename))
+    return this
 }

@@ -98,7 +98,7 @@ class IdxClient internal constructor(
      */
     suspend fun exchangeCodes(remediation: IdxRemediation): IdxClientResult<TokenResponse> {
         if (remediation.type != IdxRemediation.Type.ISSUE) {
-            throw IllegalStateException("Invalid remediation.")
+            return IdxClientResult.Error(IllegalStateException("Invalid remediation."))
         }
 
         val request = withContext(configuration.computationDispatcher) {

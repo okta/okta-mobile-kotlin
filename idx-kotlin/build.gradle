@@ -39,4 +39,6 @@ dependencies {
     testImplementation deps.okhttp.mock_web_server
     testImplementation deps.okhttp.tls
     testImplementation deps.truth
+    testImplementation deps.jackson_databind
+    testImplementation deps.robolectric
 }

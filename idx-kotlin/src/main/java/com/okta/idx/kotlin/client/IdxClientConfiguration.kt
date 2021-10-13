@@ -43,7 +43,7 @@ class IdxClientConfiguration(
     val redirectUri: String,
 
     /** The Call.Factory which makes calls to the okta server. */
-    val okHttpCallFactory: Call.Factory = defaultCallFactory(),
+    okHttpCallFactory: Call.Factory = defaultCallFactory(),
 
     /** The CoroutineDispatcher which should be used for IO bound tasks. */
     val ioDispatcher: CoroutineContext = Dispatchers.IO,
@@ -51,14 +51,25 @@ class IdxClientConfiguration(
     /** The CoroutineDispatcher which should be used for CPU bound tasks. */
     val computationDispatcher: CoroutineContext = Dispatchers.Default,
 ) {
+    /** The Call.Factory which makes calls to the okta server. */
+    val okHttpCallFactory: Call.Factory = addInterceptor(okHttpCallFactory)
+
     /** The Json object to do the decoding from the okta server responses. */
     internal val json: Json = Json { ignoreUnknownKeys = true }
 
     companion object {
         private fun defaultCallFactory(): Call.Factory {
             return OkHttpClient.Builder()
-                .addInterceptor(IdxUserAgentInterceptor)
                 .build()
+        }
+
+        private fun addInterceptor(callFactory: Call.Factory): Call.Factory {
+            if (callFactory is OkHttpClient) {
+                return callFactory.newBuilder()
+                    .addInterceptor(IdxUserAgentInterceptor)
+                    .build()
+            }
+            return callFactory
         }
     }
 }
