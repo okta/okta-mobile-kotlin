@@ -20,11 +20,11 @@ import android.content.Intent
 import android.net.Uri
 import androidx.test.core.app.ApplicationProvider
 import com.okta.idx.android.infrastructure.EndToEndCredentials
-import com.okta.idx.android.infrastructure.SELECT_BUTTON
 import com.okta.idx.android.infrastructure.espresso.clickButtonWithText
 import com.okta.idx.android.infrastructure.espresso.clickButtonWithTextMatching
 import com.okta.idx.android.infrastructure.espresso.fillInEditText
-import com.okta.idx.android.infrastructure.espresso.waitForElement
+import com.okta.idx.android.infrastructure.espresso.selectAuthenticator
+import com.okta.idx.android.infrastructure.espresso.waitForElementWithText
 import com.okta.idx.android.infrastructure.execShellCommand
 import io.cucumber.java.Before
 import io.cucumber.java.en.And
@@ -33,7 +33,7 @@ import timber.log.Timber
 
 internal class SocialDefinitions {
     @Before("@logOutOfSocialIdP", order = 0)
-    fun logOutOfFacebook() {
+    fun logOutOfSocialIdP() {
         execShellCommand("pm clear com.android.chrome")
 
         Thread.sleep(2000)
@@ -74,6 +74,7 @@ internal class SocialDefinitions {
 
     @Then("^Mary should see a page to select an authenticator for MFA$")
     fun mary_should_see_a_page_to_select_an_authenticator_for_mfa() {
-        waitForElement(SELECT_BUTTON)
+        selectAuthenticator("Email")
+        waitForElementWithText("Choose")
     }
 }

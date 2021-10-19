@@ -23,6 +23,7 @@ versions.navigation = '2.3.5'
 versions.okhttp = '4.9.1'
 versions.okta_idx = '0.1.0-beta.8'
 versions.okta_management = '5.0.0'
+versions.okta_http_okhttp = '1.2.8'
 versions.okio = '2.10.0'
 versions.robolectric = '4.6.1'
 versions.timber = '5.0.1'
@@ -115,6 +116,7 @@ deps.okhttp = okhttp
 def okta = [:]
 okta.idx = "com.okta.idx.sdk:okta-idx-java-api:$versions.okta_idx"
 okta.management_sdk = "com.okta.sdk:okta-sdk-impl:$versions.okta_management"
+okta.http_okhttp = "com.okta.commons:okta-http-okhttp:$versions.okta_http_okhttp"
 deps.okta = okta
 
 deps.robolectric = "org.robolectric:robolectric:$versions.robolectric"

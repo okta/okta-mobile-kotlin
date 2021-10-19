@@ -1,4 +1,5 @@
 require 'yaml'
+require 'fileutils'
 
 cucumber_properties = Hash.new
 cucumber_properties['username'] = ENV['OKTA_CUCUMBER_USERNAME']
@@ -7,12 +8,12 @@ cucumber_properties['invalidUsername'] = ENV['OKTA_CUCUMBER_INVALID_USERNAME']
 cucumber_properties['invalidPassword'] = ENV['OKTA_CUCUMBER_INVALID_PASSWORD']
 cucumber_properties['firstName'] = ENV['OKTA_CUCUMBER_FIRST_NAME']
 cucumber_properties['newPassword'] = ENV['OKTA_CUCUMBER_NEW_PASSWORD']
-cucumber_properties['facebookEmail'] = ENV['FACEBOOK_EMAIL']
-cucumber_properties['facebookPassword'] = ENV['FACEBOOK_PASSWORD']
-cucumber_properties['facebookName'] = ENV['FACEBOOK_NAME']
-cucumber_properties['facebookEmailMfa'] = ENV['FACEBOOK_EMAIL_MFA']
-cucumber_properties['facebookPasswordMfa'] = ENV['FACEBOOK_PASSWORD_MFA']
-cucumber_properties['facebookNameMfa'] = ENV['FACEBOOK_NAME_MFA']
+cucumber_properties['socialEmail'] = ENV['SOCIAL_EMAIL']
+cucumber_properties['socialPassword'] = ENV['SOCIAL_PASSWORD']
+cucumber_properties['socialName'] = ENV['SOCIAL_NAME']
+cucumber_properties['socialEmailMfa'] = ENV['SOCIAL_EMAIL_MFA']
+cucumber_properties['socialPasswordMfa'] = ENV['SOCIAL_PASSWORD_MFA']
+cucumber_properties['socialNameMfa'] = ENV['SOCIAL_NAME_MFA']
 
 management_sdk_properties = Hash.new
 management_sdk_properties['clientId'] = ENV['OKTA_MANAGEMENT_CLIENT_ID']
@@ -28,6 +29,8 @@ yaml_properties['managementSdk'] = management_sdk_properties
 yaml_properties['a18n'] = a18n_properties
 
 File.write('app/src/androidTest/resources/e2eCredentials.yaml', yaml_properties.to_yaml)
+FileUtils.mkdir_p('dynamic-app/src/androidTest/resources/')
+File.write('dynamic-app/src/androidTest/resources/e2eCredentials.yaml', yaml_properties.to_yaml)
 
 okta_properties = ''
 okta_properties += "issuer=#{ENV['OKTA_IDX_ISSUER']}\n"

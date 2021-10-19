@@ -23,14 +23,19 @@ import org.junit.Assert
 import java.util.function.Consumer
 import java.util.stream.Collectors
 
-class RequireMFAGroupsForUser {
+class RequireGroupsForUser {
     @Before("@requireMFAGroupsForUser") fun assignMFAGroupBeforeScenario(scenario: Scenario) {
+        assignGroupForUser("MFA Required")
+    }
+
+    @Before("@requirePhoneGroupForUser") fun assignPhoneGroupBeforeScenario(scenario: Scenario) {
+        assignGroupForUser("Phone Enrollment Required")
+    }
+
+    private fun assignGroupForUser(groupName: String) {
         Assert.assertNotNull(SharedState.user)
         val groups: MutableList<String> = ArrayList()
-        groups.add("MFA Required")
-        if (scenario.id.contains("mfa_with_password_and_sms")) {
-            groups.add("Phone Enrollment Required")
-        }
+        groups.add(groupName)
         val groupList: List<Group> = OktaManagementSdk.client.listGroups()
             .stream()
             .filter { group -> groups.contains(group.profile.name) }
@@ -40,4 +45,5 @@ class RequireMFAGroupsForUser {
             SharedState.user!!.addToGroup(group.id)
         })
     }
+
 }

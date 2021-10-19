@@ -13,7 +13,6 @@ Feature: 4.1 Self Service Registration with Email Activation And optional SMS
     When she selects Password
     Then she sees a page to setup password
     When she fills out her Password
-    And she confirms her Password
     And she submits the verify form
     Then she sees the list of optional factors
     When she selects Email
@@ -37,7 +36,6 @@ Feature: 4.1 Self Service Registration with Email Activation And optional SMS
     When she selects Password
     Then she sees a page to setup password
     When she fills out her Password
-    And she confirms her Password
     And she submits the verify form
     Then she sees the list of optional factors
     When she selects Email
@@ -46,8 +44,9 @@ Feature: 4.1 Self Service Registration with Email Activation And optional SMS
     And she submits the verify form
     Then she sees the list of authenticators
     When she selects Phone from the list
+    And she selects SMS
     And she inputs a valid phone number
-    And submits the enrollment form
+    And She submits the form by clicking the Choose button
     Then the screen changes to receive an input for a code
     When she inputs the correct code from the SMS
     And she submits the verify form
@@ -77,7 +76,6 @@ Feature: 4.1 Self Service Registration with Email Activation And optional SMS
     When she selects Password
     Then she sees a page to setup password
     When she fills out her Password
-    And she confirms her Password
     And she submits the verify form
     Then she sees the list of optional factors
     When she selects Email
@@ -86,6 +84,8 @@ Feature: 4.1 Self Service Registration with Email Activation And optional SMS
     And she submits the verify form
     Then she sees the list of authenticators
     When she selects Phone from the list
+    And She submits the form by clicking the Choose button
+    And she selects SMS
     And she inputs an invalid phone number
-    And submits the enrollment form
+    And she submits the verify form
     Then she should see a message "Unable to initiate factor enrollment: Invalid Phone Number"

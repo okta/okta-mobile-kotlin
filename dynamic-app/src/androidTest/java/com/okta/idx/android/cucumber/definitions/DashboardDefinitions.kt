@@ -29,7 +29,7 @@ import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.espresso.matcher.ViewMatchers.withParent
 import androidx.test.espresso.matcher.ViewMatchers.withTagKey
 import androidx.test.espresso.matcher.ViewMatchers.withText
-import com.okta.idx.android.R
+import com.okta.idx.android.dynamic.R
 import com.okta.idx.android.infrastructure.EndToEndCredentials
 import com.okta.idx.android.infrastructure.ID_TOKEN_TYPE_TEXT_VIEW
 import com.okta.idx.android.infrastructure.espresso.waitForElement

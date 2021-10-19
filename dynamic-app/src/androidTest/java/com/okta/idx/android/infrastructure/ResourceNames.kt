@@ -13,16 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.okta.idx.android.cucumber.hooks
+package com.okta.idx.android.infrastructure
 
-import io.cucumber.core.api.Scenario
-import io.cucumber.java.Before
-import org.junit.Assume
-import timber.log.Timber
-
-internal class SkipScenario {
-    @Before("@skipScenario") fun skip_scenario(scenario: Scenario) {
-        Timber.d("SKIP SCENARIO: %s", scenario.name)
-        Assume.assumeTrue(false)
-    }
-}
+const val LAUNCH_TITLE_TEXT_VIEW = "com.okta.idx.android:id/launch_title_text_view"
+const val ACTION_BUTTON_VIEW = "com.okta.idx.android:id/button"
+const val ID_TOKEN_TYPE_TEXT_VIEW = "com.okta.idx.android:id/token_type"
+const val ERROR_TEXT_VIEW = "com.okta.idx.android:id/error_text_view"
+const val PROGRESS_BAR_VIEW = "com.okta.idx.android:id/progress"
+const val CLAIM_KEY_TEXT_VIEW = "com.okta.idx.android:id/text_view_key"

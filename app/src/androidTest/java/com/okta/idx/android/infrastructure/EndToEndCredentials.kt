@@ -23,7 +23,7 @@ object EndToEndCredentials {
     private val jsonNode: JsonNode
 
     init {
-        val inputStream = EndToEndCredentials::class.java.classLoader.getResourceAsStream("e2eCredentials.yaml")
+        val inputStream = EndToEndCredentials::class.java.classLoader!!.getResourceAsStream("e2eCredentials.yaml")
         val mapper = ObjectMapper(YAMLFactory())
         jsonNode = mapper.readTree(inputStream)
     }

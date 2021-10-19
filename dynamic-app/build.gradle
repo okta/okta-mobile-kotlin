@@ -25,7 +25,7 @@ android {
 
         testInstrumentationRunner 'io.cucumber.android.runner.CucumberAndroidJUnitRunner'
         testInstrumentationRunnerArguments = [
-                cucumberUseAndroidJUnitRunner: findProperty("cucumberUseAndroidJUnitRunner") ?: 'true',
+                cucumberUseAndroidJUnitRunner: findProperty("cucumberUseAndroidJUnitRunner") ?: 'false',
         ]
     }
 
@@ -118,6 +118,7 @@ dependencies {
     androidTestImplementation deps.cucumber.android
     androidTestImplementation deps.cucumber.pico_container
     androidTestImplementation deps.okta.management_sdk
+    androidTestImplementation deps.okta.http_okhttp
 }
 
 static def parseScheme(String uri) {

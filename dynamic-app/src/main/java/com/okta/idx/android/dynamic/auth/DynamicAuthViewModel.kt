@@ -218,7 +218,7 @@ internal class DynamicAuthViewModel : ViewModel() {
             IdxRemediation.Type.SKIP -> "Skip"
             IdxRemediation.Type.ENROLL_PROFILE, IdxRemediation.Type.SELECT_ENROLL_PROFILE -> "Sign Up"
             IdxRemediation.Type.SELECT_IDENTIFY, IdxRemediation.Type.IDENTIFY -> "Sign In"
-            IdxRemediation.Type.SELECT_AUTHENTICATOR_AUTHENTICATE -> "Choose"
+            IdxRemediation.Type.SELECT_AUTHENTICATOR_AUTHENTICATE, IdxRemediation.Type.SELECT_AUTHENTICATOR_ENROLL -> "Choose"
             IdxRemediation.Type.LAUNCH_AUTHENTICATOR -> "Launch Authenticator"
             IdxRemediation.Type.CANCEL -> "Restart"
             IdxRemediation.Type.REDIRECT_IDP -> {
@@ -283,6 +283,7 @@ internal class DynamicAuthViewModel : ViewModel() {
             return
         }
         viewModelScope.launch {
+            _state.value = DynamicAuthState.Loading
             when (val resumeResult = client?.proceed(remediation)) {
                 is IdxClientResult.Error -> {
                     _state.value = DynamicAuthState.Error("Failed to call proceed")
