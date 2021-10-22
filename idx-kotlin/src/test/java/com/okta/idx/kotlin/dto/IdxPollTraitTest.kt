@@ -52,15 +52,15 @@ class IdxPollTraitTest {
             response.testBodyFromFile("client/challengeAuthenticatorRemediationResponse.json")
         }
 
-        val clientResult = IdxClient.start(getConfiguration()) as IdxClientResult.Response<IdxClient>
-        val client = clientResult.response
-        val resumeResult = client.resume() as IdxClientResult.Response<IdxResponse>
-        val resumeResponse = resumeResult.response
+        val clientResult = IdxClient.start(getConfiguration()) as IdxClientResult.Success<IdxClient>
+        val client = clientResult.result
+        val resumeResult = client.resume() as IdxClientResult.Success<IdxResponse>
+        val resumeResponse = resumeResult.result
 
         val pollTrait = resumeResponse.remediations[0].authenticators[0].traits.get<IdxPollTrait>()!!
-        val pollResult = pollTrait.poll(client) as IdxClientResult.Response<IdxResponse>
+        val pollResult = pollTrait.poll(client) as IdxClientResult.Success<IdxResponse>
 
-        assertThat(pollResult.response.isLoginSuccessful).isTrue()
+        assertThat(pollResult.result.isLoginSuccessful).isTrue()
     }
 
     @Test fun testPollWithChange(): Unit = runBlocking {
@@ -74,14 +74,14 @@ class IdxPollTraitTest {
             response.testBodyFromFile("client/selectAuthenticatorAuthenticateRemediationResponse.json")
         }
 
-        val clientResult = IdxClient.start(getConfiguration()) as IdxClientResult.Response<IdxClient>
-        val client = clientResult.response
-        val resumeResult = client.resume() as IdxClientResult.Response<IdxResponse>
-        val resumeResponse = resumeResult.response
+        val clientResult = IdxClient.start(getConfiguration()) as IdxClientResult.Success<IdxClient>
+        val client = clientResult.result
+        val resumeResult = client.resume() as IdxClientResult.Success<IdxResponse>
+        val resumeResponse = resumeResult.result
 
         val pollTrait = resumeResponse.remediations[0].authenticators[0].traits.get<IdxPollTrait>()!!
-        val pollResult = pollTrait.poll(client) as IdxClientResult.Response<IdxResponse>
+        val pollResult = pollTrait.poll(client) as IdxClientResult.Success<IdxResponse>
 
-        assertThat(pollResult.response.remediations.first().name).isEqualTo("select-authenticator-authenticate")
+        assertThat(pollResult.result.remediations.first().name).isEqualTo("select-authenticator-authenticate")
     }
 }

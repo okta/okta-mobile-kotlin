@@ -67,7 +67,7 @@ class NetworkingTest {
         val result = configuration.performRequest<InteractResponse, String>(request) {
             it.interactionHandle
         }
-        assertThat((result as IdxClientResult.Response<String>).response).isEqualTo("029ZAB")
+        assertThat((result as IdxClientResult.Success<String>).result).isEqualTo("029ZAB")
     }
 
     @Test fun testPerformRequestErrorStatusCodesCallMapper(): Unit = runBlocking {
@@ -87,7 +87,7 @@ class NetworkingTest {
         val result = configuration.performRequest<InteractResponse, String>(request) {
             it.interactionHandle
         }
-        assertThat((result as IdxClientResult.Response<String>).response).isEqualTo("029ZAB")
+        assertThat((result as IdxClientResult.Success<String>).result).isEqualTo("029ZAB")
     }
 
     @Test fun testPerformRequestExceptionInMapper(): Unit = runBlocking {

@@ -21,6 +21,6 @@ package com.okta.idx.kotlin.client
 sealed class IdxClientResult<T> {
     /** An error result. */
     class Error<T> internal constructor(val exception: Exception) : IdxClientResult<T>()
-    /** Result with the expected response. */
-    class Response<T> internal constructor(val response: T) : IdxClientResult<T>()
+    /** Success with the expected result. */
+    class Success<T> internal constructor(val result: T) : IdxClientResult<T>()
 }

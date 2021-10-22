@@ -37,7 +37,7 @@ internal suspend inline fun <reified Raw, Dto> IdxClientConfiguration.performReq
             val okHttpResponse = okHttpCallFactory.newCall(request).await()
             val responseBody = okHttpResponse.body!!.string()
             val rawResponse = json.decodeFromString<Raw>(responseBody)
-            IdxClientResult.Response(responseMapper(rawResponse))
+            IdxClientResult.Success(responseMapper(rawResponse))
         } catch (e: Exception) {
             IdxClientResult.Error(e)
         }

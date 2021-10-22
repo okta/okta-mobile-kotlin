@@ -63,14 +63,14 @@ internal class DynamicAuthViewModel : ViewModel() {
                 is IdxClientResult.Error -> {
                     _state.value = DynamicAuthState.Error("Failed to create client")
                 }
-                is IdxClientResult.Response -> {
-                    client = clientResult.response
-                    when (val resumeResult = clientResult.response.resume()) {
+                is IdxClientResult.Success -> {
+                    client = clientResult.result
+                    when (val resumeResult = clientResult.result.resume()) {
                         is IdxClientResult.Error -> {
                             _state.value = DynamicAuthState.Error("Failed to call resume")
                         }
-                        is IdxClientResult.Response -> {
-                            handleResponse(resumeResult.response)
+                        is IdxClientResult.Success -> {
+                            handleResponse(resumeResult.result)
                         }
                     }
                 }
@@ -87,8 +87,8 @@ internal class DynamicAuthViewModel : ViewModel() {
                     is IdxClientResult.Error -> {
                         _state.value = DynamicAuthState.Error("Failed to call resume")
                     }
-                    is IdxClientResult.Response -> {
-                        handleResponse(resumeResult.response)
+                    is IdxClientResult.Success -> {
+                        handleResponse(resumeResult.result)
                     }
                 }
             }
@@ -123,8 +123,8 @@ internal class DynamicAuthViewModel : ViewModel() {
                 is IdxClientResult.Error -> {
                     _state.value = DynamicAuthState.Error("Failed to call resume")
                 }
-                is IdxClientResult.Response -> {
-                    _state.value = DynamicAuthState.Tokens(exchangeCodesResult.response)
+                is IdxClientResult.Success -> {
+                    _state.value = DynamicAuthState.Tokens(exchangeCodesResult.result)
                 }
             }
             return
@@ -258,8 +258,8 @@ internal class DynamicAuthViewModel : ViewModel() {
                 is IdxClientResult.Error -> {
                     _state.value = DynamicAuthState.Error("Failed to poll")
                 }
-                is IdxClientResult.Response -> {
-                    handleResponse(result.response)
+                is IdxClientResult.Success -> {
+                    handleResponse(result.result)
                 }
             }
         }
@@ -288,8 +288,8 @@ internal class DynamicAuthViewModel : ViewModel() {
                 is IdxClientResult.Error -> {
                     _state.value = DynamicAuthState.Error("Failed to call proceed")
                 }
-                is IdxClientResult.Response -> {
-                    handleResponse(resumeResult.response)
+                is IdxClientResult.Success -> {
+                    handleResponse(resumeResult.result)
                 }
             }
         }

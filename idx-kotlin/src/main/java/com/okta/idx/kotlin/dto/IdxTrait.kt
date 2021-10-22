@@ -91,7 +91,7 @@ class IdxPollTrait internal constructor(
             if (result is IdxClientResult.Error) {
                 return result
             }
-        } while (authenticatorId == (result as? IdxClientResult.Response<IdxResponse>)?.response?.authenticators?.current?.id)
+        } while (authenticatorId == (result as? IdxClientResult.Success<IdxResponse>)?.result?.authenticators?.current?.id)
         return result
     }
 }

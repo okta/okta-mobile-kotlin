@@ -130,8 +130,8 @@ class IdxClient internal constructor(
                 is IdxClientResult.Error -> {
                     IdxRedirectResult.Error("Failed to resume.", resumeResult.exception)
                 }
-                is IdxClientResult.Response -> {
-                    IdxRedirectResult.InteractionRequired(resumeResult.response)
+                is IdxClientResult.Success -> {
+                    IdxRedirectResult.InteractionRequired(resumeResult.result)
                 }
             }
         }
@@ -151,8 +151,8 @@ class IdxClient internal constructor(
                 is IdxClientResult.Error -> {
                     IdxRedirectResult.Error("Failed to exchangeCodes.", result.exception)
                 }
-                is IdxClientResult.Response -> {
-                    IdxRedirectResult.Tokens(result.response)
+                is IdxClientResult.Success -> {
+                    IdxRedirectResult.Tokens(result.result)
                 }
             }
         }
