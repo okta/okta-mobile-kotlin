@@ -96,7 +96,9 @@ class IdxClient internal constructor(
     /**
      * Exchange the IdxRemediation.Type.ISSUE remediation type for tokens.
      */
-    suspend fun exchangeCodes(remediation: IdxRemediation): IdxClientResult<TokenResponse> {
+    suspend fun exchangeInteractionCodeForTokens(
+        remediation: IdxRemediation
+    ): IdxClientResult<TokenResponse> {
         if (remediation.type != IdxRemediation.Type.ISSUE) {
             return IdxClientResult.Error(IllegalStateException("Invalid remediation."))
         }
@@ -113,7 +115,7 @@ class IdxClient internal constructor(
     /**
      * Evaluates the given redirect url to determine what next steps can be performed. This is usually used when receiving a redirection from an IDP authentication flow.
      */
-    suspend fun redirectResult(uri: Uri): IdxRedirectResult {
+    suspend fun evaluateRedirectUri(uri: Uri): IdxRedirectResult {
         if (!uri.toString().startsWith(configuration.redirectUri)) {
             val error = "IDP redirect failed due not matching the configured redirect uri."
             return IdxRedirectResult.Error(error)
@@ -147,7 +149,7 @@ class IdxClient internal constructor(
                 val error = "IDP redirect failed due to state mismatch."
                 return IdxRedirectResult.Error(error)
             }
-            return when (val result = exchangeCodes(interactionCodeQueryParameter)) {
+            return when (val result = exchangeInteractionCodeForTokens(interactionCodeQueryParameter)) {
                 is IdxClientResult.Error -> {
                     IdxRedirectResult.Error("Failed to exchangeCodes.", result.exception)
                 }
@@ -159,7 +161,7 @@ class IdxClient internal constructor(
         return IdxRedirectResult.Error("Unable to handle redirect url.")
     }
 
-    private suspend fun exchangeCodes(interactionCode: String): IdxClientResult<TokenResponse> {
+    private suspend fun exchangeInteractionCodeForTokens(interactionCode: String): IdxClientResult<TokenResponse> {
         val request = withContext(configuration.computationDispatcher) {
             tokenRequestFromInteractionCode(configuration, clientContext, interactionCode)
         }

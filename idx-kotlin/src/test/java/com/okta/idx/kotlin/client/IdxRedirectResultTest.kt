@@ -49,7 +49,7 @@ class IdxRedirectResultTest {
     @Test fun testRedirectResultInvalidUrl(): Unit = runBlocking {
         val uri = Uri.parse("test.okta.com/login")
         val client = createClient()
-        val result = client.redirectResult(uri) as IdxRedirectResult.Error
+        val result = client.evaluateRedirectUri(uri) as IdxRedirectResult.Error
         assertThat(result.errorMessage).isEqualTo("Unable to handle redirect url.")
         assertThat(result.exception).isNull()
     }
@@ -57,7 +57,7 @@ class IdxRedirectResultTest {
     @Test fun testRedirectResultMismatchRedirectUri(): Unit = runBlocking {
         val uri = Uri.parse("test.hacker.com/login")
         val client = createClient()
-        val result = client.redirectResult(uri) as IdxRedirectResult.Error
+        val result = client.evaluateRedirectUri(uri) as IdxRedirectResult.Error
         assertThat(result.errorMessage).isEqualTo("IDP redirect failed due not matching the configured redirect uri.")
         assertThat(result.exception).isNull()
     }
@@ -69,14 +69,14 @@ class IdxRedirectResultTest {
 
         val uri = Uri.parse("test.okta.com/login?state=cdef&error=interaction_required&error_description=Your+client+is+configured+to+use+the+interaction+code+flow+and+user+interaction+is+required+to+complete+the+request.")
         val client = createClient()
-        val redirectResult = client.redirectResult(uri) as IdxRedirectResult.InteractionRequired
+        val redirectResult = client.evaluateRedirectUri(uri) as IdxRedirectResult.InteractionRequired
         assertThat(redirectResult.response.remediations.first().name).isEqualTo("select-authenticator-authenticate")
     }
 
     @Test fun testRedirectResultInteractionRequiredFailsWithMismatchState(): Unit = runBlocking {
         val uri = Uri.parse("test.okta.com/login?state=mismatch&error=interaction_required&error_description=Your+client+is+configured+to+use+the+interaction+code+flow+and+user+interaction+is+required+to+complete+the+request.")
         val client = createClient()
-        val redirectResult = client.redirectResult(uri) as IdxRedirectResult.Error
+        val redirectResult = client.evaluateRedirectUri(uri) as IdxRedirectResult.Error
         assertThat(redirectResult.errorMessage).isEqualTo("IDP redirect failed due to state mismatch.")
         assertThat(redirectResult.exception).isNull()
     }
@@ -88,7 +88,7 @@ class IdxRedirectResultTest {
 
         val uri = Uri.parse("test.okta.com/login?state=cdef&error=interaction_required&error_description=Your+client+is+configured+to+use+the+interaction+code+flow+and+user+interaction+is+required+to+complete+the+request.")
         val client = createClient()
-        val redirectResult = client.redirectResult(uri) as IdxRedirectResult.Error
+        val redirectResult = client.evaluateRedirectUri(uri) as IdxRedirectResult.Error
         assertThat(redirectResult.errorMessage).isEqualTo("Failed to resume.")
         assertThat(redirectResult.exception).isNotNull()
     }
@@ -101,28 +101,28 @@ class IdxRedirectResultTest {
 
         val uri = Uri.parse("test.okta.com/login?interaction_code=exampleInteractionCode&state=cdef")
         val client = createClient()
-        val tokenResult = client.redirectResult(uri) as IdxRedirectResult.Tokens
+        val tokenResult = client.evaluateRedirectUri(uri) as IdxRedirectResult.Tokens
         assertThat(tokenResult.response.accessToken).isEqualTo("eyJraWQiOiJBaE1qU3VMQWdBTDJ1dHVVY2lFRWJ2R1JUbi1GRkt1Y2tVTDJibVZMVmp3IiwiYWxnIjoiUlMyNTYifQ.eyJ2ZXIiOjEsImp0aSI6IkFULm01N1NsVUpMRUQyT1RtLXVrUFBEVGxFY0tialFvYy1wVGxVdm5ha0k3T1Eub2FyNjFvOHVVOVlGVnBYcjYybzQiLCJpc3MiOiJodHRwczovL2Zvby5wcmV2aWV3LmNvbS9vYXV0aDIvZGVmYXVsdCIsImF1ZCI6ImFwaTovL2RlZmF1bHQiLCJpYXQiOjE2MDg1NjcwMTgsImV4cCI6MTYwODU3MDYxOCwiY2lkIjoiMG9henNtcHhacFZFZzRjaFMybzQiLCJ1aWQiOiIwMHUxMGt2dkZDMDZHT21odTJvNSIsInNjcCI6WyJvcGVuaWQiLCJwcm9maWxlIiwib2ZmbGluZV9hY2Nlc3MiXSwic3ViIjoiZm9vQG9rdGEuY29tIn0.lg2T8dKVfic_JU6qzNBqDuw3RFUq7Da5UO37eY3W-cOOb9UqijxGYj7d-z8qK1UJjRRcDg-rTMzYQbKCLVxjBw")
     }
 
     @Test fun testRedirectResultInteractionCodeErrorParamShowsErrorDescription(): Unit = runBlocking {
         val uri = Uri.parse("test.okta.com/login?error=foo&error_description=Server%20Error")
         val client = createClient()
-        val redirectResult = client.redirectResult(uri) as IdxRedirectResult.Error
+        val redirectResult = client.evaluateRedirectUri(uri) as IdxRedirectResult.Error
         assertThat(redirectResult.errorMessage).isEqualTo("Server Error")
     }
 
     @Test fun testRedirectResultInteractionCodeErrorParamShowsDefaultError(): Unit = runBlocking {
         val uri = Uri.parse("test.okta.com/login?error=foo")
         val client = createClient()
-        val redirectResult = client.redirectResult(uri) as IdxRedirectResult.Error
+        val redirectResult = client.evaluateRedirectUri(uri) as IdxRedirectResult.Error
         assertThat(redirectResult.errorMessage).isEqualTo("An error occurred.")
     }
 
     @Test fun testRedirectResultInteractionCodeStateMismatch(): Unit = runBlocking {
         val uri = Uri.parse("test.okta.com/login?interaction_code=exampleInteractionCode&state=mismatch")
         val client = createClient()
-        val redirectResult = client.redirectResult(uri) as IdxRedirectResult.Error
+        val redirectResult = client.evaluateRedirectUri(uri) as IdxRedirectResult.Error
         assertThat(redirectResult.errorMessage).isEqualTo("IDP redirect failed due to state mismatch.")
         assertThat(redirectResult.exception).isNull()
     }
@@ -135,7 +135,7 @@ class IdxRedirectResultTest {
 
         val uri = Uri.parse("test.okta.com/login?interaction_code=exampleInteractionCode&state=cdef")
         val client = createClient()
-        val result = client.redirectResult(uri) as IdxRedirectResult.Error
+        val result = client.evaluateRedirectUri(uri) as IdxRedirectResult.Error
         assertThat(result.errorMessage).isEqualTo("Failed to exchangeCodes.")
         assertThat(result.exception).isNotNull()
     }

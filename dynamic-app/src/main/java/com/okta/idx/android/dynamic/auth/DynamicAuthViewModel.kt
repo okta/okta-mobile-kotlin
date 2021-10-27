@@ -99,7 +99,7 @@ internal class DynamicAuthViewModel : ViewModel() {
 
     fun handleRedirect(uri: Uri) {
         viewModelScope.launch {
-            when (val redirectResult = client?.redirectResult(uri)) {
+            when (val redirectResult = client?.evaluateRedirectUri(uri)) {
                 is IdxRedirectResult.Error -> {
                     Timber.e(redirectResult.exception, redirectResult.errorMessage)
                     _state.value = DynamicAuthState.Error(redirectResult.errorMessage)
@@ -119,7 +119,7 @@ internal class DynamicAuthViewModel : ViewModel() {
 
     private suspend fun handleResponse(response: IdxResponse) {
         if (response.isLoginSuccessful) {
-            when (val exchangeCodesResult = client?.exchangeCodes(response.remediations[IdxRemediation.Type.ISSUE]!!)) {
+            when (val exchangeCodesResult = client?.exchangeInteractionCodeForTokens(response.remediations[IdxRemediation.Type.ISSUE]!!)) {
                 is IdxClientResult.Error -> {
                     _state.value = DynamicAuthState.Error("Failed to call resume")
                 }

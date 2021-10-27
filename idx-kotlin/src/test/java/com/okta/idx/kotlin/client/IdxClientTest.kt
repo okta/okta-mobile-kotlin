@@ -152,7 +152,7 @@ class IdxClientTest {
         val issueRemediation = proceedResponse.remediations[1]
         assertThat(issueRemediation.type).isEqualTo(IdxRemediation.Type.ISSUE)
 
-        val tokenResult = client.exchangeCodes(issueRemediation) as IdxClientResult.Success<TokenResponse>
+        val tokenResult = client.exchangeInteractionCodeForTokens(issueRemediation) as IdxClientResult.Success<TokenResponse>
         assertThat(tokenResult.result.accessToken).isEqualTo("eyJraWQiOiJBaE1qU3VMQWdBTDJ1dHVVY2lFRWJ2R1JUbi1GRkt1Y2tVTDJibVZMVmp3IiwiYWxnIjoiUlMyNTYifQ.eyJ2ZXIiOjEsImp0aSI6IkFULm01N1NsVUpMRUQyT1RtLXVrUFBEVGxFY0tialFvYy1wVGxVdm5ha0k3T1Eub2FyNjFvOHVVOVlGVnBYcjYybzQiLCJpc3MiOiJodHRwczovL2Zvby5wcmV2aWV3LmNvbS9vYXV0aDIvZGVmYXVsdCIsImF1ZCI6ImFwaTovL2RlZmF1bHQiLCJpYXQiOjE2MDg1NjcwMTgsImV4cCI6MTYwODU3MDYxOCwiY2lkIjoiMG9henNtcHhacFZFZzRjaFMybzQiLCJ1aWQiOiIwMHUxMGt2dkZDMDZHT21odTJvNSIsInNjcCI6WyJvcGVuaWQiLCJwcm9maWxlIiwib2ZmbGluZV9hY2Nlc3MiXSwic3ViIjoiZm9vQG9rdGEuY29tIn0.lg2T8dKVfic_JU6qzNBqDuw3RFUq7Da5UO37eY3W-cOOb9UqijxGYj7d-z8qK1UJjRRcDg-rTMzYQbKCLVxjBw")
     }
 
@@ -165,7 +165,7 @@ class IdxClientTest {
         assertThat(clientResult.result.clientContext.interactionHandle).isEqualTo("029ZAB")
 
         val client = clientResult.result
-        val exchangeCodesResult = client.exchangeCodes(createRemediation(emptyList())) as IdxClientResult.Error<TokenResponse>
+        val exchangeCodesResult = client.exchangeInteractionCodeForTokens(createRemediation(emptyList())) as IdxClientResult.Error<TokenResponse>
         assertThat(exchangeCodesResult.exception.message).isEqualTo("Invalid remediation.")
     }
 }

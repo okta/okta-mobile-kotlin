@@ -19,7 +19,7 @@ import com.okta.idx.kotlin.dto.IdxResponse
 import com.okta.idx.kotlin.dto.TokenResponse
 
 /**
- * Describes the result when using [IdxClient.redirectResult].
+ * Describes the result when using [IdxClient.evaluateRedirectUri].
  */
 sealed class IdxRedirectResult {
     /**
