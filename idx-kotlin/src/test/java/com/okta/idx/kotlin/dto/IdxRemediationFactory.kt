@@ -48,6 +48,7 @@ internal fun createField(
     form: IdxRemediation.Form? = null,
     authenticator: IdxAuthenticator? = null,
     mutable: Boolean = true,
+    isVisible: Boolean = true
 ): IdxRemediation.Form.Field {
     return IdxRemediation.Form.Field(
         name = name,
@@ -61,6 +62,6 @@ internal fun createField(
         options = null,
         messages = IdxMessageCollection(emptyList()),
         authenticator = authenticator,
-        isVisible = true,
+        isVisible = isVisible,
     )
 }
