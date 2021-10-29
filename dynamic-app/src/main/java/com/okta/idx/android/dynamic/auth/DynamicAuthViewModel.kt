@@ -27,6 +27,8 @@ import com.okta.idx.android.dynamic.SocialRedirectCoordinator
 import com.okta.idx.kotlin.client.IdxClient
 import com.okta.idx.kotlin.client.IdxClientResult
 import com.okta.idx.kotlin.client.IdxRedirectResult
+import com.okta.idx.kotlin.dto.IdxAuthenticator
+import com.okta.idx.kotlin.dto.IdxAuthenticatorCollection
 import com.okta.idx.kotlin.dto.IdxIdpTrait
 import com.okta.idx.kotlin.dto.IdxPollTrait
 import com.okta.idx.kotlin.dto.IdxRecoverTrait
@@ -119,7 +121,8 @@ internal class DynamicAuthViewModel : ViewModel() {
 
     private suspend fun handleResponse(response: IdxResponse) {
         if (response.isLoginSuccessful) {
-            when (val exchangeCodesResult = client?.exchangeInteractionCodeForTokens(response.remediations[IdxRemediation.Type.ISSUE]!!)) {
+            when (val exchangeCodesResult =
+                client?.exchangeInteractionCodeForTokens(response.remediations[IdxRemediation.Type.ISSUE]!!)) {
                 is IdxClientResult.Error -> {
                     _state.value = DynamicAuthState.Error("Failed to call resume")
                 }
@@ -150,13 +153,12 @@ internal class DynamicAuthViewModel : ViewModel() {
     }
 
     private suspend fun IdxRemediation.asTotpImageDynamicAuthField(): List<DynamicAuthField> {
-        val totpAuthenticator = authenticators.firstOrNull { it.traits.get<IdxTotpTrait>() != null } ?: return emptyList()
-        val totpTrait = totpAuthenticator.traits.get<IdxTotpTrait>() ?: return emptyList()
+        val trait = authenticators.trait<IdxTotpTrait>() ?: return emptyList()
         val bitmap = withContext(Dispatchers.Default) {
-            totpTrait.asImage()
+            trait.asImage()
         } ?: return emptyList()
         val label = "Launch Google Authenticator, tap the \"+\" icon, then select \"Scan a QR code\"."
-        return listOf(DynamicAuthField.Image(label, bitmap, totpTrait.sharedSecret))
+        return listOf(DynamicAuthField.Image(label, bitmap, trait.sharedSecret))
     }
 
     private fun IdxRemediation.Form.Field.asDynamicAuthFields(): List<DynamicAuthField> {
@@ -171,7 +173,8 @@ internal class DynamicAuthViewModel : ViewModel() {
             options?.isNullOrEmpty() == false -> {
                 options?.let { options ->
                     val transformed = options.map {
-                        val fields = it.form?.visibleFields?.flatMap { field -> field.asDynamicAuthFields() } ?: emptyList()
+                        val fields =
+                            it.form?.visibleFields?.flatMap { field -> field.asDynamicAuthFields() } ?: emptyList()
                         DynamicAuthField.Options.Option(it, it.label, fields)
                     }
                     val displayMessages = messages.joinToString(separator = "\n") { it.message }
@@ -203,13 +206,12 @@ internal class DynamicAuthViewModel : ViewModel() {
     }
 
     private fun IdxRemediation.asDynamicAuthFieldResendAction(): List<DynamicAuthField> {
-        val resendAuthenticator = authenticators.firstOrNull { it.traits.get<IdxResendTrait>() != null } ?: return emptyList()
-        val resendTrait = resendAuthenticator.traits.get<IdxResendTrait>() ?: return emptyList()
+        val trait = authenticators.trait<IdxResendTrait>() ?: return emptyList()
         if (form.visibleFields.find { it.type != "string" } == null) {
             return emptyList() // There is no way to type in the code yet.
         }
         return listOf(DynamicAuthField.Action("Resend Code") { context ->
-            proceed(resendTrait.remediation, context)
+            proceed(trait.remediation, context)
         })
     }
 
@@ -250,11 +252,10 @@ internal class DynamicAuthViewModel : ViewModel() {
     }
 
     private fun IdxRemediation.startPolling() {
-        val pollAuthenticator = authenticators.firstOrNull { it.traits.get<IdxPollTrait>() != null } ?: return
-        val pollTrait = pollAuthenticator.traits.get<IdxPollTrait>() ?: return
+        val trait = authenticators.trait<IdxPollTrait>() ?: return
         val localClient = client ?: return
         pollingJob = viewModelScope.launch {
-            when (val result = pollTrait.poll(localClient)) {
+            when (val result = trait.poll(localClient)) {
                 is IdxClientResult.Error -> {
                     _state.value = DynamicAuthState.Error("Failed to poll")
                 }
@@ -271,7 +272,6 @@ internal class DynamicAuthViewModel : ViewModel() {
     }
 
     private fun proceed(remediation: IdxRemediation, context: Context) {
-        cancelPolling()
         val idpTrait = remediation.traits.get<IdxIdpTrait>()
         if (idpTrait != null) {
             try {
@@ -282,6 +282,11 @@ internal class DynamicAuthViewModel : ViewModel() {
             }
             return
         }
+        proceed(remediation)
+    }
+
+    private fun proceed(remediation: IdxRemediation) {
+        cancelPolling()
         viewModelScope.launch {
             _state.value = DynamicAuthState.Loading
             when (val resumeResult = client?.proceed(remediation)) {
@@ -294,4 +299,9 @@ internal class DynamicAuthViewModel : ViewModel() {
             }
         }
     }
+}
+
+private inline fun <reified Trait : IdxAuthenticator.Trait> IdxAuthenticatorCollection.trait(): Trait? {
+    val authenticator = firstOrNull { it.traits.get<Trait>() != null } ?: return null
+    return authenticator.traits.get()
 }
