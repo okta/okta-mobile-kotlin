@@ -54,7 +54,7 @@ class UsernamePasswordForm internal constructor(
             val beginResponse = authenticationWrapper.begin()
             handleTerminalTransitions(beginResponse)?.let { return@proceed it }
 
-            val options = AuthenticationOptions(viewModel.username, viewModel.password)
+            val options = AuthenticationOptions(viewModel.username, viewModel.password.toCharArray())
             val response = authenticationWrapper.authenticate(options, beginResponse.proceedContext)
             handleKnownTransitions(response)
         }
