@@ -76,6 +76,9 @@ class IdxPollTrait internal constructor(
     /** The id of the authenticator */
     internal val authenticatorId: String?,
 ) : IdxAuthenticator.Trait {
+    /** Available to allow testing without a real delay. */
+    internal var delayFunction: suspend (Long) -> Unit = ::delay
+
     /**
      * Poll the IDX APIs with the configuration provided from the [IdxAuthenticator].
      *
@@ -85,13 +88,22 @@ class IdxPollTrait internal constructor(
      */
     suspend fun poll(client: IdxClient): IdxClientResult<IdxResponse> {
         var result: IdxClientResult<IdxResponse>
+        var currentAuthenticatorId: String?
+        var currentWait = wait
+        var currentRemediation = remediation
         do {
-            delay(wait.toLong())
-            result = client.proceed(remediation)
+            delayFunction(currentWait.toLong())
+            result = client.proceed(currentRemediation)
             if (result is IdxClientResult.Error) {
                 return result
             }
-        } while (authenticatorId == (result as? IdxClientResult.Success<IdxResponse>)?.result?.authenticators?.current?.id)
+            val successResult = result as? IdxClientResult.Success<IdxResponse>
+            val currentAuthenticator = successResult?.result?.authenticators?.current ?: return result
+            currentAuthenticatorId = currentAuthenticator.id
+            val pollTrait = currentAuthenticator.traits.get<IdxPollTrait>() ?: return result
+            currentWait = pollTrait.wait
+            currentRemediation = pollTrait.remediation
+        } while (authenticatorId == currentAuthenticatorId)
         return result
     }
 }

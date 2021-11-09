@@ -49,7 +49,7 @@ class IdxPollTraitTest {
             response.testBodyFromFile("client/successWithInteractionCodeResponse.json")
         }
         networkRule.enqueue(path("/idp/idx/challenge/poll")) { response ->
-            response.testBodyFromFile("client/challengeAuthenticatorRemediationResponse.json")
+            response.testBodyFromFile("client/challengeAuthenticatorRemediationResponseLongPoll.json")
         }
 
         val clientResult = IdxClient.start(getConfiguration()) as IdxClientResult.Success<IdxClient>
@@ -58,9 +58,12 @@ class IdxPollTraitTest {
         val resumeResponse = resumeResult.result
 
         val pollTrait = resumeResponse.remediations[0].authenticators[0].traits.get<IdxPollTrait>()!!
+        val delays = mutableListOf<Long>()
+        pollTrait.delayFunction = { delays += it }
         val pollResult = pollTrait.poll(client) as IdxClientResult.Success<IdxResponse>
 
         assertThat(pollResult.result.isLoginSuccessful).isTrue()
+        assertThat(delays).containsExactly(4000L, 8000L)
     }
 
     @Test fun testPollWithChange(): Unit = runBlocking {
@@ -80,8 +83,11 @@ class IdxPollTraitTest {
         val resumeResponse = resumeResult.result
 
         val pollTrait = resumeResponse.remediations[0].authenticators[0].traits.get<IdxPollTrait>()!!
+        val delays = mutableListOf<Long>()
+        pollTrait.delayFunction = { delays += it }
         val pollResult = pollTrait.poll(client) as IdxClientResult.Success<IdxResponse>
 
         assertThat(pollResult.result.remediations.first().name).isEqualTo("select-authenticator-authenticate")
+        assertThat(delays).containsExactly(4000L)
     }
 }

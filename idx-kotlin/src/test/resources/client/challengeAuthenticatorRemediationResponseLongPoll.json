@@ -123,7 +123,7 @@
         "href": "https://foo.okta.com/idp/idx/challenge/poll",
         "method": "POST",
         "produces": "application/ion+json; okta-version=1.0.0",
-        "refresh": 4000,
+        "refresh": 8000,
         "value": [
           {
             "name": "stateHandle",
