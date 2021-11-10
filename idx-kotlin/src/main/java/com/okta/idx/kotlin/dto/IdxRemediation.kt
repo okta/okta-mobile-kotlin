@@ -62,8 +62,8 @@ class IdxRemediation internal constructor(
     /** The set of authenticators associated with this remediation. */
     val authenticators: IdxAuthenticatorCollection,
 
-    /** The [IdxTraitCollection] associated with this remediation. */
-    val traits: IdxTraitCollection<Trait>,
+    /** The [IdxCapabilityCollection] associated with this remediation. */
+    val capabilities: IdxCapabilityCollection<Capability>,
 
     internal val method: String,
     internal val href: HttpUrl,
@@ -79,9 +79,9 @@ class IdxRemediation internal constructor(
     }
 
     /**
-     * Marker interface for [IdxRemediation] traits.
+     * Marker interface for [IdxRemediation] capabilities.
      */
-    interface Trait
+    interface Capability
 
     /**
      * Enumeration describing the possible remediation types. This is expanded from the possible option values that may be present in the `name` property.

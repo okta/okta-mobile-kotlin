@@ -16,12 +16,12 @@
 package com.okta.idx.kotlin.dto.v1
 
 import com.okta.idx.kotlin.dto.IdxAuthenticator
-import com.okta.idx.kotlin.dto.IdxIdpTrait
+import com.okta.idx.kotlin.dto.IdxIdpCapability
 import com.okta.idx.kotlin.dto.IdxAuthenticatorCollection
 import com.okta.idx.kotlin.dto.IdxMessageCollection
 import com.okta.idx.kotlin.dto.IdxRemediation
 import com.okta.idx.kotlin.dto.IdxRemediationCollection
-import com.okta.idx.kotlin.dto.IdxTraitCollection
+import com.okta.idx.kotlin.dto.IdxCapabilityCollection
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.serializer
@@ -55,9 +55,9 @@ internal fun Form.toIdxRemediation(
 ): IdxRemediation {
     val form = IdxRemediation.Form(value?.map { it.toIdxField(json, parsingContext, null) } ?: emptyList())
     val remediationType = name.toRemediationType()
-    val traits = mutableSetOf<IdxRemediation.Trait>()
+    val capabilities = mutableSetOf<IdxRemediation.Capability>()
 
-    toIdxIdpTrait()?.let { traits += it }
+    toIdxIdpCapability()?.let { capabilities += it }
 
     val authenticatorsList = mutableListOf<IdxAuthenticator>()
     relatesTo?.let {
@@ -73,19 +73,19 @@ internal fun Form.toIdxRemediation(
         name = name,
         form = form,
         authenticators = IdxAuthenticatorCollection(authenticatorsList),
-        traits = IdxTraitCollection(traits),
+        capabilities = IdxCapabilityCollection(capabilities),
         method = method,
         href = href,
         accepts = accepts,
     )
 }
 
-private fun Form.toIdxIdpTrait(): IdxIdpTrait? {
+private fun Form.toIdxIdpCapability(): IdxIdpCapability? {
     val v1Idp = idp ?: return null
     val id = v1Idp["id"]
     val name = v1Idp["name"]
     if (id != null && name != null) {
-        return IdxIdpTrait(
+        return IdxIdpCapability(
             id = id,
             name = name,
             redirectUrl = href,

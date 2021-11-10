@@ -27,7 +27,7 @@ import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.junit.Rule
 import org.junit.Test
 
-class IdxPollTraitTest {
+class IdxPollCapabilityTest {
     @get:Rule val networkRule = NetworkRule()
 
     private fun getConfiguration() = IdxClientConfiguration(
@@ -57,10 +57,10 @@ class IdxPollTraitTest {
         val resumeResult = client.resume() as IdxClientResult.Success<IdxResponse>
         val resumeResponse = resumeResult.result
 
-        val pollTrait = resumeResponse.remediations[0].authenticators[0].traits.get<IdxPollTrait>()!!
+        val capability = resumeResponse.remediations[0].authenticators[0].capabilities.get<IdxPollCapability>()!!
         val delays = mutableListOf<Long>()
-        pollTrait.delayFunction = { delays += it }
-        val pollResult = pollTrait.poll(client) as IdxClientResult.Success<IdxResponse>
+        capability.delayFunction = { delays += it }
+        val pollResult = capability.poll(client) as IdxClientResult.Success<IdxResponse>
 
         assertThat(pollResult.result.isLoginSuccessful).isTrue()
         assertThat(delays).containsExactly(4000L, 8000L)
@@ -82,10 +82,10 @@ class IdxPollTraitTest {
         val resumeResult = client.resume() as IdxClientResult.Success<IdxResponse>
         val resumeResponse = resumeResult.result
 
-        val pollTrait = resumeResponse.remediations[0].authenticators[0].traits.get<IdxPollTrait>()!!
+        val capability = resumeResponse.remediations[0].authenticators[0].capabilities.get<IdxPollCapability>()!!
         val delays = mutableListOf<Long>()
-        pollTrait.delayFunction = { delays += it }
-        val pollResult = pollTrait.poll(client) as IdxClientResult.Success<IdxResponse>
+        capability.delayFunction = { delays += it }
+        val pollResult = capability.poll(client) as IdxClientResult.Success<IdxResponse>
 
         assertThat(pollResult.result.remediations.first().name).isEqualTo("select-authenticator-authenticate")
         assertThat(delays).containsExactly(4000L)

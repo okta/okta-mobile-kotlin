@@ -29,13 +29,13 @@ import com.okta.idx.kotlin.client.IdxClientResult
 import com.okta.idx.kotlin.client.IdxRedirectResult
 import com.okta.idx.kotlin.dto.IdxAuthenticator
 import com.okta.idx.kotlin.dto.IdxAuthenticatorCollection
-import com.okta.idx.kotlin.dto.IdxIdpTrait
-import com.okta.idx.kotlin.dto.IdxPollTrait
-import com.okta.idx.kotlin.dto.IdxRecoverTrait
+import com.okta.idx.kotlin.dto.IdxIdpCapability
+import com.okta.idx.kotlin.dto.IdxPollCapability
+import com.okta.idx.kotlin.dto.IdxRecoverCapability
 import com.okta.idx.kotlin.dto.IdxRemediation
-import com.okta.idx.kotlin.dto.IdxResendTrait
+import com.okta.idx.kotlin.dto.IdxResendCapability
 import com.okta.idx.kotlin.dto.IdxResponse
-import com.okta.idx.kotlin.dto.IdxTotpTrait
+import com.okta.idx.kotlin.dto.IdxTotpCapability
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -153,12 +153,12 @@ internal class DynamicAuthViewModel : ViewModel() {
     }
 
     private suspend fun IdxRemediation.asTotpImageDynamicAuthField(): List<DynamicAuthField> {
-        val trait = authenticators.trait<IdxTotpTrait>() ?: return emptyList()
+        val capability = authenticators.capability<IdxTotpCapability>() ?: return emptyList()
         val bitmap = withContext(Dispatchers.Default) {
-            trait.asImage()
+            capability.asImage()
         } ?: return emptyList()
         val label = "Launch Google Authenticator, tap the \"+\" icon, then select \"Scan a QR code\"."
-        return listOf(DynamicAuthField.Image(label, bitmap, trait.sharedSecret))
+        return listOf(DynamicAuthField.Image(label, bitmap, capability.sharedSecret))
     }
 
     private fun IdxRemediation.Form.Field.asDynamicAuthFields(): List<DynamicAuthField> {
@@ -206,12 +206,12 @@ internal class DynamicAuthViewModel : ViewModel() {
     }
 
     private fun IdxRemediation.asDynamicAuthFieldResendAction(): List<DynamicAuthField> {
-        val trait = authenticators.trait<IdxResendTrait>() ?: return emptyList()
+        val capability = authenticators.capability<IdxResendCapability>() ?: return emptyList()
         if (form.visibleFields.find { it.type != "string" } == null) {
             return emptyList() // There is no way to type in the code yet.
         }
         return listOf(DynamicAuthField.Action("Resend Code") { context ->
-            proceed(trait.remediation, context)
+            proceed(capability.remediation, context)
         })
     }
 
@@ -224,8 +224,8 @@ internal class DynamicAuthViewModel : ViewModel() {
             IdxRemediation.Type.LAUNCH_AUTHENTICATOR -> "Launch Authenticator"
             IdxRemediation.Type.CANCEL -> "Restart"
             IdxRemediation.Type.REDIRECT_IDP -> {
-                traits.get<IdxIdpTrait>()?.let { trait ->
-                    "Login with ${trait.name}"
+                capabilities.get<IdxIdpCapability>()?.let { capability ->
+                    "Login with ${capability.name}"
                 } ?: "Social Login"
             }
             else -> "Continue"
@@ -236,9 +236,9 @@ internal class DynamicAuthViewModel : ViewModel() {
     }
 
     private fun IdxResponse.recoverDynamicAuthFieldAction(): List<DynamicAuthField> {
-        val recoverTrait = authenticators.current?.traits?.get<IdxRecoverTrait>() ?: return emptyList()
+        val capability = authenticators.current?.capabilities?.get<IdxRecoverCapability>() ?: return emptyList()
         return listOf(DynamicAuthField.Action("Recover") { context ->
-            proceed(recoverTrait.remediation, context)
+            proceed(capability.remediation, context)
         })
     }
 
@@ -252,10 +252,10 @@ internal class DynamicAuthViewModel : ViewModel() {
     }
 
     private fun IdxRemediation.startPolling() {
-        val trait = authenticators.trait<IdxPollTrait>() ?: return
+        val capability = authenticators.capability<IdxPollCapability>() ?: return
         val localClient = client ?: return
         pollingJob = viewModelScope.launch {
-            when (val result = trait.poll(localClient)) {
+            when (val result = capability.poll(localClient)) {
                 is IdxClientResult.Error -> {
                     _state.value = DynamicAuthState.Error("Failed to poll")
                 }
@@ -272,10 +272,10 @@ internal class DynamicAuthViewModel : ViewModel() {
     }
 
     private fun proceed(remediation: IdxRemediation, context: Context) {
-        val idpTrait = remediation.traits.get<IdxIdpTrait>()
-        if (idpTrait != null) {
+        val idpCapability = remediation.capabilities.get<IdxIdpCapability>()
+        if (idpCapability != null) {
             try {
-                val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(idpTrait.redirectUrl.toString()))
+                val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(idpCapability.redirectUrl.toString()))
                 context.startActivity(browserIntent)
             } catch (e: ActivityNotFoundException) {
                 Timber.e(e, "Failed to load URL.")
@@ -301,7 +301,7 @@ internal class DynamicAuthViewModel : ViewModel() {
     }
 }
 
-private inline fun <reified Trait : IdxAuthenticator.Trait> IdxAuthenticatorCollection.trait(): Trait? {
-    val authenticator = firstOrNull { it.traits.get<Trait>() != null } ?: return null
-    return authenticator.traits.get()
+private inline fun <reified Capability : IdxAuthenticator.Capability> IdxAuthenticatorCollection.capability(): Capability? {
+    val authenticator = firstOrNull { it.capabilities.get<Capability>() != null } ?: return null
+    return authenticator.capabilities.get()
 }

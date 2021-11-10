@@ -21,14 +21,14 @@ internal fun createRemediation(
     fields: List<IdxRemediation.Form.Field>,
     name: String = "identify",
     authenticators: List<IdxAuthenticator> = emptyList(),
-    traits: Set<IdxRemediation.Trait> = emptySet(),
+    capabilities: Set<IdxRemediation.Capability> = emptySet(),
 ): IdxRemediation {
     return IdxRemediation(
         type = IdxRemediation.Type.IDENTIFY,
         name = name,
         form = IdxRemediation.Form(fields),
         authenticators = IdxAuthenticatorCollection(authenticators),
-        traits = IdxTraitCollection(traits),
+        capabilities = IdxCapabilityCollection(capabilities),
         method = "POST",
         href = "https://test.okta.com/idp/idx/identify".toHttpUrl(),
         accepts = "application/json; okta-version=1.0.0",

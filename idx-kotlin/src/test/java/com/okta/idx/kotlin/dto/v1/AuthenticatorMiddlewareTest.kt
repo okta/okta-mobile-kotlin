@@ -17,7 +17,7 @@ package com.okta.idx.kotlin.dto.v1
 
 import com.google.common.truth.Truth.assertThat
 import com.okta.idx.kotlin.dto.IdxAuthenticator
-import com.okta.idx.kotlin.dto.IdxSendTrait
+import com.okta.idx.kotlin.dto.IdxSendCapability
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import org.junit.Test
@@ -66,9 +66,9 @@ class AuthenticatorMiddlewareTest {
         val v1Authenticator = json.decodeFromString<Authenticator>(sendAuthenticatorJson)
         val authenticator = v1Authenticator.toIdxAuthenticator(json, IdxAuthenticator.State.AUTHENTICATING)
         assertThat(authenticator.key).isEqualTo("okta_email")
-        val sendTrait = authenticator.traits.get<IdxSendTrait>()!!
+        val capability = authenticator.capabilities.get<IdxSendCapability>()!!
 
-        val requestJson = sendTrait.remediation.toJsonContent().toString()
+        val requestJson = capability.remediation.toJsonContent().toString()
         assertThat(requestJson).isEqualTo("""{"stateHandle":"02ifdLyhqQ9Il4OtUU50jCdhFeCH-bzojwfpOci9EO"}""")
     }
 }

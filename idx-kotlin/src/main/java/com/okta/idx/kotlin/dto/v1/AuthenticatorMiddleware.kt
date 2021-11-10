@@ -16,13 +16,13 @@
 package com.okta.idx.kotlin.dto.v1
 
 import com.okta.idx.kotlin.dto.IdxAuthenticator
-import com.okta.idx.kotlin.dto.IdxPollTrait
-import com.okta.idx.kotlin.dto.IdxProfileTrait
-import com.okta.idx.kotlin.dto.IdxRecoverTrait
-import com.okta.idx.kotlin.dto.IdxResendTrait
-import com.okta.idx.kotlin.dto.IdxSendTrait
-import com.okta.idx.kotlin.dto.IdxTotpTrait
-import com.okta.idx.kotlin.dto.IdxTraitCollection
+import com.okta.idx.kotlin.dto.IdxPollCapability
+import com.okta.idx.kotlin.dto.IdxProfileCapability
+import com.okta.idx.kotlin.dto.IdxRecoverCapability
+import com.okta.idx.kotlin.dto.IdxResendCapability
+import com.okta.idx.kotlin.dto.IdxSendCapability
+import com.okta.idx.kotlin.dto.IdxTotpCapability
+import com.okta.idx.kotlin.dto.IdxCapabilityCollection
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
@@ -60,14 +60,14 @@ internal fun Authenticator.toIdxAuthenticator(
     json: Json,
     state: IdxAuthenticator.State,
 ): IdxAuthenticator {
-    val traits = mutableSetOf<IdxAuthenticator.Trait>()
+    val capabilities = mutableSetOf<IdxAuthenticator.Capability>()
 
-    recover?.toIdxRemediation(json)?.let { traits += IdxRecoverTrait(it) }
-    send?.toIdxRemediation(json)?.let { traits += IdxSendTrait(it) }
-    resend?.toIdxRemediation(json)?.let { traits += IdxResendTrait(it) }
-    poll?.toIdxRemediation(json)?.let { traits += IdxPollTrait(it, poll.refresh?.toInt() ?: 0, id) }
-    profile?.let { traits += IdxProfileTrait(it) }
-    contextualData?.toQrCodeTrait()?.let { traits += it }
+    recover?.toIdxRemediation(json)?.let { capabilities += IdxRecoverCapability(it) }
+    send?.toIdxRemediation(json)?.let { capabilities += IdxSendCapability(it) }
+    resend?.toIdxRemediation(json)?.let { capabilities += IdxResendCapability(it) }
+    poll?.toIdxRemediation(json)?.let { capabilities += IdxPollCapability(it, poll.refresh?.toInt() ?: 0, id) }
+    profile?.let { capabilities += IdxProfileCapability(it) }
+    contextualData?.toQrCodeCapability()?.let { capabilities += it }
 
     return IdxAuthenticator(
         id = id,
@@ -77,7 +77,7 @@ internal fun Authenticator.toIdxAuthenticator(
         state = state,
         methods = methods.asIdxAuthenticatorMethods(),
         methodNames = methods.asMethodNames(),
-        traits = IdxTraitCollection(traits),
+        capabilities = IdxCapabilityCollection(capabilities),
     )
 }
 
@@ -135,11 +135,11 @@ private fun List<Map<String, String>>?.asMethodNames(): List<String>? {
     return result
 }
 
-private fun Map<String, JsonElement>.toQrCodeTrait(): IdxAuthenticator.Trait? {
+private fun Map<String, JsonElement>.toQrCodeCapability(): IdxAuthenticator.Capability? {
     val qrCode = get("qrcode") as? JsonObject? ?: return null
     val imageData = qrCode.stringValue("href") ?: return null
     val sharedSecret = (get("sharedSecret") as? JsonPrimitive?)?.content
-    return IdxTotpTrait(imageData = imageData, sharedSecret = sharedSecret)
+    return IdxTotpCapability(imageData = imageData, sharedSecret = sharedSecret)
 }
 
 private fun JsonObject.stringValue(key: String): String? {
