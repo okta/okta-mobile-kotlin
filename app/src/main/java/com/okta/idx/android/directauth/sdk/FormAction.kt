@@ -317,9 +317,9 @@ data class FormAction internal constructor(
             val newUserRegistrationResponse = authenticationWrapper.fetchSignUpFormValues(
                 beginResponse.proceedContext
             )
-            val attributeList = newUserRegistrationResponse.formValues[0].form.value.map {
+            val attributeList = newUserRegistrationResponse.formValues?.getOrNull(0)?.form?.value?.map {
                 RegisterForm.Attribute(it.name, it.label)
-            }
+            } ?: emptyList()
             handleTerminalTransitions(newUserRegistrationResponse)?.let { return@proceed it }
             ProceedTransition.FormTransition(
                 RegisterForm(
