@@ -16,13 +16,14 @@
 package com.okta.idx.kotlin.dto.v1
 
 import com.okta.idx.kotlin.dto.IdxAuthenticator
-import com.okta.idx.kotlin.dto.IdxPollCapability
+import com.okta.idx.kotlin.dto.IdxPollAuthenticatorCapability
 import com.okta.idx.kotlin.dto.IdxProfileCapability
 import com.okta.idx.kotlin.dto.IdxRecoverCapability
 import com.okta.idx.kotlin.dto.IdxResendCapability
 import com.okta.idx.kotlin.dto.IdxSendCapability
 import com.okta.idx.kotlin.dto.IdxTotpCapability
 import com.okta.idx.kotlin.dto.IdxCapabilityCollection
+import com.okta.idx.kotlin.dto.IdxNumberChallengeCapability
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
@@ -65,9 +66,10 @@ internal fun Authenticator.toIdxAuthenticator(
     recover?.toIdxRemediation(json)?.let { capabilities += IdxRecoverCapability(it) }
     send?.toIdxRemediation(json)?.let { capabilities += IdxSendCapability(it) }
     resend?.toIdxRemediation(json)?.let { capabilities += IdxResendCapability(it) }
-    poll?.toIdxRemediation(json)?.let { capabilities += IdxPollCapability(it, poll.refresh?.toInt() ?: 0, id) }
+    poll?.toIdxRemediation(json)?.let { capabilities += IdxPollAuthenticatorCapability(it, poll.refresh?.toInt() ?: 0, id) }
     profile?.let { capabilities += IdxProfileCapability(it) }
-    contextualData?.toQrCodeCapability()?.let { capabilities += it }
+    contextualData?.toTotpCapability()?.let { capabilities += it }
+    contextualData?.toNumberChallengeCapability()?.let { capabilities += it }
 
     return IdxAuthenticator(
         id = id,
@@ -135,11 +137,16 @@ private fun List<Map<String, String>>?.asMethodNames(): List<String>? {
     return result
 }
 
-private fun Map<String, JsonElement>.toQrCodeCapability(): IdxAuthenticator.Capability? {
+private fun Map<String, JsonElement>.toTotpCapability(): IdxAuthenticator.Capability? {
     val qrCode = get("qrcode") as? JsonObject? ?: return null
     val imageData = qrCode.stringValue("href") ?: return null
     val sharedSecret = (get("sharedSecret") as? JsonPrimitive?)?.content
     return IdxTotpCapability(imageData = imageData, sharedSecret = sharedSecret)
+}
+
+private fun Map<String, JsonElement>.toNumberChallengeCapability(): IdxAuthenticator.Capability? {
+    val correctAnswer = get("correctAnswer") as? JsonPrimitive ?: return null
+    return IdxNumberChallengeCapability(correctAnswer = correctAnswer.content)
 }
 
 private fun JsonObject.stringValue(key: String): String? {

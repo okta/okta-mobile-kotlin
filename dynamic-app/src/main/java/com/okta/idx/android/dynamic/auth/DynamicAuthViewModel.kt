@@ -30,7 +30,9 @@ import com.okta.idx.kotlin.client.IdxRedirectResult
 import com.okta.idx.kotlin.dto.IdxAuthenticator
 import com.okta.idx.kotlin.dto.IdxAuthenticatorCollection
 import com.okta.idx.kotlin.dto.IdxIdpCapability
-import com.okta.idx.kotlin.dto.IdxPollCapability
+import com.okta.idx.kotlin.dto.IdxNumberChallengeCapability
+import com.okta.idx.kotlin.dto.IdxPollAuthenticatorCapability
+import com.okta.idx.kotlin.dto.IdxPollRemediationCapability
 import com.okta.idx.kotlin.dto.IdxRecoverCapability
 import com.okta.idx.kotlin.dto.IdxRemediation
 import com.okta.idx.kotlin.dto.IdxResendCapability
@@ -133,15 +135,27 @@ internal class DynamicAuthViewModel : ViewModel() {
             return
         }
         cancelPolling()
+        var hasAddedTotpImageField = false
         val fields = mutableListOf<DynamicAuthField>()
         for (remediation in response.remediations) {
-            fields += remediation.asTotpImageDynamicAuthField()
+            fields += remediation.asTotpImageDynamicAuthField().also {
+                if (it.isNotEmpty()) {
+                    hasAddedTotpImageField = true
+                }
+            }
+            fields += remediation.asNumberChallengeField()
             for (visibleField in remediation.form.visibleFields) {
                 fields += visibleField.asDynamicAuthFields()
             }
             fields += remediation.asDynamicAuthFieldResendAction()
             fields += remediation.asDynamicAuthFieldActions()
             remediation.startPolling()
+        }
+        if (!hasAddedTotpImageField) {
+            val field = response.authenticators.current?.asTotpImageDynamicAuthField()
+            if (field != null) {
+                fields.add(0, field)
+            }
         }
         fields += response.recoverDynamicAuthFieldAction()
         fields += response.fatalErrorFieldAction()
@@ -152,13 +166,24 @@ internal class DynamicAuthViewModel : ViewModel() {
         _state.value = DynamicAuthState.Form(response, fields, messages)
     }
 
+    private fun IdxRemediation.asNumberChallengeField(): List<DynamicAuthField> {
+        val capability = authenticators.capability<IdxNumberChallengeCapability>() ?: return emptyList()
+        return listOf(DynamicAuthField.Label("Please select ${capability.correctAnswer}"))
+    }
+
     private suspend fun IdxRemediation.asTotpImageDynamicAuthField(): List<DynamicAuthField> {
-        val capability = authenticators.capability<IdxTotpCapability>() ?: return emptyList()
+        val authenticator = authenticators.firstOrNull { it.capabilities.get<IdxTotpCapability>() != null } ?: return emptyList()
+        val field = authenticator.asTotpImageDynamicAuthField() ?: return emptyList()
+        return listOf(field)
+    }
+
+    private suspend fun IdxAuthenticator.asTotpImageDynamicAuthField(): DynamicAuthField? {
+        val capability = capabilities.get<IdxTotpCapability>() ?: return null
         val bitmap = withContext(Dispatchers.Default) {
             capability.asImage()
-        } ?: return emptyList()
-        val label = "Launch Google Authenticator, tap the \"+\" icon, then select \"Scan a QR code\"."
-        return listOf(DynamicAuthField.Image(label, bitmap, capability.sharedSecret))
+        } ?: return null
+        val label = displayName ?: "Launch Google Authenticator, tap the \"+\" icon, then select \"Scan a QR code\"."
+        return DynamicAuthField.Image(label, bitmap, capability.sharedSecret)
     }
 
     private fun IdxRemediation.Form.Field.asDynamicAuthFields(): List<DynamicAuthField> {
@@ -216,6 +241,11 @@ internal class DynamicAuthViewModel : ViewModel() {
     }
 
     private fun IdxRemediation.asDynamicAuthFieldActions(): List<DynamicAuthField> {
+        // Don't show action for actions that are pollable without visible fields.
+        if (form.visibleFields.count() == 0 && capabilities.get<IdxPollRemediationCapability>() != null) {
+            return emptyList()
+        }
+
         val title = when (type) {
             IdxRemediation.Type.SKIP -> "Skip"
             IdxRemediation.Type.ENROLL_PROFILE, IdxRemediation.Type.SELECT_ENROLL_PROFILE -> "Sign Up"
@@ -230,6 +260,7 @@ internal class DynamicAuthViewModel : ViewModel() {
             }
             else -> "Continue"
         }
+
         return listOf(DynamicAuthField.Action(title) { context ->
             proceed(this, context)
         })
@@ -252,10 +283,27 @@ internal class DynamicAuthViewModel : ViewModel() {
     }
 
     private fun IdxRemediation.startPolling() {
-        val capability = authenticators.capability<IdxPollCapability>() ?: return
         val localClient = client ?: return
+
+        val pollFunction: suspend (IdxClient) -> IdxClientResult<IdxResponse>
+
+        val remediationCapability = capabilities.get<IdxPollRemediationCapability>()
+        val authenticatorCapability = authenticators.capability<IdxPollAuthenticatorCapability>()
+
+        when {
+            remediationCapability != null -> {
+                pollFunction = remediationCapability::poll
+            }
+            authenticatorCapability != null -> {
+                pollFunction = authenticatorCapability::poll
+            }
+            else -> {
+                return
+            }
+        }
+
         pollingJob = viewModelScope.launch {
-            when (val result = capability.poll(localClient)) {
+            when (val result = pollFunction(localClient)) {
                 is IdxClientResult.Error -> {
                     _state.value = DynamicAuthState.Error("Failed to poll")
                 }

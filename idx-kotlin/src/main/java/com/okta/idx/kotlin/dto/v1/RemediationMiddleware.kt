@@ -22,6 +22,7 @@ import com.okta.idx.kotlin.dto.IdxMessageCollection
 import com.okta.idx.kotlin.dto.IdxRemediation
 import com.okta.idx.kotlin.dto.IdxRemediationCollection
 import com.okta.idx.kotlin.dto.IdxCapabilityCollection
+import com.okta.idx.kotlin.dto.IdxPollRemediationCapability
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.serializer
@@ -68,7 +69,7 @@ internal fun Form.toIdxRemediation(
         }
     }
 
-    return IdxRemediation(
+    val remediation = IdxRemediation(
         type = remediationType,
         name = name,
         form = form,
@@ -78,6 +79,10 @@ internal fun Form.toIdxRemediation(
         href = href,
         accepts = accepts,
     )
+
+    toIdxPollRemediationCapability(remediation)?.let { capabilities += it }
+
+    return remediation
 }
 
 private fun Form.toIdxIdpCapability(): IdxIdpCapability? {
@@ -92,6 +97,13 @@ private fun Form.toIdxIdpCapability(): IdxIdpCapability? {
         )
     }
     return null
+}
+
+private fun Form.toIdxPollRemediationCapability(remediation: IdxRemediation): IdxPollRemediationCapability? {
+    if (refresh == null) {
+        return null
+    }
+    return IdxPollRemediationCapability(remediation, refresh.toInt())
 }
 
 private fun FormValue.toIdxField(
@@ -111,11 +123,12 @@ private fun FormValue.toIdxField(
     var actualValue = value
     if (value is JsonObject) {
         val serializer = json.serializersModule.serializer<CompositeFormValue?>()
-        valueAsForm = json.decodeFromJsonElement(serializer, value["form"]!!)
-        if (valueAsForm != null) {
-            actualValue = null
-        } else {
-            actualValue = value
+        val formValue = value["form"]
+        if (formValue != null) {
+            valueAsForm = json.decodeFromJsonElement(serializer, formValue)
+            if (valueAsForm != null) {
+                actualValue = null
+            }
         }
     }
 

@@ -97,6 +97,15 @@ class IdxResponseTest {
         assertThat(idxResponse.remediations[0].authenticators[0]).isEqualTo(currentAuthenticator)
     }
 
+    @Test fun testOktaVerifyQrCode() {
+        val idxResponse = getIdxResponse("okta_verify_qr.json")
+
+        val currentAuthenticator = idxResponse.authenticators.current!!
+        val capability = currentAuthenticator.capabilities.get<IdxTotpCapability>()!!
+        assertThat(capability.imageData).isEqualTo("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAADICAYAAACtWK6eAAAFsElEQVR42u3dQW7jMBAEQP//08kh5wAJxO4ZSdXAXgyvI1ssQzMyyc+XiPyaj49ABBARQEQAEQFEBBARQEQAEQFEBBARAUQEEBFARAARAUQEEBFARAARAUQEEBEBRAQQEUBEABEBRASQnz/0+Rz/99vr//fv/uWYr7zfU89Jf1aJ95I+74AAAggggAACyJE3eOWk//ckJv5v86RfAXhlkDfPOyCAAAIIIIAAcmTwXBmozevnK3VZGuaV40kffxoaIIAAAggggABSA3JqwEy1iJsQmu1fQAABBBBAAAFkHMipgZSoLxJ1zVRNdJfzDggggAACCCAvB5L4wBPt0DtCO1VHNJ+ffh1AAAEEEEAAeTCQqfkgHp993HwQQDwOCCAeB+TWSbdGm3fYN7SXN7dhAQEEEEAAAeTlQE4Nwuad9Kn3lbgOn6rpml9cgAACCCCAAPLyLlZiPsK2wZNeOK75nFO/IjhVSwICCCCAAAIIINFBlb7bm7j2PlUHTbVqE8eWwAUIIIAAAgggapCRQZs+uYnXTwzm9OBstpEBAQQQQAAB5OWLNjQXK9u86FmzrZre2uAu2ygAAggggAACyEtqkFPPn1p1JN2GTc/vSNeG6fk1gAACCCCAAALI8QGWrnfS7cqpORR3uZMOCCCAAAIIIIBEW77pVnAa5tTKIRuOf8NOYYAAAggggADyYCBT196JVVCmXr+5KFxzXkyz/Q4IIIAAAgggL2/zbmj9bViRY8OU3lODPFFLAgIIIIAAAsjLgTSvk9Ntz0T9NTVf5tS5a9ZxgAACCCCAAAJI7fp/w6Da0L5OfxFN3UnX5gUEEEAAAQSQ49f/6evb5u5Xm9cHnvrcAAEEEEAAAQSQ8VojMWibr9N8TnobiOacmte2eQEBBBBAAAHk7MCb2kM88Xi6DdtsazfbyytuNwACCCCAAALIfYAkrj/T2wScgpb4hcDU53nlOO0wBQgggAACCCDRGmTqGvjUIE/XL+nNQxN1ROLzfG2RDggggAACCCCdGqFZ46Tbudtqq+YKJKbcAgIIIIAAAsjMgS27Bk60MadWbtmw37rtDwABBBBAAAFkpM2bOKFTU2LT7eLmsSVaypvbv4AAAggggAByoxpk6gd4U7VS8zWbNcKpVvDmeSKAAAIIIIAA8oAaZMPWBs11ek89P323far+WnG7ARBAAAEEEEDuU4NMtXObuzJN1W7NFWCm6ixAAAEEEEAAAeTI4GzWHekfK55qezb/1tQPJjd8QQECCCCAAALITYGkr10T7dPENXNiwbomxqe2fwEBBBBAAAHkAUA2DP5TgyG9+1KzDZ6oZW7TWgcEEEAAAQSQ+wCZ2mUpXTuktwBIt1ib7d/NrV1AAAEEEEAAeUANMjX/It2CbtYsG1YjeRIKQAABBBBAAHlADZK+xk7cQW5uypn40WBzynNz01JAAAEEEEAAUYMcuT5Pv87UHed0nXLqfE1t8QAIIIAAAggggNSuwzcsFre5LZxouTenPAMCCCCAAAIIILWW4JXBPLXBZQLOhjZv4ssQEEAAAQQQQACpoZjatmDDqikbpuWm35cdpgABBBBAAAFkVabuFG/4Qmi2rJt11qum3AICCCCAAAJIrgaZmjravO6dahGna8bm4nuAAAIIIIAAAkj0xCU+8Kl9xtOt6an3fupv2WEKEEAAAQQQQKIfSKL1mm6xbribPLXu8dTqMYAAAggggAACyMh+5ek909N3q6cG0oaWOCCAAAIIIIAAMgKk2VJOzLNo/qLgCop0O1oNAggggAACCCC168mpu9ibp/dubi+fwvLaGgQQQAABBBBArg+2ROs1/YO95gBL30lv1gVWNQEEEEAAAQQQkdcGEBFARAARAUQEEBFARAARAUQEEBFARAQQEUBEABEBRAQQEUBEABEBRAQQEUBEBBARQEQAEQFEBBARQETum2/pyu35abCtMAAAAABJRU5ErkJggg==")
+        assertThat(capability.sharedSecret).isNull()
+    }
+
     @Test fun testFieldError() {
         val idxResponse = getIdxResponse("field_error.json")
 
@@ -167,17 +176,49 @@ class IdxResponseTest {
         assertThat(requestJson).isEqualTo("""{"credentials":{"questionKey":"custom","question":"Favorite Marvel Movie","answer":"Iron Man"},"stateHandle":"02QPkKzfnfgzF5qcKwWW-o39cODD1_MNgnPoiOclXg"}""")
     }
 
-    @Test fun testPoll() {
+    @Test fun testAuthenticatorPoll() {
         val idxResponse = getIdxResponse("challenge_email.json")
 
         val remediation = idxResponse.remediations.first()
         val authenticator = remediation.authenticators.first()
-        val capability = authenticator.capabilities.get<IdxPollCapability>()!!
+        val capability = authenticator.capabilities.get<IdxPollAuthenticatorCapability>()!!
 
         assertThat(capability.wait).isEqualTo(4000)
         assertThat(capability.authenticatorId).isEqualTo("eaewrvclbBPr2PAxl5d6")
 
         val requestJson = capability.remediation.toJsonContent().toString()
         assertThat(requestJson).isEqualTo("""{"stateHandle":"02ifdLyhqQ9Il4OtUU50jCdhFeCH-bzojwfpOci9EO"}""")
+    }
+
+    @Test fun testRemediationPoll() {
+        val idxResponse = getIdxResponse("okta_verify_qr.json")
+
+        val remediation = idxResponse.remediations.first()
+        val capability = remediation.capabilities.get<IdxPollRemediationCapability>()!!
+
+        assertThat(capability.wait).isEqualTo(4000)
+        assertThat(capability.remediation.name).isEqualTo("enroll-poll")
+
+        val requestJson = capability.remediation.toJsonContent().toString()
+        assertThat(requestJson).isEqualTo("""{"stateHandle":"02hUmfzZSBYAr-YW6_kM0bjTrRVHTiACxpY1WwIReS"}""")
+    }
+
+    @Test fun testNumberChallenge() {
+        val idxResponse = getIdxResponse("okta_verify_number_challenge.json")
+
+        val authenticator = idxResponse.authenticators.current!!
+        val capability = authenticator.capabilities.get<IdxNumberChallengeCapability>()!!
+
+        assertThat(capability.correctAnswer).isEqualTo("96")
+    }
+
+    @Test fun testOktaVerifyResend() {
+        val idxResponse = getIdxResponse("okta_verify_number_challenge.json")
+
+        val authenticator = idxResponse.authenticators.current!!
+        val capability = authenticator.capabilities.get<IdxResendCapability>()!!
+
+        val requestJson = capability.remediation.toJsonContent().toString()
+        assertThat(requestJson).isEqualTo("""{"authenticator":{"methodType":"push","id":"aut8foudqBsFvwfPs696"},"stateHandle":"020mkq9YfZEnKLsbniGtkpY29qWLsz7QCZdKnTVnLS"}""")
     }
 }

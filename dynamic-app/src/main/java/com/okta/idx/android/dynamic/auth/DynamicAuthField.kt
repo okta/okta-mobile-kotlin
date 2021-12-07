@@ -112,6 +112,10 @@ sealed class DynamicAuthField {
         val sharedSecret: String?,
     ) : DynamicAuthField()
 
+    data class Label(
+        val label: String,
+    ) : DynamicAuthField()
+
     open fun validate(): Boolean {
         return true
     }

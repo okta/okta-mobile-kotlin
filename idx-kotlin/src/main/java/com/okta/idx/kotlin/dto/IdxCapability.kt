@@ -49,6 +49,58 @@ class IdxIdpCapability internal constructor(
     val redirectUrl: HttpUrl,
 ) : IdxRemediation.Capability
 
+/** Describes the poll action associated with an [IdxRemediation]. */
+class IdxPollRemediationCapability internal constructor(
+    /** The [IdxRemediation] associated with the poll action. */
+    internal val remediation: IdxRemediation,
+
+    /** The wait between each poll in milliseconds. */
+    internal val wait: Int,
+) : IdxRemediation.Capability {
+    /** Available to allow testing without a real delay. */
+    internal var delayFunction: suspend (Long) -> Unit = ::delay
+
+    /**
+     * Poll the IDX APIs with the configuration provided from the [IdxRemediation].
+     *
+     * All polling delay/retry logic is handled internally.
+     *
+     * @return the [IdxClientResult] when the state changes.
+     */
+    suspend fun poll(client: IdxClient): IdxClientResult<IdxResponse> {
+        var result: IdxClientResult<IdxResponse>
+        var currentWait = wait
+        var currentRemediation = remediation
+        do {
+            delayFunction(currentWait.toLong())
+            result = client.proceed(currentRemediation)
+            if (result is IdxClientResult.Error) {
+                return result
+            }
+            val successResult = result as? IdxClientResult.Success<IdxResponse>
+            val remediations = successResult?.result?.remediations ?: return result
+
+            var pollCapability: IdxPollRemediationCapability? = null
+
+            for (r in remediations) {
+                val capability = r.capabilities.get<IdxPollRemediationCapability>()
+                if (capability != null) {
+                    pollCapability = capability
+                    break
+                }
+            }
+
+            if (pollCapability == null) {
+                return result
+            }
+
+            currentWait = pollCapability.wait
+            currentRemediation = pollCapability.remediation
+        } while (remediation.name == currentRemediation.name)
+        return result
+    }
+}
+
 /** Describes the recover action associated with an [IdxAuthenticator]. */
 class IdxRecoverCapability internal constructor(
     /** The [IdxRemediation] associated with the recover action. */
@@ -68,7 +120,7 @@ class IdxResendCapability internal constructor(
 ) : IdxAuthenticator.Capability
 
 /** Describes the poll action associated with an [IdxAuthenticator]. */
-class IdxPollCapability internal constructor(
+class IdxPollAuthenticatorCapability internal constructor(
     /** The [IdxRemediation] associated with the poll action. */
     internal val remediation: IdxRemediation,
     /** The wait between each poll in milliseconds. */
@@ -100,7 +152,7 @@ class IdxPollCapability internal constructor(
             val successResult = result as? IdxClientResult.Success<IdxResponse>
             val currentAuthenticator = successResult?.result?.authenticators?.current ?: return result
             currentAuthenticatorId = currentAuthenticator.id
-            val pollCapability = currentAuthenticator.capabilities.get<IdxPollCapability>() ?: return result
+            val pollCapability = currentAuthenticator.capabilities.get<IdxPollAuthenticatorCapability>() ?: return result
             currentWait = pollCapability.wait
             currentRemediation = pollCapability.remediation
         } while (authenticatorId == currentAuthenticatorId)
@@ -128,3 +180,9 @@ class IdxTotpCapability internal constructor(
         return BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
     }
 }
+
+/** Describes the Number Challenge information associated with an [IdxAuthenticator]. */
+class IdxNumberChallengeCapability internal constructor(
+    /** The challenge the user is prompted to select. */
+    val correctAnswer: String,
+) : IdxAuthenticator.Capability

@@ -46,6 +46,7 @@ import android.widget.Toast
 
 import androidx.core.content.ContextCompat.getSystemService
 import androidx.core.view.iterator
+import com.okta.idx.android.dynamic.databinding.FormLabelBinding
 import com.okta.idx.android.dynamic.databinding.FormOptionNestedBinding
 
 internal class DynamicAuthFragment : BaseFragment<FragmentDynamicAuthBinding>(
@@ -204,6 +205,11 @@ internal class DynamicAuthFragment : BaseFragment<FragmentDynamicAuthBinding>(
                     }
                 }
                 imageBinding.root
+            }
+            is DynamicAuthField.Label -> {
+                val binding = binding.formContent.inflateBinding(FormLabelBinding::inflate)
+                binding.labelTextView.text = label
+                binding.root
             }
         }
     }
