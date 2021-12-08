@@ -130,6 +130,7 @@ class IdxRemediation internal constructor(
         CANCEL_TRANSACTION,
         SKIP,
         CHALLENGE_POLL,
+        UNLOCK_ACCOUNT,
     }
 
     /**

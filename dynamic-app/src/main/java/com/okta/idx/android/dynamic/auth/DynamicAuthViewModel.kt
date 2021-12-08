@@ -253,6 +253,7 @@ internal class DynamicAuthViewModel : ViewModel() {
             IdxRemediation.Type.SELECT_AUTHENTICATOR_AUTHENTICATE, IdxRemediation.Type.SELECT_AUTHENTICATOR_ENROLL -> "Choose"
             IdxRemediation.Type.LAUNCH_AUTHENTICATOR -> "Launch Authenticator"
             IdxRemediation.Type.CANCEL -> "Restart"
+            IdxRemediation.Type.UNLOCK_ACCOUNT -> "Unlock Account"
             IdxRemediation.Type.REDIRECT_IDP -> {
                 capabilities.get<IdxIdpCapability>()?.let { capability ->
                     "Login with ${capability.name}"

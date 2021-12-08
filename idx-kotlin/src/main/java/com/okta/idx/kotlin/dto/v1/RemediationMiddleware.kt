@@ -192,6 +192,7 @@ private fun String.toRemediationType(): IdxRemediation.Type {
         "cancel-transaction" -> IdxRemediation.Type.CANCEL_TRANSACTION
         "skip" -> IdxRemediation.Type.SKIP
         "challenge-poll" -> IdxRemediation.Type.CHALLENGE_POLL
+        "unlock-account" -> IdxRemediation.Type.UNLOCK_ACCOUNT
         else -> IdxRemediation.Type.UNKNOWN
     }
 }

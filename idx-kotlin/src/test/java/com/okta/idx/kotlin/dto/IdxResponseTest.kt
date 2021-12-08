@@ -239,4 +239,16 @@ class IdxResponseTest {
         assertThat(capability.age.minAgeMinutes).isEqualTo(120)
         assertThat(capability.age.historyCount).isEqualTo(4)
     }
+
+    @Test fun testUnlockAccount() {
+        val idxResponse = getIdxResponse("idx_response.json")
+        assertThat(idxResponse).isNotNull()
+
+        val remediation = idxResponse.remediations[IdxRemediation.Type.UNLOCK_ACCOUNT]!!
+
+        assertThat(remediation.type).isEqualTo(IdxRemediation.Type.UNLOCK_ACCOUNT)
+
+        val requestJson = remediation.toJsonContent().toString()
+        assertThat(requestJson).isEqualTo("""{"stateHandle":"029ZAB"}""")
+    }
 }

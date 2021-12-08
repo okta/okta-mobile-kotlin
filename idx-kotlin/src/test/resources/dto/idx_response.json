@@ -76,6 +76,21 @@
         },
         "href": "https://foo.oktapreview.com/oauth2/ausko2zk1B3kDU2d65d6/v1/authorize?client_id=0oal2s4yhspmifyt65d6&request_uri=urn:okta:bGNlQkY4NzltNXRWeHNheUlOVVJwOWN2Rk1DSElfS0JQVUlSaE5LWlQtTTowb2Fyc2Q5dWZmUjh0alNBTDVkNg",
         "method": "GET"
+      },
+      {
+        "rel": ["create-form"],
+        "name": "unlock-account",
+        "href": "https://foo.oktapreview.com/idp/idx/unlock-account",
+        "method": "POST",
+        "produces": "application/ion+json; okta-version=1.0.0",
+        "value": [{
+          "name": "stateHandle",
+          "required": true,
+          "value": "029ZAB",
+          "visible": false,
+          "mutable": false
+        }],
+        "accepts": "application/json; okta-version=1.0.0"
       }
     ]
   },
