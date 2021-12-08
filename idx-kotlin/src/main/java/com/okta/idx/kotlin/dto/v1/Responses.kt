@@ -109,14 +109,37 @@ internal data class Authenticator(
     val type: String,
     val key: String? = null,
     val methods: List<Map<String, String>>? = null,
-    val settings: Map<String, JsonElement>? = null,
+    val settings: Settings? = null,
     val contextualData: Map<String, JsonElement>? = null,
     val profile: Map<String, String>? = null,
     val send: Form? = null,
     val resend: Form? = null,
     val poll: Form? = null,
     val recover: Form? = null,
-)
+) {
+    @Serializable
+    internal data class Settings(
+        val complexity: Complexity,
+        val age: Age,
+    ) {
+        @Serializable
+        internal data class Complexity(
+            val minLength: Int,
+            val minLowerCase: Int,
+            val minUpperCase: Int,
+            val minNumber: Int,
+            val minSymbol: Int,
+            val excludeUsername: Boolean,
+            val excludeAttributes: List<String>,
+        )
+
+        @Serializable
+        internal data class Age(
+            val minAgeMinutes: Int,
+            val historyCount: Int,
+        )
+    }
+}
 
 @Serializable
 internal data class Form(

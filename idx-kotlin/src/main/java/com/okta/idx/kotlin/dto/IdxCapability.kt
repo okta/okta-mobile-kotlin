@@ -186,3 +186,37 @@ class IdxNumberChallengeCapability internal constructor(
     /** The challenge the user is prompted to select. */
     val correctAnswer: String,
 ) : IdxAuthenticator.Capability
+
+/** Describes the Password Settings associated with an [IdxAuthenticator]. */
+class IdxPasswordSettingsCapability internal constructor(
+    /** The associated [IdxPasswordSettingsCapability.Complexity] requirements. */
+    val complexity: Complexity,
+    /** The associated [IdxPasswordSettingsCapability.Age] requirements. */
+    val age: Age,
+) : IdxAuthenticator.Capability {
+    /** The associated password complexity requirements. */
+    class Complexity internal constructor(
+        /** The minimum length of the password. */
+        val minLength: Int,
+        /** The minimum number of lower case characters the password requires. */
+        val minLowerCase: Int,
+        /** The minimum number of upper case characters the password requires. */
+        val minUpperCase: Int,
+        /** The minimum number of number characters the password requires. */
+        val minNumber: Int,
+        /** The minimum number of symbol characters the password requires. */
+        val minSymbol: Int,
+        /** True if the password must exclude the username. */
+        val excludeUsername: Boolean,
+        /** The list of attributes the password must exclude. */
+        val excludeAttributes: List<String>,
+    )
+
+    /** The associated password age requirements. */
+    class Age internal constructor(
+        /** The minimum number of minutes since the password was used. */
+        val minAgeMinutes: Int,
+        /** The number of previous iterations of the password that must not be used. */
+        val historyCount: Int,
+    )
+}

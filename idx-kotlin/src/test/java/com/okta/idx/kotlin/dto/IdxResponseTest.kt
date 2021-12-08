@@ -221,4 +221,22 @@ class IdxResponseTest {
         val requestJson = capability.remediation.toJsonContent().toString()
         assertThat(requestJson).isEqualTo("""{"authenticator":{"methodType":"push","id":"aut8foudqBsFvwfPs696"},"stateHandle":"020mkq9YfZEnKLsbniGtkpY29qWLsz7QCZdKnTVnLS"}""")
     }
+
+    @Test fun testPasswordSettings() {
+        val idxResponse = getIdxResponse("enroll_password.json")
+
+        val authenticator = idxResponse.authenticators.current!!
+        val capability = authenticator.capabilities.get<IdxPasswordSettingsCapability>()!!
+
+        assertThat(capability.complexity.minLength).isEqualTo(8)
+        assertThat(capability.complexity.minLowerCase).isEqualTo(1)
+        assertThat(capability.complexity.minUpperCase).isEqualTo(1)
+        assertThat(capability.complexity.minNumber).isEqualTo(1)
+        assertThat(capability.complexity.minSymbol).isEqualTo(1)
+        assertThat(capability.complexity.excludeUsername).isEqualTo(true)
+        assertThat(capability.complexity.excludeAttributes).isEqualTo(listOf("firstName", "lastName"))
+
+        assertThat(capability.age.minAgeMinutes).isEqualTo(120)
+        assertThat(capability.age.historyCount).isEqualTo(4)
+    }
 }

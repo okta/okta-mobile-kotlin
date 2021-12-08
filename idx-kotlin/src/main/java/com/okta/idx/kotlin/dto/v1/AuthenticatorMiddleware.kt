@@ -24,6 +24,7 @@ import com.okta.idx.kotlin.dto.IdxSendCapability
 import com.okta.idx.kotlin.dto.IdxTotpCapability
 import com.okta.idx.kotlin.dto.IdxCapabilityCollection
 import com.okta.idx.kotlin.dto.IdxNumberChallengeCapability
+import com.okta.idx.kotlin.dto.IdxPasswordSettingsCapability
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
@@ -70,6 +71,7 @@ internal fun Authenticator.toIdxAuthenticator(
     profile?.let { capabilities += IdxProfileCapability(it) }
     contextualData?.toTotpCapability()?.let { capabilities += it }
     contextualData?.toNumberChallengeCapability()?.let { capabilities += it }
+    settings?.toIdxPasswordSettings()?.let { capabilities += it }
 
     return IdxAuthenticator(
         id = id,
@@ -147,6 +149,24 @@ private fun Map<String, JsonElement>.toTotpCapability(): IdxAuthenticator.Capabi
 private fun Map<String, JsonElement>.toNumberChallengeCapability(): IdxAuthenticator.Capability? {
     val correctAnswer = get("correctAnswer") as? JsonPrimitive ?: return null
     return IdxNumberChallengeCapability(correctAnswer = correctAnswer.content)
+}
+
+private fun Authenticator.Settings.toIdxPasswordSettings(): IdxAuthenticator.Capability? {
+    return IdxPasswordSettingsCapability(
+        complexity = IdxPasswordSettingsCapability.Complexity(
+            minLength = complexity.minLength,
+            minLowerCase = complexity.minLowerCase,
+            minUpperCase = complexity.minUpperCase,
+            minNumber = complexity.minNumber,
+            minSymbol = complexity.minSymbol,
+            excludeUsername = complexity.excludeUsername,
+            excludeAttributes = complexity.excludeAttributes,
+        ),
+        age = IdxPasswordSettingsCapability.Age(
+            minAgeMinutes = age.minAgeMinutes,
+            historyCount = age.historyCount,
+        ),
+    )
 }
 
 private fun JsonObject.stringValue(key: String): String? {
