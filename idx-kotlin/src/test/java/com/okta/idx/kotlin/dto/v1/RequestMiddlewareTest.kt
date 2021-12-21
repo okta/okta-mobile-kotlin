@@ -96,4 +96,18 @@ class RequestMiddlewareTest {
         assertThat(buffer.readUtf8()).isEqualTo("client_id=test&scope=openid%20email%20profile%20offline_access&code_challenge=JBP7NwmwWTnwTPLpL30Il_wllvmtC4qeqFXHv-uq6JI&code_challenge_method=S256&redirect_uri=test.okta.com%2Flogin&state=randomGen")
         assertThat(request.body?.contentType()).isEqualTo("application/x-www-form-urlencoded".toMediaType())
     }
+
+    @Test fun testInteractContextWithExtraParameters() {
+        val extraParameters = mapOf(Pair("recovery_token", "secret"))
+        val interactContext = InteractContext.create(configuration, extraParameters, codeVerifier = "asdfasdf", state = "randomGen")
+        assertThat(interactContext.codeVerifier).isEqualTo("asdfasdf")
+        assertThat(interactContext.state).isEqualTo("randomGen")
+        val request = interactContext.request
+        assertThat(request.url).isEqualTo("https://test.okta.com/oauth2/default/v1/interact".toHttpUrl())
+        assertThat(request.method).isEqualTo("POST")
+        val buffer = Buffer()
+        request.body?.writeTo(buffer)
+        assertThat(buffer.readUtf8()).isEqualTo("client_id=test&scope=openid%20email%20profile%20offline_access&code_challenge=JBP7NwmwWTnwTPLpL30Il_wllvmtC4qeqFXHv-uq6JI&code_challenge_method=S256&redirect_uri=test.okta.com%2Flogin&state=randomGen&recovery_token=secret")
+        assertThat(request.body?.contentType()).isEqualTo("application/x-www-form-urlencoded".toMediaType())
+    }
 }

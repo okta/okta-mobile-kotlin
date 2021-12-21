@@ -22,6 +22,7 @@ import com.okta.idx.kotlin.dto.TokenResponse
 import com.okta.idx.kotlin.dto.createRemediation
 import com.okta.idx.kotlin.infrastructure.network.NetworkRule
 import com.okta.idx.kotlin.infrastructure.network.RequestMatchers.body
+import com.okta.idx.kotlin.infrastructure.network.RequestMatchers.bodyContaining
 import com.okta.idx.kotlin.infrastructure.network.RequestMatchers.path
 import com.okta.idx.kotlin.infrastructure.testBodyFromFile
 import kotlinx.coroutines.runBlocking
@@ -46,6 +47,19 @@ class IdxClientTest {
         }
 
         val clientResult = IdxClient.start(getConfiguration()) as IdxClientResult.Success<IdxClient>
+        assertThat(clientResult.result.clientContext.interactionHandle).isEqualTo("029ZAB")
+    }
+
+    @Test fun testStartWithExtraParameters(): Unit = runBlocking {
+        networkRule.enqueue(
+            path("/oauth2/default/v1/interact"),
+            bodyContaining("&recovery_token=secret123")
+        ) { response ->
+            response.testBodyFromFile("client/interactResponse.json")
+        }
+
+        val extraParameters = mapOf(Pair("recovery_token", "secret123"))
+        val clientResult = IdxClient.start(getConfiguration(), extraParameters) as IdxClientResult.Success<IdxClient>
         assertThat(clientResult.result.clientContext.interactionHandle).isEqualTo("029ZAB")
     }
 

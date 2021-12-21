@@ -143,6 +143,7 @@ internal class InteractContext private constructor(
     companion object {
         fun create(
             configuration: IdxClientConfiguration,
+            extraParameters: Map<String, String> = emptyMap(),
             codeVerifier: String = PkceGenerator.codeVerifier(),
             state: String = UUID.randomUUID().toString(),
         ): InteractContext {
@@ -157,11 +158,14 @@ internal class InteractContext private constructor(
                 .add("code_challenge_method", PkceGenerator.CODE_CHALLENGE_METHOD)
                 .add("redirect_uri", configuration.redirectUri)
                 .add("state", state)
-                .build()
+
+            for (extraParameter in extraParameters) {
+                formBody.add(extraParameter.key, extraParameter.value)
+            }
 
             val request = Request.Builder()
                 .url(urlBuilder.build())
-                .post(formBody)
+                .post(formBody.build())
                 .build()
 
             return InteractContext(codeVerifier, state, request)

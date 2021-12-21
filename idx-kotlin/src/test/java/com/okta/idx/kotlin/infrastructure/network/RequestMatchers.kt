@@ -58,6 +58,13 @@ object RequestMatchers {
         }
     }
 
+    fun bodyContaining(partial: String): RequestMatcher {
+        return { request ->
+            val actual = request.bodyText
+            actual.contains(partial)
+        }
+    }
+
     fun header(key: String, value: String): RequestMatcher {
         return { request ->
             val actual = request.headers[key]

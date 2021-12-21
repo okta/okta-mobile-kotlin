@@ -42,9 +42,12 @@ class IdxClient internal constructor(
         /**
          * Used to create an IdxClient, and to start an authorization flow.
          */
-        suspend fun start(configuration: IdxClientConfiguration): IdxClientResult<IdxClient> {
+        suspend fun start(
+            configuration: IdxClientConfiguration,
+            extraRequestParameters: Map<String, String> = emptyMap(),
+        ): IdxClientResult<IdxClient> {
             val interactContext = withContext(configuration.computationDispatcher) {
-                InteractContext.create(configuration)
+                InteractContext.create(configuration, extraRequestParameters)
             }
 
             return configuration.performRequest<InteractResponse, IdxClient>(interactContext.request) {
