@@ -46,6 +46,7 @@ Feature: 4.1 Self Service Registration with Email Activation And optional SMS
     And she submits the verify form
     Then she sees the list of authenticators
     When she selects Phone from the list
+    When she selects SMS from the list
     And she inputs a valid phone number
     And submits the enrollment form
     Then the screen changes to receive an input for a code
@@ -86,6 +87,7 @@ Feature: 4.1 Self Service Registration with Email Activation And optional SMS
     And she submits the verify form
     Then she sees the list of authenticators
     When she selects Phone from the list
+    When she selects SMS from the list
     And she inputs an invalid phone number
     And submits the enrollment form
     Then she should see a message "Unable to initiate factor enrollment: Invalid Phone Number"

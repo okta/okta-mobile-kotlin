@@ -17,19 +17,22 @@ package com.okta.idx.android.cucumber.hooks
 
 import com.okta.idx.android.infrastructure.management.OktaManagementSdk
 import com.okta.sdk.resource.group.Group
-import io.cucumber.core.api.Scenario
 import io.cucumber.java.Before
 import org.junit.Assert
 import java.util.function.Consumer
 import java.util.stream.Collectors
 
 class RequireGroupsForUser {
-    @Before("@requireMFAGroupsForUser") fun assignMFAGroupBeforeScenario(scenario: Scenario) {
+    @Before("@requireMFAGroupsForUser") fun assignMFAGroupBeforeScenario() {
         assignGroupForUser("MFA Required")
     }
 
-    @Before("@requirePhoneGroupForUser") fun assignPhoneGroupBeforeScenario(scenario: Scenario) {
+    @Before("@requirePhoneGroupForUser") fun assignPhoneGroupBeforeScenario() {
         assignGroupForUser("Phone Enrollment Required")
+    }
+
+    @Before("@requireSecurityQuestionGroupForUser") fun assignSecurityQuestionGroup() {
+        assignGroupForUser("RequireSecurityQuestion")
     }
 
     private fun assignGroupForUser(groupName: String) {

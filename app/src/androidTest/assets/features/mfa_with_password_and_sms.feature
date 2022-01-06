@@ -10,6 +10,7 @@ Feature: 6.2 Multi-Factor Authentication with Password and SMS
     And she submits the Login form
     Then she is presented with a list of factors
     When she selects Phone from the list
+    When she selects SMS from the list
     And she inputs a valid phone number
     And submits the enrollment form
     Then the screen changes to receive an input for a code
@@ -45,6 +46,7 @@ Feature: 6.2 Multi-Factor Authentication with Password and SMS
     And she submits the Login form
     Then she is presented with a list of factors
     When she selects Phone from the list
+    When she selects SMS from the list
     And she inputs an invalid phone number
     And submits the enrollment form
     Then she should see a message "Unable to initiate factor enrollment: Invalid Phone Number"
@@ -59,6 +61,7 @@ Feature: 6.2 Multi-Factor Authentication with Password and SMS
     And she submits the Login form
     Then she is presented with a list of factors
     When she selects Phone from the list
+    When she selects SMS from the list
     And she inputs a valid phone number
     And submits the enrollment form
     Then the screen changes to receive an input for a code

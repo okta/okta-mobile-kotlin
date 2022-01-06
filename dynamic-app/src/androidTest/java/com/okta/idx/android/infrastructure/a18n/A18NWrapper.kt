@@ -79,6 +79,22 @@ object A18NWrapper {
         }
     }
 
+    fun getMagicLinkFromEmail(profile: A18NProfile, resendLambda: () -> Unit): String {
+        val request = Builder()
+            .url(profile.url + "/email/latest/content")
+            .build()
+        return runWithRetry(500, resendLambda) {
+            var result: String? = null
+            client.newCall(request).execute().use {
+                val emailContent = it.body?.string()
+                if (emailContent != null) {
+                    result = fetchMagicLinkFromEmail(emailContent)
+                }
+                result
+            }
+        }
+    }
+
     fun getCodeFromPhone(profile: A18NProfile, resendLambda: () -> Unit): String {
         val request = Builder()
             .url(profile.url + "/sms/latest/content")
@@ -131,6 +147,12 @@ object A18NWrapper {
         val pattern = Pattern.compile("To verify manually, enter this code: (\\d{6})")
         val matcher = pattern.matcher(emailContent)
         return if (matcher.find()) matcher.group(1) else null
+    }
+
+    private fun fetchMagicLinkFromEmail(emailContent: String): String? {
+        val pattern = Pattern.compile("https://.*/email/verify\\?token=.*")
+        val matcher = pattern.matcher(emailContent)
+        return if (matcher.find()) matcher.group() else null
     }
 
     private fun fetchCodeFromPasswordResetEmail(smsContent: String): String? {

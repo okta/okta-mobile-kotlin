@@ -56,19 +56,19 @@ internal class SocialDefinitions {
         }
 
         Thread.sleep(2000)
-        execShellCommand("stop com.android.chrome")
+        execShellCommand("am force-stop com.android.chrome")
         Thread.sleep(2000)
     }
 
     @And("^logs in to Okta OIDC$") fun logs_in_to_okta_oidc() {
-        fillInEditText("input3", EndToEndCredentials["/cucumber/socialEmail"])
-        fillInEditText("input5", EndToEndCredentials["/cucumber/socialPassword"])
+        fillInEditText("input28", EndToEndCredentials["/cucumber/socialEmail"])
+        fillInEditText("input36", EndToEndCredentials["/cucumber/socialPassword"])
         clickButtonWithText("Sign in")
     }
 
     @And("^logs in to Okta OIDC with MFA User$") fun logs_in_to_okta_oidc_with_mfa_user() {
-        fillInEditText("input3", EndToEndCredentials["/cucumber/socialEmailMfa"])
-        fillInEditText("input5", EndToEndCredentials["/cucumber/socialPasswordMfa"])
+        fillInEditText("input28", EndToEndCredentials["/cucumber/socialEmailMfa"])
+        fillInEditText("input36", EndToEndCredentials["/cucumber/socialPasswordMfa"])
         clickButtonWithText("Sign in")
     }
 
