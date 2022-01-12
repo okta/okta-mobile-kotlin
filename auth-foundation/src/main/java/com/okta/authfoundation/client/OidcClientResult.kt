@@ -13,17 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package sample.okta.oidc.android
+package com.okta.authfoundation.client
 
-import android.app.Application
-import com.okta.authfoundation.OktaSdk
-import okhttp3.OkHttpClient
-import timber.log.Timber
-
-class SampleApplication : Application() {
-    override fun onCreate() {
-        super.onCreate()
-
-        Timber.plant(Timber.DebugTree())
-    }
+/**
+ * Describes the result from the OidcClient.
+ */
+sealed class OidcClientResult<T> {
+    /** An error result. */
+    data class Error<T> internal constructor(val exception: Exception) : OidcClientResult<T>()
+    /** Success with the expected result. */
+    data class Success<T> internal constructor(val result: T) : OidcClientResult<T>()
 }

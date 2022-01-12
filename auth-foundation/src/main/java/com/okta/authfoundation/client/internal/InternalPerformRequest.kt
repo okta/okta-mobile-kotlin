@@ -13,17 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package sample.okta.oidc.android
+package com.okta.authfoundation.client.internal
 
-import android.app.Application
-import com.okta.authfoundation.OktaSdk
-import okhttp3.OkHttpClient
-import timber.log.Timber
+import com.okta.authfoundation.client.OidcClient
+import com.okta.authfoundation.client.OidcClientResult
+import com.okta.authfoundation.dto.OidcTokens
+import com.okta.authfoundation.util.performRequest
+import okhttp3.Request
 
-class SampleApplication : Application() {
-    override fun onCreate() {
-        super.onCreate()
-
-        Timber.plant(Timber.DebugTree())
-    }
+suspend fun OidcClient.internalTokenRequest(
+    request: Request,
+): OidcClientResult<OidcTokens> {
+    return configuration.performRequest(request)
 }

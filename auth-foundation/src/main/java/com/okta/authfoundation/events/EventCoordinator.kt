@@ -13,17 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package sample.okta.oidc.android
+package com.okta.authfoundation.events
 
-import android.app.Application
-import com.okta.authfoundation.OktaSdk
-import okhttp3.OkHttpClient
-import timber.log.Timber
+// TODO: Document.
+class EventCoordinator(eventHandlers: List<EventHandler>) {
+    private val eventHandlers = ArrayList(eventHandlers) // Make a defensive copy.
 
-class SampleApplication : Application() {
-    override fun onCreate() {
-        super.onCreate()
+    constructor(eventHandler: EventHandler) : this(listOf(eventHandler)) {
+    }
 
-        Timber.plant(Timber.DebugTree())
+    fun sendEvent(event: Any) {
+        for (eventHandler in eventHandlers) {
+            eventHandler.onEvent(event)
+        }
     }
 }

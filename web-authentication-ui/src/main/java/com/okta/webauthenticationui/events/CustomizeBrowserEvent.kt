@@ -13,17 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package sample.okta.oidc.android
+package com.okta.webauthenticationui.events
 
-import android.app.Application
-import com.okta.authfoundation.OktaSdk
-import okhttp3.OkHttpClient
-import timber.log.Timber
-
-class SampleApplication : Application() {
-    override fun onCreate() {
-        super.onCreate()
-
-        Timber.plant(Timber.DebugTree())
+// TODO: Document
+class CustomizeBrowserEvent internal constructor(
+    var queryIntentServicesFlags: Int = 0,
+    val preferredBrowsers: MutableList<String> = mutableListOf(CHROME_STABLE, CHROME_SYSTEM, CHROME_BETA)
+) {
+    private companion object {
+        private const val CHROME_STABLE = "com.android.chrome"
+        private const val CHROME_SYSTEM = "com.google.android.apps.chrome"
+        private const val CHROME_BETA = "com.android.chrome.beta"
     }
 }

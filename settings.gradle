@@ -1,4 +1,5 @@
 rootProject.name = "okta-mobile-kotlin"
 include ':app'
-include ':browser-redirect'
-include ':oidc-kotlin'
+include ':auth-foundation'
+include ':oauth2'
+include ':web-authentication-ui'

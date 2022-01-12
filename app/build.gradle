@@ -72,7 +72,7 @@ android {
 dependencies {
     coreLibraryDesugaring deps.desugar_libs
 
-    implementation project(':browser-redirect')
+    implementation project(':web-authentication-ui')
 
     implementation deps.kotlin.stdlib
     implementation deps.core_ktx
@@ -91,35 +91,6 @@ dependencies {
     implementation deps.okhttp.mock_web_server
     implementation deps.junit // Mock Web Server depends on junit :(
     implementation deps.timber
-
-    implementation deps.jackson_databind
-
-    testImplementation deps.junit
-    testImplementation deps.okhttp.mock_web_server
-    testImplementation deps.okhttp.tls
-    testImplementation deps.truth
-
-    androidTestUtil deps.androidx_test.orchestrator
-
-    androidTestImplementation deps.jackson_yaml
-    androidTestImplementation deps.okhttp.tls
-    androidTestImplementation deps.junit
-    androidTestImplementation deps.androidx_test.core
-    androidTestImplementation deps.androidx_test.ext_junit
-    androidTestImplementation deps.androidx_test.navigation
-    androidTestImplementation deps.androidx_test.runner
-    androidTestImplementation deps.androidx_test.rules
-    androidTestImplementation deps.androidx_test.uiautomator
-    androidTestImplementation deps.coroutines.test
-    androidTestImplementation deps.espresso.core
-    androidTestImplementation deps.espresso.contrib
-    androidTestImplementation deps.espresso.intents
-    androidTestImplementation deps.truth
-
-    androidTestImplementation deps.cucumber.android
-    androidTestImplementation deps.cucumber.pico_container
-    androidTestImplementation deps.okta.management_sdk
-    androidTestImplementation deps.okta.http_okhttp
 }
 
 static def parseScheme(String uri) {

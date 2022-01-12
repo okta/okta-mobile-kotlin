@@ -13,17 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package sample.okta.oidc.android
+package com.okta.authfoundation.dto
 
-import android.app.Application
-import com.okta.authfoundation.OktaSdk
-import okhttp3.OkHttpClient
-import timber.log.Timber
-
-class SampleApplication : Application() {
-    override fun onCreate() {
-        super.onCreate()
-
-        Timber.plant(Timber.DebugTree())
-    }
+enum class OidcTokenType {
+    REFRESH_TOKEN, ACCESS_TOKEN, ID_TOKEN
 }

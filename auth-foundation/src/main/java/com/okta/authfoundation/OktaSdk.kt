@@ -13,17 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package sample.okta.oidc.android
+package com.okta.authfoundation
 
-import android.app.Application
-import com.okta.authfoundation.OktaSdk
+import com.okta.authfoundation.events.EventCoordinator
+import okhttp3.Call
 import okhttp3.OkHttpClient
-import timber.log.Timber
 
-class SampleApplication : Application() {
-    override fun onCreate() {
-        super.onCreate()
+object OktaSdk {
+    var okHttpClient: Call.Factory by OneTimeSetOrLazyGet { OkHttpClient() }
 
-        Timber.plant(Timber.DebugTree())
-    }
+    var eventCoordinator: EventCoordinator by OneTimeSetOrLazyGet { EventCoordinator(emptyList()) }
 }

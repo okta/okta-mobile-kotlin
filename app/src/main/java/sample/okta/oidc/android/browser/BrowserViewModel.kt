@@ -24,17 +24,17 @@ import androidx.lifecycle.viewModelScope
 import sample.okta.oidc.android.BuildConfig
 import sample.okta.oidc.android.SocialRedirectCoordinator
 import com.okta.oauth2.AuthorizationCodeFlow
-import com.okta.oidc.browserredirect.BrowserRedirectClient
-import com.okta.oidc.kotlin.client.OidcClient
-import com.okta.oidc.kotlin.client.OidcClientResult
-import com.okta.oidc.kotlin.client.OidcConfiguration
-import com.okta.oidc.kotlin.dto.OidcTokens
+import com.okta.webauthenticationui.WebAuthenticationClient
+import com.okta.authfoundation.client.OidcClient
+import com.okta.authfoundation.client.OidcClientResult
+import com.okta.authfoundation.client.OidcConfiguration
+import com.okta.authfoundation.dto.OidcTokens
 import kotlinx.coroutines.launch
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import timber.log.Timber
 
 class BrowserViewModel : ViewModel() {
-    private lateinit var client: BrowserRedirectClient
+    private lateinit var client: WebAuthenticationClient
     private var authorizationCodeFlowContext: AuthorizationCodeFlow.Context? = null
 
     private val _state = MutableLiveData<BrowserState>(BrowserState.Idle)
@@ -62,7 +62,7 @@ class BrowserViewModel : ViewModel() {
                     )
                     val oidcClient = clientResult.result
                     val authorizationCodeFlow = AuthorizationCodeFlow(configuration, oidcClient)
-                    client = BrowserRedirectClient(authorizationCodeFlow)
+                    client = WebAuthenticationClient(authorizationCodeFlow)
                 }
             }
         }

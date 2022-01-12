@@ -13,17 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package sample.okta.oidc.android
+package com.okta.authfoundation.client
 
-import android.app.Application
-import com.okta.authfoundation.OktaSdk
-import okhttp3.OkHttpClient
-import timber.log.Timber
-
-class SampleApplication : Application() {
-    override fun onCreate() {
-        super.onCreate()
-
-        Timber.plant(Timber.DebugTree())
-    }
+// TODO: Document
+interface OidcStorage {
+    suspend fun save(key: String, value: String)
+    suspend fun get(key: String): String?
+    suspend fun delete(key: String)
 }

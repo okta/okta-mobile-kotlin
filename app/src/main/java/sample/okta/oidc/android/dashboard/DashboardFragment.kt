@@ -22,7 +22,7 @@ import androidx.navigation.fragment.findNavController
 import sample.okta.oidc.android.databinding.FragmentDashboardBinding
 import sample.okta.oidc.android.databinding.RowDashboardClaimBinding
 import sample.okta.oidc.android.util.BaseFragment
-import com.okta.oidc.kotlin.dto.OidcTokenType
+import com.okta.authfoundation.dto.OidcTokenType
 import sample.okta.oidc.android.R
 import sample.okta.oidc.android.util.inflateBinding
 

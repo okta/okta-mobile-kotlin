@@ -19,10 +19,10 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.okta.oidc.kotlin.client.OidcClient
-import com.okta.oidc.kotlin.client.OidcClientResult
-import com.okta.oidc.kotlin.client.OidcConfiguration
-import com.okta.oidc.kotlin.dto.OidcTokenType
+import com.okta.authfoundation.client.OidcClient
+import com.okta.authfoundation.client.OidcClientResult
+import com.okta.authfoundation.client.OidcConfiguration
+import com.okta.authfoundation.dto.OidcTokenType
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import okhttp3.HttpUrl.Companion.toHttpUrl

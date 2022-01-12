@@ -15,7 +15,7 @@
  */
 package sample.okta.oidc.android.dashboard
 
-import com.okta.oidc.kotlin.dto.OidcTokens
+import com.okta.authfoundation.dto.OidcTokens
 
 internal object TokenViewModel {
     var _tokens: OidcTokens? = null
