@@ -1,0 +1,5 @@
+rootProject.name = "okta-mobile-kotlin"
+include ':app'
+include ':auth-foundation'
+include ':oauth2'
+include ':web-authentication-ui'
