@@ -41,7 +41,7 @@ class OidcEndpoints(
     @SerialName("registration_endpoint") internal val registrationEndpoint: HttpUrl,
     @SerialName("introspection_endpoint") internal val introspectionEndpoint: HttpUrl,
     @SerialName("revocation_endpoint") internal val revocationEndpoint: HttpUrl,
-    @SerialName("end_session_endpoint") internal val endSessionEndpoint: HttpUrl,
+    @SerialName("end_session_endpoint") public val endSessionEndpoint: HttpUrl,
 )
 
 internal object HttpUrlSerializer : KSerializer<HttpUrl> {

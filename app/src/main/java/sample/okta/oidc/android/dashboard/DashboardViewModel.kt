@@ -15,6 +15,8 @@
  */
 package sample.okta.oidc.android.dashboard
 
+import android.content.Context
+import android.net.Uri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -23,10 +25,14 @@ import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.dto.OidcTokenType
+import com.okta.oauth2.AuthorizationCodeFlow
+import com.okta.oauth2.RedirectEndSessionFlow
+import com.okta.webauthenticationui.WebAuthenticationClient
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import sample.okta.oidc.android.BuildConfig
+import sample.okta.oidc.android.SocialRedirectCoordinator
 import timber.log.Timber
 
 internal class DashboardViewModel : ViewModel() {
@@ -37,11 +43,16 @@ internal class DashboardViewModel : ViewModel() {
     val userInfoLiveData: LiveData<Map<String, String>> = _userInfoLiveData
 
     private var oidcClient: OidcClient? = null
+    private var webAuthenticationClient: WebAuthenticationClient? = null
+
+    private var logoutFlowContext: RedirectEndSessionFlow.Context? = null
 
     var lastButtonId: Int = 0
     private var lastRequestJob: Job? = null
 
     init {
+        SocialRedirectCoordinator.listeners += ::handleRedirect
+
         viewModelScope.launch {
             val configuration =
                 OidcConfiguration(BuildConfig.CLIENT_ID, setOf("openid", "email", "profile", "offline_access"))
@@ -56,9 +67,22 @@ internal class DashboardViewModel : ViewModel() {
                     oidcClient = clientResult.result
                     oidcClient?.storeTokens(TokenViewModel.tokens)
                     getUserInfo()
+                    setupWebAuthenticationClient()
                 }
             }
         }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        SocialRedirectCoordinator.listeners -= ::handleRedirect
+    }
+
+    private fun setupWebAuthenticationClient() {
+        val oidcClient = oidcClient ?: return
+        val authorizationCodeFlow = AuthorizationCodeFlow(BuildConfig.REDIRECT_URI, oidcClient)
+        val redirectEndSessionFlow = RedirectEndSessionFlow(BuildConfig.END_SESSION_REDIRECT_URI, oidcClient)
+        webAuthenticationClient = WebAuthenticationClient(authorizationCodeFlow, redirectEndSessionFlow)
     }
 
     fun revoke(buttonId: Int, tokenType: OidcTokenType) {
@@ -97,6 +121,12 @@ internal class DashboardViewModel : ViewModel() {
                     RequestState.Result(result.result.asMap().displayableKeyValues())
                 }
             }
+        }
+    }
+
+    fun logoutOfWeb(context: Context) {
+        viewModelScope.launch {
+            logoutFlowContext = webAuthenticationClient?.logout(context)
         }
     }
 
@@ -143,5 +173,24 @@ internal class DashboardViewModel : ViewModel() {
     sealed class RequestState {
         object Loading : RequestState()
         data class Result(val text: String) : RequestState()
+    }
+
+    fun handleRedirect(uri: Uri) {
+        viewModelScope.launch {
+            when (val result = webAuthenticationClient?.resume(uri, logoutFlowContext!!)) {
+                is RedirectEndSessionFlow.Result.Error -> {
+                    _requestStateLiveData.value = RequestState.Result(result.message)
+                }
+                RedirectEndSessionFlow.Result.MissingResultCode -> {
+                    _requestStateLiveData.value = RequestState.Result("Invalid redirect. Missing result code.")
+                }
+                RedirectEndSessionFlow.Result.RedirectSchemeMismatch -> {
+                    _requestStateLiveData.value = RequestState.Result("Invalid redirect. Redirect scheme mismatch.")
+                }
+                is RedirectEndSessionFlow.Result.Success -> {
+                    _requestStateLiveData.value = RequestState.Result("Logout successful!")
+                }
+            }
+        }
     }
 }

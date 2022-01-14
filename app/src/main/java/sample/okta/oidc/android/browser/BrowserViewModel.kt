@@ -29,6 +29,7 @@ import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.dto.OidcTokens
+import com.okta.oauth2.RedirectEndSessionFlow
 import kotlinx.coroutines.launch
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import timber.log.Timber
@@ -41,7 +42,7 @@ class BrowserViewModel : ViewModel() {
     val state: LiveData<BrowserState> = _state
 
     init {
-        SocialRedirectCoordinator.listener = ::handleRedirect
+        SocialRedirectCoordinator.listeners += ::handleRedirect
 
         viewModelScope.launch {
             val oidcConfiguration = OidcConfiguration(
@@ -56,20 +57,17 @@ class BrowserViewModel : ViewModel() {
                     Timber.e(clientResult.exception, "Failed to create client")
                 }
                 is OidcClientResult.Success -> {
-                    val configuration = AuthorizationCodeFlow.Configuration(
-                        redirectUri = BuildConfig.REDIRECT_URI,
-                        endSessionRedirectUri = BuildConfig.END_SESSION_REDIRECT_URI,
-                    )
                     val oidcClient = clientResult.result
-                    val authorizationCodeFlow = AuthorizationCodeFlow(configuration, oidcClient)
-                    client = WebAuthenticationClient(authorizationCodeFlow)
+                    val authorizationCodeFlow = AuthorizationCodeFlow(BuildConfig.REDIRECT_URI, oidcClient)
+                    val redirectEndSessionFlow = RedirectEndSessionFlow(BuildConfig.END_SESSION_REDIRECT_URI, oidcClient)
+                    client = WebAuthenticationClient(authorizationCodeFlow, redirectEndSessionFlow)
                 }
             }
         }
     }
 
     override fun onCleared() {
-        SocialRedirectCoordinator.listener = null
+        SocialRedirectCoordinator.listeners -= ::handleRedirect
     }
 
     fun login(context: Context) {
