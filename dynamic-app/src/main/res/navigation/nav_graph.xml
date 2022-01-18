@@ -24,6 +24,11 @@
         android:name="com.okta.idx.android.dynamic.auth.DynamicAuthFragment"
         tools:layout="@layout/fragment_dynamic_auth"
         >
+        <argument
+            android:name="recoveryToken"
+            android:defaultValue=""
+            app:argType="string"
+            />
         <action
             android:id="@+id/dynamicAuth_to_dashboard"
             app:destination="@id/DashboardFragment"

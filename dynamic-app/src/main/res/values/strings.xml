@@ -14,4 +14,6 @@
     <string name="welcome_to_oie_sample">Welcome to the Okta Samples for Android!</string>
     <string name="welcome_to_oie_sample_description">Congrats on starting this sample application in Android! This sample will demonstrate how to build views that facilitate some common authentication flows:\n• Sign In\n• Sign Up\n• Password Recovery\n• Logout\n\nTo get started, click the button below.</string>
     <string name="login">Login</string>
+    <string name="advanced">Advanced</string>
+    <string name="recovery_token">Recovery token</string>
 </resources>

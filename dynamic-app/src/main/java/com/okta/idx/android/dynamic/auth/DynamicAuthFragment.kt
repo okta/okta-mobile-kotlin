@@ -46,13 +46,24 @@ import android.widget.Toast
 
 import androidx.core.content.ContextCompat.getSystemService
 import androidx.core.view.iterator
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.navArgs
 import com.okta.idx.android.dynamic.databinding.FormLabelBinding
 import com.okta.idx.android.dynamic.databinding.FormOptionNestedBinding
 
 internal class DynamicAuthFragment : BaseFragment<FragmentDynamicAuthBinding>(
     FragmentDynamicAuthBinding::inflate
 ) {
-    private val viewModel by viewModels<DynamicAuthViewModel>()
+    private val args: DynamicAuthFragmentArgs by navArgs()
+
+    private val viewModel by viewModels<DynamicAuthViewModel>(factoryProducer = {
+        object : ViewModelProvider.Factory {
+            override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+                return DynamicAuthViewModel(args.recoveryToken) as T
+            }
+        }
+    })
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)

@@ -44,7 +44,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 
-internal class DynamicAuthViewModel : ViewModel() {
+internal class DynamicAuthViewModel(private val recoveryToken: String) : ViewModel() {
     private val _state = MutableLiveData<DynamicAuthState>(DynamicAuthState.Loading)
     val state: LiveData<DynamicAuthState> = _state
 
@@ -63,7 +63,11 @@ internal class DynamicAuthViewModel : ViewModel() {
     private fun createClient() {
         _state.value = DynamicAuthState.Loading
         viewModelScope.launch {
-            when (val clientResult = IdxClient.start(IdxClientConfigurationProvider.get())) {
+            val extraRequestParameters = mutableMapOf<String, String>()
+            if (recoveryToken.isNotEmpty()) {
+                extraRequestParameters["recovery_token"] = recoveryToken
+            }
+            when (val clientResult = IdxClient.start(IdxClientConfigurationProvider.get(), extraRequestParameters)) {
                 is IdxClientResult.Error -> {
                     _state.value = DynamicAuthState.Error("Failed to create client")
                 }

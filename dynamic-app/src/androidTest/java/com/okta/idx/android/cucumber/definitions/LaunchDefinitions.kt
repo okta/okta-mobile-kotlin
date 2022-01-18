@@ -24,6 +24,7 @@ import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
 import androidx.test.espresso.matcher.ViewMatchers.withHint
 import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.espresso.matcher.ViewMatchers.withText
+import com.okta.idx.android.cucumber.hooks.SharedState
 import com.okta.idx.android.dynamic.R
 import com.okta.idx.android.infrastructure.ACTION_BUTTON_VIEW
 import com.okta.idx.android.infrastructure.CLAIM_KEY_TEXT_VIEW
@@ -47,6 +48,15 @@ class LaunchDefinitions {
     @Given("^Mary has an unauthenticated session$")
     fun mary_has_an_unauthenticated_session() {
         waitForElement(LAUNCH_TITLE_TEXT_VIEW)
+    }
+
+    @Given("^Mary bootstraps the application with a recovery token$")
+    fun mary_bootstraps_the_application_with_a_recovery_token() {
+        waitForElement(LAUNCH_TITLE_TEXT_VIEW)
+        val response = SharedState.user!!.forgotPasswordGenerateOneTimeToken(false)
+        val recoveryToken = response.resetPasswordUrl.substringAfterLast("/")
+        onView(withHint(R.string.recovery_token)).perform(replaceText(recoveryToken))
+        onView(withId(R.id.login_button)).perform(click())
     }
 
     @When("^Mary navigates to the Root View$")

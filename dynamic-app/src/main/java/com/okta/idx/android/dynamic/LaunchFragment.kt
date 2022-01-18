@@ -28,7 +28,12 @@ internal class LaunchFragment : BaseFragment<FragmentLaunchBinding>(
         super.onViewCreated(view, savedInstanceState)
 
         binding.loginButton.setOnClickListener {
-            findNavController().navigate(LaunchFragmentDirections.launchToDynamic())
+            val recoveryToken = binding.recoveryToken.editText?.text?.toString() ?: ""
+            findNavController().navigate(
+                LaunchFragmentDirections.launchToDynamic(
+                    recoveryToken = recoveryToken
+                )
+            )
         }
     }
 }

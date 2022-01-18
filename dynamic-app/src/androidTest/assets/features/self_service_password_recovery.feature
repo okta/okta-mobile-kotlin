@@ -27,3 +27,13 @@ Feature: 3.1 Direct Auth Password Recovery
     When she inputs an Email that doesn't exist
     And she submits the recovery form
     Then she sees a message "There is no account with the Username mary@unknown.com."
+
+  @requireA18NProfile
+  @requireExistingUser
+  Scenario: 3.1.3 Mary resets her password with recovery token
+    Given Mary bootstraps the application with a recovery token
+    Then she sees a page to set her password
+    When she fills a password that fits within the password policy
+    And she submits the form
+    Then she is redirected to the Root View
+    And an application session is created
