@@ -17,11 +17,11 @@ android {
 
         buildConfigField "String", 'ISSUER', "\"${oktaProperties.getProperty('issuer')}\""
         buildConfigField "String", 'CLIENT_ID', "\"${oktaProperties.getProperty('clientId')}\""
-        buildConfigField "String", 'REDIRECT_URI', "\"${oktaProperties.getProperty('redirectUri')}\""
-        buildConfigField "String", 'END_SESSION_REDIRECT_URI', "\"${oktaProperties.getProperty('endSessionRedirectUri')}\""
+        buildConfigField "String", 'SIGN_IN_REDIRECT_URI', "\"${oktaProperties.getProperty('signInRedirectUri')}\""
+        buildConfigField "String", 'SIGN_OUT_REDIRECT_URI', "\"${oktaProperties.getProperty('signOutRedirectUri')}\""
 
         manifestPlaceholders = [
-                "oktaIdxRedirectScheme": parseScheme(oktaProperties.getProperty('redirectUri'))
+                "oktaIdxRedirectScheme": parseScheme(oktaProperties.getProperty('signInRedirectUri'))
         ]
 
         testInstrumentationRunner 'io.cucumber.android.runner.CucumberAndroidJUnitRunner'

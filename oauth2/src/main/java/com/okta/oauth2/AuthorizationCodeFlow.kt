@@ -30,7 +30,7 @@ import java.util.UUID
 
 class AuthorizationCodeFlow(
     /** The application's redirect URI. */
-    private val redirectUri: String,
+    private val signInRedirectUri: String,
     private val oidcClient: OidcClient,
     private val eventCoordinator: EventCoordinator = OktaSdk.eventCoordinator,
 ) {
@@ -48,20 +48,19 @@ class AuthorizationCodeFlow(
     }
 
     fun start(): Context {
-        return start(redirectUri)
+        return start(PkceGenerator.codeVerifier(), UUID.randomUUID().toString())
     }
 
     internal fun start(
-        redirectUri: String,
-        codeVerifier: String = PkceGenerator.codeVerifier(),
-        state: String = UUID.randomUUID().toString(),
+        codeVerifier: String,
+        state: String,
     ): Context {
         val urlBuilder = oidcClient.endpoints.authorizationEndpoint.newBuilder()
         urlBuilder.addQueryParameter("code_challenge", PkceGenerator.codeChallenge(codeVerifier))
         urlBuilder.addQueryParameter("code_challenge_method", PkceGenerator.CODE_CHALLENGE_METHOD)
         urlBuilder.addQueryParameter("client_id", oidcClient.configuration.clientId)
         urlBuilder.addQueryParameter("scope", oidcClient.configuration.scopes.joinToString(" "))
-        urlBuilder.addQueryParameter("redirect_uri", redirectUri)
+        urlBuilder.addQueryParameter("redirect_uri", signInRedirectUri)
         urlBuilder.addQueryParameter("response_type", "code")
         urlBuilder.addQueryParameter("state", state)
 
@@ -72,7 +71,7 @@ class AuthorizationCodeFlow(
     }
 
     suspend fun resume(uri: Uri, flowContext: Context): Result {
-        if (!uri.toString().startsWith(redirectUri)) {
+        if (!uri.toString().startsWith(signInRedirectUri)) {
             return Result.RedirectSchemeMismatch
         }
 
@@ -91,7 +90,7 @@ class AuthorizationCodeFlow(
         val code = uri.getQueryParameter("code") ?: return Result.MissingResultCode
 
         val formBodyBuilder = FormBody.Builder()
-            .add("redirect_uri", redirectUri)
+            .add("redirect_uri", signInRedirectUri)
             .add("code_verifier", flowContext.codeVerifier)
             .add("client_id", oidcClient.configuration.clientId)
             .add("grant_type", "authorization_code")

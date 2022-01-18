@@ -80,8 +80,8 @@ internal class DashboardViewModel : ViewModel() {
 
     private fun setupWebAuthenticationClient() {
         val oidcClient = oidcClient ?: return
-        val authorizationCodeFlow = AuthorizationCodeFlow(BuildConfig.REDIRECT_URI, oidcClient)
-        val redirectEndSessionFlow = RedirectEndSessionFlow(BuildConfig.END_SESSION_REDIRECT_URI, oidcClient)
+        val authorizationCodeFlow = AuthorizationCodeFlow(BuildConfig.SIGN_IN_REDIRECT_URI, oidcClient)
+        val redirectEndSessionFlow = RedirectEndSessionFlow(BuildConfig.SIGN_OUT_REDIRECT_URI, oidcClient)
         webAuthenticationClient = WebAuthenticationClient(authorizationCodeFlow, redirectEndSessionFlow)
     }
 

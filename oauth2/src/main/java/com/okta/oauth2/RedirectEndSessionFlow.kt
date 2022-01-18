@@ -25,7 +25,7 @@ import java.util.UUID
 
 class RedirectEndSessionFlow(
     /** The application's end session redirect URI. */
-    val endSessionRedirectUri: String,
+    val signOutRedirectUri: String,
     val oidcClient: OidcClient,
     val eventCoordinator: EventCoordinator = OktaSdk.eventCoordinator,
 ) {
@@ -42,17 +42,16 @@ class RedirectEndSessionFlow(
     }
 
     fun start(idToken: String): Context {
-        return start(idToken, endSessionRedirectUri)
+        return start(idToken, UUID.randomUUID().toString())
     }
 
     internal fun start(
         idToken: String,
-        redirectUri: String,
-        state: String = UUID.randomUUID().toString(),
+        state: String,
     ): Context {
         val urlBuilder = oidcClient.endpoints.endSessionEndpoint.newBuilder()
         urlBuilder.addQueryParameter("id_token_hint", idToken)
-        urlBuilder.addQueryParameter("post_logout_redirect_uri", redirectUri)
+        urlBuilder.addQueryParameter("post_logout_redirect_uri", signOutRedirectUri)
         urlBuilder.addQueryParameter("state", state)
 
         val event = CustomizeLogoutUrlEvent(urlBuilder)
@@ -62,7 +61,7 @@ class RedirectEndSessionFlow(
     }
 
     fun resume(uri: Uri, context: Context): Result {
-        if (!uri.toString().startsWith(endSessionRedirectUri)) {
+        if (!uri.toString().startsWith(signOutRedirectUri)) {
             return Result.RedirectSchemeMismatch
         }
 

@@ -58,8 +58,8 @@ class BrowserViewModel : ViewModel() {
                 }
                 is OidcClientResult.Success -> {
                     val oidcClient = clientResult.result
-                    val authorizationCodeFlow = AuthorizationCodeFlow(BuildConfig.REDIRECT_URI, oidcClient)
-                    val redirectEndSessionFlow = RedirectEndSessionFlow(BuildConfig.END_SESSION_REDIRECT_URI, oidcClient)
+                    val authorizationCodeFlow = AuthorizationCodeFlow(BuildConfig.SIGN_IN_REDIRECT_URI, oidcClient)
+                    val redirectEndSessionFlow = RedirectEndSessionFlow(BuildConfig.SIGN_OUT_REDIRECT_URI, oidcClient)
                     client = WebAuthenticationClient(authorizationCodeFlow, redirectEndSessionFlow)
                 }
             }
