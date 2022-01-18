@@ -29,22 +29,14 @@ import okhttp3.Request
 import java.util.UUID
 
 class AuthorizationCodeFlow(
-    private val configuration: Configuration,
+    /** The application's redirect URI. */
+    private val signInRedirectUri: String,
     private val oidcClient: OidcClient,
     private val eventCoordinator: EventCoordinator = OktaSdk.eventCoordinator,
 ) {
-    class Configuration(
-        /** The application's redirect URI. */
-        val redirectUri: String,
-
-        /** The application's end session redirect URI. */
-        val endSessionRedirectUri: String,
-    )
-
     class Context internal constructor(
         internal val codeVerifier: String,
         internal val state: String,
-        internal val redirectUri: String,
         val url: HttpUrl,
     )
 
@@ -56,31 +48,30 @@ class AuthorizationCodeFlow(
     }
 
     fun start(): Context {
-        return start(configuration.redirectUri)
+        return start(PkceGenerator.codeVerifier(), UUID.randomUUID().toString())
     }
 
     internal fun start(
-        redirectUri: String,
-        codeVerifier: String = PkceGenerator.codeVerifier(),
-        state: String = UUID.randomUUID().toString(),
+        codeVerifier: String,
+        state: String,
     ): Context {
         val urlBuilder = oidcClient.endpoints.authorizationEndpoint.newBuilder()
         urlBuilder.addQueryParameter("code_challenge", PkceGenerator.codeChallenge(codeVerifier))
         urlBuilder.addQueryParameter("code_challenge_method", PkceGenerator.CODE_CHALLENGE_METHOD)
         urlBuilder.addQueryParameter("client_id", oidcClient.configuration.clientId)
         urlBuilder.addQueryParameter("scope", oidcClient.configuration.scopes.joinToString(" "))
-        urlBuilder.addQueryParameter("redirect_uri", redirectUri)
+        urlBuilder.addQueryParameter("redirect_uri", signInRedirectUri)
         urlBuilder.addQueryParameter("response_type", "code")
         urlBuilder.addQueryParameter("state", state)
 
         val event = CustomizeAuthorizationUrlEvent(urlBuilder)
         eventCoordinator.sendEvent(event)
 
-        return Context(codeVerifier, state, configuration.redirectUri, urlBuilder.build())
+        return Context(codeVerifier, state, urlBuilder.build())
     }
 
-    suspend fun resume(uri: Uri, context: Context): Result {
-        if (!uri.toString().startsWith(context.redirectUri)) {
+    suspend fun resume(uri: Uri, flowContext: Context): Result {
+        if (!uri.toString().startsWith(signInRedirectUri)) {
             return Result.RedirectSchemeMismatch
         }
 
@@ -91,7 +82,7 @@ class AuthorizationCodeFlow(
         }
 
         val stateQueryParameter = uri.getQueryParameter("state")
-        if (context.state != stateQueryParameter) {
+        if (flowContext.state != stateQueryParameter) {
             val error = "Failed due to state mismatch."
             return Result.Error(error)
         }
@@ -99,8 +90,8 @@ class AuthorizationCodeFlow(
         val code = uri.getQueryParameter("code") ?: return Result.MissingResultCode
 
         val formBodyBuilder = FormBody.Builder()
-            .add("redirect_uri", context.redirectUri)
-            .add("code_verifier", context.codeVerifier)
+            .add("redirect_uri", signInRedirectUri)
+            .add("code_verifier", flowContext.codeVerifier)
             .add("client_id", oidcClient.configuration.clientId)
             .add("grant_type", "authorization_code")
             .add("code", code)

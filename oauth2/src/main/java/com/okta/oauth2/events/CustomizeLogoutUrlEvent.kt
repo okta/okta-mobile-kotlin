@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package sample.okta.oidc.android
+package com.okta.oauth2.events
 
-import android.net.Uri
+import okhttp3.HttpUrl
 
-object SocialRedirectCoordinator {
-    var listeners: MutableSet<SocialRedirectListener> = mutableSetOf()
-}
-
-typealias SocialRedirectListener = ((Uri) -> Unit)
+// TODO: Document
+class CustomizeLogoutUrlEvent internal constructor(
+    val httpUrlBuilder: HttpUrl.Builder
+)

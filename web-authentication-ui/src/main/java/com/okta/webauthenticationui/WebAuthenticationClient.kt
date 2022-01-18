@@ -20,9 +20,11 @@ import android.net.Uri
 import com.okta.oauth2.AuthorizationCodeFlow
 import com.okta.authfoundation.OktaSdk
 import com.okta.authfoundation.events.EventCoordinator
+import com.okta.oauth2.RedirectEndSessionFlow
 
 class WebAuthenticationClient(
     val authorizationCodeFlow: AuthorizationCodeFlow,
+    val redirectEndSessionFlow: RedirectEndSessionFlow,
     val eventCoordinator: EventCoordinator = OktaSdk.eventCoordinator,
     val webAuthenticationProvider: WebAuthenticationProvider = DefaultWebAuthenticationProvider(eventCoordinator),
 ) {
@@ -34,8 +36,19 @@ class WebAuthenticationClient(
 
     suspend fun resume(
         uri: Uri,
-        webAuthenticationContext: AuthorizationCodeFlow.Context,
+        flowContext: AuthorizationCodeFlow.Context,
     ): AuthorizationCodeFlow.Result {
-        return authorizationCodeFlow.resume(uri, webAuthenticationContext)
+        return authorizationCodeFlow.resume(uri, flowContext)
+    }
+
+    suspend fun logout(context: Context): RedirectEndSessionFlow.Context? {
+        val idToken = redirectEndSessionFlow.oidcClient.getTokens()?.idToken ?: return null
+        val flowContext = redirectEndSessionFlow.start(idToken)
+        webAuthenticationProvider.launch(context, flowContext.url)
+        return flowContext
+    }
+
+    fun resume(uri: Uri, flowContext: RedirectEndSessionFlow.Context): RedirectEndSessionFlow.Result {
+        return redirectEndSessionFlow.resume(uri, flowContext)
     }
 }

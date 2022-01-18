@@ -70,6 +70,9 @@ internal class DashboardFragment : BaseFragment<FragmentDashboardBinding>(
         binding.revokeRefreshTokenButton.setOnClickListener {
             viewModel.revoke(binding.revokeRefreshTokenButton.id, OidcTokenType.REFRESH_TOKEN)
         }
+        binding.logoutWebButton.setOnClickListener {
+            viewModel.logoutOfWeb(requireContext())
+        }
 
         viewModel.requestStateLiveData.observe(viewLifecycleOwner) { state ->
             val button = binding.root.findViewById<View>(viewModel.lastButtonId)

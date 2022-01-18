@@ -35,7 +35,9 @@ class MainActivity : AppCompatActivity() {
 
         if (intent?.action == SOCIAL_REDIRECT_ACTION) {
             intent.data?.let {
-                SocialRedirectCoordinator.listener?.invoke(it)
+                for (listener in SocialRedirectCoordinator.listeners) {
+                    listener.invoke(it)
+                }
             }
         }
     }
