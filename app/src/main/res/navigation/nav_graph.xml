@@ -1,47 +1,55 @@
 <?xml version="1.0" encoding="utf-8"?>
-<navigation
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/LaunchFragment"
-    >
+    app:startDestination="@id/LaunchFragment">
     <fragment
         android:id="@+id/LaunchFragment"
         android:name="sample.okta.oidc.android.LaunchFragment"
-        tools:layout="@layout/fragment_launch"
-        >
+        tools:layout="@layout/fragment_launch">
         <action
             android:id="@+id/launch_to_browser"
             app:destination="@id/BrowserFragment"
             app:popUpTo="@+id/nav_graph"
-            app:popUpToInclusive="true"
-            />
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/launch_to_resource_owner_flow"
+            app:destination="@id/ResourceOwnerFragment"
+            app:popUpTo="@+id/nav_graph"
+            app:popUpToInclusive="true" />
     </fragment>
 
     <fragment
         android:id="@+id/BrowserFragment"
         android:name="sample.okta.oidc.android.browser.BrowserFragment"
-        tools:layout="@layout/fragment_browser"
-        >
+        tools:layout="@layout/fragment_browser">
         <action
             android:id="@+id/browser_to_dashboard"
             app:destination="@id/DashboardFragment"
             app:popUpTo="@+id/nav_graph"
-            app:popUpToInclusive="true"
-            />
+            app:popUpToInclusive="true" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/ResourceOwnerFragment"
+        android:name="sample.okta.oidc.android.resourceowner.ResourceOwnerFragment"
+        tools:layout="@layout/fragment_resource_owner">
+        <action
+            android:id="@+id/resource_owner_to_dashboard"
+            app:destination="@id/DashboardFragment"
+            app:popUpTo="@+id/nav_graph"
+            app:popUpToInclusive="true" />
     </fragment>
 
     <fragment
         android:id="@+id/DashboardFragment"
         android:name="sample.okta.oidc.android.dashboard.DashboardFragment"
-        tools:layout="@layout/fragment_dashboard"
-        >
+        tools:layout="@layout/fragment_dashboard">
         <action
             android:id="@+id/dashboard_to_login"
             app:destination="@id/LaunchFragment"
             app:popUpTo="@+id/nav_graph"
-            app:popUpToInclusive="true"
-            />
+            app:popUpToInclusive="true" />
     </fragment>
 </navigation>

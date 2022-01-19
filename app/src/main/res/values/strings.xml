@@ -21,4 +21,8 @@
     <string name="back_to_login">Go Back To Login Page</string>
     <string name="login_with_browser">Login with browser</string>
     <string name="logout_web">Logout of Web</string>
+    <string name="login">Login</string>
+    <string name="password">Password</string>
+    <string name="username">Username</string>
+    <string name="login_with_resource_owner_flow">Login with Resource Owner Flow</string>
 </resources>
