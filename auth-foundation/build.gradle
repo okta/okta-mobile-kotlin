@@ -33,4 +33,8 @@ dependencies {
     api deps.okhttp.core
     api deps.coroutines.android
     api deps.kotlin.serialization_json
+
+    testImplementation deps.junit
+    testImplementation deps.truth
+    testImplementation deps.kotlin.test
 }

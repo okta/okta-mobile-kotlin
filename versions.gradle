@@ -75,10 +75,11 @@ deps.espresso = espresso
 deps.junit = "junit:junit:$versions.junit"
 
 def kotlin = [:]
-kotlin.stdlib = "org.jetbrains.kotlin:kotlin-stdlib:$versions.kotlin"
 kotlin.plugin = "org.jetbrains.kotlin:kotlin-gradle-plugin:$versions.kotlin"
 kotlin.serialization_json = "org.jetbrains.kotlinx:kotlinx-serialization-json:$versions.kotlin_serialization"
 kotlin.serialization_plugin = "org.jetbrains.kotlin:kotlin-serialization:$versions.kotlin"
+kotlin.stdlib = "org.jetbrains.kotlin:kotlin-stdlib:$versions.kotlin"
+kotlin.test = "org.jetbrains.kotlin:kotlin-test:$versions.kotlin"
 deps.kotlin = kotlin
 
 def leakcanary = [:]

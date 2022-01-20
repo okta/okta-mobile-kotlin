@@ -17,16 +17,16 @@ package com.okta.authfoundation
 
 import kotlin.reflect.KProperty
 
-internal class OneTimeSetOrLazyGet<T>(val factory: () -> T) {
-    @Volatile private var hasBeenSet: Boolean = false
+internal class NoSetAfterGetWithLazyDefaultFactory<T>(val factory: () -> T) {
+    @Volatile private var hasBeenRetrieved: Boolean = false
     @Volatile private var instance: T? = null
     private val lock: Any = Any()
 
     operator fun getValue(thisRef: Any?, property: KProperty<*>): T {
+        hasBeenRetrieved = true
         instance?.let { return it }
         synchronized(lock) {
             instance?.let { return it }
-            hasBeenSet = true
             val local = factory()
             instance = local
             return local
@@ -35,10 +35,9 @@ internal class OneTimeSetOrLazyGet<T>(val factory: () -> T) {
 
     operator fun setValue(thisRef: Any?, property: KProperty<*>, value: T) {
         synchronized(lock) {
-            if (hasBeenSet) {
+            if (hasBeenRetrieved) {
                 throw IllegalStateException("${property.name} was already accessed, and can't be set.")
             }
-            hasBeenSet = true
             instance = value
         }
     }
