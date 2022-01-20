@@ -15,8 +15,6 @@
  */
 package com.okta.authfoundation.client
 
-// TODO: Document
 interface OidcClock {
-    // TODO: Document
     fun currentTimeMillis(): Long
 }

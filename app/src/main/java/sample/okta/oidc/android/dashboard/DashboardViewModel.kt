@@ -25,7 +25,6 @@ import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.dto.OidcTokenType
-import com.okta.oauth2.AuthorizationCodeFlow
 import com.okta.oauth2.RedirectEndSessionFlow
 import com.okta.webauthenticationui.WebAuthenticationClient
 import kotlinx.coroutines.Job
@@ -54,8 +53,12 @@ internal class DashboardViewModel : ViewModel() {
         SocialRedirectCoordinator.listeners += ::handleRedirect
 
         viewModelScope.launch {
-            val configuration =
-                OidcConfiguration(BuildConfig.CLIENT_ID, setOf("openid", "email", "profile", "offline_access"))
+            val configuration = OidcConfiguration(
+                clientId = BuildConfig.CLIENT_ID,
+                scopes = setOf("openid", "email", "profile", "offline_access"),
+                signInRedirectUri = BuildConfig.SIGN_IN_REDIRECT_URI,
+                signOutRedirectUri = BuildConfig.SIGN_OUT_REDIRECT_URI,
+            )
             when (val clientResult = OidcClient.create(
                 configuration,
                 "${BuildConfig.ISSUER}/.well-known/openid-configuration".toHttpUrl()
@@ -80,14 +83,24 @@ internal class DashboardViewModel : ViewModel() {
 
     private fun setupWebAuthenticationClient() {
         val oidcClient = oidcClient ?: return
-        val authorizationCodeFlow = AuthorizationCodeFlow(BuildConfig.SIGN_IN_REDIRECT_URI, oidcClient)
-        val redirectEndSessionFlow = RedirectEndSessionFlow(BuildConfig.SIGN_OUT_REDIRECT_URI, oidcClient)
-        webAuthenticationClient = WebAuthenticationClient(authorizationCodeFlow, redirectEndSessionFlow)
+        webAuthenticationClient = WebAuthenticationClient(oidcClient)
     }
 
     fun revoke(buttonId: Int, tokenType: OidcTokenType) {
         performRequest(buttonId) { client ->
-            when (client.revokeToken(tokenType)) {
+            val tokens = client.getTokens() ?: throw IllegalStateException("No tokens.")
+            val token = when (tokenType) {
+                OidcTokenType.ACCESS_TOKEN -> {
+                    tokens.accessToken
+                }
+                OidcTokenType.REFRESH_TOKEN -> {
+                    tokens.refreshToken ?: throw IllegalStateException("No refresh token.")
+                }
+                OidcTokenType.ID_TOKEN -> {
+                    throw IllegalStateException("Revoke Token doesn't support ID Token.")
+                }
+            }
+            when (client.revokeToken(tokenType, token)) {
                 is OidcClientResult.Error -> {
                     RequestState.Result("Failed to revoke token.")
                 }
@@ -100,7 +113,8 @@ internal class DashboardViewModel : ViewModel() {
 
     fun refresh(buttonId: Int) {
         performRequest(buttonId) { client ->
-            when (client.refreshToken()) {
+            val refreshToken = client.getTokens()?.refreshToken ?: throw IllegalStateException("No Tokens.")
+            when (client.refreshToken(refreshToken)) {
                 is OidcClientResult.Error -> {
                     RequestState.Result("Failed to refresh token.")
                 }
@@ -113,7 +127,19 @@ internal class DashboardViewModel : ViewModel() {
 
     fun introspect(buttonId: Int, tokenType: OidcTokenType) {
         performRequest(buttonId) { client ->
-            when (val result = client.introspectToken(tokenType)) {
+            val tokens = client.getTokens() ?: throw IllegalStateException("No Tokens.")
+            val token: String = when (tokenType) {
+                OidcTokenType.ACCESS_TOKEN -> {
+                    tokens.accessToken
+                }
+                OidcTokenType.REFRESH_TOKEN -> {
+                    tokens.refreshToken ?: throw IllegalStateException("No refresh token.")
+                }
+                OidcTokenType.ID_TOKEN -> {
+                    tokens.idToken ?: throw IllegalStateException("No id token.")
+                }
+            }
+            when (val result = client.introspectToken(tokenType, token)) {
                 is OidcClientResult.Error -> {
                     RequestState.Result("Failed to introspect token.")
                 }
@@ -126,7 +152,8 @@ internal class DashboardViewModel : ViewModel() {
 
     fun logoutOfWeb(context: Context) {
         viewModelScope.launch {
-            logoutFlowContext = webAuthenticationClient?.logout(context)
+            val idToken = oidcClient?.getTokens()?.idToken ?: return@launch
+            logoutFlowContext = webAuthenticationClient?.logout(context, idToken)
         }
     }
 

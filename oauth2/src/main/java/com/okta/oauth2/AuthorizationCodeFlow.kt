@@ -16,24 +16,25 @@
 package com.okta.oauth2
 
 import android.net.Uri
-import com.okta.authfoundation.OktaSdk
 import com.okta.oauth2.events.CustomizeAuthorizationUrlEvent
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundation.client.internal.internalTokenRequest
 import com.okta.authfoundation.dto.OidcTokens
-import com.okta.authfoundation.events.EventCoordinator
 import okhttp3.FormBody
 import okhttp3.HttpUrl
 import okhttp3.Request
 import java.util.UUID
 
-class AuthorizationCodeFlow(
-    /** The application's redirect URI. */
-    private val signInRedirectUri: String,
+class AuthorizationCodeFlow private constructor(
     private val oidcClient: OidcClient,
-    private val eventCoordinator: EventCoordinator = OktaSdk.eventCoordinator,
 ) {
+    companion object {
+        fun OidcClient.authorizationCodeFlow(): AuthorizationCodeFlow {
+            return AuthorizationCodeFlow(this)
+        }
+    }
+
     class Context internal constructor(
         internal val codeVerifier: String,
         internal val state: String,
@@ -60,18 +61,18 @@ class AuthorizationCodeFlow(
         urlBuilder.addQueryParameter("code_challenge_method", PkceGenerator.CODE_CHALLENGE_METHOD)
         urlBuilder.addQueryParameter("client_id", oidcClient.configuration.clientId)
         urlBuilder.addQueryParameter("scope", oidcClient.configuration.scopes.joinToString(" "))
-        urlBuilder.addQueryParameter("redirect_uri", signInRedirectUri)
+        urlBuilder.addQueryParameter("redirect_uri", oidcClient.configuration.signInRedirectUri)
         urlBuilder.addQueryParameter("response_type", "code")
         urlBuilder.addQueryParameter("state", state)
 
         val event = CustomizeAuthorizationUrlEvent(urlBuilder)
-        eventCoordinator.sendEvent(event)
+        oidcClient.configuration.eventCoordinator.sendEvent(event)
 
         return Context(codeVerifier, state, urlBuilder.build())
     }
 
     suspend fun resume(uri: Uri, flowContext: Context): Result {
-        if (!uri.toString().startsWith(signInRedirectUri)) {
+        if (!uri.toString().startsWith(oidcClient.configuration.signInRedirectUri)) {
             return Result.RedirectSchemeMismatch
         }
 
@@ -90,7 +91,7 @@ class AuthorizationCodeFlow(
         val code = uri.getQueryParameter("code") ?: return Result.MissingResultCode
 
         val formBodyBuilder = FormBody.Builder()
-            .add("redirect_uri", signInRedirectUri)
+            .add("redirect_uri", oidcClient.configuration.signInRedirectUri)
             .add("code_verifier", flowContext.codeVerifier)
             .add("client_id", oidcClient.configuration.clientId)
             .add("grant_type", "authorization_code")

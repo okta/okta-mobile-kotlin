@@ -29,9 +29,7 @@ import kotlinx.serialization.encoding.Encoder
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
 
-// TODO: Documentation
 @Serializable
-// TODO: Move these into another class that maps to this.
 class OidcEndpoints(
     @SerialName("issuer") internal val issuer: HttpUrl,
     @SerialName("authorization_endpoint") public val authorizationEndpoint: HttpUrl,

@@ -15,7 +15,6 @@
  */
 package com.okta.authfoundation.events
 
-// TODO: Document
 interface EventHandler {
     fun onEvent(event: Any)
 }

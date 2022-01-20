@@ -31,7 +31,6 @@ import okhttp3.FormBody
 import okhttp3.HttpUrl
 import okhttp3.Request
 
-// TODO: Document
 class OidcClient internal constructor(
     val configuration: OidcConfiguration,
     val endpoints: OidcEndpoints,
@@ -44,8 +43,7 @@ class OidcClient internal constructor(
             val request = Request.Builder()
                 .url(discoveryUrl)
                 .build()
-            val dtoResult = configuration.performRequest<OidcEndpoints>(request)
-            return when (dtoResult) {
+            return when (val dtoResult = configuration.performRequest<OidcEndpoints>(request)) {
                 is OidcClientResult.Error -> {
                     OidcClientResult.Error(dtoResult.exception)
                 }
@@ -69,9 +67,7 @@ class OidcClient internal constructor(
         }
     }
 
-    suspend fun refreshToken(): OidcClientResult<OidcTokens> {
-        val refreshToken = getTokens()?.refreshToken ?: return OidcClientResult.Error(IllegalStateException("No refresh token."))
-
+    suspend fun refreshToken(refreshToken: String): OidcClientResult<OidcTokens> {
         val formBody = FormBody.Builder()
             .add("client_id", configuration.clientId)
             .add("grant_type", "refresh_token")
@@ -91,20 +87,9 @@ class OidcClient internal constructor(
         return result
     }
 
-    suspend fun revokeToken(tokenType: OidcTokenType): OidcClientResult<Unit> {
-        val tokens = getTokens() ?: return OidcClientResult.Error(IllegalStateException("No stored tokens."))
-        val token: String
-
-        when (tokenType) {
-            OidcTokenType.ACCESS_TOKEN -> {
-                token = tokens.accessToken
-            }
-            OidcTokenType.REFRESH_TOKEN -> {
-                token = tokens.refreshToken ?: return OidcClientResult.Error(IllegalStateException("No refresh token."))
-            }
-            OidcTokenType.ID_TOKEN -> {
-                return OidcClientResult.Error(IllegalStateException("Revoke Token doesn't support ID Token."))
-            }
+    suspend fun revokeToken(tokenType: OidcTokenType, token: String): OidcClientResult<Unit> {
+        if (tokenType == OidcTokenType.ID_TOKEN) {
+            return OidcClientResult.Error(IllegalStateException("Revoke Token doesn't support ID Token."))
         }
 
         val formBody = FormBody.Builder()
@@ -117,30 +102,22 @@ class OidcClient internal constructor(
             .post(formBody)
             .build()
 
-        // TODO: Remove token?
         return configuration.performRequestNonJson(request)
     }
 
     suspend fun introspectToken(
-        tokenType: OidcTokenType
+        tokenType: OidcTokenType,
+        token: String,
     ): OidcClientResult<OidcIntrospectInfo> {
-        val tokens = getTokens() ?: return OidcClientResult.Error(IllegalStateException("No stored tokens."))
-
-        val token: String
-        val tokenTypeHint: String
-
-        when (tokenType) {
+        val tokenTypeHint: String = when (tokenType) {
             OidcTokenType.ACCESS_TOKEN -> {
-                token = tokens.accessToken
-                tokenTypeHint = "access_token"
+                "access_token"
             }
             OidcTokenType.REFRESH_TOKEN -> {
-                token = tokens.refreshToken ?: return OidcClientResult.Error(IllegalStateException("No refresh token."))
-                tokenTypeHint = "refresh_token"
+                "refresh_token"
             }
             OidcTokenType.ID_TOKEN -> {
-                token = tokens.idToken ?: return OidcClientResult.Error(IllegalStateException("No ID token."))
-                tokenTypeHint = "id_token"
+                "id_token"
             }
         }
 
@@ -157,7 +134,6 @@ class OidcClient internal constructor(
 
         return configuration.performRequest<JsonObject, OidcIntrospectInfo>(request) {
             val active = (it["active"] as JsonPrimitive).boolean
-            // TODO: Make this nice
             OidcIntrospectInfo(it, active)
         }
     }

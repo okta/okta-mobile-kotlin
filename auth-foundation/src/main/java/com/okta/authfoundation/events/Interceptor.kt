@@ -15,7 +15,6 @@
  */
 package com.okta.authfoundation.events
 
-// TODO: Document
 interface Interceptor<I, O> {
     interface Chain<I, O> {
         // TODO: Maybe rename to value?

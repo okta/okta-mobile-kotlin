@@ -18,16 +18,18 @@ package com.okta.webauthenticationui
 import android.content.Context
 import android.net.Uri
 import com.okta.oauth2.AuthorizationCodeFlow
-import com.okta.authfoundation.OktaSdk
-import com.okta.authfoundation.events.EventCoordinator
+import com.okta.authfoundation.client.OidcClient
+import com.okta.oauth2.AuthorizationCodeFlow.Companion.authorizationCodeFlow
 import com.okta.oauth2.RedirectEndSessionFlow
+import com.okta.oauth2.RedirectEndSessionFlow.Companion.redirectEndSessionFlow
 
 class WebAuthenticationClient(
-    val authorizationCodeFlow: AuthorizationCodeFlow,
-    val redirectEndSessionFlow: RedirectEndSessionFlow,
-    val eventCoordinator: EventCoordinator = OktaSdk.eventCoordinator,
-    val webAuthenticationProvider: WebAuthenticationProvider = DefaultWebAuthenticationProvider(eventCoordinator),
+    private val oidcClient: OidcClient,
+    private val webAuthenticationProvider: WebAuthenticationProvider = DefaultWebAuthenticationProvider(oidcClient.configuration.eventCoordinator),
 ) {
+    private val authorizationCodeFlow = oidcClient.authorizationCodeFlow()
+    private val redirectEndSessionFlow = oidcClient.redirectEndSessionFlow()
+
     fun login(context: Context): AuthorizationCodeFlow.Context {
         val authorizationCodeFlowContext = authorizationCodeFlow.start()
         webAuthenticationProvider.launch(context, authorizationCodeFlowContext.url)
@@ -41,8 +43,7 @@ class WebAuthenticationClient(
         return authorizationCodeFlow.resume(uri, flowContext)
     }
 
-    suspend fun logout(context: Context): RedirectEndSessionFlow.Context? {
-        val idToken = redirectEndSessionFlow.oidcClient.getTokens()?.idToken ?: return null
+    fun logout(context: Context, idToken: String): RedirectEndSessionFlow.Context {
         val flowContext = redirectEndSessionFlow.start(idToken)
         webAuthenticationProvider.launch(context, flowContext.url)
         return flowContext

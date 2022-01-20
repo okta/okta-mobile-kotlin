@@ -22,7 +22,6 @@ class OidcIntrospectInfo internal constructor(
     private val json: JsonObject,
     val active: Boolean
 ) {
-    // TODO: Need to come up with a better data structure here.
     fun asMap(): Map<String, String> {
         val map = mutableMapOf<String, String>()
         for (entry in json) {
@@ -38,4 +37,3 @@ class OidcIntrospectInfo internal constructor(
 }
 
 // TODO: Sealed class. One for active one for not?
-
