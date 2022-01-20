@@ -15,6 +15,8 @@
  */
 package com.okta.authfoundation
 
+import com.okta.authfoundation.client.OidcClock
+import com.okta.authfoundation.client.OidcStorage
 import com.okta.authfoundation.events.EventCoordinator
 import okhttp3.Call
 import okhttp3.OkHttpClient
@@ -23,4 +25,33 @@ object OktaSdk {
     var okHttpClient: Call.Factory by OneTimeSetOrLazyGet { OkHttpClient() }
 
     var eventCoordinator: EventCoordinator by OneTimeSetOrLazyGet { EventCoordinator(emptyList()) }
+
+    var clock: OidcClock by OneTimeSetOrLazyGet { defaultClock() }
+
+    var storage: OidcStorage by OneTimeSetOrLazyGet { defaultStorage() }
+
+    private fun defaultClock(): OidcClock {
+        return object : OidcClock {
+            override fun currentTimeMillis(): Long {
+                return System.currentTimeMillis()
+            }
+        }
+    }
+
+    private fun defaultStorage(): OidcStorage {
+        val map = mutableMapOf<String, String>()
+        return object : OidcStorage {
+            override suspend fun save(key: String, value: String) {
+                map[key] = value
+            }
+
+            override suspend fun get(key: String): String? {
+                return map[key]
+            }
+
+            override suspend fun delete(key: String) {
+                map.remove(key)
+            }
+        }
+    }
 }
