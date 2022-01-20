@@ -25,7 +25,6 @@ class OidcUserInfo internal constructor(
         return (json[key] as? JsonPrimitive)?.content
     }
 
-    // TODO: Need to come up with a better data structure here.
     fun asMap(): Map<String, String> {
         val map = mutableMapOf<String, String>()
         for (entry in json) {

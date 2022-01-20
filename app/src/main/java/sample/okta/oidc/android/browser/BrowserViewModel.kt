@@ -48,6 +48,8 @@ class BrowserViewModel : ViewModel() {
             val oidcConfiguration = OidcConfiguration(
                 clientId = BuildConfig.CLIENT_ID,
                 scopes = setOf("openid", "email", "profile", "offline_access"),
+                signInRedirectUri = BuildConfig.SIGN_IN_REDIRECT_URI,
+                signOutRedirectUri = BuildConfig.SIGN_OUT_REDIRECT_URI,
             )
             when (val clientResult = OidcClient.create(
                 oidcConfiguration,
@@ -58,9 +60,7 @@ class BrowserViewModel : ViewModel() {
                 }
                 is OidcClientResult.Success -> {
                     val oidcClient = clientResult.result
-                    val authorizationCodeFlow = AuthorizationCodeFlow(BuildConfig.SIGN_IN_REDIRECT_URI, oidcClient)
-                    val redirectEndSessionFlow = RedirectEndSessionFlow(BuildConfig.SIGN_OUT_REDIRECT_URI, oidcClient)
-                    client = WebAuthenticationClient(authorizationCodeFlow, redirectEndSessionFlow)
+                    client = WebAuthenticationClient(oidcClient)
                 }
             }
         }

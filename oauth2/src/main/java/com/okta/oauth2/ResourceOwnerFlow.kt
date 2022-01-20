@@ -22,9 +22,15 @@ import com.okta.authfoundation.dto.OidcTokens
 import okhttp3.FormBody
 import okhttp3.Request
 
-class ResourceOwnerFlow(
+class ResourceOwnerFlow private constructor(
     private val oidcClient: OidcClient,
 ) {
+    companion object {
+        fun OidcClient.resourceOwnerFlow(): ResourceOwnerFlow {
+            return ResourceOwnerFlow(this)
+        }
+    }
+
     sealed class Result {
         class Error(val message: String, val exception: Exception? = null) : Result()
         class Tokens(val tokens: OidcTokens) : Result()

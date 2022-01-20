@@ -17,7 +17,6 @@ package com.okta.oauth2.events
 
 import okhttp3.HttpUrl
 
-// TODO: Document
 class CustomizeLogoutUrlEvent internal constructor(
     val httpUrlBuilder: HttpUrl.Builder
 )

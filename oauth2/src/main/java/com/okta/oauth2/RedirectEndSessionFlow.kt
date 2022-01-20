@@ -16,19 +16,20 @@
 package com.okta.oauth2
 
 import android.net.Uri
-import com.okta.authfoundation.OktaSdk
 import com.okta.authfoundation.client.OidcClient
-import com.okta.authfoundation.events.EventCoordinator
 import com.okta.oauth2.events.CustomizeLogoutUrlEvent
 import okhttp3.HttpUrl
 import java.util.UUID
 
-class RedirectEndSessionFlow(
-    /** The application's end session redirect URI. */
-    val signOutRedirectUri: String,
-    val oidcClient: OidcClient,
-    val eventCoordinator: EventCoordinator = OktaSdk.eventCoordinator,
+class RedirectEndSessionFlow private constructor(
+    private val oidcClient: OidcClient,
 ) {
+    companion object {
+        fun OidcClient.redirectEndSessionFlow(): RedirectEndSessionFlow {
+            return RedirectEndSessionFlow(this)
+        }
+    }
+
     class Context internal constructor(
         internal val state: String,
         val url: HttpUrl,
@@ -51,17 +52,17 @@ class RedirectEndSessionFlow(
     ): Context {
         val urlBuilder = oidcClient.endpoints.endSessionEndpoint.newBuilder()
         urlBuilder.addQueryParameter("id_token_hint", idToken)
-        urlBuilder.addQueryParameter("post_logout_redirect_uri", signOutRedirectUri)
+        urlBuilder.addQueryParameter("post_logout_redirect_uri", oidcClient.configuration.signOutRedirectUri)
         urlBuilder.addQueryParameter("state", state)
 
         val event = CustomizeLogoutUrlEvent(urlBuilder)
-        eventCoordinator.sendEvent(event)
+        oidcClient.configuration.eventCoordinator.sendEvent(event)
 
         return Context(state, urlBuilder.build())
     }
 
     fun resume(uri: Uri, context: Context): Result {
-        if (!uri.toString().startsWith(signOutRedirectUri)) {
+        if (!uri.toString().startsWith(oidcClient.configuration.signOutRedirectUri)) {
             return Result.RedirectSchemeMismatch
         }
 

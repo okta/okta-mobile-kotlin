@@ -16,6 +16,7 @@
 package com.okta.authfoundation.client
 
 import com.okta.authfoundation.OktaSdk
+import com.okta.authfoundation.events.EventCoordinator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.json.Json
 import okhttp3.Call
@@ -36,6 +37,12 @@ class OidcConfiguration(
     /** The access scopes required by the client. */
     val scopes: Set<String>,
 
+    /** The application's redirect URI. */
+    val signInRedirectUri: String = "",
+
+    /** The application's end session redirect URI. */
+    val signOutRedirectUri: String = "",
+
     /** The Call.Factory which makes calls to the okta server. */
     okHttpCallFactory: Call.Factory = OktaSdk.okHttpClient,
 
@@ -50,6 +57,8 @@ class OidcConfiguration(
 
     /** The OidcStorage which is used for encryption/storage or tokens. */
     val storage: OidcStorage = OktaSdk.storage,
+
+    val eventCoordinator: EventCoordinator = OktaSdk.eventCoordinator,
 ) {
     /** The Call.Factory which makes calls to the okta server. */
     val okHttpCallFactory: Call.Factory = addInterceptor(okHttpCallFactory)

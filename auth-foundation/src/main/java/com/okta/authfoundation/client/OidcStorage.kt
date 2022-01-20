@@ -15,7 +15,6 @@
  */
 package com.okta.authfoundation.client
 
-// TODO: Document
 interface OidcStorage {
     suspend fun save(key: String, value: String)
     suspend fun get(key: String): String?

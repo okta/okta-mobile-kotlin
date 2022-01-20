@@ -24,6 +24,7 @@ import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.dto.OidcTokens
 import com.okta.oauth2.ResourceOwnerFlow
+import com.okta.oauth2.ResourceOwnerFlow.Companion.resourceOwnerFlow
 import kotlinx.coroutines.launch
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import sample.okta.oidc.android.BuildConfig
@@ -40,6 +41,8 @@ internal class ResourceOwnerViewModel : ViewModel() {
             val oidcConfiguration = OidcConfiguration(
                 clientId = BuildConfig.CLIENT_ID,
                 scopes = setOf("openid", "email", "profile", "offline_access"),
+                signInRedirectUri = BuildConfig.SIGN_IN_REDIRECT_URI,
+                signOutRedirectUri = BuildConfig.SIGN_OUT_REDIRECT_URI,
             )
             when (val clientResult = OidcClient.create(
                 oidcConfiguration,
@@ -51,7 +54,7 @@ internal class ResourceOwnerViewModel : ViewModel() {
                 }
                 is OidcClientResult.Success -> {
                     val oidcClient = clientResult.result
-                    val resourceOwnerFlow = ResourceOwnerFlow(oidcClient)
+                    val resourceOwnerFlow = oidcClient.resourceOwnerFlow()
                     _state.value = resourceOwnerFlow.start(username, password).transformToState()
                 }
             }

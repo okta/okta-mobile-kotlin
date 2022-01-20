@@ -15,7 +15,6 @@
  */
 package com.okta.authfoundation.events
 
-// TODO: Document.
 class EventCoordinator(eventHandlers: List<EventHandler>) {
     private val eventHandlers = ArrayList(eventHandlers) // Make a defensive copy.
 

@@ -18,7 +18,6 @@ package com.okta.webauthenticationui.events
 import android.content.Context
 import androidx.browser.customtabs.CustomTabsIntent
 
-// TODO: Document
 class CustomizeCustomTabsEvent internal constructor(
     val context: Context,
     val intentBuilder: CustomTabsIntent.Builder,
