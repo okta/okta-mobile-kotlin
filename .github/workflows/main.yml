@@ -31,5 +31,5 @@ jobs:
         with:
           name: test-failures
           path: |
-            **/build/reports/tests/test/
+            **/build/reports/tests/
             **/out/failures/

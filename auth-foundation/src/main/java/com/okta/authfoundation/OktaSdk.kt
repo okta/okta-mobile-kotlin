@@ -22,13 +22,13 @@ import okhttp3.Call
 import okhttp3.OkHttpClient
 
 object OktaSdk {
-    var okHttpClient: Call.Factory by OneTimeSetOrLazyGet { OkHttpClient() }
+    var okHttpClient: Call.Factory by NoSetAfterGetWithLazyDefaultFactory { OkHttpClient() }
 
-    var eventCoordinator: EventCoordinator by OneTimeSetOrLazyGet { EventCoordinator(emptyList()) }
+    var eventCoordinator: EventCoordinator by NoSetAfterGetWithLazyDefaultFactory { EventCoordinator(emptyList()) }
 
-    var clock: OidcClock by OneTimeSetOrLazyGet { defaultClock() }
+    var clock: OidcClock by NoSetAfterGetWithLazyDefaultFactory { defaultClock() }
 
-    var storage: OidcStorage by OneTimeSetOrLazyGet { defaultStorage() }
+    var storage: OidcStorage by NoSetAfterGetWithLazyDefaultFactory { defaultStorage() }
 
     private fun defaultClock(): OidcClock {
         return object : OidcClock {
