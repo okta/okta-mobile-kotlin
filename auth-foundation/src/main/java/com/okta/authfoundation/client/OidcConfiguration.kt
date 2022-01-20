@@ -46,12 +46,10 @@ class OidcConfiguration(
     val storageDispatcher: CoroutineContext = Dispatchers.Default,
 
     /** The OidcClock which is used for all time related functions in the SDK. */
-    val clock: OidcClock = defaultClock(),
+    val clock: OidcClock = OktaSdk.clock,
 
     /** The OidcStorage which is used for encryption/storage or tokens. */
-    val storage: OidcStorage = defaultStorage(),
-
-    // TODO: Logging?
+    val storage: OidcStorage = OktaSdk.storage,
 ) {
     /** The Call.Factory which makes calls to the okta server. */
     val okHttpCallFactory: Call.Factory = addInterceptor(okHttpCallFactory)
@@ -60,31 +58,6 @@ class OidcConfiguration(
     val json: Json = Json { ignoreUnknownKeys = true }
 
     companion object {
-        private fun defaultClock(): OidcClock {
-            return object : OidcClock {
-                override fun currentTimeMillis(): Long {
-                    return System.currentTimeMillis()
-                }
-            }
-        }
-
-        private fun defaultStorage(): OidcStorage {
-            val map = mutableMapOf<String, String>()
-            return object : OidcStorage {
-                override suspend fun save(key: String, value: String) {
-                    map[key] = value
-                }
-
-                override suspend fun get(key: String): String? {
-                    return map[key]
-                }
-
-                override suspend fun delete(key: String) {
-                    map.remove(key)
-                }
-            }
-        }
-
         private fun addInterceptor(callFactory: Call.Factory): Call.Factory {
             if (callFactory is OkHttpClient) {
                 return callFactory.newBuilder()
