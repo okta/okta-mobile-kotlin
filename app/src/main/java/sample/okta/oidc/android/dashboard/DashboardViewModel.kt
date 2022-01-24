@@ -186,7 +186,8 @@ internal class DashboardViewModel : ViewModel() {
     }
 
     private suspend fun getUserInfo() {
-        when (val userInfoResult = oidcClient?.getUserInfo()) {
+        val accessToken = oidcClient?.getTokens()?.accessToken ?: return
+        when (val userInfoResult = oidcClient?.getUserInfo(accessToken)) {
             is OidcClientResult.Error -> {
                 Timber.e(userInfoResult.exception, "Failed to fetch user info.")
                 _userInfoLiveData.postValue(emptyMap())
