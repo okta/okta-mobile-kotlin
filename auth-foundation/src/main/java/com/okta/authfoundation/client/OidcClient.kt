@@ -54,9 +54,7 @@ class OidcClient internal constructor(
         }
     }
 
-    suspend fun getUserInfo(): OidcClientResult<OidcUserInfo> {
-        val accessToken = getTokens()?.accessToken ?: return OidcClientResult.Error(IllegalStateException("No access token."))
-
+    suspend fun getUserInfo(accessToken: String): OidcClientResult<OidcUserInfo> {
         val request = Request.Builder()
             .addHeader("authorization", "Bearer $accessToken")
             .url(endpoints.userInfoEndpoint)
