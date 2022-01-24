@@ -114,11 +114,12 @@ internal class DashboardViewModel : ViewModel() {
     fun refresh(buttonId: Int) {
         performRequest(buttonId) { client ->
             val refreshToken = client.getTokens()?.refreshToken ?: throw IllegalStateException("No Tokens.")
-            when (client.refreshToken(refreshToken)) {
+            when (val result = client.refreshToken(refreshToken)) {
                 is OidcClientResult.Error -> {
                     RequestState.Result("Failed to refresh token.")
                 }
                 is OidcClientResult.Success -> {
+                    client.storeTokens(result.result)
                     RequestState.Result("Token Refreshed.")
                 }
             }

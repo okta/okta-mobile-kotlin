@@ -78,11 +78,7 @@ class OidcClient internal constructor(
             .post(formBody)
             .build()
 
-        val result = configuration.performRequest<OidcTokens>(request)
-        (result as? OidcClientResult.Success<OidcTokens>)?.let {
-            configuration.storeTokens(it.result)
-        }
-        return result
+        return configuration.performRequest(request)
     }
 
     suspend fun revokeToken(tokenType: OidcTokenType, token: String): OidcClientResult<Unit> {
