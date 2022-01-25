@@ -1,0 +1,14 @@
+{
+  "active": true,
+  "scope": "email profile offline_access openid",
+  "username": "example@gmail.com",
+  "exp": 1643139122,
+  "iat": 1643135522,
+  "sub": "example@gmail.com",
+  "aud": "api://default",
+  "iss": "https://example.okta.com/oauth2/default",
+  "jti": "AT.kh9EMdVmXJRWRxaqjXnxXWaFKjPOZaAsOfA3BIvkRL4.oar18y5s1NrTtJheV696",
+  "token_type": "Bearer",
+  "client_id": "unit_test_client_id",
+  "uid": "00ub41z7mgzNqryMv696"
+}

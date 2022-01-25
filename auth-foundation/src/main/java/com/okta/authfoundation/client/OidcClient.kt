@@ -81,11 +81,7 @@ class OidcClient internal constructor(
         return configuration.performRequest(request)
     }
 
-    suspend fun revokeToken(tokenType: OidcTokenType, token: String): OidcClientResult<Unit> {
-        if (tokenType == OidcTokenType.ID_TOKEN) {
-            return OidcClientResult.Error(IllegalStateException("Revoke Token doesn't support ID Token."))
-        }
-
+    suspend fun revokeToken(token: String): OidcClientResult<Unit> {
         val formBody = FormBody.Builder()
             .add("client_id", configuration.clientId)
             .add("token", token)
@@ -130,10 +126,6 @@ class OidcClient internal constructor(
             val active = (it["active"] as JsonPrimitive).boolean
             OidcIntrospectInfo(it, active)
         }
-    }
-
-    suspend fun isValid(tokenType: OidcTokenType): Boolean {
-        TODO(tokenType.toString())
     }
 
     suspend fun storeTokens(tokens: OidcTokens) {
