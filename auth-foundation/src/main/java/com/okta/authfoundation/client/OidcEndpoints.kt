@@ -31,15 +31,15 @@ import okhttp3.HttpUrl.Companion.toHttpUrl
 
 @Serializable
 class OidcEndpoints(
-    @SerialName("issuer") internal val issuer: HttpUrl,
-    @SerialName("authorization_endpoint") public val authorizationEndpoint: HttpUrl,
-    @SerialName("token_endpoint") public val tokenEndpoint: HttpUrl,
-    @SerialName("userinfo_endpoint") internal val userInfoEndpoint: HttpUrl,
-    @SerialName("jwks_uri") internal val jwksUri: HttpUrl,
-    @SerialName("registration_endpoint") internal val registrationEndpoint: HttpUrl,
-    @SerialName("introspection_endpoint") internal val introspectionEndpoint: HttpUrl,
-    @SerialName("revocation_endpoint") internal val revocationEndpoint: HttpUrl,
-    @SerialName("end_session_endpoint") public val endSessionEndpoint: HttpUrl,
+    @SerialName("issuer") val issuer: HttpUrl,
+    @SerialName("authorization_endpoint") val authorizationEndpoint: HttpUrl,
+    @SerialName("token_endpoint") val tokenEndpoint: HttpUrl,
+    @SerialName("userinfo_endpoint") val userInfoEndpoint: HttpUrl,
+    @SerialName("jwks_uri") val jwksUri: HttpUrl,
+    @SerialName("registration_endpoint") val registrationEndpoint: HttpUrl,
+    @SerialName("introspection_endpoint") val introspectionEndpoint: HttpUrl,
+    @SerialName("revocation_endpoint") val revocationEndpoint: HttpUrl,
+    @SerialName("end_session_endpoint") val endSessionEndpoint: HttpUrl,
 )
 
 internal object HttpUrlSerializer : KSerializer<HttpUrl> {

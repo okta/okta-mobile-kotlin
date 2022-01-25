@@ -37,4 +37,6 @@ dependencies {
     testImplementation deps.junit
     testImplementation deps.truth
     testImplementation deps.kotlin.test
+    testImplementation deps.okhttp.mock_web_server
+    testImplementation deps.okhttp.tls
 }

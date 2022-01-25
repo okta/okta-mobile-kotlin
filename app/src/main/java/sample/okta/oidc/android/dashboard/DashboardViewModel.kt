@@ -100,7 +100,7 @@ internal class DashboardViewModel : ViewModel() {
                     throw IllegalStateException("Revoke Token doesn't support ID Token.")
                 }
             }
-            when (client.revokeToken(tokenType, token)) {
+            when (client.revokeToken(token)) {
                 is OidcClientResult.Error -> {
                     RequestState.Result("Failed to revoke token.")
                 }
