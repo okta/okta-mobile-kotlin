@@ -20,13 +20,12 @@ import com.okta.authfoundation.dto.OidcIntrospectInfo
 import com.okta.authfoundation.dto.OidcTokenType
 import com.okta.authfoundation.dto.OidcTokens
 import com.okta.authfoundation.dto.OidcUserInfo
-import com.okta.authfoundation.test.network.NetworkRule
-import com.okta.authfoundation.test.network.OktaMockWebServer
-import com.okta.authfoundation.test.network.RequestMatchers.body
-import com.okta.authfoundation.test.network.RequestMatchers.header
-import com.okta.authfoundation.test.network.RequestMatchers.method
-import com.okta.authfoundation.test.network.RequestMatchers.path
-import com.okta.authfoundation.test.network.testBodyFromFile
+import com.okta.testnetworking.NetworkRule
+import com.okta.testnetworking.RequestMatchers.body
+import com.okta.testnetworking.RequestMatchers.header
+import com.okta.testnetworking.RequestMatchers.method
+import com.okta.testnetworking.RequestMatchers.path
+import com.okta.testnetworking.testBodyFromFile
 import kotlinx.coroutines.runBlocking
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.junit.Rule
@@ -43,20 +42,20 @@ class OidcClientTest {
         scopes = setOf("openid", "email", "profile", "offline_access"),
         signInRedirectUri = "unitTest:/login",
         signOutRedirectUri = "unitTest:/logout",
-        okHttpCallFactory = OktaMockWebServer.okHttpClient,
+        okHttpCallFactory = networkRule.okHttpClient,
     )
 
     private fun createOidcClient(): OidcClient {
         val endpoints = OidcEndpoints(
-            issuer = OktaMockWebServer.baseUrl.newBuilder().encodedPath("/oauth2/default").build(),
-            authorizationEndpoint = OktaMockWebServer.baseUrl.newBuilder().encodedPath("/oauth2/default/v1/authorize").build(),
-            tokenEndpoint = OktaMockWebServer.baseUrl.newBuilder().encodedPath("/oauth2/default/v1/token").build(),
-            userInfoEndpoint = OktaMockWebServer.baseUrl.newBuilder().encodedPath("/oauth2/default/v1/userinfo").build(),
-            jwksUri = OktaMockWebServer.baseUrl.newBuilder().encodedPath("/oauth2/default/v1/keys").build(),
-            registrationEndpoint = OktaMockWebServer.baseUrl.newBuilder().encodedPath("/oauth2/v1/clients").build(),
-            introspectionEndpoint = OktaMockWebServer.baseUrl.newBuilder().encodedPath("/oauth2/default/v1/introspect").build(),
-            revocationEndpoint = OktaMockWebServer.baseUrl.newBuilder().encodedPath("/oauth2/default/v1/revoke").build(),
-            endSessionEndpoint = OktaMockWebServer.baseUrl.newBuilder().encodedPath("/oauth2/default/v1/logout").build(),
+            issuer = networkRule.baseUrl.newBuilder().encodedPath("/oauth2/default").build(),
+            authorizationEndpoint = networkRule.baseUrl.newBuilder().encodedPath("/oauth2/default/v1/authorize").build(),
+            tokenEndpoint = networkRule.baseUrl.newBuilder().encodedPath("/oauth2/default/v1/token").build(),
+            userInfoEndpoint = networkRule.baseUrl.newBuilder().encodedPath("/oauth2/default/v1/userinfo").build(),
+            jwksUri = networkRule.baseUrl.newBuilder().encodedPath("/oauth2/default/v1/keys").build(),
+            registrationEndpoint = networkRule.baseUrl.newBuilder().encodedPath("/oauth2/v1/clients").build(),
+            introspectionEndpoint = networkRule.baseUrl.newBuilder().encodedPath("/oauth2/default/v1/introspect").build(),
+            revocationEndpoint = networkRule.baseUrl.newBuilder().encodedPath("/oauth2/default/v1/revoke").build(),
+            endSessionEndpoint = networkRule.baseUrl.newBuilder().encodedPath("/oauth2/default/v1/logout").build(),
         )
         return OidcClient(configuration, endpoints)
     }
@@ -70,7 +69,7 @@ class OidcClientTest {
         }
         val result = OidcClient.create(
             configuration,
-            OktaMockWebServer.baseUrl.newBuilder().encodedPath("/.well-known/openid-configuration").build()
+            networkRule.baseUrl.newBuilder().encodedPath("/.well-known/openid-configuration").build()
         )
         val endpoints = (result as OidcClientResult.Success<OidcClient>).result.endpoints
         assertThat(endpoints.issuer).isEqualTo("https://example.okta.com/oauth2/default".toHttpUrl())
@@ -90,7 +89,7 @@ class OidcClientTest {
         }
         val result = OidcClient.create(
             configuration,
-            OktaMockWebServer.baseUrl.newBuilder().encodedPath("/.well-known/openid-configuration").build()
+            networkRule.baseUrl.newBuilder().encodedPath("/.well-known/openid-configuration").build()
         )
         val errorResult = (result as OidcClientResult.Error<OidcClient>)
         assertThat(errorResult.exception).isInstanceOf(IOException::class.java)

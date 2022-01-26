@@ -1,6 +1,5 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
-apply plugin: 'org.jetbrains.kotlin.plugin.serialization'
 
 android {
     compileSdkVersion build_versions.compile_sdk
@@ -31,11 +30,8 @@ android {
 dependencies {
     api deps.kotlin.stdlib
     api deps.okhttp.core
-    api deps.coroutines.android
-    api deps.kotlin.serialization_json
+    api deps.junit
+    api deps.okhttp.mock_web_server
 
-    testImplementation deps.junit
-    testImplementation deps.truth
-    testImplementation deps.kotlin.test
-    testImplementation project(':test-networking')
+    implementation deps.okhttp.tls
 }

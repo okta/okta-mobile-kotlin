@@ -31,7 +31,7 @@ import okhttp3.FormBody
 import okhttp3.HttpUrl
 import okhttp3.Request
 
-class OidcClient internal constructor(
+class OidcClient constructor(
     val configuration: OidcConfiguration,
     val endpoints: OidcEndpoints,
 ) {

@@ -13,21 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.okta.authfoundation.test.network
+package com.okta.testnetworking
 
 import okhttp3.mockwebserver.MockResponse
-import org.junit.rules.TestRule
-import org.junit.runner.Description
-import org.junit.runners.model.Statement
+import okio.Buffer
 
-class NetworkRule : TestRule {
-    override fun apply(base: Statement, description: Description): Statement {
-        return MockWebServerStatement(base, OktaMockWebServer.dispatcher, description)
-    }
-
-    fun enqueue(vararg requestMatcher: RequestMatcher, responseFactory: (MockResponse) -> Unit) {
-        OktaMockWebServer.dispatcher.enqueue(*requestMatcher) { response ->
-            responseFactory(response)
-        }
-    }
+fun MockResponse.testBodyFromFile(filename: String): MockResponse {
+    val inputStream = MockResponse::class.java.classLoader.getResourceAsStream(filename)
+    val buffer = Buffer()
+    buffer.readFrom(inputStream)
+    setBody(buffer)
+    return this
 }
