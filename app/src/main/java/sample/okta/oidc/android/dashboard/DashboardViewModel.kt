@@ -210,9 +210,6 @@ internal class DashboardViewModel : ViewModel() {
                 is RedirectEndSessionFlow.Result.Error -> {
                     _requestStateLiveData.value = RequestState.Result(result.message)
                 }
-                RedirectEndSessionFlow.Result.MissingResultCode -> {
-                    _requestStateLiveData.value = RequestState.Result("Invalid redirect. Missing result code.")
-                }
                 RedirectEndSessionFlow.Result.RedirectSchemeMismatch -> {
                     _requestStateLiveData.value = RequestState.Result("Invalid redirect. Redirect scheme mismatch.")
                 }

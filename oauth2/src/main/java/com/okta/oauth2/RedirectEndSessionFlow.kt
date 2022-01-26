@@ -37,8 +37,7 @@ class RedirectEndSessionFlow private constructor(
 
     sealed class Result {
         object RedirectSchemeMismatch : Result()
-        class Error(val message: String, val exception: Exception? = null) : Result()
-        object MissingResultCode : Result()
+        class Error(val message: String) : Result()
         object Success : Result()
     }
 
@@ -61,7 +60,7 @@ class RedirectEndSessionFlow private constructor(
         return Context(state, urlBuilder.build())
     }
 
-    fun resume(uri: Uri, context: Context): Result {
+    fun resume(uri: Uri, flowContext: Context): Result {
         if (!uri.toString().startsWith(oidcClient.configuration.signOutRedirectUri)) {
             return Result.RedirectSchemeMismatch
         }
@@ -73,7 +72,7 @@ class RedirectEndSessionFlow private constructor(
         }
 
         val stateQueryParameter = uri.getQueryParameter("state")
-        if (context.state != stateQueryParameter) {
+        if (flowContext.state != stateQueryParameter) {
             val error = "Failed due to state mismatch."
             return Result.Error(error)
         }

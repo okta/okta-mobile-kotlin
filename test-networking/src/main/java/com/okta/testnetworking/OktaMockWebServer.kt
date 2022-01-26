@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.okta.authfoundation.test.network
+package com.okta.testnetworking
 
 import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
@@ -23,7 +23,7 @@ import okhttp3.tls.HeldCertificate
 import java.net.Proxy
 import javax.net.ssl.SSLSocketFactory
 
-object OktaMockWebServer {
+class OktaMockWebServer {
     private val mockWebServer: MockWebServer = MockWebServer()
     private val localhostCertificate: HeldCertificate = localhostCertificate()
 

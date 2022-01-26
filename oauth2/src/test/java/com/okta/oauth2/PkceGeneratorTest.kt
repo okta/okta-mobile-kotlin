@@ -13,15 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.okta.authfoundation.test.network
+package com.okta.oauth2
 
-import okhttp3.mockwebserver.MockResponse
-import okio.Buffer
+import com.google.common.truth.Truth.assertThat
+import org.junit.Test
 
-fun MockResponse.testBodyFromFile(filename: String): MockResponse {
-    val inputStream = MockResponse::class.java.classLoader.getResourceAsStream(filename)
-    val buffer = Buffer()
-    buffer.readFrom(inputStream)
-    setBody(buffer)
-    return this
+class PkceGeneratorTest {
+    @Test fun testCodeVerifier() {
+        val codeVerifier = PkceGenerator.codeVerifier()
+        assertThat(codeVerifier).hasLength(43)
+    }
+
+    @Test fun testCodeChallenge() {
+        val codeVerifier = "6f4znUVL4KQJOUYrchTgKZ8Btrl0-kMt_23pvzEbGk8"
+        val codeChallenge = PkceGenerator.codeChallenge(codeVerifier)
+        assertThat(codeChallenge).isEqualTo("e4o5cyg_ZCmAMCweS_s076UN5tUR_idjxrckuiOCcOc")
+    }
 }
