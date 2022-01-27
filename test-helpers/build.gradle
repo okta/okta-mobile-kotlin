@@ -28,6 +28,7 @@ android {
 }
 
 dependencies {
+    api project(':auth-foundation')
     api deps.kotlin.stdlib
     api deps.okhttp.core
     api deps.junit

@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.okta.testnetworking
+package com.okta.testhelpers
 
-import com.okta.testnetworking.RequestMatchers.composite
+import com.okta.testhelpers.RequestMatchers.composite
 import okhttp3.mockwebserver.Dispatcher
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.RecordedRequest
