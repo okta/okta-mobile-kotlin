@@ -17,17 +17,13 @@ package com.okta.oauth2
 
 import android.net.Uri
 import com.google.common.truth.Truth.assertThat
-import com.okta.authfoundation.client.OidcClient
-import com.okta.authfoundation.client.OidcConfiguration
-import com.okta.authfoundation.client.OidcEndpoints
-import com.okta.authfoundation.events.EventCoordinator
 import com.okta.oauth2.AuthorizationCodeFlow.Companion.authorizationCodeFlow
 import com.okta.oauth2.events.CustomizeAuthorizationUrlEvent
-import com.okta.testnetworking.NetworkRule
-import com.okta.testnetworking.RequestMatchers.body
-import com.okta.testnetworking.RequestMatchers.method
-import com.okta.testnetworking.RequestMatchers.path
-import com.okta.testnetworking.testBodyFromFile
+import com.okta.testhelpers.OktaRule
+import com.okta.testhelpers.RequestMatchers.body
+import com.okta.testhelpers.RequestMatchers.method
+import com.okta.testhelpers.RequestMatchers.path
+import com.okta.testhelpers.testBodyFromFile
 import kotlinx.coroutines.runBlocking
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.junit.Rule
@@ -40,37 +36,11 @@ import java.io.IOException
 class AuthorizationCodeFlowTest {
     private val mockPrefix = "test_responses"
 
-    @get:Rule val networkRule = NetworkRule()
-
-    private val eventHandler = RecordingEventHandler()
-
-    private val configuration: OidcConfiguration = OidcConfiguration(
-        clientId = "unit_test_client_id",
-        scopes = setOf("openid", "email", "profile", "offline_access"),
-        signInRedirectUri = "unitTest:/login",
-        signOutRedirectUri = "unitTest:/logout",
-        okHttpCallFactory = networkRule.okHttpClient,
-        eventCoordinator = EventCoordinator(eventHandler)
-    )
-
-    private fun createOidcClient(): OidcClient {
-        val endpoints = OidcEndpoints(
-            issuer = networkRule.baseUrl.newBuilder().encodedPath("/oauth2/default").build(),
-            authorizationEndpoint = networkRule.baseUrl.newBuilder().encodedPath("/oauth2/default/v1/authorize").build(),
-            tokenEndpoint = networkRule.baseUrl.newBuilder().encodedPath("/oauth2/default/v1/token").build(),
-            userInfoEndpoint = networkRule.baseUrl.newBuilder().encodedPath("/oauth2/default/v1/userinfo").build(),
-            jwksUri = networkRule.baseUrl.newBuilder().encodedPath("/oauth2/default/v1/keys").build(),
-            registrationEndpoint = networkRule.baseUrl.newBuilder().encodedPath("/oauth2/v1/clients").build(),
-            introspectionEndpoint = networkRule.baseUrl.newBuilder().encodedPath("/oauth2/default/v1/introspect").build(),
-            revocationEndpoint = networkRule.baseUrl.newBuilder().encodedPath("/oauth2/default/v1/revoke").build(),
-            endSessionEndpoint = networkRule.baseUrl.newBuilder().encodedPath("/oauth2/default/v1/logout").build(),
-        )
-        return OidcClient(configuration, endpoints)
-    }
+    @get:Rule val oktaRule = OktaRule()
 
     @Test fun testStart() {
-        val authorizationCodeFlow = createOidcClient().authorizationCodeFlow()
-        assertThat(eventHandler).isEmpty()
+        val authorizationCodeFlow = oktaRule.createOidcClient().authorizationCodeFlow()
+        assertThat(oktaRule.eventHandler).isEmpty()
         val context = authorizationCodeFlow.start(
             codeVerifier = "LEadFL0UCCWDlD0cdIiuv7TQfbxOP8OUep0U_xo_3oI",
             state = "25c1d684-8d30-42e3-acc0-b74b35fd47b4",
@@ -81,20 +51,20 @@ class AuthorizationCodeFlowTest {
         val expectedUrlEnding = "/oauth2/default/v1/authorize?code_challenge=pqwOUSjNbCP5x5DMxgLy7BTlzI2pjfDq7Q0iwKFjX5s&code_challenge_method=S256&client_id=unit_test_client_id&scope=openid%20email%20profile%20offline_access&redirect_uri=unitTest%3A%2Flogin&response_type=code&state=25c1d684-8d30-42e3-acc0-b74b35fd47b4"
         assertThat(context.url.toString()).endsWith(expectedUrlEnding)
 
-        assertThat(eventHandler).hasSize(1)
-        assertThat(eventHandler[0]).isInstanceOf(CustomizeAuthorizationUrlEvent::class.java)
-        assertThat((eventHandler[0] as CustomizeAuthorizationUrlEvent).httpUrlBuilder.build().toString()).endsWith(expectedUrlEnding)
+        assertThat(oktaRule.eventHandler).hasSize(1)
+        assertThat(oktaRule.eventHandler[0]).isInstanceOf(CustomizeAuthorizationUrlEvent::class.java)
+        assertThat((oktaRule.eventHandler[0] as CustomizeAuthorizationUrlEvent).httpUrlBuilder.build().toString()).endsWith(expectedUrlEnding)
     }
 
     @Test fun testResume(): Unit = runBlocking {
-        networkRule.enqueue(
+        oktaRule.enqueue(
             method("POST"),
             path("/oauth2/default/v1/token"),
             body("redirect_uri=unitTest%3A%2Flogin&code_verifier=LEadFL0UCCWDlD0cdIiuv7TQfbxOP8OUep0U_xo_3oI&client_id=unit_test_client_id&grant_type=authorization_code&code=D13x1bzHhzG7Q1oxSmCcoQg5wjbJzopF4ua1f8UZiE4")
         ) { response ->
             response.testBodyFromFile("$mockPrefix/token.json")
         }
-        val authorizationCodeFlow = createOidcClient().authorizationCodeFlow()
+        val authorizationCodeFlow = oktaRule.createOidcClient().authorizationCodeFlow()
         val flowContext = AuthorizationCodeFlow.Context(
             codeVerifier = "LEadFL0UCCWDlD0cdIiuv7TQfbxOP8OUep0U_xo_3oI",
             state = "25c1d684-8d30-42e3-acc0-b74b35fd47b4",
@@ -114,12 +84,12 @@ class AuthorizationCodeFlowTest {
     }
 
     @Test fun testResumeNetworkFailure(): Unit = runBlocking {
-        networkRule.enqueue(
+        oktaRule.enqueue(
             path("/oauth2/default/v1/token"),
         ) { response ->
             response.setResponseCode(503)
         }
-        val authorizationCodeFlow = createOidcClient().authorizationCodeFlow()
+        val authorizationCodeFlow = oktaRule.createOidcClient().authorizationCodeFlow()
         val flowContext = AuthorizationCodeFlow.Context(
             codeVerifier = "LEadFL0UCCWDlD0cdIiuv7TQfbxOP8OUep0U_xo_3oI",
             state = "25c1d684-8d30-42e3-acc0-b74b35fd47b4",
@@ -136,7 +106,7 @@ class AuthorizationCodeFlowTest {
     }
 
     @Test fun testResumeRedirectMismatch(): Unit = runBlocking {
-        val authorizationCodeFlow = createOidcClient().authorizationCodeFlow()
+        val authorizationCodeFlow = oktaRule.createOidcClient().authorizationCodeFlow()
         val flowContext = AuthorizationCodeFlow.Context(
             codeVerifier = "LEadFL0UCCWDlD0cdIiuv7TQfbxOP8OUep0U_xo_3oI",
             state = "25c1d684-8d30-42e3-acc0-b74b35fd47b4",
@@ -150,7 +120,7 @@ class AuthorizationCodeFlowTest {
     }
 
     @Test fun testResumeStateMismatch(): Unit = runBlocking {
-        val authorizationCodeFlow = createOidcClient().authorizationCodeFlow()
+        val authorizationCodeFlow = oktaRule.createOidcClient().authorizationCodeFlow()
         val flowContext = AuthorizationCodeFlow.Context(
             codeVerifier = "LEadFL0UCCWDlD0cdIiuv7TQfbxOP8OUep0U_xo_3oI",
             state = "25c1d684-8d30-42e3-acc0-b74b35fd47b4",
@@ -165,7 +135,7 @@ class AuthorizationCodeFlowTest {
     }
 
     @Test fun testResumeError(): Unit = runBlocking {
-        val authorizationCodeFlow = createOidcClient().authorizationCodeFlow()
+        val authorizationCodeFlow = oktaRule.createOidcClient().authorizationCodeFlow()
         val flowContext = AuthorizationCodeFlow.Context(
             codeVerifier = "LEadFL0UCCWDlD0cdIiuv7TQfbxOP8OUep0U_xo_3oI",
             state = "25c1d684-8d30-42e3-acc0-b74b35fd47b4",
@@ -180,7 +150,7 @@ class AuthorizationCodeFlowTest {
     }
 
     @Test fun testResumeErrorDescription(): Unit = runBlocking {
-        val authorizationCodeFlow = createOidcClient().authorizationCodeFlow()
+        val authorizationCodeFlow = oktaRule.createOidcClient().authorizationCodeFlow()
         val flowContext = AuthorizationCodeFlow.Context(
             codeVerifier = "LEadFL0UCCWDlD0cdIiuv7TQfbxOP8OUep0U_xo_3oI",
             state = "25c1d684-8d30-42e3-acc0-b74b35fd47b4",

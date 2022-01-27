@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.okta.testnetworking
+package com.okta.testhelpers
 
-import okhttp3.mockwebserver.MockResponse
-import okio.Buffer
+import com.okta.authfoundation.events.EventHandler
+import java.util.Collections
 
-fun MockResponse.testBodyFromFile(filename: String): MockResponse {
-    val inputStream = MockResponse::class.java.classLoader.getResourceAsStream(filename)
-    val buffer = Buffer()
-    buffer.readFrom(inputStream)
-    setBody(buffer)
-    return this
+class RecordingEventHandler(
+    private val list: MutableList<Any> = Collections.synchronizedList(mutableListOf<Any>())
+) : EventHandler, List<Any> by list {
+    override fun onEvent(event: Any) {
+        list += event
+    }
 }
