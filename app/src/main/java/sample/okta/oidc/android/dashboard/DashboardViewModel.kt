@@ -27,6 +27,7 @@ import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.dto.OidcTokenType
 import com.okta.oauth2.RedirectEndSessionFlow
 import com.okta.webauthenticationui.WebAuthenticationClient
+import com.okta.webauthenticationui.WebAuthenticationClient.Companion.webAuthenticationClient
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import okhttp3.HttpUrl.Companion.toHttpUrl
@@ -83,7 +84,7 @@ internal class DashboardViewModel : ViewModel() {
 
     private fun setupWebAuthenticationClient() {
         val oidcClient = oidcClient ?: return
-        webAuthenticationClient = WebAuthenticationClient(oidcClient)
+        webAuthenticationClient = oidcClient.webAuthenticationClient()
     }
 
     fun revoke(buttonId: Int, tokenType: OidcTokenType) {

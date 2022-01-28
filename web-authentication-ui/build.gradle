@@ -36,4 +36,14 @@ dependencies {
     api project(':auth-foundation')
     api project(':oauth2')
     api deps.androidx_browser
+
+    testImplementation deps.junit
+    testImplementation deps.truth
+    testImplementation deps.kotlin.test
+    testImplementation deps.robolectric
+    testImplementation deps.androidx_test.core
+    testImplementation deps.androidx_test.core_ktx
+    testImplementation deps.mockito.core
+    testImplementation deps.mockito.kotlin
+    testImplementation project(':test-helpers')
 }

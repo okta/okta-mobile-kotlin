@@ -23,17 +23,25 @@ import com.okta.oauth2.AuthorizationCodeFlow.Companion.authorizationCodeFlow
 import com.okta.oauth2.RedirectEndSessionFlow
 import com.okta.oauth2.RedirectEndSessionFlow.Companion.redirectEndSessionFlow
 
-class WebAuthenticationClient(
-    private val oidcClient: OidcClient,
-    private val webAuthenticationProvider: WebAuthenticationProvider = DefaultWebAuthenticationProvider(oidcClient.configuration.eventCoordinator),
+class WebAuthenticationClient private constructor(
+    oidcClient: OidcClient,
+    private val webAuthenticationProvider: WebAuthenticationProvider,
 ) {
+    companion object {
+        fun OidcClient.webAuthenticationClient(
+            webAuthenticationProvider: WebAuthenticationProvider = DefaultWebAuthenticationProvider(configuration.eventCoordinator)
+        ): WebAuthenticationClient {
+            return WebAuthenticationClient(this, webAuthenticationProvider)
+        }
+    }
+
     private val authorizationCodeFlow = oidcClient.authorizationCodeFlow()
     private val redirectEndSessionFlow = oidcClient.redirectEndSessionFlow()
 
     fun login(context: Context): AuthorizationCodeFlow.Context {
-        val authorizationCodeFlowContext = authorizationCodeFlow.start()
-        webAuthenticationProvider.launch(context, authorizationCodeFlowContext.url)
-        return authorizationCodeFlowContext
+        val flowContext = authorizationCodeFlow.start()
+        webAuthenticationProvider.launch(context, flowContext.url)
+        return flowContext
     }
 
     suspend fun resume(
