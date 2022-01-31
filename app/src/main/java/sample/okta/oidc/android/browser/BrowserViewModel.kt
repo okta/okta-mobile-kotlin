@@ -29,7 +29,7 @@ import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.dto.OidcTokens
-import com.okta.oauth2.RedirectEndSessionFlow
+import com.okta.webauthenticationui.WebAuthenticationClient.Companion.webAuthenticationClient
 import kotlinx.coroutines.launch
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import timber.log.Timber
@@ -60,7 +60,7 @@ class BrowserViewModel : ViewModel() {
                 }
                 is OidcClientResult.Success -> {
                     val oidcClient = clientResult.result
-                    client = WebAuthenticationClient(oidcClient)
+                    client = oidcClient.webAuthenticationClient()
                 }
             }
         }

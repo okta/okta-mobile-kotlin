@@ -40,7 +40,6 @@ internal class DefaultWebAuthenticationProvider(
     companion object {
         const val X_OKTA_USER_AGENT = "X-Okta-User-Agent-Extended"
 
-        // TODO: Don't hardcode version.
         val USER_AGENT_HEADER = "okta-oidc-android/${Build.VERSION.SDK_INT} ${BuildConfig.LIBRARY_PACKAGE_NAME}/2.0.0"
     }
 
@@ -59,7 +58,6 @@ internal class DefaultWebAuthenticationProvider(
         tabsIntent.intent.putExtra(Browser.EXTRA_HEADERS, headers)
 
         try {
-            // TODO: How to handle passing cancel back to the caller (user pressed back button in browser)?
             tabsIntent.launchUrl(context, Uri.parse(url.toString()))
             return true
         } catch (e: ActivityNotFoundException) {
@@ -75,16 +73,14 @@ internal class DefaultWebAuthenticationProvider(
         val serviceIntent = Intent()
         serviceIntent.action = CustomTabsService.ACTION_CUSTOM_TABS_CONNECTION
         val resolveInfoList = pm.queryIntentServices(serviceIntent, event.queryIntentServicesFlags)
-        val customTabsBrowsersPackages: MutableList<String> = ArrayList()
+        val customTabsBrowsersPackages = mutableSetOf<String>()
         for (info in resolveInfoList) {
             customTabsBrowsersPackages.add(info.serviceInfo.packageName)
         }
 
         for (browser in event.preferredBrowsers) {
-            for (browserPackage in customTabsBrowsersPackages) {
-                if (browserPackage.contains(browser)) {
-                    return browserPackage
-                }
+            if (customTabsBrowsersPackages.contains(browser)) {
+                return browser
             }
         }
 
