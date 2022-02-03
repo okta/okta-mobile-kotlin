@@ -17,14 +17,15 @@ package com.okta.webauthenticationui
 
 import android.content.Context
 import android.net.Uri
-import com.okta.oauth2.AuthorizationCodeFlow
 import com.okta.authfoundation.client.OidcClient
+import com.okta.authfoundation.credential.Credential
+import com.okta.oauth2.AuthorizationCodeFlow
 import com.okta.oauth2.AuthorizationCodeFlow.Companion.authorizationCodeFlow
 import com.okta.oauth2.RedirectEndSessionFlow
 import com.okta.oauth2.RedirectEndSessionFlow.Companion.redirectEndSessionFlow
 
 class WebAuthenticationClient private constructor(
-    oidcClient: OidcClient,
+    private val oidcClient: OidcClient,
     private val webAuthenticationProvider: WebAuthenticationProvider,
 ) {
     companion object {
@@ -38,8 +39,12 @@ class WebAuthenticationClient private constructor(
     private val authorizationCodeFlow = oidcClient.authorizationCodeFlow()
     private val redirectEndSessionFlow = oidcClient.redirectEndSessionFlow()
 
-    fun login(context: Context): AuthorizationCodeFlow.Context {
-        val flowContext = authorizationCodeFlow.start()
+    fun login(
+        context: Context,
+        credential: Credential? = null,
+        scopes: Set<String> = credential?.scopes() ?: oidcClient.configuration.defaultScopes,
+    ): AuthorizationCodeFlow.Context {
+        val flowContext = authorizationCodeFlow.start(credential, scopes)
         webAuthenticationProvider.launch(context, flowContext.url)
         return flowContext
     }

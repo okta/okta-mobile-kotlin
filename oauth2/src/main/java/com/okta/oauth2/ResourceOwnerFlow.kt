@@ -18,7 +18,8 @@ package com.okta.oauth2
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundation.client.internal.internalTokenRequest
-import com.okta.authfoundation.dto.OidcTokens
+import com.okta.authfoundation.credential.Credential
+import com.okta.authfoundation.credential.Token as CredentialToken
 import okhttp3.FormBody
 import okhttp3.Request
 
@@ -33,16 +34,21 @@ class ResourceOwnerFlow private constructor(
 
     sealed class Result {
         class Error(val message: String, val exception: Exception? = null) : Result()
-        class Tokens(val tokens: OidcTokens) : Result()
+        class Token(val token: CredentialToken) : Result()
     }
 
-    suspend fun start(username: String, password: String): Result {
+    suspend fun start(
+        username: String,
+        password: String,
+        credential: Credential? = null,
+        scopes: Set<String> = credential?.scopes() ?: oidcClient.configuration.defaultScopes,
+    ): Result {
         val formBodyBuilder = FormBody.Builder()
             .add("username", username)
             .add("password", password)
             .add("client_id", oidcClient.configuration.clientId)
             .add("grant_type", "password")
-            .add("scope", oidcClient.configuration.scopes.joinToString(" "))
+            .add("scope", scopes.joinToString(" "))
 
         val request = Request.Builder()
             .post(formBodyBuilder.build())
@@ -54,7 +60,8 @@ class ResourceOwnerFlow private constructor(
                 Result.Error("Token request failed.", tokenResult.exception)
             }
             is OidcClientResult.Success -> {
-                Result.Tokens(tokenResult.result)
+                credential?.storeToken(tokenResult.result)
+                Result.Token(tokenResult.result)
             }
         }
     }

@@ -3,10 +3,21 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/LaunchFragment">
+    app:startDestination="@id/StartupFragment">
+    <fragment
+        android:id="@+id/StartupFragment"
+        android:name="sample.okta.android.startup.StartupFragment"
+        tools:layout="@layout/fragment_startup">
+        <action
+            android:id="@+id/startup_to_launch"
+            app:destination="@id/LaunchFragment"
+            app:popUpTo="@+id/nav_graph"
+            app:popUpToInclusive="true" />
+    </fragment>
+
     <fragment
         android:id="@+id/LaunchFragment"
-        android:name="sample.okta.oidc.android.LaunchFragment"
+        android:name="sample.okta.android.LaunchFragment"
         tools:layout="@layout/fragment_launch">
         <action
             android:id="@+id/launch_to_browser"
@@ -22,7 +33,7 @@
 
     <fragment
         android:id="@+id/BrowserFragment"
-        android:name="sample.okta.oidc.android.browser.BrowserFragment"
+        android:name="sample.okta.android.browser.BrowserFragment"
         tools:layout="@layout/fragment_browser">
         <action
             android:id="@+id/browser_to_dashboard"
@@ -33,7 +44,7 @@
 
     <fragment
         android:id="@+id/ResourceOwnerFragment"
-        android:name="sample.okta.oidc.android.resourceowner.ResourceOwnerFragment"
+        android:name="sample.okta.android.resourceowner.ResourceOwnerFragment"
         tools:layout="@layout/fragment_resource_owner">
         <action
             android:id="@+id/resource_owner_to_dashboard"
@@ -44,7 +55,7 @@
 
     <fragment
         android:id="@+id/DashboardFragment"
-        android:name="sample.okta.oidc.android.dashboard.DashboardFragment"
+        android:name="sample.okta.android.dashboard.DashboardFragment"
         tools:layout="@layout/fragment_dashboard">
         <action
             android:id="@+id/dashboard_to_login"

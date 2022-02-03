@@ -13,26 +13,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package sample.okta.oidc.android
+package sample.okta.android.browser
 
 import android.os.Bundle
 import android.view.View
+import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
-import sample.okta.oidc.android.databinding.FragmentLaunchBinding
-import sample.okta.oidc.android.util.BaseFragment
+import sample.okta.android.databinding.FragmentBrowserBinding
+import sample.okta.android.util.BaseFragment
 
-internal class LaunchFragment : BaseFragment<FragmentLaunchBinding>(
-    FragmentLaunchBinding::inflate
+internal class BrowserFragment : BaseFragment<FragmentBrowserBinding>(
+    FragmentBrowserBinding::inflate
 ) {
+    private val viewModel by viewModels<BrowserViewModel>()
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         binding.loginWithBrowserButton.setOnClickListener {
-            findNavController().navigate(LaunchFragmentDirections.launchToBrowser())
+            viewModel.login(requireContext())
         }
 
-        binding.loginWithResourceOwnerFlow.setOnClickListener {
-            findNavController().navigate(LaunchFragmentDirections.launchToResourceOwnerFlow())
+        viewModel.state.observe(viewLifecycleOwner) { state ->
+            when (state) {
+                is BrowserState.Error -> {
+                    binding.errorTextView.text = state.message
+                }
+                BrowserState.Idle -> {
+
+                }
+                is BrowserState.Token -> {
+                    findNavController().navigate(BrowserFragmentDirections.browserToDashboard())
+                }
+            }
         }
     }
 }

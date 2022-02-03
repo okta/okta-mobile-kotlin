@@ -13,8 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.okta.authfoundation.dto
+package sample.okta.android
 
-enum class OidcTokenType {
-    REFRESH_TOKEN, ACCESS_TOKEN, ID_TOKEN
+import android.net.Uri
+
+object SocialRedirectCoordinator {
+    var listeners: MutableSet<SocialRedirectListener> = mutableSetOf()
 }
+
+typealias SocialRedirectListener = ((Uri) -> Unit)

@@ -15,15 +15,12 @@
  */
 package com.okta.authfoundation.client
 
-import com.okta.authfoundation.dto.OidcIntrospectInfo
-import com.okta.authfoundation.dto.OidcTokenType
-import com.okta.authfoundation.dto.OidcTokens
-import com.okta.authfoundation.dto.OidcUserInfo
+import com.okta.authfoundation.client.dto.OidcIntrospectInfo
+import com.okta.authfoundation.client.dto.OidcUserInfo
+import com.okta.authfoundation.credential.Token
+import com.okta.authfoundation.credential.TokenType
 import com.okta.authfoundation.util.performRequest
 import com.okta.authfoundation.util.performRequestNonJson
-import kotlinx.coroutines.withContext
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.boolean
@@ -31,7 +28,7 @@ import okhttp3.FormBody
 import okhttp3.HttpUrl
 import okhttp3.Request
 
-class OidcClient constructor(
+class OidcClient(
     val configuration: OidcConfiguration,
     val endpoints: OidcEndpoints,
 ) {
@@ -65,12 +62,15 @@ class OidcClient constructor(
         }
     }
 
-    suspend fun refreshToken(refreshToken: String): OidcClientResult<OidcTokens> {
+    suspend fun refreshToken(
+        refreshToken: String,
+        scopes: Set<String> = configuration.defaultScopes,
+    ): OidcClientResult<Token> {
         val formBody = FormBody.Builder()
             .add("client_id", configuration.clientId)
             .add("grant_type", "refresh_token")
             .add("refresh_token", refreshToken)
-            .add("scope", configuration.scopes.joinToString(separator = " "))
+            .add("scope", scopes.joinToString(separator = " "))
             .build()
 
         val request = Request.Builder()
@@ -96,17 +96,17 @@ class OidcClient constructor(
     }
 
     suspend fun introspectToken(
-        tokenType: OidcTokenType,
+        tokenType: TokenType,
         token: String,
     ): OidcClientResult<OidcIntrospectInfo> {
         val tokenTypeHint: String = when (tokenType) {
-            OidcTokenType.ACCESS_TOKEN -> {
+            TokenType.ACCESS_TOKEN -> {
                 "access_token"
             }
-            OidcTokenType.REFRESH_TOKEN -> {
+            TokenType.REFRESH_TOKEN -> {
                 "refresh_token"
             }
-            OidcTokenType.ID_TOKEN -> {
+            TokenType.ID_TOKEN -> {
                 "id_token"
             }
         }
@@ -125,28 +125,6 @@ class OidcClient constructor(
         return configuration.performRequest<JsonObject, OidcIntrospectInfo>(request) {
             val active = (it["active"] as JsonPrimitive).boolean
             OidcIntrospectInfo(it, active)
-        }
-    }
-
-    suspend fun storeTokens(tokens: OidcTokens) {
-        configuration.storeTokens(tokens)
-    }
-
-    suspend fun getTokens(): OidcTokens? {
-        return configuration.getTokens()
-    }
-
-    private suspend fun OidcConfiguration.getTokens(): OidcTokens? {
-        return withContext(storageDispatcher) {
-            val tokenJson = storage.get("token_json") ?: return@withContext null
-            return@withContext json.decodeFromString<OidcTokens>(tokenJson)
-        }
-    }
-
-    private suspend fun OidcConfiguration.storeTokens(tokens: OidcTokens) {
-        withContext(storageDispatcher) {
-            val json = json.encodeToString(tokens)
-            storage.save("token_json", json)
         }
     }
 }

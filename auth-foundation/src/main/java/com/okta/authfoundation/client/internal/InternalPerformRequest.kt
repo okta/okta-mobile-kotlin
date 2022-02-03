@@ -17,12 +17,12 @@ package com.okta.authfoundation.client.internal
 
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcClientResult
-import com.okta.authfoundation.dto.OidcTokens
+import com.okta.authfoundation.credential.Token
 import com.okta.authfoundation.util.performRequest
 import okhttp3.Request
 
 suspend fun OidcClient.internalTokenRequest(
     request: Request,
-): OidcClientResult<OidcTokens> {
+): OidcClientResult<Token> {
     return configuration.performRequest(request)
 }

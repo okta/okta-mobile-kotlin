@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package sample.okta.oidc.android.browser
+package sample.okta.android.browser
 
 import android.content.Context
 import android.net.Uri
@@ -21,21 +21,14 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import sample.okta.oidc.android.BuildConfig
-import sample.okta.oidc.android.SocialRedirectCoordinator
+import com.okta.authfoundation.credential.Token as CredentialToken
 import com.okta.oauth2.AuthorizationCodeFlow
-import com.okta.webauthenticationui.WebAuthenticationClient
-import com.okta.authfoundation.client.OidcClient
-import com.okta.authfoundation.client.OidcClientResult
-import com.okta.authfoundation.client.OidcConfiguration
-import com.okta.authfoundation.dto.OidcTokens
 import com.okta.webauthenticationui.WebAuthenticationClient.Companion.webAuthenticationClient
 import kotlinx.coroutines.launch
-import okhttp3.HttpUrl.Companion.toHttpUrl
-import timber.log.Timber
+import sample.okta.android.DefaultCredential
+import sample.okta.android.SocialRedirectCoordinator
 
 class BrowserViewModel : ViewModel() {
-    private lateinit var client: WebAuthenticationClient
     private var authorizationCodeFlowContext: AuthorizationCodeFlow.Context? = null
 
     private val _state = MutableLiveData<BrowserState>(BrowserState.Idle)
@@ -43,27 +36,6 @@ class BrowserViewModel : ViewModel() {
 
     init {
         SocialRedirectCoordinator.listeners += ::handleRedirect
-
-        viewModelScope.launch {
-            val oidcConfiguration = OidcConfiguration(
-                clientId = BuildConfig.CLIENT_ID,
-                scopes = setOf("openid", "email", "profile", "offline_access"),
-                signInRedirectUri = BuildConfig.SIGN_IN_REDIRECT_URI,
-                signOutRedirectUri = BuildConfig.SIGN_OUT_REDIRECT_URI,
-            )
-            when (val clientResult = OidcClient.create(
-                oidcConfiguration,
-                "${BuildConfig.ISSUER}/.well-known/openid-configuration".toHttpUrl(),
-            )) {
-                is OidcClientResult.Error -> {
-                    Timber.e(clientResult.exception, "Failed to create client")
-                }
-                is OidcClientResult.Success -> {
-                    val oidcClient = clientResult.result
-                    client = oidcClient.webAuthenticationClient()
-                }
-            }
-        }
     }
 
     override fun onCleared() {
@@ -71,12 +43,14 @@ class BrowserViewModel : ViewModel() {
     }
 
     fun login(context: Context) {
-        authorizationCodeFlowContext = client.login(context)
+        val webAuthenticationClient = DefaultCredential.get().oidcClient.webAuthenticationClient()
+        authorizationCodeFlowContext = webAuthenticationClient.login(context, DefaultCredential.get())
     }
 
     fun handleRedirect(uri: Uri) {
         viewModelScope.launch {
-            when (val result = client.resume(uri, authorizationCodeFlowContext!!)) {
+            when (val result =
+                DefaultCredential.get().oidcClient.webAuthenticationClient().resume(uri, authorizationCodeFlowContext!!)) {
                 is AuthorizationCodeFlow.Result.Error -> {
                     _state.value = BrowserState.Error(result.message)
                 }
@@ -86,8 +60,8 @@ class BrowserViewModel : ViewModel() {
                 AuthorizationCodeFlow.Result.RedirectSchemeMismatch -> {
                     _state.value = BrowserState.Error("Invalid redirect. Redirect scheme mismatch.")
                 }
-                is AuthorizationCodeFlow.Result.Tokens -> {
-                    _state.value = BrowserState.Tokens(result.tokens)
+                is AuthorizationCodeFlow.Result.Token -> {
+                    _state.value = BrowserState.Token(result.token)
                 }
             }
         }
@@ -96,6 +70,6 @@ class BrowserViewModel : ViewModel() {
 
 sealed class BrowserState {
     object Idle : BrowserState()
-    data class Error(val message: String): BrowserState()
-    data class Tokens(val tokens: OidcTokens): BrowserState()
+    data class Error(val message: String) : BrowserState()
+    data class Token(val token: CredentialToken) : BrowserState()
 }

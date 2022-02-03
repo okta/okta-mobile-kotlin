@@ -17,31 +17,27 @@
 package com.okta.webauthenticationui
 
 import android.app.Activity
+import android.content.Intent
+import android.content.pm.ActivityInfo
+import android.content.pm.ResolveInfo
+import android.content.pm.ServiceInfo
+import android.net.Uri
 import android.provider.Browser
-import org.junit.Test
-import org.junit.runner.RunWith
-import org.robolectric.RobolectricTestRunner
+import androidx.browser.customtabs.CustomTabsService
 import com.google.common.truth.Truth.assertThat
 import com.okta.authfoundation.events.EventCoordinator
+import com.okta.authfoundation.events.EventHandler
 import com.okta.testhelpers.RecordingEventHandler
 import com.okta.webauthenticationui.events.CustomizeBrowserEvent
 import com.okta.webauthenticationui.events.CustomizeCustomTabsEvent
 import okhttp3.HttpUrl.Companion.toHttpUrl
+import org.junit.Test
+import org.junit.runner.RunWith
 import org.robolectric.Robolectric
+import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.shadows.ShadowResolveInfo
-import android.content.pm.ResolveInfo
-
-import androidx.browser.customtabs.CustomTabsService
-
-import android.content.Intent
-
-import android.content.pm.ActivityInfo
-import android.content.pm.ServiceInfo
-import android.net.Uri
-import com.okta.authfoundation.events.EventHandler
-import org.junit.Before
 
 
 @RunWith(RobolectricTestRunner::class)

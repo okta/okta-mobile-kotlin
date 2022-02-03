@@ -13,21 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.okta.authfoundation.dto
+package com.okta.authfoundation.credential
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-// TODO: Make this a builder or something and internal constructor
 @Serializable
-class OidcTokens(
+data class Token internal constructor(
     @SerialName("token_type") val tokenType: String,
     @SerialName("expires_in") val expiresIn: Int,
     @SerialName("access_token") val accessToken: String,
     @SerialName("scope") val scope: String,
-    @SerialName("refresh_token") val refreshToken: String?,
-    @SerialName("id_token") val idToken: String?, // TODO: Should this be nullable?
+    @SerialName("refresh_token") val refreshToken: String?= null,
+    @SerialName("id_token") val idToken: String? = null,
+    @SerialName("device_secret") val deviceSecret: String? = null,
 )
-// TODO: introspect ID token
-
-// TODO: Need more stuff here.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,41 +13,45 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package sample.okta.oidc.android.browser
+package sample.okta.android.startup
 
 import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
-import sample.okta.oidc.android.dashboard.TokenViewModel
-import sample.okta.oidc.android.databinding.FragmentBrowserBinding
-import sample.okta.oidc.android.util.BaseFragment
+import sample.okta.android.databinding.FragmentStartupBinding
+import sample.okta.android.util.BaseFragment
 
-internal class BrowserFragment : BaseFragment<FragmentBrowserBinding>(
-    FragmentBrowserBinding::inflate
+internal class StartupFragment : BaseFragment<FragmentStartupBinding>(
+    FragmentStartupBinding::inflate
 ) {
-    private val viewModel by viewModels<BrowserViewModel>()
+    private val viewModel by viewModels<StartupViewModel>()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.loginWithBrowserButton.setOnClickListener {
-            viewModel.login(requireContext())
+        binding.tryAgainButton.setOnClickListener {
+            viewModel.startup()
         }
 
         viewModel.state.observe(viewLifecycleOwner) { state ->
             when (state) {
-                is BrowserState.Error -> {
+                is StartupState.Error -> {
+                    binding.errorTextView.visibility = View.VISIBLE
+                    binding.progress.visibility = View.GONE
                     binding.errorTextView.text = state.message
+                    binding.tryAgainButton.visibility = View.VISIBLE
                 }
-                BrowserState.Idle -> {
-
+                StartupState.Complete -> {
+                    findNavController().navigate(StartupFragmentDirections.startupToLaunch())
                 }
-                is BrowserState.Tokens -> {
-                    TokenViewModel._tokens = state.tokens
-                    findNavController().navigate(BrowserFragmentDirections.browserToDashboard())
+                StartupState.Loading -> {
+                    binding.errorTextView.visibility = View.GONE
+                    binding.progress.visibility = View.VISIBLE
+                    binding.tryAgainButton.visibility = View.GONE
                 }
             }
         }
     }
 }
+

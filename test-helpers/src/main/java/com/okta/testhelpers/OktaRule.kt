@@ -36,7 +36,7 @@ class OktaRule : TestRule {
 
     val configuration: OidcConfiguration = OidcConfiguration(
         clientId = "unit_test_client_id",
-        scopes = setOf("openid", "email", "profile", "offline_access"),
+        defaultScopes = setOf("openid", "email", "profile", "offline_access"),
         signInRedirectUri = "unitTest:/login",
         signOutRedirectUri = "unitTest:/logout",
         okHttpCallFactory = okHttpClient,

@@ -13,22 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package sample.okta.oidc.android
+package sample.okta.android
 
-import android.content.Intent
-import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
+import android.app.Application
+import timber.log.Timber
 
-class SocialRedirectActivity : AppCompatActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+class SampleApplication : Application() {
+    override fun onCreate() {
+        super.onCreate()
 
-        val intent = Intent(this, MainActivity::class.java)
-        intent.action = MainActivity.SOCIAL_REDIRECT_ACTION
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
-        intent.data = getIntent().data
-        startActivity(intent)
-
-        finish()
+        Timber.plant(Timber.DebugTree())
     }
 }
