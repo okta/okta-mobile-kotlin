@@ -8,6 +8,7 @@ buildscript {
         classpath deps.kotlin.plugin
         classpath deps.navigation.safe_args_plugin
         classpath deps.kotlin.serialization_plugin
+        classpath deps.gradle_maven_publish
     }
 }
 
