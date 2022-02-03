@@ -34,8 +34,8 @@ class OidcConfiguration(
     /** The application's client ID. */
     val clientId: String,
 
-    /** The access scopes required by the client. */
-    val scopes: Set<String>,
+    /** The default access scopes required by the client, can be overridden when logging in. */
+    val defaultScopes: Set<String>,
 
     /** The application's redirect URI. */
     val signInRedirectUri: String = "",
@@ -49,14 +49,8 @@ class OidcConfiguration(
     /** The CoroutineDispatcher which should be used for IO bound tasks. */
     val ioDispatcher: CoroutineContext = Dispatchers.IO,
 
-    /** The CoroutineDispatcher which should be used for storage access tasks. */
-    val storageDispatcher: CoroutineContext = Dispatchers.Default,
-
     /** The OidcClock which is used for all time related functions in the SDK. */
     val clock: OidcClock = OktaSdk.clock,
-
-    /** The OidcStorage which is used for encryption/storage or tokens. */
-    val storage: OidcStorage = OktaSdk.storage,
 
     val eventCoordinator: EventCoordinator = OktaSdk.eventCoordinator,
 ) {

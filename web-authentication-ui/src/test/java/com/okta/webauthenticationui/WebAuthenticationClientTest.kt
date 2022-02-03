@@ -64,13 +64,13 @@ class WebAuthenticationClientTest {
             flowContext = flowContext,
         )
 
-        val tokens = (result as AuthorizationCodeFlow.Result.Tokens).tokens
-        assertThat(tokens.tokenType).isEqualTo("Bearer")
-        assertThat(tokens.expiresIn).isEqualTo(3600)
-        assertThat(tokens.accessToken).isEqualTo("exampleAccessToken")
-        assertThat(tokens.scope).isEqualTo("offline_access profile openid email")
-        assertThat(tokens.refreshToken).isEqualTo("exampleRefreshToken")
-        assertThat(tokens.idToken).isEqualTo("exampleIdToken")
+        val token = (result as AuthorizationCodeFlow.Result.Token).token
+        assertThat(token.tokenType).isEqualTo("Bearer")
+        assertThat(token.expiresIn).isEqualTo(3600)
+        assertThat(token.accessToken).isEqualTo("exampleAccessToken")
+        assertThat(token.scope).isEqualTo("offline_access profile openid email")
+        assertThat(token.refreshToken).isEqualTo("exampleRefreshToken")
+        assertThat(token.idToken).isEqualTo("exampleIdToken")
     }
 
     @Test fun testLogout() {

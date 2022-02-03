@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package sample.okta.oidc.android.dashboard
+package sample.okta.android.dashboard
 
 import android.content.Context
 import android.net.Uri
@@ -21,18 +21,15 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcClientResult
-import com.okta.authfoundation.client.OidcConfiguration
-import com.okta.authfoundation.dto.OidcTokenType
+import com.okta.authfoundation.credential.Credential
+import com.okta.authfoundation.credential.TokenType
 import com.okta.oauth2.RedirectEndSessionFlow
-import com.okta.webauthenticationui.WebAuthenticationClient
 import com.okta.webauthenticationui.WebAuthenticationClient.Companion.webAuthenticationClient
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import okhttp3.HttpUrl.Companion.toHttpUrl
-import sample.okta.oidc.android.BuildConfig
-import sample.okta.oidc.android.SocialRedirectCoordinator
+import sample.okta.android.DefaultCredential
+import sample.okta.android.SocialRedirectCoordinator
 import timber.log.Timber
 
 internal class DashboardViewModel : ViewModel() {
@@ -41,9 +38,6 @@ internal class DashboardViewModel : ViewModel() {
 
     private val _userInfoLiveData = MutableLiveData<Map<String, String>>(emptyMap())
     val userInfoLiveData: LiveData<Map<String, String>> = _userInfoLiveData
-
-    private var oidcClient: OidcClient? = null
-    private var webAuthenticationClient: WebAuthenticationClient? = null
 
     private var logoutFlowContext: RedirectEndSessionFlow.Context? = null
 
@@ -54,26 +48,7 @@ internal class DashboardViewModel : ViewModel() {
         SocialRedirectCoordinator.listeners += ::handleRedirect
 
         viewModelScope.launch {
-            val configuration = OidcConfiguration(
-                clientId = BuildConfig.CLIENT_ID,
-                scopes = setOf("openid", "email", "profile", "offline_access"),
-                signInRedirectUri = BuildConfig.SIGN_IN_REDIRECT_URI,
-                signOutRedirectUri = BuildConfig.SIGN_OUT_REDIRECT_URI,
-            )
-            when (val clientResult = OidcClient.create(
-                configuration,
-                "${BuildConfig.ISSUER}/.well-known/openid-configuration".toHttpUrl()
-            )) {
-                is OidcClientResult.Error -> {
-                    Timber.e(clientResult.exception, "Failed to create client")
-                }
-                is OidcClientResult.Success -> {
-                    oidcClient = clientResult.result
-                    oidcClient?.storeTokens(TokenViewModel.tokens)
-                    getUserInfo()
-                    setupWebAuthenticationClient()
-                }
-            }
+            getUserInfo()
         }
     }
 
@@ -82,26 +57,9 @@ internal class DashboardViewModel : ViewModel() {
         SocialRedirectCoordinator.listeners -= ::handleRedirect
     }
 
-    private fun setupWebAuthenticationClient() {
-        val oidcClient = oidcClient ?: return
-        webAuthenticationClient = oidcClient.webAuthenticationClient()
-    }
-
-    fun revoke(buttonId: Int, tokenType: OidcTokenType) {
-        performRequest(buttonId) { client ->
-            val tokens = client.getTokens() ?: throw IllegalStateException("No tokens.")
-            val token = when (tokenType) {
-                OidcTokenType.ACCESS_TOKEN -> {
-                    tokens.accessToken
-                }
-                OidcTokenType.REFRESH_TOKEN -> {
-                    tokens.refreshToken ?: throw IllegalStateException("No refresh token.")
-                }
-                OidcTokenType.ID_TOKEN -> {
-                    throw IllegalStateException("Revoke Token doesn't support ID Token.")
-                }
-            }
-            when (client.revokeToken(token)) {
+    fun revoke(buttonId: Int, tokenType: TokenType) {
+        performRequest(buttonId) { credential ->
+            when (credential.revokeToken(tokenType)) {
                 is OidcClientResult.Error -> {
                     RequestState.Result("Failed to revoke token.")
                 }
@@ -113,35 +71,21 @@ internal class DashboardViewModel : ViewModel() {
     }
 
     fun refresh(buttonId: Int) {
-        performRequest(buttonId) { client ->
-            val refreshToken = client.getTokens()?.refreshToken ?: throw IllegalStateException("No Tokens.")
-            when (val result = client.refreshToken(refreshToken)) {
+        performRequest(buttonId) { credential ->
+            when (credential.refreshToken()) {
                 is OidcClientResult.Error -> {
                     RequestState.Result("Failed to refresh token.")
                 }
                 is OidcClientResult.Success -> {
-                    client.storeTokens(result.result)
                     RequestState.Result("Token Refreshed.")
                 }
             }
         }
     }
 
-    fun introspect(buttonId: Int, tokenType: OidcTokenType) {
-        performRequest(buttonId) { client ->
-            val tokens = client.getTokens() ?: throw IllegalStateException("No Tokens.")
-            val token: String = when (tokenType) {
-                OidcTokenType.ACCESS_TOKEN -> {
-                    tokens.accessToken
-                }
-                OidcTokenType.REFRESH_TOKEN -> {
-                    tokens.refreshToken ?: throw IllegalStateException("No refresh token.")
-                }
-                OidcTokenType.ID_TOKEN -> {
-                    tokens.idToken ?: throw IllegalStateException("No id token.")
-                }
-            }
-            when (val result = client.introspectToken(tokenType, token)) {
+    fun introspect(buttonId: Int, tokenType: TokenType) {
+        performRequest(buttonId) { credential ->
+            when (val result = credential.introspectToken(tokenType)) {
                 is OidcClientResult.Error -> {
                     RequestState.Result("Failed to introspect token.")
                 }
@@ -154,12 +98,12 @@ internal class DashboardViewModel : ViewModel() {
 
     fun logoutOfWeb(context: Context) {
         viewModelScope.launch {
-            val idToken = oidcClient?.getTokens()?.idToken ?: return@launch
-            logoutFlowContext = webAuthenticationClient?.logout(context, idToken)
+            val idToken = DefaultCredential.get().token?.idToken ?: return@launch
+            logoutFlowContext = DefaultCredential.get().oidcClient.webAuthenticationClient().logout(context, idToken)
         }
     }
 
-    private fun performRequest(buttonId: Int, performer: suspend (OidcClient) -> RequestState) {
+    private fun performRequest(buttonId: Int, performer: suspend (Credential) -> RequestState) {
         if (lastRequestJob?.isActive == true) {
             // Re-enable the button, so it's not permanently disabled.
             _requestStateLiveData.value = RequestState.Result("")
@@ -167,15 +111,11 @@ internal class DashboardViewModel : ViewModel() {
         lastRequestJob?.cancel()
         lastButtonId = buttonId
 
-        val client = oidcClient
-        if (client == null) {
-            Timber.d("Client not present.")
-            return
-        }
+        val credential = DefaultCredential.get()
         _requestStateLiveData.value = RequestState.Loading
 
         lastRequestJob = viewModelScope.launch {
-            _requestStateLiveData.postValue(performer(client))
+            _requestStateLiveData.postValue(performer(credential))
         }
     }
 
@@ -188,8 +128,7 @@ internal class DashboardViewModel : ViewModel() {
     }
 
     private suspend fun getUserInfo() {
-        val accessToken = oidcClient?.getTokens()?.accessToken ?: return
-        when (val userInfoResult = oidcClient?.getUserInfo(accessToken)) {
+        when (val userInfoResult = DefaultCredential.get().getUserInfo()) {
             is OidcClientResult.Error -> {
                 Timber.e(userInfoResult.exception, "Failed to fetch user info.")
                 _userInfoLiveData.postValue(emptyMap())
@@ -207,7 +146,7 @@ internal class DashboardViewModel : ViewModel() {
 
     fun handleRedirect(uri: Uri) {
         viewModelScope.launch {
-            when (val result = webAuthenticationClient?.resume(uri, logoutFlowContext!!)) {
+            when (val result = DefaultCredential.get().oidcClient.webAuthenticationClient().resume(uri, logoutFlowContext!!)) {
                 is RedirectEndSessionFlow.Result.Error -> {
                     _requestStateLiveData.value = RequestState.Result(result.message)
                 }
@@ -215,6 +154,7 @@ internal class DashboardViewModel : ViewModel() {
                     _requestStateLiveData.value = RequestState.Result("Invalid redirect. Redirect scheme mismatch.")
                 }
                 is RedirectEndSessionFlow.Result.Success -> {
+                    DefaultCredential.get().remove()
                     _requestStateLiveData.value = RequestState.Result("Logout successful!")
                 }
             }

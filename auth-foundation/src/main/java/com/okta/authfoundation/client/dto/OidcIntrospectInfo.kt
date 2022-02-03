@@ -13,18 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.okta.authfoundation.dto
+package com.okta.authfoundation.client.dto
 
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 
-class OidcUserInfo internal constructor(
-    private val json: JsonObject
+data class OidcIntrospectInfo internal constructor(
+    private val json: JsonObject,
+    val active: Boolean
 ) {
-    fun getString(key: String): String? {
-        return (json[key] as? JsonPrimitive)?.content
-    }
-
     fun asMap(): Map<String, String> {
         val map = mutableMapOf<String, String>()
         for (entry in json) {

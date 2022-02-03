@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package sample.okta.oidc.android
+package sample.okta.android
 
 import android.content.Intent
 import android.os.Bundle

@@ -16,7 +16,7 @@
 package com.okta.authfoundation
 
 import com.okta.authfoundation.client.OidcClock
-import com.okta.authfoundation.client.OidcStorage
+import com.okta.authfoundation.credential.TokenStorage
 import com.okta.authfoundation.events.EventCoordinator
 import okhttp3.Call
 import okhttp3.OkHttpClient
@@ -28,7 +28,7 @@ object OktaSdk {
 
     var clock: OidcClock by NoSetAfterGetWithLazyDefaultFactory { defaultClock() }
 
-    var storage: OidcStorage by NoSetAfterGetWithLazyDefaultFactory { defaultStorage() }
+    var storage: TokenStorage by NoSetAfterGetWithLazyDefaultFactory { defaultStorage() }
 
     private fun defaultClock(): OidcClock {
         return object : OidcClock {
@@ -38,9 +38,9 @@ object OktaSdk {
         }
     }
 
-    private fun defaultStorage(): OidcStorage {
+    private fun defaultStorage(): TokenStorage {
         val map = mutableMapOf<String, String>()
-        return object : OidcStorage {
+        return object : TokenStorage {
             override suspend fun save(key: String, value: String) {
                 map[key] = value
             }

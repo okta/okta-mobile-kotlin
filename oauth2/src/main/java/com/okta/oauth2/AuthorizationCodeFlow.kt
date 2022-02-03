@@ -16,11 +16,12 @@
 package com.okta.oauth2
 
 import android.net.Uri
-import com.okta.oauth2.events.CustomizeAuthorizationUrlEvent
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundation.client.internal.internalTokenRequest
-import com.okta.authfoundation.dto.OidcTokens
+import com.okta.authfoundation.credential.Credential
+import com.okta.authfoundation.credential.Token as CredentialToken
+import com.okta.oauth2.events.CustomizeAuthorizationUrlEvent
 import okhttp3.FormBody
 import okhttp3.HttpUrl
 import okhttp3.Request
@@ -36,31 +37,37 @@ class AuthorizationCodeFlow private constructor(
     }
 
     class Context internal constructor(
+        val url: HttpUrl,
         internal val codeVerifier: String,
         internal val state: String,
-        val url: HttpUrl,
+        internal val credential: Credential?,
     )
 
     sealed class Result {
         object RedirectSchemeMismatch : Result()
         class Error(val message: String, val exception: Exception? = null) : Result()
         object MissingResultCode : Result()
-        class Tokens(val tokens: OidcTokens) : Result()
+        class Token(val token: CredentialToken) : Result()
     }
 
-    fun start(): Context {
-        return start(PkceGenerator.codeVerifier(), UUID.randomUUID().toString())
+    fun start(
+        credential: Credential? = null,
+        scopes: Set<String> = credential?.scopes() ?: oidcClient.configuration.defaultScopes,
+    ): Context {
+        return start(PkceGenerator.codeVerifier(), UUID.randomUUID().toString(), credential, scopes)
     }
 
     internal fun start(
         codeVerifier: String,
         state: String,
+        credential: Credential?,
+        scopes: Set<String>
     ): Context {
         val urlBuilder = oidcClient.endpoints.authorizationEndpoint.newBuilder()
         urlBuilder.addQueryParameter("code_challenge", PkceGenerator.codeChallenge(codeVerifier))
         urlBuilder.addQueryParameter("code_challenge_method", PkceGenerator.CODE_CHALLENGE_METHOD)
         urlBuilder.addQueryParameter("client_id", oidcClient.configuration.clientId)
-        urlBuilder.addQueryParameter("scope", oidcClient.configuration.scopes.joinToString(" "))
+        urlBuilder.addQueryParameter("scope", scopes.joinToString(" "))
         urlBuilder.addQueryParameter("redirect_uri", oidcClient.configuration.signInRedirectUri)
         urlBuilder.addQueryParameter("response_type", "code")
         urlBuilder.addQueryParameter("state", state)
@@ -68,7 +75,7 @@ class AuthorizationCodeFlow private constructor(
         val event = CustomizeAuthorizationUrlEvent(urlBuilder)
         oidcClient.configuration.eventCoordinator.sendEvent(event)
 
-        return Context(codeVerifier, state, urlBuilder.build())
+        return Context(urlBuilder.build(), codeVerifier, state, credential)
     }
 
     suspend fun resume(uri: Uri, flowContext: Context): Result {
@@ -107,7 +114,8 @@ class AuthorizationCodeFlow private constructor(
                 Result.Error("Token request failed.", tokenResult.exception)
             }
             is OidcClientResult.Success -> {
-                Result.Tokens(tokenResult.result)
+                flowContext.credential?.storeToken(tokenResult.result)
+                Result.Token(tokenResult.result)
             }
         }
     }

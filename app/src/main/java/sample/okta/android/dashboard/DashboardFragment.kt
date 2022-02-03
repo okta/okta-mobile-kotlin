@@ -13,18 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package sample.okta.oidc.android.dashboard
+package sample.okta.android.dashboard
 
 import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
-import sample.okta.oidc.android.databinding.FragmentDashboardBinding
-import sample.okta.oidc.android.databinding.RowDashboardClaimBinding
-import sample.okta.oidc.android.util.BaseFragment
-import com.okta.authfoundation.dto.OidcTokenType
-import sample.okta.oidc.android.R
-import sample.okta.oidc.android.util.inflateBinding
+import com.okta.authfoundation.credential.TokenType
+import sample.okta.android.DefaultCredential
+import sample.okta.android.R
+import sample.okta.android.databinding.FragmentDashboardBinding
+import sample.okta.android.databinding.RowDashboardClaimBinding
+import sample.okta.android.util.BaseFragment
+import sample.okta.android.util.inflateBinding
 
 internal class DashboardFragment : BaseFragment<FragmentDashboardBinding>(
     FragmentDashboardBinding::inflate
@@ -32,12 +33,13 @@ internal class DashboardFragment : BaseFragment<FragmentDashboardBinding>(
     private val viewModel: DashboardViewModel by viewModels()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        binding.tokenType.text = TokenViewModel.tokens.tokenType
-        binding.expiresIn.text = TokenViewModel.tokens.expiresIn.toString()
-        binding.accessToken.text = TokenViewModel.tokens.accessToken
-        binding.refreshToken.text = TokenViewModel.tokens.refreshToken
-        binding.idToken.text = TokenViewModel.tokens.idToken
-        binding.scope.text = TokenViewModel.tokens.scope
+        val token = DefaultCredential.get().token!!
+        binding.tokenType.text = token.tokenType
+        binding.expiresIn.text = token.expiresIn.toString()
+        binding.accessToken.text = token.accessToken
+        binding.refreshToken.text = token.refreshToken
+        binding.idToken.text = token.idToken
+        binding.scope.text = token.scope
 
         viewModel.userInfoLiveData.observe(viewLifecycleOwner) { userInfo ->
             binding.claimsTitle.visibility = if (userInfo.isEmpty()) View.GONE else View.VISIBLE
@@ -55,20 +57,20 @@ internal class DashboardFragment : BaseFragment<FragmentDashboardBinding>(
         }
 
         binding.introspectAccessTokenButton.setOnClickListener {
-            viewModel.introspect(binding.introspectAccessTokenButton.id, OidcTokenType.ACCESS_TOKEN)
+            viewModel.introspect(binding.introspectAccessTokenButton.id, TokenType.ACCESS_TOKEN)
         }
         binding.introspectRefreshTokenButton.setOnClickListener {
-            viewModel.introspect(binding.introspectRefreshTokenButton.id, OidcTokenType.REFRESH_TOKEN)
+            viewModel.introspect(binding.introspectRefreshTokenButton.id, TokenType.REFRESH_TOKEN)
         }
         binding.introspectIdTokenButton.setOnClickListener {
-            viewModel.introspect(binding.introspectIdTokenButton.id, OidcTokenType.ID_TOKEN)
+            viewModel.introspect(binding.introspectIdTokenButton.id, TokenType.ID_TOKEN)
         }
 
         binding.revokeAccessTokenButton.setOnClickListener {
-            viewModel.revoke(binding.revokeAccessTokenButton.id, OidcTokenType.ACCESS_TOKEN)
+            viewModel.revoke(binding.revokeAccessTokenButton.id, TokenType.ACCESS_TOKEN)
         }
         binding.revokeRefreshTokenButton.setOnClickListener {
-            viewModel.revoke(binding.revokeRefreshTokenButton.id, OidcTokenType.REFRESH_TOKEN)
+            viewModel.revoke(binding.revokeRefreshTokenButton.id, TokenType.REFRESH_TOKEN)
         }
         binding.logoutWebButton.setOnClickListener {
             viewModel.logoutOfWeb(requireContext())

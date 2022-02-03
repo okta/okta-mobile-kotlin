@@ -18,16 +18,16 @@ package com.okta.webauthenticationui
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
-import android.provider.Browser
-import android.os.Bundle
-import androidx.browser.customtabs.CustomTabsIntent
-import androidx.browser.customtabs.CustomTabsService
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
+import android.os.Bundle
+import android.provider.Browser
+import androidx.browser.customtabs.CustomTabsIntent
+import androidx.browser.customtabs.CustomTabsService
+import com.okta.authfoundation.events.EventCoordinator
 import com.okta.webauthenticationui.events.CustomizeBrowserEvent
 import com.okta.webauthenticationui.events.CustomizeCustomTabsEvent
-import com.okta.authfoundation.events.EventCoordinator
 import okhttp3.HttpUrl
 
 interface WebAuthenticationProvider {

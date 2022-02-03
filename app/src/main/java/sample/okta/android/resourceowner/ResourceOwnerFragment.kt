@@ -13,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package sample.okta.oidc.android.resourceowner
+package sample.okta.android.resourceowner
 
 import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
-import sample.okta.oidc.android.dashboard.TokenViewModel
-import sample.okta.oidc.android.databinding.FragmentResourceOwnerBinding
-import sample.okta.oidc.android.util.BaseFragment
+import sample.okta.android.databinding.FragmentResourceOwnerBinding
+import sample.okta.android.util.BaseFragment
 
 internal class ResourceOwnerFragment : BaseFragment<FragmentResourceOwnerBinding>(
     FragmentResourceOwnerBinding::inflate
@@ -47,8 +46,7 @@ internal class ResourceOwnerFragment : BaseFragment<FragmentResourceOwnerBinding
                 ResourceOwnerState.Idle -> {
 
                 }
-                is ResourceOwnerState.Tokens -> {
-                    TokenViewModel._tokens = state.tokens
+                is ResourceOwnerState.Token -> {
                     findNavController().navigate(ResourceOwnerFragmentDirections.resourceOwnerToDashboard())
                 }
                 ResourceOwnerState.Loading -> {
