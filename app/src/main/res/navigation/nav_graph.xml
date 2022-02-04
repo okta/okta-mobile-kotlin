@@ -13,6 +13,12 @@
             app:destination="@id/LaunchFragment"
             app:popUpTo="@+id/nav_graph"
             app:popUpToInclusive="true" />
+
+        <action
+            android:id="@+id/startup_to_dashboard"
+            app:destination="@id/DashboardFragment"
+            app:popUpTo="@+id/nav_graph"
+            app:popUpToInclusive="true" />
     </fragment>
 
     <fragment

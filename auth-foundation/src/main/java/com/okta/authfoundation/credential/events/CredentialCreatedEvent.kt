@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.okta.oauth2.events
+package com.okta.authfoundation.credential.events
 
-import okhttp3.HttpUrl
+import com.okta.authfoundation.credential.Credential
 
-data class CustomizeLogoutUrlEvent internal constructor(
-    val httpUrlBuilder: HttpUrl.Builder
+data class CredentialCreatedEvent internal constructor(
+    val credential: Credential
 )

@@ -19,12 +19,12 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class Token internal constructor(
+data class Token(
     @SerialName("token_type") val tokenType: String,
     @SerialName("expires_in") val expiresIn: Int,
     @SerialName("access_token") val accessToken: String,
     @SerialName("scope") val scope: String,
-    @SerialName("refresh_token") val refreshToken: String?= null,
+    @SerialName("refresh_token") val refreshToken: String? = null,
     @SerialName("id_token") val idToken: String? = null,
     @SerialName("device_secret") val deviceSecret: String? = null,
 )

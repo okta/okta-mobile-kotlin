@@ -19,7 +19,6 @@ import android.net.Uri
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundation.client.internal.internalTokenRequest
-import com.okta.authfoundation.credential.Credential
 import com.okta.authfoundation.credential.Token as CredentialToken
 import com.okta.oauth2.events.CustomizeAuthorizationUrlEvent
 import okhttp3.FormBody
@@ -40,7 +39,6 @@ class AuthorizationCodeFlow private constructor(
         val url: HttpUrl,
         internal val codeVerifier: String,
         internal val state: String,
-        internal val credential: Credential?,
     )
 
     sealed class Result {
@@ -51,16 +49,14 @@ class AuthorizationCodeFlow private constructor(
     }
 
     fun start(
-        credential: Credential? = null,
-        scopes: Set<String> = credential?.scopes() ?: oidcClient.configuration.defaultScopes,
+        scopes: Set<String> = oidcClient.configuration.defaultScopes,
     ): Context {
-        return start(PkceGenerator.codeVerifier(), UUID.randomUUID().toString(), credential, scopes)
+        return start(PkceGenerator.codeVerifier(), UUID.randomUUID().toString(), scopes)
     }
 
     internal fun start(
         codeVerifier: String,
         state: String,
-        credential: Credential?,
         scopes: Set<String>
     ): Context {
         val urlBuilder = oidcClient.endpoints.authorizationEndpoint.newBuilder()
@@ -75,7 +71,7 @@ class AuthorizationCodeFlow private constructor(
         val event = CustomizeAuthorizationUrlEvent(urlBuilder)
         oidcClient.configuration.eventCoordinator.sendEvent(event)
 
-        return Context(urlBuilder.build(), codeVerifier, state, credential)
+        return Context(urlBuilder.build(), codeVerifier, state)
     }
 
     suspend fun resume(uri: Uri, flowContext: Context): Result {
@@ -114,7 +110,6 @@ class AuthorizationCodeFlow private constructor(
                 Result.Error("Token request failed.", tokenResult.exception)
             }
             is OidcClientResult.Success -> {
-                flowContext.credential?.storeToken(tokenResult.result)
                 Result.Token(tokenResult.result)
             }
         }

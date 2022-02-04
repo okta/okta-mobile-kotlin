@@ -16,7 +16,10 @@
 package com.okta.authfoundation.credential
 
 interface TokenStorage {
-    suspend fun save(key: String, value: String)
-    suspend fun get(key: String): String?
-    suspend fun delete(key: String)
+    suspend fun entries(): List<Entry>
+    suspend fun add(entry: Entry)
+    suspend fun remove(entry: Entry)
+    suspend fun replace(existingEntry: Entry, updatedEntry: Entry)
+
+    data class Entry(val token: Token, val metadata: Map<String, String>)
 }

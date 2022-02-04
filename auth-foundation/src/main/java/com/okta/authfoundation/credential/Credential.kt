@@ -58,10 +58,20 @@ class Credential internal constructor(
         return oidcClient.introspectToken(tokenType, token)
     }
 
-    suspend fun storeToken(token: Token?, metadata: Map<String, String> = _metadata) {
+    suspend fun storeToken(token: Token? = _token, metadata: Map<String, String> = _metadata) {
+        val localToken = _token
+        if (localToken != null && token != null) {
+            storage.replace(
+                existingEntry = TokenStorage.Entry(localToken, _metadata),
+                updatedEntry = TokenStorage.Entry(token, metadata),
+            )
+        } else if (localToken != null) {
+            storage.remove(TokenStorage.Entry(localToken, _metadata))
+        } else if (token != null) {
+            storage.add(TokenStorage.Entry(token, metadata))
+        }
         _token = token
         _metadata = metadata
-        // TODO: Store
     }
 
     suspend fun remove() {
