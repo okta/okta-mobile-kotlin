@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.okta.authfoundation.util
+package com.okta.authfoundation.client.internal
 
 import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundation.client.OidcConfiguration
@@ -21,6 +21,8 @@ import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.CompletionHandler
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import okhttp3.Call
 import okhttp3.Callback
@@ -29,7 +31,7 @@ import okhttp3.Response
 import java.io.IOException
 import kotlin.coroutines.resumeWithException
 
-internal suspend inline fun <reified Raw, Dto> OidcConfiguration.performRequest(
+suspend inline fun <reified Raw, Dto> OidcConfiguration.performRequest(
     request: Request,
     crossinline responseMapper: (Raw) -> Dto,
 ): OidcClientResult<Dto> {
@@ -40,7 +42,7 @@ internal suspend inline fun <reified Raw, Dto> OidcConfiguration.performRequest(
     }
 }
 
-internal suspend inline fun <reified Raw> OidcConfiguration.performRequest(
+suspend inline fun <reified Raw> OidcConfiguration.performRequest(
     request: Request
 ): OidcClientResult<Raw> {
     return internalPerformRequest(request) { okHttpResponse ->
@@ -49,13 +51,13 @@ internal suspend inline fun <reified Raw> OidcConfiguration.performRequest(
     }
 }
 
-internal suspend fun OidcConfiguration.performRequestNonJson(
+suspend fun OidcConfiguration.performRequestNonJson(
     request: Request
 ): OidcClientResult<Unit> {
     return internalPerformRequest(request) { }
 }
 
-private suspend fun <T> OidcConfiguration.internalPerformRequest(
+suspend fun <T> OidcConfiguration.internalPerformRequest(
     request: Request,
     responseHandler: (Response) -> T,
 ): OidcClientResult<T> {
@@ -65,11 +67,30 @@ private suspend fun <T> OidcConfiguration.internalPerformRequest(
             if (okHttpResponse.isSuccessful) {
                 OidcClientResult.Success(responseHandler(okHttpResponse))
             } else {
-                OidcClientResult.Error(IOException("Request failed."))
+                okHttpResponse.toOidcClientResultError(this@internalPerformRequest)
             }
         } catch (e: Exception) {
             OidcClientResult.Error(e)
         }
+    }
+}
+
+@Serializable
+internal data class ErrorResponse(
+    @SerialName("error") val error: String,
+    @SerialName("error_description") val errorDescription: String,
+)
+
+private fun <T> Response.toOidcClientResultError(configuration: OidcConfiguration): OidcClientResult<T> {
+    return try {
+        val errorResponse = body?.string()?.let { configuration.json.decodeFromString<ErrorResponse>(it) }
+        OidcClientResult.Error(OidcClientResult.Error.HttpResponseException(
+            responseCode = code,
+            error = errorResponse?.error,
+            errorDescription = errorResponse?.errorDescription,
+        ))
+    } catch (e: Exception) {
+        OidcClientResult.Error(IOException("Request failed."))
     }
 }
 

@@ -37,7 +37,7 @@ class RedirectEndSessionFlow private constructor(
 
     sealed class Result {
         object RedirectSchemeMismatch : Result()
-        class Error(val message: String) : Result()
+        class Error internal constructor(val message: String) : Result()
         object Success : Result()
     }
 

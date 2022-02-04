@@ -35,6 +35,11 @@
             app:destination="@id/ResourceOwnerFragment"
             app:popUpTo="@+id/nav_graph"
             app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/launch_to_device_authorization_flow"
+            app:destination="@id/DeviceAuthorizationFragment"
+            app:popUpTo="@+id/nav_graph"
+            app:popUpToInclusive="true" />
     </fragment>
 
     <fragment
@@ -54,6 +59,17 @@
         tools:layout="@layout/fragment_resource_owner">
         <action
             android:id="@+id/resource_owner_to_dashboard"
+            app:destination="@id/DashboardFragment"
+            app:popUpTo="@+id/nav_graph"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/DeviceAuthorizationFragment"
+        android:name="sample.okta.android.deviceauthorization.DeviceAuthorizationFragment"
+        tools:layout="@layout/fragment_device_authorization">
+        <action
+            android:id="@+id/device_authorization_to_dashboard"
             app:destination="@id/DashboardFragment"
             app:popUpTo="@+id/nav_graph"
             app:popUpToInclusive="true" />

@@ -40,6 +40,7 @@ class OidcEndpoints(
     @SerialName("introspection_endpoint") val introspectionEndpoint: HttpUrl,
     @SerialName("revocation_endpoint") val revocationEndpoint: HttpUrl,
     @SerialName("end_session_endpoint") val endSessionEndpoint: HttpUrl,
+    @SerialName("device_authorization_endpoint") val deviceAuthorizationEndpoint: HttpUrl? = null,
 )
 
 internal object HttpUrlSerializer : KSerializer<HttpUrl> {

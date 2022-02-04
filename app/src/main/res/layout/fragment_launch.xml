@@ -28,4 +28,11 @@
         android:layout_height="wrap_content"
         android:text="@string/login_with_resource_owner_flow"
         />
+
+    <Button
+        android:id="@+id/login_with_device_authorization_flow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/login_with_device_authorization_flow"
+        />
 </LinearLayout>

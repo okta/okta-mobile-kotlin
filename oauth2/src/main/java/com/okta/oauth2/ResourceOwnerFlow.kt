@@ -32,8 +32,8 @@ class ResourceOwnerFlow private constructor(
     }
 
     sealed class Result {
-        class Error(val message: String, val exception: Exception? = null) : Result()
-        class Token(val token: CredentialToken) : Result()
+        class Error internal constructor(val message: String, val exception: Exception? = null) : Result()
+        class Token internal constructor(val token: CredentialToken) : Result()
     }
 
     suspend fun start(

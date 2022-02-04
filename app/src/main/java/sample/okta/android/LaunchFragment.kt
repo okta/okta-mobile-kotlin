@@ -34,5 +34,9 @@ internal class LaunchFragment : BaseFragment<FragmentLaunchBinding>(
         binding.loginWithResourceOwnerFlow.setOnClickListener {
             findNavController().navigate(LaunchFragmentDirections.launchToResourceOwnerFlow())
         }
+
+        binding.loginWithDeviceAuthorizationFlow.setOnClickListener {
+            findNavController().navigate(LaunchFragmentDirections.launchToDeviceAuthorizationFlow())
+        }
     }
 }
