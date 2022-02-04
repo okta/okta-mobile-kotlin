@@ -31,7 +31,7 @@ class CredentialDataSource internal constructor(
         }
     }
 
-    suspend fun create(): Credential {
+    fun create(): Credential {
         val credential = Credential(oidcClient, storage)
         oidcClient.configuration.eventCoordinator.sendEvent(CredentialCreatedEvent(credential))
         return credential
@@ -41,7 +41,8 @@ class CredentialDataSource internal constructor(
         return storage.entries().filter {
             filter(it.metadata)
         }.map {
-            Credential(oidcClient, storage, it.token, it.metadata)
+            val metadataCopy = it.metadata.toMap() // Making a defensive copy, so it's not modified outside our control.
+            Credential(oidcClient, storage, it.token, metadataCopy)
         }.firstOrNull()
     }
 }
