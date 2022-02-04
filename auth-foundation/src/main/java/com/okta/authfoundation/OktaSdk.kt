@@ -20,6 +20,7 @@ import com.okta.authfoundation.credential.TokenStorage
 import com.okta.authfoundation.events.EventCoordinator
 import okhttp3.Call
 import okhttp3.OkHttpClient
+import java.util.Collections
 
 object OktaSdk {
     var okHttpClient: Call.Factory by NoSetAfterGetWithLazyDefaultFactory { OkHttpClient() }
@@ -39,18 +40,24 @@ object OktaSdk {
     }
 
     private fun defaultStorage(): TokenStorage {
-        val map = mutableMapOf<String, String>()
         return object : TokenStorage {
-            override suspend fun save(key: String, value: String) {
-                map[key] = value
+            private val entries = Collections.synchronizedList(mutableListOf<TokenStorage.Entry>())
+
+            override suspend fun entries(): List<TokenStorage.Entry> {
+                return entries
             }
 
-            override suspend fun get(key: String): String? {
-                return map[key]
+            override suspend fun add(entry: TokenStorage.Entry) {
+                entries += entry
             }
 
-            override suspend fun delete(key: String) {
-                map.remove(key)
+            override suspend fun remove(entry: TokenStorage.Entry) {
+                entries -= entry
+            }
+
+            override suspend fun replace(existingEntry: TokenStorage.Entry, updatedEntry: TokenStorage.Entry) {
+                val index = entries.indexOf(existingEntry)
+                entries[index] = updatedEntry
             }
         }
     }

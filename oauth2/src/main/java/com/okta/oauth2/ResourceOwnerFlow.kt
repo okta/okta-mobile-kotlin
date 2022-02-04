@@ -18,7 +18,6 @@ package com.okta.oauth2
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundation.client.internal.internalTokenRequest
-import com.okta.authfoundation.credential.Credential
 import com.okta.authfoundation.credential.Token as CredentialToken
 import okhttp3.FormBody
 import okhttp3.Request
@@ -40,8 +39,7 @@ class ResourceOwnerFlow private constructor(
     suspend fun start(
         username: String,
         password: String,
-        credential: Credential? = null,
-        scopes: Set<String> = credential?.scopes() ?: oidcClient.configuration.defaultScopes,
+        scopes: Set<String> = oidcClient.configuration.defaultScopes,
     ): Result {
         val formBodyBuilder = FormBody.Builder()
             .add("username", username)
@@ -60,7 +58,6 @@ class ResourceOwnerFlow private constructor(
                 Result.Error("Token request failed.", tokenResult.exception)
             }
             is OidcClientResult.Success -> {
-                credential?.storeToken(tokenResult.result)
                 Result.Token(tokenResult.result)
             }
         }

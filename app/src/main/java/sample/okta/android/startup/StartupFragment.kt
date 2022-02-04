@@ -19,6 +19,7 @@ import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
+import sample.okta.android.DefaultCredential
 import sample.okta.android.databinding.FragmentStartupBinding
 import sample.okta.android.util.BaseFragment
 
@@ -43,7 +44,11 @@ internal class StartupFragment : BaseFragment<FragmentStartupBinding>(
                     binding.tryAgainButton.visibility = View.VISIBLE
                 }
                 StartupState.Complete -> {
-                    findNavController().navigate(StartupFragmentDirections.startupToLaunch())
+                    if (DefaultCredential.get().token != null) {
+                        findNavController().navigate(StartupFragmentDirections.startupToDashboard())
+                    } else {
+                        findNavController().navigate(StartupFragmentDirections.startupToLaunch())
+                    }
                 }
                 StartupState.Loading -> {
                     binding.errorTextView.visibility = View.GONE

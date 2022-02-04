@@ -22,7 +22,7 @@ import androidx.lifecycle.viewModelScope
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundation.client.OidcConfiguration
-import com.okta.authfoundation.credential.CredentialDataSource
+import com.okta.authfoundation.credential.CredentialDataSource.Companion.credentialDataSource
 import kotlinx.coroutines.launch
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import sample.okta.android.BuildConfig
@@ -30,6 +30,10 @@ import sample.okta.android.DefaultCredential
 import timber.log.Timber
 
 internal class StartupViewModel : ViewModel() {
+    companion object {
+        private const val METADATA_KEY: String = "sample.okta.default"
+    }
+
     private val _state = MutableLiveData<StartupState>(StartupState.Loading)
     val state: LiveData<StartupState> = _state
 
@@ -38,6 +42,11 @@ internal class StartupViewModel : ViewModel() {
     }
 
     fun startup() {
+        if (DefaultCredential.isInitialized()) {
+            _state.value = StartupState.Complete
+            return
+        }
+
         _state.value = StartupState.Loading
 
         viewModelScope.launch {
@@ -57,8 +66,14 @@ internal class StartupViewModel : ViewModel() {
                 }
                 is OidcClientResult.Success -> {
                     val oidcClient = clientResult.result
-                    val credentialDataSource = CredentialDataSource.create(oidcClient)
-                    DefaultCredential.instance = credentialDataSource.create()
+                    val credentialDataSource = oidcClient.credentialDataSource()
+                    val credential = credentialDataSource.fetch { it.containsKey(METADATA_KEY) }
+                    if (credential != null) {
+                        DefaultCredential.instance = credential
+                    } else {
+                        DefaultCredential.instance = credentialDataSource.create()
+                        DefaultCredential.get().storeToken(metadata = mapOf(Pair(METADATA_KEY, "default")))
+                    }
                     _state.value = StartupState.Complete
                 }
             }

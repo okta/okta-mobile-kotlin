@@ -75,6 +75,9 @@ internal class DashboardFragment : BaseFragment<FragmentDashboardBinding>(
         binding.logoutWebButton.setOnClickListener {
             viewModel.logoutOfWeb(requireContext())
         }
+        binding.removeCredentialButton.setOnClickListener {
+            viewModel.removeCredential()
+        }
 
         viewModel.requestStateLiveData.observe(viewLifecycleOwner) { state ->
             val button = binding.root.findViewById<View>(viewModel.lastButtonId)

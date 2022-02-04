@@ -17,6 +17,7 @@ package com.okta.authfoundation.client.internal
 
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcClientResult
+import com.okta.authfoundation.client.events.TokenCreatedEvent
 import com.okta.authfoundation.credential.Token
 import com.okta.authfoundation.util.performRequest
 import okhttp3.Request
@@ -24,5 +25,11 @@ import okhttp3.Request
 suspend fun OidcClient.internalTokenRequest(
     request: Request,
 ): OidcClientResult<Token> {
-    return configuration.performRequest(request)
+    return configuration.performRequest<Token>(request).apply {
+        if (this is OidcClientResult.Success) {
+            val event = TokenCreatedEvent(result)
+            configuration.eventCoordinator.sendEvent(event)
+            event.runFollowUpTasks()
+        }
+    }
 }

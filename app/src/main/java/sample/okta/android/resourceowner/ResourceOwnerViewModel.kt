@@ -34,7 +34,7 @@ internal class ResourceOwnerViewModel : ViewModel() {
 
         viewModelScope.launch {
             val resourceOwnerFlow = DefaultCredential.get().oidcClient.resourceOwnerFlow()
-            when (val result = resourceOwnerFlow.start(username, password, DefaultCredential.get())) {
+            when (val result = resourceOwnerFlow.start(username, password)) {
                 is ResourceOwnerFlow.Result.Error -> {
                     _state.value = ResourceOwnerState.Error(result.message)
                 }

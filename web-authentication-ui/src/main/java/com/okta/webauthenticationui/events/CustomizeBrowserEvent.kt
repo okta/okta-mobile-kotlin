@@ -15,7 +15,7 @@
  */
 package com.okta.webauthenticationui.events
 
-class CustomizeBrowserEvent internal constructor(
+data class CustomizeBrowserEvent internal constructor(
     var queryIntentServicesFlags: Int = 0,
     val preferredBrowsers: MutableList<String> = mutableListOf(CHROME_STABLE, CHROME_SYSTEM, CHROME_BETA)
 ) {

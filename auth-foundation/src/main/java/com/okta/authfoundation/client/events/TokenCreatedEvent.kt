@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.okta.oauth2.events
+package com.okta.authfoundation.client.events
 
-import okhttp3.HttpUrl
+import com.okta.authfoundation.credential.Token
 
-data class CustomizeLogoutUrlEvent internal constructor(
-    val httpUrlBuilder: HttpUrl.Builder
-)
+class TokenCreatedEvent internal constructor(
+    val token: Token,
+) {
+    private val followUpTasks: MutableList<suspend () -> Unit> = mutableListOf()
+
+    fun addFollowUpTask(task: suspend () -> Unit) {
+        followUpTasks += task
+    }
+
+    internal suspend fun runFollowUpTasks() {
+        for (followUpTask in followUpTasks) {
+            followUpTask()
+        }
+    }
+}

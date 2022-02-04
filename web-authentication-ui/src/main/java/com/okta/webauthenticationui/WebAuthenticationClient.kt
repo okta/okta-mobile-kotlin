@@ -41,10 +41,9 @@ class WebAuthenticationClient private constructor(
 
     fun login(
         context: Context,
-        credential: Credential? = null,
-        scopes: Set<String> = credential?.scopes() ?: oidcClient.configuration.defaultScopes,
+        scopes: Set<String> = oidcClient.configuration.defaultScopes,
     ): AuthorizationCodeFlow.Context {
-        val flowContext = authorizationCodeFlow.start(credential, scopes)
+        val flowContext = authorizationCodeFlow.start(scopes)
         webAuthenticationProvider.launch(context, flowContext.url)
         return flowContext
     }

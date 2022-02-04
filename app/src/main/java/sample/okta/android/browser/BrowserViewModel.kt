@@ -44,7 +44,7 @@ class BrowserViewModel : ViewModel() {
 
     fun login(context: Context) {
         val webAuthenticationClient = DefaultCredential.get().oidcClient.webAuthenticationClient()
-        authorizationCodeFlowContext = webAuthenticationClient.login(context, DefaultCredential.get())
+        authorizationCodeFlowContext = webAuthenticationClient.login(context)
     }
 
     fun handleRedirect(uri: Uri) {

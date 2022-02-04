@@ -20,6 +20,10 @@ import com.okta.authfoundation.credential.Credential
 internal object DefaultCredential {
     lateinit var instance: Credential
 
+    fun isInitialized(): Boolean {
+        return ::instance.isInitialized
+    }
+
     fun get(): Credential {
         return instance
     }

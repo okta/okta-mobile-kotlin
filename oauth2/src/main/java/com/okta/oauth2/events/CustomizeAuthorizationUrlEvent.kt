@@ -17,6 +17,6 @@ package com.okta.oauth2.events
 
 import okhttp3.HttpUrl
 
-class CustomizeAuthorizationUrlEvent internal constructor(
+data class CustomizeAuthorizationUrlEvent internal constructor(
     val httpUrlBuilder: HttpUrl.Builder
 )

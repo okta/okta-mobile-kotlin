@@ -160,4 +160,10 @@ internal class DashboardViewModel : ViewModel() {
             }
         }
     }
+
+    fun removeCredential() {
+        viewModelScope.launch {
+            DefaultCredential.get().remove()
+        }
+    }
 }

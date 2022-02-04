@@ -17,27 +17,31 @@ package com.okta.authfoundation.credential
 
 import com.okta.authfoundation.OktaSdk
 import com.okta.authfoundation.client.OidcClient
+import com.okta.authfoundation.credential.events.CredentialCreatedEvent
 
 class CredentialDataSource internal constructor(
     private val oidcClient: OidcClient,
     private val storage: TokenStorage,
 ) {
     companion object {
-        fun create(
-            oidcClient: OidcClient,
+        fun OidcClient.credentialDataSource(
             storage: TokenStorage = OktaSdk.storage,
         ): CredentialDataSource {
-            return CredentialDataSource(oidcClient, storage)
+            return CredentialDataSource(this, storage)
         }
     }
 
-    // TODO: Store credentials in weak hash map
-
     suspend fun create(): Credential {
-        return Credential(oidcClient, storage)
+        val credential = Credential(oidcClient, storage)
+        oidcClient.configuration.eventCoordinator.sendEvent(CredentialCreatedEvent(credential))
+        return credential
     }
 
-    suspend fun fetch(filter: (Map<String, String>) -> Boolean): Credential {
-        TODO()
+    suspend fun fetch(filter: (Map<String, String>) -> Boolean): Credential? {
+        return storage.entries().filter {
+            filter(it.metadata)
+        }.map {
+            Credential(oidcClient, storage, it.token, it.metadata)
+        }.firstOrNull()
     }
 }
