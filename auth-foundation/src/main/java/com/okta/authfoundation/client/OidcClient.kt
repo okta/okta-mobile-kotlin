@@ -17,10 +17,10 @@ package com.okta.authfoundation.client
 
 import com.okta.authfoundation.client.dto.OidcIntrospectInfo
 import com.okta.authfoundation.client.dto.OidcUserInfo
+import com.okta.authfoundation.client.internal.performRequest
+import com.okta.authfoundation.client.internal.performRequestNonJson
 import com.okta.authfoundation.credential.Token
 import com.okta.authfoundation.credential.TokenType
-import com.okta.authfoundation.util.performRequest
-import com.okta.authfoundation.util.performRequestNonJson
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.boolean

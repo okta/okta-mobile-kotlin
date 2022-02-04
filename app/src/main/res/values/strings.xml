@@ -11,7 +11,7 @@
     <string name="claims">Claims</string>
     <string name="sign_out">Sign Out</string>
     <string name="try_again">Try Again</string>
-    <string name="welcome_to_sample">Welcome to the Okta Samples for Android!</string>
+    <string name="welcome_to_sample">Welcome to the Okta Samples for Android!\nLogin with one of the follow flows!</string>
     <string name="introspect_access_token">Introspect Access Token</string>
     <string name="introspect_refresh_token">Introspect Refresh Token</string>
     <string name="introspect_id_token">Introspect ID Token</string>
@@ -19,11 +19,12 @@
     <string name="revoke_refresh_token">Revoke Refresh Token</string>
     <string name="refresh_access_token">Refresh Access Token</string>
     <string name="back_to_login">Go Back To Login Page</string>
-    <string name="login_with_browser">Login with browser</string>
+    <string name="login_with_browser">Browser</string>
     <string name="logout_web">Logout of Web</string>
     <string name="login">Login</string>
     <string name="password">Password</string>
     <string name="username">Username</string>
-    <string name="login_with_resource_owner_flow">Login with Resource Owner Flow</string>
+    <string name="login_with_resource_owner_flow">Resource Owner</string>
     <string name="remove_credential">Remove Credential</string>
+    <string name="login_with_device_authorization_flow">Device Authorization</string>
 </resources>

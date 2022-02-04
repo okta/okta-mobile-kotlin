@@ -43,9 +43,9 @@ class AuthorizationCodeFlow private constructor(
 
     sealed class Result {
         object RedirectSchemeMismatch : Result()
-        class Error(val message: String, val exception: Exception? = null) : Result()
+        class Error internal constructor(val message: String, val exception: Exception? = null) : Result()
         object MissingResultCode : Result()
-        class Token(val token: CredentialToken) : Result()
+        class Token internal constructor(val token: CredentialToken) : Result()
     }
 
     fun start(

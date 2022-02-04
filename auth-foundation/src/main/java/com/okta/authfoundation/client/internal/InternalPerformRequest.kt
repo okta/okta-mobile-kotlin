@@ -19,7 +19,6 @@ import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundation.client.events.TokenCreatedEvent
 import com.okta.authfoundation.credential.Token
-import com.okta.authfoundation.util.performRequest
 import okhttp3.Request
 
 suspend fun OidcClient.internalTokenRequest(
