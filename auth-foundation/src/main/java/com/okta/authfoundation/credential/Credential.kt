@@ -19,6 +19,7 @@ import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundation.client.dto.OidcIntrospectInfo
 import com.okta.authfoundation.client.dto.OidcUserInfo
+import java.util.Collections
 
 class Credential internal constructor(
     private val oidcClient: OidcClient,
@@ -33,7 +34,7 @@ class Credential internal constructor(
 
     val metadata: Map<String, String>
         get() {
-            return _metadata.toMap() // Making a defensive copy, so it's not modified outside our control.
+            return Collections.unmodifiableMap(_metadata)
         }
 
     suspend fun getUserInfo(): OidcClientResult<OidcUserInfo> {
@@ -59,19 +60,20 @@ class Credential internal constructor(
     }
 
     suspend fun storeToken(token: Token? = _token, metadata: Map<String, String> = _metadata) {
+        val metadataCopy = metadata.toMap() // Making a defensive copy, so it's not modified outside our control.
         val localToken = _token
         if (localToken != null && token != null) {
             storage.replace(
                 existingEntry = TokenStorage.Entry(localToken, _metadata),
-                updatedEntry = TokenStorage.Entry(token, metadata),
+                updatedEntry = TokenStorage.Entry(token, metadataCopy),
             )
         } else if (localToken != null) {
             storage.remove(TokenStorage.Entry(localToken, _metadata))
         } else if (token != null) {
-            storage.add(TokenStorage.Entry(token, metadata))
+            storage.add(TokenStorage.Entry(token, metadataCopy))
         }
         _token = token
-        _metadata = metadata
+        _metadata = metadataCopy
     }
 
     suspend fun remove() {
