@@ -19,6 +19,7 @@ import com.okta.authfoundation.client.dto.OidcIntrospectInfo
 import com.okta.authfoundation.client.dto.OidcUserInfo
 import com.okta.authfoundation.client.internal.performRequest
 import com.okta.authfoundation.client.internal.performRequestNonJson
+import com.okta.authfoundation.credential.Credential
 import com.okta.authfoundation.credential.Token
 import com.okta.authfoundation.credential.TokenType
 import kotlinx.serialization.json.JsonObject
@@ -28,10 +29,16 @@ import okhttp3.FormBody
 import okhttp3.HttpUrl
 import okhttp3.Request
 
-class OidcClient(
+class OidcClient private constructor(
     val configuration: OidcConfiguration,
     val endpoints: OidcEndpoints,
+    val credential: Credential? = null,
 ) {
+    constructor(
+        configuration: OidcConfiguration,
+        endpoints: OidcEndpoints,
+    ) : this(configuration, endpoints, null)
+
     companion object {
         suspend fun create(
             configuration: OidcConfiguration,
@@ -49,6 +56,10 @@ class OidcClient(
                 }
             }
         }
+    }
+
+    internal fun withCredential(credential: Credential): OidcClient {
+        return OidcClient(configuration, endpoints, credential)
     }
 
     suspend fun getUserInfo(accessToken: String): OidcClientResult<OidcUserInfo> {

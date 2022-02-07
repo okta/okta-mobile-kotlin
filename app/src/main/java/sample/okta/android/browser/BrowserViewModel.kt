@@ -42,8 +42,8 @@ class BrowserViewModel : ViewModel() {
     }
 
     fun login(context: Context, addDeviceSsoScope: Boolean) {
-        val webAuthenticationClient = OktaHelper.oidcClient.webAuthenticationClient()
-        var scopes = OktaHelper.oidcClient.configuration.defaultScopes
+        val webAuthenticationClient = OktaHelper.defaultCredential.oidcClient.webAuthenticationClient()
+        var scopes = OktaHelper.defaultCredential.scopes()
         if (addDeviceSsoScope) {
             scopes = scopes + setOf("device_sso")
         }
@@ -53,7 +53,7 @@ class BrowserViewModel : ViewModel() {
     fun handleRedirect(uri: Uri) {
         viewModelScope.launch {
             when (val result =
-                OktaHelper.oidcClient.webAuthenticationClient().resume(uri, authorizationCodeFlowContext!!)) {
+                OktaHelper.defaultCredential.oidcClient.webAuthenticationClient().resume(uri, authorizationCodeFlowContext!!)) {
                 is AuthorizationCodeFlow.Result.Error -> {
                     _state.value = BrowserState.Error(result.message)
                 }
@@ -64,7 +64,6 @@ class BrowserViewModel : ViewModel() {
                     _state.value = BrowserState.Error("Invalid redirect. Redirect scheme mismatch.")
                 }
                 is AuthorizationCodeFlow.Result.Token -> {
-                    OktaHelper.defaultCredential.storeToken(result.token)
                     _state.value = BrowserState.Token
                 }
             }
