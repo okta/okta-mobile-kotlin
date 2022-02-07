@@ -17,12 +17,14 @@ package sample.okta.android.dashboard
 
 import android.os.Bundle
 import android.view.View
+import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.okta.authfoundation.credential.TokenType
+import sample.okta.android.OktaHelper
 import sample.okta.android.R
 import sample.okta.android.databinding.FragmentDashboardBinding
 import sample.okta.android.databinding.RowDashboardClaimBinding
@@ -37,13 +39,26 @@ internal class DashboardFragment : BaseFragment<FragmentDashboardBinding>(
     private val viewModel by viewModels<DashboardViewModel>(factoryProducer = {
         object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return DashboardViewModel(args.credentialMetadataKey) as T
+                return DashboardViewModel(args.credentialMetadataNameValue) as T
             }
         }
     })
 
+    private val onBackPressedCallback = object : OnBackPressedCallback(true) {
+        override fun handleOnBackPressed() {
+            viewModel.setCredential(OktaHelper.defaultCredential)
+        }
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        viewModel.tokenLiveData.observe(viewLifecycleOwner) { token ->
+        viewModel.credentialLiveData.observe(viewLifecycleOwner) { credential ->
+            onBackPressedCallback.isEnabled = OktaHelper.defaultCredential != credential
+
+            val name = credential.metadata[OktaHelper.CREDENTIAL_NAME_METADATA_KEY] ?: ""
+            binding.credentialName.text = name
+
+
+            val token = credential.token ?: return@observe
             binding.tokenType.text = token.tokenType
             binding.expiresIn.text = token.expiresIn.toString()
             binding.accessToken.text = token.accessToken
@@ -126,5 +141,7 @@ internal class DashboardFragment : BaseFragment<FragmentDashboardBinding>(
         binding.tokenExchangeButton.setOnClickListener {
             findNavController().navigate(DashboardFragmentDirections.dashboardToTokenExchange())
         }
+
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, onBackPressedCallback)
     }
 }

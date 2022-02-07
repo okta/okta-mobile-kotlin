@@ -25,6 +25,19 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:text="@string/credential_name"
+            android:textStyle="bold"
+            />
+
+        <TextView
+            android:id="@+id/credential_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:text="@string/token_type"
             android:textStyle="bold"
             />
@@ -150,7 +163,7 @@
             android:id="@+id/introspect_device_secret_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Introspect device secret"
+            android:text="@string/introspect_device_secret"
             />
 
         <Button
@@ -171,7 +184,7 @@
             android:id="@+id/revoke_device_secret_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Revoke device secret"
+            android:text="@string/revoke_device_secret"
             />
 
         <Button
