@@ -65,8 +65,8 @@ internal class StartupViewModel : ViewModel() {
                     _state.value = StartupState.Error("Failed to create client.")
                 }
                 is OidcClientResult.Success -> {
-                    OktaHelper.oidcClient = clientResult.result
-                    val credentialDataSource = OktaHelper.oidcClient.credentialDataSource()
+                    val oidcClient = clientResult.result
+                    val credentialDataSource = oidcClient.credentialDataSource()
                     OktaHelper.credentialDataSource = credentialDataSource
                     val credential = credentialDataSource.fetchOrCreate { metadata ->
                         metadata.containsKey(METADATA_KEY)

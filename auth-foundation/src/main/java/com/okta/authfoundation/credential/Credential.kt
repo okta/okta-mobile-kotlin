@@ -22,11 +22,13 @@ import com.okta.authfoundation.client.dto.OidcUserInfo
 import java.util.Collections
 
 class Credential internal constructor(
-    private val oidcClient: OidcClient,
+    oidcClient: OidcClient,
     private val storage: TokenStorage,
     @Volatile private var _token: Token? = null,
     @Volatile private var _metadata: Map<String, String> = emptyMap()
 ) {
+    val oidcClient: OidcClient = oidcClient.withCredential(this)
+
     val token: Token?
         get() {
             return _token
@@ -89,7 +91,12 @@ class Credential internal constructor(
         val refresh = token?.refreshToken ?: return OidcClientResult.Error(IllegalStateException("No Refresh Token."))
         return oidcClient.refreshToken(refresh, scopes).also { result ->
             if (result is OidcClientResult.Success) {
-                storeToken(result.result)
+                storeToken(
+                    result.result.copy(
+                        // Device Secret isn't returned when refreshing.
+                        deviceSecret = result.result.deviceSecret ?: _token?.deviceSecret,
+                    )
+                )
             }
         }
     }

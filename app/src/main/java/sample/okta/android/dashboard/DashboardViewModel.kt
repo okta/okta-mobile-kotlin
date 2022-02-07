@@ -113,7 +113,7 @@ internal class DashboardViewModel(private val credentialMetadataKey: String?) : 
     fun logoutOfWeb(context: Context) {
         viewModelScope.launch {
             val idToken = credential.token?.idToken ?: return@launch
-            logoutFlowContext = OktaHelper.oidcClient.webAuthenticationClient().logout(context, idToken)
+            logoutFlowContext = credential.oidcClient.webAuthenticationClient().logout(context, idToken)
         }
     }
 
@@ -160,7 +160,7 @@ internal class DashboardViewModel(private val credentialMetadataKey: String?) : 
 
     fun handleRedirect(uri: Uri) {
         viewModelScope.launch {
-            when (val result = OktaHelper.oidcClient.webAuthenticationClient().resume(uri, logoutFlowContext!!)) {
+            when (val result = credential.oidcClient.webAuthenticationClient().resume(uri, logoutFlowContext!!)) {
                 is RedirectEndSessionFlow.Result.Error -> {
                     _requestStateLiveData.value = RequestState.Result(result.message)
                 }

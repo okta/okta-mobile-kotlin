@@ -32,13 +32,12 @@ internal class ResourceOwnerViewModel : ViewModel() {
         _state.value = ResourceOwnerState.Loading
 
         viewModelScope.launch {
-            val resourceOwnerFlow = OktaHelper.oidcClient.resourceOwnerFlow()
+            val resourceOwnerFlow = OktaHelper.defaultCredential.oidcClient.resourceOwnerFlow()
             when (val result = resourceOwnerFlow.start(username, password)) {
                 is ResourceOwnerFlow.Result.Error -> {
                     _state.value = ResourceOwnerState.Error(result.message)
                 }
                 is ResourceOwnerFlow.Result.Token -> {
-                    OktaHelper.defaultCredential.storeToken(result.token)
                     _state.value = ResourceOwnerState.Token
                 }
             }

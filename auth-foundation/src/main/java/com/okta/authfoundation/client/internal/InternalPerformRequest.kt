@@ -29,6 +29,7 @@ suspend fun OidcClient.internalTokenRequest(
             val event = TokenCreatedEvent(result)
             configuration.eventCoordinator.sendEvent(event)
             event.runFollowUpTasks()
+            credential?.storeToken(result)
         }
     }
 }

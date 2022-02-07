@@ -36,7 +36,7 @@ internal class DeviceAuthorizationViewModel : ViewModel() {
         _state.value = DeviceAuthorizationState.Loading
 
         viewModelScope.launch {
-            val deviceAuthorizationFlow = OktaHelper.oidcClient.deviceAuthorizationFlow()
+            val deviceAuthorizationFlow = OktaHelper.defaultCredential.oidcClient.deviceAuthorizationFlow()
             when (val result = deviceAuthorizationFlow.start()) {
                 is DeviceAuthorizationFlow.StartResult.Error -> {
                     _state.value = DeviceAuthorizationState.Error(result.message)
@@ -55,7 +55,6 @@ internal class DeviceAuthorizationViewModel : ViewModel() {
                 _state.value = DeviceAuthorizationState.Error(result.message)
             }
             is DeviceAuthorizationFlow.ResumeResult.Token -> {
-                OktaHelper.defaultCredential.storeToken(result.token)
                 _state.value = DeviceAuthorizationState.Token
             }
         }

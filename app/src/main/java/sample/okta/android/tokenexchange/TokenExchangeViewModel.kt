@@ -41,7 +41,11 @@ class TokenExchangeViewModel : ViewModel() {
 
         viewModelScope.launch {
             val credential = OktaHelper.defaultCredential
-            val tokenExchangeFlow = OktaHelper.oidcClient.tokenExchangeFlow()
+            val tokenExchangeCredential = OktaHelper.credentialDataSource.fetchOrCreate { metadata ->
+                metadata.containsKey(METADATA_KEY)
+            }
+            tokenExchangeCredential.storeToken(metadata = mapOf(Pair(METADATA_KEY, METADATA_KEY)))
+            val tokenExchangeFlow = tokenExchangeCredential.oidcClient.tokenExchangeFlow()
             val idToken = credential.token?.idToken
             if (idToken == null) {
                 _state.value = TokenExchangeState.Error("Missing Id Token")
@@ -57,10 +61,6 @@ class TokenExchangeViewModel : ViewModel() {
                     _state.value = TokenExchangeState.Error(result.message)
                 }
                 is TokenExchangeFlow.Result.Token -> {
-                    val tokenExchangeCredential = OktaHelper.credentialDataSource.fetchOrCreate { metadata ->
-                        metadata.containsKey(METADATA_KEY)
-                    }
-                    tokenExchangeCredential.storeToken(result.token, mapOf(Pair(METADATA_KEY, METADATA_KEY)))
                     _state.value = TokenExchangeState.Token(METADATA_KEY)
                 }
             }

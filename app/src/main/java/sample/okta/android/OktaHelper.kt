@@ -15,16 +15,14 @@
  */
 package sample.okta.android
 
-import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.credential.Credential
 import com.okta.authfoundation.credential.CredentialDataSource
 
 internal object OktaHelper {
-    lateinit var oidcClient: OidcClient
     lateinit var defaultCredential: Credential
     lateinit var credentialDataSource: CredentialDataSource
 
     fun isInitialized(): Boolean {
-        return ::oidcClient.isInitialized
+        return ::credentialDataSource.isInitialized
     }
 }
