@@ -27,19 +27,13 @@
         tools:layout="@layout/fragment_launch">
         <action
             android:id="@+id/launch_to_browser"
-            app:destination="@id/BrowserFragment"
-            app:popUpTo="@+id/nav_graph"
-            app:popUpToInclusive="true" />
+            app:destination="@id/BrowserFragment" />
         <action
             android:id="@+id/launch_to_resource_owner_flow"
-            app:destination="@id/ResourceOwnerFragment"
-            app:popUpTo="@+id/nav_graph"
-            app:popUpToInclusive="true" />
+            app:destination="@id/ResourceOwnerFragment" />
         <action
             android:id="@+id/launch_to_device_authorization_flow"
-            app:destination="@id/DeviceAuthorizationFragment"
-            app:popUpTo="@+id/nav_graph"
-            app:popUpToInclusive="true" />
+            app:destination="@id/DeviceAuthorizationFragment" />
     </fragment>
 
     <fragment
@@ -79,9 +73,29 @@
         android:id="@+id/DashboardFragment"
         android:name="sample.okta.android.dashboard.DashboardFragment"
         tools:layout="@layout/fragment_dashboard">
+        <argument
+            android:name="credentialMetadataKey"
+            android:defaultValue="@null"
+            app:argType="string"
+            app:nullable="true" />
+
         <action
             android:id="@+id/dashboard_to_login"
             app:destination="@id/LaunchFragment"
+            app:popUpTo="@+id/nav_graph"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/dashboard_to_token_exchange"
+            app:destination="@id/TokenExchangeFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/TokenExchangeFragment"
+        android:name="sample.okta.android.tokenexchange.TokenExchangeFragment"
+        tools:layout="@layout/fragment_token_exchange">
+        <action
+            android:id="@+id/token_exchange_to_dashboard"
+            app:destination="@id/DashboardFragment"
             app:popUpTo="@+id/nav_graph"
             app:popUpToInclusive="true" />
     </fragment>

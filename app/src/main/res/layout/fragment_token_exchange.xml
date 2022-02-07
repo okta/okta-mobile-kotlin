@@ -17,21 +17,22 @@
             android:id="@+id/error_text_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:paddingBottom="20dp"
+            android:textColor="#FF0000"
+            />
+
+        <ProgressBar
+            android:id="@+id/progress_bar"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
             />
 
         <Button
-            android:id="@+id/login_with_browser_button"
+            android:id="@+id/try_again_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/login_with_browser"
-            />
-
-        <com.google.android.material.checkbox.MaterialCheckBox
-            android:id="@+id/add_device_sso_scope_check_box"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:checked="true"
-            android:text="@string/add_device_sso_scope"
+            android:layout_marginBottom="10dp"
+            android:text="@string/try_again"
             />
     </LinearLayout>
 </ScrollView>

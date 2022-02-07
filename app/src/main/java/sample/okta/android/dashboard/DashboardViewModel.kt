@@ -23,31 +23,45 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundation.credential.Credential
+import com.okta.authfoundation.credential.Token
 import com.okta.authfoundation.credential.TokenType
 import com.okta.oauth2.RedirectEndSessionFlow
 import com.okta.webauthenticationui.WebAuthenticationClient.Companion.webAuthenticationClient
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import sample.okta.android.DefaultCredential
+import sample.okta.android.OktaHelper
 import sample.okta.android.SocialRedirectCoordinator
 import timber.log.Timber
 
-internal class DashboardViewModel : ViewModel() {
+internal class DashboardViewModel(private val credentialMetadataKey: String?) : ViewModel() {
     private val _requestStateLiveData = MutableLiveData<RequestState>(RequestState.Result(""))
     val requestStateLiveData: LiveData<RequestState> = _requestStateLiveData
 
     private val _userInfoLiveData = MutableLiveData<Map<String, String>>(emptyMap())
     val userInfoLiveData: LiveData<Map<String, String>> = _userInfoLiveData
 
+    private val _tokenLiveData = MutableLiveData<Token>()
+    val tokenLiveData: LiveData<Token> = _tokenLiveData
+
     private var logoutFlowContext: RedirectEndSessionFlow.Context? = null
 
     var lastButtonId: Int = 0
     private var lastRequestJob: Job? = null
 
+    private lateinit var credential: Credential
+
     init {
         SocialRedirectCoordinator.listeners += ::handleRedirect
 
         viewModelScope.launch {
+            credential = if (credentialMetadataKey == null) {
+                OktaHelper.defaultCredential
+            } else {
+                OktaHelper.credentialDataSource.fetch { metadata ->
+                    metadata.containsKey(credentialMetadataKey)
+                } ?: OktaHelper.defaultCredential
+            }
+            _tokenLiveData.value = credential.token!!
             getUserInfo()
         }
     }
@@ -98,8 +112,8 @@ internal class DashboardViewModel : ViewModel() {
 
     fun logoutOfWeb(context: Context) {
         viewModelScope.launch {
-            val idToken = DefaultCredential.get().token?.idToken ?: return@launch
-            logoutFlowContext = DefaultCredential.get().oidcClient.webAuthenticationClient().logout(context, idToken)
+            val idToken = credential.token?.idToken ?: return@launch
+            logoutFlowContext = OktaHelper.oidcClient.webAuthenticationClient().logout(context, idToken)
         }
     }
 
@@ -111,7 +125,7 @@ internal class DashboardViewModel : ViewModel() {
         lastRequestJob?.cancel()
         lastButtonId = buttonId
 
-        val credential = DefaultCredential.get()
+        val credential = credential
         _requestStateLiveData.value = RequestState.Loading
 
         lastRequestJob = viewModelScope.launch {
@@ -128,7 +142,7 @@ internal class DashboardViewModel : ViewModel() {
     }
 
     private suspend fun getUserInfo() {
-        when (val userInfoResult = DefaultCredential.get().getUserInfo()) {
+        when (val userInfoResult = credential.getUserInfo()) {
             is OidcClientResult.Error -> {
                 Timber.e(userInfoResult.exception, "Failed to fetch user info.")
                 _userInfoLiveData.postValue(emptyMap())
@@ -146,7 +160,7 @@ internal class DashboardViewModel : ViewModel() {
 
     fun handleRedirect(uri: Uri) {
         viewModelScope.launch {
-            when (val result = DefaultCredential.get().oidcClient.webAuthenticationClient().resume(uri, logoutFlowContext!!)) {
+            when (val result = OktaHelper.oidcClient.webAuthenticationClient().resume(uri, logoutFlowContext!!)) {
                 is RedirectEndSessionFlow.Result.Error -> {
                     _requestStateLiveData.value = RequestState.Result(result.message)
                 }
@@ -154,7 +168,7 @@ internal class DashboardViewModel : ViewModel() {
                     _requestStateLiveData.value = RequestState.Result("Invalid redirect. Redirect scheme mismatch.")
                 }
                 is RedirectEndSessionFlow.Result.Success -> {
-                    DefaultCredential.get().remove()
+                    credential.remove()
                     _requestStateLiveData.value = RequestState.Result("Logout successful!")
                 }
             }
@@ -163,7 +177,7 @@ internal class DashboardViewModel : ViewModel() {
 
     fun removeCredential() {
         viewModelScope.launch {
-            DefaultCredential.get().remove()
+            credential.remove()
         }
     }
 }

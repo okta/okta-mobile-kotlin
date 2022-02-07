@@ -16,8 +16,6 @@
 package sample.okta.android
 
 import android.app.Application
-import com.okta.authfoundation.OktaSdk
-import com.okta.authfoundation.events.EventCoordinator
 import timber.log.Timber
 
 class SampleApplication : Application() {
@@ -25,7 +23,5 @@ class SampleApplication : Application() {
         super.onCreate()
 
         Timber.plant(Timber.DebugTree())
-
-        OktaSdk.eventCoordinator = EventCoordinator(CredentialStorageEventHandler())
     }
 }

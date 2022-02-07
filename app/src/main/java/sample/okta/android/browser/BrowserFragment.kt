@@ -31,7 +31,7 @@ internal class BrowserFragment : BaseFragment<FragmentBrowserBinding>(
         super.onViewCreated(view, savedInstanceState)
 
         binding.loginWithBrowserButton.setOnClickListener {
-            viewModel.login(requireContext())
+            viewModel.login(requireContext(), binding.addDeviceSsoScopeCheckBox.isChecked)
         }
 
         viewModel.state.observe(viewLifecycleOwner) { state ->
@@ -42,7 +42,7 @@ internal class BrowserFragment : BaseFragment<FragmentBrowserBinding>(
                 BrowserState.Idle -> {
 
                 }
-                is BrowserState.Token -> {
+                BrowserState.Token -> {
                     findNavController().navigate(BrowserFragmentDirections.browserToDashboard())
                 }
             }

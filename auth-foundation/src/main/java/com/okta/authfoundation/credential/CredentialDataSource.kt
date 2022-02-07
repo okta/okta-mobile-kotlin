@@ -37,11 +37,27 @@ class CredentialDataSource internal constructor(
         return credential
     }
 
-    suspend fun fetch(filter: (Map<String, String>) -> Boolean): Credential? {
+    suspend fun all(): List<Credential> {
+        return storage.entries().map {
+            val metadataCopy = it.metadata.toMap() // Making a defensive copy, so it's not modified outside our control.
+            Credential(oidcClient, storage, it.token, metadataCopy)
+        }
+    }
+
+    suspend fun fetch(filter: (metadata: Map<String, String>) -> Boolean): Credential? {
         return storage.entries().filter {
             filter(it.metadata)
         }.map {
             Credential(oidcClient, storage, it.token, it.metadata)
         }.firstOrNull()
+    }
+
+    suspend fun fetchOrCreate(filter: (metadata: Map<String, String>) -> Boolean): Credential {
+        return storage.entries().filter {
+            filter(it.metadata)
+        }.map {
+            val metadataCopy = it.metadata.toMap() // Making a defensive copy, so it's not modified outside our control.
+            Credential(oidcClient, storage, it.token, metadataCopy)
+        }.firstOrNull() ?: create()
     }
 }
