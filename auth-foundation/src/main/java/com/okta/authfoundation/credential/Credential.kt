@@ -54,6 +54,9 @@ class Credential internal constructor(
             TokenType.ID_TOKEN -> {
                 localToken.idToken ?: return OidcClientResult.Error(IllegalStateException("No id token."))
             }
+            TokenType.DEVICE_SECRET -> {
+                localToken.deviceSecret ?: return OidcClientResult.Error(IllegalStateException("No device secret."))
+            }
         }
 
         return oidcClient.introspectToken(tokenType, token)
@@ -102,6 +105,9 @@ class Credential internal constructor(
             }
             TokenType.ID_TOKEN -> {
                 return OidcClientResult.Error(IllegalArgumentException("ID token can't be revoked."))
+            }
+            TokenType.DEVICE_SECRET -> {
+                localToken.deviceSecret ?: return OidcClientResult.Error(IllegalStateException("No device secret."))
             }
         }
         return oidcClient.revokeToken(token)

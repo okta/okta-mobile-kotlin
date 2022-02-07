@@ -58,6 +58,8 @@ internal class DashboardFragment : BaseFragment<FragmentDashboardBinding>(
             }
             if (token.deviceSecret == null) {
                 binding.tokenExchangeButton.visibility = View.GONE
+                binding.introspectDeviceSecretButton.visibility = View.GONE
+                binding.revokeDeviceSecretButton.visibility = View.GONE
             }
         }
 
@@ -85,12 +87,18 @@ internal class DashboardFragment : BaseFragment<FragmentDashboardBinding>(
         binding.introspectIdTokenButton.setOnClickListener {
             viewModel.introspect(binding.introspectIdTokenButton.id, TokenType.ID_TOKEN)
         }
+        binding.introspectDeviceSecretButton.setOnClickListener {
+            viewModel.introspect(binding.introspectDeviceSecretButton.id, TokenType.DEVICE_SECRET)
+        }
 
         binding.revokeAccessTokenButton.setOnClickListener {
             viewModel.revoke(binding.revokeAccessTokenButton.id, TokenType.ACCESS_TOKEN)
         }
         binding.revokeRefreshTokenButton.setOnClickListener {
             viewModel.revoke(binding.revokeRefreshTokenButton.id, TokenType.REFRESH_TOKEN)
+        }
+        binding.revokeDeviceSecretButton.setOnClickListener {
+            viewModel.revoke(binding.revokeDeviceSecretButton.id, TokenType.DEVICE_SECRET)
         }
         binding.logoutWebButton.setOnClickListener {
             viewModel.logoutOfWeb(requireContext())

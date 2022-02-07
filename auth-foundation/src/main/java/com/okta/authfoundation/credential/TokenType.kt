@@ -16,5 +16,5 @@
 package com.okta.authfoundation.credential
 
 enum class TokenType {
-    REFRESH_TOKEN, ACCESS_TOKEN, ID_TOKEN
+    REFRESH_TOKEN, ACCESS_TOKEN, ID_TOKEN, DEVICE_SECRET,
 }

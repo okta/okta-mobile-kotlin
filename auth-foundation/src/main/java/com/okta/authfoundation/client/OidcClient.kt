@@ -109,6 +109,9 @@ class OidcClient(
             TokenType.ID_TOKEN -> {
                 "id_token"
             }
+            TokenType.DEVICE_SECRET -> {
+                "device_secret"
+            }
         }
 
         val formBody = FormBody.Builder()

@@ -147,6 +147,13 @@
             />
 
         <Button
+            android:id="@+id/introspect_device_secret_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Introspect device secret"
+            />
+
+        <Button
             android:id="@+id/revoke_access_token_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -158,6 +165,13 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/revoke_refresh_token"
+            />
+
+        <Button
+            android:id="@+id/revoke_device_secret_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Revoke device secret"
             />
 
         <Button
