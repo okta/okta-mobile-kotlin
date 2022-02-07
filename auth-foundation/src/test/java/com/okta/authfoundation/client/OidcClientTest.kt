@@ -215,6 +215,21 @@ class OidcClientTest {
         assertThat(token.asMap()["username"]).isEqualTo("example@gmail.com")
     }
 
+    @Test fun testIntrospectActiveDeviceSecret(): Unit = runBlocking {
+        oktaRule.enqueue(
+            method("POST"),
+            header("content-type", "application/x-www-form-urlencoded"),
+            path("/oauth2/default/v1/introspect"),
+            body("client_id=unit_test_client_id&token=ExampleDeviceSecret&token_type_hint=device_secret"),
+        ) { response ->
+            response.testBodyFromFile("$mockPrefix/introspectActive.json")
+        }
+        val result = oktaRule.createOidcClient().introspectToken(TokenType.DEVICE_SECRET, "ExampleDeviceSecret")
+        val token = (result as OidcClientResult.Success<OidcIntrospectInfo>).result
+        assertThat(token.active).isEqualTo(true)
+        assertThat(token.asMap()["username"]).isEqualTo("example@gmail.com")
+    }
+
     @Test fun testIntrospectFailure(): Unit = runBlocking {
         oktaRule.enqueue(
             path("/oauth2/default/v1/introspect"),
