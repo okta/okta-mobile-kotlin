@@ -19,11 +19,10 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.okta.authfoundation.credential.Token as CredentialToken
 import com.okta.oauth2.ResourceOwnerFlow
 import com.okta.oauth2.ResourceOwnerFlow.Companion.resourceOwnerFlow
 import kotlinx.coroutines.launch
-import sample.okta.android.DefaultCredential
+import sample.okta.android.OktaHelper
 
 internal class ResourceOwnerViewModel : ViewModel() {
     private val _state = MutableLiveData<ResourceOwnerState>(ResourceOwnerState.Idle)
@@ -33,13 +32,14 @@ internal class ResourceOwnerViewModel : ViewModel() {
         _state.value = ResourceOwnerState.Loading
 
         viewModelScope.launch {
-            val resourceOwnerFlow = DefaultCredential.get().oidcClient.resourceOwnerFlow()
+            val resourceOwnerFlow = OktaHelper.oidcClient.resourceOwnerFlow()
             when (val result = resourceOwnerFlow.start(username, password)) {
                 is ResourceOwnerFlow.Result.Error -> {
                     _state.value = ResourceOwnerState.Error(result.message)
                 }
                 is ResourceOwnerFlow.Result.Token -> {
-                    _state.value = ResourceOwnerState.Token(result.token)
+                    OktaHelper.defaultCredential.storeToken(result.token)
+                    _state.value = ResourceOwnerState.Token
                 }
             }
         }
@@ -50,5 +50,5 @@ sealed class ResourceOwnerState {
     object Idle : ResourceOwnerState()
     object Loading : ResourceOwnerState()
     data class Error(val message: String) : ResourceOwnerState()
-    data class Token(val token: CredentialToken) : ResourceOwnerState()
+    object Token : ResourceOwnerState()
 }

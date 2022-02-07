@@ -21,7 +21,7 @@ import com.okta.authfoundation.client.dto.OidcIntrospectInfo
 import com.okta.authfoundation.client.dto.OidcUserInfo
 
 class Credential internal constructor(
-    val oidcClient: OidcClient,
+    private val oidcClient: OidcClient,
     private val storage: TokenStorage,
     @Volatile private var _token: Token? = null,
     @Volatile private var _metadata: Map<String, String> = emptyMap()

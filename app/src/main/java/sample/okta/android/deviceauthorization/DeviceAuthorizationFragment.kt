@@ -50,7 +50,7 @@ internal class DeviceAuthorizationFragment : BaseFragment<FragmentDeviceAuthoriz
                     binding.directionsTextView.visibility = View.VISIBLE
                     binding.directionsTextView.text = "To sign in, visit ${state.url} and enter ${state.code}"
                 }
-                is DeviceAuthorizationState.Token -> {
+                DeviceAuthorizationState.Token -> {
                     findNavController().navigate(DeviceAuthorizationFragmentDirections.deviceAuthorizationToDashboard())
                 }
                 DeviceAuthorizationState.Loading -> {

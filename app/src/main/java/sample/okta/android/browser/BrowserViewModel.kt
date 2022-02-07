@@ -21,11 +21,10 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.okta.authfoundation.credential.Token as CredentialToken
 import com.okta.oauth2.AuthorizationCodeFlow
 import com.okta.webauthenticationui.WebAuthenticationClient.Companion.webAuthenticationClient
 import kotlinx.coroutines.launch
-import sample.okta.android.DefaultCredential
+import sample.okta.android.OktaHelper
 import sample.okta.android.SocialRedirectCoordinator
 
 class BrowserViewModel : ViewModel() {
@@ -42,15 +41,19 @@ class BrowserViewModel : ViewModel() {
         SocialRedirectCoordinator.listeners -= ::handleRedirect
     }
 
-    fun login(context: Context) {
-        val webAuthenticationClient = DefaultCredential.get().oidcClient.webAuthenticationClient()
-        authorizationCodeFlowContext = webAuthenticationClient.login(context)
+    fun login(context: Context, addDeviceSsoScope: Boolean) {
+        val webAuthenticationClient = OktaHelper.oidcClient.webAuthenticationClient()
+        var scopes = OktaHelper.oidcClient.configuration.defaultScopes
+        if (addDeviceSsoScope) {
+            scopes = scopes + setOf("device_sso")
+        }
+        authorizationCodeFlowContext = webAuthenticationClient.login(context, scopes)
     }
 
     fun handleRedirect(uri: Uri) {
         viewModelScope.launch {
             when (val result =
-                DefaultCredential.get().oidcClient.webAuthenticationClient().resume(uri, authorizationCodeFlowContext!!)) {
+                OktaHelper.oidcClient.webAuthenticationClient().resume(uri, authorizationCodeFlowContext!!)) {
                 is AuthorizationCodeFlow.Result.Error -> {
                     _state.value = BrowserState.Error(result.message)
                 }
@@ -61,7 +64,8 @@ class BrowserViewModel : ViewModel() {
                     _state.value = BrowserState.Error("Invalid redirect. Redirect scheme mismatch.")
                 }
                 is AuthorizationCodeFlow.Result.Token -> {
-                    _state.value = BrowserState.Token(result.token)
+                    OktaHelper.defaultCredential.storeToken(result.token)
+                    _state.value = BrowserState.Token
                 }
             }
         }
@@ -71,5 +75,5 @@ class BrowserViewModel : ViewModel() {
 sealed class BrowserState {
     object Idle : BrowserState()
     data class Error(val message: String) : BrowserState()
-    data class Token(val token: CredentialToken) : BrowserState()
+    object Token : BrowserState()
 }

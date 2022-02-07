@@ -19,11 +19,10 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.okta.authfoundation.credential.Token as CredentialToken
 import com.okta.oauth2.DeviceAuthorizationFlow
 import com.okta.oauth2.DeviceAuthorizationFlow.Companion.deviceAuthorizationFlow
 import kotlinx.coroutines.launch
-import sample.okta.android.DefaultCredential
+import sample.okta.android.OktaHelper
 
 internal class DeviceAuthorizationViewModel : ViewModel() {
     private val _state = MutableLiveData<DeviceAuthorizationState>(DeviceAuthorizationState.Loading)
@@ -37,7 +36,7 @@ internal class DeviceAuthorizationViewModel : ViewModel() {
         _state.value = DeviceAuthorizationState.Loading
 
         viewModelScope.launch {
-            val deviceAuthorizationFlow = DefaultCredential.get().oidcClient.deviceAuthorizationFlow()
+            val deviceAuthorizationFlow = OktaHelper.oidcClient.deviceAuthorizationFlow()
             when (val result = deviceAuthorizationFlow.start()) {
                 is DeviceAuthorizationFlow.StartResult.Error -> {
                     _state.value = DeviceAuthorizationState.Error(result.message)
@@ -56,7 +55,8 @@ internal class DeviceAuthorizationViewModel : ViewModel() {
                 _state.value = DeviceAuthorizationState.Error(result.message)
             }
             is DeviceAuthorizationFlow.ResumeResult.Token -> {
-                _state.value = DeviceAuthorizationState.Token(result.token)
+                OktaHelper.defaultCredential.storeToken(result.token)
+                _state.value = DeviceAuthorizationState.Token
             }
         }
     }
@@ -66,5 +66,5 @@ sealed class DeviceAuthorizationState {
     data class Polling(val code: String, val url: String) : DeviceAuthorizationState()
     object Loading : DeviceAuthorizationState()
     data class Error(val message: String) : DeviceAuthorizationState()
-    data class Token(val token: CredentialToken) : DeviceAuthorizationState()
+    object Token : DeviceAuthorizationState()
 }

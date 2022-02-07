@@ -18,9 +18,11 @@ package sample.okta.android.dashboard
 import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import com.okta.authfoundation.credential.TokenType
-import sample.okta.android.DefaultCredential
 import sample.okta.android.R
 import sample.okta.android.databinding.FragmentDashboardBinding
 import sample.okta.android.databinding.RowDashboardClaimBinding
@@ -30,16 +32,34 @@ import sample.okta.android.util.inflateBinding
 internal class DashboardFragment : BaseFragment<FragmentDashboardBinding>(
     FragmentDashboardBinding::inflate
 ) {
-    private val viewModel: DashboardViewModel by viewModels()
+    private val args: DashboardFragmentArgs by navArgs()
+
+    private val viewModel by viewModels<DashboardViewModel>(factoryProducer = {
+        object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return DashboardViewModel(args.credentialMetadataKey) as T
+            }
+        }
+    })
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        val token = DefaultCredential.get().token!!
-        binding.tokenType.text = token.tokenType
-        binding.expiresIn.text = token.expiresIn.toString()
-        binding.accessToken.text = token.accessToken
-        binding.refreshToken.text = token.refreshToken
-        binding.idToken.text = token.idToken
-        binding.scope.text = token.scope
+        viewModel.tokenLiveData.observe(viewLifecycleOwner) { token ->
+            binding.tokenType.text = token.tokenType
+            binding.expiresIn.text = token.expiresIn.toString()
+            binding.accessToken.text = token.accessToken
+            binding.refreshToken.text = token.refreshToken
+            binding.idToken.text = token.idToken
+            binding.scope.text = token.scope
+
+            if (token.refreshToken == null) {
+                binding.refreshAccessTokenButton.visibility = View.GONE
+                binding.introspectRefreshTokenButton.visibility = View.GONE
+                binding.revokeRefreshTokenButton.visibility = View.GONE
+            }
+            if (token.deviceSecret == null) {
+                binding.tokenExchangeButton.visibility = View.GONE
+            }
+        }
 
         viewModel.userInfoLiveData.observe(viewLifecycleOwner) { userInfo ->
             binding.claimsTitle.visibility = if (userInfo.isEmpty()) View.GONE else View.VISIBLE
@@ -94,6 +114,9 @@ internal class DashboardFragment : BaseFragment<FragmentDashboardBinding>(
 
         binding.backToLogin.setOnClickListener {
             findNavController().navigate(DashboardFragmentDirections.dashboardToLogin())
+        }
+        binding.tokenExchangeButton.setOnClickListener {
+            findNavController().navigate(DashboardFragmentDirections.dashboardToTokenExchange())
         }
     }
 }

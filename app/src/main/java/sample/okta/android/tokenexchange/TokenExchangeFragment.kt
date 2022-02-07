@@ -13,44 +13,45 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package sample.okta.android.resourceowner
+package sample.okta.android.tokenexchange
 
 import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
-import sample.okta.android.databinding.FragmentResourceOwnerBinding
+import sample.okta.android.databinding.FragmentTokenExchangeBinding
 import sample.okta.android.util.BaseFragment
 
-internal class ResourceOwnerFragment : BaseFragment<FragmentResourceOwnerBinding>(
-    FragmentResourceOwnerBinding::inflate
+internal class TokenExchangeFragment : BaseFragment<FragmentTokenExchangeBinding>(
+    FragmentTokenExchangeBinding::inflate
 ) {
-    private val viewModel by viewModels<ResourceOwnerViewModel>()
+    private val viewModel by viewModels<TokenExchangeViewModel>()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.login.setOnClickListener {
-            viewModel.login(
-                username = binding.username.editText?.text?.toString() ?: "",
-                password = binding.password.editText?.text?.toString() ?: "",
-            )
+        binding.tryAgainButton.setOnClickListener {
+            viewModel.start()
         }
 
         viewModel.state.observe(viewLifecycleOwner) { state ->
-            binding.login.isEnabled = true
-            when (state) {
-                is ResourceOwnerState.Error -> {
-                    binding.errorTextView.text = state.message
-                }
-                ResourceOwnerState.Idle -> {
+            binding.tryAgainButton.visibility = View.GONE
+            binding.errorTextView.visibility = View.GONE
+            binding.progressBar.visibility = View.GONE
 
+            when (state) {
+                is TokenExchangeState.Error -> {
+                    binding.errorTextView.text = state.message
+                    binding.errorTextView.visibility = View.VISIBLE
+                    binding.tryAgainButton.visibility = View.VISIBLE
                 }
-                ResourceOwnerState.Token -> {
-                    findNavController().navigate(ResourceOwnerFragmentDirections.resourceOwnerToDashboard())
+                is TokenExchangeState.Token -> {
+                    findNavController().navigate(
+                        TokenExchangeFragmentDirections.tokenExchangeToDashboard(state.metadataKey)
+                    )
                 }
-                ResourceOwnerState.Loading -> {
-                    binding.login.isEnabled = false
+                TokenExchangeState.Loading -> {
+                    binding.progressBar.visibility = View.VISIBLE
                 }
             }
         }

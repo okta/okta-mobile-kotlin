@@ -181,6 +181,13 @@
             android:text="@string/remove_credential"
             />
 
+        <Button
+            android:id="@+id/token_exchange_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/go_to_token_exchange_flow"
+            />
+
         <TextView
             android:id="@+id/last_request_info"
             android:layout_width="match_parent"

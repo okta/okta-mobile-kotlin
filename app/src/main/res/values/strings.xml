@@ -27,4 +27,6 @@
     <string name="login_with_resource_owner_flow">Resource Owner</string>
     <string name="remove_credential">Remove Credential</string>
     <string name="login_with_device_authorization_flow">Device Authorization</string>
+    <string name="go_to_token_exchange_flow">Go to token exchange flow</string>
+    <string name="add_device_sso_scope">Add device_sso scope</string>
 </resources>
