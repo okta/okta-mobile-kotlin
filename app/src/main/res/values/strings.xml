@@ -29,4 +29,7 @@
     <string name="login_with_device_authorization_flow">Device Authorization</string>
     <string name="go_to_token_exchange_flow">Go to token exchange flow</string>
     <string name="add_device_sso_scope">Add device_sso scope</string>
+    <string name="credential_name">Credential Name</string>
+    <string name="introspect_device_secret">Introspect device secret</string>
+    <string name="revoke_device_secret">Revoke device secret</string>
 </resources>

@@ -23,7 +23,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundation.credential.Credential
-import com.okta.authfoundation.credential.Token
 import com.okta.authfoundation.credential.TokenType
 import com.okta.oauth2.RedirectEndSessionFlow
 import com.okta.webauthenticationui.WebAuthenticationClient.Companion.webAuthenticationClient
@@ -33,15 +32,15 @@ import sample.okta.android.OktaHelper
 import sample.okta.android.SocialRedirectCoordinator
 import timber.log.Timber
 
-internal class DashboardViewModel(private val credentialMetadataKey: String?) : ViewModel() {
+internal class DashboardViewModel(private val credentialMetadataNameValue: String?) : ViewModel() {
     private val _requestStateLiveData = MutableLiveData<RequestState>(RequestState.Result(""))
     val requestStateLiveData: LiveData<RequestState> = _requestStateLiveData
 
     private val _userInfoLiveData = MutableLiveData<Map<String, String>>(emptyMap())
     val userInfoLiveData: LiveData<Map<String, String>> = _userInfoLiveData
 
-    private val _tokenLiveData = MutableLiveData<Token>()
-    val tokenLiveData: LiveData<Token> = _tokenLiveData
+    private val _credentialLiveData = MutableLiveData<Credential>()
+    val credentialLiveData: LiveData<Credential> = _credentialLiveData
 
     private var logoutFlowContext: RedirectEndSessionFlow.Context? = null
 
@@ -54,14 +53,21 @@ internal class DashboardViewModel(private val credentialMetadataKey: String?) : 
         SocialRedirectCoordinator.listeners += ::handleRedirect
 
         viewModelScope.launch {
-            credential = if (credentialMetadataKey == null) {
+            credential = if (credentialMetadataNameValue == null) {
                 OktaHelper.defaultCredential
             } else {
                 OktaHelper.credentialDataSource.fetch { metadata ->
-                    metadata.containsKey(credentialMetadataKey)
+                    metadata[OktaHelper.CREDENTIAL_NAME_METADATA_KEY] == credentialMetadataNameValue
                 } ?: OktaHelper.defaultCredential
             }
-            _tokenLiveData.value = credential.token!!
+            setCredential(credential)
+        }
+    }
+
+    fun setCredential(credential: Credential) {
+        this.credential = credential
+        viewModelScope.launch {
+            _credentialLiveData.value = credential
             getUserInfo()
         }
     }

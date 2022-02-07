@@ -19,6 +19,8 @@ import com.okta.authfoundation.credential.Credential
 import com.okta.authfoundation.credential.CredentialDataSource
 
 internal object OktaHelper {
+    const val CREDENTIAL_NAME_METADATA_KEY: String = "sample.okta.android.credential.name"
+
     lateinit var defaultCredential: Credential
     lateinit var credentialDataSource: CredentialDataSource
 

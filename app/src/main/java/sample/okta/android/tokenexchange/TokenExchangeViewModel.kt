@@ -26,7 +26,7 @@ import sample.okta.android.OktaHelper
 
 class TokenExchangeViewModel : ViewModel() {
     companion object {
-        private const val METADATA_KEY: String = "sample.okta.tokenExchange"
+        private const val NAME_METADATA_VALUE: String = "TokenExchange"
     }
 
     private val _state = MutableLiveData<TokenExchangeState>(TokenExchangeState.Loading)
@@ -42,9 +42,9 @@ class TokenExchangeViewModel : ViewModel() {
         viewModelScope.launch {
             val credential = OktaHelper.defaultCredential
             val tokenExchangeCredential = OktaHelper.credentialDataSource.fetchOrCreate { metadata ->
-                metadata.containsKey(METADATA_KEY)
+                metadata[OktaHelper.CREDENTIAL_NAME_METADATA_KEY] == NAME_METADATA_VALUE
             }
-            tokenExchangeCredential.storeToken(metadata = mapOf(Pair(METADATA_KEY, METADATA_KEY)))
+            tokenExchangeCredential.storeToken(metadata = mapOf(Pair(OktaHelper.CREDENTIAL_NAME_METADATA_KEY, NAME_METADATA_VALUE)))
             val tokenExchangeFlow = tokenExchangeCredential.oidcClient.tokenExchangeFlow()
             val idToken = credential.token?.idToken
             if (idToken == null) {
@@ -61,7 +61,7 @@ class TokenExchangeViewModel : ViewModel() {
                     _state.value = TokenExchangeState.Error(result.message)
                 }
                 is TokenExchangeFlow.Result.Token -> {
-                    _state.value = TokenExchangeState.Token(METADATA_KEY)
+                    _state.value = TokenExchangeState.Token(NAME_METADATA_VALUE)
                 }
             }
         }
@@ -71,5 +71,5 @@ class TokenExchangeViewModel : ViewModel() {
 sealed class TokenExchangeState {
     object Loading : TokenExchangeState()
     data class Error(val message: String) : TokenExchangeState()
-    data class Token(val metadataKey: String) : TokenExchangeState()
+    data class Token(val nameMetadataValue: String) : TokenExchangeState()
 }

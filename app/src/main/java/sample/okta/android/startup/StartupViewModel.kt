@@ -31,7 +31,7 @@ import timber.log.Timber
 
 internal class StartupViewModel : ViewModel() {
     companion object {
-        private const val METADATA_KEY: String = "sample.okta.default"
+        private const val DEFAULT_CREDENTIAL_NAME_METADATA_VALUE: String = "Default"
     }
 
     private val _state = MutableLiveData<StartupState>(StartupState.Loading)
@@ -69,10 +69,17 @@ internal class StartupViewModel : ViewModel() {
                     val credentialDataSource = oidcClient.credentialDataSource()
                     OktaHelper.credentialDataSource = credentialDataSource
                     val credential = credentialDataSource.fetchOrCreate { metadata ->
-                        metadata.containsKey(METADATA_KEY)
+                        metadata[OktaHelper.CREDENTIAL_NAME_METADATA_KEY] == DEFAULT_CREDENTIAL_NAME_METADATA_VALUE
                     }
                     OktaHelper.defaultCredential = credential
-                    OktaHelper.defaultCredential.storeToken(metadata = mapOf(Pair(METADATA_KEY, "default")))
+                    OktaHelper.defaultCredential.storeToken(
+                        metadata = mapOf(
+                            Pair(
+                                OktaHelper.CREDENTIAL_NAME_METADATA_KEY,
+                                DEFAULT_CREDENTIAL_NAME_METADATA_VALUE
+                            )
+                        )
+                    )
                     _state.value = StartupState.Complete
                 }
             }
