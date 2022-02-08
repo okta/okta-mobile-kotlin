@@ -101,19 +101,16 @@ class Credential internal constructor(
         }
     }
 
-    suspend fun revokeToken(tokenType: TokenType): OidcClientResult<Unit> {
+    suspend fun revokeToken(tokenType: RevokeTokenType): OidcClientResult<Unit> {
         val localToken = token ?: return OidcClientResult.Error(IllegalStateException("No token."))
         val token = when (tokenType) {
-            TokenType.REFRESH_TOKEN -> {
+            RevokeTokenType.REFRESH_TOKEN -> {
                 localToken.refreshToken ?: return OidcClientResult.Error(IllegalStateException("No refresh token."))
             }
-            TokenType.ACCESS_TOKEN -> {
+            RevokeTokenType.ACCESS_TOKEN -> {
                 localToken.accessToken
             }
-            TokenType.ID_TOKEN -> {
-                return OidcClientResult.Error(IllegalArgumentException("ID token can't be revoked."))
-            }
-            TokenType.DEVICE_SECRET -> {
+            RevokeTokenType.DEVICE_SECRET -> {
                 localToken.deviceSecret ?: return OidcClientResult.Error(IllegalStateException("No device secret."))
             }
         }

@@ -23,6 +23,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundation.credential.Credential
+import com.okta.authfoundation.credential.RevokeTokenType
 import com.okta.authfoundation.credential.TokenType
 import com.okta.oauth2.RedirectEndSessionFlow
 import com.okta.webauthenticationui.WebAuthenticationClient.Companion.webAuthenticationClient
@@ -77,7 +78,7 @@ internal class DashboardViewModel(private val credentialMetadataNameValue: Strin
         SocialRedirectCoordinator.listeners -= ::handleRedirect
     }
 
-    fun revoke(buttonId: Int, tokenType: TokenType) {
+    fun revoke(buttonId: Int, tokenType: RevokeTokenType) {
         performRequest(buttonId) { credential ->
             when (credential.revokeToken(tokenType)) {
                 is OidcClientResult.Error -> {

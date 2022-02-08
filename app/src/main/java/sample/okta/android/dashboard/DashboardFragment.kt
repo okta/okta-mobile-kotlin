@@ -23,6 +23,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import com.okta.authfoundation.credential.RevokeTokenType
 import com.okta.authfoundation.credential.TokenType
 import sample.okta.android.OktaHelper
 import sample.okta.android.R
@@ -56,7 +57,6 @@ internal class DashboardFragment : BaseFragment<FragmentDashboardBinding>(
 
             val name = credential.metadata[OktaHelper.CREDENTIAL_NAME_METADATA_KEY] ?: ""
             binding.credentialName.text = name
-
 
             val token = credential.token ?: return@observe
             binding.tokenType.text = token.tokenType
@@ -107,13 +107,13 @@ internal class DashboardFragment : BaseFragment<FragmentDashboardBinding>(
         }
 
         binding.revokeAccessTokenButton.setOnClickListener {
-            viewModel.revoke(binding.revokeAccessTokenButton.id, TokenType.ACCESS_TOKEN)
+            viewModel.revoke(binding.revokeAccessTokenButton.id, RevokeTokenType.ACCESS_TOKEN)
         }
         binding.revokeRefreshTokenButton.setOnClickListener {
-            viewModel.revoke(binding.revokeRefreshTokenButton.id, TokenType.REFRESH_TOKEN)
+            viewModel.revoke(binding.revokeRefreshTokenButton.id, RevokeTokenType.REFRESH_TOKEN)
         }
         binding.revokeDeviceSecretButton.setOnClickListener {
-            viewModel.revoke(binding.revokeDeviceSecretButton.id, TokenType.DEVICE_SECRET)
+            viewModel.revoke(binding.revokeDeviceSecretButton.id, RevokeTokenType.DEVICE_SECRET)
         }
         binding.logoutWebButton.setOnClickListener {
             viewModel.logoutOfWeb(requireContext())
