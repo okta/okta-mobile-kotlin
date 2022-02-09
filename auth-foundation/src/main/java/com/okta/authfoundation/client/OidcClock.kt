@@ -15,6 +15,19 @@
  */
 package com.okta.authfoundation.client
 
+import com.okta.authfoundation.OktaSdkDefaults
+
+/**
+ * Interface used to return the current time from a trusted source.
+ *
+ * This can be used to customize the behavior of how the current time is calculated, when used on devices that may have skewed or incorrect clocks.
+ *
+ * To use a custom [OidcClock], you construct an instance of your class implementing this interface, and assign it to the [OktaSdkDefaults.clock] property.
+ */
 interface OidcClock {
+
+    /**
+     *  Returns the current time in milliseconds, adjusting the system clock to correct for clock skew.
+     */
     fun currentTimeMillis(): Long
 }
