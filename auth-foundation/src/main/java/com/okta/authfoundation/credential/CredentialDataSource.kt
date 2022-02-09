@@ -15,7 +15,7 @@
  */
 package com.okta.authfoundation.credential
 
-import com.okta.authfoundation.OktaSdk
+import com.okta.authfoundation.OktaSdkDefaults
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.credential.events.CredentialCreatedEvent
 
@@ -25,7 +25,7 @@ class CredentialDataSource internal constructor(
 ) {
     companion object {
         fun OidcClient.credentialDataSource(
-            storage: TokenStorage = OktaSdk.storage,
+            storage: TokenStorage = OktaSdkDefaults.storage,
         ): CredentialDataSource {
             return CredentialDataSource(this, storage)
         }

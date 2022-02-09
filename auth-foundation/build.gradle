@@ -20,6 +20,8 @@ android {
         }
     }
     compileOptions {
+        coreLibraryDesugaringEnabled true
+
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
@@ -29,6 +31,8 @@ android {
 }
 
 dependencies {
+    coreLibraryDesugaring deps.core_library_desugaring
+
     api deps.kotlin.stdlib
     api deps.okhttp.core
     api deps.coroutines.android

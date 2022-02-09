@@ -15,10 +15,12 @@
  */
 package com.okta.testhelpers
 
+import com.okta.authfoundation.client.IdTokenValidator
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.client.OidcEndpoints
 import com.okta.authfoundation.events.EventCoordinator
+import kotlinx.coroutines.Dispatchers
 import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.mockwebserver.MockResponse
@@ -26,13 +28,16 @@ import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
 
-class OktaRule : TestRule {
+class OktaRule(
+    idTokenValidator: IdTokenValidator = IdTokenValidator { _, _ -> },
+) : TestRule {
     private val mockWebServer: OktaMockWebServer = OktaMockWebServer()
 
     val okHttpClient: OkHttpClient = mockWebServer.okHttpClient
     val baseUrl: HttpUrl = mockWebServer.baseUrl
 
-    val eventHandler = RecordingEventHandler()
+    val eventHandler: RecordingEventHandler = RecordingEventHandler()
+    val clock: TestClock = TestClock()
 
     val configuration: OidcConfiguration = OidcConfiguration(
         clientId = "unit_test_client_id",
@@ -40,20 +45,24 @@ class OktaRule : TestRule {
         signInRedirectUri = "unitTest:/login",
         signOutRedirectUri = "unitTest:/logout",
         okHttpCallFactory = okHttpClient,
-        eventCoordinator = EventCoordinator(eventHandler)
+        eventCoordinator = EventCoordinator(eventHandler),
+        clock = clock,
+        idTokenValidator = idTokenValidator,
+        ioDispatcher = Dispatchers.Unconfined,
+        computeDispatcher = Dispatchers.Unconfined,
     )
 
-    fun createOidcClient(): OidcClient {
+    fun createOidcClient(urlBuilder: HttpUrl.Builder = baseUrl.newBuilder()): OidcClient {
         val endpoints = OidcEndpoints(
-            issuer = baseUrl.newBuilder().encodedPath("/oauth2/default").build(),
-            authorizationEndpoint = baseUrl.newBuilder().encodedPath("/oauth2/default/v1/authorize").build(),
-            tokenEndpoint = baseUrl.newBuilder().encodedPath("/oauth2/default/v1/token").build(),
-            userInfoEndpoint = baseUrl.newBuilder().encodedPath("/oauth2/default/v1/userinfo").build(),
-            jwksUri = baseUrl.newBuilder().encodedPath("/oauth2/default/v1/keys").build(),
-            registrationEndpoint = baseUrl.newBuilder().encodedPath("/oauth2/v1/clients").build(),
-            introspectionEndpoint = baseUrl.newBuilder().encodedPath("/oauth2/default/v1/introspect").build(),
-            revocationEndpoint = baseUrl.newBuilder().encodedPath("/oauth2/default/v1/revoke").build(),
-            endSessionEndpoint = baseUrl.newBuilder().encodedPath("/oauth2/default/v1/logout").build(),
+            issuer = urlBuilder.encodedPath("/oauth2/default").build(),
+            authorizationEndpoint = urlBuilder.encodedPath("/oauth2/default/v1/authorize").build(),
+            tokenEndpoint = urlBuilder.encodedPath("/oauth2/default/v1/token").build(),
+            userInfoEndpoint = urlBuilder.encodedPath("/oauth2/default/v1/userinfo").build(),
+            jwksUri = urlBuilder.encodedPath("/oauth2/default/v1/keys").build(),
+            registrationEndpoint = urlBuilder.encodedPath("/oauth2/v1/clients").build(),
+            introspectionEndpoint = urlBuilder.encodedPath("/oauth2/default/v1/introspect").build(),
+            revocationEndpoint = urlBuilder.encodedPath("/oauth2/default/v1/revoke").build(),
+            endSessionEndpoint = urlBuilder.encodedPath("/oauth2/default/v1/logout").build(),
         )
         return OidcClient(configuration, endpoints)
     }

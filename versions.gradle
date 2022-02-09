@@ -7,6 +7,7 @@ versions.android_gradle_plugin = '7.0.4'
 versions.appcompat = '1.4.0'
 versions.bouncy_castle = '1.65'
 versions.constraint_layout = '2.1.2'
+versions.core_library_desugaring = '1.1.5'
 versions.core_ktx = '1.7.0'
 versions.coroutines = '1.6.0'
 versions.desugar_libs = '1.1.5'
@@ -59,6 +60,8 @@ deps.app_compat = "androidx.appcompat:appcompat:$versions.appcompat"
 deps.bouncy_castle = "org.bouncycastle:bcprov-jdk15on:$versions.bouncy_castle"
 
 deps.constraint_layout = "androidx.constraintlayout:constraintlayout:$versions.constraint_layout"
+
+deps.core_library_desugaring = "com.android.tools:desugar_jdk_libs:$versions.core_library_desugaring"
 
 deps.core_ktx = "androidx.core:core-ktx:$versions.core_ktx"
 

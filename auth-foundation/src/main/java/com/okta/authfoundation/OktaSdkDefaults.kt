@@ -15,26 +15,43 @@
  */
 package com.okta.authfoundation
 
+import com.okta.authfoundation.client.DefaultIdTokenValidator
+import com.okta.authfoundation.client.IdTokenValidator
 import com.okta.authfoundation.client.OidcClock
 import com.okta.authfoundation.credential.TokenStorage
 import com.okta.authfoundation.events.EventCoordinator
 import okhttp3.Call
 import okhttp3.OkHttpClient
+import java.time.Instant
 import java.util.Collections
 
-object OktaSdk {
+/**
+ *  The defaults used in various classes throughout the rest of the SDK.
+ *
+ *  Properties can be set until they're accessed.
+ *  If properties are attempted to be set after they've been accessed, an IllegalStateException will be thrown to prevent using
+ *  incorrect defaults.
+ */
+object OktaSdkDefaults {
+    /** The default Call.Factory. */
     var okHttpClient: Call.Factory by NoSetAfterGetWithLazyDefaultFactory { OkHttpClient() }
 
+    /** The default EventCoordinator. */
     var eventCoordinator: EventCoordinator by NoSetAfterGetWithLazyDefaultFactory { EventCoordinator(emptyList()) }
 
+    /** The default OidcClock. */
     var clock: OidcClock by NoSetAfterGetWithLazyDefaultFactory { defaultClock() }
 
+    /** The default TokenStorage. */
     var storage: TokenStorage by NoSetAfterGetWithLazyDefaultFactory { defaultStorage() }
+
+    /** The default IdTokenValidator. */
+    var idTokenValidator: IdTokenValidator by NoSetAfterGetWithLazyDefaultFactory { DefaultIdTokenValidator() }
 
     private fun defaultClock(): OidcClock {
         return object : OidcClock {
             override fun currentTimeMillis(): Long {
-                return System.currentTimeMillis()
+                return Instant.now().epochSecond
             }
         }
     }

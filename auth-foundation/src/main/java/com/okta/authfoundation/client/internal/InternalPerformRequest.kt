@@ -19,17 +19,36 @@ import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundation.client.events.TokenCreatedEvent
 import com.okta.authfoundation.credential.Token
+import com.okta.authfoundation.jwt.JwtParser
 import okhttp3.Request
 
 suspend fun OidcClient.internalTokenRequest(
     request: Request,
 ): OidcClientResult<Token> {
-    return configuration.performRequest<Token>(request).apply {
-        if (this is OidcClientResult.Success) {
-            val event = TokenCreatedEvent(result)
-            configuration.eventCoordinator.sendEvent(event)
-            event.runFollowUpTasks()
-            credential?.storeToken(result)
-        }
+    val result = configuration.performRequest<Token>(request)
+    if (result is OidcClientResult.Success) {
+        val token = result.result
+
+        validateIdToken(token)?.let { return it }
+
+        val event = TokenCreatedEvent(token)
+        configuration.eventCoordinator.sendEvent(event)
+        event.runFollowUpTasks()
+
+        credential?.storeToken(token)
     }
+    return result
+}
+
+private suspend fun OidcClient.validateIdToken(token: Token): OidcClientResult<Token>? {
+    try {
+        if (token.idToken != null) {
+            val parser = JwtParser(configuration.json, configuration.computeDispatcher)
+            val jwt = parser.parse(token.idToken)
+            configuration.idTokenValidator.validate(oidcClient = this, idToken = jwt)
+        }
+    } catch (e: Exception) {
+        return OidcClientResult.Error(e)
+    }
+    return null
 }

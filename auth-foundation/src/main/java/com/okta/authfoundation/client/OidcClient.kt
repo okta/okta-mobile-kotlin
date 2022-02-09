@@ -17,6 +17,7 @@ package com.okta.authfoundation.client
 
 import com.okta.authfoundation.client.dto.OidcIntrospectInfo
 import com.okta.authfoundation.client.dto.OidcUserInfo
+import com.okta.authfoundation.client.internal.internalTokenRequest
 import com.okta.authfoundation.client.internal.performRequest
 import com.okta.authfoundation.client.internal.performRequestNonJson
 import com.okta.authfoundation.credential.Credential
@@ -89,7 +90,7 @@ class OidcClient private constructor(
             .post(formBody)
             .build()
 
-        return configuration.performRequest(request)
+        return internalTokenRequest(request)
     }
 
     suspend fun revokeToken(token: String): OidcClientResult<Unit> {
