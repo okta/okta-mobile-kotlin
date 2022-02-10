@@ -15,6 +15,19 @@
  */
 package com.okta.authfoundation.credential
 
+/**
+ * The type of token an operation should be used with.
+ */
 enum class TokenType {
-    REFRESH_TOKEN, ACCESS_TOKEN, ID_TOKEN, DEVICE_SECRET,
+    /** Indicates the refresh token. */
+    REFRESH_TOKEN,
+
+    /** Indicates the access token. */
+    ACCESS_TOKEN,
+
+    /** Indicates the ID token. */
+    ID_TOKEN,
+
+    /** Indicates the device secret. */
+    DEVICE_SECRET,
 }

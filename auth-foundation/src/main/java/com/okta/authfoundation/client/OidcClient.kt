@@ -30,10 +30,17 @@ import okhttp3.FormBody
 import okhttp3.HttpUrl
 import okhttp3.Request
 
+/**
+ * The client used for interacting with an Okta Authorization Server.
+ *
+ * This is for low level access, and it's typically preferred to use a [Credential], which streamlines usage.
+ *
+ * https://developer.okta.com/docs/reference/api/oidc
+ */
 class OidcClient private constructor(
     val configuration: OidcConfiguration,
     val endpoints: OidcEndpoints,
-    val credential: Credential? = null,
+    internal val credential: Credential? = null,
 ) {
     constructor(
         configuration: OidcConfiguration,
@@ -41,6 +48,14 @@ class OidcClient private constructor(
     ) : this(configuration, endpoints, null)
 
     companion object {
+        /**
+         * Create an [OidcClient], using the discovery url to create the [OidcEndpoints].
+         *
+         * @param configuration the [OidcConfiguration] detailing the settings to be used when communicating with the Authorization
+         *  server, as well as with the rest of the SDK.
+         * @param discoveryUrl the `.well-known/openid-configuration` endpoint associated with the Authorization Server. This is
+         *  used to fetch the [OidcEndpoints].
+         */
         suspend fun create(
             configuration: OidcConfiguration,
             discoveryUrl: HttpUrl
@@ -93,6 +108,11 @@ class OidcClient private constructor(
         return internalTokenRequest(request)
     }
 
+    /**
+     * Attempt to revoke the specified token.
+     *
+     * @param token the token to attempt to revoke.
+     */
     suspend fun revokeToken(token: String): OidcClientResult<Unit> {
         val formBody = FormBody.Builder()
             .add("client_id", configuration.clientId)

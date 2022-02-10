@@ -28,7 +28,7 @@ import kotlin.coroutines.CoroutineContext
 /**
  * Configuration options for an OidcClient.
  *
- * This class is used to define the configuration, as defined in your Okta application settings, that will be used to interact with the OIDC Authorization server.
+ * This class is used to define the configuration, as defined in your Okta application settings, that will be used to interact with the OIDC Authorization Server.
  */
 class OidcConfiguration(
     /** The application's client ID. */

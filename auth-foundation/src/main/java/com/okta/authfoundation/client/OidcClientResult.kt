@@ -20,14 +20,26 @@ package com.okta.authfoundation.client
  */
 sealed class OidcClientResult<T> {
     /** An error result. */
-    data class Error<T> internal constructor(val exception: Exception) : OidcClientResult<T>() {
+    data class Error<T> internal constructor(
+        /** The exception associated with the error. */
+        val exception: Exception,
+    ) : OidcClientResult<T>() {
+        /**
+         * The response type used to represent a completed HTTP response, but a non successful status code.
+         */
         data class HttpResponseException internal constructor(
+            /** The HTTP response code associated with the error. */
             val responseCode: Int,
+            /** The error returned by the Authorization Server. */
             val error: String?,
+            /** The error description returned by the Authorization Server. */
             val errorDescription: String?,
         ) : Exception()
     }
 
     /** Success with the expected result. */
-    data class Success<T> internal constructor(val result: T) : OidcClientResult<T>()
+    data class Success<T> internal constructor(
+        /** The result of the success result. */
+        val result: T,
+    ) : OidcClientResult<T>()
 }
