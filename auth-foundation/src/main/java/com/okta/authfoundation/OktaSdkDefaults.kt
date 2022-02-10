@@ -56,7 +56,7 @@ object OktaSdkDefaults {
         }
     }
 
-    private fun defaultStorage(): TokenStorage {
+    internal fun defaultStorage(): TokenStorage {
         return object : TokenStorage {
             private val entries = Collections.synchronizedList(mutableListOf<TokenStorage.Entry>())
 

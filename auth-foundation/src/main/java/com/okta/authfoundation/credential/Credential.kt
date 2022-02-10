@@ -21,19 +21,38 @@ import com.okta.authfoundation.client.dto.OidcIntrospectInfo
 import com.okta.authfoundation.client.dto.OidcUserInfo
 import java.util.Collections
 
+/**
+ * Convenience object that wraps a [Token], providing methods and properties for interacting with credential resources.
+ *
+ * This class can be used as a convenience mechanism for managing stored credentials, performing operations on or for a user using
+ * their credentials, and interacting with resources scoped to the credential.
+ */
 class Credential internal constructor(
     oidcClient: OidcClient,
     private val storage: TokenStorage,
     @Volatile private var _token: Token? = null,
     @Volatile private var _metadata: Map<String, String> = emptyMap()
 ) {
+    /**
+     * The [OidcClient] associated with this [Credential].
+     *
+     * This is the [OidcClient] that should be used for all other operations related to this [Credential].
+     */
     val oidcClient: OidcClient = oidcClient.withCredential(this)
 
+    /**
+     * The current [Token] that's stored and associated with this [Credential].
+     */
     val token: Token?
         get() {
             return _token
         }
 
+    /**
+     * The metadata associated with this [Credential].
+     *
+     * This can be used when calling [Credential.storeToken] to associate this [Credential] with data relevant to your application.
+     */
     val metadata: Map<String, String>
         get() {
             return Collections.unmodifiableMap(_metadata)
@@ -81,6 +100,9 @@ class Credential internal constructor(
         _metadata = metadataCopy
     }
 
+    /**
+     * Removes this [Credential] from the associated [TokenStorage].
+     */
     suspend fun remove() {
         storeToken(null)
     }
@@ -101,7 +123,14 @@ class Credential internal constructor(
         }
     }
 
-    suspend fun revokeToken(tokenType: RevokeTokenType): OidcClientResult<Unit> {
+    /**
+     * Attempt to revoke the specified [TokenType].
+     *
+     * @param tokenType the [TokenType] to revoke, defaults to [RevokeTokenType.ACCESS_TOKEN].
+     */
+    suspend fun revokeToken(
+        tokenType: RevokeTokenType = RevokeTokenType.ACCESS_TOKEN
+    ): OidcClientResult<Unit> {
         val localToken = token ?: return OidcClientResult.Error(IllegalStateException("No token."))
         val token = when (tokenType) {
             RevokeTokenType.REFRESH_TOKEN -> {
@@ -117,6 +146,9 @@ class Credential internal constructor(
         return oidcClient.revokeToken(token)
     }
 
+    /**
+     * Returns the scopes associated with the current [Token] if present, otherwise the default scopes associated with the [OidcClient].
+     */
     fun scopes(): Set<String> {
         return token?.scope?.split(" ")?.toSet() ?: oidcClient.configuration.defaultScopes
     }

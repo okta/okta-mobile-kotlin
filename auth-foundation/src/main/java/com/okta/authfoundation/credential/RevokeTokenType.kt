@@ -15,6 +15,23 @@
  */
 package com.okta.authfoundation.credential
 
+/**
+ * The possible token types that can be revoked.
+ */
 enum class RevokeTokenType {
-    REFRESH_TOKEN, ACCESS_TOKEN, DEVICE_SECRET,
+    /**
+     * Indicates the access token should be revoked.
+     */
+    ACCESS_TOKEN,
+
+    /**
+     * Indicates the refresh token should be revoked, if one is present. This will result in the access token being revoked as well.
+     */
+    REFRESH_TOKEN,
+
+    /**
+     * Indicates the device secret should be revoked, if one is present. This will result in the access token, and the refresh token
+     * being revoked as well.
+     */
+    DEVICE_SECRET,
 }
