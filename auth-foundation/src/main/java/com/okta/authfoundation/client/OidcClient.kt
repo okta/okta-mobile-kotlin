@@ -35,7 +35,7 @@ import okhttp3.Request
  *
  * This is for low level access, and it's typically preferred to use a [Credential], which streamlines usage.
  *
- * https://developer.okta.com/docs/reference/api/oidc
+ * [Okta Developer Docs][https://developer.okta.com/docs/reference/api/oidc]
  */
 class OidcClient private constructor(
     val configuration: OidcConfiguration,

@@ -17,6 +17,7 @@
 package com.okta.webauthenticationui
 
 import android.app.Activity
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.pm.ResolveInfo
@@ -45,7 +46,7 @@ class DefaultWebAuthenticationProviderTest {
     @Test fun testLaunch() {
         val activity = Robolectric.buildActivity(Activity::class.java)
         val webAuthenticationProvider = DefaultWebAuthenticationProvider(EventCoordinator(emptyList()))
-        assertThat(webAuthenticationProvider.launch(activity.get(), "https://example.com/not_used".toHttpUrl())).isTrue()
+        assertThat(webAuthenticationProvider.launch(activity.get(), "https://example.com/not_used".toHttpUrl())).isNull()
         val activityShadow = shadowOf(activity.get())
         val cctActivity = activityShadow.nextStartedActivity
         assertThat(cctActivity.action).isEqualTo("android.intent.action.VIEW")
@@ -58,7 +59,7 @@ class DefaultWebAuthenticationProviderTest {
         val activity = Robolectric.buildActivity(Activity::class.java)
         val eventHandler = RecordingEventHandler()
         val webAuthenticationProvider = DefaultWebAuthenticationProvider(EventCoordinator(eventHandler))
-        assertThat(webAuthenticationProvider.launch(activity.get(), "https://example.com/not_used".toHttpUrl())).isTrue()
+        assertThat(webAuthenticationProvider.launch(activity.get(), "https://example.com/not_used".toHttpUrl())).isNull()
 
         assertThat(eventHandler.size).isEqualTo(2)
 
@@ -81,7 +82,7 @@ class DefaultWebAuthenticationProviderTest {
         )
         val activity = Robolectric.buildActivity(Activity::class.java)
         val webAuthenticationProvider = DefaultWebAuthenticationProvider(EventCoordinator(emptyList()))
-        assertThat(webAuthenticationProvider.launch(activity.get(), "https://example.com/not_used".toHttpUrl())).isTrue()
+        assertThat(webAuthenticationProvider.launch(activity.get(), "https://example.com/not_used".toHttpUrl())).isNull()
         val activityShadow = shadowOf(activity.get())
         val cctActivity = activityShadow.nextStartedActivity
         assertThat(cctActivity.action).isEqualTo("android.intent.action.VIEW")
@@ -102,7 +103,7 @@ class DefaultWebAuthenticationProviderTest {
         }
         val webAuthenticationProvider = DefaultWebAuthenticationProvider(EventCoordinator(eventHandler))
         val activity = Robolectric.buildActivity(Activity::class.java)
-        assertThat(webAuthenticationProvider.launch(activity.get(), "https://example.com/not_used".toHttpUrl())).isTrue()
+        assertThat(webAuthenticationProvider.launch(activity.get(), "https://example.com/not_used".toHttpUrl())).isNull()
         val activityShadow = shadowOf(activity.get())
         val cctActivity = activityShadow.nextStartedActivity
         assertThat(cctActivity.action).isEqualTo("android.intent.action.VIEW")
@@ -113,7 +114,8 @@ class DefaultWebAuthenticationProviderTest {
         shadowOf(RuntimeEnvironment.getApplication()).checkActivities(true)
         val activity = Robolectric.buildActivity(Activity::class.java)
         val webAuthenticationProvider = DefaultWebAuthenticationProvider(EventCoordinator(emptyList()))
-        assertThat(webAuthenticationProvider.launch(activity.get(), "https://example.com/not_used".toHttpUrl())).isFalse()
+        val exception = webAuthenticationProvider.launch(activity.get(), "https://example.com/not_used".toHttpUrl())
+        assertThat(exception).isInstanceOf(ActivityNotFoundException::class.java)
     }
 
     // https://chromium.googlesource.com/custom-tabs-client/+/refs/heads/main/customtabs/junit/src/android/support/customtabs/trusted/TwaProviderPickerTest.java

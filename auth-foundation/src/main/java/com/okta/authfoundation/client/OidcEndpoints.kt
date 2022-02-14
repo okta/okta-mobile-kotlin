@@ -29,6 +29,11 @@ import kotlinx.serialization.encoding.Encoder
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
 
+/**
+ * Represents the routes used to make network calls to the Authorization Server.
+ *
+ * See [OIDC Endpoints][https://developer.okta.com/docs/reference/api/oidc/#endpoints]
+ */
 @Serializable
 class OidcEndpoints(
     @SerialName("issuer") val issuer: HttpUrl,
