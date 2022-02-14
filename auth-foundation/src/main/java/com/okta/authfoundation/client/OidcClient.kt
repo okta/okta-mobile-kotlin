@@ -89,6 +89,12 @@ class OidcClient private constructor(
         }
     }
 
+    /**
+     * Attempt to refresh the token.
+     *
+     * @param refreshToken the refresh token for which to mint a new [Token] for.
+     * @param scopes the scopes to request from the Authorization Server, defaults to the configured [OidcConfiguration.defaultScopes].
+     */
     suspend fun refreshToken(
         refreshToken: String,
         scopes: Set<String> = configuration.defaultScopes,
