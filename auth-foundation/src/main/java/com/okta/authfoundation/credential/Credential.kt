@@ -19,6 +19,11 @@ import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundation.client.dto.OidcIntrospectInfo
 import com.okta.authfoundation.client.dto.OidcUserInfo
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
+import kotlinx.coroutines.withContext
 import java.util.Collections
 
 /**
@@ -33,6 +38,9 @@ class Credential internal constructor(
     @Volatile private var _token: Token? = null,
     @Volatile private var _metadata: Map<String, String> = emptyMap()
 ) {
+    @Volatile private var refreshDeferred: Deferred<OidcClientResult<Token>>? = null
+    private val refreshLock: Any = Any()
+
     /**
      * The [OidcClient] associated with this [Credential].
      *
@@ -107,9 +115,38 @@ class Credential internal constructor(
         storeToken(null)
     }
 
+    /**
+     * Attempt to refresh the [Token] currently associated with this [Credential].
+     *
+     * @param scopes the scopes to request from the Authorization Server, see [Credential.scopes] for information on the default.
+     */
     suspend fun refreshToken(
         scopes: Set<String> = scopes(),
     ): OidcClientResult<Token> {
+        return withContext(oidcClient.configuration.ioDispatcher) {
+            getOrCreateRefreshDeferredAsync(scopes, this).await()
+        }
+    }
+
+    private suspend fun getOrCreateRefreshDeferredAsync(
+        scopes: Set<String>,
+        coroutineScope: CoroutineScope
+    ): Deferred<OidcClientResult<Token>> {
+        synchronized(refreshLock) {
+            refreshDeferred?.let { return it }
+            val local = coroutineScope.async(start = CoroutineStart.LAZY) {
+                val result = performRealRefresh(scopes)
+                synchronized(refreshLock) {
+                    refreshDeferred = null
+                }
+                return@async result
+            }
+            this.refreshDeferred = local
+            return local
+        }
+    }
+
+    private suspend fun performRealRefresh(scopes: Set<String>): OidcClientResult<Token> {
         val refresh = token?.refreshToken ?: return OidcClientResult.Error(IllegalStateException("No Refresh Token."))
         return oidcClient.refreshToken(refresh, scopes).also { result ->
             if (result is OidcClientResult.Success) {
