@@ -28,6 +28,7 @@ Feature: 3.1 Direct Auth Password Recovery
     And she submits the recovery form
     Then she sees a message "There is no account with the Username mary@unknown.com."
 
+  @skipScenario # Backend regression.
   @requireA18NProfile
   @requireExistingUser
   Scenario: 3.1.3 Mary resets her password with recovery token
