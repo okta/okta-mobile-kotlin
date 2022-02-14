@@ -22,10 +22,12 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.okta.oauth2.AuthorizationCodeFlow
+import com.okta.webauthenticationui.WebAuthenticationClient
 import com.okta.webauthenticationui.WebAuthenticationClient.Companion.webAuthenticationClient
 import kotlinx.coroutines.launch
 import sample.okta.android.OktaHelper
 import sample.okta.android.SocialRedirectCoordinator
+import timber.log.Timber
 
 class BrowserViewModel : ViewModel() {
     private var authorizationCodeFlowContext: AuthorizationCodeFlow.Context? = null
@@ -47,7 +49,15 @@ class BrowserViewModel : ViewModel() {
         if (addDeviceSsoScope) {
             scopes = scopes + setOf("device_sso")
         }
-        authorizationCodeFlowContext = webAuthenticationClient.login(context, scopes)
+        when (val result = webAuthenticationClient.login(context, scopes)) {
+            is WebAuthenticationClient.LoginResult.Error -> {
+                Timber.e(result.exception, "Failed to start login flow.")
+                _state.value = BrowserState.Error("Failed to start login flow.")
+            }
+            is WebAuthenticationClient.LoginResult.Success -> {
+                authorizationCodeFlowContext = result.flowContext
+            }
+        }
     }
 
     fun handleRedirect(uri: Uri) {

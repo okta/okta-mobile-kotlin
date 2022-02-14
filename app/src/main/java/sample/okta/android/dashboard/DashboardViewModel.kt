@@ -26,6 +26,7 @@ import com.okta.authfoundation.credential.Credential
 import com.okta.authfoundation.credential.RevokeTokenType
 import com.okta.authfoundation.credential.TokenType
 import com.okta.oauth2.RedirectEndSessionFlow
+import com.okta.webauthenticationui.WebAuthenticationClient
 import com.okta.webauthenticationui.WebAuthenticationClient.Companion.webAuthenticationClient
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -120,7 +121,15 @@ internal class DashboardViewModel(private val credentialMetadataNameValue: Strin
     fun logoutOfWeb(context: Context) {
         viewModelScope.launch {
             val idToken = credential.token?.idToken ?: return@launch
-            logoutFlowContext = credential.oidcClient.webAuthenticationClient().logout(context, idToken)
+            when (val result = credential.oidcClient.webAuthenticationClient().logout(context, idToken)) {
+                is WebAuthenticationClient.LogoutResult.Error -> {
+                    Timber.e(result.exception, "Failed to start logout flow.")
+                    _requestStateLiveData.value = RequestState.Result("Failed to start logout flow.")
+                }
+                is WebAuthenticationClient.LogoutResult.Success -> {
+                    logoutFlowContext = result.flowContext
+                }
+            }
         }
     }
 

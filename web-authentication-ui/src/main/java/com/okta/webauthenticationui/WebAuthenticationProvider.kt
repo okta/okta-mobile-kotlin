@@ -15,6 +15,7 @@
  */
 package com.okta.webauthenticationui
 
+import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
@@ -30,8 +31,19 @@ import com.okta.webauthenticationui.events.CustomizeBrowserEvent
 import com.okta.webauthenticationui.events.CustomizeCustomTabsEvent
 import okhttp3.HttpUrl
 
+/**
+ * Used to launch the OIDC redirect flow associated with a [WebAuthenticationClient].
+ */
 interface WebAuthenticationProvider {
-    fun launch(context: Context, url: HttpUrl): Boolean
+    /**
+     * Launches the OIDC redirect flow associated with a [WebAuthenticationClient].
+     *
+     * @param context the Android [Activity] [Context] which is used to display the flow.
+     * @param url the url the instance should display.
+     *
+     * @return if the launch was successful.
+     */
+    fun launch(context: Context, url: HttpUrl): Exception?
 }
 
 internal class DefaultWebAuthenticationProvider(
@@ -43,7 +55,7 @@ internal class DefaultWebAuthenticationProvider(
         val USER_AGENT_HEADER = "okta-oidc-android/${Build.VERSION.SDK_INT} ${BuildConfig.LIBRARY_PACKAGE_NAME}/2.0.0"
     }
 
-    override fun launch(context: Context, url: HttpUrl): Boolean {
+    override fun launch(context: Context, url: HttpUrl): Exception? {
         val intentBuilder: CustomTabsIntent.Builder = CustomTabsIntent.Builder()
         eventCoordinator.sendEvent(CustomizeCustomTabsEvent(context, intentBuilder))
         val tabsIntent: CustomTabsIntent = intentBuilder.build()
@@ -59,9 +71,9 @@ internal class DefaultWebAuthenticationProvider(
 
         try {
             tabsIntent.launchUrl(context, Uri.parse(url.toString()))
-            return true
+            return null
         } catch (e: ActivityNotFoundException) {
-            return false
+            return e
         }
     }
 

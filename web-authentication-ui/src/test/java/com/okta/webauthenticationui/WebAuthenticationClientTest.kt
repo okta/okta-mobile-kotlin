@@ -46,8 +46,8 @@ class WebAuthenticationClientTest {
         val webAuthenticationProvider = mock<WebAuthenticationProvider>()
         val webAuthenticationClient = oktaRule.createOidcClient().webAuthenticationClient(webAuthenticationProvider)
         val context = mock<Context>()
-        val flowContext = webAuthenticationClient.login(context)
-
+        val loginResult = webAuthenticationClient.login(context)
+        val flowContext = (loginResult as WebAuthenticationClient.LoginResult.Success).flowContext
         verify(webAuthenticationProvider).launch(eq(context), any())
         assertThat(flowContext.url.toString()).contains("/oauth2/default/v1/authorize?code_challenge=")
 
@@ -78,7 +78,8 @@ class WebAuthenticationClientTest {
         val webAuthenticationProvider = mock<WebAuthenticationProvider>()
         val webAuthenticationClient = oktaRule.createOidcClient().webAuthenticationClient(webAuthenticationProvider)
         val context = mock<Context>()
-        val flowContext = webAuthenticationClient.logout(context, "exampleIdToken")
+        val logoutResult = webAuthenticationClient.logout(context, "exampleIdToken")
+        val flowContext = (logoutResult as WebAuthenticationClient.LogoutResult.Success).flowContext
 
         verify(webAuthenticationProvider).launch(eq(context), any())
         assertThat(flowContext.url.toString()).contains("/oauth2/default/v1/logout?id_token_hint=exampleIdToken")

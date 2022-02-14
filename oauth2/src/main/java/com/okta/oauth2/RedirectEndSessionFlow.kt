@@ -21,26 +21,69 @@ import com.okta.oauth2.events.CustomizeLogoutUrlEvent
 import okhttp3.HttpUrl
 import java.util.UUID
 
+/**
+ * [RedirectEndSessionFlow] encapsulates the behavior required to logout using an OIDC Browser redirect flow.
+ */
 class RedirectEndSessionFlow private constructor(
     private val oidcClient: OidcClient,
 ) {
     companion object {
+        /**
+         * Initializes an end session redirect flow using the [OidcClient].
+         *
+         * @receiver the [OidcClient] used to perform the low level OIDC requests, as well as with which to use the configuration from.
+         */
         fun OidcClient.redirectEndSessionFlow(): RedirectEndSessionFlow {
             return RedirectEndSessionFlow(this)
         }
     }
 
+    /**
+     * A model representing the context and current state for a logout flow.
+     */
     class Context internal constructor(
-        internal val state: String,
+        /**
+         * The url which should be used to log the user out.
+         */
         val url: HttpUrl,
+        internal val state: String,
     )
 
+    /**
+     * A model representing all possible states of a [RedirectEndSessionFlow.resume] call.
+     */
     sealed class Result {
+        /**
+         * An error indicating the redirect scheme of the supplied url doesn't match the configured redirect scheme.
+         *
+         * This could be due to the supplied url being intended for another feature of the app, a misconfiguration, or an attempted
+         * attack.
+         */
         object RedirectSchemeMismatch : Result()
-        class Error internal constructor(val message: String) : Result()
+
+        /**
+         * An error resulting from an interaction with the Authorization Server.
+         */
+        class Error internal constructor(
+            /**
+             * An error message intended to be displayed to the user.
+             */
+            val message: String,
+        ) : Result()
+
+        /**
+         * Represents a successful logout.
+         */
         object Success : Result()
     }
 
+    /**
+     * Initiates the logout redirect flow.
+     *
+     * See [RedirectEndSessionFlow.resume] for completing the flow.
+     *
+     * @param idToken the token used to identify the session to log the user out of.
+     */
     fun start(idToken: String): Context {
         return start(idToken, UUID.randomUUID().toString())
     }
@@ -57,9 +100,15 @@ class RedirectEndSessionFlow private constructor(
         val event = CustomizeLogoutUrlEvent(urlBuilder)
         oidcClient.configuration.eventCoordinator.sendEvent(event)
 
-        return Context(state, urlBuilder.build())
+        return Context(urlBuilder.build(), state)
     }
 
+    /**
+     * Resumes the logout redirect flow.
+     *
+     * @param uri the redirect [Uri] which includes the state to validate the logout was successful.
+     * @param flowContext the [RedirectEndSessionFlow.Context] used internally to maintain state.
+     */
     fun resume(uri: Uri, flowContext: Context): Result {
         if (!uri.toString().startsWith(oidcClient.configuration.signOutRedirectUri)) {
             return Result.RedirectSchemeMismatch
