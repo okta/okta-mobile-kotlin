@@ -58,23 +58,22 @@ object OktaSdkDefaults {
 
     internal fun defaultStorage(): TokenStorage {
         return object : TokenStorage {
-            private val entries = Collections.synchronizedList(mutableListOf<TokenStorage.Entry>())
+            private val entries = Collections.synchronizedMap(mutableMapOf<String, TokenStorage.Entry>())
 
             override suspend fun entries(): List<TokenStorage.Entry> {
-                return entries
+                return entries.values.toList()
             }
 
-            override suspend fun add(entry: TokenStorage.Entry) {
-                entries += entry
+            override suspend fun add(id: String) {
+                entries[id] = TokenStorage.Entry(id, null, emptyMap())
             }
 
-            override suspend fun remove(entry: TokenStorage.Entry) {
-                entries -= entry
+            override suspend fun remove(id: String) {
+                entries.remove(id)
             }
 
-            override suspend fun replace(existingEntry: TokenStorage.Entry, updatedEntry: TokenStorage.Entry) {
-                val index = entries.indexOf(existingEntry)
-                entries[index] = updatedEntry
+            override suspend fun replace(updatedEntry: TokenStorage.Entry) {
+                entries[updatedEntry.identifier] = updatedEntry
             }
         }
     }

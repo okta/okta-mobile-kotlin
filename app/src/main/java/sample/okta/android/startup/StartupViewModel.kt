@@ -68,9 +68,9 @@ internal class StartupViewModel : ViewModel() {
                     val oidcClient = clientResult.result
                     val credentialDataSource = oidcClient.credentialDataSource()
                     OktaHelper.credentialDataSource = credentialDataSource
-                    val credential = credentialDataSource.fetchOrCreate { metadata ->
-                        metadata[OktaHelper.CREDENTIAL_NAME_METADATA_KEY] == DEFAULT_CREDENTIAL_NAME_METADATA_VALUE
-                    }
+                    val credential = credentialDataSource.all().firstOrNull { credential ->
+                        credential.metadata[OktaHelper.CREDENTIAL_NAME_METADATA_KEY] == DEFAULT_CREDENTIAL_NAME_METADATA_VALUE
+                    } ?: credentialDataSource.create()
                     OktaHelper.defaultCredential = credential
                     OktaHelper.defaultCredential.storeToken(
                         metadata = mapOf(

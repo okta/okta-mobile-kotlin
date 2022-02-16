@@ -24,6 +24,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.any
@@ -42,6 +43,10 @@ import java.util.concurrent.TimeUnit
 import kotlin.test.assertFailsWith
 
 class CredentialTest {
+    companion object {
+        private const val tokenStorageId: String = "test_storage_id"
+    }
+
     @get:Rule val oktaRule = OktaRule()
 
     @Test fun testOidcClient() {
@@ -60,10 +65,35 @@ class CredentialTest {
 
     @Test fun testRemove(): Unit = runBlocking {
         val storage = mock<TokenStorage>()
+        val credentialDataSource = mock<CredentialDataSource>()
         val token = createToken()
-        val credential = createCredential(token = token, tokenStorage = storage)
+        val credential = createCredential(token = token, tokenStorage = storage, credentialDataSource = credentialDataSource)
         credential.remove()
-        verify(storage).remove(eq(TokenStorage.Entry(token, emptyMap())))
+        verify(credentialDataSource).remove(credential)
+        verify(storage).remove(eq(tokenStorageId))
+        assertThat(credential.token).isNull()
+    }
+
+    @Test fun testRemoveIsNoOpAfterRemove(): Unit = runBlocking {
+        val storage = mock<TokenStorage>()
+        val credentialDataSource = mock<CredentialDataSource>()
+        val token = createToken()
+        val credential = createCredential(token = token, tokenStorage = storage, credentialDataSource = credentialDataSource)
+        credential.remove()
+        credential.remove()
+        verify(credentialDataSource).remove(credential)
+        verify(storage).remove(eq(tokenStorageId))
+        assertThat(credential.token).isNull()
+    }
+
+    @Test fun testStoreTokenIsNoOpAfterRemove(): Unit = runBlocking {
+        val storage = mock<TokenStorage>()
+        val credentialDataSource = mock<CredentialDataSource>()
+        val token = createToken()
+        val credential = createCredential(token = token, tokenStorage = storage, credentialDataSource = credentialDataSource)
+        credential.remove()
+        credential.storeToken(token = createToken())
+        verify(storage, never()).replace(any())
     }
 
     @Test fun testRevokeAccessToken(): Unit = runBlocking {
@@ -149,7 +179,7 @@ class CredentialTest {
         val exception = (result as OidcClientResult.Error<Token>).exception
         assertThat(exception).isInstanceOf(IllegalStateException::class.java)
         assertThat(exception).hasMessageThat().isEqualTo("No Refresh Token.")
-        verify(tokenStorage, never()).replace(any(), any())
+        verify(tokenStorage, never()).replace(any())
     }
 
     @Test fun testRefreshTokenForwardsError(): Unit = runBlocking {
@@ -169,7 +199,7 @@ class CredentialTest {
         assertThat(result).isInstanceOf(OidcClientResult.Error::class.java)
         val exception = (result as OidcClientResult.Error<Token>).exception
         assertThat(exception).hasMessageThat().isEqualTo("From Test")
-        verify(tokenStorage, never()).replace(any(), any())
+        verify(tokenStorage, never()).replace(any())
     }
 
     @Test fun testRefreshToken(): Unit = runBlocking {
@@ -190,7 +220,7 @@ class CredentialTest {
         val token = (result as OidcClientResult.Success<Token>).result
         assertThat(token.refreshToken).isEqualTo("newRefreshToken")
         assertThat(credential.token!!.refreshToken).isEqualTo("newRefreshToken")
-        verify(tokenStorage).replace(any(), any())
+        verify(tokenStorage).replace(any())
     }
 
     @Test fun testRefreshTokenUsesSuppliedScope(): Unit = runBlocking {
@@ -225,8 +255,11 @@ class CredentialTest {
         val oidcClient = mock<OidcClient> {
             onBlocking { refreshToken(any(), any()) } doSuspendableAnswer {
                 assertThat(countDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
-                delay(1)
-                OidcClientResult.Success(createToken(refreshToken = "newRefreshToken"))
+                // Delay and change threads before returning the result to make sure we enqueue both requests before returning.
+                delay(10)
+                withContext(Dispatchers.Default) {
+                    OidcClientResult.Success(createToken(refreshToken = "newRefreshToken"))
+                }
             }
             on { withCredential(any()) } doReturn it
             on { configuration } doReturn oktaRule.configuration
@@ -255,7 +288,7 @@ class CredentialTest {
         assertThat(result1).isSameInstanceAs(result2)
 
         verify(oidcClient).refreshToken(eq("exampleRefreshToken"), eq(setOf("openid", "email", "profile", "offline_access")))
-        verify(tokenStorage).replace(any(), any())
+        verify(tokenStorage).replace(any())
     }
 
     @Test fun testSerialRefreshToken(): Unit = runBlocking {
@@ -282,7 +315,36 @@ class CredentialTest {
         assertThat(result1).isNotSameInstanceAs(result2)
 
         verify(oidcClient, times(2)).refreshToken(any(), any())
-        verify(tokenStorage, times(2)).replace(any(), any())
+        verify(tokenStorage, times(2)).replace(any())
+    }
+
+    @Test fun testStoreToken(): Unit = runBlocking {
+        val tokenStorage = mock<TokenStorage>()
+        val credential = createCredential(tokenStorage = tokenStorage)
+        val metadata = mutableMapOf<String, String>()
+        metadata["from_test"] = "It works"
+        val token = createToken(refreshToken = "stored!")
+        credential.storeToken(token = token, metadata = metadata)
+        verify(tokenStorage).replace(TokenStorage.Entry(tokenStorageId, token, metadata))
+        assertThat(credential.token).isEqualTo(token)
+        assertThat(credential.metadata).isEqualTo(metadata)
+    }
+
+    @Test fun testIdTokenWithNullTokenReturnsNullJwt(): Unit = runBlocking {
+        val credential = createCredential(token = null)
+        assertThat(credential.idToken()).isNull()
+    }
+
+    @Test fun testIdTokenWithNullIdTokenReturnsNullJwt(): Unit = runBlocking {
+        val credential = createCredential(token = createToken(idToken = null))
+        assertThat(credential.idToken()).isNull()
+    }
+
+    @Test fun testIdToken(): Unit = runBlocking {
+        val credential = createCredential(token = createToken(idToken = "eyJraWQiOiJGSkEwSEdOdHN1dWRhX1BsNDVKNDJrdlFxY3N1XzBDNEZnN3BiSkxYVEhZIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiIwMHViNDF6N21nek5xcnlNdjY5NiIsIm5hbWUiOiJKYXkgTmV3c3Ryb20iLCJlbWFpbCI6ImpheW5ld3N0cm9tQGV4YW1wbGUuY29tIiwidmVyIjoxLCJpc3MiOiJodHRwczovL2V4YW1wbGUtdGVzdC5va3RhLmNvbS9vYXV0aDIvZGVmYXVsdCIsImF1ZCI6InVuaXRfdGVzdF9jbGllbnRfaWQiLCJpYXQiOjE2NDQzNDcwNjksImV4cCI6MTY0NDM1MDY2OSwianRpIjoiSUQuNTVjeEJ0ZFlsOGw2YXJLSVNQQndkMHlPVC05VUNUYVhhUVRYdDJsYVJMcyIsImFtciI6WyJwd2QiXSwiaWRwIjoiMDBvOGZvdTdzUmFHR3dkbjQ2OTYiLCJzaWQiOiJpZHhXeGtscF80a1N4dUNfblUxcFhELW5BIiwicHJlZmVycmVkX3VzZXJuYW1lIjoiamF5bmV3c3Ryb21AZXhhbXBsZS5jb20iLCJhdXRoX3RpbWUiOjE2NDQzNDcwNjgsImF0X2hhc2giOiJnTWNHVGJoR1QxR19sZHNIb0pzUHpRIiwiZHNfaGFzaCI6IkRBZUxPRlJxaWZ5c2Jnc3JiT2dib2cifQ.tT8aKK4r8yFcW9KgVtZxvjXRJVzz-_rve14CVtpUlyvCTE1yj20wmPS0z3-JirI9xXgt5KeNPYqo3Wbv8c9XY_HY3hsPQdILYpPsUkf-sctmzSoKC_dTbs5xe8uKSgmpMrggfUAWrNPiJt9Ek2p7GgP64Wx79Pq5vSHk0yWlonFfXut5ahpSfqWilmYlvLr8gFbqoLnAJfl4ZbTY8pPw_aQgCdcQ-ImHRu-8bCSCtbFRzZB-SMJFLfRF2kmx0H-QF855wUODTuUSydkff-BKb-8wnbqWg0R9NvRdoXhEybv8TXXZY3cQqgolWLAyiPMrz07n0q_UEjAilUiCjn1f4Q"))
+        val idToken = credential.idToken()
+        assertThat(idToken).isNotNull()
+        assertThat(idToken?.keyId).isEqualTo("FJA0HGNtsuuda_Pl45J42kvQqcsu_0C4Fg7pbJLXTHY")
     }
 
     private fun createCredential(
@@ -290,17 +352,19 @@ class CredentialTest {
         metadata: Map<String, String> = emptyMap(),
         oidcClient: OidcClient = oktaRule.createOidcClient(),
         tokenStorage: TokenStorage = OktaSdkDefaults.defaultStorage(),
+        credentialDataSource: CredentialDataSource = mock(),
     ): Credential {
         if (token != null) {
             runBlocking {
-                tokenStorage.add(TokenStorage.Entry(token, metadata))
+                tokenStorage.add(tokenStorageId)
             }
         }
-        return Credential(oidcClient, tokenStorage, token, metadata)
+        return Credential(oidcClient, tokenStorage, credentialDataSource, tokenStorageId, token, metadata)
     }
 
     private fun createToken(
         scope: String = "openid email profile offline_access",
+        idToken: String? = null,
         refreshToken: String? = null,
         deviceSecret: String? = null,
     ): Token {
@@ -311,6 +375,7 @@ class CredentialTest {
             scope = scope,
             refreshToken = refreshToken,
             deviceSecret = deviceSecret,
+            idToken = idToken,
         )
     }
 }
