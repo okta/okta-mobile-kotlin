@@ -58,8 +58,8 @@ internal class DashboardViewModel(private val credentialMetadataNameValue: Strin
             credential = if (credentialMetadataNameValue == null) {
                 OktaHelper.defaultCredential
             } else {
-                OktaHelper.credentialDataSource.fetch { metadata ->
-                    metadata[OktaHelper.CREDENTIAL_NAME_METADATA_KEY] == credentialMetadataNameValue
+                OktaHelper.credentialDataSource.all().firstOrNull { credential ->
+                    credential.metadata[OktaHelper.CREDENTIAL_NAME_METADATA_KEY] == credentialMetadataNameValue
                 } ?: OktaHelper.defaultCredential
             }
             setCredential(credential)

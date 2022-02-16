@@ -41,9 +41,9 @@ class TokenExchangeViewModel : ViewModel() {
 
         viewModelScope.launch {
             val credential = OktaHelper.defaultCredential
-            val tokenExchangeCredential = OktaHelper.credentialDataSource.fetchOrCreate { metadata ->
-                metadata[OktaHelper.CREDENTIAL_NAME_METADATA_KEY] == NAME_METADATA_VALUE
-            }
+            val tokenExchangeCredential = OktaHelper.credentialDataSource.all().firstOrNull { c ->
+                c.metadata[OktaHelper.CREDENTIAL_NAME_METADATA_KEY] == NAME_METADATA_VALUE
+            } ?: OktaHelper.credentialDataSource.create()
             tokenExchangeCredential.storeToken(metadata = mapOf(Pair(OktaHelper.CREDENTIAL_NAME_METADATA_KEY, NAME_METADATA_VALUE)))
             val tokenExchangeFlow = tokenExchangeCredential.oidcClient.tokenExchangeFlow()
             val idToken = credential.token?.idToken

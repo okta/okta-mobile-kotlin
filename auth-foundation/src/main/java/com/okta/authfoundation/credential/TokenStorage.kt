@@ -33,35 +33,38 @@ interface TokenStorage {
     suspend fun entries(): List<Entry>
 
     /**
-     *  Add a new [Entry] to storage.
+     *  Add a new entry to storage.
      *
-     *  @param entry the [Entry] to add.
+     *  @param id the unique identifier related to a [TokenStorage.Entry].
      */
-    suspend fun add(entry: Entry)
+    suspend fun add(id: String)
 
     /**
-     *  Remove an existing [Entry] from storage.
+     *  Remove an existing entry from storage.
      *
-     *  @param entry the [Entry] to remove.
+     *  @param id the unique identifier related to a [TokenStorage.Entry].
      */
-    suspend fun remove(entry: Entry)
+    suspend fun remove(id: String)
 
     /**
-     *  Replace an existing [Entry] in storage with a new [Entry].
+     *  Replace an existing [Entry] in storage with an updated [Entry].
      *
-     *  @param existingEntry the existing [Entry] in storage.
      *  @param updatedEntry the new [Entry] to store.
      */
-    suspend fun replace(existingEntry: Entry, updatedEntry: Entry)
+    suspend fun replace(updatedEntry: Entry)
 
     /**
      *  Represents the data to store in [TokenStorage].
      */
     data class Entry(
         /**
+         * The unique identifier for this [TokenStorage] entry.
+         */
+        val identifier: String,
+        /**
          *  The [Token] associated with the [TokenStorage] entry.
          */
-        val token: Token,
+        val token: Token?,
         /**
          *  The metadata associated with the [TokenStorage] entry.
          */

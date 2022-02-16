@@ -19,6 +19,9 @@ import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundation.client.dto.OidcIntrospectInfo
 import com.okta.authfoundation.client.dto.OidcUserInfo
+import com.okta.authfoundation.credential.events.CredentialStoredAfterRemovedEvent
+import com.okta.authfoundation.jwt.Jwt
+import com.okta.authfoundation.jwt.JwtParser
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Deferred
@@ -35,11 +38,15 @@ import java.util.Collections
 class Credential internal constructor(
     oidcClient: OidcClient,
     private val storage: TokenStorage,
+    private val credentialDataSource: CredentialDataSource,
+    internal val storageIdentifier: String,
     @Volatile private var _token: Token? = null,
     @Volatile private var _metadata: Map<String, String> = emptyMap()
 ) {
     @Volatile private var refreshDeferred: Deferred<OidcClientResult<Token>>? = null
     private val refreshLock: Any = Any()
+
+    @Volatile private var isRemoved: Boolean = false
 
     /**
      * The [OidcClient] associated with this [Credential].
@@ -91,28 +98,39 @@ class Credential internal constructor(
         return oidcClient.introspectToken(tokenType, token)
     }
 
+    /**
+     * Store a token, or update the existing token.
+     * This can also be used to store custom metadata.
+     *
+     * @param token the token to update this [Credential] with, defaults to the current [Token].
+     * @param metadata the map to associate with this [Credential], defaults to the current metadata.
+     */
     suspend fun storeToken(token: Token? = _token, metadata: Map<String, String> = _metadata) {
-        val metadataCopy = metadata.toMap() // Making a defensive copy, so it's not modified outside our control.
-        val localToken = _token
-        if (localToken != null && token != null) {
-            storage.replace(
-                existingEntry = TokenStorage.Entry(localToken, _metadata),
-                updatedEntry = TokenStorage.Entry(token, metadataCopy),
-            )
-        } else if (localToken != null) {
-            storage.remove(TokenStorage.Entry(localToken, _metadata))
-        } else if (token != null) {
-            storage.add(TokenStorage.Entry(token, metadataCopy))
+        if (isRemoved) {
+            oidcClient.configuration.eventCoordinator.sendEvent(CredentialStoredAfterRemovedEvent(this))
+            return
         }
+        val metadataCopy = metadata.toMap() // Making a defensive copy, so it's not modified outside our control.
+        storage.replace(
+            updatedEntry = TokenStorage.Entry(storageIdentifier, token, metadataCopy),
+        )
         _token = token
         _metadata = metadataCopy
     }
 
     /**
-     * Removes this [Credential] from the associated [TokenStorage].
+     * Removes this [Credential] from the associated [CredentialDataSource].
+     * Also, sets the [Token] to `null`.
+     * This [Credential] should not be used after it's been removed.
      */
     suspend fun remove() {
-        storeToken(null)
+        if (isRemoved) {
+            return
+        }
+        credentialDataSource.remove(this)
+        storage.remove(storageIdentifier)
+        _token = null
+        isRemoved = true
     }
 
     /**
@@ -188,5 +206,16 @@ class Credential internal constructor(
      */
     fun scopes(): Set<String> {
         return token?.scope?.split(" ")?.toSet() ?: oidcClient.configuration.defaultScopes
+    }
+
+    /**
+     * Retrieve the [Jwt] associated with the [Token.idToken] field.
+     *
+     * This will return `null` if the associated [Token] or it's `idToken` field is `null`.
+     */
+    suspend fun idToken(): Jwt? {
+        val idToken = _token?.idToken ?: return null
+        val parser = JwtParser(oidcClient.configuration.json, oidcClient.configuration.computeDispatcher)
+        return parser.parse(idToken)
     }
 }
