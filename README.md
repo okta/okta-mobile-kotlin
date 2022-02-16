@@ -1,2 +1,173 @@
-# okta-mobile-kotlin
-okta-mobile-kotlin
+[![Support](https://img.shields.io/badge/support-Developer%20Forum-blue.svg)][devforum]
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+
+# Okta Mobile SDK for Kotlin
+
+## Release status
+
+This library uses semantic versioning and follows Okta's [Library Version Policy][okta-library-versioning].
+
+| Version | Status                             |
+| ------- | ---------------------------------- |
+| 0.1.0   | ✔️ Beta                             |
+
+The latest release can always be found on the [releases page][github-releases].
+
+## Need help?
+ 
+If you run into problems using the SDK, you can:
+ 
+* Ask questions on the [Okta Developer Forums][devforum]
+* Post [issues][github-issues] here on GitHub (for code errors)
+
+## Getting Started
+
+To get started, you will need:
+
+* An Okta account, called an _organization_ (sign up for a free [developer organization](https://developer.okta.com/signup) if you need one).
+* An Okta Application, configured as a Native App. This is done from the Okta Developer Console. When following the wizard, use the default properties. They are designed to work with our sample applications.
+* Android Studio
+
+## Usage Guide
+
+This SDK consists of several different libraries, each with their own detailed documentation.
+
+- [AuthFoundation](auth-foundation) -- Common classes for managing credentials, and used as a foundation for other libraries.
+- [OktaOAuth2](oauth2) -- OAuth2 authentication capabilities for authenticating users.
+- [WebAuthenticationUI](web-authentication-ui) -- Authenticate users using web-based OIDC flows.
+
+The use of this SDK enables you to build or support a myriad of different authentication flows and approaches. To simplify getting started, here are a few samples to demonstrate its usage.
+
+### Web Authentication using OIDC redirect
+
+The simplest way to integrate authentication in your app is with OIDC through a web browser, using the Authorization Code Flow grant.
+
+#### Configure your OIDC Settings
+
+Before authenticating your user, you need to create your `OidcClient`, using the settings defined in your application in the Okta Developer Console.
+
+```kotlin
+import com.okta.authfoundation.client.OidcClient
+import com.okta.authfoundation.client.OidcClientResult
+import com.okta.authfoundation.client.OidcConfiguration
+import okhttp3.HttpUrl.Companion.toHttpUrl
+
+val oidcConfiguration = OidcConfiguration(
+    clientId = "{clientId}",
+    defaultScopes = setOf("openid", "email", "profile", "offline_access"),
+    signInRedirectUri = "{signInRedirectUri}",
+    signOutRedirectUri = "{signOutRedirectUri}",
+)
+when (val clientResult = OidcClient.create(
+    oidcConfiguration,
+    "https://{yourOktaOrg}.okta.com/.well-known/openid-configuration".toHttpUrl(),
+)) {
+    is OidcClientResult.Error -> {
+        // Timber.e(clientResult.exception, "Failed to create client")
+    }
+    is OidcClientResult.Success -> {
+        // Timber.i("Client Created.")
+        val client: OidcClient = clientResult.result
+    }
+}
+```
+
+#### Create a Credential
+
+The Credential type handles storage, OAuth conveniences and signing requests to your Resource Server after login occurs. Before authenticating, we'll create the credential.
+
+```kotlin
+import com.okta.authfoundation.client.OidcClient
+import com.okta.authfoundation.credential.Credential
+import com.okta.authfoundation.credential.CredentialDataSource.Companion.credentialDataSource
+
+val credentialDataSource = oidcClient.credentialDataSource()
+val credential: Credential = credentialDataSource.create()
+```
+
+#### Create a Web Authentication Client
+
+Once you've created your `Credential`, we'll use it to create our `WebAuthenticationClient` and authenticate.
+
+This launches a [Chrome Custom Tab][https://developer.chrome.com/docs/android/custom-tabs/] to display the login form, and once complete, redirects back to the application.
+
+```kotlin
+import android.content.Context
+import com.okta.authfoundation.credential.Credential
+import com.okta.oauth2.AuthorizationCodeFlow
+import com.okta.webauthenticationui.WebAuthenticationClient
+import com.okta.webauthenticationui.WebAuthenticationClient.Companion.webAuthenticationClient
+
+val context: Context = TODO("Available from previous steps.")
+val credential: Credential = TODO("Available from previous steps.")
+val webAuthenticationClient = credential.oidcClient.webAuthenticationClient()
+when (val result = webAuthenticationClient.login(context)) {
+    is WebAuthenticationClient.LoginResult.Error -> {
+        // Timber.e(result.exception, "Failed to start login flow.")
+        // TODO: Display an error to the user.
+    }
+    is WebAuthenticationClient.LoginResult.Success -> {
+        // TODO: Store the AuthorizationCodeFlow.Context in an instance variable, and wait for the application redirect to be called.
+        // val authorizationCodeFlowContext: AuthorizationCodeFlow.Context = result.flowContext
+    }
+}
+```
+
+Next we need to be sure our application handles the redirect. Add the following `<intent-filter>` to your `AndroidManifest.xml`:
+
+Note: you'll need to replace the `{RedirectActivity}` and `{oktaIdxRedirectScheme}` listed below.
+
+```xml
+<activity
+    android:name=".{RedirectActivity}"
+    android:autoRemoveFromRecents="true"
+    android:exported="true"
+    android:launchMode="singleInstance">
+    <intent-filter>
+        <action android:name="android.intent.action.VIEW" />
+
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.BROWSABLE" />
+
+        <data android:scheme="{oktaIdxRedirectScheme}" />
+    </intent-filter>
+</activity>
+```
+
+Next once the redirect happens, pass the `Uri` to the SDK to finish the authentication process.
+
+```kotlin
+import android.net.Uri
+import com.okta.authfoundation.credential.Credential
+import com.okta.oauth2.AuthorizationCodeFlow
+import com.okta.webauthenticationui.WebAuthenticationClient.Companion.webAuthenticationClient
+
+val uri: Uri = TODO("Available from previous steps.")
+val credential: Credential = TODO("Available from previous steps.")
+val authorizationCodeFlowContext: AuthorizationCodeFlow.Context = TODO("Available from previous steps.")
+
+when (val result = credential.oidcClient.webAuthenticationClient().resume(uri, authorizationCodeFlowContext)) {
+    is AuthorizationCodeFlow.Result.Error -> {
+        // Show the error the user using `result.message`.
+    }
+    AuthorizationCodeFlow.Result.MissingResultCode -> {
+        // Show an error to the user.
+    }
+    AuthorizationCodeFlow.Result.RedirectSchemeMismatch -> {
+        // Show an error to the user.
+    }
+    is AuthorizationCodeFlow.Result.Token -> {
+        // The credential instance now has a token! You can use the `Credential` to make calls to OAuth endpoints, or to sign requests!
+    }
+}
+```
+
+## Contributing
+
+We are happy to accept contributions and PRs! Please see the [contribution guide](CONTRIBUTING.md) to understand how to structure a contribution.
+
+[devforum]: https://devforum.okta.com/
+[github-issues]: https://github.com/okta/okta-mobile-kotlin/issues
+[github-releases]: https://github.com/okta/okta-mobile-kotlin/releases
+[Rate Limiting at Okta]: https://developer.okta.com/docs/api/getting_started/rate-limits
+[okta-library-versioning]: https://developer.okta.com/code/library-versions
