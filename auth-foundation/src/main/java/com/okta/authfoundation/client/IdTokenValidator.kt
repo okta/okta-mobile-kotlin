@@ -15,6 +15,7 @@
  */
 package com.okta.authfoundation.client
 
+import com.okta.authfoundation.client.internal.endpointsOrNull
 import com.okta.authfoundation.jwt.Jwt
 import com.okta.authfoundation.credential.Token
 import kotlinx.serialization.SerialName
@@ -39,7 +40,7 @@ internal class DefaultIdTokenValidator : IdTokenValidator {
     override suspend fun validate(oidcClient: OidcClient, idToken: Jwt) {
         val idTokenPayload = idToken.payload(IdTokenValidationPayload.serializer())
 
-        if (idTokenPayload.iss != oidcClient.endpoints.issuer.toString()) {
+        if (idTokenPayload.iss != oidcClient.endpointsOrNull()?.issuer.toString()) {
             throw IllegalStateException("Invalid issuer.")
         }
         if (idTokenPayload.aud != oidcClient.configuration.clientId) {

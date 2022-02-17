@@ -57,13 +57,13 @@ class WebAuthenticationClient private constructor(
      */
     sealed class LoginResult {
         /**
-         * A successful result, indicating the flow should continue via the [AuthorizationCodeFlow.Context].
+         * A successful result, indicating the flow should continue via the [AuthorizationCodeFlow.ResumeResult.Context].
          */
         class Success internal constructor(
             /**
-             * The [AuthorizationCodeFlow.Context] associated with a successful launch of the login flow.
+             * The [AuthorizationCodeFlow.ResumeResult.Context] associated with a successful launch of the login flow.
              */
-            val flowContext: AuthorizationCodeFlow.Context,
+            val flowContext: AuthorizationCodeFlow.ResumeResult.Context,
         ) : LoginResult()
 
         /**
@@ -75,6 +75,11 @@ class WebAuthenticationClient private constructor(
              */
             val exception: Exception? = null,
         ) : LoginResult()
+
+        /**
+         * An error that occurs when the [OidcClient] hasn't been properly configured, or a network error occurs.
+         */
+        object EndpointsNotAvailable : LoginResult()
     }
 
     /**
@@ -82,13 +87,13 @@ class WebAuthenticationClient private constructor(
      */
     sealed class LogoutResult {
         /**
-         * A successful result, indicating the flow should continue via the [RedirectEndSessionFlow.Context].
+         * A successful result, indicating the flow should continue via the [RedirectEndSessionFlow.ResumeResult.Context].
          */
         class Success internal constructor(
             /**
-             * The [RedirectEndSessionFlow.Context] associated with a successful launch of the Logout flow.
+             * The [RedirectEndSessionFlow.ResumeResult.Context] associated with a successful launch of the Logout flow.
              */
-            val flowContext: RedirectEndSessionFlow.Context,
+            val flowContext: RedirectEndSessionFlow.ResumeResult.Context,
         ) : LogoutResult()
 
         /**
@@ -100,6 +105,11 @@ class WebAuthenticationClient private constructor(
              */
             val exception: Exception? = null,
         ) : LogoutResult()
+
+        /**
+         * An error that occurs when the [OidcClient] hasn't been properly configured, or a network error occurs.
+         */
+        object EndpointsNotAvailable : LogoutResult()
     }
 
     private val authorizationCodeFlow: AuthorizationCodeFlow = oidcClient.authorizationCodeFlow()
@@ -114,17 +124,23 @@ class WebAuthenticationClient private constructor(
      * [WebAuthenticationProvider].
      * @param scopes the scopes to request during sign in. Defaults to the configured [OidcClient] [OidcConfiguration.defaultScopes].
      */
-    fun login(
+    suspend fun login(
         context: Context,
         scopes: Set<String> = oidcClient.configuration.defaultScopes,
     ): LoginResult {
-        val flowContext = authorizationCodeFlow.start(scopes)
-        when (val exception = webAuthenticationProvider.launch(context, flowContext.url)) {
-            null -> {
-                return LoginResult.Success(flowContext)
+        when (val result = authorizationCodeFlow.start(scopes)) {
+            is AuthorizationCodeFlow.ResumeResult.Context -> {
+                when (val exception = webAuthenticationProvider.launch(context, result.url)) {
+                    null -> {
+                        return LoginResult.Success(result)
+                    }
+                    else -> {
+                        return LoginResult.Error(exception)
+                    }
+                }
             }
-            else -> {
-                return LoginResult.Error(exception)
+            AuthorizationCodeFlow.ResumeResult.EndpointsNotAvailable -> {
+                return LoginResult.EndpointsNotAvailable
             }
         }
     }
@@ -133,11 +149,11 @@ class WebAuthenticationClient private constructor(
      * Resumes the OIDC Authorization Code redirect flow.
      *
      * @param uri the redirect [Uri] which includes the authorization code to complete the flow.
-     * @param flowContext the [AuthorizationCodeFlow.Context] used internally to maintain state.
+     * @param flowContext the [AuthorizationCodeFlow.ResumeResult.Context] used internally to maintain state.
      */
     suspend fun resume(
         uri: Uri,
-        flowContext: AuthorizationCodeFlow.Context,
+        flowContext: AuthorizationCodeFlow.ResumeResult.Context,
     ): AuthorizationCodeFlow.Result {
         return authorizationCodeFlow.resume(uri, flowContext)
     }
@@ -151,14 +167,20 @@ class WebAuthenticationClient private constructor(
      * [WebAuthenticationProvider].
      * @param idToken the token used to identify the session to log the user out of.
      */
-    fun logout(context: Context, idToken: String): LogoutResult {
-        val flowContext = redirectEndSessionFlow.start(idToken)
-        when (val exception = webAuthenticationProvider.launch(context, flowContext.url)) {
-            null -> {
-                return LogoutResult.Success(flowContext)
+    suspend fun logout(context: Context, idToken: String): LogoutResult {
+        when (val result = redirectEndSessionFlow.start(idToken)) {
+            is RedirectEndSessionFlow.ResumeResult.Context -> {
+                when (val exception = webAuthenticationProvider.launch(context, result.url)) {
+                    null -> {
+                        return LogoutResult.Success(result)
+                    }
+                    else -> {
+                        return LogoutResult.Error(exception)
+                    }
+                }
             }
-            else -> {
-                return LogoutResult.Error(exception)
+            RedirectEndSessionFlow.ResumeResult.EndpointsNotAvailable -> {
+                return LogoutResult.EndpointsNotAvailable
             }
         }
     }
@@ -167,9 +189,9 @@ class WebAuthenticationClient private constructor(
      * Resumes the OIDC logout redirect flow.
      *
      * @param uri the redirect [Uri] to complete the flow.
-     * @param flowContext the [RedirectEndSessionFlow.Context] used internally to maintain state.
+     * @param flowContext the [RedirectEndSessionFlow.ResumeResult.Context] used internally to maintain state.
      */
-    fun resume(uri: Uri, flowContext: RedirectEndSessionFlow.Context): RedirectEndSessionFlow.Result {
+    fun resume(uri: Uri, flowContext: RedirectEndSessionFlow.ResumeResult.Context): RedirectEndSessionFlow.Result {
         return redirectEndSessionFlow.resume(uri, flowContext)
     }
 }

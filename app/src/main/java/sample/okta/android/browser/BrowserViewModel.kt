@@ -30,7 +30,7 @@ import sample.okta.android.SocialRedirectCoordinator
 import timber.log.Timber
 
 class BrowserViewModel : ViewModel() {
-    private var authorizationCodeFlowContext: AuthorizationCodeFlow.Context? = null
+    private var authorizationCodeFlowContext: AuthorizationCodeFlow.ResumeResult.Context? = null
 
     private val _state = MutableLiveData<BrowserState>(BrowserState.Idle)
     val state: LiveData<BrowserState> = _state
@@ -49,13 +49,19 @@ class BrowserViewModel : ViewModel() {
         if (addDeviceSsoScope) {
             scopes = scopes + setOf("device_sso")
         }
-        when (val result = webAuthenticationClient.login(context, scopes)) {
-            is WebAuthenticationClient.LoginResult.Error -> {
-                Timber.e(result.exception, "Failed to start login flow.")
-                _state.value = BrowserState.Error("Failed to start login flow.")
-            }
-            is WebAuthenticationClient.LoginResult.Success -> {
-                authorizationCodeFlowContext = result.flowContext
+        viewModelScope.launch {
+            when (val result = webAuthenticationClient.login(context, scopes)) {
+                is WebAuthenticationClient.LoginResult.Error -> {
+                    Timber.e(result.exception, "Failed to start login flow.")
+                    _state.value = BrowserState.Error("Failed to start login flow.")
+                }
+                is WebAuthenticationClient.LoginResult.Success -> {
+                    authorizationCodeFlowContext = result.flowContext
+                }
+                WebAuthenticationClient.LoginResult.EndpointsNotAvailable -> {
+                    Timber.e("Failed to start login flow. Check OidcClient configuration.")
+                    _state.value = BrowserState.Error("Failed to start login flow. Check OidcClient configuration.")
+                }
             }
         }
     }

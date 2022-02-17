@@ -19,6 +19,7 @@ import android.net.Uri
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundation.client.OidcConfiguration
+import com.okta.authfoundation.client.internal.endpointsOrNull
 import com.okta.authfoundation.client.internal.internalTokenRequest
 import com.okta.authfoundation.credential.Token as CredentialToken
 import com.okta.oauth2.events.CustomizeAuthorizationUrlEvent
@@ -47,16 +48,26 @@ class AuthorizationCodeFlow private constructor(
     }
 
     /**
-     * A model representing the context and current state for an authorization session.
+     * A model representing all the possible states of a [AuthorizationCodeFlow.resume] call.
      */
-    class Context internal constructor(
+    sealed class ResumeResult {
         /**
-         * The current authentication Url.
+         * An error that occurs when the [OidcClient] hasn't been properly configured, or a network error occurs.
          */
-        val url: HttpUrl,
-        internal val codeVerifier: String,
-        internal val state: String,
-    )
+        object EndpointsNotAvailable : ResumeResult()
+
+        /**
+         * A model representing the context and current state for an authorization session.
+         */
+        class Context internal constructor(
+            /**
+             * The current authentication Url.
+             */
+            val url: HttpUrl,
+            internal val codeVerifier: String,
+            internal val state: String,
+        ) : ResumeResult()
+    }
 
     /**
      * A model representing all possible states of a [AuthorizationCodeFlow.resume] call.
@@ -108,18 +119,20 @@ class AuthorizationCodeFlow private constructor(
      *
      * @param scopes the scopes to request during sign in. Defaults to the configured [OidcClient] [OidcConfiguration.defaultScopes].
      */
-    fun start(
+    suspend fun start(
         scopes: Set<String> = oidcClient.configuration.defaultScopes,
-    ): Context {
+    ): ResumeResult {
         return start(PkceGenerator.codeVerifier(), UUID.randomUUID().toString(), scopes)
     }
 
-    internal fun start(
+    internal suspend fun start(
         codeVerifier: String,
         state: String,
         scopes: Set<String>
-    ): Context {
-        val urlBuilder = oidcClient.endpoints.authorizationEndpoint.newBuilder()
+    ): ResumeResult {
+        val endpoints = oidcClient.endpointsOrNull() ?: return ResumeResult.EndpointsNotAvailable
+
+        val urlBuilder = endpoints.authorizationEndpoint.newBuilder()
         urlBuilder.addQueryParameter("code_challenge", PkceGenerator.codeChallenge(codeVerifier))
         urlBuilder.addQueryParameter("code_challenge_method", PkceGenerator.CODE_CHALLENGE_METHOD)
         urlBuilder.addQueryParameter("client_id", oidcClient.configuration.clientId)
@@ -131,7 +144,7 @@ class AuthorizationCodeFlow private constructor(
         val event = CustomizeAuthorizationUrlEvent(urlBuilder)
         oidcClient.configuration.eventCoordinator.sendEvent(event)
 
-        return Context(urlBuilder.build(), codeVerifier, state)
+        return ResumeResult.Context(urlBuilder.build(), codeVerifier, state)
     }
 
     /**
@@ -139,9 +152,9 @@ class AuthorizationCodeFlow private constructor(
      * This method takes the returned redirect [Uri], and communicates with the Authorization Server to exchange that for a token.
      *
      * @param uri the redirect [Uri] which includes the authorization code to complete the flow.
-     * @param flowContext the [AuthorizationCodeFlow.Context] used internally to maintain state.
+     * @param flowContext the [AuthorizationCodeFlow.ResumeResult.Context] used internally to maintain state.
      */
-    suspend fun resume(uri: Uri, flowContext: Context): Result {
+    suspend fun resume(uri: Uri, flowContext: ResumeResult.Context): Result {
         if (!uri.toString().startsWith(oidcClient.configuration.signInRedirectUri)) {
             return Result.RedirectSchemeMismatch
         }
@@ -160,6 +173,8 @@ class AuthorizationCodeFlow private constructor(
 
         val code = uri.getQueryParameter("code") ?: return Result.MissingResultCode
 
+        val endpoints = oidcClient.endpointsOrNull() ?: return Result.Error("Endpoints not available.")
+
         val formBodyBuilder = FormBody.Builder()
             .add("redirect_uri", oidcClient.configuration.signInRedirectUri)
             .add("code_verifier", flowContext.codeVerifier)
@@ -169,7 +184,7 @@ class AuthorizationCodeFlow private constructor(
 
         val request = Request.Builder()
             .post(formBodyBuilder.build())
-            .url(oidcClient.endpoints.tokenEndpoint)
+            .url(endpoints.tokenEndpoint)
             .build()
 
         return when (val tokenResult = oidcClient.internalTokenRequest(request)) {

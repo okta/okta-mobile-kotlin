@@ -44,11 +44,11 @@ class OidcClientTest {
         ) { response ->
             response.testBodyFromFile("$mockPrefix/endpoints.json")
         }
-        val result = OidcClient.create(
+        val client = OidcClient.createFromDiscoveryUrl(
             oktaRule.configuration,
             oktaRule.baseUrl.newBuilder().encodedPath("/.well-known/openid-configuration").build()
         )
-        val endpoints = (result as OidcClientResult.Success<OidcClient>).result.endpoints
+        val endpoints = (client.endpoints.get() as OidcClientResult.Success<OidcEndpoints>).result
         assertThat(endpoints.issuer).isEqualTo("https://example.okta.com/oauth2/default".toHttpUrl())
         assertThat(endpoints.authorizationEndpoint).isEqualTo("https://example.okta.com/oauth2/default/v1/authorize".toHttpUrl())
         assertThat(endpoints.tokenEndpoint).isEqualTo("https://example.okta.com/oauth2/default/v1/token".toHttpUrl())
@@ -64,11 +64,11 @@ class OidcClientTest {
         oktaRule.enqueue(path("/.well-known/openid-configuration")) { response ->
             response.setResponseCode(503)
         }
-        val result = OidcClient.create(
+        val client = OidcClient.createFromDiscoveryUrl(
             oktaRule.configuration,
             oktaRule.baseUrl.newBuilder().encodedPath("/.well-known/openid-configuration").build()
         )
-        val errorResult = (result as OidcClientResult.Error<OidcClient>)
+        val errorResult = (client.endpoints.get() as OidcClientResult.Error<OidcEndpoints>)
         assertThat(errorResult.exception).isInstanceOf(IOException::class.java)
         assertThat(errorResult.exception).hasMessageThat().isEqualTo("Request failed.")
     }

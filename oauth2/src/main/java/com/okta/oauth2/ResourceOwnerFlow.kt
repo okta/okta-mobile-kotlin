@@ -17,6 +17,7 @@ package com.okta.oauth2
 
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcClientResult
+import com.okta.authfoundation.client.internal.endpointsOrNull
 import com.okta.authfoundation.client.internal.internalTokenRequest
 import com.okta.authfoundation.credential.Token as CredentialToken
 import okhttp3.FormBody
@@ -41,6 +42,8 @@ class ResourceOwnerFlow private constructor(
         password: String,
         scopes: Set<String> = oidcClient.configuration.defaultScopes,
     ): Result {
+        val endpoints = oidcClient.endpointsOrNull() ?: return Result.Error("Endpoints not available.")
+
         val formBodyBuilder = FormBody.Builder()
             .add("username", username)
             .add("password", password)
@@ -50,7 +53,7 @@ class ResourceOwnerFlow private constructor(
 
         val request = Request.Builder()
             .post(formBodyBuilder.build())
-            .url(oidcClient.endpoints.tokenEndpoint)
+            .url(endpoints.tokenEndpoint)
             .build()
 
         return when (val tokenResult = oidcClient.internalTokenRequest(request)) {
