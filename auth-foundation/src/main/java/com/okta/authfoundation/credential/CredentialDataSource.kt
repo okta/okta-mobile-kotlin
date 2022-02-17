@@ -18,11 +18,7 @@ package com.okta.authfoundation.credential
 import com.okta.authfoundation.OktaSdkDefaults
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.credential.events.CredentialCreatedEvent
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.CoroutineStart
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.async
-import kotlinx.coroutines.withContext
+import com.okta.authfoundation.util.CoalescingOrchestrator
 import java.util.Collections
 import java.util.UUID
 
@@ -49,46 +45,16 @@ class CredentialDataSource internal constructor(
         }
     }
 
-    private val _credentials: MutableList<Credential> = Collections.synchronizedList(mutableListOf())
-    @Volatile private var credentialsInitialized: Boolean = false
+    private val credentials = CoalescingOrchestrator(
+        factory = ::fetchCredentialsFromStorage,
+        keepDataInMemory = { true },
+    )
 
-    private val credentialsLock: Any = Any()
-    @Volatile private var deferredCredentials: Deferred<MutableList<Credential>>? = null
-
-    private suspend fun credentials(): MutableList<Credential> {
-        if (credentialsInitialized) {
-            return _credentials
-        }
-        return withContext(oidcClient.configuration.ioDispatcher) {
-            val deferred: Deferred<MutableList<Credential>>
-            synchronized(credentialsLock) {
-                if (credentialsInitialized) {
-                    return@withContext _credentials
-                }
-                val localDeferred = deferredCredentials
-                if (localDeferred != null) {
-                    deferred = localDeferred
-                } else {
-                    deferred = loadCredentialsAsync(this@withContext)
-                    deferredCredentials = deferred
-                }
-            }
-            deferred.await()
-        }
-    }
-
-    private fun loadCredentialsAsync(scope: CoroutineScope): Deferred<MutableList<Credential>> {
-        return scope.async(start = CoroutineStart.LAZY) {
-            val result = storage.entries().map {
-                val metadataCopy = it.metadata.toMap() // Making a defensive copy, so it's not modified outside our control.
-                Credential(oidcClient, storage, this@CredentialDataSource, it.identifier, it.token, metadataCopy)
-            }.toMutableList()
-            synchronized(credentialsLock) {
-                _credentials += result
-                credentialsInitialized = true
-            }
-            _credentials
-        }
+    private suspend fun fetchCredentialsFromStorage(): MutableList<Credential> {
+        return Collections.synchronizedList(storage.entries().map {
+            val metadataCopy = it.metadata.toMap() // Making a defensive copy, so it's not modified outside our control.
+            Credential(oidcClient, storage, this, it.identifier, it.token, metadataCopy)
+        }.toMutableList())
     }
 
     /**
@@ -97,7 +63,7 @@ class CredentialDataSource internal constructor(
     suspend fun create(): Credential {
         val storageIdentifier = UUID.randomUUID().toString()
         val credential = Credential(oidcClient, storage, this, storageIdentifier)
-        credentials().add(credential)
+        credentials.get().add(credential)
         storage.add(storageIdentifier)
         oidcClient.configuration.eventCoordinator.sendEvent(CredentialCreatedEvent(credential))
         return credential
@@ -107,10 +73,10 @@ class CredentialDataSource internal constructor(
      * Returns all of the [Credential]s stored in the associated [TokenStorage].
      */
     suspend fun all(): List<Credential> {
-        return credentials().toMutableList() // Making a defensive copy, so it's not modified outside our control.
+        return credentials.get().toMutableList() // Making a defensive copy, so it's not modified outside our control.
     }
 
     internal suspend fun remove(credential: Credential) {
-        credentials().remove(credential)
+        credentials.get().remove(credential)
     }
 }
