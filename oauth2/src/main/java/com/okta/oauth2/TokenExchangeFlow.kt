@@ -17,6 +17,7 @@ package com.okta.oauth2
 
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcClientResult
+import com.okta.authfoundation.client.internal.endpointsOrNull
 import com.okta.authfoundation.client.internal.internalTokenRequest
 import com.okta.authfoundation.credential.Token as CredentialToken
 import okhttp3.FormBody
@@ -43,6 +44,8 @@ class TokenExchangeFlow private constructor(
         audience: String = "api://default",
         scopes: Set<String> = oidcClient.configuration.defaultScopes,
     ): Result {
+        val endpoints = oidcClient.endpointsOrNull() ?: return Result.Error("Endpoints not available.")
+
         val formBodyBuilder = FormBody.Builder()
             .add("audience", audience)
             .add("subject_token_type", "urn:ietf:params:oauth:token-type:id_token")
@@ -55,7 +58,7 @@ class TokenExchangeFlow private constructor(
 
         val request = Request.Builder()
             .post(formBodyBuilder.build())
-            .url(oidcClient.endpoints.tokenEndpoint)
+            .url(endpoints.tokenEndpoint)
             .build()
 
         return when (val tokenResult = oidcClient.internalTokenRequest(request)) {

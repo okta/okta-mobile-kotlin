@@ -64,7 +64,7 @@ class OktaRule(
             revocationEndpoint = urlBuilder.encodedPath("/oauth2/default/v1/revoke").build(),
             endSessionEndpoint = urlBuilder.encodedPath("/oauth2/default/v1/logout").build(),
         )
-        return OidcClient(configuration, endpoints)
+        return OidcClient.create(configuration, endpoints)
     }
 
     override fun apply(base: Statement, description: Description): Statement {

@@ -44,7 +44,7 @@ internal class DashboardViewModel(private val credentialMetadataNameValue: Strin
     private val _credentialLiveData = MutableLiveData<Credential>()
     val credentialLiveData: LiveData<Credential> = _credentialLiveData
 
-    private var logoutFlowContext: RedirectEndSessionFlow.Context? = null
+    private var logoutFlowContext: RedirectEndSessionFlow.ResumeResult.Context? = null
 
     var lastButtonId: Int = 0
     private var lastRequestJob: Job? = null
@@ -128,6 +128,10 @@ internal class DashboardViewModel(private val credentialMetadataNameValue: Strin
                 }
                 is WebAuthenticationClient.LogoutResult.Success -> {
                     logoutFlowContext = result.flowContext
+                }
+                WebAuthenticationClient.LogoutResult.EndpointsNotAvailable -> {
+                    Timber.e("Failed to start logout flow. Check OidcClient configuration.")
+                    _requestStateLiveData.value = RequestState.Result("Failed to start logout flow. Check OidcClient configuration.")
                 }
             }
         }

@@ -17,6 +17,7 @@ package com.okta.oauth2
 
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcClientResult
+import com.okta.authfoundation.client.internal.endpointsOrNull
 import com.okta.authfoundation.client.internal.internalTokenRequest
 import com.okta.authfoundation.client.internal.performRequest
 import kotlinx.coroutines.delay
@@ -67,7 +68,9 @@ class DeviceAuthorizationFlow private constructor(
     suspend fun start(
         scopes: Set<String> = oidcClient.configuration.defaultScopes,
     ): StartResult {
-        val deviceAuthorizationEndpoint = oidcClient.endpoints.deviceAuthorizationEndpoint
+        val endpoints = oidcClient.endpointsOrNull() ?: return StartResult.Error("Endpoints not available.")
+
+        val deviceAuthorizationEndpoint = endpoints.deviceAuthorizationEndpoint
             ?: return StartResult.Error("Device authorization endpoint is null.")
 
         val formBodyBuilder = FormBody.Builder()
@@ -91,6 +94,8 @@ class DeviceAuthorizationFlow private constructor(
     }
 
     suspend fun resume(flowContext: Context): ResumeResult {
+        val endpoints = oidcClient.endpointsOrNull() ?: return ResumeResult.Error("Endpoints not available.")
+
         val formBodyBuilder = FormBody.Builder()
             .add("client_id", oidcClient.configuration.clientId)
             .add("device_code", flowContext.deviceCode)
@@ -98,7 +103,7 @@ class DeviceAuthorizationFlow private constructor(
 
         val request = Request.Builder()
             .post(formBodyBuilder.build())
-            .url(oidcClient.endpoints.tokenEndpoint)
+            .url(endpoints.tokenEndpoint)
             .build()
 
         var timeLeft = flowContext.expiresIn

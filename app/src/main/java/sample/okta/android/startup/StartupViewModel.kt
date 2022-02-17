@@ -20,14 +20,12 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.okta.authfoundation.client.OidcClient
-import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.credential.CredentialDataSource.Companion.credentialDataSource
 import kotlinx.coroutines.launch
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import sample.okta.android.BuildConfig
 import sample.okta.android.OktaHelper
-import timber.log.Timber
 
 internal class StartupViewModel : ViewModel() {
     companion object {
@@ -41,7 +39,7 @@ internal class StartupViewModel : ViewModel() {
         startup()
     }
 
-    fun startup() {
+    private fun startup() {
         if (OktaHelper.isInitialized()) {
             _state.value = StartupState.Complete
             return
@@ -56,39 +54,30 @@ internal class StartupViewModel : ViewModel() {
                 signInRedirectUri = BuildConfig.SIGN_IN_REDIRECT_URI,
                 signOutRedirectUri = BuildConfig.SIGN_OUT_REDIRECT_URI,
             )
-            when (val clientResult = OidcClient.create(
+            val oidcClient = OidcClient.createFromDiscoveryUrl(
                 oidcConfiguration,
                 "${BuildConfig.ISSUER}/.well-known/openid-configuration".toHttpUrl(),
-            )) {
-                is OidcClientResult.Error -> {
-                    Timber.e(clientResult.exception, "Failed to create client")
-                    _state.value = StartupState.Error("Failed to create client.")
-                }
-                is OidcClientResult.Success -> {
-                    val oidcClient = clientResult.result
-                    val credentialDataSource = oidcClient.credentialDataSource()
-                    OktaHelper.credentialDataSource = credentialDataSource
-                    val credential = credentialDataSource.all().firstOrNull { credential ->
-                        credential.metadata[OktaHelper.CREDENTIAL_NAME_METADATA_KEY] == DEFAULT_CREDENTIAL_NAME_METADATA_VALUE
-                    } ?: credentialDataSource.create()
-                    OktaHelper.defaultCredential = credential
-                    OktaHelper.defaultCredential.storeToken(
-                        metadata = mapOf(
-                            Pair(
-                                OktaHelper.CREDENTIAL_NAME_METADATA_KEY,
-                                DEFAULT_CREDENTIAL_NAME_METADATA_VALUE
-                            )
-                        )
+            )
+            val credentialDataSource = oidcClient.credentialDataSource()
+            OktaHelper.credentialDataSource = credentialDataSource
+            val credential = credentialDataSource.all().firstOrNull { credential ->
+                credential.metadata[OktaHelper.CREDENTIAL_NAME_METADATA_KEY] == DEFAULT_CREDENTIAL_NAME_METADATA_VALUE
+            } ?: credentialDataSource.create()
+            OktaHelper.defaultCredential = credential
+            OktaHelper.defaultCredential.storeToken(
+                metadata = mapOf(
+                    Pair(
+                        OktaHelper.CREDENTIAL_NAME_METADATA_KEY,
+                        DEFAULT_CREDENTIAL_NAME_METADATA_VALUE
                     )
-                    _state.value = StartupState.Complete
-                }
-            }
+                )
+            )
+            _state.value = StartupState.Complete
         }
     }
 }
 
 sealed class StartupState {
     object Loading : StartupState()
-    data class Error(val message: String) : StartupState()
     object Complete : StartupState()
 }

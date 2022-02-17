@@ -35,6 +35,13 @@ sealed class OidcClientResult<T> {
             /** The error description returned by the Authorization Server. */
             val errorDescription: String?,
         ) : Exception()
+
+        /**
+         * The response failed due to no [OidcEndpoints].
+         *
+         * This can happen due to a misconfigured setup, or just a common HTTP error.
+         */
+        class OidcEndpointsNotAvailableException internal constructor(): Exception()
     }
 
     /** Success with the expected result. */

@@ -39,11 +39,13 @@ class CredentialDataSourceTest {
 
     @Test fun testCreate(): Unit = runBlocking {
         val tokenStorage = spy(OktaSdkDefaults.defaultStorage())
-        val dataSource = oktaRule.createOidcClient().credentialDataSource(tokenStorage)
+        val oidcClient = oktaRule.createOidcClient()
+        val dataSource = oidcClient.credentialDataSource(tokenStorage)
         val credential = dataSource.create()
         assertThat(credential.token).isNull()
         assertThat(credential.metadata).isEmpty()
-        assertThat(credential.oidcClient.credential).isEqualTo(credential)
+        assertThat(credential.oidcClient.credential).isSameInstanceAs(credential)
+        assertThat(credential.oidcClient.endpoints).isSameInstanceAs(oidcClient.endpoints)
         verify(tokenStorage).add(any())
     }
 

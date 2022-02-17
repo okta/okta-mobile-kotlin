@@ -17,12 +17,14 @@ package com.okta.authfoundation.client
 
 import com.okta.authfoundation.client.dto.OidcIntrospectInfo
 import com.okta.authfoundation.client.dto.OidcUserInfo
+import com.okta.authfoundation.client.internal.endpointsOrNull
 import com.okta.authfoundation.client.internal.internalTokenRequest
 import com.okta.authfoundation.client.internal.performRequest
 import com.okta.authfoundation.client.internal.performRequestNonJson
 import com.okta.authfoundation.credential.Credential
 import com.okta.authfoundation.credential.Token
 import com.okta.authfoundation.credential.TokenType
+import com.okta.authfoundation.util.CoalescingOrchestrator
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.boolean
@@ -39,14 +41,9 @@ import okhttp3.Request
  */
 class OidcClient private constructor(
     val configuration: OidcConfiguration,
-    val endpoints: OidcEndpoints,
+    internal val endpoints: CoalescingOrchestrator<OidcClientResult<OidcEndpoints>>,
     internal val credential: Credential? = null,
 ) {
-    constructor(
-        configuration: OidcConfiguration,
-        endpoints: OidcEndpoints,
-    ) : this(configuration, endpoints, null)
-
     companion object {
         /**
          * Create an [OidcClient], using the discovery url to create the [OidcEndpoints].
@@ -56,21 +53,34 @@ class OidcClient private constructor(
          * @param discoveryUrl the `.well-known/openid-configuration` endpoint associated with the Authorization Server. This is
          *  used to fetch the [OidcEndpoints].
          */
-        suspend fun create(
+        fun createFromDiscoveryUrl(
             configuration: OidcConfiguration,
             discoveryUrl: HttpUrl
-        ): OidcClientResult<OidcClient> {
-            val request = Request.Builder()
-                .url(discoveryUrl)
-                .build()
-            return when (val dtoResult = configuration.performRequest<OidcEndpoints>(request)) {
-                is OidcClientResult.Error -> {
-                    OidcClientResult.Error(dtoResult.exception)
-                }
-                is OidcClientResult.Success -> {
-                    OidcClientResult.Success(OidcClient(configuration, dtoResult.result))
-                }
-            }
+        ): OidcClient {
+            return OidcClient(
+                configuration = configuration,
+                endpoints = CoalescingOrchestrator(
+                    factory = {
+                        val request = Request.Builder()
+                            .url(discoveryUrl)
+                            .build()
+                        configuration.performRequest(request)
+                    },
+                    keepDataInMemory = { result ->
+                        result is OidcClientResult.Success
+                    }
+                ),
+            )
+        }
+
+        fun create(configuration: OidcConfiguration, endpoints: OidcEndpoints): OidcClient {
+            return OidcClient(
+                configuration = configuration,
+                endpoints = CoalescingOrchestrator(
+                    factory = { OidcClientResult.Success(endpoints) },
+                    keepDataInMemory = { true },
+                ),
+            )
         }
     }
 
@@ -79,6 +89,8 @@ class OidcClient private constructor(
     }
 
     suspend fun getUserInfo(accessToken: String): OidcClientResult<OidcUserInfo> {
+        val endpoints = endpointsOrNull() ?: return endpointNotAvailableError()
+
         val request = Request.Builder()
             .addHeader("authorization", "Bearer $accessToken")
             .url(endpoints.userInfoEndpoint)
@@ -99,6 +111,8 @@ class OidcClient private constructor(
         refreshToken: String,
         scopes: Set<String> = configuration.defaultScopes,
     ): OidcClientResult<Token> {
+        val endpoints = endpointsOrNull() ?: return endpointNotAvailableError()
+
         val formBody = FormBody.Builder()
             .add("client_id", configuration.clientId)
             .add("grant_type", "refresh_token")
@@ -120,6 +134,8 @@ class OidcClient private constructor(
      * @param token the token to attempt to revoke.
      */
     suspend fun revokeToken(token: String): OidcClientResult<Unit> {
+        val endpoints = endpointsOrNull() ?: return endpointNotAvailableError()
+
         val formBody = FormBody.Builder()
             .add("client_id", configuration.clientId)
             .add("token", token)
@@ -137,6 +153,8 @@ class OidcClient private constructor(
         tokenType: TokenType,
         token: String,
     ): OidcClientResult<OidcIntrospectInfo> {
+        val endpoints = endpointsOrNull() ?: return endpointNotAvailableError()
+
         val tokenTypeHint: String = when (tokenType) {
             TokenType.ACCESS_TOKEN -> {
                 "access_token"
@@ -167,5 +185,9 @@ class OidcClient private constructor(
             val active = (it["active"] as JsonPrimitive).boolean
             OidcIntrospectInfo(it, active)
         }
+    }
+
+    private fun <T> endpointNotAvailableError(): OidcClientResult.Error<T> {
+        return OidcClientResult.Error(OidcClientResult.Error.OidcEndpointsNotAvailableException())
     }
 }

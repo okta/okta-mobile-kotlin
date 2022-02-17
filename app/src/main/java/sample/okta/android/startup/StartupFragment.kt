@@ -31,18 +31,8 @@ internal class StartupFragment : BaseFragment<FragmentStartupBinding>(
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.tryAgainButton.setOnClickListener {
-            viewModel.startup()
-        }
-
         viewModel.state.observe(viewLifecycleOwner) { state ->
             when (state) {
-                is StartupState.Error -> {
-                    binding.errorTextView.visibility = View.VISIBLE
-                    binding.progress.visibility = View.GONE
-                    binding.errorTextView.text = state.message
-                    binding.tryAgainButton.visibility = View.VISIBLE
-                }
                 StartupState.Complete -> {
                     if (OktaHelper.defaultCredential.token != null) {
                         findNavController().navigate(StartupFragmentDirections.startupToDashboard())
@@ -51,9 +41,7 @@ internal class StartupFragment : BaseFragment<FragmentStartupBinding>(
                     }
                 }
                 StartupState.Loading -> {
-                    binding.errorTextView.visibility = View.GONE
                     binding.progress.visibility = View.VISIBLE
-                    binding.tryAgainButton.visibility = View.GONE
                 }
             }
         }

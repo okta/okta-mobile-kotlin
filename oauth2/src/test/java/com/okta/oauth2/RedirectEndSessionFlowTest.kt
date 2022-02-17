@@ -20,6 +20,7 @@ import com.google.common.truth.Truth.assertThat
 import com.okta.oauth2.RedirectEndSessionFlow.Companion.redirectEndSessionFlow
 import com.okta.oauth2.events.CustomizeLogoutUrlEvent
 import com.okta.testhelpers.OktaRule
+import kotlinx.coroutines.runBlocking
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.junit.Rule
 import org.junit.Test
@@ -30,13 +31,15 @@ import org.robolectric.RobolectricTestRunner
 class RedirectEndSessionFlowTest {
     @get:Rule val oktaRule = OktaRule()
 
-    @Test fun testStart() {
+    @Test fun testStart(): Unit = runBlocking {
         val redirectEndSessionFlow = oktaRule.createOidcClient().redirectEndSessionFlow()
         assertThat(oktaRule.eventHandler).isEmpty()
-        val context = redirectEndSessionFlow.start(
+        val result = redirectEndSessionFlow.start(
             idToken = "exampleIdToken",
             state = "25c1d684-8d30-42e3-acc0-b74b35fd47b4",
         )
+
+        val context = result as RedirectEndSessionFlow.ResumeResult.Context
 
         assertThat(context.state).isEqualTo("25c1d684-8d30-42e3-acc0-b74b35fd47b4")
         val expectedUrlEnding = "/oauth2/default/v1/logout?id_token_hint=exampleIdToken&post_logout_redirect_uri=unitTest%3A%2Flogout&state=25c1d684-8d30-42e3-acc0-b74b35fd47b4"
@@ -49,7 +52,7 @@ class RedirectEndSessionFlowTest {
 
     @Test fun testResume() {
         val redirectEndSessionFlow = oktaRule.createOidcClient().redirectEndSessionFlow()
-        val flowContext = RedirectEndSessionFlow.Context(
+        val flowContext = RedirectEndSessionFlow.ResumeResult.Context(
             state = "25c1d684-8d30-42e3-acc0-b74b35fd47b4",
             url = "https://example.okta.com/not_used".toHttpUrl(),
         )
@@ -62,7 +65,7 @@ class RedirectEndSessionFlowTest {
 
     @Test fun testResumeSchemeMismatch() {
         val redirectEndSessionFlow = oktaRule.createOidcClient().redirectEndSessionFlow()
-        val flowContext = RedirectEndSessionFlow.Context(
+        val flowContext = RedirectEndSessionFlow.ResumeResult.Context(
             state = "25c1d684-8d30-42e3-acc0-b74b35fd47b4",
             url = "https://example.okta.com/not_used".toHttpUrl(),
         )
@@ -75,7 +78,7 @@ class RedirectEndSessionFlowTest {
 
     @Test fun testResumeStateMismatch() {
         val redirectEndSessionFlow = oktaRule.createOidcClient().redirectEndSessionFlow()
-        val flowContext = RedirectEndSessionFlow.Context(
+        val flowContext = RedirectEndSessionFlow.ResumeResult.Context(
             state = "25c1d684-8d30-42e3-acc0-b74b35fd47b4",
             url = "https://example.okta.com/not_used".toHttpUrl(),
         )
@@ -90,7 +93,7 @@ class RedirectEndSessionFlowTest {
 
     @Test fun testResumeError() {
         val redirectEndSessionFlow = oktaRule.createOidcClient().redirectEndSessionFlow()
-        val flowContext = RedirectEndSessionFlow.Context(
+        val flowContext = RedirectEndSessionFlow.ResumeResult.Context(
             state = "25c1d684-8d30-42e3-acc0-b74b35fd47b4",
             url = "https://example.okta.com/not_used".toHttpUrl(),
         )
@@ -105,7 +108,7 @@ class RedirectEndSessionFlowTest {
 
     @Test fun testResumeErrorDescription() {
         val redirectEndSessionFlow = oktaRule.createOidcClient().redirectEndSessionFlow()
-        val flowContext = RedirectEndSessionFlow.Context(
+        val flowContext = RedirectEndSessionFlow.ResumeResult.Context(
             state = "25c1d684-8d30-42e3-acc0-b74b35fd47b4",
             url = "https://example.okta.com/not_used".toHttpUrl(),
         )

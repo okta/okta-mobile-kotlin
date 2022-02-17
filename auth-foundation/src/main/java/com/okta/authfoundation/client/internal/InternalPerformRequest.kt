@@ -17,10 +17,22 @@ package com.okta.authfoundation.client.internal
 
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcClientResult
+import com.okta.authfoundation.client.OidcEndpoints
 import com.okta.authfoundation.client.events.TokenCreatedEvent
 import com.okta.authfoundation.credential.Token
 import com.okta.authfoundation.jwt.JwtParser
 import okhttp3.Request
+
+suspend fun OidcClient.endpointsOrNull(): OidcEndpoints? {
+    return when (val result = endpoints.get()) {
+        is OidcClientResult.Error -> {
+            null
+        }
+        is OidcClientResult.Success -> {
+            result.result
+        }
+    }
+}
 
 suspend fun OidcClient.internalTokenRequest(
     request: Request,

@@ -38,14 +38,16 @@ class AuthorizationCodeFlowTest {
 
     @get:Rule val oktaRule = OktaRule()
 
-    @Test fun testStart() {
+    @Test fun testStart(): Unit = runBlocking {
         val authorizationCodeFlow = oktaRule.createOidcClient().authorizationCodeFlow()
         assertThat(oktaRule.eventHandler).isEmpty()
-        val context = authorizationCodeFlow.start(
+        val result = authorizationCodeFlow.start(
             codeVerifier = "LEadFL0UCCWDlD0cdIiuv7TQfbxOP8OUep0U_xo_3oI",
             state = "25c1d684-8d30-42e3-acc0-b74b35fd47b4",
             scopes = oktaRule.configuration.defaultScopes,
         )
+
+        val context = result as AuthorizationCodeFlow.ResumeResult.Context
 
         assertThat(context.codeVerifier).isEqualTo("LEadFL0UCCWDlD0cdIiuv7TQfbxOP8OUep0U_xo_3oI")
         assertThat(context.state).isEqualTo("25c1d684-8d30-42e3-acc0-b74b35fd47b4")
@@ -69,7 +71,7 @@ class AuthorizationCodeFlowTest {
             response.testBodyFromFile("$mockPrefix/token.json")
         }
         val authorizationCodeFlow = oktaRule.createOidcClient().authorizationCodeFlow()
-        val flowContext = AuthorizationCodeFlow.Context(
+        val flowContext = AuthorizationCodeFlow.ResumeResult.Context(
             url = "https://example.okta.com/not_used".toHttpUrl(),
             codeVerifier = "LEadFL0UCCWDlD0cdIiuv7TQfbxOP8OUep0U_xo_3oI",
             state = "25c1d684-8d30-42e3-acc0-b74b35fd47b4",
@@ -94,7 +96,7 @@ class AuthorizationCodeFlowTest {
             response.setResponseCode(503)
         }
         val authorizationCodeFlow = oktaRule.createOidcClient().authorizationCodeFlow()
-        val flowContext = AuthorizationCodeFlow.Context(
+        val flowContext = AuthorizationCodeFlow.ResumeResult.Context(
             url = "https://example.okta.com/not_used".toHttpUrl(),
             codeVerifier = "LEadFL0UCCWDlD0cdIiuv7TQfbxOP8OUep0U_xo_3oI",
             state = "25c1d684-8d30-42e3-acc0-b74b35fd47b4",
@@ -111,7 +113,7 @@ class AuthorizationCodeFlowTest {
 
     @Test fun testResumeRedirectMismatch(): Unit = runBlocking {
         val authorizationCodeFlow = oktaRule.createOidcClient().authorizationCodeFlow()
-        val flowContext = AuthorizationCodeFlow.Context(
+        val flowContext = AuthorizationCodeFlow.ResumeResult.Context(
             url = "https://example.okta.com/not_used".toHttpUrl(),
             codeVerifier = "LEadFL0UCCWDlD0cdIiuv7TQfbxOP8OUep0U_xo_3oI",
             state = "25c1d684-8d30-42e3-acc0-b74b35fd47b4",
@@ -125,7 +127,7 @@ class AuthorizationCodeFlowTest {
 
     @Test fun testResumeStateMismatch(): Unit = runBlocking {
         val authorizationCodeFlow = oktaRule.createOidcClient().authorizationCodeFlow()
-        val flowContext = AuthorizationCodeFlow.Context(
+        val flowContext = AuthorizationCodeFlow.ResumeResult.Context(
             url = "https://example.okta.com/not_used".toHttpUrl(),
             codeVerifier = "LEadFL0UCCWDlD0cdIiuv7TQfbxOP8OUep0U_xo_3oI",
             state = "25c1d684-8d30-42e3-acc0-b74b35fd47b4",
@@ -140,7 +142,7 @@ class AuthorizationCodeFlowTest {
 
     @Test fun testResumeError(): Unit = runBlocking {
         val authorizationCodeFlow = oktaRule.createOidcClient().authorizationCodeFlow()
-        val flowContext = AuthorizationCodeFlow.Context(
+        val flowContext = AuthorizationCodeFlow.ResumeResult.Context(
             url = "https://example.okta.com/not_used".toHttpUrl(),
             codeVerifier = "LEadFL0UCCWDlD0cdIiuv7TQfbxOP8OUep0U_xo_3oI",
             state = "25c1d684-8d30-42e3-acc0-b74b35fd47b4",
@@ -155,7 +157,7 @@ class AuthorizationCodeFlowTest {
 
     @Test fun testResumeErrorDescription(): Unit = runBlocking {
         val authorizationCodeFlow = oktaRule.createOidcClient().authorizationCodeFlow()
-        val flowContext = AuthorizationCodeFlow.Context(
+        val flowContext = AuthorizationCodeFlow.ResumeResult.Context(
             url = "https://example.okta.com/not_used".toHttpUrl(),
             codeVerifier = "LEadFL0UCCWDlD0cdIiuv7TQfbxOP8OUep0U_xo_3oI",
             state = "25c1d684-8d30-42e3-acc0-b74b35fd47b4",
