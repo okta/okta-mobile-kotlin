@@ -82,7 +82,7 @@ class DeviceAuthorizationFlow private constructor(
             .url(deviceAuthorizationEndpoint)
             .build()
 
-        return when (val result = oidcClient.configuration.performRequest<Response>(request)) {
+        return when (val result = oidcClient.configuration.performRequest(Response.serializer(), request)) {
             is OidcClientResult.Error -> {
                 StartResult.Error("Device authorization request failed.", result.exception)
             }

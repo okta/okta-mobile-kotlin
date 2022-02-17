@@ -37,7 +37,7 @@ suspend fun OidcClient.endpointsOrNull(): OidcEndpoints? {
 suspend fun OidcClient.internalTokenRequest(
     request: Request,
 ): OidcClientResult<Token> {
-    val result = configuration.performRequest<Token>(request)
+    val result = configuration.performRequest(Token.serializer(), request)
     if (result is OidcClientResult.Success) {
         val token = result.result
 
