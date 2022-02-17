@@ -128,6 +128,7 @@ class DefaultWebAuthenticationProviderTest {
         resolveInfo.activityInfo = ActivityInfo()
         resolveInfo.activityInfo.packageName = packageName
         val packageManager = shadowOf(RuntimeEnvironment.getApplication().packageManager)
+        @Suppress("DEPRECATION")
         packageManager.addResolveInfoForIntent(intent, resolveInfo)
     }
 
@@ -138,6 +139,7 @@ class DefaultWebAuthenticationProviderTest {
         resolveInfo.serviceInfo = ServiceInfo()
         resolveInfo.serviceInfo.packageName = packageName
         val packageManager = shadowOf(RuntimeEnvironment.getApplication().packageManager)
+        @Suppress("DEPRECATION")
         packageManager.addResolveInfoForIntent(intent, resolveInfo)
     }
 }

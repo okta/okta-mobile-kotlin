@@ -40,6 +40,7 @@ internal class DashboardFragment : BaseFragment<FragmentDashboardBinding>(
     private val viewModel by viewModels<DashboardViewModel>(factoryProducer = {
         object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                @Suppress("UNCHECKED_CAST")
                 return DashboardViewModel(args.credentialMetadataNameValue) as T
             }
         }

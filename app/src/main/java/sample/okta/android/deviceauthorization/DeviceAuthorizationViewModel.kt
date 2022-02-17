@@ -57,6 +57,9 @@ internal class DeviceAuthorizationViewModel : ViewModel() {
             is DeviceAuthorizationFlow.ResumeResult.Token -> {
                 _state.value = DeviceAuthorizationState.Token
             }
+            DeviceAuthorizationFlow.ResumeResult.Timeout -> {
+                _state.value = DeviceAuthorizationState.Error("Polling timeout")
+            }
         }
     }
 }

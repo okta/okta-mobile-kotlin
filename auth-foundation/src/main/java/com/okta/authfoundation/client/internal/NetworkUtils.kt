@@ -19,6 +19,7 @@ import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundation.client.OidcConfiguration
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.CompletionHandler
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.DeserializationStrategy
@@ -110,6 +111,7 @@ private class ContinuationCallback(
     private val continuation: CancellableContinuation<Response>
 ) : Callback, CompletionHandler {
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     override fun onResponse(call: Call, response: Response) {
         continuation.resume(response, this)
     }
