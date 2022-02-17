@@ -42,7 +42,21 @@ The idx-kotlin SDK embraces the dynamic [policies][dev-docs-policies] of Okta Id
 The SDK attempts to simplify the responses provided by the IDX endpoints, and provide a standard way of interaction with the IDX endpoints.
 This is a high level flowchart of how the idx-kotlin SDK methods would be used by a calling application.
 
-![idx kotlin SDK flowchart](readme_assets/idx-kotlin-flowchart.png)
+```mermaid
+graph TD
+    A(IdxClient.start) --> B(idxClient.resume)
+    B --> C[Gather User Input]
+    C --> D(idxClient.proceed)
+    D --> E{idxResponse.isLoginSuccessful}
+    E --> |yes| F(idxClient.exchangeInteractionCodeForTokens)
+    E --> |no| C
+    F --> G[Use properties from TokenResponse in your application]
+```
+
+Gather User Input Notes:
+- Use [IdxResponse](idx-kotlin/src/main/java/com/okta/idx/kotlin/dto/IdxResponse.kt) properties such as `remediations` and `authenticators` to continue satisfying remediations until the user is logged in
+- Set `value` property in [IdxRemediation.Form.Field](idx-kotlin/src/main/java/com/okta/idx/kotlin/dto/IdxRemediation.kt)
+- Set `selectedOption` property in [IdxRemediation.Form.Field](idx-kotlin/src/main/java/com/okta/idx/kotlin/dto/IdxRemediation.kt)
 
 Notice the cyclical call-and-response pattern. A user is presented with a series of choices in how they can iteratively step through the authentication process, with each step giving way to additional choices until they can either successfully authenticate or receive actionable error messages.
 
