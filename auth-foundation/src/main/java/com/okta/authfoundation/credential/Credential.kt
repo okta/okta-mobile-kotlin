@@ -23,6 +23,8 @@ import com.okta.authfoundation.credential.events.CredentialStoredAfterRemovedEve
 import com.okta.authfoundation.jwt.Jwt
 import com.okta.authfoundation.jwt.JwtParser
 import com.okta.authfoundation.util.CoalescingOrchestrator
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import java.util.Collections
 
 /**
@@ -76,6 +78,11 @@ class Credential internal constructor(
         return oidcClient.getUserInfo(accessToken)
     }
 
+    /**
+     * Performs a call to the Authorization Server to validate if the specified [TokenType] is valid.
+     *
+     * @param tokenType the [TokenType] to check for validity.
+     */
     suspend fun introspectToken(tokenType: TokenType): OidcClientResult<OidcIntrospectInfo> {
         val localToken = token ?: return OidcClientResult.Error(IllegalStateException("No token."))
         val token = when (tokenType) {
@@ -194,4 +201,45 @@ class Credential internal constructor(
         val parser = JwtParser(oidcClient.configuration.json, oidcClient.configuration.computeDispatcher)
         return parser.parse(idToken)
     }
+
+    /**
+     * Checks to see if the current access token is valid, and if it is, returns it.
+     * If there is no [Token] associated with the [Credential], null is returned.
+     *
+     * Access tokens are valid if they haven't expired.
+     *
+     * See [Credential.introspectToken] for checking if the token is valid with the Authorization Server.
+     */
+    suspend fun accessTokenIfValid(): String? {
+        val accessToken = _token?.accessToken ?: return null
+        val parser = JwtParser(oidcClient.configuration.json, oidcClient.configuration.computeDispatcher)
+        val jwt = parser.parse(accessToken)
+        val payload = jwt.payload(AccessTokenExpirationPayload.serializer())
+        if (payload.exp > oidcClient.configuration.clock.currentTimeMillis()) {
+            return accessToken
+        }
+        return null
+    }
+
+    /**
+     * Returns a valid access token if one is present.
+     * If the access token is invalid, and there is a refresh token, a [Token] refresh is attempted via [Credential.refreshToken].
+     * If the refresh results in a valid access token, it is returned.
+     *
+     * See [Credential.accessTokenIfValid] for what makes an access token valid.
+     */
+    suspend fun getValidAccessToken(): String? {
+        accessTokenIfValid()?.let { return it }
+
+        if (refreshToken() is OidcClientResult.Success) {
+            return accessTokenIfValid()
+        } else {
+            return null
+        }
+    }
 }
+
+@Serializable
+private data class AccessTokenExpirationPayload(
+    @SerialName("exp") val exp: Long,
+)
