@@ -64,7 +64,7 @@ class OidcClient private constructor(
                         val request = Request.Builder()
                             .url(discoveryUrl)
                             .build()
-                        configuration.performRequest(request)
+                        configuration.performRequest(OidcEndpoints.serializer(), request)
                     },
                     keepDataInMemory = { result ->
                         result is OidcClientResult.Success
@@ -96,7 +96,7 @@ class OidcClient private constructor(
             .url(endpoints.userInfoEndpoint)
             .build()
 
-        return configuration.performRequest<JsonObject, OidcUserInfo>(request) {
+        return configuration.performRequest(JsonObject.serializer(), request) {
             OidcUserInfo(it)
         }
     }
@@ -181,7 +181,7 @@ class OidcClient private constructor(
             .post(formBody)
             .build()
 
-        return configuration.performRequest<JsonObject, OidcIntrospectInfo>(request) {
+        return configuration.performRequest(JsonObject.serializer(), request) {
             val active = (it["active"] as JsonPrimitive).boolean
             OidcIntrospectInfo(it, active)
         }

@@ -21,6 +21,7 @@ import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.CompletionHandler
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
@@ -31,33 +32,35 @@ import okhttp3.Response
 import java.io.IOException
 import kotlin.coroutines.resumeWithException
 
-suspend inline fun <reified Raw, Dto> OidcConfiguration.performRequest(
+internal suspend fun <Raw, Dto> OidcConfiguration.performRequest(
+    deserializationStrategy: DeserializationStrategy<Raw>,
     request: Request,
-    crossinline responseMapper: (Raw) -> Dto,
+    responseMapper: (Raw) -> Dto,
 ): OidcClientResult<Dto> {
     return internalPerformRequest(request) { okHttpResponse ->
         val responseBody = okHttpResponse.body!!.string()
-        val rawResponse = json.decodeFromString<Raw>(responseBody)
+        val rawResponse = json.decodeFromString(deserializationStrategy, responseBody)
         responseMapper(rawResponse)
     }
 }
 
-suspend inline fun <reified Raw> OidcConfiguration.performRequest(
-    request: Request
+suspend fun <Raw> OidcConfiguration.performRequest(
+    deserializationStrategy: DeserializationStrategy<Raw>,
+    request: Request,
 ): OidcClientResult<Raw> {
     return internalPerformRequest(request) { okHttpResponse ->
         val responseBody = okHttpResponse.body!!.string()
-        json.decodeFromString(responseBody)
+        json.decodeFromString(deserializationStrategy, responseBody)
     }
 }
 
-suspend fun OidcConfiguration.performRequestNonJson(
+internal suspend fun OidcConfiguration.performRequestNonJson(
     request: Request
 ): OidcClientResult<Unit> {
     return internalPerformRequest(request) { }
 }
 
-suspend fun <T> OidcConfiguration.internalPerformRequest(
+internal suspend fun <T> OidcConfiguration.internalPerformRequest(
     request: Request,
     responseHandler: (Response) -> T,
 ): OidcClientResult<T> {
