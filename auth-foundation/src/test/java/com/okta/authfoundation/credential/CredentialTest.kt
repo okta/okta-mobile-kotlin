@@ -167,7 +167,7 @@ class CredentialTest {
         assertThat(result).isInstanceOf(OidcClientResult.Error::class.java)
         val exception = (result as OidcClientResult.Error<Token>).exception
         assertThat(exception).isInstanceOf(IllegalStateException::class.java)
-        assertThat(exception).hasMessageThat().isEqualTo("No Refresh Token.")
+        assertThat(exception).hasMessageThat().isEqualTo("No Token.")
         verifyNoInteractions(tokenStorage)
     }
 
@@ -221,17 +221,6 @@ class CredentialTest {
         assertThat(token.refreshToken).isEqualTo("newRefreshToken")
         assertThat(credential.token!!.refreshToken).isEqualTo("newRefreshToken")
         verify(tokenStorage).replace(any())
-    }
-
-    @Test fun testRefreshTokenUsesSuppliedScope(): Unit = runBlocking {
-        val oidcClient = mock<OidcClient> {
-            onBlocking { refreshToken(any(), any()) } doReturn OidcClientResult.Success(createToken(refreshToken = "newRefreshToken"))
-            on { withCredential(any()) } doReturn it
-            on { configuration } doReturn oktaRule.configuration
-        }
-        val credential = createCredential(token = createToken(refreshToken = "exampleRefreshToken"), oidcClient = oidcClient)
-        credential.refreshToken(scopes = setOf("foo"))
-        verify(oidcClient).refreshToken(eq("exampleRefreshToken"), eq(setOf("foo")))
     }
 
     @Test fun testRefreshTokenPreservesDeviceSecret(): Unit = runBlocking {
