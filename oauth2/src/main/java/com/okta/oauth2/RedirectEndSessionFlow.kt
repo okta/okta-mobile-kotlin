@@ -17,7 +17,6 @@ package com.okta.oauth2
 
 import android.net.Uri
 import com.okta.authfoundation.client.OidcClient
-import com.okta.authfoundation.client.internal.endpointsOrNull
 import com.okta.oauth2.events.CustomizeLogoutUrlEvent
 import okhttp3.HttpUrl
 import java.util.UUID

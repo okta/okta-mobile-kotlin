@@ -15,6 +15,7 @@
  */
 package com.okta.authfoundation.client.internal
 
+import com.okta.authfoundation.InternalAuthFoundationApi
 import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundation.client.OidcConfiguration
 import kotlinx.coroutines.CancellableContinuation
@@ -45,6 +46,7 @@ internal suspend fun <Raw, Dto> OidcConfiguration.performRequest(
     }
 }
 
+@InternalAuthFoundationApi
 suspend fun <Raw> OidcConfiguration.performRequest(
     deserializationStrategy: DeserializationStrategy<Raw>,
     request: Request,

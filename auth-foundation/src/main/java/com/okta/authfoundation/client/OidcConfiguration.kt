@@ -15,6 +15,7 @@
  */
 package com.okta.authfoundation.client
 
+import com.okta.authfoundation.InternalAuthFoundationApi
 import com.okta.authfoundation.OktaSdkDefaults
 import com.okta.authfoundation.events.EventCoordinator
 import kotlinx.coroutines.Dispatchers
@@ -65,7 +66,7 @@ class OidcConfiguration(
     val okHttpCallFactory: Call.Factory = addInterceptor(okHttpCallFactory)
 
     /** The Json object to do the decoding from the okta server responses. */
-    val json: Json = Json { ignoreUnknownKeys = true }
+    @InternalAuthFoundationApi val json: Json = Json { ignoreUnknownKeys = true }
 
     companion object {
         private fun addInterceptor(callFactory: Call.Factory): Call.Factory {

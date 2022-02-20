@@ -15,15 +15,16 @@
  */
 package com.okta.authfoundation.client
 
+import com.okta.authfoundation.InternalAuthFoundationApi
 import com.okta.authfoundation.client.dto.OidcIntrospectInfo
 import com.okta.authfoundation.client.dto.OidcUserInfo
-import com.okta.authfoundation.client.internal.endpointsOrNull
-import com.okta.authfoundation.client.internal.internalTokenRequest
+import com.okta.authfoundation.client.events.TokenCreatedEvent
 import com.okta.authfoundation.client.internal.performRequest
 import com.okta.authfoundation.client.internal.performRequestNonJson
 import com.okta.authfoundation.credential.Credential
 import com.okta.authfoundation.credential.Token
 import com.okta.authfoundation.credential.TokenType
+import com.okta.authfoundation.jwt.JwtParser
 import com.okta.authfoundation.util.CoalescingOrchestrator
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -40,7 +41,7 @@ import okhttp3.Request
  * [Okta Developer Docs][https://developer.okta.com/docs/reference/api/oidc]
  */
 class OidcClient private constructor(
-    val configuration: OidcConfiguration,
+    @property:InternalAuthFoundationApi val configuration: OidcConfiguration,
     internal val endpoints: CoalescingOrchestrator<OidcClientResult<OidcEndpoints>>,
     internal val credential: Credential? = null,
 ) {
@@ -125,7 +126,7 @@ class OidcClient private constructor(
             .post(formBody)
             .build()
 
-        return internalTokenRequest(request)
+        return tokenRequest(request)
     }
 
     /**
@@ -185,6 +186,50 @@ class OidcClient private constructor(
             val active = (it["active"] as JsonPrimitive).boolean
             OidcIntrospectInfo(it, active)
         }
+    }
+
+    @InternalAuthFoundationApi
+    suspend fun endpointsOrNull(): OidcEndpoints? {
+        return when (val result = endpoints.get()) {
+            is OidcClientResult.Error -> {
+                null
+            }
+            is OidcClientResult.Success -> {
+                result.result
+            }
+        }
+    }
+
+    @InternalAuthFoundationApi
+    suspend fun tokenRequest(
+        request: Request,
+    ): OidcClientResult<Token> {
+        val result = configuration.performRequest(Token.serializer(), request)
+        if (result is OidcClientResult.Success) {
+            val token = result.result
+
+            validateIdToken(token)?.let { return it }
+
+            val event = TokenCreatedEvent(token)
+            configuration.eventCoordinator.sendEvent(event)
+            event.runFollowUpTasks()
+
+            credential?.storeToken(token)
+        }
+        return result
+    }
+
+    private suspend fun validateIdToken(token: Token): OidcClientResult<Token>? {
+        try {
+            if (token.idToken != null) {
+                val parser = JwtParser(configuration.json, configuration.computeDispatcher)
+                val jwt = parser.parse(token.idToken)
+                configuration.idTokenValidator.validate(oidcClient = this, idToken = jwt)
+            }
+        } catch (e: Exception) {
+            return OidcClientResult.Error(e)
+        }
+        return null
     }
 
     private fun <T> endpointNotAvailableError(): OidcClientResult.Error<T> {
