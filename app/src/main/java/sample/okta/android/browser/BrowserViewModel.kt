@@ -50,6 +50,8 @@ class BrowserViewModel : ViewModel() {
             scopes = scopes + setOf("device_sso")
         }
         viewModelScope.launch {
+            _state.value = BrowserState.Loading
+
             when (val result = webAuthenticationClient.login(context, scopes)) {
                 is WebAuthenticationClient.LoginResult.Error -> {
                     Timber.e(result.exception, "Failed to start login flow.")
@@ -57,6 +59,7 @@ class BrowserViewModel : ViewModel() {
                 }
                 is WebAuthenticationClient.LoginResult.Success -> {
                     authorizationCodeFlowContext = result.flowContext
+                    _state.value = BrowserState.Idle
                 }
                 WebAuthenticationClient.LoginResult.EndpointsNotAvailable -> {
                     Timber.e("Failed to start login flow. Check OidcClient configuration.")
@@ -68,6 +71,8 @@ class BrowserViewModel : ViewModel() {
 
     fun handleRedirect(uri: Uri) {
         viewModelScope.launch {
+            _state.value = BrowserState.Loading
+
             when (val result =
                 OktaHelper.defaultCredential.oidcClient.webAuthenticationClient().resume(uri, authorizationCodeFlowContext!!)) {
                 is AuthorizationCodeFlow.Result.Error -> {
@@ -89,6 +94,7 @@ class BrowserViewModel : ViewModel() {
 
 sealed class BrowserState {
     object Idle : BrowserState()
+    object Loading : BrowserState()
     data class Error(val message: String) : BrowserState()
     object Token : BrowserState()
 }

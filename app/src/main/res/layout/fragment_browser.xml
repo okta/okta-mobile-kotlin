@@ -33,5 +33,11 @@
             android:checked="true"
             android:text="@string/add_device_sso_scope"
             />
+
+        <ProgressBar
+            android:id="@+id/progress_bar"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            />
     </LinearLayout>
 </ScrollView>
