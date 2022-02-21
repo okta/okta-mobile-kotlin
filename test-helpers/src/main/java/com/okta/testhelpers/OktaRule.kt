@@ -44,7 +44,7 @@ class OktaRule(
         defaultScopes = setOf("openid", "email", "profile", "offline_access"),
         signInRedirectUri = "unitTest:/login",
         signOutRedirectUri = "unitTest:/logout",
-        okHttpCallFactory = okHttpClient,
+        okHttpClientFactory = { okHttpClient },
         eventCoordinator = EventCoordinator(eventHandler),
         clock = clock,
         idTokenValidator = idTokenValidator,

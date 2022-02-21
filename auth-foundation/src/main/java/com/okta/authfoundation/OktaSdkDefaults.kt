@@ -34,7 +34,7 @@ import java.util.Collections
  */
 object OktaSdkDefaults {
     /** The default Call.Factory. */
-    var okHttpClient: Call.Factory by NoSetAfterGetWithLazyDefaultFactory { OkHttpClient() }
+    var okHttpClientFactory: () -> Call.Factory by NoSetAfterGetWithLazyDefaultFactory { { OkHttpClient() } }
 
     /** The default EventCoordinator. */
     var eventCoordinator: EventCoordinator by NoSetAfterGetWithLazyDefaultFactory { EventCoordinator(emptyList()) }

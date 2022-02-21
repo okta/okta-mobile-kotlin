@@ -24,9 +24,11 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.DeserializationStrategy
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.decodeFromStream
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.Request
@@ -34,26 +36,26 @@ import okhttp3.Response
 import java.io.IOException
 import kotlin.coroutines.resumeWithException
 
+@OptIn(ExperimentalSerializationApi::class)
 internal suspend fun <Raw, Dto> OidcConfiguration.performRequest(
     deserializationStrategy: DeserializationStrategy<Raw>,
     request: Request,
     responseMapper: (Raw) -> Dto,
 ): OidcClientResult<Dto> {
     return internalPerformRequest(request) { okHttpResponse ->
-        val responseBody = okHttpResponse.body!!.string()
-        val rawResponse = json.decodeFromString(deserializationStrategy, responseBody)
+        val rawResponse = json.decodeFromStream(deserializationStrategy, okHttpResponse.body!!.byteStream())
         responseMapper(rawResponse)
     }
 }
 
 @InternalAuthFoundationApi
+@OptIn(ExperimentalSerializationApi::class)
 suspend fun <Raw> OidcConfiguration.performRequest(
     deserializationStrategy: DeserializationStrategy<Raw>,
     request: Request,
 ): OidcClientResult<Raw> {
     return internalPerformRequest(request) { okHttpResponse ->
-        val responseBody = okHttpResponse.body!!.string()
-        json.decodeFromString(deserializationStrategy, responseBody)
+        json.decodeFromStream(deserializationStrategy, okHttpResponse.body!!.byteStream())
     }
 }
 
@@ -69,7 +71,7 @@ internal suspend fun <T> OidcConfiguration.internalPerformRequest(
 ): OidcClientResult<T> {
     return withContext(ioDispatcher) {
         try {
-            val okHttpResponse = okHttpCallFactory.newCall(request).await()
+            val okHttpResponse = okHttpClient.newCall(request).await()
             if (okHttpResponse.isSuccessful) {
                 OidcClientResult.Success(responseHandler(okHttpResponse))
             } else {
