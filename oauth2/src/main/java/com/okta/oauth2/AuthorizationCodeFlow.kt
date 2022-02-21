@@ -19,8 +19,6 @@ import android.net.Uri
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundation.client.OidcConfiguration
-import com.okta.authfoundation.client.internal.endpointsOrNull
-import com.okta.authfoundation.client.internal.internalTokenRequest
 import com.okta.authfoundation.credential.Token as CredentialToken
 import com.okta.oauth2.events.CustomizeAuthorizationUrlEvent
 import okhttp3.FormBody
@@ -187,7 +185,7 @@ class AuthorizationCodeFlow private constructor(
             .url(endpoints.tokenEndpoint)
             .build()
 
-        return when (val tokenResult = oidcClient.internalTokenRequest(request)) {
+        return when (val tokenResult = oidcClient.tokenRequest(request)) {
             is OidcClientResult.Error -> {
                 Result.Error("Token request failed.", tokenResult.exception)
             }

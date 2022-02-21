@@ -17,8 +17,6 @@ package com.okta.oauth2
 
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcClientResult
-import com.okta.authfoundation.client.internal.endpointsOrNull
-import com.okta.authfoundation.client.internal.internalTokenRequest
 import com.okta.authfoundation.client.internal.performRequest
 import kotlinx.coroutines.delay
 import com.okta.authfoundation.credential.Token as CredentialToken
@@ -112,7 +110,7 @@ class DeviceAuthorizationFlow private constructor(
             timeLeft -= flowContext.interval
             delayFunction(flowContext.interval.toLong() * 1000L)
 
-            when (val tokenResult = oidcClient.internalTokenRequest(request)) {
+            when (val tokenResult = oidcClient.tokenRequest(request)) {
                 is OidcClientResult.Error -> {
                     if ((tokenResult.exception as? OidcClientResult.Error.HttpResponseException)?.error == "authorization_pending") {
                         // Do another loop in the while, we're polling waiting for the user to authorize.
