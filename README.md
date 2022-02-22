@@ -58,18 +58,10 @@ val oidcConfiguration = OidcConfiguration(
     signInRedirectUri = "{signInRedirectUri}",
     signOutRedirectUri = "{signOutRedirectUri}",
 )
-when (val clientResult = OidcClient.create(
+val client = OidcClient.createFromDiscoveryUrl(
     oidcConfiguration,
     "https://{yourOktaOrg}.okta.com/.well-known/openid-configuration".toHttpUrl(),
-)) {
-    is OidcClientResult.Error -> {
-        // Timber.e(clientResult.exception, "Failed to create client")
-    }
-    is OidcClientResult.Success -> {
-        // Timber.i("Client Created.")
-        val client: OidcClient = clientResult.result
-    }
-}
+)
 ```
 
 #### Create a Credential
@@ -109,6 +101,9 @@ when (val result = webAuthenticationClient.login(context)) {
     is WebAuthenticationClient.LoginResult.Success -> {
         // TODO: Store the AuthorizationCodeFlow.Context in an instance variable, and wait for the application redirect to be called.
         // val authorizationCodeFlowContext: AuthorizationCodeFlow.Context = result.flowContext
+    }
+    WebAuthenticationClient.LoginResult.EndpointsNotAvailable -> {
+        // TODO: Display an error to the user.
     }
 }
 ```
