@@ -15,6 +15,7 @@
  */
 package com.okta.authfoundation.util
 
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Deferred
@@ -32,26 +33,36 @@ internal class CoalescingOrchestrator<T : Any>(
     @Volatile private var deferred: Deferred<T>? = null
     private val lock: Any = Any()
 
-    suspend fun get(): T {
+    tailrec suspend fun get(): T {
         if (dataInitialized) {
             return data
         }
 
-        return withContext(Dispatchers.Unconfined) {
+        val result = withContext(Dispatchers.Unconfined) {
             val deferredToAwait: Deferred<T>
             synchronized(lock) {
                 if (dataInitialized) {
                     return@withContext data
                 }
                 val localDeferred = deferred
-                if (localDeferred != null && localDeferred.isActive) {
+                if (localDeferred != null && !localDeferred.isCancelled) {
                     deferredToAwait = localDeferred
                 } else {
                     deferredToAwait = loadDataAsync(this@withContext)
                 }
             }
-            deferredToAwait.await()
+            try {
+                deferredToAwait.await()
+            } catch (e: CancellationException) {
+                // The `deferredToAwait` was cancelled before we could await it by another thread.
+                null
+            }
         }
+        if (result != null) {
+            return result
+        }
+        // Null returned due to cancellation. Try again by calling ourself.
+        return get()
     }
 
     private fun loadDataAsync(scope: CoroutineScope): Deferred<T> {
