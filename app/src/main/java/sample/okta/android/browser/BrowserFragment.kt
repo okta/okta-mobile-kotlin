@@ -35,8 +35,11 @@ internal class BrowserFragment : BaseFragment<FragmentBrowserBinding>(
         }
 
         viewModel.state.observe(viewLifecycleOwner) { state ->
+            binding.progressBar.visibility = View.GONE
+            binding.errorTextView.visibility = View.GONE
             when (state) {
                 is BrowserState.Error -> {
+                    binding.errorTextView.visibility = View.VISIBLE
                     binding.errorTextView.text = state.message
                 }
                 BrowserState.Idle -> {
@@ -44,6 +47,9 @@ internal class BrowserFragment : BaseFragment<FragmentBrowserBinding>(
                 }
                 BrowserState.Token -> {
                     findNavController().navigate(BrowserFragmentDirections.browserToDashboard())
+                }
+                BrowserState.Loading -> {
+                    binding.progressBar.visibility = View.VISIBLE
                 }
             }
         }
