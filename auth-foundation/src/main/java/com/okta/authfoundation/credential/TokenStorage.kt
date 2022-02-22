@@ -15,12 +15,12 @@
  */
 package com.okta.authfoundation.credential
 
-import com.okta.authfoundation.OktaSdkDefaults
+import com.okta.authfoundation.AuthFoundationDefaults
 
 /**
  * Interface used to customize the way tokens are stored, updated, and removed throughout the lifecycle of an application.
  *
- * A default implementation is provided, but for advanced use-cases, you may implement this protocol yourself and assign an instance to the [OktaSdkDefaults.storage] property.
+ * A default implementation is provided, but for advanced use-cases, you may implement this protocol yourself and assign an instance to the [AuthFoundationDefaults.storage] property.
  *
  * Warning: When implementing a custom [TokenStorage] class, it's vitally important that you do not directly invoke any of these methods yourself. These methods are intended to be called on-demand by the other AuthFoundation classes, and the behavior is undefined if these methods are called directly by the developer.
  */

@@ -32,7 +32,7 @@ import java.util.Collections
  *  If properties are attempted to be set after they've been accessed, an IllegalStateException will be thrown to prevent using
  *  incorrect defaults.
  */
-object OktaSdkDefaults {
+object AuthFoundationDefaults {
     /** The default Call.Factory. */
     var okHttpClientFactory: () -> Call.Factory by NoSetAfterGetWithLazyDefaultFactory { { OkHttpClient() } }
 

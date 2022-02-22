@@ -16,7 +16,7 @@
 package com.okta.authfoundation.credential
 
 import com.google.common.truth.Truth.assertThat
-import com.okta.authfoundation.OktaSdkDefaults
+import com.okta.authfoundation.AuthFoundationDefaults
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcClientResult
 import com.okta.testhelpers.OktaRule
@@ -207,7 +207,7 @@ class CredentialTest {
     }
 
     @Test fun testRefreshToken(): Unit = runBlocking {
-        val tokenStorage = spy(OktaSdkDefaults.defaultStorage())
+        val tokenStorage = spy(AuthFoundationDefaults.defaultStorage())
         val oidcClient = mock<OidcClient> {
             onBlocking { refreshToken(any(), any()) } doReturn OidcClientResult.Success(createToken(refreshToken = "newRefreshToken"))
             on { withCredential(any()) } doReturn it
@@ -244,7 +244,7 @@ class CredentialTest {
 
     @Test fun testParallelRefreshToken(): Unit = runBlocking {
         val countDownLatch = CountDownLatch(2)
-        val tokenStorage = spy(OktaSdkDefaults.defaultStorage())
+        val tokenStorage = spy(AuthFoundationDefaults.defaultStorage())
         val oidcClient = mock<OidcClient> {
             onBlocking { refreshToken(any(), any()) } doSuspendableAnswer {
                 assertThat(countDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
@@ -285,7 +285,7 @@ class CredentialTest {
     }
 
     @Test fun testSerialRefreshToken(): Unit = runBlocking {
-        val tokenStorage = spy(OktaSdkDefaults.defaultStorage())
+        val tokenStorage = spy(AuthFoundationDefaults.defaultStorage())
         val oidcClient = mock<OidcClient> {
             onBlocking { refreshToken(any(), any()) } doAnswer {
                 OidcClientResult.Success(createToken(refreshToken = "newRefreshToken"))
@@ -421,7 +421,7 @@ class CredentialTest {
         token: Token? = null,
         metadata: Map<String, String> = emptyMap(),
         oidcClient: OidcClient = oktaRule.createOidcClient(),
-        tokenStorage: TokenStorage = OktaSdkDefaults.defaultStorage(),
+        tokenStorage: TokenStorage = AuthFoundationDefaults.defaultStorage(),
         credentialDataSource: CredentialDataSource = mock(),
     ): Credential {
         if (token != null) {

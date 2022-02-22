@@ -16,7 +16,7 @@
 package com.okta.authfoundation.credential
 
 import com.google.common.truth.Truth.assertThat
-import com.okta.authfoundation.OktaSdkDefaults
+import com.okta.authfoundation.AuthFoundationDefaults
 import com.okta.authfoundation.credential.CredentialDataSource.Companion.credentialDataSource
 import com.okta.testhelpers.OktaRule
 import kotlinx.coroutines.Dispatchers
@@ -38,7 +38,7 @@ class CredentialDataSourceTest {
     @get:Rule val oktaRule = OktaRule()
 
     @Test fun testCreate(): Unit = runBlocking {
-        val tokenStorage = spy(OktaSdkDefaults.defaultStorage())
+        val tokenStorage = spy(AuthFoundationDefaults.defaultStorage())
         val oidcClient = oktaRule.createOidcClient()
         val dataSource = oidcClient.credentialDataSource(tokenStorage)
         val credential = dataSource.create()
@@ -50,7 +50,7 @@ class CredentialDataSourceTest {
     }
 
     @Test fun testAll(): Unit = runBlocking {
-        val tokenStorage = spy(OktaSdkDefaults.defaultStorage())
+        val tokenStorage = spy(AuthFoundationDefaults.defaultStorage())
         tokenStorage.add("First")
         tokenStorage.add("Second")
         val dataSource = oktaRule.createOidcClient().credentialDataSource(tokenStorage)
@@ -104,7 +104,7 @@ class CredentialDataSourceTest {
     }
 
     @Test fun testAllReturnsCreatedInstance(): Unit = runBlocking {
-        val tokenStorage = OktaSdkDefaults.defaultStorage()
+        val tokenStorage = AuthFoundationDefaults.defaultStorage()
         tokenStorage.add("First")
         tokenStorage.add("Second")
         val dataSource = oktaRule.createOidcClient().credentialDataSource(tokenStorage)
@@ -117,7 +117,7 @@ class CredentialDataSourceTest {
     }
 
     @Test fun testRemove(): Unit = runBlocking {
-        val tokenStorage = OktaSdkDefaults.defaultStorage()
+        val tokenStorage = AuthFoundationDefaults.defaultStorage()
         tokenStorage.add("First")
         tokenStorage.add("Second")
         val dataSource = oktaRule.createOidcClient().credentialDataSource(tokenStorage)
