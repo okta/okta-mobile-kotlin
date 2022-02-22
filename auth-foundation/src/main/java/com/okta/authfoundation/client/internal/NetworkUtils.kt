@@ -27,13 +27,13 @@ import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.decodeFromStream
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.Request
 import okhttp3.Response
 import java.io.IOException
+import java.io.InputStream
 import kotlin.coroutines.resumeWithException
 
 @OptIn(ExperimentalSerializationApi::class)
@@ -42,8 +42,8 @@ internal suspend fun <Raw, Dto> OidcConfiguration.performRequest(
     request: Request,
     responseMapper: (Raw) -> Dto,
 ): OidcClientResult<Dto> {
-    return internalPerformRequest(request) { okHttpResponse ->
-        val rawResponse = json.decodeFromStream(deserializationStrategy, okHttpResponse.body!!.byteStream())
+    return internalPerformRequest(request) { responseBody ->
+        val rawResponse = json.decodeFromStream(deserializationStrategy, responseBody)
         responseMapper(rawResponse)
     }
 }
@@ -54,8 +54,8 @@ suspend fun <Raw> OidcConfiguration.performRequest(
     deserializationStrategy: DeserializationStrategy<Raw>,
     request: Request,
 ): OidcClientResult<Raw> {
-    return internalPerformRequest(request) { okHttpResponse ->
-        json.decodeFromStream(deserializationStrategy, okHttpResponse.body!!.byteStream())
+    return internalPerformRequest(request) { responseBody ->
+        json.decodeFromStream(deserializationStrategy, responseBody)
     }
 }
 
@@ -67,15 +67,19 @@ internal suspend fun OidcConfiguration.performRequestNonJson(
 
 internal suspend fun <T> OidcConfiguration.internalPerformRequest(
     request: Request,
-    responseHandler: (Response) -> T,
+    responseHandler: (InputStream) -> T,
 ): OidcClientResult<T> {
     return withContext(ioDispatcher) {
         try {
             val okHttpResponse = okHttpClient.newCall(request).await()
-            if (okHttpResponse.isSuccessful) {
-                OidcClientResult.Success(responseHandler(okHttpResponse))
-            } else {
-                okHttpResponse.toOidcClientResultError(this@internalPerformRequest)
+            okHttpResponse.use { responseBody ->
+                // Body is always non-null when returned here. See related OkHttp documentation.
+                val body = responseBody.body!!.byteStream()
+                if (okHttpResponse.isSuccessful) {
+                    OidcClientResult.Success(responseHandler(body))
+                } else {
+                    okHttpResponse.toOidcClientResultError(this@internalPerformRequest, body)
+                }
             }
         } catch (e: Exception) {
             OidcClientResult.Error(e)
@@ -85,18 +89,24 @@ internal suspend fun <T> OidcConfiguration.internalPerformRequest(
 
 @Serializable
 internal data class ErrorResponse(
-    @SerialName("error") val error: String,
-    @SerialName("error_description") val errorDescription: String,
+    @SerialName("error") val error: String? = null,
+    @SerialName("error_description") val errorDescription: String? = null,
 )
 
-private fun <T> Response.toOidcClientResultError(configuration: OidcConfiguration): OidcClientResult<T> {
+@OptIn(ExperimentalSerializationApi::class)
+private fun <T> Response.toOidcClientResultError(
+    configuration: OidcConfiguration,
+    responseBody: InputStream,
+): OidcClientResult<T> {
     return try {
-        val errorResponse = body?.string()?.let { configuration.json.decodeFromString<ErrorResponse>(it) }
-        OidcClientResult.Error(OidcClientResult.Error.HttpResponseException(
-            responseCode = code,
-            error = errorResponse?.error,
-            errorDescription = errorResponse?.errorDescription,
-        ))
+        val errorResponse = responseBody.let { configuration.json.decodeFromStream<ErrorResponse>(it) }
+        OidcClientResult.Error(
+            OidcClientResult.Error.HttpResponseException(
+                responseCode = code,
+                error = errorResponse.error,
+                errorDescription = errorResponse.errorDescription,
+            )
+        )
     } catch (e: Exception) {
         OidcClientResult.Error(IOException("Request failed."))
     }
