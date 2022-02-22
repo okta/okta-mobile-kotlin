@@ -20,11 +20,15 @@ import com.okta.authfoundation.OktaSdkDefaults
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcClientResult
 import com.okta.testhelpers.OktaRule
+import com.okta.testhelpers.RequestMatchers.header
+import com.okta.testhelpers.RequestMatchers.method
+import com.okta.testhelpers.RequestMatchers.path
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import okhttp3.Request
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.any
@@ -391,6 +395,26 @@ class CredentialTest {
         val credential = createCredential(oidcClient = oidcClient, token = createToken(accessToken = expiredAccessToken, refreshToken = "exampleRefreshToken"))
         assertThat(credential.getValidAccessToken()).isNull()
         verify(oidcClient).refreshToken(any(), any())
+    }
+
+    @Test fun testInterceptor() {
+        val accessToken = "eyJraWQiOiJGSkEwSEdOdHN1dWRhX1BsNDVKNDJrdlFxY3N1XzBDNEZnN3BiSkxYVEhZIiwiYWxnIjoiUlMyNTYifQ.eyJ2ZXIiOjEsImp0aSI6IkFULmFacVZaaTlRd0oyLTR2TFFLTjUyNDJiMFRZLVlzU201b3hybVRQQjRLalUub2FyMXB3M28zbzNadW9icGo2OTYiLCJpc3MiOiJodHRwczovL2V4YW1wbGUub2t0YS5jb20vb2F1dGgyL2RlZmF1bHQiLCJhdWQiOiJhcGk6Ly9kZWZhdWx0IiwiaWF0IjoxNjQ0MzQ3MDY5LCJleHAiOjE2NDQzNTcwNjksImNpZCI6IjBvYThmdXAwbEFQWUZDNEkyNjk2IiwidWlkIjoiMDB1YjQxejdtZ3pOcXJ5TXY2OTYiLCJzY3AiOlsib3BlbmlkIiwicHJvZmlsZSIsIm9mZmxpbmVfYWNjZXNzIiwiZW1haWwiLCJkZXZpY2Vfc3NvIl0sInN1YiI6ImpheW5ld3N0cm9tQGV4YW1wbGUuY29tIn0.IG50UcAHDlHe7_iNq25lqi6DuQ-t1acPlCkLH0KspC_ySwFZECT1S7Z6_KlogxWzqSp5J2h7BNsjBYvQS-nkxExJMp_-YCoTdzSeLJ7rm3h6dKFMDHdIyOXcjg4B1Eo3PiO2SNvpz_u-FRrqiJdY86uWVn5SFAG0RwxdnNxE4uzcH826LJjPZmbVGqdKE0cssdFmrerdoqVY29YBR-kvT7Nj3QeYAAvkhbc01VA1Dnrp4yBTyFwbkFwxLOUKoDA4OSdM2mIiZaJ8W4reDplFTqGzBvk4uuB9BxKFGMWL6IeoRubMiZe-0x7q9k9WlsS58Cf7aE9hAW2rpQs0FvFU0Q"
+
+        oktaRule.enqueue(
+            method("GET"),
+            header("authorization", "Bearer $accessToken"),
+            path("/customers"),
+        ) { response ->
+            response.setBody("[]")
+        }
+
+        val credential = createCredential(token = createToken(accessToken = accessToken))
+        val interceptor = credential.accessTokenInterceptor()
+        val okHttpClient = oktaRule.okHttpClient.newBuilder().addInterceptor(interceptor).build()
+        val url = oktaRule.baseUrl.newBuilder().addPathSegment("customers").build()
+        val call = okHttpClient.newCall(Request.Builder().url(url).build())
+        val response = call.execute()
+        assertThat(response.body!!.string()).isEqualTo("[]")
     }
 
     private fun createCredential(

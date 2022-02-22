@@ -20,11 +20,15 @@ import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundation.client.dto.OidcIntrospectInfo
 import com.okta.authfoundation.client.dto.OidcUserInfo
 import com.okta.authfoundation.credential.events.CredentialStoredAfterRemovedEvent
+import com.okta.authfoundation.credential.events.NoAccessTokenAvailableEvent
+import com.okta.authfoundation.events.EventCoordinator
 import com.okta.authfoundation.jwt.Jwt
 import com.okta.authfoundation.jwt.JwtParser
 import com.okta.authfoundation.util.CoalescingOrchestrator
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import okhttp3.Interceptor
+import okhttp3.OkHttpClient
 import java.util.Collections
 
 /**
@@ -236,6 +240,19 @@ class Credential internal constructor(
         } else {
             return null
         }
+    }
+
+    /**
+     * Returns an [Interceptor] that can be can be added to an [OkHttpClient] via [OkHttpClient.Builder.addInterceptor] to access a
+     * Resource Server.
+     *
+     * The [Interceptor] attaches an authorization: Bearer header with the access token to all requests.
+     * Internally, this uses [Credential.getValidAccessToken] to automatically refresh the access token once it expires.
+     * If no valid access token is available, no authorization header will be added, and a [NoAccessTokenAvailableEvent] event will
+     * be fired to the associated [EventCoordinator].
+     */
+    fun accessTokenInterceptor(): Interceptor {
+        return AccessTokenInterceptor(::getValidAccessToken, oidcClient.configuration.eventCoordinator, this)
     }
 }
 

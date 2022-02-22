@@ -24,6 +24,18 @@ object RequestMatchers {
         }
     }
 
+    fun not(requestMatcher: RequestMatcher): RequestMatcher {
+        return { request ->
+            !requestMatcher.invoke(request)
+        }
+    }
+
+    fun doesNotContainHeader(key: String): RequestMatcher {
+        return { request ->
+            !request.headers.names().contains(key)
+        }
+    }
+
     fun path(path: String): RequestMatcher {
         return { request ->
             var requestPath = request.path
