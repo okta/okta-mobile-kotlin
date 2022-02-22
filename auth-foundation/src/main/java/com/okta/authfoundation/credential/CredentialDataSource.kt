@@ -15,7 +15,7 @@
  */
 package com.okta.authfoundation.credential
 
-import com.okta.authfoundation.OktaSdkDefaults
+import com.okta.authfoundation.AuthFoundationDefaults
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.credential.events.CredentialCreatedEvent
 import com.okta.authfoundation.util.CoalescingOrchestrator
@@ -35,11 +35,11 @@ class CredentialDataSource internal constructor(
         /**
          * Initializes a credential data source using the [OidcClient].
          *
-         * @param storage the [TokenStorage] used to persist [Token]s, see [OktaSdkDefaults.storage] for information on the default.
+         * @param storage the [TokenStorage] used to persist [Token]s, see [AuthFoundationDefaults.storage] for information on the default.
          * @receiver the [OidcClient] used to perform the low level OIDC requests, as well as with which to use the configuration from.
          */
         fun OidcClient.credentialDataSource(
-            storage: TokenStorage = OktaSdkDefaults.storage,
+            storage: TokenStorage = AuthFoundationDefaults.storage,
         ): CredentialDataSource {
             return CredentialDataSource(this, storage)
         }

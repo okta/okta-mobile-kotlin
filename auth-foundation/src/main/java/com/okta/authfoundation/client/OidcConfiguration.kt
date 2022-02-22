@@ -15,8 +15,8 @@
  */
 package com.okta.authfoundation.client
 
+import com.okta.authfoundation.AuthFoundationDefaults
 import com.okta.authfoundation.InternalAuthFoundationApi
-import com.okta.authfoundation.OktaSdkDefaults
 import com.okta.authfoundation.events.EventCoordinator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.json.Json
@@ -45,7 +45,7 @@ class OidcConfiguration(
     val signOutRedirectUri: String = "",
 
     /** The Call.Factory which makes calls to the okta server. */
-    okHttpClientFactory: () -> Call.Factory = OktaSdkDefaults.okHttpClientFactory,
+    okHttpClientFactory: () -> Call.Factory = AuthFoundationDefaults.okHttpClientFactory,
 
     /** The CoroutineDispatcher which should be used for IO bound tasks. */
     val ioDispatcher: CoroutineContext = Dispatchers.IO,
@@ -54,13 +54,13 @@ class OidcConfiguration(
     val computeDispatcher: CoroutineContext = Dispatchers.Default,
 
     /** The OidcClock which is used for all time related functions in the SDK. */
-    val clock: OidcClock = OktaSdkDefaults.clock,
+    val clock: OidcClock = AuthFoundationDefaults.clock,
 
     /** The EventCoordinator which the OidcClient should emit events to. */
-    val eventCoordinator: EventCoordinator = OktaSdkDefaults.eventCoordinator,
+    val eventCoordinator: EventCoordinator = AuthFoundationDefaults.eventCoordinator,
 
     /** The IdTokenValidator used to validate the Id Token Jwt when tokens are minted. */
-    val idTokenValidator: IdTokenValidator = OktaSdkDefaults.idTokenValidator,
+    val idTokenValidator: IdTokenValidator = AuthFoundationDefaults.idTokenValidator,
 ) {
     /** The Call.Factory which makes calls to the okta server. */
     val okHttpClient: Call.Factory by lazy {
