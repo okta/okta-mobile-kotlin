@@ -45,7 +45,7 @@ class OidcConfiguration(
     val signOutRedirectUri: String = "",
 
     /** The Call.Factory which makes calls to the okta server. */
-    okHttpCallFactory: Call.Factory = OktaSdkDefaults.okHttpClient,
+    okHttpClientFactory: () -> Call.Factory = OktaSdkDefaults.okHttpClientFactory,
 
     /** The CoroutineDispatcher which should be used for IO bound tasks. */
     val ioDispatcher: CoroutineContext = Dispatchers.IO,
@@ -63,7 +63,9 @@ class OidcConfiguration(
     val idTokenValidator: IdTokenValidator = OktaSdkDefaults.idTokenValidator,
 ) {
     /** The Call.Factory which makes calls to the okta server. */
-    val okHttpCallFactory: Call.Factory = addInterceptor(okHttpCallFactory)
+    val okHttpClient: Call.Factory by lazy {
+        addInterceptor(okHttpClientFactory())
+    }
 
     /** The Json object to do the decoding from the okta server responses. */
     @InternalAuthFoundationApi val json: Json = Json { ignoreUnknownKeys = true }
