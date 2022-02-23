@@ -15,12 +15,14 @@
  */
 package com.okta.authfoundation.client
 
+import com.okta.authfoundation.InternalAuthFoundationApi
+
 /**
  * Describes the result from the OidcClient.
  */
 sealed class OidcClientResult<T> {
     /** An error result. */
-    data class Error<T> internal constructor(
+    data class Error<T> @InternalAuthFoundationApi constructor(
         /** The exception associated with the error. */
         val exception: Exception,
     ) : OidcClientResult<T>() {

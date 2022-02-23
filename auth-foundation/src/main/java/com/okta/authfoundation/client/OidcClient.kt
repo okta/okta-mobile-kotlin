@@ -201,6 +201,11 @@ class OidcClient private constructor(
     }
 
     @InternalAuthFoundationApi
+    fun <T> endpointNotAvailableError(): OidcClientResult.Error<T> {
+        return OidcClientResult.Error(OidcClientResult.Error.OidcEndpointsNotAvailableException())
+    }
+
+    @InternalAuthFoundationApi
     suspend fun tokenRequest(
         request: Request,
     ): OidcClientResult<Token> {
@@ -230,9 +235,5 @@ class OidcClient private constructor(
             return OidcClientResult.Error(e)
         }
         return null
-    }
-
-    private fun <T> endpointNotAvailableError(): OidcClientResult.Error<T> {
-        return OidcClientResult.Error(OidcClientResult.Error.OidcEndpointsNotAvailableException())
     }
 }
