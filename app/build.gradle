@@ -88,9 +88,9 @@ dependencies {
     implementation deps.coroutines.android
     implementation deps.okhttp.core
     implementation deps.okhttp.tls
-    implementation deps.okhttp.mock_web_server
-    implementation deps.junit // Mock Web Server depends on junit :(
     implementation deps.timber
+
+    debugImplementation deps.leakcanary.android
 }
 
 static def parseScheme(String uri) {
