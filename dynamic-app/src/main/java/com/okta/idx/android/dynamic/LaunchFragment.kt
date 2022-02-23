@@ -17,6 +17,7 @@ package com.okta.idx.android.dynamic
 
 import android.os.Bundle
 import android.view.View
+import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.okta.idx.android.dynamic.databinding.FragmentLaunchBinding
 import com.okta.idx.android.util.BaseFragment
@@ -24,8 +25,12 @@ import com.okta.idx.android.util.BaseFragment
 internal class LaunchFragment : BaseFragment<FragmentLaunchBinding>(
     FragmentLaunchBinding::inflate
 ) {
+    private val viewModel by viewModels<LaunchViewModel>()
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        viewModel.start()
 
         binding.loginButton.setOnClickListener {
             val recoveryToken = binding.recoveryToken.editText?.text?.toString() ?: ""

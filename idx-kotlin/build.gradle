@@ -25,6 +25,7 @@ android {
     }
     kotlinOptions {
         jvmTarget = '1.8'
+        freeCompilerArgs += ["-Xopt-in=com.okta.authfoundation.InternalAuthFoundationApi"]
     }
 }
 
@@ -32,6 +33,7 @@ dependencies {
     api deps.kotlin.stdlib
     api deps.okhttp.core
     api deps.coroutines.android
+    api 'authfoundation:authfoundation:1'
 
     implementation deps.kotlin.serialization_json
 

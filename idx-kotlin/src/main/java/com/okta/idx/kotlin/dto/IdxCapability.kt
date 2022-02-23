@@ -17,8 +17,8 @@ package com.okta.idx.kotlin.dto
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import com.okta.idx.kotlin.client.IdxClient
-import com.okta.idx.kotlin.client.IdxClientResult
+import com.okta.authfoundation.client.OidcClientResult
+import com.okta.idx.kotlin.client.IdxFlow
 import com.okta.idx.kotlin.dto.IdxRemediation.Type
 import kotlinx.coroutines.delay
 import okhttp3.HttpUrl
@@ -65,19 +65,19 @@ class IdxPollRemediationCapability internal constructor(
      *
      * All polling delay/retry logic is handled internally.
      *
-     * @return the [IdxClientResult] when the state changes.
+     * @return the [OidcClientResult] when the state changes.
      */
-    suspend fun poll(client: IdxClient): IdxClientResult<IdxResponse> {
-        var result: IdxClientResult<IdxResponse>
+    suspend fun poll(flow: IdxFlow): OidcClientResult<IdxResponse> {
+        var result: OidcClientResult<IdxResponse>
         var currentWait = wait
         var currentRemediation = remediation
         do {
             delayFunction(currentWait.toLong())
-            result = client.proceed(currentRemediation)
-            if (result is IdxClientResult.Error) {
+            result = flow.proceed(currentRemediation)
+            if (result is OidcClientResult.Error) {
                 return result
             }
-            val successResult = result as? IdxClientResult.Success<IdxResponse>
+            val successResult = result as? OidcClientResult.Success<IdxResponse>
             val remediations = successResult?.result?.remediations ?: return result
 
             var pollCapability: IdxPollRemediationCapability? = null
@@ -136,20 +136,20 @@ class IdxPollAuthenticatorCapability internal constructor(
      *
      * All polling delay/retry logic is handled internally.
      *
-     * @return the [IdxClientResult] when the state changes.
+     * @return the [OidcClientResult] when the state changes.
      */
-    suspend fun poll(client: IdxClient): IdxClientResult<IdxResponse> {
-        var result: IdxClientResult<IdxResponse>
+    suspend fun poll(flow: IdxFlow): OidcClientResult<IdxResponse> {
+        var result: OidcClientResult<IdxResponse>
         var currentAuthenticatorId: String?
         var currentWait = wait
         var currentRemediation = remediation
         do {
             delayFunction(currentWait.toLong())
-            result = client.proceed(currentRemediation)
-            if (result is IdxClientResult.Error) {
+            result = flow.proceed(currentRemediation)
+            if (result is OidcClientResult.Error) {
                 return result
             }
-            val successResult = result as? IdxClientResult.Success<IdxResponse>
+            val successResult = result as? OidcClientResult.Success<IdxResponse>
             val currentAuthenticator = successResult?.result?.authenticators?.current ?: return result
             currentAuthenticatorId = currentAuthenticator.id
             val pollCapability = currentAuthenticator.capabilities.get<IdxPollAuthenticatorCapability>() ?: return result

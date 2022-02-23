@@ -15,7 +15,7 @@
  */
 package com.okta.idx.kotlin.dto.v1
 
-import com.okta.idx.kotlin.client.IdxClientConfiguration
+import com.okta.authfoundation.client.OidcClient
 import com.okta.idx.kotlin.client.IdxClientContext
 import com.okta.idx.kotlin.dto.IdxRemediation
 import com.okta.idx.kotlin.util.PkceGenerator
@@ -30,11 +30,11 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.util.UUID
 
-internal fun IdxRemediation.asJsonRequest(configuration: IdxClientConfiguration): Request {
+internal fun IdxRemediation.asJsonRequest(oidcClient: OidcClient): Request {
     val requestBuilder = Request.Builder().url(href)
 
     if (method == "POST") {
-        val jsonBody = configuration.json.encodeToString(toJsonContent())
+        val jsonBody = oidcClient.configuration.json.encodeToString(toJsonContent())
         requestBuilder.post(jsonBody.toRequestBody("application/ion+json; okta-version=1.0.0".toMediaType()))
     }
 
@@ -98,36 +98,32 @@ internal fun IdxRemediation.asFormRequest(): Request {
         .build()
 }
 
-internal fun tokenRequestFromInteractionCode(
-    configuration: IdxClientConfiguration,
+internal suspend fun tokenRequestFromInteractionCode(
+    oidcClient: OidcClient,
     clientContext: IdxClientContext,
     interactionCode: String,
 ): Request {
     val formBodyBuilder = FormBody.Builder()
         .add("grant_type", "interaction_code")
-        .add("client_id", configuration.clientId)
+        .add("client_id", oidcClient.configuration.clientId)
         .add("interaction_code", interactionCode)
         .add("code_verifier", clientContext.codeVerifier)
 
-    val url = configuration.issuer.newBuilder()
-        .addPathSegments("v1/token")
-        .build()
-
     return Request.Builder()
-        .url(url)
+        .url(oidcClient.endpointsOrNull()!!.tokenEndpoint)
         .post(formBodyBuilder.build())
         .build()
 }
 
-internal fun introspectRequest(
-    configuration: IdxClientConfiguration,
+internal suspend fun introspectRequest(
+    oidcClient: OidcClient,
     clientContext: IdxClientContext,
 ): Request {
-    val urlBuilder = configuration.issuer.newBuilder()
+    val urlBuilder = oidcClient.endpointsOrNull()!!.issuer.newBuilder()
         .encodedPath("/idp/idx/introspect")
 
     val introspectRequest = IntrospectRequest(clientContext.interactionHandle)
-    val jsonBody = configuration.json.encodeToString(introspectRequest)
+    val jsonBody = oidcClient.configuration.json.encodeToString(introspectRequest)
 
     return Request.Builder()
         .url(urlBuilder.build())
@@ -141,22 +137,23 @@ internal class InteractContext private constructor(
     val request: Request,
 ) {
     companion object {
-        fun create(
-            configuration: IdxClientConfiguration,
+        suspend fun create(
+            oidcClient: OidcClient,
             extraParameters: Map<String, String> = emptyMap(),
             codeVerifier: String = PkceGenerator.codeVerifier(),
             state: String = UUID.randomUUID().toString(),
-        ): InteractContext {
+        ): InteractContext? {
             val codeChallenge = PkceGenerator.codeChallenge(codeVerifier)
-            val urlBuilder = configuration.issuer.newBuilder()
+            val endpoints = oidcClient.endpointsOrNull() ?: return null
+            val urlBuilder = endpoints.issuer.newBuilder()
                 .addPathSegments("v1/interact")
 
             val formBody = FormBody.Builder()
-                .add("client_id", configuration.clientId)
-                .add("scope", configuration.scopes.joinToString(separator = " "))
+                .add("client_id", oidcClient.configuration.clientId)
+                .add("scope", oidcClient.configuration.defaultScopes.joinToString(separator = " "))
                 .add("code_challenge", codeChallenge)
                 .add("code_challenge_method", PkceGenerator.CODE_CHALLENGE_METHOD)
-                .add("redirect_uri", configuration.redirectUri)
+                .add("redirect_uri", oidcClient.configuration.signInRedirectUri)
                 .add("state", state)
 
             for (extraParameter in extraParameters) {

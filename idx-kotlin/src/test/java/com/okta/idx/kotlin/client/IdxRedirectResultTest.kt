@@ -22,7 +22,6 @@ import com.okta.idx.kotlin.infrastructure.network.RequestMatchers.body
 import com.okta.idx.kotlin.infrastructure.network.RequestMatchers.path
 import com.okta.idx.kotlin.infrastructure.testBodyFromFile
 import kotlinx.coroutines.runBlocking
-import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.mockwebserver.SocketPolicy
 import org.junit.Rule
 import org.junit.Test
@@ -33,17 +32,9 @@ import org.robolectric.RobolectricTestRunner
 class IdxRedirectResultTest {
     @get:Rule val networkRule = NetworkRule()
 
-    private fun getConfiguration() = IdxClientConfiguration(
-        issuer = "https://test.okta.com/oauth2/default".toHttpUrl(),
-        clientId = "testClientId",
-        scopes = setOf("openid", "email", "profile", "offline_access"),
-        redirectUri = "test.okta.com/login",
-        okHttpCallFactory = networkRule.okHttpClient(),
-    )
-
-    private fun createClient(): IdxClient {
+    private fun createClient(): IdxFlow {
         val clientContext = IdxClientContext("abcd", "bcde", "cdef")
-        return IdxClient(getConfiguration(), clientContext)
+        return IdxFlow(networkRule.createOidcClient(), clientContext)
     }
 
     @Test fun testRedirectResultInvalidUrl(): Unit = runBlocking {
@@ -94,7 +85,7 @@ class IdxRedirectResultTest {
     }
 
     @Test fun testRedirectResultInteractionCode(): Unit = runBlocking {
-        val body = "grant_type=interaction_code&client_id=testClientId&interaction_code=exampleInteractionCode&code_verifier=abcd"
+        val body = "grant_type=interaction_code&client_id=test&interaction_code=exampleInteractionCode&code_verifier=abcd"
         networkRule.enqueue(path("/oauth2/default/v1/token"), body(body)) { response ->
             response.testBodyFromFile("client/tokenResponse.json")
         }
@@ -128,7 +119,7 @@ class IdxRedirectResultTest {
     }
 
     @Test fun testRedirectResultInteractionCodeExchangeTokensError(): Unit = runBlocking {
-        val body = "grant_type=interaction_code&client_id=testClientId&interaction_code=exampleInteractionCode&code_verifier=abcd"
+        val body = "grant_type=interaction_code&client_id=test&interaction_code=exampleInteractionCode&code_verifier=abcd"
         networkRule.enqueue(path("/oauth2/default/v1/token"), body(body)) { response ->
             response.socketPolicy = SocketPolicy.DISCONNECT_AT_START
         }

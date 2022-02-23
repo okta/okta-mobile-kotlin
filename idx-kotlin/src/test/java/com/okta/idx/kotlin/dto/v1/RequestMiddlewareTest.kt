@@ -16,29 +16,29 @@
 package com.okta.idx.kotlin.dto.v1
 
 import com.google.common.truth.Truth.assertThat
-import com.okta.idx.kotlin.client.IdxClientConfiguration
+import com.okta.authfoundation.client.OidcClient
 import com.okta.idx.kotlin.client.IdxClientContext
 import com.okta.idx.kotlin.dto.createField
 import com.okta.idx.kotlin.dto.createRemediation
+import com.okta.idx.kotlin.infrastructure.network.NetworkRule
+import com.okta.idx.kotlin.infrastructure.network.RequestMatchers.path
+import kotlinx.coroutines.runBlocking
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.mockwebserver.SocketPolicy
 import okio.Buffer
+import org.junit.Rule
 import org.junit.Test
 
 class RequestMiddlewareTest {
-    private val configuration = IdxClientConfiguration(
-        issuer = "https://test.okta.com/oauth2/default".toHttpUrl(),
-        clientId = "test",
-        scopes = setOf("openid", "email", "profile", "offline_access"),
-        redirectUri = "test.okta.com/login",
-    )
+    @get:Rule val networkRule = NetworkRule()
 
     @Test fun testAsJsonRequest() {
         val remediation = createRemediation(listOf(
             createField(name = "first", value = "apple"),
             createField(name = "second", value = "orange"),
         ))
-        val request = remediation.asJsonRequest(configuration)
+        val request = remediation.asJsonRequest(networkRule.createOidcClient())
         assertThat(request.url).isEqualTo("https://test.okta.com/idp/idx/identify".toHttpUrl())
         assertThat(request.method).isEqualTo("POST")
         assertThat(request.headers["accept"]).isEqualTo("application/json; okta-version=1.0.0")
@@ -62,10 +62,10 @@ class RequestMiddlewareTest {
         assertThat(request.body?.contentType()).isEqualTo("application/x-www-form-urlencoded".toMediaType())
     }
 
-    @Test fun testTokenRequestFromInteractionCode() {
+    @Test fun testTokenRequestFromInteractionCode(): Unit = runBlocking {
         val clientContext = IdxClientContext(codeVerifier = "123456", interactionHandle = "234567", state = "345678")
-        val request = tokenRequestFromInteractionCode(configuration, clientContext, "654321")
-        assertThat(request.url).isEqualTo("https://test.okta.com/oauth2/default/v1/token".toHttpUrl())
+        val request = tokenRequestFromInteractionCode(networkRule.createOidcClient(), clientContext, "654321")
+        assertThat(request.url.toString()).endsWith("/oauth2/default/v1/token")
         assertThat(request.method).isEqualTo("POST")
         val buffer = Buffer()
         request.body?.writeTo(buffer)
@@ -73,10 +73,10 @@ class RequestMiddlewareTest {
         assertThat(request.body?.contentType()).isEqualTo("application/x-www-form-urlencoded".toMediaType())
     }
 
-    @Test fun testIntrospectRequest() {
+    @Test fun testIntrospectRequest(): Unit = runBlocking {
         val clientContext = IdxClientContext(codeVerifier = "123456", interactionHandle = "234567", state = "345678")
-        val request = introspectRequest(configuration, clientContext)
-        assertThat(request.url).isEqualTo("https://test.okta.com/idp/idx/introspect".toHttpUrl())
+        val request = introspectRequest(networkRule.createOidcClient(), clientContext)
+        assertThat(request.url.toString()).endsWith("/idp/idx/introspect")
         assertThat(request.method).isEqualTo("POST")
         val buffer = Buffer()
         request.body?.writeTo(buffer)
@@ -84,12 +84,12 @@ class RequestMiddlewareTest {
         assertThat(request.body?.contentType()).isEqualTo("application/ion+json; okta-version=1.0.0; charset=utf-8".toMediaType())
     }
 
-    @Test fun testInteractContext() {
-        val interactContext = InteractContext.create(configuration, codeVerifier = "asdfasdf", state = "randomGen")
+    @Test fun testInteractContext(): Unit = runBlocking {
+        val interactContext = InteractContext.create(networkRule.createOidcClient(), codeVerifier = "asdfasdf", state = "randomGen")!!
         assertThat(interactContext.codeVerifier).isEqualTo("asdfasdf")
         assertThat(interactContext.state).isEqualTo("randomGen")
         val request = interactContext.request
-        assertThat(request.url).isEqualTo("https://test.okta.com/oauth2/default/v1/interact".toHttpUrl())
+        assertThat(request.url.toString()).endsWith("/oauth2/default/v1/interact")
         assertThat(request.method).isEqualTo("POST")
         val buffer = Buffer()
         request.body?.writeTo(buffer)
@@ -97,13 +97,27 @@ class RequestMiddlewareTest {
         assertThat(request.body?.contentType()).isEqualTo("application/x-www-form-urlencoded".toMediaType())
     }
 
-    @Test fun testInteractContextWithExtraParameters() {
+    @Test fun testInteractContextReturnsNullWhenNoEndpointsExist(): Unit = runBlocking {
+        networkRule.enqueue(path(".well-known/openid-configuration")) { response ->
+            response.socketPolicy = SocketPolicy.DISCONNECT_AT_START
+        }
+        val interactContext = InteractContext.create(
+            OidcClient.createFromDiscoveryUrl(
+                networkRule.configuration,
+                networkRule.mockedUrl().newBuilder()
+                    .addPathSegments(".well-known/openid-configuration").build(),
+            ), codeVerifier = "asdfasdf", state = "randomGen"
+        )
+        assertThat(interactContext).isNull()
+    }
+
+    @Test fun testInteractContextWithExtraParameters(): Unit = runBlocking {
         val extraParameters = mapOf(Pair("recovery_token", "secret"))
-        val interactContext = InteractContext.create(configuration, extraParameters, codeVerifier = "asdfasdf", state = "randomGen")
+        val interactContext = InteractContext.create(networkRule.createOidcClient(), extraParameters, codeVerifier = "asdfasdf", state = "randomGen")!!
         assertThat(interactContext.codeVerifier).isEqualTo("asdfasdf")
         assertThat(interactContext.state).isEqualTo("randomGen")
         val request = interactContext.request
-        assertThat(request.url).isEqualTo("https://test.okta.com/oauth2/default/v1/interact".toHttpUrl())
+        assertThat(request.url.toString()).endsWith("/oauth2/default/v1/interact")
         assertThat(request.method).isEqualTo("POST")
         val buffer = Buffer()
         request.body?.writeTo(buffer)

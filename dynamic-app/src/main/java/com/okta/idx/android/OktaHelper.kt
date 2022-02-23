@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.okta.idx.android.dashboard
+package com.okta.idx.android
 
-import com.okta.idx.kotlin.dto.TokenResponse
+import com.okta.authfoundation.credential.Credential
+import com.okta.authfoundation.credential.CredentialDataSource
 
-internal object TokenViewModel {
-    var _tokenResponse: TokenResponse? = null
-    val tokenResponse: TokenResponse
-        get() {
-            return _tokenResponse!!
-        }
+internal object OktaHelper {
+    const val CREDENTIAL_NAME_METADATA_KEY: String = "sample.okta.android.credential.name"
+
+    lateinit var defaultCredential: Credential
+    lateinit var credentialDataSource: CredentialDataSource
+
+    fun isInitialized(): Boolean {
+        return ::credentialDataSource.isInitialized
+    }
 }

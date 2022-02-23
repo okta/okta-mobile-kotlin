@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.okta.idx.kotlin.client
+package com.okta.idx.kotlin.infrastructure.network
 
-/**
- * Describes the result from the IdxClient.
- */
-sealed class IdxClientResult<T> {
-    /** An error result. */
-    class Error<T> internal constructor(val exception: Exception) : IdxClientResult<T>()
-    /** Success with the expected result. */
-    class Success<T> internal constructor(val result: T) : IdxClientResult<T>()
+import com.okta.authfoundation.client.OidcClock
+
+class TestClock : OidcClock {
+    @Volatile var currentTime: Long = 1644347069L
+
+    override fun currentTimeMillis(): Long {
+        return currentTime
+    }
 }

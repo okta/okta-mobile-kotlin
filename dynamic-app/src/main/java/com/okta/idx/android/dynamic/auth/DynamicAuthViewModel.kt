@@ -23,9 +23,11 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.okta.authfoundation.client.OidcClientResult
+import com.okta.idx.android.OktaHelper
 import com.okta.idx.android.dynamic.SocialRedirectCoordinator
-import com.okta.idx.kotlin.client.IdxClient
-import com.okta.idx.kotlin.client.IdxClientResult
+import com.okta.idx.kotlin.client.IdxFlow
+import com.okta.idx.kotlin.client.IdxFlow.Companion.idxFlow
 import com.okta.idx.kotlin.client.IdxRedirectResult
 import com.okta.idx.kotlin.dto.IdxAuthenticator
 import com.okta.idx.kotlin.dto.IdxAuthenticatorCollection
@@ -48,7 +50,7 @@ internal class DynamicAuthViewModel(private val recoveryToken: String) : ViewMod
     private val _state = MutableLiveData<DynamicAuthState>(DynamicAuthState.Loading)
     val state: LiveData<DynamicAuthState> = _state
 
-    @Volatile private var client: IdxClient? = null
+    @Volatile private var flow: IdxFlow? = null
     @Volatile private var pollingJob: Job? = null
 
     init {
@@ -67,17 +69,17 @@ internal class DynamicAuthViewModel(private val recoveryToken: String) : ViewMod
             if (recoveryToken.isNotEmpty()) {
                 extraRequestParameters["recovery_token"] = recoveryToken
             }
-            when (val clientResult = IdxClient.start(IdxClientConfigurationProvider.get(), extraRequestParameters)) {
-                is IdxClientResult.Error -> {
+            when (val clientResult = OktaHelper.defaultCredential.oidcClient.idxFlow(extraRequestParameters)) {
+                is OidcClientResult.Error -> {
                     _state.value = DynamicAuthState.Error("Failed to create client")
                 }
-                is IdxClientResult.Success -> {
-                    client = clientResult.result
+                is OidcClientResult.Success -> {
+                    flow = clientResult.result
                     when (val resumeResult = clientResult.result.resume()) {
-                        is IdxClientResult.Error -> {
+                        is OidcClientResult.Error -> {
                             _state.value = DynamicAuthState.Error("Failed to call resume")
                         }
-                        is IdxClientResult.Success -> {
+                        is OidcClientResult.Success -> {
                             handleResponse(resumeResult.result)
                         }
                     }
@@ -87,15 +89,15 @@ internal class DynamicAuthViewModel(private val recoveryToken: String) : ViewMod
     }
 
     fun resume() {
-        val localClient = client
+        val localClient = flow
         if (localClient != null) {
             _state.value = DynamicAuthState.Loading
             viewModelScope.launch {
                 when (val resumeResult = localClient.resume()) {
-                    is IdxClientResult.Error -> {
+                    is OidcClientResult.Error -> {
                         _state.value = DynamicAuthState.Error("Failed to call resume")
                     }
-                    is IdxClientResult.Success -> {
+                    is OidcClientResult.Success -> {
                         handleResponse(resumeResult.result)
                     }
                 }
@@ -107,7 +109,7 @@ internal class DynamicAuthViewModel(private val recoveryToken: String) : ViewMod
 
     fun handleRedirect(uri: Uri) {
         viewModelScope.launch {
-            when (val redirectResult = client?.evaluateRedirectUri(uri)) {
+            when (val redirectResult = flow?.evaluateRedirectUri(uri)) {
                 is IdxRedirectResult.Error -> {
                     Timber.e(redirectResult.exception, redirectResult.errorMessage)
                     _state.value = DynamicAuthState.Error(redirectResult.errorMessage)
@@ -116,7 +118,7 @@ internal class DynamicAuthViewModel(private val recoveryToken: String) : ViewMod
                     handleResponse(redirectResult.response)
                 }
                 is IdxRedirectResult.Tokens -> {
-                    _state.value = DynamicAuthState.Tokens(redirectResult.response)
+                    _state.value = DynamicAuthState.Tokens
                 }
                 null -> {
                     Timber.d("No client for handleRedirect.")
@@ -127,13 +129,12 @@ internal class DynamicAuthViewModel(private val recoveryToken: String) : ViewMod
 
     private suspend fun handleResponse(response: IdxResponse) {
         if (response.isLoginSuccessful) {
-            when (val exchangeCodesResult =
-                client?.exchangeInteractionCodeForTokens(response.remediations[IdxRemediation.Type.ISSUE]!!)) {
-                is IdxClientResult.Error -> {
+            when (flow?.exchangeInteractionCodeForTokens(response.remediations[IdxRemediation.Type.ISSUE]!!)) {
+                is OidcClientResult.Error -> {
                     _state.value = DynamicAuthState.Error("Failed to call resume")
                 }
-                is IdxClientResult.Success -> {
-                    _state.value = DynamicAuthState.Tokens(exchangeCodesResult.result)
+                is OidcClientResult.Success -> {
+                    _state.value = DynamicAuthState.Tokens
                 }
             }
             return
@@ -288,9 +289,9 @@ internal class DynamicAuthViewModel(private val recoveryToken: String) : ViewMod
     }
 
     private fun IdxRemediation.startPolling() {
-        val localClient = client ?: return
+        val localClient = flow ?: return
 
-        val pollFunction: suspend (IdxClient) -> IdxClientResult<IdxResponse>
+        val pollFunction: suspend (IdxFlow) -> OidcClientResult<IdxResponse>
 
         val remediationCapability = capabilities.get<IdxPollRemediationCapability>()
         val authenticatorCapability = authenticators.capability<IdxPollAuthenticatorCapability>()
@@ -309,10 +310,10 @@ internal class DynamicAuthViewModel(private val recoveryToken: String) : ViewMod
 
         pollingJob = viewModelScope.launch {
             when (val result = pollFunction(localClient)) {
-                is IdxClientResult.Error -> {
+                is OidcClientResult.Error -> {
                     _state.value = DynamicAuthState.Error("Failed to poll")
                 }
-                is IdxClientResult.Success -> {
+                is OidcClientResult.Success -> {
                     handleResponse(result.result)
                 }
             }
@@ -342,11 +343,11 @@ internal class DynamicAuthViewModel(private val recoveryToken: String) : ViewMod
         cancelPolling()
         viewModelScope.launch {
             _state.value = DynamicAuthState.Loading
-            when (val resumeResult = client?.proceed(remediation)) {
-                is IdxClientResult.Error -> {
+            when (val resumeResult = flow?.proceed(remediation)) {
+                is OidcClientResult.Error -> {
                     _state.value = DynamicAuthState.Error("Failed to call proceed")
                 }
-                is IdxClientResult.Success -> {
+                is OidcClientResult.Success -> {
                     handleResponse(resumeResult.result)
                 }
             }

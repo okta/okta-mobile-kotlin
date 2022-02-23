@@ -16,7 +16,6 @@
 package com.okta.idx.android.dynamic.auth
 
 import com.okta.idx.kotlin.dto.IdxResponse
-import com.okta.idx.kotlin.dto.TokenResponse
 
 sealed class DynamicAuthState {
     object Loading : DynamicAuthState()
@@ -29,5 +28,5 @@ sealed class DynamicAuthState {
 
     data class Error(val message: String) : DynamicAuthState()
 
-    data class Tokens(val tokenResponse: TokenResponse) : DynamicAuthState()
+    object Tokens : DynamicAuthState()
 }

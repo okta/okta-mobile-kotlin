@@ -15,11 +15,11 @@
  */
 package com.okta.idx.kotlin.client
 
+import com.okta.authfoundation.credential.Token
 import com.okta.idx.kotlin.dto.IdxResponse
-import com.okta.idx.kotlin.dto.TokenResponse
 
 /**
- * Describes the result when using [IdxClient.evaluateRedirectUri].
+ * Describes the result when using [IdxFlow.evaluateRedirectUri].
  */
 sealed class IdxRedirectResult {
     /**
@@ -27,7 +27,7 @@ sealed class IdxRedirectResult {
      */
     class Tokens internal constructor(
         /** The token response. */
-        val response: TokenResponse,
+        val response: Token,
     ) : IdxRedirectResult()
 
     /**

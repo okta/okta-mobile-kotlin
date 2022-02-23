@@ -19,16 +19,10 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.okta.idx.android.dynamic.BuildConfig
-import com.okta.idx.android.dynamic.auth.IdxClientConfigurationProvider
-import kotlinx.coroutines.Dispatchers
+import com.okta.authfoundation.client.OidcClientResult
+import com.okta.idx.android.OktaHelper
 import kotlinx.coroutines.launch
-import okhttp3.FormBody
-import okhttp3.Request
 import timber.log.Timber
-import java.io.IOException
 
 internal class DashboardViewModel : ViewModel() {
     private val _logoutStateLiveData = MutableLiveData<LogoutState>(LogoutState.Idle)
@@ -38,11 +32,14 @@ internal class DashboardViewModel : ViewModel() {
     val userInfoLiveData: LiveData<Map<String, String>> = _userInfoLiveData
 
     init {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                getClaims()?.let { _userInfoLiveData.postValue(it) }
-            } catch (e: IOException) {
-                Timber.e(e, "User info request failed.")
+        viewModelScope.launch {
+            when (val result = OktaHelper.defaultCredential.getUserInfo()) {
+                is OidcClientResult.Error -> {
+                    Timber.e(result.exception, "User info request failed.")
+                }
+                is OidcClientResult.Success -> {
+                    _userInfoLiveData.postValue(result.result.asMap())
+                }
             }
         }
     }
@@ -50,57 +47,16 @@ internal class DashboardViewModel : ViewModel() {
     fun logout() {
         _logoutStateLiveData.value = LogoutState.Loading
 
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                val refreshToken = TokenViewModel.tokenResponse.refreshToken
-                if (refreshToken != null) {
-                    // Revoking the refresh token revokes both!
-                    revokeToken("refresh_token", refreshToken)
-                } else {
-                    revokeToken("access_token", TokenViewModel.tokenResponse.accessToken)
+        viewModelScope.launch {
+            when (OktaHelper.defaultCredential.revokeToken()) {
+                is OidcClientResult.Error -> {
+                    _logoutStateLiveData.postValue(LogoutState.Failed)
                 }
-
-                _logoutStateLiveData.postValue(LogoutState.Success)
-            } catch (e: Exception) {
-                _logoutStateLiveData.postValue(LogoutState.Failed)
+                is OidcClientResult.Success -> {
+                    _logoutStateLiveData.postValue(LogoutState.Success)
+                }
             }
         }
-    }
-
-    private fun getClaims(): Map<String, String>? {
-        val accessToken = TokenViewModel.tokenResponse.accessToken
-        val request = Request.Builder()
-            .addHeader("authorization", "Bearer $accessToken")
-            .url("${BuildConfig.ISSUER}/v1/userinfo")
-            .build()
-        val response = IdxClientConfigurationProvider.get().okHttpCallFactory.newCall(request).execute()
-        if (response.isSuccessful) {
-            val parser = ObjectMapper().createParser(response.body?.byteStream())
-            val json = parser.readValueAsTree<JsonNode>()
-            val map = mutableMapOf<String, String>()
-            for (entry in json.fields()) {
-                map[entry.key] = entry.value.asText()
-            }
-            return map
-        }
-
-        return null
-    }
-
-    private fun revokeToken(tokenType: String, token: String) {
-        val formBody = FormBody.Builder()
-            .add("client_id", BuildConfig.CLIENT_ID)
-            .add("token_type_hint", tokenType)
-            .add("token", token)
-            .build()
-
-        val request = Request.Builder()
-            .url("${BuildConfig.ISSUER}/v1/revoke")
-            .post(formBody)
-            .build()
-
-        val response = IdxClientConfigurationProvider.get().okHttpCallFactory.newCall(request).execute()
-        Timber.d("Revoke Token Response: %s", response)
     }
 
     fun acknowledgeLogoutSuccess() {

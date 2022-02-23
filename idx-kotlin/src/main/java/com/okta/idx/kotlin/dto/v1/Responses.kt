@@ -189,16 +189,6 @@ internal data class Message(
 }
 
 @Serializable
-internal data class Token(
-    @SerialName("token_type") val tokenType: String,
-    @SerialName("expires_in") val expiresIn: Int,
-    @SerialName("access_token") val accessToken: String,
-    val scope: String,
-    @SerialName("refresh_token") val refreshToken: String? = null,
-    @SerialName("id_token") val idToken: String,
-)
-
-@Serializable
 internal data class InteractResponse(
     @SerialName("interaction_handle") val interactionHandle: String,
 )

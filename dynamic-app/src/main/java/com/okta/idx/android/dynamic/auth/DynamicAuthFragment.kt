@@ -23,7 +23,6 @@ import android.view.inputmethod.EditorInfo
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.textfield.TextInputLayout
-import com.okta.idx.android.dashboard.TokenViewModel
 import com.okta.idx.android.dynamic.R
 import com.okta.idx.android.dynamic.databinding.ErrorBinding
 import com.okta.idx.android.dynamic.databinding.ErrorFieldBinding
@@ -83,8 +82,7 @@ internal class DynamicAuthFragment : BaseFragment<FragmentDynamicAuthBinding>(
                 DynamicAuthState.Loading -> {
                     addLoadingView()
                 }
-                is DynamicAuthState.Tokens -> {
-                    TokenViewModel._tokenResponse = state.tokenResponse
+                DynamicAuthState.Tokens -> {
                     findNavController().navigate(DynamicAuthFragmentDirections.dynamicAuthToDashboard())
                 }
             }

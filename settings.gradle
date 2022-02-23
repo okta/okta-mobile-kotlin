@@ -2,3 +2,9 @@ rootProject.name = "okta-idx-android"
 include ':app'
 include ':dynamic-app'
 include ':idx-kotlin'
+
+includeBuild('../okta-mobile-kotlin') {
+    dependencySubstitution {
+        substitute module('authfoundation:authfoundation') using project(':auth-foundation')
+    }
+}
