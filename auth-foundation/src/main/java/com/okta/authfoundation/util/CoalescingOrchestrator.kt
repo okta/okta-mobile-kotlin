@@ -26,6 +26,8 @@ import kotlinx.coroutines.withContext
 internal class CoalescingOrchestrator<T : Any>(
     private val factory: suspend () -> T,
     private val keepDataInMemory: (T) -> Boolean,
+    // This should only be used for testing.
+    private val awaitListener: (() -> Unit)? = null,
 ) {
     @Volatile private lateinit var data: T
     @Volatile private var dataInitialized: Boolean = false
@@ -52,6 +54,7 @@ internal class CoalescingOrchestrator<T : Any>(
                 }
             }
             try {
+                awaitListener?.invoke()
                 deferredToAwait.await()
             } catch (e: CancellationException) {
                 // The `deferredToAwait` was cancelled before we could await it by another thread.
