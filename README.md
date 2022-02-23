@@ -157,6 +157,35 @@ when (val result = credential.oidcClient.webAuthenticationClient().resume(uri, a
 }
 ```
 
+## Running the sample
+
+The sample is designed to show what is possible when using the SDK.
+
+### Configuring the sample
+
+Update the `okta.properties` file in the root directory of the project with the contents created from the Okta admin dashboard:
+```
+issuer=https://YOUR_ORG.okta.com/oauth2/default
+clientId=test-client-id
+signInRedirectUri=com.okta.sample.android:/login
+signOutRedirectUri=com.okta.sample.android:/logout
+```
+
+Notes:
+
+- issuer - is your authorization server, usually https://your_okta_domain.okta.com/oauth2/default, but custom authorization servers are supported. See https://your_okta_domain.okta.com/admin/oauth2/as for available authorization servers.
+- clientId - is your applications client id, created in your Okta admin dashboard
+- signInRedirectUri - is used for browser redirect, and should follow the format of reverse domain name notation + /login, ie: com.okta.sample.android:/login
+- signOutRedirectUri - is used for browser redirect, and should follow the format of reverse domain name notation + /logout, ie: com.okta.sample.android:/logout
+
+### Launching the sample
+
+You can open this sample in Android Studio or build it using Gradle.
+
+```
+./gradlew :app:assembleDebug
+```
+
 ## Contributing
 
 We are happy to accept contributions and PRs! Please see the [contribution guide](CONTRIBUTING.md) to understand how to structure a contribution.
