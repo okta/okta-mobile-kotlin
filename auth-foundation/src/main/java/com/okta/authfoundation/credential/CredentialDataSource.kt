@@ -15,7 +15,9 @@
  */
 package com.okta.authfoundation.credential
 
-import com.okta.authfoundation.AuthFoundationDefaults
+import android.content.Context
+import android.os.Build
+import androidx.annotation.RequiresApi
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.credential.events.CredentialCreatedEvent
 import com.okta.authfoundation.util.CoalescingOrchestrator
@@ -35,12 +37,26 @@ class CredentialDataSource internal constructor(
         /**
          * Initializes a credential data source using the [OidcClient].
          *
-         * @param storage the [TokenStorage] used to persist [Token]s, see [AuthFoundationDefaults.storage] for information on the default.
+         * @param storage the [TokenStorage] used to persist [Token]s.
          * @receiver the [OidcClient] used to perform the low level OIDC requests, as well as with which to use the configuration from.
          */
         fun OidcClient.credentialDataSource(
-            storage: TokenStorage = AuthFoundationDefaults.storage,
+            storage: TokenStorage,
         ): CredentialDataSource {
+            return CredentialDataSource(this, storage)
+        }
+
+        /**
+         * Initializes a credential data source using the [OidcClient].
+         *
+         * @param context the [Context] used to access Android Shared Preferences and crypto primitives to persist [Token]s.
+         * @receiver the [OidcClient] used to perform the low level OIDC requests, as well as with which to use the configuration from.
+         */
+        @RequiresApi(Build.VERSION_CODES.M)
+        fun OidcClient.credentialDataSource(
+            context: Context,
+        ): CredentialDataSource {
+            val storage = SharedPreferencesTokenStorage(configuration.json, configuration.ioDispatcher, context)
             return CredentialDataSource(this, storage)
         }
     }

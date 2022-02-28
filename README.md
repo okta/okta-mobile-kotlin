@@ -69,11 +69,13 @@ val client = OidcClient.createFromDiscoveryUrl(
 The Credential type handles storage, OAuth conveniences and signing requests to your Resource Server after login occurs. Before authenticating, we'll create the credential.
 
 ```kotlin
+import android.content.Context
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.credential.Credential
 import com.okta.authfoundation.credential.CredentialDataSource.Companion.credentialDataSource
 
-val credentialDataSource = oidcClient.credentialDataSource()
+val context: Context = TODO("Available from previous steps.")
+val credentialDataSource = oidcClient.credentialDataSource(context)
 val credential: Credential = credentialDataSource.create()
 ```
 
