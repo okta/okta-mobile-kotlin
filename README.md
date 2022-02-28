@@ -159,6 +159,29 @@ when (val result = credential.oidcClient.webAuthenticationClient().resume(uri, a
 }
 ```
 
+### Networking customization
+
+The Okta Mobile Kotlin SDKs should provide all the required networking by default, however, if you would like to customize networking
+behavior, that is also possible.
+
+The SDK uses [OkHttp](https://github.com/square/okhttp) as the API for performing network requests.
+The SDK also uses OkHttp as the default implementation for performing network requests.
+If you intent to customize networking behavior, there are a few options:
+- Add an [Interceptor](https://square.github.io/okhttp/4.x/okhttp/okhttp3/-interceptor/) to the `OkHttpClient` you provide to
+`AuthFoundationDefaults.okHttpClientFactory`
+- Return a custom implementation of `Call.Factory` when initializing the SDK in `AuthFoundationDefaults.okHttpClientFactory`
+
+#### OkHttp Interceptor
+
+Configuring the `OkHttpClient` with an `Interceptor` is the recommend approach to customizing the networking behavior.
+Adding an interceptor allows you to listen for requests and responses, customize requests before they are sent, and customize responses
+before they are processed by the SDK.
+
+#### Custom Call Factory
+
+Providing a custom call factory is an advanced use case, and is not recommended. The possibilities are endless, including the ability to
+replace the engine that executes the HTTP requests.
+
 ## Running the sample
 
 The sample is designed to show what is possible when using the SDK.
