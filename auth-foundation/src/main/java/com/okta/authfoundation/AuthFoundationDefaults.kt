@@ -42,9 +42,6 @@ object AuthFoundationDefaults {
     /** The default OidcClock. */
     var clock: OidcClock by NoSetAfterGetWithLazyDefaultFactory { defaultClock() }
 
-    /** The default TokenStorage. */
-    var storage: TokenStorage by NoSetAfterGetWithLazyDefaultFactory { defaultStorage() }
-
     /** The default IdTokenValidator. */
     var idTokenValidator: IdTokenValidator by NoSetAfterGetWithLazyDefaultFactory { DefaultIdTokenValidator() }
 
@@ -52,28 +49,6 @@ object AuthFoundationDefaults {
         return object : OidcClock {
             override fun currentTimeMillis(): Long {
                 return Instant.now().epochSecond
-            }
-        }
-    }
-
-    internal fun defaultStorage(): TokenStorage {
-        return object : TokenStorage {
-            private val entries = Collections.synchronizedMap(mutableMapOf<String, TokenStorage.Entry>())
-
-            override suspend fun entries(): List<TokenStorage.Entry> {
-                return entries.values.toList()
-            }
-
-            override suspend fun add(id: String) {
-                entries[id] = TokenStorage.Entry(id, null, emptyMap())
-            }
-
-            override suspend fun remove(id: String) {
-                entries.remove(id)
-            }
-
-            override suspend fun replace(updatedEntry: TokenStorage.Entry) {
-                entries[updatedEntry.identifier] = updatedEntry
             }
         }
     }

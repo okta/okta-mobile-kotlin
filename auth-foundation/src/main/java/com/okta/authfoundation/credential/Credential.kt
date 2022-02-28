@@ -78,7 +78,7 @@ class Credential internal constructor(
         }
 
     suspend fun getUserInfo(): OidcClientResult<OidcUserInfo> {
-        val accessToken = token?.accessToken ?: return OidcClientResult.Error(IllegalStateException("No Access Token."))
+        val accessToken = getValidAccessToken() ?: return OidcClientResult.Error(IllegalStateException("No Access Token."))
         return oidcClient.getUserInfo(accessToken)
     }
 

@@ -36,8 +36,10 @@ dependencies {
 
     api deps.kotlin.stdlib
     api deps.okhttp.core
-    api deps.coroutines.android
+    api deps.coroutines.core
     api deps.kotlin.serialization_json
+
+    implementation deps.security_crypto
 
     testImplementation deps.junit
     testImplementation deps.truth
@@ -45,4 +47,12 @@ dependencies {
     testImplementation deps.mockito.core
     testImplementation deps.mockito.kotlin
     testImplementation project(':test-helpers')
+
+    androidTestImplementation deps.junit
+    androidTestImplementation deps.truth
+    androidTestImplementation deps.kotlin.test
+    androidTestImplementation deps.androidx_test.core
+    androidTestImplementation deps.androidx_test.ext_junit
+    androidTestImplementation deps.androidx_test.runner
+    androidTestImplementation deps.androidx_test.rules
 }
