@@ -119,11 +119,15 @@ class Credential internal constructor(
             oidcClient.configuration.eventCoordinator.sendEvent(CredentialStoredAfterRemovedEvent(this))
             return
         }
+        val tokenToStore = token?.copy(
+            // Device Secret isn't returned when refreshing.
+            deviceSecret = token.deviceSecret ?: _token?.deviceSecret,
+        )
         val metadataCopy = metadata.toMap() // Making a defensive copy, so it's not modified outside our control.
         storage.replace(
-            updatedEntry = TokenStorage.Entry(storageIdentifier, token, metadataCopy),
+            updatedEntry = TokenStorage.Entry(storageIdentifier, tokenToStore, metadataCopy),
         )
-        _token = token
+        _token = tokenToStore
         _metadata = metadataCopy
     }
 
@@ -153,16 +157,7 @@ class Credential internal constructor(
         val localToken = token ?: return OidcClientResult.Error(IllegalStateException("No Token."))
         val refresh = localToken.refreshToken ?: return OidcClientResult.Error(IllegalStateException("No Refresh Token."))
         val scopes = localToken.scope.split(" ").toSet()
-        return oidcClient.refreshToken(refresh, scopes).also { result ->
-            if (result is OidcClientResult.Success) {
-                storeToken(
-                    result.result.copy(
-                        // Device Secret isn't returned when refreshing.
-                        deviceSecret = result.result.deviceSecret ?: _token?.deviceSecret,
-                    )
-                )
-            }
-        }
+        return oidcClient.refreshToken(refresh, scopes)
     }
 
     /**
