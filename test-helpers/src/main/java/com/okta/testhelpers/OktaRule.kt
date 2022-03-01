@@ -52,8 +52,8 @@ class OktaRule(
         computeDispatcher = Dispatchers.Unconfined,
     )
 
-    fun createOidcClient(urlBuilder: HttpUrl.Builder = baseUrl.newBuilder()): OidcClient {
-        val endpoints = OidcEndpoints(
+    fun createEndpoints(urlBuilder: HttpUrl.Builder = baseUrl.newBuilder()): OidcEndpoints {
+        return OidcEndpoints(
             issuer = urlBuilder.encodedPath("/oauth2/default").build(),
             authorizationEndpoint = urlBuilder.encodedPath("/oauth2/default/v1/authorize").build(),
             tokenEndpoint = urlBuilder.encodedPath("/oauth2/default/v1/token").build(),
@@ -63,7 +63,11 @@ class OktaRule(
             introspectionEndpoint = urlBuilder.encodedPath("/oauth2/default/v1/introspect").build(),
             revocationEndpoint = urlBuilder.encodedPath("/oauth2/default/v1/revoke").build(),
             endSessionEndpoint = urlBuilder.encodedPath("/oauth2/default/v1/logout").build(),
+            deviceAuthorizationEndpoint = urlBuilder.encodedPath("/oauth2/default/v1/device/authorize").build(),
         )
+    }
+
+    fun createOidcClient(endpoints: OidcEndpoints = createEndpoints()): OidcClient {
         return OidcClient.create(configuration, endpoints)
     }
 

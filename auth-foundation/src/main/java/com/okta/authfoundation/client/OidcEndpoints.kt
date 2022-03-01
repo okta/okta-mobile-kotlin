@@ -35,7 +35,7 @@ import okhttp3.HttpUrl.Companion.toHttpUrl
  * See [OIDC Endpoints][https://developer.okta.com/docs/reference/api/oidc/#endpoints]
  */
 @Serializable
-class OidcEndpoints(
+data class OidcEndpoints(
     @SerialName("issuer") val issuer: HttpUrl,
     @SerialName("authorization_endpoint") val authorizationEndpoint: HttpUrl,
     @SerialName("token_endpoint") val tokenEndpoint: HttpUrl,
