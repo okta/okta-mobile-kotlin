@@ -42,7 +42,7 @@ class IdxFlowTest {
         }
 
         val clientResult = networkRule.createOidcClient().idxFlow() as OidcClientResult.Success<IdxFlow>
-        assertThat(clientResult.result.clientContext.interactionHandle).isEqualTo("029ZAB")
+        assertThat(clientResult.result.flowContext.interactionHandle).isEqualTo("029ZAB")
     }
 
     @Test fun testStartWithNoEndpoints(): Unit = runBlocking {
@@ -69,7 +69,7 @@ class IdxFlowTest {
 
         val extraParameters = mapOf(Pair("recovery_token", "secret123"))
         val clientResult = networkRule.createOidcClient().idxFlow(extraParameters) as OidcClientResult.Success<IdxFlow>
-        assertThat(clientResult.result.clientContext.interactionHandle).isEqualTo("029ZAB")
+        assertThat(clientResult.result.flowContext.interactionHandle).isEqualTo("029ZAB")
     }
 
     @Test fun testResume(): Unit = runBlocking {
@@ -83,7 +83,7 @@ class IdxFlowTest {
 
         val clientResult = networkRule.createOidcClient().idxFlow() as OidcClientResult.Success<IdxFlow>
         val client = clientResult.result
-        assertThat(client.clientContext.interactionHandle).isEqualTo("029ZAB")
+        assertThat(client.flowContext.interactionHandle).isEqualTo("029ZAB")
 
         val resumeResult = client.resume() as OidcClientResult.Success<IdxResponse>
         assertThat(resumeResult.result.remediations).hasSize(4)
@@ -103,7 +103,7 @@ class IdxFlowTest {
 
         val clientResult = networkRule.createOidcClient().idxFlow() as OidcClientResult.Success<IdxFlow>
         val client = clientResult.result
-        assertThat(client.clientContext.interactionHandle).isEqualTo("029ZAB")
+        assertThat(client.flowContext.interactionHandle).isEqualTo("029ZAB")
 
         val resumeResult = client.resume() as OidcClientResult.Success<IdxResponse>
         val resumeResponse = resumeResult.result
@@ -130,7 +130,7 @@ class IdxFlowTest {
 
         val clientResult = networkRule.createOidcClient().idxFlow() as OidcClientResult.Success<IdxFlow>
         val client = clientResult.result
-        assertThat(client.clientContext.interactionHandle).isEqualTo("029ZAB")
+        assertThat(client.flowContext.interactionHandle).isEqualTo("029ZAB")
 
         val resumeResult = client.resume() as OidcClientResult.Success<IdxResponse>
         val resumeResponse = resumeResult.result
@@ -161,7 +161,7 @@ class IdxFlowTest {
 
         val clientResult = networkRule.createOidcClient().idxFlow() as OidcClientResult.Success<IdxFlow>
         val client = clientResult.result
-        assertThat(client.clientContext.interactionHandle).isEqualTo("029ZAB")
+        assertThat(client.flowContext.interactionHandle).isEqualTo("029ZAB")
 
         val resumeResult = client.resume() as OidcClientResult.Success<IdxResponse>
         val resumeResponse = resumeResult.result
@@ -185,7 +185,7 @@ class IdxFlowTest {
         }
 
         val clientResult = networkRule.createOidcClient().idxFlow() as OidcClientResult.Success<IdxFlow>
-        assertThat(clientResult.result.clientContext.interactionHandle).isEqualTo("029ZAB")
+        assertThat(clientResult.result.flowContext.interactionHandle).isEqualTo("029ZAB")
 
         val client = clientResult.result
         val exchangeCodesResult = client.exchangeInteractionCodeForTokens(createRemediation(emptyList())) as OidcClientResult.Error<Token>

@@ -42,7 +42,7 @@ internal class LaunchViewModel : ViewModel() {
                 oidcConfiguration,
                 "${BuildConfig.ISSUER}/.well-known/openid-configuration".toHttpUrl(),
             )
-            val credentialDataSource = oidcClient.credentialDataSource()
+            val credentialDataSource = oidcClient.credentialDataSource(SampleApplication.context)
             OktaHelper.credentialDataSource = credentialDataSource
             val credential = credentialDataSource.all().firstOrNull { credential ->
                 credential.metadata[OktaHelper.CREDENTIAL_NAME_METADATA_KEY] == DEFAULT_CREDENTIAL_NAME_METADATA_VALUE

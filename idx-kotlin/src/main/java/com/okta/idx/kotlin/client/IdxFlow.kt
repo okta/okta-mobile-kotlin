@@ -39,11 +39,11 @@ import com.okta.idx.kotlin.dto.v1.Response as V1Response
  */
 class IdxFlow internal constructor(
     private val oidcClient: OidcClient,
-    val clientContext: IdxClientContext,
+    val flowContext: IdxFlowContext,
 ) {
     companion object {
         /**
-         * Used to create an IdxClient, and to start an authorization flow.
+         * Used to create an IdxFlow, and to start an authorization flow.
          */
         suspend fun OidcClient.idxFlow(
             extraStartRequestParameters: Map<String, String> = emptyMap(),
@@ -56,14 +56,14 @@ class IdxFlow internal constructor(
                 InteractResponse.serializer(),
                 interactContext.request
             ) {
-                val clientContext = IdxClientContext(
+                val clientContext = IdxFlowContext(
                     codeVerifier = interactContext.codeVerifier,
                     interactionHandle = it.interactionHandle,
                     state = interactContext.state,
                 )
                 IdxFlow(
                     oidcClient = this,
-                    clientContext = clientContext,
+                    flowContext = clientContext,
                 )
             }
         }
@@ -72,11 +72,11 @@ class IdxFlow internal constructor(
     /**
      * Resumes the authentication state to identify the available remediation steps.
      *
-     * This method is usually performed after an IdxClient is created, but can also be called at any time to identify what next remediation steps are available to the user.
+     * This method is usually performed after an IdxFlow is created, but can also be called at any time to identify what next remediation steps are available to the user.
      */
     suspend fun resume(): OidcClientResult<IdxResponse> {
         val request = withContext(oidcClient.configuration.computeDispatcher) {
-            introspectRequest(oidcClient, clientContext)
+            introspectRequest(oidcClient, flowContext)
         }
 
         return oidcClient.configuration.performRequest(
@@ -120,7 +120,7 @@ class IdxFlow internal constructor(
         }
 
         val request = withContext(oidcClient.configuration.computeDispatcher) {
-            remediation["code_verifier"]?.value = clientContext.codeVerifier
+            remediation["code_verifier"]?.value = flowContext.codeVerifier
 
             remediation.asFormRequest()
         }
@@ -140,7 +140,7 @@ class IdxFlow internal constructor(
         val stateQueryParameter = uri.getQueryParameter("state")
         if (errorQueryParameter == "interaction_required") {
             // Validate the state matches. This is a security assurance.
-            if (clientContext.state != stateQueryParameter) {
+            if (flowContext.state != stateQueryParameter) {
                 val error = "IDP redirect failed due to state mismatch."
                 return IdxRedirectResult.Error(error)
             }
@@ -161,7 +161,7 @@ class IdxFlow internal constructor(
         val interactionCodeQueryParameter = uri.getQueryParameter("interaction_code")
         if (interactionCodeQueryParameter != null) {
             // Validate the state matches. This is a security assurance.
-            if (clientContext.state != stateQueryParameter) {
+            if (flowContext.state != stateQueryParameter) {
                 val error = "IDP redirect failed due to state mismatch."
                 return IdxRedirectResult.Error(error)
             }
@@ -180,7 +180,7 @@ class IdxFlow internal constructor(
 
     private suspend fun exchangeInteractionCodeForTokens(interactionCode: String): OidcClientResult<Token> {
         val request = withContext(oidcClient.configuration.computeDispatcher) {
-            tokenRequestFromInteractionCode(oidcClient, clientContext, interactionCode)
+            tokenRequestFromInteractionCode(oidcClient, flowContext, interactionCode)
         }
 
         return oidcClient.tokenRequest(request)

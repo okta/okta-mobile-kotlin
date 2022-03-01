@@ -10,7 +10,7 @@ android {
 
     defaultConfig {
         applicationId "com.okta.idx.android"
-        minSdkVersion build_versions.min_sdk
+        minSdkVersion 23
         targetSdkVersion build_versions.target_sdk
         versionCode 1
         versionName '1.0'

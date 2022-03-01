@@ -50,7 +50,7 @@ class IdxRemediationCollection internal constructor(
  * Each of the remediation options includes details about what form values should be collected from the user, and a description of the resulting request that should be sent to Okta to proceed to the next step.
  */
 class IdxRemediation internal constructor(
-    /** The type of this remediation, which is used for keyed subscripting from a `IdxClient.RemediationCollection`. */
+    /** The type of this remediation. */
     val type: Type,
 
     /** The string name for this type. */
