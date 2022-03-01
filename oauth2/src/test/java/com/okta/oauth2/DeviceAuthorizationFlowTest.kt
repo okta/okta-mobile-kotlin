@@ -1,0 +1,237 @@
+/*
+ * Copyright 2022-Present Okta, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.okta.oauth2
+
+import com.google.common.truth.Truth.assertThat
+import com.okta.authfoundation.client.OidcClient
+import com.okta.oauth2.DeviceAuthorizationFlow.Companion.deviceAuthorizationFlow
+import com.okta.testhelpers.OktaRule
+import com.okta.testhelpers.RequestMatchers.body
+import com.okta.testhelpers.RequestMatchers.method
+import com.okta.testhelpers.RequestMatchers.path
+import com.okta.testhelpers.testBodyFromFile
+import kotlinx.coroutines.runBlocking
+import org.junit.Rule
+import org.junit.Test
+import org.mockito.kotlin.mock
+import java.io.IOException
+import java.util.concurrent.atomic.AtomicInteger
+
+class DeviceAuthorizationFlowTest {
+    private val mockPrefix = "test_responses"
+
+    @get:Rule val oktaRule = OktaRule()
+
+    @Test fun testStartWithNoEndpoints(): Unit = runBlocking {
+        oktaRule.enqueue(path("/.well-known/openid-configuration")) { response ->
+            response.setResponseCode(503)
+        }
+        val client = OidcClient.createFromDiscoveryUrl(
+            oktaRule.configuration,
+            oktaRule.baseUrl.newBuilder().encodedPath("/.well-known/openid-configuration").build()
+        )
+
+        val flow = client.deviceAuthorizationFlow()
+        val startResult = flow.start() as DeviceAuthorizationFlow.StartResult.Error
+
+        assertThat(startResult.message).isEqualTo("Endpoints not available.")
+    }
+
+    @Test fun testStartWithNoDeviceAuthorizationEndpoints(): Unit = runBlocking {
+        val client = oktaRule.createOidcClient(oktaRule.createEndpoints().copy(deviceAuthorizationEndpoint = null))
+
+        val flow = client.deviceAuthorizationFlow()
+        val startResult = flow.start() as DeviceAuthorizationFlow.StartResult.Error
+
+        assertThat(startResult.message).isEqualTo("Device authorization endpoint is null.")
+    }
+
+    @Test fun testStart(): Unit = runBlocking {
+        oktaRule.enqueue(
+            method("POST"),
+            path("/oauth2/default/v1/device/authorize"),
+            body("client_id=unit_test_client_id&scope=openid%20email%20profile%20offline_access")
+        ) { response ->
+            val body = """
+            {
+                "device_code": "1a521d9f-0922-4e6d-8db9-8b654297435a",
+                "user_code": "GDLMZQCT",
+                "verification_uri": "https://example.okta.com/activate",
+                "verification_uri_complete": "https://example.okta.com/activate?user_code=GDLMZQCT",
+                "expires_in": 600,
+                "interval": 5
+            }
+            """.trimIndent()
+            response.setBody(body)
+        }
+
+        val flow = oktaRule.createOidcClient().deviceAuthorizationFlow()
+        val startResult = flow.start() as DeviceAuthorizationFlow.StartResult.Success
+
+        assertThat(startResult.context.deviceCode).isEqualTo("1a521d9f-0922-4e6d-8db9-8b654297435a")
+        assertThat(startResult.context.expiresIn).isEqualTo(600)
+        assertThat(startResult.context.interval).isEqualTo(5)
+        assertThat(startResult.response.deviceCode).isEqualTo("1a521d9f-0922-4e6d-8db9-8b654297435a")
+        assertThat(startResult.response.expiresIn).isEqualTo(600)
+        assertThat(startResult.response.interval).isEqualTo(5)
+        assertThat(startResult.response.verificationUri).isEqualTo("https://example.okta.com/activate")
+        assertThat(startResult.response.verificationUriComplete).isEqualTo("https://example.okta.com/activate?user_code=GDLMZQCT")
+        assertThat(startResult.response.userCode).isEqualTo("GDLMZQCT")
+    }
+
+    @Test fun testStartError(): Unit = runBlocking {
+        oktaRule.enqueue(
+            method("POST"),
+            path("/oauth2/default/v1/device/authorize"),
+            body("client_id=unit_test_client_id&scope=openid%20email%20profile%20offline_access")
+        ) { response ->
+            response.setResponseCode(500)
+        }
+
+        val flow = oktaRule.createOidcClient().deviceAuthorizationFlow()
+        val startResult = flow.start() as DeviceAuthorizationFlow.StartResult.Error
+
+        assertThat(startResult.exception).hasMessageThat().isEqualTo("Request failed.")
+        assertThat(startResult.message).isEqualTo("Device authorization request failed.")
+    }
+
+    @Test fun testResumeWithNoEndpoints(): Unit = runBlocking {
+        oktaRule.enqueue(path("/.well-known/openid-configuration")) { response ->
+            response.setResponseCode(503)
+        }
+        val client = OidcClient.createFromDiscoveryUrl(
+            oktaRule.configuration,
+            oktaRule.baseUrl.newBuilder().encodedPath("/.well-known/openid-configuration").build()
+        )
+
+        val flow = client.deviceAuthorizationFlow()
+        val context = mock<DeviceAuthorizationFlow.Context>()
+        val startResult = flow.resume(context) as DeviceAuthorizationFlow.ResumeResult.Error
+
+        assertThat(startResult.message).isEqualTo("Endpoints not available.")
+    }
+
+    @Test fun testResumeWithNoPolling(): Unit = runBlocking {
+        oktaRule.enqueue(
+            method("POST"),
+            path("/oauth2/default/v1/token"),
+            body("client_id=unit_test_client_id&device_code=1a521d9f-0922-4e6d-8db9-8b654297435a&grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Adevice_code")
+        ) { response ->
+            response.testBodyFromFile("$mockPrefix/token.json")
+        }
+
+        val flow = oktaRule.createOidcClient().deviceAuthorizationFlow()
+        val context = DeviceAuthorizationFlow.Context(
+            deviceCode = "1a521d9f-0922-4e6d-8db9-8b654297435a",
+            interval = 5,
+            expiresIn = 600,
+        )
+        val delayFunctionExecutedCount = AtomicInteger(0)
+        flow.delayFunction = { delay ->
+            assertThat(delay).isEqualTo(5000)
+            delayFunctionExecutedCount.incrementAndGet()
+        }
+        val startResult = flow.resume(context) as DeviceAuthorizationFlow.ResumeResult.Token
+        assertThat(startResult.token.accessToken).isEqualTo("exampleAccessToken")
+        assertThat(delayFunctionExecutedCount.get()).isEqualTo(1)
+    }
+
+    @Test fun testResumeWithPolling(): Unit = runBlocking {
+        oktaRule.enqueue(
+            method("POST"),
+            path("/oauth2/default/v1/token"),
+            body("client_id=unit_test_client_id&device_code=1a521d9f-0922-4e6d-8db9-8b654297435a&grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Adevice_code")
+        ) { response ->
+            response.testBodyFromFile("$mockPrefix/token.json")
+        }
+
+        repeat(4) {
+            oktaRule.enqueue(
+                method("POST"),
+                path("/oauth2/default/v1/token"),
+                body("client_id=unit_test_client_id&device_code=1a521d9f-0922-4e6d-8db9-8b654297435a&grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Adevice_code")
+            ) { response ->
+                response.setBody("""{"error": "authorization_pending","error_description": "The device authorization is pending. Please try again later."}""")
+                response.setResponseCode(400)
+            }
+        }
+
+        val flow = oktaRule.createOidcClient().deviceAuthorizationFlow()
+        val context = DeviceAuthorizationFlow.Context(
+            deviceCode = "1a521d9f-0922-4e6d-8db9-8b654297435a",
+            interval = 5,
+            expiresIn = 600,
+        )
+        val delayFunctionExecutedCount = AtomicInteger(0)
+        flow.delayFunction = { delay ->
+            assertThat(delay).isEqualTo(5000)
+            delayFunctionExecutedCount.incrementAndGet()
+        }
+        val startResult = flow.resume(context) as DeviceAuthorizationFlow.ResumeResult.Token
+        assertThat(startResult.token.accessToken).isEqualTo("exampleAccessToken")
+        assertThat(delayFunctionExecutedCount.get()).isEqualTo(5)
+    }
+
+    @Test fun testResumeTimeout(): Unit = runBlocking {
+        repeat(4) {
+            oktaRule.enqueue(
+                method("POST"),
+                path("/oauth2/default/v1/token"),
+                body("client_id=unit_test_client_id&device_code=1a521d9f-0922-4e6d-8db9-8b654297435a&grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Adevice_code")
+            ) { response ->
+                response.setBody("""{"error": "authorization_pending","error_description": "The device authorization is pending. Please try again later."}""")
+                response.setResponseCode(400)
+            }
+        }
+
+        val flow = oktaRule.createOidcClient().deviceAuthorizationFlow()
+        val context = DeviceAuthorizationFlow.Context(
+            deviceCode = "1a521d9f-0922-4e6d-8db9-8b654297435a",
+            interval = 5,
+            expiresIn = 20,
+        )
+        val delayFunctionExecutedCount = AtomicInteger(0)
+        flow.delayFunction = { delay ->
+            assertThat(delay).isEqualTo(5000)
+            delayFunctionExecutedCount.incrementAndGet()
+        }
+        val startResult = flow.resume(context)
+        assertThat(startResult).isInstanceOf(DeviceAuthorizationFlow.ResumeResult.Timeout::class.java)
+        assertThat(delayFunctionExecutedCount.get()).isEqualTo(4)
+    }
+
+    @Test fun testResumeNetworkError(): Unit = runBlocking {
+        oktaRule.enqueue(
+            method("POST"),
+            path("/oauth2/default/v1/token"),
+            body("client_id=unit_test_client_id&device_code=1a521d9f-0922-4e6d-8db9-8b654297435a&grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Adevice_code")
+        ) { response ->
+            response.setResponseCode(400)
+        }
+
+        val flow = oktaRule.createOidcClient().deviceAuthorizationFlow()
+        val context = DeviceAuthorizationFlow.Context(
+            deviceCode = "1a521d9f-0922-4e6d-8db9-8b654297435a",
+            interval = 5,
+            expiresIn = 20,
+        )
+        val startResult = flow.resume(context) as DeviceAuthorizationFlow.ResumeResult.Error
+
+        assertThat(startResult.message).isEqualTo("Token request failed.")
+        assertThat(startResult.exception).isInstanceOf(IOException::class.java)
+        assertThat(startResult.exception).hasMessageThat().isEqualTo("Request failed.")
+    }
+}
