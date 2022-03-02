@@ -1,6 +1,6 @@
 name: main
 
-on: [push, pull_request]
+on: [ push, pull_request ]
 
 env:
   GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4g -Dorg.gradle.daemon=false -Dkotlin.incremental=false"
@@ -11,7 +11,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Validate Gradle Wrapper
         uses: gradle/wrapper-validation-action@v1
@@ -21,6 +21,9 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: 11
+
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
 
       - name: Run Tests
         run: ./gradlew check
