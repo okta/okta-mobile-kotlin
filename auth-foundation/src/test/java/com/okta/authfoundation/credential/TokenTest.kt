@@ -1,0 +1,109 @@
+/*
+ * Copyright 2022-Present Okta, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.okta.authfoundation.credential
+
+import com.google.common.truth.Truth.assertThat
+import com.okta.testhelpers.OktaRule
+import org.junit.Rule
+import org.junit.Test
+
+class TokenTest {
+    @get:Rule val oktaRule = OktaRule()
+
+    @Test fun testDeserializingMinimal() {
+        val json = """
+        {
+          "token_type": "Bearer",
+          "expires_in": 3600,
+          "access_token": "exampleAccessToken",
+          "scope": "offline_access profile openid email"
+        }
+        """.trimIndent()
+        val token = oktaRule.configuration.json.decodeFromString(Token.serializer(), json)
+        assertThat(token.tokenType).isEqualTo("Bearer")
+        assertThat(token.expiresIn).isEqualTo(3600)
+        assertThat(token.accessToken).isEqualTo("exampleAccessToken")
+        assertThat(token.scope).isEqualTo("offline_access profile openid email")
+        assertThat(token.refreshToken).isNull()
+        assertThat(token.idToken).isNull()
+        assertThat(token.deviceSecret).isNull()
+        assertThat(token.issuedTokenType).isNull()
+    }
+
+    @Test fun testDeserializingDefault() {
+        val json = """
+        {
+          "token_type": "Bearer",
+          "expires_in": 3600,
+          "access_token": "exampleAccessToken",
+          "scope": "offline_access profile openid email",
+          "refresh_token": "exampleRefreshToken",
+          "id_token": "exampleIdToken"
+        }
+        """.trimIndent()
+        val token = oktaRule.configuration.json.decodeFromString(Token.serializer(), json)
+        assertThat(token.tokenType).isEqualTo("Bearer")
+        assertThat(token.expiresIn).isEqualTo(3600)
+        assertThat(token.accessToken).isEqualTo("exampleAccessToken")
+        assertThat(token.scope).isEqualTo("offline_access profile openid email")
+        assertThat(token.refreshToken).isEqualTo("exampleRefreshToken")
+        assertThat(token.idToken).isEqualTo("exampleIdToken")
+    }
+
+    @Test fun testDeserializingWithDeviceSecret() {
+        val json = """
+        {
+          "token_type": "Bearer",
+          "expires_in": 3600,
+          "access_token": "exampleAccessToken",
+          "scope": "offline_access profile openid email",
+          "refresh_token": "exampleRefreshToken",
+          "id_token": "exampleIdToken",
+          "device_secret": "exampleDeviceSecret"
+        }
+        """.trimIndent()
+        val token = oktaRule.configuration.json.decodeFromString(Token.serializer(), json)
+        assertThat(token.tokenType).isEqualTo("Bearer")
+        assertThat(token.expiresIn).isEqualTo(3600)
+        assertThat(token.accessToken).isEqualTo("exampleAccessToken")
+        assertThat(token.scope).isEqualTo("offline_access profile openid email")
+        assertThat(token.refreshToken).isEqualTo("exampleRefreshToken")
+        assertThat(token.idToken).isEqualTo("exampleIdToken")
+        assertThat(token.deviceSecret).isEqualTo("exampleDeviceSecret")
+    }
+
+    @Test fun testDeserializingWithIssuedTokenType() {
+        val json = """
+        {
+          "token_type": "Bearer",
+          "expires_in": 3600,
+          "access_token": "exampleAccessToken",
+          "scope": "offline_access profile openid email",
+          "refresh_token": "exampleRefreshToken",
+          "id_token": "exampleIdToken",
+          "issued_token_type": "urn:ietf:params:oauth:token-type:access_token"
+        }
+        """.trimIndent()
+        val token = oktaRule.configuration.json.decodeFromString(Token.serializer(), json)
+        assertThat(token.tokenType).isEqualTo("Bearer")
+        assertThat(token.expiresIn).isEqualTo(3600)
+        assertThat(token.accessToken).isEqualTo("exampleAccessToken")
+        assertThat(token.scope).isEqualTo("offline_access profile openid email")
+        assertThat(token.refreshToken).isEqualTo("exampleRefreshToken")
+        assertThat(token.idToken).isEqualTo("exampleIdToken")
+        assertThat(token.issuedTokenType).isEqualTo("urn:ietf:params:oauth:token-type:access_token")
+    }
+}

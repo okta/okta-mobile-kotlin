@@ -29,7 +29,7 @@ import java.util.UUID
 /**
  * [AuthorizationCodeFlow] encapsulates the behavior required to authentication using an OIDC Browser redirect flow.
  *
- * See [Authorization Code Flow documentation][https://developer.okta.com/docs/guides/implement-grant-type/authcodepkce/main/#about-the-authorization-code-grant-with-pkce]
+ * See [Authorization Code Flow documentation](https://developer.okta.com/docs/guides/implement-grant-type/authcodepkce/main/#about-the-authorization-code-grant-with-pkce)
  */
 class AuthorizationCodeFlow private constructor(
     private val oidcClient: OidcClient,
