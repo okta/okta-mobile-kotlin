@@ -17,25 +17,68 @@ package com.okta.oauth2
 
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcClientResult
+import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.credential.Token as CredentialToken
 import okhttp3.FormBody
 import okhttp3.Request
 
-// https://openid.net/specs/openid-connect-native-sso-1_0.html
+/**
+ * An authentication flow class that implements the Token Exchange Flow.
+ *
+ * As an example, consider [SSO for Native Apps](https://developer.okta.com/docs/guides/configure-native-sso/main/#native-sso-flow) where a client exchanges the ID and the Device Secret tokens to get access to the resource.
+ *
+ * See the [specification](https://openid.net/specs/openid-connect-native-sso-1_0.html)
+ */
 class TokenExchangeFlow private constructor(
     private val oidcClient: OidcClient,
 ) {
     companion object {
+        /**
+         * Initializes a token exchange flow using the [OidcClient].
+         *
+         * @receiver the [OidcClient] used to perform the low level OIDC requests, as well as with which to use the configuration from.
+         */
         fun OidcClient.tokenExchangeFlow(): TokenExchangeFlow {
             return TokenExchangeFlow(this)
         }
     }
 
+    /**
+     * A model representing all the possible states of a [TokenExchangeFlow.start] call.
+     */
     sealed class Result {
-        class Error internal constructor(val message: String, val exception: Exception? = null) : Result()
-        class Token internal constructor(val token: CredentialToken) : Result()
+        /**
+         * An error resulting from an interaction with the Authorization Server.
+         */
+        class Error internal constructor(
+            /**
+             * An error message intended to be displayed to the user.
+             */
+            val message: String,
+            /**
+             * The exception, if available which caused the error.
+             */
+            val exception: Exception? = null,
+        ) : Result()
+        /**
+         * Represents a successful authentication, and contains the [CredentialToken] returned.
+         */
+        class Token internal constructor(
+            /**
+             * The [CredentialToken] representing the user logged in via the [TokenExchangeFlow].
+             */
+            val token: CredentialToken,
+        ) : Result()
     }
 
+    /**
+     * Initiates the Token Exchange flow.
+     *
+     * @param idToken the id token for the user to create a new token for.
+     * @param deviceSecret the [CredentialToken.deviceSecret] obtained via another authentication flow.
+     * @param audience the audience of the authorization server. Defaults to `api://default`.
+     * @param scopes the scopes to request during sign in. Defaults to the configured [OidcClient] [OidcConfiguration.defaultScopes].
+     */
     suspend fun start(
         idToken: String,
         deviceSecret: String,

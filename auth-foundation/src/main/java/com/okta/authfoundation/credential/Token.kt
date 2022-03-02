@@ -51,4 +51,8 @@ data class Token internal constructor(
      * The device secret, if requested.
      */
     @SerialName("device_secret") val deviceSecret: String? = null,
+    /**
+     * The issued token type, if returned.
+     */
+    @SerialName("issued_token_type") val issuedTokenType: String? = null,
 )
