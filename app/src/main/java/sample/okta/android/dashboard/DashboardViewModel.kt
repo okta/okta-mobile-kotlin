@@ -30,6 +30,8 @@ import com.okta.webauthenticationui.WebAuthenticationClient
 import com.okta.webauthenticationui.WebAuthenticationClient.Companion.webAuthenticationClient
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import sample.okta.android.OktaHelper
 import sample.okta.android.SocialRedirectCoordinator
 import timber.log.Timber
@@ -168,7 +170,7 @@ internal class DashboardViewModel(private val credentialMetadataNameValue: Strin
                 _userInfoLiveData.postValue(emptyMap())
             }
             is OidcClientResult.Success -> {
-                _userInfoLiveData.postValue(userInfoResult.result.asMap())
+                _userInfoLiveData.postValue(userInfoResult.result.payload(JsonObject.serializer()).asMap())
             }
         }
     }
@@ -200,4 +202,17 @@ internal class DashboardViewModel(private val credentialMetadataNameValue: Strin
             credential.remove()
         }
     }
+}
+
+private fun JsonObject.asMap(): Map<String, String> {
+    val map = mutableMapOf<String, String>()
+    for (entry in this) {
+        val value = entry.value
+        if (value is JsonPrimitive) {
+            map[entry.key] = value.content
+        } else {
+            map[entry.key] = value.toString()
+        }
+    }
+    return map
 }
