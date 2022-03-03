@@ -22,6 +22,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.okta.authfoundation.client.OidcClientResult
+import com.okta.authfoundation.client.dto.OidcIntrospectInfo
 import com.okta.authfoundation.credential.Credential
 import com.okta.authfoundation.credential.RevokeTokenType
 import com.okta.authfoundation.credential.TokenType
@@ -114,7 +115,12 @@ internal class DashboardViewModel(private val credentialMetadataNameValue: Strin
                     RequestState.Result("Failed to introspect token.")
                 }
                 is OidcClientResult.Success -> {
-                    RequestState.Result(result.result.asMap().displayableKeyValues())
+                    val successResult = result.result
+                    if (successResult is OidcIntrospectInfo.Active) {
+                        RequestState.Result(successResult.payload(JsonObject.serializer()).asMap().displayableKeyValues())
+                    } else {
+                        RequestState.Result(mapOf("active" to "false").displayableKeyValues())
+                    }
                 }
             }
         }

@@ -17,6 +17,7 @@ package com.okta.authfoundation.client
 
 import com.okta.authfoundation.InternalAuthFoundationApi
 import com.okta.authfoundation.client.dto.OidcIntrospectInfo
+import com.okta.authfoundation.client.dto.OidcIntrospectInfo.Companion.asOidcIntrospectInfo
 import com.okta.authfoundation.client.dto.OidcUserInfo
 import com.okta.authfoundation.client.events.TokenCreatedEvent
 import com.okta.authfoundation.client.internal.performRequest
@@ -28,8 +29,6 @@ import com.okta.authfoundation.jwt.JwtParser
 import com.okta.authfoundation.util.CoalescingOrchestrator
 import com.okta.authfoundation.util.JsonPayloadDeserializer.Companion.createJsonPayloadDeserializer
 import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.boolean
 import okhttp3.FormBody
 import okhttp3.HttpUrl
 import okhttp3.Request
@@ -156,6 +155,12 @@ class OidcClient private constructor(
         return configuration.performRequestNonJson(request)
     }
 
+    /**
+     * Performs a call to the Authorization Server to validate if the specified [TokenType] is valid.
+     *
+     * @param tokenType the [TokenType] to check for validity.
+     * @param token the token associated with the [TokenType] to check for validity.
+     */
     suspend fun introspectToken(
         tokenType: TokenType,
         token: String,
@@ -188,9 +193,8 @@ class OidcClient private constructor(
             .post(formBody)
             .build()
 
-        return configuration.performRequest(JsonObject.serializer(), request) {
-            val active = (it["active"] as JsonPrimitive).boolean
-            OidcIntrospectInfo(it, active)
+        return configuration.performRequest(JsonObject.serializer(), request) { response ->
+            response.asOidcIntrospectInfo(configuration)
         }
     }
 

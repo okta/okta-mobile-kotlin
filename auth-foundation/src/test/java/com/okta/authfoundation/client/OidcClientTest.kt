@@ -170,9 +170,10 @@ class OidcClientTest {
             response.testBodyFromFile("$mockPrefix/introspectActive.json")
         }
         val result = oktaRule.createOidcClient().introspectToken(TokenType.ACCESS_TOKEN, "ExampleAccessToken")
-        val token = (result as OidcClientResult.Success<OidcIntrospectInfo>).result
-        assertThat(token.active).isEqualTo(true)
-        assertThat(token.asMap()["username"]).isEqualTo("example@gmail.com")
+        val successResult = (result as OidcClientResult.Success<OidcIntrospectInfo>).result
+        val activeResult = successResult as OidcIntrospectInfo.Active
+        assertThat(successResult.active).isTrue()
+        assertThat(activeResult.payload(IntrospectExamplePayload.serializer()).username).isEqualTo("example@gmail.com")
     }
 
     @Test fun testIntrospectInactiveAccessToken(): Unit = runBlocking {
@@ -185,10 +186,9 @@ class OidcClientTest {
             response.testBodyFromFile("$mockPrefix/introspectInactive.json")
         }
         val result = oktaRule.createOidcClient().introspectToken(TokenType.ACCESS_TOKEN, "ExampleAccessToken")
-        val token = (result as OidcClientResult.Success<OidcIntrospectInfo>).result
-        assertThat(token.active).isEqualTo(false)
-        assertThat(token.asMap().size).isEqualTo(1)
-        assertThat(token.asMap()["active"]).isEqualTo("false")
+        val successResult = (result as OidcClientResult.Success<OidcIntrospectInfo>).result
+        assertThat(successResult.active).isFalse()
+        assertThat(successResult).isInstanceOf(OidcIntrospectInfo.Inactive::class.java)
     }
 
     @Test fun testIntrospectActiveRefreshToken(): Unit = runBlocking {
@@ -201,9 +201,10 @@ class OidcClientTest {
             response.testBodyFromFile("$mockPrefix/introspectActive.json")
         }
         val result = oktaRule.createOidcClient().introspectToken(TokenType.REFRESH_TOKEN, "ExampleRefreshToken")
-        val token = (result as OidcClientResult.Success<OidcIntrospectInfo>).result
-        assertThat(token.active).isEqualTo(true)
-        assertThat(token.asMap()["username"]).isEqualTo("example@gmail.com")
+        val successResult = (result as OidcClientResult.Success<OidcIntrospectInfo>).result
+        val activeResult = successResult as OidcIntrospectInfo.Active
+        assertThat(successResult.active).isTrue()
+        assertThat(activeResult.payload(IntrospectExamplePayload.serializer()).username).isEqualTo("example@gmail.com")
     }
 
     @Test fun testIntrospectActiveIdToken(): Unit = runBlocking {
@@ -216,9 +217,10 @@ class OidcClientTest {
             response.testBodyFromFile("$mockPrefix/introspectActive.json")
         }
         val result = oktaRule.createOidcClient().introspectToken(TokenType.ID_TOKEN, "ExampleIdToken")
-        val token = (result as OidcClientResult.Success<OidcIntrospectInfo>).result
-        assertThat(token.active).isEqualTo(true)
-        assertThat(token.asMap()["username"]).isEqualTo("example@gmail.com")
+        val successResult = (result as OidcClientResult.Success<OidcIntrospectInfo>).result
+        val activeResult = successResult as OidcIntrospectInfo.Active
+        assertThat(successResult.active).isTrue()
+        assertThat(activeResult.payload(IntrospectExamplePayload.serializer()).username).isEqualTo("example@gmail.com")
     }
 
     @Test fun testIntrospectActiveDeviceSecret(): Unit = runBlocking {
@@ -231,9 +233,23 @@ class OidcClientTest {
             response.testBodyFromFile("$mockPrefix/introspectActive.json")
         }
         val result = oktaRule.createOidcClient().introspectToken(TokenType.DEVICE_SECRET, "ExampleDeviceSecret")
-        val token = (result as OidcClientResult.Success<OidcIntrospectInfo>).result
-        assertThat(token.active).isEqualTo(true)
-        assertThat(token.asMap()["username"]).isEqualTo("example@gmail.com")
+        val successResult = (result as OidcClientResult.Success<OidcIntrospectInfo>).result
+        val activeResult = successResult as OidcIntrospectInfo.Active
+        assertThat(successResult.active).isTrue()
+        assertThat(activeResult.payload(IntrospectExamplePayload.serializer()).username).isEqualTo("example@gmail.com")
+    }
+
+    @Test fun testIntrospectWithNoActiveField(): Unit = runBlocking {
+        oktaRule.enqueue(
+            method("POST"),
+            header("content-type", "application/x-www-form-urlencoded"),
+            path("/oauth2/default/v1/introspect"),
+            body("client_id=unit_test_client_id&token=ExampleDeviceSecret&token_type_hint=device_secret"),
+        ) { response ->
+            response.setBody("""{"missing":true}""")
+        }
+        val result = oktaRule.createOidcClient().introspectToken(TokenType.DEVICE_SECRET, "ExampleDeviceSecret")
+        assertThat(result).isInstanceOf(OidcClientResult.Error::class.java)
     }
 
     @Test fun testIntrospectFailure(): Unit = runBlocking {
@@ -248,3 +264,8 @@ class OidcClientTest {
         assertThat(errorResult.exception).hasMessageThat().isEqualTo("Request failed.")
     }
 }
+
+@Serializable
+private class IntrospectExamplePayload(
+    @SerialName("username") val username: String
+)
