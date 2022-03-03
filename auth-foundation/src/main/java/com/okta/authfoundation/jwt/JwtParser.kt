@@ -15,6 +15,7 @@
  */
 package com.okta.authfoundation.jwt
 
+import com.okta.authfoundation.util.JsonPayloadDeserializer
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -43,10 +44,8 @@ internal class JwtParser internal constructor(
             Jwt(
                 algorithm = header.alg,
                 keyId = header.kid,
-                payload = payload,
+                jsonPayloadDeserializer = JsonPayloadDeserializer(payload, json, computeDispatcher),
                 signature = sections[2],
-                json = json,
-                computeDispatcher = computeDispatcher
             )
         }
     }

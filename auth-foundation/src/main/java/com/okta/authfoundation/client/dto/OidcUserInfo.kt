@@ -15,26 +15,27 @@
  */
 package com.okta.authfoundation.client.dto
 
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonPrimitive
+import com.okta.authfoundation.util.JsonPayloadDeserializer
+import kotlinx.serialization.DeserializationStrategy
+import kotlinx.serialization.SerializationException
 
+/**
+ * User profile information.
+ *
+ * This provides a convenience mechanism for accessing information related to a user.
+ */
 data class OidcUserInfo internal constructor(
-    private val json: JsonObject
+    private val jsonPayloadDeserializer: JsonPayloadDeserializer,
 ) {
-    fun getString(key: String): String? {
-        return (json[key] as? JsonPrimitive)?.content
-    }
-
-    fun asMap(): Map<String, String> {
-        val map = mutableMapOf<String, String>()
-        for (entry in json) {
-            val value = entry.value
-            if (value is JsonPrimitive) {
-                map[entry.key] = value.content
-            } else {
-                map[entry.key] = value.toString()
-            }
-        }
-        return map
+    /**
+     * Used to get access to the payload data in a type safe way.
+     *
+     * @param deserializationStrategy the [DeserializationStrategy] capable of deserializing the specified type.
+     *
+     * @throws SerializationException if the payload data can't be deserialized into the specified type.
+     * @return the specified type, deserialized from the payload.
+     */
+    suspend fun <T> payload(deserializationStrategy: DeserializationStrategy<T>): T {
+        return jsonPayloadDeserializer.payload(deserializationStrategy)
     }
 }

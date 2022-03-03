@@ -26,6 +26,7 @@ import com.okta.authfoundation.credential.Token
 import com.okta.authfoundation.credential.TokenType
 import com.okta.authfoundation.jwt.JwtParser
 import com.okta.authfoundation.util.CoalescingOrchestrator
+import com.okta.authfoundation.util.JsonPayloadDeserializer.Companion.createJsonPayloadDeserializer
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.boolean
@@ -89,6 +90,11 @@ class OidcClient private constructor(
         return OidcClient(configuration, endpoints, credential)
     }
 
+    /**
+     * Performs the OIDC User Info call, which returns claims associated with supplied `accessToken`.
+     *
+     * @param accessToken the access token used for authorization to the Authorization Server
+     */
     suspend fun getUserInfo(accessToken: String): OidcClientResult<OidcUserInfo> {
         val endpoints = endpointsOrNull() ?: return endpointNotAvailableError()
 
@@ -98,7 +104,7 @@ class OidcClient private constructor(
             .build()
 
         return configuration.performRequest(JsonObject.serializer(), request) {
-            OidcUserInfo(it)
+            OidcUserInfo(configuration.createJsonPayloadDeserializer(it))
         }
     }
 

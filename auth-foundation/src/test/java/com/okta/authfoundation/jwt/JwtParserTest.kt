@@ -18,9 +18,9 @@ package com.okta.authfoundation.jwt
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
 import org.junit.Test
 import kotlin.test.assertFailsWith
 
@@ -35,7 +35,11 @@ class JwtParserTest {
         assertThat(jwt.algorithm).isEqualTo("RS256")
         assertThat(jwt.keyId).isEqualTo("FJA0HGNtsuuda_Pl45J42kvQqcsu_0C4Fg7pbJLXTHY")
 
-        assertThat(jwt.payload.jsonObject["sub"]?.jsonPrimitive?.content).isEqualTo("00ub41z7mgzNqryMv696")
+        @Serializable
+        class ExamplePayload(
+            @SerialName("sub") val sub: String
+        )
+        assertThat(jwt.payload(ExamplePayload.serializer()).sub).isEqualTo("00ub41z7mgzNqryMv696")
 
         assertThat(jwt.signature).isEqualTo("z7LBgWT2O-DUZiOOUzr90qEgLoMiR5eHZsY1V2XPbhfOrjIv9ax9niHE7lPS5GYq02w4Cuf0DbdWjiNj96n4wTPmNU6N0x-XRluv4kved_wBBIvWNLGu_ZZZAFXaIFqmFGxPB6hIsYKvB3FmQCC0NvSXyDquadW9X7bBA7BO7VfX_jOKCkK_1MC1FZdU9n8rppu190Gk-z5dEWegHHtKy3vb12t4NR9CkA2uQgolnii8fNbie-3Z6zAdMXAZXkIcFu43Wn4TGwuzWK25IThcMNsPbLFFI4r0zo9E20IsH4gcJQiE_vFUzukzCsbppaiSAWBdSgES9K-QskWacZIWOg")
     }

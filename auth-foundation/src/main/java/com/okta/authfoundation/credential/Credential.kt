@@ -77,6 +77,11 @@ class Credential internal constructor(
             return Collections.unmodifiableMap(_metadata)
         }
 
+    /**
+     * Performs the OIDC User Info call, which returns claims associated with this [Credential].
+     *
+     * Internally, this uses [Credential.getValidAccessToken] to automatically refresh the access token if it's expired.
+     */
     suspend fun getUserInfo(): OidcClientResult<OidcUserInfo> {
         val accessToken = getValidAccessToken() ?: return OidcClientResult.Error(IllegalStateException("No Access Token."))
         return oidcClient.getUserInfo(accessToken)
@@ -211,11 +216,15 @@ class Credential internal constructor(
      */
     suspend fun accessTokenIfValid(): String? {
         val accessToken = _token?.accessToken ?: return null
-        val parser = JwtParser(oidcClient.configuration.json, oidcClient.configuration.computeDispatcher)
-        val jwt = parser.parse(accessToken)
-        val payload = jwt.payload(AccessTokenExpirationPayload.serializer())
-        if (payload.exp > oidcClient.configuration.clock.currentTimeMillis()) {
-            return accessToken
+        try {
+            val parser = JwtParser(oidcClient.configuration.json, oidcClient.configuration.computeDispatcher)
+            val jwt = parser.parse(accessToken)
+            val payload = jwt.payload(AccessTokenExpirationPayload.serializer())
+            if (payload.exp > oidcClient.configuration.clock.currentTimeMillis()) {
+                return accessToken
+            }
+        } catch (e: Exception) {
+            // Failed to parse access token JWT.
         }
         return null
     }

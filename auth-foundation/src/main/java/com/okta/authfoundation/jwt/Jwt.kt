@@ -15,12 +15,9 @@
  */
 package com.okta.authfoundation.jwt
 
-import kotlinx.coroutines.withContext
+import com.okta.authfoundation.util.JsonPayloadDeserializer
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.SerializationException
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonElement
-import kotlin.coroutines.CoroutineContext
 
 /**
  * Represents a Json Web Token.
@@ -31,16 +28,12 @@ data class Jwt internal constructor(
     /** Identifies the public key used to verify the ID token. */
     val keyId: String,
 
-    internal val payload: JsonElement,
+    private val jsonPayloadDeserializer: JsonPayloadDeserializer,
 
     /**
      * The base64 encoded signature.
      */
     val signature: String,
-
-    private val json: Json,
-
-    private val computeDispatcher: CoroutineContext,
 ) {
     /**
      * Used to get access to the payload data in a type safe way.
@@ -51,8 +44,6 @@ data class Jwt internal constructor(
      * @return the specified type, deserialized from the payload.
      */
     suspend fun <T> payload(deserializationStrategy: DeserializationStrategy<T>): T {
-        return withContext(computeDispatcher) {
-            json.decodeFromJsonElement(deserializationStrategy, payload)
-        }
+        return jsonPayloadDeserializer.payload(deserializationStrategy)
     }
 }

@@ -27,6 +27,8 @@ import com.okta.testhelpers.RequestMatchers.method
 import com.okta.testhelpers.RequestMatchers.path
 import com.okta.testhelpers.testBodyFromFile
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.junit.Rule
 import org.junit.Test
@@ -83,7 +85,11 @@ class OidcClientTest {
         }
         val result = oktaRule.createOidcClient().getUserInfo("ExampleToken!")
         val userInfo = (result as OidcClientResult.Success<OidcUserInfo>).result
-        assertThat(userInfo.getString("sub")).isEqualTo("00ub41z7mgzNqryMv696")
+        @Serializable
+        class ExampleUserInfo(
+            @SerialName("sub") val sub: String
+        )
+        assertThat(userInfo.payload(ExampleUserInfo.serializer()).sub).isEqualTo("00ub41z7mgzNqryMv696")
     }
 
     @Test fun testGetUserInfoFailure(): Unit = runBlocking {
