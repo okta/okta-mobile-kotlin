@@ -15,8 +15,18 @@
  */
 package com.okta.oauth2.events
 
+import com.okta.authfoundation.events.EventHandler
+import com.okta.oauth2.RedirectEndSessionFlow
 import okhttp3.HttpUrl
 
-data class CustomizeLogoutUrlEvent internal constructor(
+/**
+ * Emitted via [EventHandler.onEvent] when [RedirectEndSessionFlow.start] is invoked.
+ *
+ * This can be used to customize the Logout URL.
+ */
+class CustomizeLogoutUrlEvent internal constructor(
+    /**
+     * The [HttpUrl.Builder] reference available for mutation to customize the Logout URL.
+     */
     val httpUrlBuilder: HttpUrl.Builder
 )

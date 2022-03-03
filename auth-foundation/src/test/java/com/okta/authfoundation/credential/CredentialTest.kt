@@ -20,6 +20,8 @@ import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundation.client.dto.OidcIntrospectInfo
 import com.okta.authfoundation.client.dto.OidcUserInfo
+import com.okta.authfoundation.client.events.TokenCreatedEvent
+import com.okta.authfoundation.credential.events.CredentialStoredAfterRemovedEvent
 import com.okta.testhelpers.OktaRule
 import com.okta.testhelpers.RequestMatchers.header
 import com.okta.testhelpers.RequestMatchers.method
@@ -102,6 +104,20 @@ class CredentialTest {
         credential.remove()
         credential.storeToken(token = createToken())
         verify(storage, never()).replace(any())
+    }
+
+    @Test fun testStoreTokenEmitsEventAfterRemove(): Unit = runBlocking {
+        val storage = mock<TokenStorage>()
+        val credentialDataSource = mock<CredentialDataSource>()
+        val token = createToken()
+        val credential = createCredential(token = token, tokenStorage = storage, credentialDataSource = credentialDataSource)
+        credential.remove()
+        credential.storeToken(token = createToken())
+        assertThat(oktaRule.eventHandler).hasSize(1)
+        val event = oktaRule.eventHandler[0]
+        assertThat(event).isInstanceOf(CredentialStoredAfterRemovedEvent::class.java)
+        val removedEvent = event as CredentialStoredAfterRemovedEvent
+        assertThat(removedEvent.credential).isEqualTo(credential)
     }
 
     @Test fun testRevokeAccessToken(): Unit = runBlocking {
@@ -242,6 +258,27 @@ class CredentialTest {
         val token = (result as OidcClientResult.Success<Token>).result
         assertThat(token.refreshToken).isEqualTo("newRefreshToken")
         assertThat(credential.token?.refreshToken).isEqualTo("newRefreshToken")
+    }
+
+    @Test fun testRefreshTokenWithRealOidcClientEmitsEvent(): Unit = runBlocking {
+        val credential = createCredential(
+            token = createToken(refreshToken = "exampleRefreshToken"),
+        )
+        oktaRule.enqueue(path("/oauth2/default/v1/token")) { response ->
+            val body = oktaRule.configuration.json.encodeToString(createToken(refreshToken = "newRefreshToken"))
+            response.setBody(body)
+        }
+        val result = credential.refreshToken()
+        assertThat(result).isInstanceOf(OidcClientResult.Success::class.java)
+        val token = (result as OidcClientResult.Success<Token>).result
+        assertThat(oktaRule.eventHandler).hasSize(1)
+        val event = oktaRule.eventHandler[0]
+        assertThat(event).isInstanceOf(TokenCreatedEvent::class.java)
+        val tokenCreatedEvent = event as TokenCreatedEvent
+        assertThat(tokenCreatedEvent.token).isNotNull()
+        assertThat(tokenCreatedEvent.token).isEqualTo(token)
+        assertThat(tokenCreatedEvent.credential).isNotNull()
+        assertThat(tokenCreatedEvent.credential).isEqualTo(credential)
     }
 
     @Test fun testRefreshTokenPreservesDeviceSecret(): Unit = runBlocking {

@@ -17,8 +17,23 @@ package com.okta.webauthenticationui.events
 
 import android.content.Context
 import androidx.browser.customtabs.CustomTabsIntent
+import com.okta.authfoundation.events.EventHandler
+import com.okta.webauthenticationui.WebAuthenticationClient
 
-data class CustomizeCustomTabsEvent internal constructor(
+/**
+ * Emitted via [EventHandler.onEvent] when [WebAuthenticationClient.login] or [WebAuthenticationClient.logout] is invoked.
+ *
+ * This can be used to customize the [CustomTabsIntent.Builder] before being displayed to the user.
+ */
+class CustomizeCustomTabsEvent internal constructor(
+    /**
+     * The context being used to launch the Chrome Custom Tabs.
+     */
     val context: Context,
+
+    /**
+     * The [CustomTabsIntent.Builder] reference available for mutation to customize the Chrome Custom Tabs before being displayed to
+     * the user.
+     */
     val intentBuilder: CustomTabsIntent.Builder,
 )

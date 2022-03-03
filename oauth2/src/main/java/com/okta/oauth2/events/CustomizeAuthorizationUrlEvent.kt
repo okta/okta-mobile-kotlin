@@ -15,8 +15,18 @@
  */
 package com.okta.oauth2.events
 
+import com.okta.authfoundation.events.EventHandler
+import com.okta.oauth2.AuthorizationCodeFlow
 import okhttp3.HttpUrl
 
-data class CustomizeAuthorizationUrlEvent internal constructor(
+/**
+ * Emitted via [EventHandler.onEvent] when [AuthorizationCodeFlow.start] is invoked.
+ *
+ * This can be used to customize the Authorization URL.
+ */
+class CustomizeAuthorizationUrlEvent internal constructor(
+    /**
+     * The [HttpUrl.Builder] reference available for mutation to customize the Authorization URL.
+     */
     val httpUrlBuilder: HttpUrl.Builder
 )

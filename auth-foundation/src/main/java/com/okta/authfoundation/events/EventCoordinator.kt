@@ -17,10 +17,28 @@ package com.okta.authfoundation.events
 
 import com.okta.authfoundation.InternalAuthFoundationApi
 
-class EventCoordinator(eventHandlers: List<EventHandler>) {
+/**
+ * A centralized coordinator of events emitted through Auth Foundation and other Okta SDKs.
+ */
+class EventCoordinator(
+    /**
+     * A list of [EventHandler]s that should be invoked when an event is emitted.
+     *
+     * > Note: this list cannot be modified once it's passed in, we make a defensive copy to ensure our list isn't changed.
+     */
+    eventHandlers: List<EventHandler>
+) {
     private val eventHandlers = ArrayList(eventHandlers) // Make a defensive copy.
 
-    constructor(eventHandler: EventHandler) : this(listOf(eventHandler))
+    /**
+     * A convenience constructor for passing in a single [EventHandler] to invoke when events are emitted.
+     */
+    constructor(
+        /**
+         * The [EventHandler] that should be invoked when an event is emitted.
+         */
+        eventHandler: EventHandler
+    ) : this(listOf(eventHandler))
 
     @InternalAuthFoundationApi
     fun sendEvent(event: Any) {

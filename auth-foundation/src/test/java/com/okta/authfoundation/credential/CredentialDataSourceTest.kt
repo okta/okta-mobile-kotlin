@@ -17,6 +17,7 @@ package com.okta.authfoundation.credential
 
 import com.google.common.truth.Truth.assertThat
 import com.okta.authfoundation.credential.CredentialDataSource.Companion.credentialDataSource
+import com.okta.authfoundation.credential.events.CredentialCreatedEvent
 import com.okta.testhelpers.OktaRule
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -46,6 +47,18 @@ class CredentialDataSourceTest {
         assertThat(credential.oidcClient.credential).isSameInstanceAs(credential)
         assertThat(credential.oidcClient.endpoints).isSameInstanceAs(oidcClient.endpoints)
         verify(tokenStorage).add(any())
+    }
+
+    @Test fun testCreateEmitsEvent(): Unit = runBlocking {
+        val tokenStorage = InMemoryTokenStorage()
+        val oidcClient = oktaRule.createOidcClient()
+        val dataSource = oidcClient.credentialDataSource(tokenStorage)
+        val credential = dataSource.create()
+        assertThat(oktaRule.eventHandler).hasSize(1)
+        val event = oktaRule.eventHandler[0]
+        assertThat(event).isInstanceOf(CredentialCreatedEvent::class.java)
+        val createdEvent = event as CredentialCreatedEvent
+        assertThat(createdEvent.credential).isEqualTo(credential)
     }
 
     @Test fun testAll(): Unit = runBlocking {

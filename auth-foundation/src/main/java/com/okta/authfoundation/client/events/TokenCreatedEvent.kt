@@ -15,20 +15,20 @@
  */
 package com.okta.authfoundation.client.events
 
+import com.okta.authfoundation.credential.Credential
 import com.okta.authfoundation.credential.Token
+import com.okta.authfoundation.events.EventHandler
 
+/**
+ * Emitted via [EventHandler.onEvent] when a [Token] has been created.
+ */
 class TokenCreatedEvent internal constructor(
+    /**
+     * The token that was created.
+     */
     val token: Token,
-) {
-    private val followUpTasks: MutableList<suspend () -> Unit> = mutableListOf()
-
-    fun addFollowUpTask(task: suspend () -> Unit) {
-        followUpTasks += task
-    }
-
-    internal suspend fun runFollowUpTasks() {
-        for (followUpTask in followUpTasks) {
-            followUpTask()
-        }
-    }
-}
+    /**
+     * The credential the [Token] will be stored in, if any.
+     */
+    val credential: Credential?,
+)
