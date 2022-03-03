@@ -16,7 +16,14 @@
 package com.okta.authfoundation.credential.events
 
 import com.okta.authfoundation.credential.Credential
+import com.okta.authfoundation.events.EventHandler
 
+/**
+ * Emitted via [EventHandler.onEvent] when a [Credential.storeToken] was invoked after a [Credential.remove] call.
+ */
 class CredentialStoredAfterRemovedEvent internal constructor(
+    /**
+     * The [Credential] associated with the event.
+     */
     val credential: Credential,
 )

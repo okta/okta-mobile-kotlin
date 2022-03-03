@@ -16,5 +16,16 @@
 package com.okta.authfoundation.credential.events
 
 import com.okta.authfoundation.credential.Credential
+import com.okta.authfoundation.events.EventHandler
+import okhttp3.Interceptor
 
-class NoAccessTokenAvailableEvent internal constructor(val credential: Credential)
+/**
+ * Emitted via [EventHandler.onEvent] when the [Interceptor.intercept] from a [Credential.accessTokenInterceptor] call has been called,
+ * but no valid access token exists.
+ */
+class NoAccessTokenAvailableEvent internal constructor(
+    /**
+     * The [Credential] associated with the event.
+     */
+    val credential: Credential,
+)

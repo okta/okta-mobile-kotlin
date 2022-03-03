@@ -15,8 +15,26 @@
  */
 package com.okta.webauthenticationui.events
 
-data class CustomizeBrowserEvent internal constructor(
+import com.okta.authfoundation.events.EventHandler
+import com.okta.webauthenticationui.WebAuthenticationClient
+import android.content.pm.PackageManager
+
+/**
+ * Emitted via [EventHandler.onEvent] when [WebAuthenticationClient.login] or [WebAuthenticationClient.logout] is invoked.
+ *
+ * This can be used to customize the browsers used for displaying the Chrome Custom Tabs to the user.
+ */
+class CustomizeBrowserEvent internal constructor(
+    /**
+     * Used when querying the package manager for Chrome Custom Tabs intent services.
+     *
+     * See [PackageManager.queryIntentServices] for additional details.
+     */
     var queryIntentServicesFlags: Int = 0,
+
+    /**
+     * The list of browser package names to prefer when selecting which Chrome Custom Tabs intent service is used.
+     */
     val preferredBrowsers: MutableList<String> = mutableListOf(CHROME_STABLE, CHROME_SYSTEM, CHROME_BETA)
 ) {
     private companion object {

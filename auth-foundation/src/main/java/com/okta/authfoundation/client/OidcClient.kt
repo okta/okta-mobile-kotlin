@@ -225,9 +225,7 @@ class OidcClient private constructor(
 
             validateIdToken(token)?.let { return it }
 
-            val event = TokenCreatedEvent(token)
-            configuration.eventCoordinator.sendEvent(event)
-            event.runFollowUpTasks()
+            configuration.eventCoordinator.sendEvent(TokenCreatedEvent(token, credential))
 
             credential?.storeToken(token)
         }

@@ -16,7 +16,15 @@
 package com.okta.authfoundation.credential.events
 
 import com.okta.authfoundation.credential.Credential
+import com.okta.authfoundation.credential.CredentialDataSource
+import com.okta.authfoundation.events.EventHandler
 
-data class CredentialCreatedEvent internal constructor(
-    val credential: Credential
+/**
+ * Emitted via [EventHandler.onEvent] when a [Credential] has been created via a [CredentialDataSource.create] call.
+ */
+class CredentialCreatedEvent internal constructor(
+    /**
+     * The [Credential] that was created.
+     */
+    val credential: Credential,
 )

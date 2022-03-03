@@ -15,6 +15,16 @@
  */
 package com.okta.authfoundation.events
 
+/**
+ * A centralized handler of events originated from Auth Foundation and other Okta SDKs.
+ */
 interface EventHandler {
+    /**
+     * A callback that is invoked when an event is emitted.
+     *
+     * > Note: events are emitted on the thread they're created on, and no threading guarantees are given.
+     *
+     * @param event the event being emitted.
+     */
     fun onEvent(event: Any)
 }
