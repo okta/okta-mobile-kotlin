@@ -429,6 +429,12 @@ class CredentialTest {
         assertThat(idToken?.keyId).isEqualTo("FJA0HGNtsuuda_Pl45J42kvQqcsu_0C4Fg7pbJLXTHY")
     }
 
+    @Test fun testMalformedIdToken(): Unit = runBlocking {
+        val credential = createCredential(token = createToken(idToken = "InvalidJwt"))
+        val idToken = credential.idToken()
+        assertThat(idToken).isNull()
+    }
+
     @Test fun accessTokenIfValidReturnsNullWithNullToken(): Unit = runBlocking {
         val credential = createCredential(token = null)
         assertThat(credential.accessTokenIfValid()).isNull()
