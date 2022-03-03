@@ -18,6 +18,7 @@ package com.okta.authfoundation.credential
 import com.google.common.truth.Truth.assertThat
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcClientResult
+import com.okta.authfoundation.client.dto.OidcIntrospectInfo
 import com.okta.authfoundation.client.dto.OidcUserInfo
 import com.okta.testhelpers.OktaRule
 import com.okta.testhelpers.RequestMatchers.header
@@ -516,6 +517,113 @@ class CredentialTest {
         val result = credential.getUserInfo() as OidcClientResult.Error<OidcUserInfo>
         assertThat(result.exception).hasMessageThat().isEqualTo("No Access Token.")
         assertThat(result.exception).isInstanceOf(IllegalStateException::class.java)
+    }
+
+    @Test fun testIntrospectNullToken(): Unit = runBlocking {
+        val credential = createCredential()
+        val result = credential.introspectToken(TokenType.ACCESS_TOKEN)
+        val errorResult = result as OidcClientResult.Error<OidcIntrospectInfo>
+        assertThat(errorResult.exception).hasMessageThat().isEqualTo("No token.")
+        assertThat(errorResult.exception).isInstanceOf(IllegalStateException::class.java)
+    }
+
+    @Test fun testIntrospectNullRefreshToken(): Unit = runBlocking {
+        val credential = createCredential(token = createToken(refreshToken = null))
+        val result = credential.introspectToken(TokenType.REFRESH_TOKEN)
+        val errorResult = result as OidcClientResult.Error<OidcIntrospectInfo>
+        assertThat(errorResult.exception).hasMessageThat().isEqualTo("No refresh token.")
+        assertThat(errorResult.exception).isInstanceOf(IllegalStateException::class.java)
+    }
+
+    @Test fun testIntrospectNullIdToken(): Unit = runBlocking {
+        val credential = createCredential(token = createToken(idToken = null))
+        val result = credential.introspectToken(TokenType.ID_TOKEN)
+        val errorResult = result as OidcClientResult.Error<OidcIntrospectInfo>
+        assertThat(errorResult.exception).hasMessageThat().isEqualTo("No id token.")
+        assertThat(errorResult.exception).isInstanceOf(IllegalStateException::class.java)
+    }
+
+    @Test fun testIntrospectNullDeviceSecret(): Unit = runBlocking {
+        val credential = createCredential(token = createToken(deviceSecret = null))
+        val result = credential.introspectToken(TokenType.DEVICE_SECRET)
+        val errorResult = result as OidcClientResult.Error<OidcIntrospectInfo>
+        assertThat(errorResult.exception).hasMessageThat().isEqualTo("No device secret.")
+        assertThat(errorResult.exception).isInstanceOf(IllegalStateException::class.java)
+    }
+
+    @Test fun testIntrospectRefreshToken(): Unit = runBlocking {
+        val oidcClient = mock<OidcClient> {
+            onBlocking { introspectToken(any(), any()) } doAnswer {
+                OidcClientResult.Success(OidcIntrospectInfo.Inactive)
+            }
+            on { withCredential(any()) } doReturn it
+            on { configuration } doReturn oktaRule.configuration
+        }
+        val credential = createCredential(token = createToken(refreshToken = "exampleRefreshToken"), oidcClient = oidcClient)
+        val result = credential.introspectToken(TokenType.REFRESH_TOKEN)
+        val successResult = result as OidcClientResult.Success<OidcIntrospectInfo>
+        assertThat(successResult.result.active).isFalse()
+        verify(oidcClient).introspectToken(eq(TokenType.REFRESH_TOKEN), eq("exampleRefreshToken"))
+    }
+
+    @Test fun testIntrospectAccessToken(): Unit = runBlocking {
+        val oidcClient = mock<OidcClient> {
+            onBlocking { introspectToken(any(), any()) } doAnswer {
+                OidcClientResult.Success(OidcIntrospectInfo.Inactive)
+            }
+            on { withCredential(any()) } doReturn it
+            on { configuration } doReturn oktaRule.configuration
+        }
+        val credential = createCredential(token = createToken(accessToken = "exampleAccessToken"), oidcClient = oidcClient)
+        val result = credential.introspectToken(TokenType.ACCESS_TOKEN)
+        val successResult = result as OidcClientResult.Success<OidcIntrospectInfo>
+        assertThat(successResult.result.active).isFalse()
+        verify(oidcClient).introspectToken(eq(TokenType.ACCESS_TOKEN), eq("exampleAccessToken"))
+    }
+
+    @Test fun testIntrospectIdToken(): Unit = runBlocking {
+        val oidcClient = mock<OidcClient> {
+            onBlocking { introspectToken(any(), any()) } doAnswer {
+                OidcClientResult.Success(OidcIntrospectInfo.Inactive)
+            }
+            on { withCredential(any()) } doReturn it
+            on { configuration } doReturn oktaRule.configuration
+        }
+        val credential = createCredential(token = createToken(idToken = "exampleIdToken"), oidcClient = oidcClient)
+        val result = credential.introspectToken(TokenType.ID_TOKEN)
+        val successResult = result as OidcClientResult.Success<OidcIntrospectInfo>
+        assertThat(successResult.result.active).isFalse()
+        verify(oidcClient).introspectToken(eq(TokenType.ID_TOKEN), eq("exampleIdToken"))
+    }
+
+    @Test fun testIntrospectDeviceSecret(): Unit = runBlocking {
+        val oidcClient = mock<OidcClient> {
+            onBlocking { introspectToken(any(), any()) } doAnswer {
+                OidcClientResult.Success(OidcIntrospectInfo.Inactive)
+            }
+            on { withCredential(any()) } doReturn it
+            on { configuration } doReturn oktaRule.configuration
+        }
+        val credential = createCredential(token = createToken(deviceSecret = "exampleDeviceSecret"), oidcClient = oidcClient)
+        val result = credential.introspectToken(TokenType.DEVICE_SECRET)
+        val successResult = result as OidcClientResult.Success<OidcIntrospectInfo>
+        assertThat(successResult.result.active).isFalse()
+        verify(oidcClient).introspectToken(eq(TokenType.DEVICE_SECRET), eq("exampleDeviceSecret"))
+    }
+
+    @Test fun testIntrospectAccessTokenNetworkError(): Unit = runBlocking {
+        val oidcClient = mock<OidcClient> {
+            onBlocking { introspectToken(any(), any()) } doAnswer {
+                OidcClientResult.Error(IllegalStateException("Exception from mock!"))
+            }
+            on { withCredential(any()) } doReturn it
+            on { configuration } doReturn oktaRule.configuration
+        }
+        val credential = createCredential(token = createToken(accessToken = "exampleAccessToken"), oidcClient = oidcClient)
+        val result = credential.introspectToken(TokenType.ACCESS_TOKEN)
+        val errorResult = result as OidcClientResult.Error<OidcIntrospectInfo>
+        assertThat(errorResult.exception).hasMessageThat().isEqualTo("Exception from mock!")
+        assertThat(errorResult.exception).isInstanceOf(IllegalStateException::class.java)
     }
 
     private fun createCredential(
