@@ -202,8 +202,13 @@ class Credential internal constructor(
      */
     suspend fun idToken(): Jwt? {
         val idToken = _token?.idToken ?: return null
-        val parser = JwtParser(oidcClient.configuration.json, oidcClient.configuration.computeDispatcher)
-        return parser.parse(idToken)
+        try {
+            val parser = JwtParser(oidcClient.configuration.json, oidcClient.configuration.computeDispatcher)
+            return parser.parse(idToken)
+        } catch (e: Exception) {
+            // The ID token was malformed.
+            return null
+        }
     }
 
     /**
