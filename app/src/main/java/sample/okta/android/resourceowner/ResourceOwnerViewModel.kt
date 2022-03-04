@@ -22,7 +22,7 @@ import androidx.lifecycle.viewModelScope
 import com.okta.oauth2.ResourceOwnerFlow
 import com.okta.oauth2.ResourceOwnerFlow.Companion.resourceOwnerFlow
 import kotlinx.coroutines.launch
-import sample.okta.android.OktaHelper
+import sample.okta.android.SampleHelper
 
 internal class ResourceOwnerViewModel : ViewModel() {
     private val _state = MutableLiveData<ResourceOwnerState>(ResourceOwnerState.Idle)
@@ -32,7 +32,7 @@ internal class ResourceOwnerViewModel : ViewModel() {
         _state.value = ResourceOwnerState.Loading
 
         viewModelScope.launch {
-            val resourceOwnerFlow = OktaHelper.defaultCredential.oidcClient.resourceOwnerFlow()
+            val resourceOwnerFlow = SampleHelper.defaultCredential.oidcClient.resourceOwnerFlow()
             when (val result = resourceOwnerFlow.start(username, password)) {
                 is ResourceOwnerFlow.Result.Error -> {
                     _state.value = ResourceOwnerState.Error(result.message)

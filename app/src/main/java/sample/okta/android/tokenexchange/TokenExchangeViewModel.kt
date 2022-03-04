@@ -22,7 +22,7 @@ import androidx.lifecycle.viewModelScope
 import com.okta.oauth2.TokenExchangeFlow
 import com.okta.oauth2.TokenExchangeFlow.Companion.tokenExchangeFlow
 import kotlinx.coroutines.launch
-import sample.okta.android.OktaHelper
+import sample.okta.android.SampleHelper
 
 class TokenExchangeViewModel : ViewModel() {
     companion object {
@@ -40,11 +40,11 @@ class TokenExchangeViewModel : ViewModel() {
         _state.value = TokenExchangeState.Loading
 
         viewModelScope.launch {
-            val credential = OktaHelper.defaultCredential
-            val tokenExchangeCredential = OktaHelper.credentialDataSource.all().firstOrNull { c ->
-                c.metadata[OktaHelper.CREDENTIAL_NAME_METADATA_KEY] == NAME_METADATA_VALUE
-            } ?: OktaHelper.credentialDataSource.create()
-            tokenExchangeCredential.storeToken(metadata = mapOf(Pair(OktaHelper.CREDENTIAL_NAME_METADATA_KEY, NAME_METADATA_VALUE)))
+            val credential = SampleHelper.defaultCredential
+            val tokenExchangeCredential = SampleHelper.credentialDataSource.all().firstOrNull { c ->
+                c.metadata[SampleHelper.CREDENTIAL_NAME_METADATA_KEY] == NAME_METADATA_VALUE
+            } ?: SampleHelper.credentialDataSource.create()
+            tokenExchangeCredential.storeToken(metadata = mapOf(Pair(SampleHelper.CREDENTIAL_NAME_METADATA_KEY, NAME_METADATA_VALUE)))
             val tokenExchangeFlow = tokenExchangeCredential.oidcClient.tokenExchangeFlow()
             val idToken = credential.token?.idToken
             if (idToken == null) {
