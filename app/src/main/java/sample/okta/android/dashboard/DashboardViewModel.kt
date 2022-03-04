@@ -33,7 +33,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
-import sample.okta.android.OktaHelper
+import sample.okta.android.SampleHelper
 import sample.okta.android.SocialRedirectCoordinator
 import timber.log.Timber
 
@@ -59,11 +59,11 @@ internal class DashboardViewModel(private val credentialMetadataNameValue: Strin
 
         viewModelScope.launch {
             credential = if (credentialMetadataNameValue == null) {
-                OktaHelper.defaultCredential
+                SampleHelper.defaultCredential
             } else {
-                OktaHelper.credentialDataSource.all().firstOrNull { credential ->
-                    credential.metadata[OktaHelper.CREDENTIAL_NAME_METADATA_KEY] == credentialMetadataNameValue
-                } ?: OktaHelper.defaultCredential
+                SampleHelper.credentialDataSource.all().firstOrNull { credential ->
+                    credential.metadata[SampleHelper.CREDENTIAL_NAME_METADATA_KEY] == credentialMetadataNameValue
+                } ?: SampleHelper.defaultCredential
             }
             setCredential(credential)
         }

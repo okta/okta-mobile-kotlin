@@ -25,7 +25,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.okta.authfoundation.credential.RevokeTokenType
 import com.okta.authfoundation.credential.TokenType
-import sample.okta.android.OktaHelper
+import sample.okta.android.SampleHelper
 import sample.okta.android.R
 import sample.okta.android.databinding.FragmentDashboardBinding
 import sample.okta.android.databinding.RowDashboardClaimBinding
@@ -48,15 +48,15 @@ internal class DashboardFragment : BaseFragment<FragmentDashboardBinding>(
 
     private val onBackPressedCallback = object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {
-            viewModel.setCredential(OktaHelper.defaultCredential)
+            viewModel.setCredential(SampleHelper.defaultCredential)
         }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         viewModel.credentialLiveData.observe(viewLifecycleOwner) { credential ->
-            onBackPressedCallback.isEnabled = OktaHelper.defaultCredential != credential
+            onBackPressedCallback.isEnabled = SampleHelper.defaultCredential != credential
 
-            val name = credential.metadata[OktaHelper.CREDENTIAL_NAME_METADATA_KEY] ?: ""
+            val name = credential.metadata[SampleHelper.CREDENTIAL_NAME_METADATA_KEY] ?: ""
             binding.credentialName.text = name
 
             val token = credential.token ?: return@observe

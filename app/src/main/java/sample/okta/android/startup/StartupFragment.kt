@@ -19,7 +19,7 @@ import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
-import sample.okta.android.OktaHelper
+import sample.okta.android.SampleHelper
 import sample.okta.android.databinding.FragmentStartupBinding
 import sample.okta.android.util.BaseFragment
 
@@ -34,7 +34,7 @@ internal class StartupFragment : BaseFragment<FragmentStartupBinding>(
         viewModel.state.observe(viewLifecycleOwner) { state ->
             when (state) {
                 StartupState.Complete -> {
-                    if (OktaHelper.defaultCredential.token != null) {
+                    if (SampleHelper.defaultCredential.token != null) {
                         findNavController().navigate(StartupFragmentDirections.startupToDashboard())
                     } else {
                         findNavController().navigate(StartupFragmentDirections.startupToLaunch())
