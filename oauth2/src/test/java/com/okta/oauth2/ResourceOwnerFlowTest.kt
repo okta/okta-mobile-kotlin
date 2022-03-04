@@ -17,7 +17,7 @@ package com.okta.oauth2
 
 import com.google.common.truth.Truth.assertThat
 import com.okta.authfoundation.client.OidcClient
-import com.okta.oauth2.ResourceOwnerFlow.Companion.resourceOwnerFlow
+import com.okta.oauth2.ResourceOwnerFlow.Companion.createResourceOwnerFlow
 import com.okta.testhelpers.OktaRule
 import com.okta.testhelpers.RequestMatchers.body
 import com.okta.testhelpers.RequestMatchers.method
@@ -41,7 +41,7 @@ class ResourceOwnerFlowTest {
         ) { response ->
             response.testBodyFromFile("$mockPrefix/token.json")
         }
-        val resourceOwnerFlow = oktaRule.createOidcClient().resourceOwnerFlow()
+        val resourceOwnerFlow = oktaRule.createOidcClient().createResourceOwnerFlow()
         val result = resourceOwnerFlow.start("foo", "bar")
         val token = (result as ResourceOwnerFlow.Result.Token).token
         assertThat(token.tokenType).isEqualTo("Bearer")
@@ -60,7 +60,7 @@ class ResourceOwnerFlowTest {
         ) { response ->
             response.testBodyFromFile("$mockPrefix/token.json")
         }
-        val resourceOwnerFlow = oktaRule.createOidcClient().resourceOwnerFlow()
+        val resourceOwnerFlow = oktaRule.createOidcClient().createResourceOwnerFlow()
         val result = resourceOwnerFlow.start("foo", "bar", setOf("openid","custom"))
         val token = (result as ResourceOwnerFlow.Result.Token).token
         assertThat(token.tokenType).isEqualTo("Bearer")
@@ -74,7 +74,7 @@ class ResourceOwnerFlowTest {
             oktaRule.configuration,
             oktaRule.baseUrl.newBuilder().encodedPath("/.well-known/openid-configuration").build()
         )
-        val resourceOwnerFlow = client.resourceOwnerFlow()
+        val resourceOwnerFlow = client.createResourceOwnerFlow()
         val result = resourceOwnerFlow.start("foo", "bar")
         assertThat(result).isInstanceOf(ResourceOwnerFlow.Result.Error::class.java)
         val errorResult = result as ResourceOwnerFlow.Result.Error
@@ -88,7 +88,7 @@ class ResourceOwnerFlowTest {
         ) { response ->
             response.setResponseCode(503)
         }
-        val resourceOwnerFlow = oktaRule.createOidcClient().resourceOwnerFlow()
+        val resourceOwnerFlow = oktaRule.createOidcClient().createResourceOwnerFlow()
         val result = resourceOwnerFlow.start("foo", "bar")
         assertThat(result).isInstanceOf(ResourceOwnerFlow.Result.Error::class.java)
         val errorResult = result as ResourceOwnerFlow.Result.Error

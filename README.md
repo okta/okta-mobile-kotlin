@@ -75,8 +75,8 @@ import com.okta.authfoundation.credential.Credential
 import com.okta.authfoundation.credential.CredentialDataSource.Companion.credentialDataSource
 
 val context: Context = TODO("Available from previous steps.")
-val credentialDataSource = oidcClient.credentialDataSource(context)
-val credential: Credential = credentialDataSource.create()
+val credentialDataSource = oidcClient.createCredentialDataSource(context)
+val credential: Credential = credentialDataSource.createCredential()
 ```
 
 #### Create a Web Authentication Client
@@ -94,7 +94,7 @@ import com.okta.webauthenticationui.WebAuthenticationClient.Companion.webAuthent
 
 val context: Context = TODO("Available from previous steps.")
 val credential: Credential = TODO("Available from previous steps.")
-val webAuthenticationClient = credential.oidcClient.webAuthenticationClient()
+val webAuthenticationClient = credential.oidcClient.createWebAuthenticationClient()
 when (val result = webAuthenticationClient.login(context)) {
     is WebAuthenticationClient.LoginResult.Error -> {
         // Timber.e(result.exception, "Failed to start login flow.")
@@ -158,6 +158,22 @@ when (val result = credential.oidcClient.webAuthenticationClient().resume(uri, a
     }
 }
 ```
+
+### Logout 
+
+There are multiple terms that might be confused when logging a user out.
+
+- `Credential.delete` - Clears the in memory reference to the `Token` and removes the information from `TokenStorage`, the `Credential` can no longer be used.
+- `Credential.revokeToken`/`OidcClient.revokeToken` - Revokes the specified `RevokeTokenType` from the Authorization Server.
+- `WebAuthenticationClient.logoutOfBrowser` - Removes the Okta session if the user was logged in via the OIDC Browser redirect flow. Also revokes the associated `Token`(s) minted via this flow. 
+
+> Notes:
+> - `Credential.delete` does not revoke a token
+> - `Credential.revokeToken`/`OidcClient.revokeToken` does not remove the `Token` from memory, or `TokenStorage`. It also does not invalidate the browser session if the `Token` was minted via the OIDC Browser redirect flow. 
+> - `WebAuthenticationClient.logoutOfBrowser` revokes the `Token`, but does not remove it from memory or `TokenStorage`
+> - Revoking a `RevokeTokenType.ACCESS_TOKEN` does not revoke the associated `Token.refreshToken` or `Token.deviceSecret`
+> - Revoking a `RevokeTokenType.DEVICE_SECRET` does not revoke the associated `Token.accessToken` or `Token.refreshToken`
+> - Revoking a `RevokeTokenType.REFRESH_TOKEN` *DOES* revoke the associated `Token.accessToken` AND `Token.refreshToken`
 
 ### Networking customization
 

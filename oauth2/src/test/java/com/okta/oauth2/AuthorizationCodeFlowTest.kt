@@ -17,7 +17,7 @@ package com.okta.oauth2
 
 import android.net.Uri
 import com.google.common.truth.Truth.assertThat
-import com.okta.oauth2.AuthorizationCodeFlow.Companion.authorizationCodeFlow
+import com.okta.oauth2.AuthorizationCodeFlow.Companion.createAuthorizationCodeFlow
 import com.okta.oauth2.events.CustomizeAuthorizationUrlEvent
 import com.okta.testhelpers.OktaRule
 import com.okta.testhelpers.RequestMatchers.body
@@ -39,7 +39,7 @@ class AuthorizationCodeFlowTest {
     @get:Rule val oktaRule = OktaRule()
 
     @Test fun testStart(): Unit = runBlocking {
-        val authorizationCodeFlow = oktaRule.createOidcClient().authorizationCodeFlow()
+        val authorizationCodeFlow = oktaRule.createOidcClient().createAuthorizationCodeFlow()
         assertThat(oktaRule.eventHandler).isEmpty()
         val result = authorizationCodeFlow.start(
             codeVerifier = "LEadFL0UCCWDlD0cdIiuv7TQfbxOP8OUep0U_xo_3oI",
@@ -70,7 +70,7 @@ class AuthorizationCodeFlowTest {
         ) { response ->
             response.testBodyFromFile("$mockPrefix/token.json")
         }
-        val authorizationCodeFlow = oktaRule.createOidcClient().authorizationCodeFlow()
+        val authorizationCodeFlow = oktaRule.createOidcClient().createAuthorizationCodeFlow()
         val flowContext = AuthorizationCodeFlow.ResumeResult.Context(
             url = "https://example.okta.com/not_used".toHttpUrl(),
             codeVerifier = "LEadFL0UCCWDlD0cdIiuv7TQfbxOP8OUep0U_xo_3oI",
@@ -95,7 +95,7 @@ class AuthorizationCodeFlowTest {
         ) { response ->
             response.setResponseCode(503)
         }
-        val authorizationCodeFlow = oktaRule.createOidcClient().authorizationCodeFlow()
+        val authorizationCodeFlow = oktaRule.createOidcClient().createAuthorizationCodeFlow()
         val flowContext = AuthorizationCodeFlow.ResumeResult.Context(
             url = "https://example.okta.com/not_used".toHttpUrl(),
             codeVerifier = "LEadFL0UCCWDlD0cdIiuv7TQfbxOP8OUep0U_xo_3oI",
@@ -112,7 +112,7 @@ class AuthorizationCodeFlowTest {
     }
 
     @Test fun testResumeRedirectMismatch(): Unit = runBlocking {
-        val authorizationCodeFlow = oktaRule.createOidcClient().authorizationCodeFlow()
+        val authorizationCodeFlow = oktaRule.createOidcClient().createAuthorizationCodeFlow()
         val flowContext = AuthorizationCodeFlow.ResumeResult.Context(
             url = "https://example.okta.com/not_used".toHttpUrl(),
             codeVerifier = "LEadFL0UCCWDlD0cdIiuv7TQfbxOP8OUep0U_xo_3oI",
@@ -126,7 +126,7 @@ class AuthorizationCodeFlowTest {
     }
 
     @Test fun testResumeStateMismatch(): Unit = runBlocking {
-        val authorizationCodeFlow = oktaRule.createOidcClient().authorizationCodeFlow()
+        val authorizationCodeFlow = oktaRule.createOidcClient().createAuthorizationCodeFlow()
         val flowContext = AuthorizationCodeFlow.ResumeResult.Context(
             url = "https://example.okta.com/not_used".toHttpUrl(),
             codeVerifier = "LEadFL0UCCWDlD0cdIiuv7TQfbxOP8OUep0U_xo_3oI",
@@ -141,7 +141,7 @@ class AuthorizationCodeFlowTest {
     }
 
     @Test fun testResumeError(): Unit = runBlocking {
-        val authorizationCodeFlow = oktaRule.createOidcClient().authorizationCodeFlow()
+        val authorizationCodeFlow = oktaRule.createOidcClient().createAuthorizationCodeFlow()
         val flowContext = AuthorizationCodeFlow.ResumeResult.Context(
             url = "https://example.okta.com/not_used".toHttpUrl(),
             codeVerifier = "LEadFL0UCCWDlD0cdIiuv7TQfbxOP8OUep0U_xo_3oI",
@@ -156,7 +156,7 @@ class AuthorizationCodeFlowTest {
     }
 
     @Test fun testResumeErrorDescription(): Unit = runBlocking {
-        val authorizationCodeFlow = oktaRule.createOidcClient().authorizationCodeFlow()
+        val authorizationCodeFlow = oktaRule.createOidcClient().createAuthorizationCodeFlow()
         val flowContext = AuthorizationCodeFlow.ResumeResult.Context(
             url = "https://example.okta.com/not_used".toHttpUrl(),
             codeVerifier = "LEadFL0UCCWDlD0cdIiuv7TQfbxOP8OUep0U_xo_3oI",

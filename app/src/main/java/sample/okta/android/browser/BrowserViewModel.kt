@@ -23,7 +23,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.okta.oauth2.AuthorizationCodeFlow
 import com.okta.webauthenticationui.WebAuthenticationClient
-import com.okta.webauthenticationui.WebAuthenticationClient.Companion.webAuthenticationClient
+import com.okta.webauthenticationui.WebAuthenticationClient.Companion.createWebAuthenticationClient
 import kotlinx.coroutines.launch
 import sample.okta.android.SampleHelper
 import sample.okta.android.SocialRedirectCoordinator
@@ -44,7 +44,7 @@ class BrowserViewModel : ViewModel() {
     }
 
     fun login(context: Context, addDeviceSsoScope: Boolean) {
-        val webAuthenticationClient = SampleHelper.defaultCredential.oidcClient.webAuthenticationClient()
+        val webAuthenticationClient = SampleHelper.defaultCredential.oidcClient.createWebAuthenticationClient()
         var scopes = SampleHelper.defaultCredential.scopes()
         if (addDeviceSsoScope) {
             scopes = scopes + setOf("device_sso")
@@ -74,7 +74,7 @@ class BrowserViewModel : ViewModel() {
             _state.value = BrowserState.Loading
 
             when (val result =
-                SampleHelper.defaultCredential.oidcClient.webAuthenticationClient().resume(uri, authorizationCodeFlowContext!!)) {
+                SampleHelper.defaultCredential.oidcClient.createWebAuthenticationClient().resume(uri, authorizationCodeFlowContext!!)) {
                 is AuthorizationCodeFlow.Result.Error -> {
                     _state.value = BrowserState.Error(result.message)
                 }

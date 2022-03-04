@@ -21,7 +21,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcConfiguration
-import com.okta.authfoundation.credential.CredentialDataSource.Companion.credentialDataSource
+import com.okta.authfoundation.credential.CredentialDataSource.Companion.createCredentialDataSource
 import kotlinx.coroutines.launch
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import sample.okta.android.BuildConfig
@@ -59,11 +59,11 @@ internal class StartupViewModel : ViewModel() {
                 oidcConfiguration,
                 "${BuildConfig.ISSUER}/.well-known/openid-configuration".toHttpUrl(),
             )
-            val credentialDataSource = oidcClient.credentialDataSource(SampleApplication.context)
+            val credentialDataSource = oidcClient.createCredentialDataSource(SampleApplication.context)
             SampleHelper.credentialDataSource = credentialDataSource
-            val credential = credentialDataSource.all().firstOrNull { credential ->
+            val credential = credentialDataSource.listCredentials().firstOrNull { credential ->
                 credential.metadata[SampleHelper.CREDENTIAL_NAME_METADATA_KEY] == DEFAULT_CREDENTIAL_NAME_METADATA_VALUE
-            } ?: credentialDataSource.create()
+            } ?: credentialDataSource.createCredential()
             SampleHelper.defaultCredential = credential
             SampleHelper.defaultCredential.storeToken(
                 metadata = mapOf(

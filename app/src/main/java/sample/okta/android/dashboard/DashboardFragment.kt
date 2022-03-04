@@ -119,8 +119,8 @@ internal class DashboardFragment : BaseFragment<FragmentDashboardBinding>(
         binding.logoutWebButton.setOnClickListener {
             viewModel.logoutOfWeb(requireContext())
         }
-        binding.removeCredentialButton.setOnClickListener {
-            viewModel.removeCredential()
+        binding.deleteCredentialButton.setOnClickListener {
+            viewModel.deleteCredential()
         }
 
         viewModel.requestStateLiveData.observe(viewLifecycleOwner) { state ->

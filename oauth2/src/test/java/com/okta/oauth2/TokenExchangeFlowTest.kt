@@ -17,7 +17,7 @@ package com.okta.oauth2
 
 import com.google.common.truth.Truth.assertThat
 import com.okta.authfoundation.client.OidcClient
-import com.okta.oauth2.TokenExchangeFlow.Companion.tokenExchangeFlow
+import com.okta.oauth2.TokenExchangeFlow.Companion.createTokenExchangeFlow
 import com.okta.testhelpers.OktaRule
 import com.okta.testhelpers.RequestMatchers.body
 import com.okta.testhelpers.RequestMatchers.method
@@ -38,7 +38,7 @@ class TokenExchangeFlowTest {
             oktaRule.configuration,
             oktaRule.baseUrl.newBuilder().encodedPath("/.well-known/openid-configuration").build()
         )
-        val flow = client.tokenExchangeFlow()
+        val flow = client.createTokenExchangeFlow()
         val result = flow.start("foo", "bar")
         assertThat(result).isInstanceOf(TokenExchangeFlow.Result.Error::class.java)
         val errorResult = result as TokenExchangeFlow.Result.Error
@@ -55,7 +55,7 @@ class TokenExchangeFlowTest {
             response.setResponseCode(503)
         }
 
-        val flow = oktaRule.createOidcClient().tokenExchangeFlow()
+        val flow = oktaRule.createOidcClient().createTokenExchangeFlow()
         val result = flow.start("foo", "bar") as TokenExchangeFlow.Result.Error
         assertThat(result.message).isEqualTo("Token request failed.")
         assertThat(result.exception).isInstanceOf(IOException::class.java)
@@ -82,7 +82,7 @@ class TokenExchangeFlowTest {
             response.setBody(body)
         }
 
-        val flow = oktaRule.createOidcClient().tokenExchangeFlow()
+        val flow = oktaRule.createOidcClient().createTokenExchangeFlow()
         val result = flow.start("foo", "bar") as TokenExchangeFlow.Result.Token
         assertThat(result.token.accessToken).isEqualTo("exampleAccessToken")
         assertThat(result.token.issuedTokenType).isEqualTo("urn:ietf:params:oauth:token-type:access_token")
@@ -108,7 +108,7 @@ class TokenExchangeFlowTest {
             response.setBody(body)
         }
 
-        val flow = oktaRule.createOidcClient().tokenExchangeFlow()
+        val flow = oktaRule.createOidcClient().createTokenExchangeFlow()
         val result = flow.start("foo", "bar", "non_default_audience", scopes = setOf("openid profile custom_for_test")) as TokenExchangeFlow.Result.Token
         assertThat(result.token.accessToken).isEqualTo("exampleAccessToken")
         assertThat(result.token.issuedTokenType).isEqualTo("urn:ietf:params:oauth:token-type:access_token")

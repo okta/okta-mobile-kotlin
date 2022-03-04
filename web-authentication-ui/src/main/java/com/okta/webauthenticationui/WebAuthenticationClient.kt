@@ -21,9 +21,9 @@ import android.app.Activity
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.oauth2.AuthorizationCodeFlow
-import com.okta.oauth2.AuthorizationCodeFlow.Companion.authorizationCodeFlow
+import com.okta.oauth2.AuthorizationCodeFlow.Companion.createAuthorizationCodeFlow
 import com.okta.oauth2.RedirectEndSessionFlow
-import com.okta.oauth2.RedirectEndSessionFlow.Companion.redirectEndSessionFlow
+import com.okta.oauth2.RedirectEndSessionFlow.Companion.createRedirectEndSessionFlow
 
 /**
  * Authentication coordinator that simplifies signing users in using browser-based OIDC authentication flows.
@@ -45,7 +45,7 @@ class WebAuthenticationClient private constructor(
          * @param webAuthenticationProvider the [WebAuthenticationProvider] which will be used to show the UI when performing the
          * redirect flows.
          */
-        fun OidcClient.webAuthenticationClient(
+        fun OidcClient.createWebAuthenticationClient(
             webAuthenticationProvider: WebAuthenticationProvider = DefaultWebAuthenticationProvider(configuration.eventCoordinator)
         ): WebAuthenticationClient {
             return WebAuthenticationClient(this, webAuthenticationProvider)
@@ -83,7 +83,7 @@ class WebAuthenticationClient private constructor(
     }
 
     /**
-     * A model representing all possible states of a [WebAuthenticationClient.logout] call.
+     * A model representing all possible states of a [WebAuthenticationClient.logoutOfBrowser] call.
      */
     sealed class LogoutResult {
         /**
@@ -112,8 +112,8 @@ class WebAuthenticationClient private constructor(
         object EndpointsNotAvailable : LogoutResult()
     }
 
-    private val authorizationCodeFlow: AuthorizationCodeFlow = oidcClient.authorizationCodeFlow()
-    private val redirectEndSessionFlow: RedirectEndSessionFlow = oidcClient.redirectEndSessionFlow()
+    private val authorizationCodeFlow: AuthorizationCodeFlow = oidcClient.createAuthorizationCodeFlow()
+    private val redirectEndSessionFlow: RedirectEndSessionFlow = oidcClient.createRedirectEndSessionFlow()
 
     /**
      * Initiates the OIDC Authorization Code redirect flow.
@@ -161,13 +161,15 @@ class WebAuthenticationClient private constructor(
     /**
      * Initiates the OIDC logout redirect flow.
      *
+     * > Note: OIDC Logout terminology is nuanced, see [Logout Documentation](https://github.com/okta/okta-mobile-kotlin#logout) for additional details.
+     *
      * See [WebAuthenticationClient.resume] for completing the flow.
      *
      * @param context the Android [Activity] [Context] which is used to display the logout flow via the configured
      * [WebAuthenticationProvider].
      * @param idToken the token used to identify the session to log the user out of.
      */
-    suspend fun logout(context: Context, idToken: String): LogoutResult {
+    suspend fun logoutOfBrowser(context: Context, idToken: String): LogoutResult {
         when (val result = redirectEndSessionFlow.start(idToken)) {
             is RedirectEndSessionFlow.ResumeResult.Context -> {
                 when (val exception = webAuthenticationProvider.launch(context, result.url)) {

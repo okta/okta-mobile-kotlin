@@ -137,6 +137,8 @@ class OidcClient private constructor(
     /**
      * Attempt to revoke the specified token.
      *
+     * > Note: OIDC Logout terminology is nuanced, see [Logout Documentation](https://github.com/okta/okta-mobile-kotlin#logout) for additional details.
+     *
      * @param token the token to attempt to revoke.
      */
     suspend fun revokeToken(token: String): OidcClientResult<Unit> {

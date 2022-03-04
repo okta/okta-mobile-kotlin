@@ -44,7 +44,7 @@ class DeviceAuthorizationFlow private constructor(
          *
          * @receiver the [OidcClient] used to perform the low level OIDC requests, as well as with which to use the configuration from.
          */
-        fun OidcClient.deviceAuthorizationFlow(): DeviceAuthorizationFlow {
+        fun OidcClient.createDeviceAuthorizationFlow(): DeviceAuthorizationFlow {
             return DeviceAuthorizationFlow(this)
         }
     }

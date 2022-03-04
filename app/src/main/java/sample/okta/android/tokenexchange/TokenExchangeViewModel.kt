@@ -20,7 +20,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.okta.oauth2.TokenExchangeFlow
-import com.okta.oauth2.TokenExchangeFlow.Companion.tokenExchangeFlow
+import com.okta.oauth2.TokenExchangeFlow.Companion.createTokenExchangeFlow
 import kotlinx.coroutines.launch
 import sample.okta.android.SampleHelper
 
@@ -41,11 +41,11 @@ class TokenExchangeViewModel : ViewModel() {
 
         viewModelScope.launch {
             val credential = SampleHelper.defaultCredential
-            val tokenExchangeCredential = SampleHelper.credentialDataSource.all().firstOrNull { c ->
+            val tokenExchangeCredential = SampleHelper.credentialDataSource.listCredentials().firstOrNull { c ->
                 c.metadata[SampleHelper.CREDENTIAL_NAME_METADATA_KEY] == NAME_METADATA_VALUE
-            } ?: SampleHelper.credentialDataSource.create()
+            } ?: SampleHelper.credentialDataSource.createCredential()
             tokenExchangeCredential.storeToken(metadata = mapOf(Pair(SampleHelper.CREDENTIAL_NAME_METADATA_KEY, NAME_METADATA_VALUE)))
-            val tokenExchangeFlow = tokenExchangeCredential.oidcClient.tokenExchangeFlow()
+            val tokenExchangeFlow = tokenExchangeCredential.oidcClient.createTokenExchangeFlow()
             val idToken = credential.token?.idToken
             if (idToken == null) {
                 _state.value = TokenExchangeState.Error("Missing Id Token")
