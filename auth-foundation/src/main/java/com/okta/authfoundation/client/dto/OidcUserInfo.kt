@@ -24,7 +24,7 @@ import kotlinx.serialization.SerializationException
  *
  * This provides a convenience mechanism for accessing information related to a user.
  */
-data class OidcUserInfo internal constructor(
+class OidcUserInfo internal constructor(
     private val jsonPayloadDeserializer: JsonPayloadDeserializer,
 ) {
     /**

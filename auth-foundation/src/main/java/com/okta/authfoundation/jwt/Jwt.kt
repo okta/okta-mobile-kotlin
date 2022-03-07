@@ -22,7 +22,7 @@ import kotlinx.serialization.SerializationException
 /**
  * Represents a Json Web Token.
  */
-data class Jwt internal constructor(
+class Jwt internal constructor(
     /** Identifies the digital signature algorithm used. */
     val algorithm: String,
     /** Identifies the public key used to verify the ID token. */

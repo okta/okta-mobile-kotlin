@@ -113,17 +113,17 @@ private data class StoredTokens(
     @Serializable
     data class Entry(
         @SerialName("identifier") val identifier: String,
-        @SerialName("token") val token: Token?,
+        @SerialName("token") val token: SerializableToken?,
         @SerialName("metadata") val metadata: Map<String, String>,
     )
 
     companion object {
         fun from(entries: List<TokenStorage.Entry>): StoredTokens {
-            return StoredTokens(entries.map { Entry(it.identifier, it.token, it.metadata) })
+            return StoredTokens(entries.map { Entry(it.identifier, it.token?.asSerializableToken(), it.metadata) })
         }
     }
 
     fun toTokenStorageEntries(): MutableList<TokenStorage.Entry> {
-        return entries.map { TokenStorage.Entry(it.identifier, it.token, it.metadata) }.toMutableList()
+        return entries.map { TokenStorage.Entry(it.identifier, it.token?.asToken(), it.metadata) }.toMutableList()
     }
 }

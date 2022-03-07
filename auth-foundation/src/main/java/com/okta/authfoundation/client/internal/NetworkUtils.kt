@@ -91,7 +91,7 @@ internal suspend fun <T> OidcConfiguration.internalPerformRequest(
 }
 
 @Serializable
-internal data class ErrorResponse(
+internal class ErrorResponse(
     @SerialName("error") val error: String? = null,
     @SerialName("error_description") val errorDescription: String? = null,
 )

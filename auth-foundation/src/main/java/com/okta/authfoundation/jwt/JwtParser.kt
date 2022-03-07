@@ -52,7 +52,7 @@ internal class JwtParser internal constructor(
 }
 
 @Serializable
-private data class JwtHeader(
+private class JwtHeader(
     @SerialName("alg") val alg: String,
     @SerialName("kid") val kid: String,
 )

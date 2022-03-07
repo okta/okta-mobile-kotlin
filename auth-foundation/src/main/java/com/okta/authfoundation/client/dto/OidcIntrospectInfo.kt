@@ -51,7 +51,7 @@ sealed class OidcIntrospectInfo(
      * A model representing an active introspection, which includes the claims returned by the Authorization Server.
      * Claims can be accessed via the [Active.payload] method.
      */
-    data class Active internal constructor(
+    class Active internal constructor(
         private val jsonPayloadDeserializer: JsonPayloadDeserializer
     ) : OidcIntrospectInfo(true) {
         /**
