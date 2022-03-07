@@ -17,6 +17,7 @@ package com.okta.oauth2
 
 import com.google.common.truth.Truth.assertThat
 import com.okta.authfoundation.client.OidcClient
+import com.okta.authfoundation.client.OidcEndpoints
 import com.okta.oauth2.DeviceAuthorizationFlow.Companion.createDeviceAuthorizationFlow
 import com.okta.testhelpers.OktaRule
 import com.okta.testhelpers.RequestMatchers.body
@@ -24,6 +25,7 @@ import com.okta.testhelpers.RequestMatchers.method
 import com.okta.testhelpers.RequestMatchers.path
 import com.okta.testhelpers.testBodyFromFile
 import kotlinx.coroutines.runBlocking
+import okhttp3.HttpUrl
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.mock
@@ -84,9 +86,7 @@ class DeviceAuthorizationFlowTest {
         assertThat(startResult.context.deviceCode).isEqualTo("1a521d9f-0922-4e6d-8db9-8b654297435a")
         assertThat(startResult.context.expiresIn).isEqualTo(600)
         assertThat(startResult.context.interval).isEqualTo(5)
-        assertThat(startResult.response.deviceCode).isEqualTo("1a521d9f-0922-4e6d-8db9-8b654297435a")
         assertThat(startResult.response.expiresIn).isEqualTo(600)
-        assertThat(startResult.response.interval).isEqualTo(5)
         assertThat(startResult.response.verificationUri).isEqualTo("https://example.okta.com/activate")
         assertThat(startResult.response.verificationUriComplete).isEqualTo("https://example.okta.com/activate?user_code=GDLMZQCT")
         assertThat(startResult.response.userCode).isEqualTo("GDLMZQCT")
@@ -234,4 +234,19 @@ class DeviceAuthorizationFlowTest {
         assertThat(startResult.exception).isInstanceOf(IOException::class.java)
         assertThat(startResult.exception).hasMessageThat().isEqualTo("Request failed.")
     }
+}
+
+private fun OidcEndpoints.copy(deviceAuthorizationEndpoint: HttpUrl?): OidcEndpoints {
+    return OidcEndpoints(
+        issuer = issuer,
+        authorizationEndpoint = authorizationEndpoint,
+        tokenEndpoint = tokenEndpoint,
+        userInfoEndpoint = userInfoEndpoint,
+        jwksUri = jwksUri,
+        registrationEndpoint = registrationEndpoint,
+        introspectionEndpoint = introspectionEndpoint,
+        revocationEndpoint = revocationEndpoint,
+        endSessionEndpoint = endSessionEndpoint,
+        deviceAuthorizationEndpoint = deviceAuthorizationEndpoint,
+    )
 }

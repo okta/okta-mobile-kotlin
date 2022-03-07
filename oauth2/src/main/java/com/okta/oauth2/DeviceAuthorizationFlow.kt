@@ -130,27 +130,43 @@ class DeviceAuthorizationFlow private constructor(
     /**
      * A model from the Authorization Server describing the details to be displayed to the user.
      */
-    @Serializable
-    data class Response(
+    class Response(
         /**
          * The URI the user should be prompted to open in order to authorize the application.
          */
-        @SerialName("verification_uri") val verificationUri: String,
+        val verificationUri: String,
         /**
          * A convenience URI that combines the `verificationUri` and the `userCode`, to make a clickable link.
          */
-        @SerialName("verification_uri_complete") val verificationUriComplete: String,
-        @SerialName("device_code") internal val deviceCode: String,
+        val verificationUriComplete: String,
         /**
          * The code that should be displayed to the user.
          */
-        @SerialName("user_code") val userCode: String,
-        @SerialName("interval") internal val interval: Int,
+        val userCode: String,
         /**
          * The time in seconds after which the authorization context will expire.
          */
-        @SerialName("expires_in") val expiresIn: Int,
+        val expiresIn: Int,
     )
+
+    @Serializable
+    internal class SerializableResponse(
+        @SerialName("verification_uri") val verificationUri: String,
+        @SerialName("verification_uri_complete") val verificationUriComplete: String,
+        @SerialName("device_code") internal val deviceCode: String,
+        @SerialName("user_code") val userCode: String,
+        @SerialName("interval") internal val interval: Int,
+        @SerialName("expires_in") val expiresIn: Int,
+    ) {
+        fun asResponse(): Response {
+            return Response(
+                verificationUri = verificationUri,
+                verificationUriComplete = verificationUriComplete,
+                userCode = userCode,
+                expiresIn = expiresIn,
+            )
+        }
+    }
 
     internal var delayFunction: suspend (Long) -> Unit = ::delay
 
@@ -178,13 +194,13 @@ class DeviceAuthorizationFlow private constructor(
             .url(deviceAuthorizationEndpoint)
             .build()
 
-        return when (val result = oidcClient.configuration.performRequest(Response.serializer(), request)) {
+        return when (val result = oidcClient.configuration.performRequest(SerializableResponse.serializer(), request)) {
             is OidcClientResult.Error -> {
                 StartResult.Error("Device authorization request failed.", result.exception)
             }
             is OidcClientResult.Success -> {
                 val response = result.result
-                StartResult.Success(response, Context(response.deviceCode, response.interval, response.expiresIn))
+                StartResult.Success(response.asResponse(), Context(response.deviceCode, response.interval, response.expiresIn))
             }
         }
     }

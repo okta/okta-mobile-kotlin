@@ -270,6 +270,6 @@ class Credential internal constructor(
 }
 
 @Serializable
-private data class AccessTokenExpirationPayload(
+private class AccessTokenExpirationPayload(
     @SerialName("exp") val exp: Long,
 )

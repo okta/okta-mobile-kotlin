@@ -34,8 +34,21 @@ import okhttp3.HttpUrl.Companion.toHttpUrl
  *
  * See [OIDC Endpoints](https://developer.okta.com/docs/reference/api/oidc/#endpoints)
  */
+class OidcEndpoints(
+    val issuer: HttpUrl,
+    val authorizationEndpoint: HttpUrl,
+    val tokenEndpoint: HttpUrl,
+    val userInfoEndpoint: HttpUrl,
+    val jwksUri: HttpUrl,
+    val registrationEndpoint: HttpUrl,
+    val introspectionEndpoint: HttpUrl,
+    val revocationEndpoint: HttpUrl,
+    val endSessionEndpoint: HttpUrl,
+    val deviceAuthorizationEndpoint: HttpUrl? = null,
+)
+
 @Serializable
-data class OidcEndpoints(
+internal class SerializableOidcEndpoints(
     @SerialName("issuer") val issuer: HttpUrl,
     @SerialName("authorization_endpoint") val authorizationEndpoint: HttpUrl,
     @SerialName("token_endpoint") val tokenEndpoint: HttpUrl,
@@ -46,7 +59,22 @@ data class OidcEndpoints(
     @SerialName("revocation_endpoint") val revocationEndpoint: HttpUrl,
     @SerialName("end_session_endpoint") val endSessionEndpoint: HttpUrl,
     @SerialName("device_authorization_endpoint") val deviceAuthorizationEndpoint: HttpUrl? = null,
-)
+) {
+    fun asOidcEndpoints(): OidcEndpoints {
+        return OidcEndpoints(
+            issuer = issuer,
+            authorizationEndpoint = authorizationEndpoint,
+            tokenEndpoint = tokenEndpoint,
+            userInfoEndpoint = userInfoEndpoint,
+            jwksUri = jwksUri,
+            registrationEndpoint = registrationEndpoint,
+            introspectionEndpoint = introspectionEndpoint,
+            revocationEndpoint = revocationEndpoint,
+            endSessionEndpoint = endSessionEndpoint,
+            deviceAuthorizationEndpoint = deviceAuthorizationEndpoint,
+        )
+    }
+}
 
 internal object HttpUrlSerializer : KSerializer<HttpUrl> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("HttpUrl", PrimitiveKind.STRING)

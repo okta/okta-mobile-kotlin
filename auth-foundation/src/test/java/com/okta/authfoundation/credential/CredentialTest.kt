@@ -250,7 +250,7 @@ class CredentialTest {
             token = createToken(refreshToken = "exampleRefreshToken"),
         )
         oktaRule.enqueue(path("/oauth2/default/v1/token")) { response ->
-            val body = oktaRule.configuration.json.encodeToString(createToken(refreshToken = "newRefreshToken"))
+            val body = oktaRule.configuration.json.encodeToString(createToken(refreshToken = "newRefreshToken").asSerializableToken())
             response.setBody(body)
         }
         val result = credential.refreshToken()
@@ -265,7 +265,7 @@ class CredentialTest {
             token = createToken(refreshToken = "exampleRefreshToken"),
         )
         oktaRule.enqueue(path("/oauth2/default/v1/token")) { response ->
-            val body = oktaRule.configuration.json.encodeToString(createToken(refreshToken = "newRefreshToken"))
+            val body = oktaRule.configuration.json.encodeToString(createToken(refreshToken = "newRefreshToken").asSerializableToken())
             response.setBody(body)
         }
         val result = credential.refreshToken()
@@ -473,7 +473,7 @@ class CredentialTest {
         val expiredAccessToken = "eyJraWQiOiJGSkEwSEdOdHN1dWRhX1BsNDVKNDJrdlFxY3N1XzBDNEZnN3BiSkxYVEhZIiwiYWxnIjoiUlMyNTYifQ.eyJ2ZXIiOjEsImp0aSI6IkFULmFacVZaaTlRd0oyLTR2TFFLTjUyNDJiMFRZLVlzU201b3hybVRQQjRLalUub2FyMXB3M28zbzNadW9icGo2OTYiLCJpc3MiOiJodHRwczovL2V4YW1wbGUub2t0YS5jb20vb2F1dGgyL2RlZmF1bHQiLCJhdWQiOiJhcGk6Ly9kZWZhdWx0IiwiaWF0IjoxNjQ0MzI3MDY5LCJleHAiOjE2NDQzMzcwNjksImNpZCI6IjBvYThmdXAwbEFQWUZDNEkyNjk2IiwidWlkIjoiMDB1YjQxejdtZ3pOcXJ5TXY2OTYiLCJzY3AiOlsib3BlbmlkIiwicHJvZmlsZSIsIm9mZmxpbmVfYWNjZXNzIiwiZW1haWwiLCJkZXZpY2Vfc3NvIl0sInN1YiI6ImpheW5ld3N0cm9tQGV4YW1wbGUuY29tIn0.0Pmlxd94xHkszXa_ira1olljQF8sgrf6zcA08qTzAq7AIwfanQW6dOng2Nd-JJpgO2KAKcBPOJ9qVO--A0wHWbPDuJ2BmasdCyQeYbdwTL-I1TnlXVp_zZUy15tE2Q5nCVQVUzcGsI36d9PD8WhkM8dzzvmVsar7KpGTFstb8N_Fwjo-lsCRPBEhvp1dVXEfbtE5xlNyG2l-HkTpAZqgLQzBJCCd6CmodD-SjKB3ikqblaL7sE7FUrCM7Mxs5YWF8S5TBzOo6SGC95JDomRqHk5Jhq6xmfwPmVywM5jJ8jte5mzGb6cJAj1NWIxawE7nkoeKmKwmIu5mG26an9u2bQ"
         val validAccessToken = "eyJraWQiOiJGSkEwSEdOdHN1dWRhX1BsNDVKNDJrdlFxY3N1XzBDNEZnN3BiSkxYVEhZIiwiYWxnIjoiUlMyNTYifQ.eyJ2ZXIiOjEsImp0aSI6IkFULmFacVZaaTlRd0oyLTR2TFFLTjUyNDJiMFRZLVlzU201b3hybVRQQjRLalUub2FyMXB3M28zbzNadW9icGo2OTYiLCJpc3MiOiJodHRwczovL2V4YW1wbGUub2t0YS5jb20vb2F1dGgyL2RlZmF1bHQiLCJhdWQiOiJhcGk6Ly9kZWZhdWx0IiwiaWF0IjoxNjQ0MzQ3MDY5LCJleHAiOjE2NDQzNTcwNjksImNpZCI6IjBvYThmdXAwbEFQWUZDNEkyNjk2IiwidWlkIjoiMDB1YjQxejdtZ3pOcXJ5TXY2OTYiLCJzY3AiOlsib3BlbmlkIiwicHJvZmlsZSIsIm9mZmxpbmVfYWNjZXNzIiwiZW1haWwiLCJkZXZpY2Vfc3NvIl0sInN1YiI6ImpheW5ld3N0cm9tQGV4YW1wbGUuY29tIn0.IG50UcAHDlHe7_iNq25lqi6DuQ-t1acPlCkLH0KspC_ySwFZECT1S7Z6_KlogxWzqSp5J2h7BNsjBYvQS-nkxExJMp_-YCoTdzSeLJ7rm3h6dKFMDHdIyOXcjg4B1Eo3PiO2SNvpz_u-FRrqiJdY86uWVn5SFAG0RwxdnNxE4uzcH826LJjPZmbVGqdKE0cssdFmrerdoqVY29YBR-kvT7Nj3QeYAAvkhbc01VA1Dnrp4yBTyFwbkFwxLOUKoDA4OSdM2mIiZaJ8W4reDplFTqGzBvk4uuB9BxKFGMWL6IeoRubMiZe-0x7q9k9WlsS58Cf7aE9hAW2rpQs0FvFU0Q"
         oktaRule.enqueue(path("/oauth2/default/v1/token")) { response ->
-            val body = oktaRule.configuration.json.encodeToString(createToken(accessToken = validAccessToken))
+            val body = oktaRule.configuration.json.encodeToString(createToken(accessToken = validAccessToken).asSerializableToken())
             response.setBody(body)
         }
 
@@ -539,7 +539,7 @@ class CredentialTest {
             token = createToken(accessToken = expiredAccessToken, refreshToken = "exampleRefreshToken"),
         )
         oktaRule.enqueue(path("/oauth2/default/v1/token")) { response ->
-            val body = oktaRule.configuration.json.encodeToString(createToken(accessToken = accessToken, refreshToken = "newRefreshToken"))
+            val body = oktaRule.configuration.json.encodeToString(createToken(accessToken = accessToken, refreshToken = "newRefreshToken").asSerializableToken())
             response.setBody(body)
         }
         oktaRule.enqueue(path("/oauth2/default/v1/userinfo")) { response ->

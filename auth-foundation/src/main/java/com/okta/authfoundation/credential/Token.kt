@@ -21,38 +21,75 @@ import kotlinx.serialization.Serializable
 /**
  * Token information representing a user's access to a resource server, including access token, refresh token, and other related information.
  */
-@Serializable
 data class Token internal constructor(
     /**
      * The string type of the token (e.g. `Bearer`).
      */
-    @SerialName("token_type") val tokenType: String,
+    val tokenType: String,
     /**
      * The expiration duration in seconds for this token.
      */
-    @SerialName("expires_in") val expiresIn: Int,
+    val expiresIn: Int,
     /**
      * The access token.
      */
-    @SerialName("access_token") val accessToken: String,
+    val accessToken: String,
     /**
      * The scopes granted when this token was minted.
      */
-    @SerialName("scope") val scope: String,
+    val scope: String,
     /**
      * The refresh token, if requested.
      */
-    @SerialName("refresh_token") val refreshToken: String? = null,
+    val refreshToken: String? = null,
     /**
      * The ID token, if requested.
      */
-    @SerialName("id_token") val idToken: String? = null,
+    val idToken: String? = null,
     /**
      * The device secret, if requested.
      */
-    @SerialName("device_secret") val deviceSecret: String? = null,
+    val deviceSecret: String? = null,
     /**
      * The issued token type, if returned.
      */
+    val issuedTokenType: String? = null,
+) {
+    internal fun asSerializableToken(): SerializableToken {
+        return SerializableToken(
+            tokenType = tokenType,
+            expiresIn = expiresIn,
+            accessToken = accessToken,
+            scope = scope,
+            refreshToken = refreshToken,
+            idToken = idToken,
+            deviceSecret = deviceSecret,
+            issuedTokenType = issuedTokenType,
+        )
+    }
+}
+
+@Serializable
+internal class SerializableToken internal constructor(
+    @SerialName("token_type") val tokenType: String,
+    @SerialName("expires_in") val expiresIn: Int,
+    @SerialName("access_token") val accessToken: String,
+    @SerialName("scope") val scope: String,
+    @SerialName("refresh_token") val refreshToken: String? = null,
+    @SerialName("id_token") val idToken: String? = null,
+    @SerialName("device_secret") val deviceSecret: String? = null,
     @SerialName("issued_token_type") val issuedTokenType: String? = null,
-)
+) {
+    fun asToken(): Token {
+        return Token(
+            tokenType = tokenType,
+            expiresIn = expiresIn,
+            accessToken = accessToken,
+            scope = scope,
+            refreshToken = refreshToken,
+            idToken = idToken,
+            deviceSecret = deviceSecret,
+            issuedTokenType = issuedTokenType,
+        )
+    }
+}

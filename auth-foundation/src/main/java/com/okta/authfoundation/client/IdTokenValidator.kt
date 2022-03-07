@@ -65,7 +65,7 @@ internal class DefaultIdTokenValidator : IdTokenValidator {
 }
 
 @Serializable
-internal data class IdTokenValidationPayload(
+internal class IdTokenValidationPayload(
     @SerialName("iss") val iss: String,
     @SerialName("aud") val aud: String,
     @SerialName("exp") val exp: Int,

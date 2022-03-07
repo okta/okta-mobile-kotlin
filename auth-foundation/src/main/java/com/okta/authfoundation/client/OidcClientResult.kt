@@ -22,14 +22,14 @@ import com.okta.authfoundation.InternalAuthFoundationApi
  */
 sealed class OidcClientResult<T> {
     /** An error result. */
-    data class Error<T> @InternalAuthFoundationApi constructor(
+    class Error<T> @InternalAuthFoundationApi constructor(
         /** The exception associated with the error. */
         val exception: Exception,
     ) : OidcClientResult<T>() {
         /**
          * The response type used to represent a completed HTTP response, but a non successful status code.
          */
-        data class HttpResponseException internal constructor(
+        class HttpResponseException internal constructor(
             /** The HTTP response code associated with the error. */
             val responseCode: Int,
             /** The error returned by the Authorization Server. */
@@ -47,7 +47,7 @@ sealed class OidcClientResult<T> {
     }
 
     /** Success with the expected result. */
-    data class Success<T> internal constructor(
+    class Success<T> internal constructor(
         /** The result of the success result. */
         val result: T,
     ) : OidcClientResult<T>()

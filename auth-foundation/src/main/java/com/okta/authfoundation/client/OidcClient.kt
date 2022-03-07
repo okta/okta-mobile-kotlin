@@ -23,6 +23,7 @@ import com.okta.authfoundation.client.events.TokenCreatedEvent
 import com.okta.authfoundation.client.internal.performRequest
 import com.okta.authfoundation.client.internal.performRequestNonJson
 import com.okta.authfoundation.credential.Credential
+import com.okta.authfoundation.credential.SerializableToken
 import com.okta.authfoundation.credential.Token
 import com.okta.authfoundation.credential.TokenType
 import com.okta.authfoundation.jwt.JwtParser
@@ -65,7 +66,9 @@ class OidcClient private constructor(
                         val request = Request.Builder()
                             .url(discoveryUrl)
                             .build()
-                        configuration.performRequest(OidcEndpoints.serializer(), request)
+                        configuration.performRequest(SerializableOidcEndpoints.serializer(), request) { serializableOidcEndpoints ->
+                            serializableOidcEndpoints.asOidcEndpoints()
+                        }
                     },
                     keepDataInMemory = { result ->
                         result is OidcClientResult.Success
@@ -222,7 +225,9 @@ class OidcClient private constructor(
         request: Request,
         nonce: String? = null,
     ): OidcClientResult<Token> {
-        val result = configuration.performRequest(Token.serializer(), request)
+        val result = configuration.performRequest(SerializableToken.serializer(), request) { serializableToken ->
+            serializableToken.asToken()
+        }
         if (result is OidcClientResult.Success) {
             val token = result.result
 
