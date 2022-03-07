@@ -228,7 +228,7 @@ class Credential internal constructor(
         try {
             val parser = JwtParser(oidcClient.configuration.json, oidcClient.configuration.computeDispatcher)
             val jwt = parser.parse(accessToken)
-            val payload = jwt.payload(AccessTokenExpirationPayload.serializer())
+            val payload = jwt.deserializeClaims(AccessTokenExpirationPayload.serializer())
             if (payload.exp > oidcClient.configuration.clock.currentTimeMillis()) {
                 return accessToken
             }

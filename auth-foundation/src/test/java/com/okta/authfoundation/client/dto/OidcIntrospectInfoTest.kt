@@ -33,7 +33,7 @@ class OidcIntrospectInfoTest {
         val payloadJson = oktaRule.configuration.json.decodeFromString(JsonObject.serializer(), payload)
         val subject = payloadJson.asOidcIntrospectInfo(oktaRule.configuration)
         val activeSubject = subject as OidcIntrospectInfo.Active
-        assertThat(activeSubject.payload(ExampleClaim.serializer()).foo).isEqualTo("bar")
+        assertThat(activeSubject.deserializeClaims(ExampleClaim.serializer()).foo).isEqualTo("bar")
     }
 
     @Test fun testAsOidcIntrospectInfoActive(): Unit = runBlocking {

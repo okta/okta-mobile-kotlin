@@ -15,12 +15,10 @@
  */
 package com.okta.authfoundation.client.dto
 
+import com.okta.authfoundation.claims.ClaimsProvider
 import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.credential.Token
-import com.okta.authfoundation.util.JsonPayloadDeserializer
-import com.okta.authfoundation.util.JsonPayloadDeserializer.Companion.createJsonPayloadDeserializer
-import kotlinx.serialization.DeserializationStrategy
-import kotlinx.serialization.SerializationException
+import com.okta.authfoundation.claims.DefaultClaimsProvider.Companion.createClaimsDeserializer
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.boolean
@@ -40,7 +38,7 @@ sealed class OidcIntrospectInfo(
         internal fun JsonObject.asOidcIntrospectInfo(configuration: OidcConfiguration): OidcIntrospectInfo {
             val active = (get("active") as JsonPrimitive).boolean
             if (active) {
-                return Active(configuration.createJsonPayloadDeserializer(this))
+                return Active(configuration.createClaimsDeserializer(this))
             } else {
                 return Inactive
             }
@@ -49,23 +47,10 @@ sealed class OidcIntrospectInfo(
 
     /**
      * A model representing an active introspection, which includes the claims returned by the Authorization Server.
-     * Claims can be accessed via the [Active.payload] method.
      */
     class Active internal constructor(
-        private val jsonPayloadDeserializer: JsonPayloadDeserializer
-    ) : OidcIntrospectInfo(true) {
-        /**
-         * Used to get access to the payload data in a type safe way.
-         *
-         * @param deserializationStrategy the [DeserializationStrategy] capable of deserializing the specified type.
-         *
-         * @throws SerializationException if the payload data can't be deserialized into the specified type.
-         * @return the specified type, deserialized from the payload.
-         */
-        suspend fun <T> payload(deserializationStrategy: DeserializationStrategy<T>): T {
-            return jsonPayloadDeserializer.payload(deserializationStrategy)
-        }
-    }
+        claimsProvider: ClaimsProvider
+    ) : OidcIntrospectInfo(true), ClaimsProvider by claimsProvider
 
     internal object Inactive : OidcIntrospectInfo(false)
 }

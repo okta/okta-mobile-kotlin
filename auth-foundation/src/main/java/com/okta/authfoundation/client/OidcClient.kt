@@ -28,7 +28,7 @@ import com.okta.authfoundation.credential.Token
 import com.okta.authfoundation.credential.TokenType
 import com.okta.authfoundation.jwt.JwtParser
 import com.okta.authfoundation.util.CoalescingOrchestrator
-import com.okta.authfoundation.util.JsonPayloadDeserializer.Companion.createJsonPayloadDeserializer
+import com.okta.authfoundation.claims.DefaultClaimsProvider.Companion.createClaimsDeserializer
 import kotlinx.serialization.json.JsonObject
 import okhttp3.FormBody
 import okhttp3.HttpUrl
@@ -106,7 +106,7 @@ class OidcClient private constructor(
             .build()
 
         return configuration.performRequest(JsonObject.serializer(), request) {
-            OidcUserInfo(configuration.createJsonPayloadDeserializer(it))
+            OidcUserInfo(configuration.createClaimsDeserializer(it))
         }
     }
 

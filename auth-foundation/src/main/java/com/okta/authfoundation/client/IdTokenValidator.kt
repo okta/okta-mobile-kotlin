@@ -38,7 +38,7 @@ fun interface IdTokenValidator {
 // https://openid.net/specs/openid-connect-core-1_0.html#IDTokenValidation
 internal class DefaultIdTokenValidator : IdTokenValidator {
     override suspend fun validate(oidcClient: OidcClient, idToken: Jwt, nonce: String?) {
-        val idTokenPayload = idToken.payload(IdTokenValidationPayload.serializer())
+        val idTokenPayload = idToken.deserializeClaims(IdTokenValidationPayload.serializer())
 
         if (idTokenPayload.iss != oidcClient.endpointsOrNull()?.issuer.toString()) {
             throw IllegalStateException("Invalid issuer.")

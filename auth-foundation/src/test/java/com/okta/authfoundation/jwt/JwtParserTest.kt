@@ -39,7 +39,7 @@ class JwtParserTest {
         class ExamplePayload(
             @SerialName("sub") val sub: String
         )
-        assertThat(jwt.payload(ExamplePayload.serializer()).sub).isEqualTo("00ub41z7mgzNqryMv696")
+        assertThat(jwt.deserializeClaims(ExamplePayload.serializer()).sub).isEqualTo("00ub41z7mgzNqryMv696")
 
         assertThat(jwt.signature).isEqualTo("z7LBgWT2O-DUZiOOUzr90qEgLoMiR5eHZsY1V2XPbhfOrjIv9ax9niHE7lPS5GYq02w4Cuf0DbdWjiNj96n4wTPmNU6N0x-XRluv4kved_wBBIvWNLGu_ZZZAFXaIFqmFGxPB6hIsYKvB3FmQCC0NvSXyDquadW9X7bBA7BO7VfX_jOKCkK_1MC1FZdU9n8rppu190Gk-z5dEWegHHtKy3vb12t4NR9CkA2uQgolnii8fNbie-3Z6zAdMXAZXkIcFu43Wn4TGwuzWK25IThcMNsPbLFFI4r0zo9E20IsH4gcJQiE_vFUzukzCsbppaiSAWBdSgES9K-QskWacZIWOg")
     }
@@ -52,6 +52,6 @@ class JwtParserTest {
         val exception = assertFailsWith<IllegalArgumentException> {
             parser.parse(input)
         }
-        assertThat(exception).hasMessageThat().isEqualTo("Token doesn't contain 3 parts. Needs header, payload, and signature.")
+        assertThat(exception).hasMessageThat().isEqualTo("Token doesn't contain 3 parts. Needs header, claims data, and signature.")
     }
 }

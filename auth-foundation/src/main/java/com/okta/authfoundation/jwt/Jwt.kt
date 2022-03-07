@@ -15,9 +15,7 @@
  */
 package com.okta.authfoundation.jwt
 
-import com.okta.authfoundation.util.JsonPayloadDeserializer
-import kotlinx.serialization.DeserializationStrategy
-import kotlinx.serialization.SerializationException
+import com.okta.authfoundation.claims.ClaimsProvider
 
 /**
  * Represents a Json Web Token.
@@ -28,22 +26,10 @@ class Jwt internal constructor(
     /** Identifies the public key used to verify the ID token. */
     val keyId: String,
 
-    private val jsonPayloadDeserializer: JsonPayloadDeserializer,
+    claimsProvider: ClaimsProvider,
 
     /**
      * The base64 encoded signature.
      */
     val signature: String,
-) {
-    /**
-     * Used to get access to the payload data in a type safe way.
-     *
-     * @param deserializationStrategy the [DeserializationStrategy] capable of deserializing the specified type.
-     *
-     * @throws SerializationException if the payload data can't be deserialized into the specified type.
-     * @return the specified type, deserialized from the payload.
-     */
-    suspend fun <T> payload(deserializationStrategy: DeserializationStrategy<T>): T {
-        return jsonPayloadDeserializer.payload(deserializationStrategy)
-    }
-}
+) : ClaimsProvider by claimsProvider
