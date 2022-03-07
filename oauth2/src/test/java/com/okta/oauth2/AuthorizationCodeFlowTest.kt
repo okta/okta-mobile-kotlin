@@ -44,6 +44,7 @@ class AuthorizationCodeFlowTest {
         val result = authorizationCodeFlow.start(
             codeVerifier = "LEadFL0UCCWDlD0cdIiuv7TQfbxOP8OUep0U_xo_3oI",
             state = "25c1d684-8d30-42e3-acc0-b74b35fd47b4",
+            nonce = "12345689",
             scopes = oktaRule.configuration.defaultScopes,
         )
 
@@ -51,8 +52,9 @@ class AuthorizationCodeFlowTest {
 
         assertThat(context.codeVerifier).isEqualTo("LEadFL0UCCWDlD0cdIiuv7TQfbxOP8OUep0U_xo_3oI")
         assertThat(context.state).isEqualTo("25c1d684-8d30-42e3-acc0-b74b35fd47b4")
+        assertThat(context.nonce).isEqualTo("12345689")
         val expectedUrlEnding =
-            "/oauth2/default/v1/authorize?code_challenge=pqwOUSjNbCP5x5DMxgLy7BTlzI2pjfDq7Q0iwKFjX5s&code_challenge_method=S256&client_id=unit_test_client_id&scope=openid%20email%20profile%20offline_access&redirect_uri=unitTest%3A%2Flogin&response_type=code&state=25c1d684-8d30-42e3-acc0-b74b35fd47b4"
+            "/oauth2/default/v1/authorize?code_challenge=pqwOUSjNbCP5x5DMxgLy7BTlzI2pjfDq7Q0iwKFjX5s&code_challenge_method=S256&client_id=unit_test_client_id&scope=openid%20email%20profile%20offline_access&redirect_uri=unitTest%3A%2Flogin&response_type=code&state=25c1d684-8d30-42e3-acc0-b74b35fd47b4&nonce=12345689"
         assertThat(context.url.toString()).endsWith(expectedUrlEnding)
 
         assertThat(oktaRule.eventHandler).hasSize(1)
@@ -75,6 +77,7 @@ class AuthorizationCodeFlowTest {
             url = "https://example.okta.com/not_used".toHttpUrl(),
             codeVerifier = "LEadFL0UCCWDlD0cdIiuv7TQfbxOP8OUep0U_xo_3oI",
             state = "25c1d684-8d30-42e3-acc0-b74b35fd47b4",
+            nonce = "12345689",
         )
         val result = authorizationCodeFlow.resume(
             uri = Uri.parse("unitTest:/login?state=${flowContext.state}&code=D13x1bzHhzG7Q1oxSmCcoQg5wjbJzopF4ua1f8UZiE4"),
@@ -100,6 +103,7 @@ class AuthorizationCodeFlowTest {
             url = "https://example.okta.com/not_used".toHttpUrl(),
             codeVerifier = "LEadFL0UCCWDlD0cdIiuv7TQfbxOP8OUep0U_xo_3oI",
             state = "25c1d684-8d30-42e3-acc0-b74b35fd47b4",
+            nonce = "12345689",
         )
         val result = authorizationCodeFlow.resume(
             uri = Uri.parse("unitTest:/login?state=${flowContext.state}&code=D13x1bzHhzG7Q1oxSmCcoQg5wjbJzopF4ua1f8UZiE4"),
@@ -117,6 +121,7 @@ class AuthorizationCodeFlowTest {
             url = "https://example.okta.com/not_used".toHttpUrl(),
             codeVerifier = "LEadFL0UCCWDlD0cdIiuv7TQfbxOP8OUep0U_xo_3oI",
             state = "25c1d684-8d30-42e3-acc0-b74b35fd47b4",
+            nonce = "12345689",
         )
         val result = authorizationCodeFlow.resume(
             uri = Uri.parse("wrong:/login?state=${flowContext.state}&code=D13x1bzHhzG7Q1oxSmCcoQg5wjbJzopF4ua1f8UZiE4"),
@@ -131,6 +136,7 @@ class AuthorizationCodeFlowTest {
             url = "https://example.okta.com/not_used".toHttpUrl(),
             codeVerifier = "LEadFL0UCCWDlD0cdIiuv7TQfbxOP8OUep0U_xo_3oI",
             state = "25c1d684-8d30-42e3-acc0-b74b35fd47b4",
+            nonce = "12345689",
         )
         val result = authorizationCodeFlow.resume(
             uri = Uri.parse("unitTest:/login?state=MISMATCHED&code=D13x1bzHhzG7Q1oxSmCcoQg5wjbJzopF4ua1f8UZiE4"),
@@ -146,6 +152,7 @@ class AuthorizationCodeFlowTest {
             url = "https://example.okta.com/not_used".toHttpUrl(),
             codeVerifier = "LEadFL0UCCWDlD0cdIiuv7TQfbxOP8OUep0U_xo_3oI",
             state = "25c1d684-8d30-42e3-acc0-b74b35fd47b4",
+            nonce = "12345689",
         )
         val result = authorizationCodeFlow.resume(
             uri = Uri.parse("unitTest:/login?error=foo"),
@@ -161,6 +168,7 @@ class AuthorizationCodeFlowTest {
             url = "https://example.okta.com/not_used".toHttpUrl(),
             codeVerifier = "LEadFL0UCCWDlD0cdIiuv7TQfbxOP8OUep0U_xo_3oI",
             state = "25c1d684-8d30-42e3-acc0-b74b35fd47b4",
+            nonce = "12345689",
         )
         val result = authorizationCodeFlow.resume(
             uri = Uri.parse("unitTest:/login?error=foo&error_description=Invalid%20Username"),

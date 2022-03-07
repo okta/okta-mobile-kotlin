@@ -64,6 +64,7 @@ class AuthorizationCodeFlow private constructor(
             val url: HttpUrl,
             internal val codeVerifier: String,
             internal val state: String,
+            internal val nonce: String,
         ) : ResumeResult()
     }
 
@@ -120,12 +121,18 @@ class AuthorizationCodeFlow private constructor(
     suspend fun start(
         scopes: Set<String> = oidcClient.configuration.defaultScopes,
     ): ResumeResult {
-        return start(PkceGenerator.codeVerifier(), UUID.randomUUID().toString(), scopes)
+        return start(
+            codeVerifier = PkceGenerator.codeVerifier(),
+            state = UUID.randomUUID().toString(),
+            nonce = UUID.randomUUID().toString(),
+            scopes = scopes
+        )
     }
 
     internal suspend fun start(
         codeVerifier: String,
         state: String,
+        nonce: String,
         scopes: Set<String>
     ): ResumeResult {
         val endpoints = oidcClient.endpointsOrNull() ?: return ResumeResult.EndpointsNotAvailable
@@ -138,11 +145,12 @@ class AuthorizationCodeFlow private constructor(
         urlBuilder.addQueryParameter("redirect_uri", oidcClient.configuration.signInRedirectUri)
         urlBuilder.addQueryParameter("response_type", "code")
         urlBuilder.addQueryParameter("state", state)
+        urlBuilder.addQueryParameter("nonce", nonce)
 
         val event = CustomizeAuthorizationUrlEvent(urlBuilder)
         oidcClient.configuration.eventCoordinator.sendEvent(event)
 
-        return ResumeResult.Context(urlBuilder.build(), codeVerifier, state)
+        return ResumeResult.Context(urlBuilder.build(), codeVerifier, state, nonce)
     }
 
     /**
@@ -185,7 +193,7 @@ class AuthorizationCodeFlow private constructor(
             .url(endpoints.tokenEndpoint)
             .build()
 
-        return when (val tokenResult = oidcClient.tokenRequest(request)) {
+        return when (val tokenResult = oidcClient.tokenRequest(request, flowContext.nonce)) {
             is OidcClientResult.Error -> {
                 Result.Error("Token request failed.", tokenResult.exception)
             }

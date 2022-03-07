@@ -29,7 +29,7 @@ import org.junit.runner.Description
 import org.junit.runners.model.Statement
 
 class OktaRule(
-    idTokenValidator: IdTokenValidator = IdTokenValidator { _, _ -> },
+    idTokenValidator: IdTokenValidator = IdTokenValidator { _, _, _ -> },
 ) : TestRule {
     private val mockWebServer: OktaMockWebServer = OktaMockWebServer()
 
