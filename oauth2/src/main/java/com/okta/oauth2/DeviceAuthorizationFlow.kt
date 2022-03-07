@@ -18,9 +18,10 @@ package com.okta.oauth2
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundation.client.OidcConfiguration
+import com.okta.authfoundation.client.OidcEndpoints
 import com.okta.authfoundation.client.internal.performRequest
+import com.okta.authfoundation.credential.Token
 import kotlinx.coroutines.delay
-import com.okta.authfoundation.credential.Token as CredentialToken
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import okhttp3.FormBody
@@ -53,84 +54,6 @@ class DeviceAuthorizationFlow private constructor(
      * A model representing the context and current state for an authorization session.
      */
     class Context internal constructor(
-        internal val deviceCode: String,
-        internal val interval: Int,
-        internal val expiresIn: Int,
-    )
-
-    /**
-     * A model representing all the possible states of a [DeviceAuthorizationFlow.start] call.
-     */
-    sealed class StartResult {
-        /**
-         * An error resulting from an interaction with the Authorization Server.
-         */
-        class Error internal constructor(
-            /**
-             * An error message intended to be displayed to the user.
-             */
-            val message: String,
-            /**
-             * The exception, if available which caused the error.
-             */
-            val exception: Exception? = null,
-        ) : StartResult()
-
-        /**
-         * Represents a successful start.
-         */
-        class Success internal constructor(
-            /**
-             * The [Response] which contains the information that should be shown to the user.
-             */
-            val response: Response,
-
-            /**
-             * The [Context] which is used to resume the flow.
-             */
-            val context: Context,
-        ) : StartResult()
-    }
-
-    /**
-     * A model representing all the possible states of a [DeviceAuthorizationFlow.resume] call.
-     */
-    sealed class ResumeResult {
-        /**
-         * An error resulting from an interaction with the Authorization Server.
-         */
-        class Error internal constructor(
-            /**
-             * An error message intended to be displayed to the user.
-             */
-            val message: String,
-            /**
-             * The exception, if available which caused the error.
-             */
-            val exception: Exception? = null
-        ) : ResumeResult()
-
-        /**
-         * Represents a successful authentication, and contains the [CredentialToken] returned.
-         */
-        class Token internal constructor(
-            /**
-             * The [CredentialToken] representing the user logged in via the [DeviceAuthorizationFlow].
-             */
-            val token: CredentialToken,
-        ) : ResumeResult()
-
-        /**
-         * An error due to a timeout.
-         * The [DeviceAuthorizationFlow] limits the duration a user can poll for a successful authentication, see [Response.expiresIn].
-         */
-        object Timeout : ResumeResult()
-    }
-
-    /**
-     * A model from the Authorization Server describing the details to be displayed to the user.
-     */
-    class Response(
         /**
          * The URI the user should be prompted to open in order to authorize the application.
          */
@@ -147,7 +70,21 @@ class DeviceAuthorizationFlow private constructor(
          * The time in seconds after which the authorization context will expire.
          */
         val expiresIn: Int,
+
+        internal val deviceCode: String,
+        internal val interval: Int,
     )
+
+    /**
+     * An error due to a timeout.
+     * The [DeviceAuthorizationFlow] limits the duration a user can poll for a successful authentication, see [Context.expiresIn].
+     */
+    class TimeoutException : Exception()
+
+    /**
+     * An error occurred due to a missing device authorization endpoint in [OidcEndpoints.deviceAuthorizationEndpoint].
+     */
+    class DeviceAuthorizationEndpointNotAvailableException : Exception("Device authorization endpoint is null.")
 
     @Serializable
     internal class SerializableResponse(
@@ -158,12 +95,14 @@ class DeviceAuthorizationFlow private constructor(
         @SerialName("interval") internal val interval: Int,
         @SerialName("expires_in") val expiresIn: Int,
     ) {
-        fun asResponse(): Response {
-            return Response(
+        fun asFlowContext(): Context {
+            return Context(
                 verificationUri = verificationUri,
                 verificationUriComplete = verificationUriComplete,
                 userCode = userCode,
                 expiresIn = expiresIn,
+                deviceCode = deviceCode,
+                interval = interval,
             )
         }
     }
@@ -179,11 +118,11 @@ class DeviceAuthorizationFlow private constructor(
      */
     suspend fun start(
         scopes: Set<String> = oidcClient.configuration.defaultScopes,
-    ): StartResult {
-        val endpoints = oidcClient.endpointsOrNull() ?: return StartResult.Error("Endpoints not available.")
+    ): OidcClientResult<Context> {
+        val endpoints = oidcClient.endpointsOrNull() ?: return oidcClient.endpointNotAvailableError()
 
         val deviceAuthorizationEndpoint = endpoints.deviceAuthorizationEndpoint
-            ?: return StartResult.Error("Device authorization endpoint is null.")
+            ?: return OidcClientResult.Error(DeviceAuthorizationEndpointNotAvailableException())
 
         val formBodyBuilder = FormBody.Builder()
             .add("client_id", oidcClient.configuration.clientId)
@@ -194,14 +133,8 @@ class DeviceAuthorizationFlow private constructor(
             .url(deviceAuthorizationEndpoint)
             .build()
 
-        return when (val result = oidcClient.configuration.performRequest(SerializableResponse.serializer(), request)) {
-            is OidcClientResult.Error -> {
-                StartResult.Error("Device authorization request failed.", result.exception)
-            }
-            is OidcClientResult.Success -> {
-                val response = result.result
-                StartResult.Success(response.asResponse(), Context(response.deviceCode, response.interval, response.expiresIn))
-            }
+        return oidcClient.configuration.performRequest(SerializableResponse.serializer(), request) { serializableResponse ->
+            serializableResponse.asFlowContext()
         }
     }
 
@@ -210,8 +143,8 @@ class DeviceAuthorizationFlow private constructor(
      *
      * @param flowContext the [Context] created from a [DeviceAuthorizationFlow.start] call.
      */
-    suspend fun resume(flowContext: Context): ResumeResult {
-        val endpoints = oidcClient.endpointsOrNull() ?: return ResumeResult.Error("Endpoints not available.")
+    suspend fun resume(flowContext: Context): OidcClientResult<Token> {
+        val endpoints = oidcClient.endpointsOrNull() ?: return oidcClient.endpointNotAvailableError()
 
         val formBodyBuilder = FormBody.Builder()
             .add("client_id", oidcClient.configuration.clientId)
@@ -235,14 +168,14 @@ class DeviceAuthorizationFlow private constructor(
                         // Do another loop in the while, we're polling waiting for the user to authorize.
                         continue
                     } else {
-                        return ResumeResult.Error("Token request failed.", tokenResult.exception)
+                        return tokenResult
                     }
                 }
                 is OidcClientResult.Success -> {
-                    return ResumeResult.Token(tokenResult.result)
+                    return tokenResult
                 }
             }
         } while (timeLeft > 0)
-        return ResumeResult.Timeout
+        return OidcClientResult.Error(TimeoutException())
     }
 }

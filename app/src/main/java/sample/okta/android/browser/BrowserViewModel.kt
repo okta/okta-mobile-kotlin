@@ -21,8 +21,8 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.okta.authfoundation.client.OidcClientResult
 import com.okta.oauth2.AuthorizationCodeFlow
-import com.okta.webauthenticationui.WebAuthenticationClient
 import com.okta.webauthenticationui.WebAuthenticationClient.Companion.createWebAuthenticationClient
 import kotlinx.coroutines.launch
 import sample.okta.android.SampleHelper
@@ -30,7 +30,7 @@ import sample.okta.android.SocialRedirectCoordinator
 import timber.log.Timber
 
 class BrowserViewModel : ViewModel() {
-    private var authorizationCodeFlowContext: AuthorizationCodeFlow.ResumeResult.Context? = null
+    private var authorizationCodeFlowContext: AuthorizationCodeFlow.Context? = null
 
     private val _state = MutableLiveData<BrowserState>(BrowserState.Idle)
     val state: LiveData<BrowserState> = _state
@@ -53,17 +53,13 @@ class BrowserViewModel : ViewModel() {
             _state.value = BrowserState.Loading
 
             when (val result = webAuthenticationClient.login(context, scopes)) {
-                is WebAuthenticationClient.LoginResult.Error -> {
+                is OidcClientResult.Error -> {
                     Timber.e(result.exception, "Failed to start login flow.")
                     _state.value = BrowserState.Error("Failed to start login flow.")
                 }
-                is WebAuthenticationClient.LoginResult.Success -> {
-                    authorizationCodeFlowContext = result.flowContext
+                is OidcClientResult.Success -> {
+                    authorizationCodeFlowContext = result.result
                     _state.value = BrowserState.Idle
-                }
-                WebAuthenticationClient.LoginResult.EndpointsNotAvailable -> {
-                    Timber.e("Failed to start login flow. Check OidcClient configuration.")
-                    _state.value = BrowserState.Error("Failed to start login flow. Check OidcClient configuration.")
                 }
             }
         }
@@ -75,16 +71,10 @@ class BrowserViewModel : ViewModel() {
 
             when (val result =
                 SampleHelper.defaultCredential.oidcClient.createWebAuthenticationClient().resume(uri, authorizationCodeFlowContext!!)) {
-                is AuthorizationCodeFlow.Result.Error -> {
-                    _state.value = BrowserState.Error(result.message)
+                is OidcClientResult.Error -> {
+                    _state.value = BrowserState.Error(result.exception.message ?: "An error occurred.")
                 }
-                AuthorizationCodeFlow.Result.MissingResultCode -> {
-                    _state.value = BrowserState.Error("Invalid redirect. Missing result code.")
-                }
-                AuthorizationCodeFlow.Result.RedirectSchemeMismatch -> {
-                    _state.value = BrowserState.Error("Invalid redirect. Redirect scheme mismatch.")
-                }
-                is AuthorizationCodeFlow.Result.Token -> {
+                is OidcClientResult.Success -> {
                     _state.value = BrowserState.Token
                 }
             }

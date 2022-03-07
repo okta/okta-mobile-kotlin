@@ -17,6 +17,7 @@ package com.okta.oauth2
 
 import android.net.Uri
 import com.google.common.truth.Truth.assertThat
+import com.okta.authfoundation.client.OidcClientResult
 import com.okta.oauth2.RedirectEndSessionFlow.Companion.createRedirectEndSessionFlow
 import com.okta.oauth2.events.CustomizeLogoutUrlEvent
 import com.okta.testhelpers.OktaRule
@@ -39,7 +40,7 @@ class RedirectEndSessionFlowTest {
             state = "25c1d684-8d30-42e3-acc0-b74b35fd47b4",
         )
 
-        val context = result as RedirectEndSessionFlow.ResumeResult.Context
+        val context = (result as OidcClientResult.Success<RedirectEndSessionFlow.Context>).result
 
         assertThat(context.state).isEqualTo("25c1d684-8d30-42e3-acc0-b74b35fd47b4")
         val expectedUrlEnding = "/oauth2/default/v1/logout?id_token_hint=exampleIdToken&post_logout_redirect_uri=unitTest%3A%2Flogout&state=25c1d684-8d30-42e3-acc0-b74b35fd47b4"
@@ -52,7 +53,7 @@ class RedirectEndSessionFlowTest {
 
     @Test fun testResume() {
         val redirectEndSessionFlow = oktaRule.createOidcClient().createRedirectEndSessionFlow()
-        val flowContext = RedirectEndSessionFlow.ResumeResult.Context(
+        val flowContext = RedirectEndSessionFlow.Context(
             state = "25c1d684-8d30-42e3-acc0-b74b35fd47b4",
             url = "https://example.okta.com/not_used".toHttpUrl(),
         )
@@ -60,12 +61,12 @@ class RedirectEndSessionFlowTest {
             uri = Uri.parse("unitTest:/logout?state=${flowContext.state}"),
             flowContext = flowContext,
         )
-        assertThat(result).isInstanceOf(RedirectEndSessionFlow.Result.Success::class.java)
+        assertThat(result).isInstanceOf(OidcClientResult.Success::class.java)
     }
 
     @Test fun testResumeSchemeMismatch() {
         val redirectEndSessionFlow = oktaRule.createOidcClient().createRedirectEndSessionFlow()
-        val flowContext = RedirectEndSessionFlow.ResumeResult.Context(
+        val flowContext = RedirectEndSessionFlow.Context(
             state = "25c1d684-8d30-42e3-acc0-b74b35fd47b4",
             url = "https://example.okta.com/not_used".toHttpUrl(),
         )
@@ -73,12 +74,13 @@ class RedirectEndSessionFlowTest {
             uri = Uri.parse("wrong:/logout?state=${flowContext.state}"),
             flowContext = flowContext,
         )
-        assertThat(result).isInstanceOf(RedirectEndSessionFlow.Result.RedirectSchemeMismatch::class.java)
+        val errorResult = result as OidcClientResult.Error<Unit>
+        assertThat(errorResult.exception).isInstanceOf(RedirectEndSessionFlow.RedirectSchemeMismatchException::class.java)
     }
 
     @Test fun testResumeStateMismatch() {
         val redirectEndSessionFlow = oktaRule.createOidcClient().createRedirectEndSessionFlow()
-        val flowContext = RedirectEndSessionFlow.ResumeResult.Context(
+        val flowContext = RedirectEndSessionFlow.Context(
             state = "25c1d684-8d30-42e3-acc0-b74b35fd47b4",
             url = "https://example.okta.com/not_used".toHttpUrl(),
         )
@@ -86,14 +88,15 @@ class RedirectEndSessionFlowTest {
             uri = Uri.parse("unitTest:/logout?state=MISMATCH"),
             flowContext = flowContext,
         )
-        assertThat(result).isInstanceOf(RedirectEndSessionFlow.Result.Error::class.java)
-        val errorResult = result as RedirectEndSessionFlow.Result.Error
-        assertThat(errorResult.message).isEqualTo("Failed due to state mismatch.")
+        assertThat(result).isInstanceOf(OidcClientResult.Error::class.java)
+        val errorResult = result as OidcClientResult.Error<Unit>
+        assertThat(errorResult.exception).isInstanceOf(RedirectEndSessionFlow.ResumeException::class.java)
+        assertThat(errorResult.exception).hasMessageThat().isEqualTo("Failed due to state mismatch.")
     }
 
     @Test fun testResumeError() {
         val redirectEndSessionFlow = oktaRule.createOidcClient().createRedirectEndSessionFlow()
-        val flowContext = RedirectEndSessionFlow.ResumeResult.Context(
+        val flowContext = RedirectEndSessionFlow.Context(
             state = "25c1d684-8d30-42e3-acc0-b74b35fd47b4",
             url = "https://example.okta.com/not_used".toHttpUrl(),
         )
@@ -101,14 +104,15 @@ class RedirectEndSessionFlowTest {
             uri = Uri.parse("unitTest:/logout?error=foo"),
             flowContext = flowContext,
         )
-        assertThat(result).isInstanceOf(RedirectEndSessionFlow.Result.Error::class.java)
-        val errorResult = result as RedirectEndSessionFlow.Result.Error
-        assertThat(errorResult.message).isEqualTo("An error occurred.")
+        assertThat(result).isInstanceOf(OidcClientResult.Error::class.java)
+        val errorResult = result as OidcClientResult.Error<Unit>
+        assertThat(errorResult.exception).isInstanceOf(RedirectEndSessionFlow.ResumeException::class.java)
+        assertThat(errorResult.exception).hasMessageThat().isEqualTo("An error occurred.")
     }
 
     @Test fun testResumeErrorDescription() {
         val redirectEndSessionFlow = oktaRule.createOidcClient().createRedirectEndSessionFlow()
-        val flowContext = RedirectEndSessionFlow.ResumeResult.Context(
+        val flowContext = RedirectEndSessionFlow.Context(
             state = "25c1d684-8d30-42e3-acc0-b74b35fd47b4",
             url = "https://example.okta.com/not_used".toHttpUrl(),
         )
@@ -116,8 +120,9 @@ class RedirectEndSessionFlowTest {
             uri = Uri.parse("unitTest:/logout?error=foo&error_description=Invalid%20Client%20Id"),
             flowContext = flowContext,
         )
-        assertThat(result).isInstanceOf(RedirectEndSessionFlow.Result.Error::class.java)
-        val errorResult = result as RedirectEndSessionFlow.Result.Error
-        assertThat(errorResult.message).isEqualTo("Invalid Client Id")
+        assertThat(result).isInstanceOf(OidcClientResult.Error::class.java)
+        val errorResult = result as OidcClientResult.Error<Unit>
+        assertThat(errorResult.exception).isInstanceOf(RedirectEndSessionFlow.ResumeException::class.java)
+        assertThat(errorResult.exception).hasMessageThat().isEqualTo("Invalid Client Id")
     }
 }

@@ -19,7 +19,7 @@ import android.net.Uri
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundation.client.OidcConfiguration
-import com.okta.authfoundation.credential.Token as CredentialToken
+import com.okta.authfoundation.credential.Token
 import com.okta.oauth2.events.CustomizeAuthorizationUrlEvent
 import okhttp3.FormBody
 import okhttp3.HttpUrl
@@ -46,70 +46,39 @@ class AuthorizationCodeFlow private constructor(
     }
 
     /**
-     * A model representing all the possible states of a [AuthorizationCodeFlow.resume] call.
+     * A model representing the context and current state for an authorization session.
      */
-    sealed class ResumeResult {
+    class Context internal constructor(
         /**
-         * An error that occurs when the [OidcClient] hasn't been properly configured, or a network error occurs.
+         * The current authentication Url.
          */
-        object EndpointsNotAvailable : ResumeResult()
-
-        /**
-         * A model representing the context and current state for an authorization session.
-         */
-        class Context internal constructor(
-            /**
-             * The current authentication Url.
-             */
-            val url: HttpUrl,
-            internal val codeVerifier: String,
-            internal val state: String,
-            internal val nonce: String,
-        ) : ResumeResult()
-    }
+        val url: HttpUrl,
+        internal val codeVerifier: String,
+        internal val state: String,
+        internal val nonce: String,
+    )
 
     /**
-     * A model representing all possible states of a [AuthorizationCodeFlow.resume] call.
+     * Used in a [OidcClientResult.Error.exception] from [resume].
+     *
+     * Includes a message giving more information as to what went wrong.
      */
-    sealed class Result {
-        /**
-         * An error indicating the redirect scheme of the supplied url doesn't match the configured redirect scheme.
-         *
-         * This could be due to the supplied url being intended for another feature of the app, a misconfiguration, or an attempted
-         * attack.
-         */
-        object RedirectSchemeMismatch : Result()
+    class ResumeException internal constructor(message: String) : Exception(message)
 
-        /**
-         * An error resulting from an interaction with the Authorization Server.
-         */
-        class Error internal constructor(
-            /**
-             * An error message intended to be displayed to the user.
-             */
-            val message: String,
-            /**
-             * The exception, if available which caused the error.
-             */
-            val exception: Exception? = null,
-        ) : Result()
+    /**
+     * Used in a [OidcClientResult.Error.exception] from [resume].
+     *
+     * The redirect scheme of the [Uri] didn't match the one configured for the associated [OidcClient].
+     */
+    class RedirectSchemeMismatchException internal constructor() : Exception()
 
-        /**
-         * An error representing an irrecoverable error where we didn't get the `code` back in order to complete the Authorization Code
-         * Flow.
-         */
-        object MissingResultCode : Result()
-
-        /**
-         * Represents a successful authentication, and contains the [CredentialToken] returned.
-         */
-        class Token internal constructor(
-            /**
-             * The [CredentialToken] representing the user logged in via the [AuthorizationCodeFlow].
-             */
-            val token: CredentialToken,
-        ) : Result()
-    }
+    /**
+     * Used in a [OidcClientResult.Error.exception] from [resume].
+     *
+     * An error representing an irrecoverable error where we didn't get the `code` back in order to complete the Authorization Code
+     * Flow.
+     */
+    class MissingResultCodeException internal constructor() : Exception()
 
     /**
      * Initiates the OIDC Authorization Code redirect flow.
@@ -120,7 +89,7 @@ class AuthorizationCodeFlow private constructor(
      */
     suspend fun start(
         scopes: Set<String> = oidcClient.configuration.defaultScopes,
-    ): ResumeResult {
+    ): OidcClientResult<Context> {
         return start(
             codeVerifier = PkceGenerator.codeVerifier(),
             state = UUID.randomUUID().toString(),
@@ -134,8 +103,8 @@ class AuthorizationCodeFlow private constructor(
         state: String,
         nonce: String,
         scopes: Set<String>
-    ): ResumeResult {
-        val endpoints = oidcClient.endpointsOrNull() ?: return ResumeResult.EndpointsNotAvailable
+    ): OidcClientResult<Context> {
+        val endpoints = oidcClient.endpointsOrNull() ?: return oidcClient.endpointNotAvailableError()
 
         val urlBuilder = endpoints.authorizationEndpoint.newBuilder()
         urlBuilder.addQueryParameter("code_challenge", PkceGenerator.codeChallenge(codeVerifier))
@@ -150,7 +119,7 @@ class AuthorizationCodeFlow private constructor(
         val event = CustomizeAuthorizationUrlEvent(urlBuilder)
         oidcClient.configuration.eventCoordinator.sendEvent(event)
 
-        return ResumeResult.Context(urlBuilder.build(), codeVerifier, state, nonce)
+        return OidcClientResult.Success(Context(urlBuilder.build(), codeVerifier, state, nonce))
     }
 
     /**
@@ -158,28 +127,28 @@ class AuthorizationCodeFlow private constructor(
      * This method takes the returned redirect [Uri], and communicates with the Authorization Server to exchange that for a token.
      *
      * @param uri the redirect [Uri] which includes the authorization code to complete the flow.
-     * @param flowContext the [AuthorizationCodeFlow.ResumeResult.Context] used internally to maintain state.
+     * @param flowContext the [AuthorizationCodeFlow.Context] used internally to maintain state.
      */
-    suspend fun resume(uri: Uri, flowContext: ResumeResult.Context): Result {
+    suspend fun resume(uri: Uri, flowContext: Context): OidcClientResult<Token> {
         if (!uri.toString().startsWith(oidcClient.configuration.signInRedirectUri)) {
-            return Result.RedirectSchemeMismatch
+            return OidcClientResult.Error(RedirectSchemeMismatchException())
         }
 
         val errorQueryParameter = uri.getQueryParameter("error")
         if (errorQueryParameter != null) {
             val errorDescription = uri.getQueryParameter("error_description") ?: "An error occurred."
-            return Result.Error(errorDescription)
+            return OidcClientResult.Error(ResumeException(errorDescription))
         }
 
         val stateQueryParameter = uri.getQueryParameter("state")
         if (flowContext.state != stateQueryParameter) {
             val error = "Failed due to state mismatch."
-            return Result.Error(error)
+            return OidcClientResult.Error(ResumeException(error))
         }
 
-        val code = uri.getQueryParameter("code") ?: return Result.MissingResultCode
+        val code = uri.getQueryParameter("code") ?: return OidcClientResult.Error(MissingResultCodeException())
 
-        val endpoints = oidcClient.endpointsOrNull() ?: return Result.Error("Endpoints not available.")
+        val endpoints = oidcClient.endpointsOrNull() ?: return oidcClient.endpointNotAvailableError()
 
         val formBodyBuilder = FormBody.Builder()
             .add("redirect_uri", oidcClient.configuration.signInRedirectUri)
@@ -193,13 +162,6 @@ class AuthorizationCodeFlow private constructor(
             .url(endpoints.tokenEndpoint)
             .build()
 
-        return when (val tokenResult = oidcClient.tokenRequest(request, flowContext.nonce)) {
-            is OidcClientResult.Error -> {
-                Result.Error("Token request failed.", tokenResult.exception)
-            }
-            is OidcClientResult.Success -> {
-                Result.Token(tokenResult.result)
-            }
-        }
+        return oidcClient.tokenRequest(request, flowContext.nonce)
     }
 }
