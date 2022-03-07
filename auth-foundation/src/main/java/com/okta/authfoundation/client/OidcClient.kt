@@ -220,12 +220,13 @@ class OidcClient private constructor(
     @InternalAuthFoundationApi
     suspend fun tokenRequest(
         request: Request,
+        nonce: String? = null,
     ): OidcClientResult<Token> {
         val result = configuration.performRequest(Token.serializer(), request)
         if (result is OidcClientResult.Success) {
             val token = result.result
 
-            validateIdToken(token)?.let { return it }
+            validateIdToken(token, nonce)?.let { return it }
 
             configuration.eventCoordinator.sendEvent(TokenCreatedEvent(token, credential))
 
@@ -234,12 +235,12 @@ class OidcClient private constructor(
         return result
     }
 
-    private suspend fun validateIdToken(token: Token): OidcClientResult<Token>? {
+    private suspend fun validateIdToken(token: Token, nonce: String?): OidcClientResult<Token>? {
         try {
             if (token.idToken != null) {
                 val parser = JwtParser(configuration.json, configuration.computeDispatcher)
                 val jwt = parser.parse(token.idToken)
-                configuration.idTokenValidator.validate(oidcClient = this, idToken = jwt)
+                configuration.idTokenValidator.validate(oidcClient = this, idToken = jwt, nonce = nonce)
             }
         } catch (e: Exception) {
             return OidcClientResult.Error(e)

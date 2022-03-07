@@ -86,7 +86,14 @@ class DefaultIdTokenValidatorTest {
         val idToken =
             "eyJraWQiOiJGSkEwSEdOdHN1dWRhX1BsNDVKNDJrdlFxY3N1XzBDNEZnN3BiSkxYVEhZIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiIwMHViNDF6N21nek5xcnlNdjY5NiIsIm5hbWUiOiJKYXkgTmV3c3Ryb20iLCJlbWFpbCI6ImpheW5ld3N0cm9tQGV4YW1wbGUuY29tIiwidmVyIjoxLCJpc3MiOiJodHRwczovL2V4YW1wbGUtdGVzdC5va3RhLmNvbS9vYXV0aDIvZGVmYXVsdCIsImF1ZCI6InVuaXRfdGVzdF9jbGllbnRfaWQiLCJpYXQiOjE2NDQzNDcwNjksImV4cCI6MTY0NDM1MDY2OSwianRpIjoiSUQuNTVjeEJ0ZFlsOGw2YXJLSVNQQndkMHlPVC05VUNUYVhhUVRYdDJsYVJMcyIsImFtciI6WyJwd2QiXSwiaWRwIjoiMDBvOGZvdTdzUmFHR3dkbjQ2OTYiLCJzaWQiOiJpZHhXeGtscF80a1N4dUNfblUxcFhELW5BIiwicHJlZmVycmVkX3VzZXJuYW1lIjoiamF5bmV3c3Ryb21AZXhhbXBsZS5jb20iLCJhdXRoX3RpbWUiOjE2NDQzNDcwNjgsImF0X2hhc2giOiJnTWNHVGJoR1QxR19sZHNIb0pzUHpRIiwiZHNfaGFzaCI6IkRBZUxPRlJxaWZ5c2Jnc3JiT2dib2cifQ.tT8aKK4r8yFcW9KgVtZxvjXRJVzz-_rve14CVtpUlyvCTE1yj20wmPS0z3-JirI9xXgt5KeNPYqo3Wbv8c9XY_HY3hsPQdILYpPsUkf-sctmzSoKC_dTbs5xe8uKSgmpMrggfUAWrNPiJt9Ek2p7GgP64Wx79Pq5vSHk0yWlonFfXut5ahpSfqWilmYlvLr8gFbqoLnAJfl4ZbTY8pPw_aQgCdcQ-ImHRu-8bCSCtbFRzZB-SMJFLfRF2kmx0H-QF855wUODTuUSydkff-BKb-8wnbqWg0R9NvRdoXhEybv8TXXZY3cQqgolWLAyiPMrz07n0q_UEjAilUiCjn1f4Q"
         val client = oktaRule.createOidcClient(oktaRule.createEndpoints("https://example-test.okta.com".toHttpUrl().newBuilder()))
-        idTokenValidator.validate(client, createJwt(idToken))
+        idTokenValidator.validate(client, createJwt(idToken), null)
+    }
+
+    @Test fun testValidIdTokenWithNonce(): Unit = runBlocking {
+        val idToken =
+            "eyJraWQiOiJGSkEwSEdOdHN1dWRhX1BsNDVKNDJrdlFxY3N1XzBDNEZnN3BiSkxYVEhZIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiIwMHViNDF6N21nek5xcnlNdjY5NiIsIm5hbWUiOiJKYXkgTmV3c3Ryb20iLCJlbWFpbCI6ImpheW5ld3N0cm9tQGV4YW1wbGUuY29tIiwidmVyIjoxLCJpc3MiOiJodHRwczovL2V4YW1wbGUtdGVzdC5va3RhLmNvbS9vYXV0aDIvZGVmYXVsdCIsImF1ZCI6InVuaXRfdGVzdF9jbGllbnRfaWQiLCJpYXQiOjE2NDQzNDcwNjksImV4cCI6MTY0NDM1MDY2OSwianRpIjoiSUQuNTVjeEJ0ZFlsOGw2YXJLSVNQQndkMHlPVC05VUNUYVhhUVRYdDJsYVJMcyIsImFtciI6WyJwd2QiXSwiaWRwIjoiMDBvOGZvdTdzUmFHR3dkbjQ2OTYiLCJzaWQiOiJpZHhXeGtscF80a1N4dUNfblUxcFhELW5BIiwicHJlZmVycmVkX3VzZXJuYW1lIjoiamF5bmV3c3Ryb21AZXhhbXBsZS5jb20iLCJhdXRoX3RpbWUiOjE2NDQzNDcwNjgsImF0X2hhc2giOiJnTWNHVGJoR1QxR19sZHNIb0pzUHpRIiwiZHNfaGFzaCI6IkRBZUxPRlJxaWZ5c2Jnc3JiT2dib2ciLCJub25jZSI6IjZjY2RiNjZkLWFkNTYtNDA3Mi1iODY0LTdhOGZlNzNjMGFjMiJ9.Efsgp0MZ8TZ7P2Jbb04AkJMzFFU_Qe6dRWc_sl2smUxz7RGCcLuHZRSySMR_AnPPZZ5tSdar5D1SNNbqkxNaaIjXRxomQ5aqM5Y9k5cICA48cyeZ4ELqTwP2j9ko44nmUmKhyWtZjqIkL8uFbeK73KOtR9vDZJMkA75MLC23l5F2DYWtoJXZg8QD1SzFNfsvxj3w6sEKo0yivEBH1-iMbJiXbkCIwzuS8APpBAMvXQGp1GJXnK2i-1DbHxgr_DEOKIQqSnOXpVjzxibXqUR0LEXKda-f7tW_3W308vIN18J3WN_yFfkB9e2gDYPVhmGt-EPtT2JCjfgzOsJmzxWV-g"
+        val client = oktaRule.createOidcClient(oktaRule.createEndpoints("https://example-test.okta.com".toHttpUrl().newBuilder()))
+        idTokenValidator.validate(client, createJwt(idToken), "6ccdb66d-ad56-4072-b864-7a8fe73c0ac2")
     }
 
     @Test fun testInvalidIssuer() {
@@ -140,10 +147,30 @@ class DefaultIdTokenValidatorTest {
         )
     }
 
-    private fun assertFailsWithMessage(message: String, idToken: String, issuerPrefix: String = "https") {
+    @Test fun testMismatchNonce() {
+        val idToken =
+            "eyJraWQiOiJGSkEwSEdOdHN1dWRhX1BsNDVKNDJrdlFxY3N1XzBDNEZnN3BiSkxYVEhZIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiIwMHViNDF6N21nek5xcnlNdjY5NiIsIm5hbWUiOiJKYXkgTmV3c3Ryb20iLCJlbWFpbCI6ImpheW5ld3N0cm9tQGV4YW1wbGUuY29tIiwidmVyIjoxLCJpc3MiOiJodHRwczovL2V4YW1wbGUtdGVzdC5va3RhLmNvbS9vYXV0aDIvZGVmYXVsdCIsImF1ZCI6InVuaXRfdGVzdF9jbGllbnRfaWQiLCJpYXQiOjE2NDQzNDcwNjksImV4cCI6MTY0NDM1MDY2OSwianRpIjoiSUQuNTVjeEJ0ZFlsOGw2YXJLSVNQQndkMHlPVC05VUNUYVhhUVRYdDJsYVJMcyIsImFtciI6WyJwd2QiXSwiaWRwIjoiMDBvOGZvdTdzUmFHR3dkbjQ2OTYiLCJzaWQiOiJpZHhXeGtscF80a1N4dUNfblUxcFhELW5BIiwicHJlZmVycmVkX3VzZXJuYW1lIjoiamF5bmV3c3Ryb21AZXhhbXBsZS5jb20iLCJhdXRoX3RpbWUiOjE2NDQzNDcwNjgsImF0X2hhc2giOiJnTWNHVGJoR1QxR19sZHNIb0pzUHpRIiwiZHNfaGFzaCI6IkRBZUxPRlJxaWZ5c2Jnc3JiT2dib2ciLCJub25jZSI6IjZjY2RiNjZkLWFkNTYtNDA3Mi1iODY0LTdhOGZlNzNjMGFjMiJ9.Efsgp0MZ8TZ7P2Jbb04AkJMzFFU_Qe6dRWc_sl2smUxz7RGCcLuHZRSySMR_AnPPZZ5tSdar5D1SNNbqkxNaaIjXRxomQ5aqM5Y9k5cICA48cyeZ4ELqTwP2j9ko44nmUmKhyWtZjqIkL8uFbeK73KOtR9vDZJMkA75MLC23l5F2DYWtoJXZg8QD1SzFNfsvxj3w6sEKo0yivEBH1-iMbJiXbkCIwzuS8APpBAMvXQGp1GJXnK2i-1DbHxgr_DEOKIQqSnOXpVjzxibXqUR0LEXKda-f7tW_3W308vIN18J3WN_yFfkB9e2gDYPVhmGt-EPtT2JCjfgzOsJmzxWV-g"
+        assertFailsWithMessage(
+            "Nonce mismatch.",
+            idToken,
+            nonce = "mismatch!"
+        )
+    }
+
+    @Test fun testNullNonce() {
+        val idToken =
+            "eyJraWQiOiJGSkEwSEdOdHN1dWRhX1BsNDVKNDJrdlFxY3N1XzBDNEZnN3BiSkxYVEhZIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiIwMHViNDF6N21nek5xcnlNdjY5NiIsIm5hbWUiOiJKYXkgTmV3c3Ryb20iLCJlbWFpbCI6ImpheW5ld3N0cm9tQGV4YW1wbGUuY29tIiwidmVyIjoxLCJpc3MiOiJodHRwczovL2V4YW1wbGUtdGVzdC5va3RhLmNvbS9vYXV0aDIvZGVmYXVsdCIsImF1ZCI6InVuaXRfdGVzdF9jbGllbnRfaWQiLCJpYXQiOjE2NDQzNDcwNjksImV4cCI6MTY0NDM1MDY2OSwianRpIjoiSUQuNTVjeEJ0ZFlsOGw2YXJLSVNQQndkMHlPVC05VUNUYVhhUVRYdDJsYVJMcyIsImFtciI6WyJwd2QiXSwiaWRwIjoiMDBvOGZvdTdzUmFHR3dkbjQ2OTYiLCJzaWQiOiJpZHhXeGtscF80a1N4dUNfblUxcFhELW5BIiwicHJlZmVycmVkX3VzZXJuYW1lIjoiamF5bmV3c3Ryb21AZXhhbXBsZS5jb20iLCJhdXRoX3RpbWUiOjE2NDQzNDcwNjgsImF0X2hhc2giOiJnTWNHVGJoR1QxR19sZHNIb0pzUHpRIiwiZHNfaGFzaCI6IkRBZUxPRlJxaWZ5c2Jnc3JiT2dib2ciLCJub25jZSI6IjZjY2RiNjZkLWFkNTYtNDA3Mi1iODY0LTdhOGZlNzNjMGFjMiJ9.Efsgp0MZ8TZ7P2Jbb04AkJMzFFU_Qe6dRWc_sl2smUxz7RGCcLuHZRSySMR_AnPPZZ5tSdar5D1SNNbqkxNaaIjXRxomQ5aqM5Y9k5cICA48cyeZ4ELqTwP2j9ko44nmUmKhyWtZjqIkL8uFbeK73KOtR9vDZJMkA75MLC23l5F2DYWtoJXZg8QD1SzFNfsvxj3w6sEKo0yivEBH1-iMbJiXbkCIwzuS8APpBAMvXQGp1GJXnK2i-1DbHxgr_DEOKIQqSnOXpVjzxibXqUR0LEXKda-f7tW_3W308vIN18J3WN_yFfkB9e2gDYPVhmGt-EPtT2JCjfgzOsJmzxWV-g"
+        assertFailsWithMessage(
+            "Nonce mismatch.",
+            idToken,
+            nonce = null
+        )
+    }
+
+    private fun assertFailsWithMessage(message: String, idToken: String, issuerPrefix: String = "https", nonce: String? = null) {
         try {
             val client = oktaRule.createOidcClient(oktaRule.createEndpoints("$issuerPrefix://example-test.okta.com".toHttpUrl().newBuilder()))
-            runBlocking { idTokenValidator.validate(client, createJwt(idToken)) }
+            runBlocking { idTokenValidator.validate(client, createJwt(idToken), nonce) }
             fail()
         } catch (e: IllegalStateException) {
             assertThat(e).hasMessageThat().isEqualTo(message)

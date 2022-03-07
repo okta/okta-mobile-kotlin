@@ -30,7 +30,7 @@ import org.junit.Test
 class OidcClientIdTokenValidationFailureTest {
     private val mockPrefix = "client_test_responses"
 
-    @get:Rule val oktaRule = OktaRule(idTokenValidator = { _, _ ->
+    @get:Rule val oktaRule = OktaRule(idTokenValidator = { _, _, _ ->
         throw IllegalStateException("Failure!")
     })
 
