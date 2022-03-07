@@ -19,7 +19,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.okta.oauth2.TokenExchangeFlow
+import com.okta.authfoundation.client.OidcClientResult
 import com.okta.oauth2.TokenExchangeFlow.Companion.createTokenExchangeFlow
 import kotlinx.coroutines.launch
 import sample.okta.android.SampleHelper
@@ -57,10 +57,10 @@ class TokenExchangeViewModel : ViewModel() {
                 return@launch
             }
             when (val result = tokenExchangeFlow.start(idToken, deviceSecret)) {
-                is TokenExchangeFlow.Result.Error -> {
-                    _state.value = TokenExchangeState.Error(result.message)
+                is OidcClientResult.Error -> {
+                    _state.value = TokenExchangeState.Error(result.exception.message ?: "An error occurred.")
                 }
-                is TokenExchangeFlow.Result.Token -> {
+                is OidcClientResult.Success -> {
                     _state.value = TokenExchangeState.Token(NAME_METADATA_VALUE)
                 }
             }

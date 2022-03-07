@@ -17,6 +17,8 @@ package com.okta.oauth2
 
 import com.google.common.truth.Truth.assertThat
 import com.okta.authfoundation.client.OidcClient
+import com.okta.authfoundation.client.OidcClientResult
+import com.okta.authfoundation.credential.Token
 import com.okta.oauth2.ResourceOwnerFlow.Companion.createResourceOwnerFlow
 import com.okta.testhelpers.OktaRule
 import com.okta.testhelpers.RequestMatchers.body
@@ -43,7 +45,7 @@ class ResourceOwnerFlowTest {
         }
         val resourceOwnerFlow = oktaRule.createOidcClient().createResourceOwnerFlow()
         val result = resourceOwnerFlow.start("foo", "bar")
-        val token = (result as ResourceOwnerFlow.Result.Token).token
+        val token = (result as OidcClientResult.Success<Token>).result
         assertThat(token.tokenType).isEqualTo("Bearer")
         assertThat(token.expiresIn).isEqualTo(3600)
         assertThat(token.accessToken).isEqualTo("exampleAccessToken")
@@ -62,7 +64,7 @@ class ResourceOwnerFlowTest {
         }
         val resourceOwnerFlow = oktaRule.createOidcClient().createResourceOwnerFlow()
         val result = resourceOwnerFlow.start("foo", "bar", setOf("openid","custom"))
-        val token = (result as ResourceOwnerFlow.Result.Token).token
+        val token = (result as OidcClientResult.Success<Token>).result
         assertThat(token.tokenType).isEqualTo("Bearer")
     }
 
@@ -76,10 +78,10 @@ class ResourceOwnerFlowTest {
         )
         val resourceOwnerFlow = client.createResourceOwnerFlow()
         val result = resourceOwnerFlow.start("foo", "bar")
-        assertThat(result).isInstanceOf(ResourceOwnerFlow.Result.Error::class.java)
-        val errorResult = result as ResourceOwnerFlow.Result.Error
-        assertThat(errorResult.exception).isNull()
-        assertThat(errorResult.message).isEqualTo("Endpoints not available.")
+        assertThat(result).isInstanceOf(OidcClientResult.Error::class.java)
+        val errorResult = result as OidcClientResult.Error<Token>
+        assertThat(errorResult.exception).isInstanceOf(OidcClientResult.Error.OidcEndpointsNotAvailableException::class.java)
+        assertThat(errorResult.exception).hasMessageThat().isEqualTo("OIDC Endpoints not available.")
     }
 
     @Test fun testStartFailure(): Unit = runBlocking {
@@ -90,10 +92,9 @@ class ResourceOwnerFlowTest {
         }
         val resourceOwnerFlow = oktaRule.createOidcClient().createResourceOwnerFlow()
         val result = resourceOwnerFlow.start("foo", "bar")
-        assertThat(result).isInstanceOf(ResourceOwnerFlow.Result.Error::class.java)
-        val errorResult = result as ResourceOwnerFlow.Result.Error
+        assertThat(result).isInstanceOf(OidcClientResult.Error::class.java)
+        val errorResult = result as OidcClientResult.Error<Token>
         assertThat(errorResult.exception).isInstanceOf(IOException::class.java)
         assertThat(errorResult.exception).hasMessageThat().isEqualTo("Request failed.")
-        assertThat(errorResult.message).isEqualTo("Token request failed.")
     }
 }

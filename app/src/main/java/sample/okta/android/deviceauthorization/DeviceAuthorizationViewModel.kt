@@ -19,6 +19,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.okta.authfoundation.client.OidcClientResult
 import com.okta.oauth2.DeviceAuthorizationFlow
 import com.okta.oauth2.DeviceAuthorizationFlow.Companion.createDeviceAuthorizationFlow
 import kotlinx.coroutines.launch
@@ -38,12 +39,12 @@ internal class DeviceAuthorizationViewModel : ViewModel() {
         viewModelScope.launch {
             val deviceAuthorizationFlow = SampleHelper.defaultCredential.oidcClient.createDeviceAuthorizationFlow()
             when (val result = deviceAuthorizationFlow.start()) {
-                is DeviceAuthorizationFlow.StartResult.Error -> {
-                    _state.value = DeviceAuthorizationState.Error(result.message)
+                is OidcClientResult.Error -> {
+                    _state.value = DeviceAuthorizationState.Error(result.exception.message ?: "An error occurred.")
                 }
-                is DeviceAuthorizationFlow.StartResult.Success -> {
-                    _state.value = DeviceAuthorizationState.Polling(result.response.userCode, result.response.verificationUri)
-                    resume(deviceAuthorizationFlow, result.context)
+                is OidcClientResult.Success -> {
+                    _state.value = DeviceAuthorizationState.Polling(result.result.userCode, result.result.verificationUri)
+                    resume(deviceAuthorizationFlow, result.result)
                 }
             }
         }
@@ -51,14 +52,11 @@ internal class DeviceAuthorizationViewModel : ViewModel() {
 
     private suspend fun resume(deviceAuthorizationFlow: DeviceAuthorizationFlow, flowContext: DeviceAuthorizationFlow.Context) {
         when (val result = deviceAuthorizationFlow.resume(flowContext)) {
-            is DeviceAuthorizationFlow.ResumeResult.Error -> {
-                _state.value = DeviceAuthorizationState.Error(result.message)
+            is OidcClientResult.Error -> {
+                _state.value = DeviceAuthorizationState.Error(result.exception.message ?: "An error occurred.")
             }
-            is DeviceAuthorizationFlow.ResumeResult.Token -> {
+            is OidcClientResult.Success -> {
                 _state.value = DeviceAuthorizationState.Token
-            }
-            DeviceAuthorizationFlow.ResumeResult.Timeout -> {
-                _state.value = DeviceAuthorizationState.Error("Polling timeout")
             }
         }
     }

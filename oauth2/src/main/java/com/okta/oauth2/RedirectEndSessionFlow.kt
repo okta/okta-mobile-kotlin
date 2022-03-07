@@ -17,6 +17,7 @@ package com.okta.oauth2
 
 import android.net.Uri
 import com.okta.authfoundation.client.OidcClient
+import com.okta.authfoundation.client.OidcClientResult
 import com.okta.oauth2.events.CustomizeLogoutUrlEvent
 import okhttp3.HttpUrl
 import java.util.UUID
@@ -41,53 +42,29 @@ class RedirectEndSessionFlow private constructor(
     }
 
     /**
-     * A model representing all the possible states of a [RedirectEndSessionFlow.resume] call.
+     * A model representing the context and current state for a logout flow.
      */
-    sealed class ResumeResult {
+    class Context internal constructor(
         /**
-         * An error that occurs when the [OidcClient] hasn't been properly configured, or a network error occurs.
+         * The url which should be used to log the user out.
          */
-        object EndpointsNotAvailable : ResumeResult()
-
-        /**
-         * A model representing the context and current state for a logout flow.
-         */
-        class Context internal constructor(
-            /**
-             * The url which should be used to log the user out.
-             */
-            val url: HttpUrl,
-            internal val state: String,
-        ) : ResumeResult()
-    }
+        val url: HttpUrl,
+        internal val state: String,
+    )
 
     /**
-     * A model representing all possible states of a [RedirectEndSessionFlow.resume] call.
+     * Used in a [OidcClientResult.Error.exception] from [resume].
+     *
+     * Includes a message giving more information as to what went wrong.
      */
-    sealed class Result {
-        /**
-         * An error indicating the redirect scheme of the supplied url doesn't match the configured redirect scheme.
-         *
-         * This could be due to the supplied url being intended for another feature of the app, a misconfiguration, or an attempted
-         * attack.
-         */
-        object RedirectSchemeMismatch : Result()
+    class ResumeException internal constructor(message: String) : Exception(message)
 
-        /**
-         * An error resulting from an interaction with the Authorization Server.
-         */
-        class Error internal constructor(
-            /**
-             * An error message intended to be displayed to the user.
-             */
-            val message: String,
-        ) : Result()
-
-        /**
-         * Represents a successful logout.
-         */
-        object Success : Result()
-    }
+    /**
+     * Used in a [OidcClientResult.Error.exception] from [resume].
+     *
+     * The redirect scheme of the [Uri] didn't match the one configured for the associated [OidcClient].
+     */
+    class RedirectSchemeMismatchException internal constructor() : Exception()
 
     /**
      * Initiates the logout redirect flow.
@@ -96,15 +73,15 @@ class RedirectEndSessionFlow private constructor(
      *
      * @param idToken the token used to identify the session to log the user out of.
      */
-    suspend fun start(idToken: String): ResumeResult {
+    suspend fun start(idToken: String): OidcClientResult<Context> {
         return start(idToken, UUID.randomUUID().toString())
     }
 
     internal suspend fun start(
         idToken: String,
         state: String,
-    ): ResumeResult {
-        val endpoints = oidcClient.endpointsOrNull() ?: return ResumeResult.EndpointsNotAvailable
+    ): OidcClientResult<Context> {
+        val endpoints = oidcClient.endpointsOrNull() ?: return oidcClient.endpointNotAvailableError()
 
         val urlBuilder = endpoints.endSessionEndpoint.newBuilder()
         urlBuilder.addQueryParameter("id_token_hint", idToken)
@@ -114,32 +91,32 @@ class RedirectEndSessionFlow private constructor(
         val event = CustomizeLogoutUrlEvent(urlBuilder)
         oidcClient.configuration.eventCoordinator.sendEvent(event)
 
-        return ResumeResult.Context(urlBuilder.build(), state)
+        return OidcClientResult.Success(Context(urlBuilder.build(), state))
     }
 
     /**
      * Resumes the logout redirect flow.
      *
      * @param uri the redirect [Uri] which includes the state to validate the logout was successful.
-     * @param flowContext the [RedirectEndSessionFlow.ResumeResult.Context] used internally to maintain state.
+     * @param flowContext the [RedirectEndSessionFlow.Context] used internally to maintain state.
      */
-    fun resume(uri: Uri, flowContext: ResumeResult.Context): Result {
+    fun resume(uri: Uri, flowContext: Context): OidcClientResult<Unit> {
         if (!uri.toString().startsWith(oidcClient.configuration.signOutRedirectUri)) {
-            return Result.RedirectSchemeMismatch
+            return OidcClientResult.Error(RedirectSchemeMismatchException())
         }
 
         val errorQueryParameter = uri.getQueryParameter("error")
         if (errorQueryParameter != null) {
             val errorDescription = uri.getQueryParameter("error_description") ?: "An error occurred."
-            return Result.Error(errorDescription)
+            return OidcClientResult.Error(ResumeException(errorDescription))
         }
 
         val stateQueryParameter = uri.getQueryParameter("state")
         if (flowContext.state != stateQueryParameter) {
             val error = "Failed due to state mismatch."
-            return Result.Error(error)
+            return OidcClientResult.Error(ResumeException(error))
         }
 
-        return Result.Success
+        return OidcClientResult.Success(Unit)
     }
 }

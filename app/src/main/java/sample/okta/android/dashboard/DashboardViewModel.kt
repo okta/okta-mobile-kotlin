@@ -27,7 +27,6 @@ import com.okta.authfoundation.credential.Credential
 import com.okta.authfoundation.credential.RevokeTokenType
 import com.okta.authfoundation.credential.TokenType
 import com.okta.oauth2.RedirectEndSessionFlow
-import com.okta.webauthenticationui.WebAuthenticationClient
 import com.okta.webauthenticationui.WebAuthenticationClient.Companion.createWebAuthenticationClient
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -47,7 +46,7 @@ internal class DashboardViewModel(private val credentialMetadataNameValue: Strin
     private val _credentialLiveData = MutableLiveData<Credential>()
     val credentialLiveData: LiveData<Credential> = _credentialLiveData
 
-    private var logoutFlowContext: RedirectEndSessionFlow.ResumeResult.Context? = null
+    private var logoutFlowContext: RedirectEndSessionFlow.Context? = null
 
     var lastButtonId: Int = 0
     private var lastRequestJob: Job? = null
@@ -130,16 +129,12 @@ internal class DashboardViewModel(private val credentialMetadataNameValue: Strin
         viewModelScope.launch {
             val idToken = credential.token?.idToken ?: return@launch
             when (val result = credential.oidcClient.createWebAuthenticationClient().logoutOfBrowser(context, idToken)) {
-                is WebAuthenticationClient.LogoutResult.Error -> {
+                is OidcClientResult.Error -> {
                     Timber.e(result.exception, "Failed to start logout flow.")
-                    _requestStateLiveData.value = RequestState.Result("Failed to start logout flow.")
+                    _requestStateLiveData.value = RequestState.Result(result.exception.message ?: "An error occurred.")
                 }
-                is WebAuthenticationClient.LogoutResult.Success -> {
-                    logoutFlowContext = result.flowContext
-                }
-                WebAuthenticationClient.LogoutResult.EndpointsNotAvailable -> {
-                    Timber.e("Failed to start logout flow. Check OidcClient configuration.")
-                    _requestStateLiveData.value = RequestState.Result("Failed to start logout flow. Check OidcClient configuration.")
+                is OidcClientResult.Success -> {
+                    logoutFlowContext = result.result
                 }
             }
         }
@@ -189,13 +184,10 @@ internal class DashboardViewModel(private val credentialMetadataNameValue: Strin
     fun handleRedirect(uri: Uri) {
         viewModelScope.launch {
             when (val result = credential.oidcClient.createWebAuthenticationClient().resume(uri, logoutFlowContext!!)) {
-                is RedirectEndSessionFlow.Result.Error -> {
-                    _requestStateLiveData.value = RequestState.Result(result.message)
+                is OidcClientResult.Error -> {
+                    _requestStateLiveData.value = RequestState.Result(result.exception.message ?: "An error occurred.")
                 }
-                RedirectEndSessionFlow.Result.RedirectSchemeMismatch -> {
-                    _requestStateLiveData.value = RequestState.Result("Invalid redirect. Redirect scheme mismatch.")
-                }
-                is RedirectEndSessionFlow.Result.Success -> {
+                is OidcClientResult.Success -> {
                     credential.delete()
                     SampleHelper.defaultCredential = SampleHelper.credentialDataSource.createCredential()
                     _requestStateLiveData.value = RequestState.Result("Logout successful!")

@@ -18,7 +18,7 @@ package com.okta.oauth2
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundation.client.OidcConfiguration
-import com.okta.authfoundation.credential.Token as CredentialToken
+import com.okta.authfoundation.credential.Token
 import okhttp3.FormBody
 import okhttp3.Request
 
@@ -44,38 +44,10 @@ class TokenExchangeFlow private constructor(
     }
 
     /**
-     * A model representing all the possible states of a [TokenExchangeFlow.start] call.
-     */
-    sealed class Result {
-        /**
-         * An error resulting from an interaction with the Authorization Server.
-         */
-        class Error internal constructor(
-            /**
-             * An error message intended to be displayed to the user.
-             */
-            val message: String,
-            /**
-             * The exception, if available which caused the error.
-             */
-            val exception: Exception? = null,
-        ) : Result()
-        /**
-         * Represents a successful authentication, and contains the [CredentialToken] returned.
-         */
-        class Token internal constructor(
-            /**
-             * The [CredentialToken] representing the user logged in via the [TokenExchangeFlow].
-             */
-            val token: CredentialToken,
-        ) : Result()
-    }
-
-    /**
      * Initiates the Token Exchange flow.
      *
      * @param idToken the id token for the user to create a new token for.
-     * @param deviceSecret the [CredentialToken.deviceSecret] obtained via another authentication flow.
+     * @param deviceSecret the [Token.deviceSecret] obtained via another authentication flow.
      * @param audience the audience of the authorization server. Defaults to `api://default`.
      * @param scopes the scopes to request during sign in. Defaults to the configured [OidcClient] [OidcConfiguration.defaultScopes].
      */
@@ -84,8 +56,8 @@ class TokenExchangeFlow private constructor(
         deviceSecret: String,
         audience: String = "api://default",
         scopes: Set<String> = oidcClient.configuration.defaultScopes,
-    ): Result {
-        val endpoints = oidcClient.endpointsOrNull() ?: return Result.Error("Endpoints not available.")
+    ): OidcClientResult<Token> {
+        val endpoints = oidcClient.endpointsOrNull() ?: return oidcClient.endpointNotAvailableError()
 
         val formBodyBuilder = FormBody.Builder()
             .add("audience", audience)
@@ -102,13 +74,6 @@ class TokenExchangeFlow private constructor(
             .url(endpoints.tokenEndpoint)
             .build()
 
-        return when (val tokenResult = oidcClient.tokenRequest(request)) {
-            is OidcClientResult.Error -> {
-                Result.Error("Token request failed.", tokenResult.exception)
-            }
-            is OidcClientResult.Success -> {
-                Result.Token(tokenResult.result)
-            }
-        }
+        return oidcClient.tokenRequest(request)
     }
 }

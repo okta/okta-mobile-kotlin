@@ -36,18 +36,18 @@ sealed class OidcClientResult<T> {
             val error: String?,
             /** The error description returned by the Authorization Server. */
             val errorDescription: String?,
-        ) : Exception()
+        ) : Exception(errorDescription ?: error ?: "HTTP Error: status code - $responseCode")
 
         /**
          * The response failed due to no [OidcEndpoints].
          *
          * This can happen due to a misconfigured setup, or just a common HTTP error.
          */
-        class OidcEndpointsNotAvailableException internal constructor(): Exception()
+        class OidcEndpointsNotAvailableException internal constructor(): Exception("OIDC Endpoints not available.")
     }
 
     /** Success with the expected result. */
-    class Success<T> internal constructor(
+    class Success<T> @InternalAuthFoundationApi constructor(
         /** The result of the success result. */
         val result: T,
     ) : OidcClientResult<T>()

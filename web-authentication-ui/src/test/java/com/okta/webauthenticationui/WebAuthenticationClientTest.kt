@@ -18,6 +18,8 @@ package com.okta.webauthenticationui
 import android.content.Context
 import android.net.Uri
 import com.google.common.truth.Truth.assertThat
+import com.okta.authfoundation.client.OidcClientResult
+import com.okta.authfoundation.credential.Token
 import com.okta.oauth2.AuthorizationCodeFlow
 import com.okta.oauth2.RedirectEndSessionFlow
 import com.okta.testhelpers.OktaRule
@@ -47,7 +49,7 @@ class WebAuthenticationClientTest {
         val webAuthenticationClient = oktaRule.createOidcClient().createWebAuthenticationClient(webAuthenticationProvider)
         val context = mock<Context>()
         val loginResult = webAuthenticationClient.login(context)
-        val flowContext = (loginResult as WebAuthenticationClient.LoginResult.Success).flowContext
+        val flowContext = (loginResult as OidcClientResult.Success<AuthorizationCodeFlow.Context>).result
         verify(webAuthenticationProvider).launch(eq(context), any())
         assertThat(flowContext.url.toString()).contains("/oauth2/default/v1/authorize?code_challenge=")
 
@@ -64,7 +66,7 @@ class WebAuthenticationClientTest {
             flowContext = flowContext,
         )
 
-        val token = (result as AuthorizationCodeFlow.Result.Token).token
+        val token = (result as OidcClientResult.Success<Token>).result
         assertThat(token.tokenType).isEqualTo("Bearer")
         assertThat(token.expiresIn).isEqualTo(3600)
         assertThat(token.accessToken).isEqualTo("exampleAccessToken")
@@ -79,7 +81,7 @@ class WebAuthenticationClientTest {
         val webAuthenticationClient = oktaRule.createOidcClient().createWebAuthenticationClient(webAuthenticationProvider)
         val context = mock<Context>()
         val logoutResult = webAuthenticationClient.logoutOfBrowser(context, "exampleIdToken")
-        val flowContext = (logoutResult as WebAuthenticationClient.LogoutResult.Success).flowContext
+        val flowContext = (logoutResult as OidcClientResult.Success<RedirectEndSessionFlow.Context>).result
 
         verify(webAuthenticationProvider).launch(eq(context), any())
         assertThat(flowContext.url.toString()).contains("/oauth2/default/v1/logout?id_token_hint=exampleIdToken")
@@ -91,6 +93,6 @@ class WebAuthenticationClientTest {
             flowContext = flowContext,
         )
 
-        assertThat(result).isInstanceOf(RedirectEndSessionFlow.Result.Success::class.java)
+        assertThat(result).isInstanceOf(OidcClientResult.Success::class.java)
     }
 }

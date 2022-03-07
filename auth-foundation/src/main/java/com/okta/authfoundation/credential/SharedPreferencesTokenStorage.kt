@@ -107,11 +107,11 @@ internal class SharedPreferencesTokenStorage(
 }
 
 @Serializable
-private data class StoredTokens(
+private class StoredTokens(
     @SerialName("entries") val entries: List<Entry>
 ) {
     @Serializable
-    data class Entry(
+    class Entry(
         @SerialName("identifier") val identifier: String,
         @SerialName("token") val token: SerializableToken?,
         @SerialName("metadata") val metadata: Map<String, String>,

@@ -17,7 +17,9 @@ package com.okta.oauth2
 
 import com.google.common.truth.Truth.assertThat
 import com.okta.authfoundation.client.OidcClient
+import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundation.client.OidcEndpoints
+import com.okta.authfoundation.credential.Token
 import com.okta.oauth2.DeviceAuthorizationFlow.Companion.createDeviceAuthorizationFlow
 import com.okta.testhelpers.OktaRule
 import com.okta.testhelpers.RequestMatchers.body
@@ -47,18 +49,18 @@ class DeviceAuthorizationFlowTest {
         )
 
         val flow = client.createDeviceAuthorizationFlow()
-        val startResult = flow.start() as DeviceAuthorizationFlow.StartResult.Error
-
-        assertThat(startResult.message).isEqualTo("Endpoints not available.")
+        val startResult = flow.start() as OidcClientResult.Error<DeviceAuthorizationFlow.Context>
+        assertThat(startResult.exception).isInstanceOf(OidcClientResult.Error.OidcEndpointsNotAvailableException::class.java)
+        assertThat(startResult.exception).hasMessageThat().isEqualTo("OIDC Endpoints not available.")
     }
 
     @Test fun testStartWithNoDeviceAuthorizationEndpoints(): Unit = runBlocking {
         val client = oktaRule.createOidcClient(oktaRule.createEndpoints().copy(deviceAuthorizationEndpoint = null))
 
         val flow = client.createDeviceAuthorizationFlow()
-        val startResult = flow.start() as DeviceAuthorizationFlow.StartResult.Error
-
-        assertThat(startResult.message).isEqualTo("Device authorization endpoint is null.")
+        val startResult = flow.start() as OidcClientResult.Error<DeviceAuthorizationFlow.Context>
+        assertThat(startResult.exception).isInstanceOf(DeviceAuthorizationFlow.DeviceAuthorizationEndpointNotAvailableException::class.java)
+        assertThat(startResult.exception).hasMessageThat().isEqualTo("Device authorization endpoint is null.")
     }
 
     @Test fun testStart(): Unit = runBlocking {
@@ -81,15 +83,14 @@ class DeviceAuthorizationFlowTest {
         }
 
         val flow = oktaRule.createOidcClient().createDeviceAuthorizationFlow()
-        val startResult = flow.start() as DeviceAuthorizationFlow.StartResult.Success
+        val startResult = (flow.start() as OidcClientResult.Success<DeviceAuthorizationFlow.Context>).result
 
-        assertThat(startResult.context.deviceCode).isEqualTo("1a521d9f-0922-4e6d-8db9-8b654297435a")
-        assertThat(startResult.context.expiresIn).isEqualTo(600)
-        assertThat(startResult.context.interval).isEqualTo(5)
-        assertThat(startResult.response.expiresIn).isEqualTo(600)
-        assertThat(startResult.response.verificationUri).isEqualTo("https://example.okta.com/activate")
-        assertThat(startResult.response.verificationUriComplete).isEqualTo("https://example.okta.com/activate?user_code=GDLMZQCT")
-        assertThat(startResult.response.userCode).isEqualTo("GDLMZQCT")
+        assertThat(startResult.deviceCode).isEqualTo("1a521d9f-0922-4e6d-8db9-8b654297435a")
+        assertThat(startResult.expiresIn).isEqualTo(600)
+        assertThat(startResult.interval).isEqualTo(5)
+        assertThat(startResult.verificationUri).isEqualTo("https://example.okta.com/activate")
+        assertThat(startResult.verificationUriComplete).isEqualTo("https://example.okta.com/activate?user_code=GDLMZQCT")
+        assertThat(startResult.userCode).isEqualTo("GDLMZQCT")
     }
 
     @Test fun testStartError(): Unit = runBlocking {
@@ -102,10 +103,9 @@ class DeviceAuthorizationFlowTest {
         }
 
         val flow = oktaRule.createOidcClient().createDeviceAuthorizationFlow()
-        val startResult = flow.start() as DeviceAuthorizationFlow.StartResult.Error
+        val startResult = flow.start() as OidcClientResult.Error<DeviceAuthorizationFlow.Context>
 
         assertThat(startResult.exception).hasMessageThat().isEqualTo("Request failed.")
-        assertThat(startResult.message).isEqualTo("Device authorization request failed.")
     }
 
     @Test fun testResumeWithNoEndpoints(): Unit = runBlocking {
@@ -119,9 +119,10 @@ class DeviceAuthorizationFlowTest {
 
         val flow = client.createDeviceAuthorizationFlow()
         val context = mock<DeviceAuthorizationFlow.Context>()
-        val startResult = flow.resume(context) as DeviceAuthorizationFlow.ResumeResult.Error
+        val resumeResult = flow.resume(context) as OidcClientResult.Error<Token>
 
-        assertThat(startResult.message).isEqualTo("Endpoints not available.")
+        assertThat(resumeResult.exception).isInstanceOf(OidcClientResult.Error.OidcEndpointsNotAvailableException::class.java)
+        assertThat(resumeResult.exception).hasMessageThat().isEqualTo("OIDC Endpoints not available.")
     }
 
     @Test fun testResumeWithNoPolling(): Unit = runBlocking {
@@ -138,14 +139,17 @@ class DeviceAuthorizationFlowTest {
             deviceCode = "1a521d9f-0922-4e6d-8db9-8b654297435a",
             interval = 5,
             expiresIn = 600,
+            verificationUri = "https://example.okta.com/activate",
+            verificationUriComplete = "https://example.okta.com/activate?user_code=GDLMZQCT",
+            userCode = "GDLMZQCT",
         )
         val delayFunctionExecutedCount = AtomicInteger(0)
         flow.delayFunction = { delay ->
             assertThat(delay).isEqualTo(5000)
             delayFunctionExecutedCount.incrementAndGet()
         }
-        val startResult = flow.resume(context) as DeviceAuthorizationFlow.ResumeResult.Token
-        assertThat(startResult.token.accessToken).isEqualTo("exampleAccessToken")
+        val resumeResult = flow.resume(context) as OidcClientResult.Success<Token>
+        assertThat(resumeResult.result.accessToken).isEqualTo("exampleAccessToken")
         assertThat(delayFunctionExecutedCount.get()).isEqualTo(1)
     }
 
@@ -174,14 +178,17 @@ class DeviceAuthorizationFlowTest {
             deviceCode = "1a521d9f-0922-4e6d-8db9-8b654297435a",
             interval = 5,
             expiresIn = 600,
+            verificationUri = "https://example.okta.com/activate",
+            verificationUriComplete = "https://example.okta.com/activate?user_code=GDLMZQCT",
+            userCode = "GDLMZQCT",
         )
         val delayFunctionExecutedCount = AtomicInteger(0)
         flow.delayFunction = { delay ->
             assertThat(delay).isEqualTo(5000)
             delayFunctionExecutedCount.incrementAndGet()
         }
-        val startResult = flow.resume(context) as DeviceAuthorizationFlow.ResumeResult.Token
-        assertThat(startResult.token.accessToken).isEqualTo("exampleAccessToken")
+        val resumeResult = flow.resume(context) as OidcClientResult.Success<Token>
+        assertThat(resumeResult.result.accessToken).isEqualTo("exampleAccessToken")
         assertThat(delayFunctionExecutedCount.get()).isEqualTo(5)
     }
 
@@ -202,14 +209,17 @@ class DeviceAuthorizationFlowTest {
             deviceCode = "1a521d9f-0922-4e6d-8db9-8b654297435a",
             interval = 5,
             expiresIn = 20,
+            verificationUri = "https://example.okta.com/activate",
+            verificationUriComplete = "https://example.okta.com/activate?user_code=GDLMZQCT",
+            userCode = "GDLMZQCT",
         )
         val delayFunctionExecutedCount = AtomicInteger(0)
         flow.delayFunction = { delay ->
             assertThat(delay).isEqualTo(5000)
             delayFunctionExecutedCount.incrementAndGet()
         }
-        val startResult = flow.resume(context)
-        assertThat(startResult).isInstanceOf(DeviceAuthorizationFlow.ResumeResult.Timeout::class.java)
+        val resumeResult = flow.resume(context) as OidcClientResult.Error
+        assertThat(resumeResult.exception).isInstanceOf(DeviceAuthorizationFlow.TimeoutException::class.java)
         assertThat(delayFunctionExecutedCount.get()).isEqualTo(4)
     }
 
@@ -227,12 +237,14 @@ class DeviceAuthorizationFlowTest {
             deviceCode = "1a521d9f-0922-4e6d-8db9-8b654297435a",
             interval = 5,
             expiresIn = 20,
+            verificationUri = "https://example.okta.com/activate",
+            verificationUriComplete = "https://example.okta.com/activate?user_code=GDLMZQCT",
+            userCode = "GDLMZQCT",
         )
-        val startResult = flow.resume(context) as DeviceAuthorizationFlow.ResumeResult.Error
+        val resumeResult = flow.resume(context) as OidcClientResult.Error<Token>
 
-        assertThat(startResult.message).isEqualTo("Token request failed.")
-        assertThat(startResult.exception).isInstanceOf(IOException::class.java)
-        assertThat(startResult.exception).hasMessageThat().isEqualTo("Request failed.")
+        assertThat(resumeResult.exception).isInstanceOf(IOException::class.java)
+        assertThat(resumeResult.exception).hasMessageThat().isEqualTo("Request failed.")
     }
 }
 
