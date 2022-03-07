@@ -40,7 +40,7 @@ class CredentialDataSource internal constructor(
          * @param storage the [TokenStorage] used to persist [Token]s.
          * @receiver the [OidcClient] used to perform the low level OIDC requests, as well as with which to use the configuration from.
          */
-        fun OidcClient.credentialDataSource(
+        fun OidcClient.createCredentialDataSource(
             storage: TokenStorage,
         ): CredentialDataSource {
             return CredentialDataSource(this, storage)
@@ -53,7 +53,7 @@ class CredentialDataSource internal constructor(
          * @receiver the [OidcClient] used to perform the low level OIDC requests, as well as with which to use the configuration from.
          */
         @RequiresApi(Build.VERSION_CODES.M)
-        fun OidcClient.credentialDataSource(
+        fun OidcClient.createCredentialDataSource(
             context: Context,
         ): CredentialDataSource {
             val storage = SharedPreferencesTokenStorage(configuration.json, configuration.ioDispatcher, context)
@@ -76,7 +76,7 @@ class CredentialDataSource internal constructor(
     /**
      * Creates a [Credential], and stores it in the associated [TokenStorage].
      */
-    suspend fun create(): Credential {
+    suspend fun createCredential(): Credential {
         val storageIdentifier = UUID.randomUUID().toString()
         val credential = Credential(oidcClient, storage, this, storageIdentifier)
         credentials.get().add(credential)
@@ -88,7 +88,7 @@ class CredentialDataSource internal constructor(
     /**
      * Returns all of the [Credential]s stored in the associated [TokenStorage].
      */
-    suspend fun all(): List<Credential> {
+    suspend fun listCredentials(): List<Credential> {
         return credentials.get().toMutableList() // Making a defensive copy, so it's not modified outside our control.
     }
 

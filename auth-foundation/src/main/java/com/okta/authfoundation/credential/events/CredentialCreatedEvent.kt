@@ -20,7 +20,7 @@ import com.okta.authfoundation.credential.CredentialDataSource
 import com.okta.authfoundation.events.EventHandler
 
 /**
- * Emitted via [EventHandler.onEvent] when a [Credential] has been created via a [CredentialDataSource.create] call.
+ * Emitted via [EventHandler.onEvent] when a [Credential] has been created via a [CredentialDataSource.createCredential] call.
  */
 class CredentialCreatedEvent internal constructor(
     /**

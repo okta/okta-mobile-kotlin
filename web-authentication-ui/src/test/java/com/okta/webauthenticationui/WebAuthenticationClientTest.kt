@@ -24,7 +24,7 @@ import com.okta.testhelpers.OktaRule
 import com.okta.testhelpers.RequestMatchers.method
 import com.okta.testhelpers.RequestMatchers.path
 import com.okta.testhelpers.testBodyFromFile
-import com.okta.webauthenticationui.WebAuthenticationClient.Companion.webAuthenticationClient
+import com.okta.webauthenticationui.WebAuthenticationClient.Companion.createWebAuthenticationClient
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
@@ -44,7 +44,7 @@ class WebAuthenticationClientTest {
     @Test fun testLogin(): Unit = runBlocking {
         // Test Login.
         val webAuthenticationProvider = mock<WebAuthenticationProvider>()
-        val webAuthenticationClient = oktaRule.createOidcClient().webAuthenticationClient(webAuthenticationProvider)
+        val webAuthenticationClient = oktaRule.createOidcClient().createWebAuthenticationClient(webAuthenticationProvider)
         val context = mock<Context>()
         val loginResult = webAuthenticationClient.login(context)
         val flowContext = (loginResult as WebAuthenticationClient.LoginResult.Success).flowContext
@@ -76,9 +76,9 @@ class WebAuthenticationClientTest {
     @Test fun testLogout(): Unit = runBlocking {
         // Test Logout.
         val webAuthenticationProvider = mock<WebAuthenticationProvider>()
-        val webAuthenticationClient = oktaRule.createOidcClient().webAuthenticationClient(webAuthenticationProvider)
+        val webAuthenticationClient = oktaRule.createOidcClient().createWebAuthenticationClient(webAuthenticationProvider)
         val context = mock<Context>()
-        val logoutResult = webAuthenticationClient.logout(context, "exampleIdToken")
+        val logoutResult = webAuthenticationClient.logoutOfBrowser(context, "exampleIdToken")
         val flowContext = (logoutResult as WebAuthenticationClient.LogoutResult.Success).flowContext
 
         verify(webAuthenticationProvider).launch(eq(context), any())

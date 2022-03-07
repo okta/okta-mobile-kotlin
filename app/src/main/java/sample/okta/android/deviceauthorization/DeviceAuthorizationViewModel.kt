@@ -20,7 +20,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.okta.oauth2.DeviceAuthorizationFlow
-import com.okta.oauth2.DeviceAuthorizationFlow.Companion.deviceAuthorizationFlow
+import com.okta.oauth2.DeviceAuthorizationFlow.Companion.createDeviceAuthorizationFlow
 import kotlinx.coroutines.launch
 import sample.okta.android.SampleHelper
 
@@ -36,7 +36,7 @@ internal class DeviceAuthorizationViewModel : ViewModel() {
         _state.value = DeviceAuthorizationState.Loading
 
         viewModelScope.launch {
-            val deviceAuthorizationFlow = SampleHelper.defaultCredential.oidcClient.deviceAuthorizationFlow()
+            val deviceAuthorizationFlow = SampleHelper.defaultCredential.oidcClient.createDeviceAuthorizationFlow()
             when (val result = deviceAuthorizationFlow.start()) {
                 is DeviceAuthorizationFlow.StartResult.Error -> {
                     _state.value = DeviceAuthorizationState.Error(result.message)

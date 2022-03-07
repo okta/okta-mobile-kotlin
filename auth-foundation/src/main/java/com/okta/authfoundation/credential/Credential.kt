@@ -50,7 +50,7 @@ class Credential internal constructor(
         keepDataInMemory = { false },
     )
 
-    @Volatile private var isRemoved: Boolean = false
+    @Volatile private var isDeleted: Boolean = false
 
     /**
      * The [OidcClient] associated with this [Credential].
@@ -120,7 +120,7 @@ class Credential internal constructor(
      * @param metadata the map to associate with this [Credential], defaults to the current metadata.
      */
     suspend fun storeToken(token: Token? = _token, metadata: Map<String, String> = _metadata) {
-        if (isRemoved) {
+        if (isDeleted) {
             oidcClient.configuration.eventCoordinator.sendEvent(CredentialStoredAfterRemovedEvent(this))
             return
         }
@@ -140,15 +140,17 @@ class Credential internal constructor(
      * Removes this [Credential] from the associated [CredentialDataSource].
      * Also, sets the [Token] to `null`.
      * This [Credential] should not be used after it's been removed.
+     *
+     * > Note: OIDC Logout terminology is nuanced, see [Logout Documentation](https://github.com/okta/okta-mobile-kotlin#logout) for additional details.
      */
-    suspend fun remove() {
-        if (isRemoved) {
+    suspend fun delete() {
+        if (isDeleted) {
             return
         }
         credentialDataSource.remove(this)
         storage.remove(storageIdentifier)
         _token = null
-        isRemoved = true
+        isDeleted = true
     }
 
     /**
@@ -167,6 +169,8 @@ class Credential internal constructor(
 
     /**
      * Attempt to revoke the specified [TokenType].
+     *
+     * > Note: OIDC Logout terminology is nuanced, see [Logout Documentation](https://github.com/okta/okta-mobile-kotlin#logout) for additional details.
      *
      * @param tokenType the [TokenType] to revoke, defaults to [RevokeTokenType.ACCESS_TOKEN].
      */
@@ -219,7 +223,7 @@ class Credential internal constructor(
      *
      * See [Credential.introspectToken] for checking if the token is valid with the Authorization Server.
      */
-    suspend fun accessTokenIfValid(): String? {
+    suspend fun getAccessTokenIfValid(): String? {
         val accessToken = _token?.accessToken ?: return null
         try {
             val parser = JwtParser(oidcClient.configuration.json, oidcClient.configuration.computeDispatcher)
@@ -239,13 +243,13 @@ class Credential internal constructor(
      * If the access token is invalid, and there is a refresh token, a [Token] refresh is attempted via [Credential.refreshToken].
      * If the refresh results in a valid access token, it is returned.
      *
-     * See [Credential.accessTokenIfValid] for what makes an access token valid.
+     * See [Credential.getAccessTokenIfValid] for what makes an access token valid.
      */
     suspend fun getValidAccessToken(): String? {
-        accessTokenIfValid()?.let { return it }
+        getAccessTokenIfValid()?.let { return it }
 
         if (refreshToken() is OidcClientResult.Success) {
-            return accessTokenIfValid()
+            return getAccessTokenIfValid()
         } else {
             return null
         }

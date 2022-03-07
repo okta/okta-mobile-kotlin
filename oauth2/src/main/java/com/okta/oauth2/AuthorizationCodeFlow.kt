@@ -40,7 +40,7 @@ class AuthorizationCodeFlow private constructor(
          *
          * @receiver the [OidcClient] used to perform the low level OIDC requests, as well as with which to use the configuration from.
          */
-        fun OidcClient.authorizationCodeFlow(): AuthorizationCodeFlow {
+        fun OidcClient.createAuthorizationCodeFlow(): AuthorizationCodeFlow {
             return AuthorizationCodeFlow(this)
         }
     }

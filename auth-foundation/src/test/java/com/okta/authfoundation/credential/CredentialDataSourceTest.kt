@@ -16,7 +16,7 @@
 package com.okta.authfoundation.credential
 
 import com.google.common.truth.Truth.assertThat
-import com.okta.authfoundation.credential.CredentialDataSource.Companion.credentialDataSource
+import com.okta.authfoundation.credential.CredentialDataSource.Companion.createCredentialDataSource
 import com.okta.authfoundation.credential.events.CredentialCreatedEvent
 import com.okta.testhelpers.OktaRule
 import kotlinx.coroutines.Dispatchers
@@ -40,8 +40,8 @@ class CredentialDataSourceTest {
     @Test fun testCreate(): Unit = runBlocking {
         val tokenStorage = spy(InMemoryTokenStorage())
         val oidcClient = oktaRule.createOidcClient()
-        val dataSource = oidcClient.credentialDataSource(tokenStorage)
-        val credential = dataSource.create()
+        val dataSource = oidcClient.createCredentialDataSource(tokenStorage)
+        val credential = dataSource.createCredential()
         assertThat(credential.token).isNull()
         assertThat(credential.metadata).isEmpty()
         assertThat(credential.oidcClient.credential).isSameInstanceAs(credential)
@@ -52,8 +52,8 @@ class CredentialDataSourceTest {
     @Test fun testCreateEmitsEvent(): Unit = runBlocking {
         val tokenStorage = InMemoryTokenStorage()
         val oidcClient = oktaRule.createOidcClient()
-        val dataSource = oidcClient.credentialDataSource(tokenStorage)
-        val credential = dataSource.create()
+        val dataSource = oidcClient.createCredentialDataSource(tokenStorage)
+        val credential = dataSource.createCredential()
         assertThat(oktaRule.eventHandler).hasSize(1)
         val event = oktaRule.eventHandler[0]
         assertThat(event).isInstanceOf(CredentialCreatedEvent::class.java)
@@ -65,8 +65,8 @@ class CredentialDataSourceTest {
         val tokenStorage = spy(InMemoryTokenStorage())
         tokenStorage.add("First")
         tokenStorage.add("Second")
-        val dataSource = oktaRule.createOidcClient().credentialDataSource(tokenStorage)
-        val credentials = dataSource.all()
+        val dataSource = oktaRule.createOidcClient().createCredentialDataSource(tokenStorage)
+        val credentials = dataSource.listCredentials()
         assertThat(credentials).hasSize(2)
         assertThat(credentials[0].storageIdentifier).isEqualTo("First")
         assertThat(credentials[1].storageIdentifier).isEqualTo("Second")
@@ -97,20 +97,20 @@ class CredentialDataSourceTest {
                 throw AssertionError("Not expected")
             }
         })
-        val dataSource = oktaRule.createOidcClient().credentialDataSource(tokenStorage)
+        val dataSource = oktaRule.createOidcClient().createCredentialDataSource(tokenStorage)
         val deferred1 = async(Dispatchers.IO) {
             countDownLatch.countDown()
-            dataSource.create()
+            dataSource.createCredential()
         }
         val deferred2 = async(Dispatchers.IO) {
             countDownLatch.countDown()
-            dataSource.create()
+            dataSource.createCredential()
         }
 
         deferred1.await()
         deferred2.await()
 
-        assertThat(dataSource.all()).hasSize(2)
+        assertThat(dataSource.listCredentials()).hasSize(2)
         assertThat(entriesCount.get()).isEqualTo(1)
         verify(tokenStorage, times(2)).add(any())
     }
@@ -119,22 +119,22 @@ class CredentialDataSourceTest {
         val tokenStorage = InMemoryTokenStorage()
         tokenStorage.add("First")
         tokenStorage.add("Second")
-        val dataSource = oktaRule.createOidcClient().credentialDataSource(tokenStorage)
-        val credential = dataSource.create()
+        val dataSource = oktaRule.createOidcClient().createCredentialDataSource(tokenStorage)
+        val credential = dataSource.createCredential()
         assertThat(credential.token).isNull()
         assertThat(credential.metadata).isEmpty()
         assertThat(credential.oidcClient.credential).isEqualTo(credential)
-        assertThat(dataSource.all()).hasSize(3)
-        assertThat(dataSource.all()[2]).isSameInstanceAs(credential)
+        assertThat(dataSource.listCredentials()).hasSize(3)
+        assertThat(dataSource.listCredentials()[2]).isSameInstanceAs(credential)
     }
 
     @Test fun testRemove(): Unit = runBlocking {
         val tokenStorage = InMemoryTokenStorage()
         tokenStorage.add("First")
         tokenStorage.add("Second")
-        val dataSource = oktaRule.createOidcClient().credentialDataSource(tokenStorage)
-        val credential = dataSource.all().first()
-        credential.remove()
-        assertThat(dataSource.all()).hasSize(1)
+        val dataSource = oktaRule.createOidcClient().createCredentialDataSource(tokenStorage)
+        val credential = dataSource.listCredentials().first()
+        credential.delete()
+        assertThat(dataSource.listCredentials()).hasSize(1)
     }
 }

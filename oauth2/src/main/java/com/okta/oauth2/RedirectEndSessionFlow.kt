@@ -23,6 +23,8 @@ import java.util.UUID
 
 /**
  * [RedirectEndSessionFlow] encapsulates the behavior required to logout using an OIDC Browser redirect flow.
+ *
+ * > Note: OIDC Logout terminology is nuanced, see [Logout Documentation](https://github.com/okta/okta-mobile-kotlin#logout) for additional details.
  */
 class RedirectEndSessionFlow private constructor(
     private val oidcClient: OidcClient,
@@ -33,7 +35,7 @@ class RedirectEndSessionFlow private constructor(
          *
          * @receiver the [OidcClient] used to perform the low level OIDC requests, as well as with which to use the configuration from.
          */
-        fun OidcClient.redirectEndSessionFlow(): RedirectEndSessionFlow {
+        fun OidcClient.createRedirectEndSessionFlow(): RedirectEndSessionFlow {
             return RedirectEndSessionFlow(this)
         }
     }

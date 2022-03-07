@@ -21,7 +21,7 @@ import com.okta.authfoundation.events.EventHandler
 import com.okta.webauthenticationui.WebAuthenticationClient
 
 /**
- * Emitted via [EventHandler.onEvent] when [WebAuthenticationClient.login] or [WebAuthenticationClient.logout] is invoked.
+ * Emitted via [EventHandler.onEvent] when [WebAuthenticationClient.login] or [WebAuthenticationClient.logoutOfBrowser] is invoked.
  *
  * This can be used to customize the [CustomTabsIntent.Builder] before being displayed to the user.
  */
