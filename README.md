@@ -32,6 +32,12 @@ To get started, you will need:
 
 This SDK consists of several different libraries, each with their own detailed documentation.
 
+SDKs are split between two primary use cases: 
+- Minting tokens (authentication)
+  - Okta supports many OAuth flows, our Android SDKs support the following: Authorization Code, Interaction Code, Refresh Token, Resource Owner Password, Device Authorization, and Token Exchange.
+- Managing the token lifecycle (refresh, storage, validation, etc)
+
+The following SDKs are present in this repository:
 - [AuthFoundation](auth-foundation) -- Common classes for managing credentials, and used as a foundation for other libraries.
 - [OktaOAuth2](oauth2) -- OAuth2 authentication capabilities for authenticating users.
 - [WebAuthenticationUI](web-authentication-ui) -- Authenticate users using web-based OIDC flows.
@@ -75,7 +81,7 @@ The Credential type handles storage, OAuth conveniences and signing requests to 
 import android.content.Context
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.credential.Credential
-import com.okta.authfoundation.credential.CredentialDataSource.Companion.credentialDataSource
+import com.okta.authfoundation.credential.CredentialDataSource.Companion.createCredentialDataSource
 
 val context: Context = TODO("Available from previous steps.")
 val credentialDataSource = oidcClient.createCredentialDataSource(context)
@@ -93,22 +99,19 @@ import android.content.Context
 import com.okta.authfoundation.credential.Credential
 import com.okta.oauth2.AuthorizationCodeFlow
 import com.okta.webauthenticationui.WebAuthenticationClient
-import com.okta.webauthenticationui.WebAuthenticationClient.Companion.webAuthenticationClient
+import com.okta.webauthenticationui.WebAuthenticationClient.Companion.createWebAuthenticationClient
 
 val context: Context = TODO("Available from previous steps.")
 val credential: Credential = TODO("Available from previous steps.")
 val webAuthenticationClient = credential.oidcClient.createWebAuthenticationClient()
 when (val result = webAuthenticationClient.login(context)) {
-    is WebAuthenticationClient.LoginResult.Error -> {
+    is OidcClientResult.Error -> {
         // Timber.e(result.exception, "Failed to start login flow.")
         // TODO: Display an error to the user.
     }
-    is WebAuthenticationClient.LoginResult.Success -> {
+    is OidcClientResult.Success -> {
         // TODO: Store the AuthorizationCodeFlow.Context in an instance variable, and wait for the application redirect to be called.
-        // val authorizationCodeFlowContext: AuthorizationCodeFlow.Context = result.flowContext
-    }
-    WebAuthenticationClient.LoginResult.EndpointsNotAvailable -> {
-        // TODO: Display an error to the user.
+        // val authorizationCodeFlowContext: AuthorizationCodeFlow.Context = result.result
     }
 }
 ```
@@ -140,23 +143,17 @@ Next once the redirect happens, pass the `Uri` to the SDK to finish the authenti
 import android.net.Uri
 import com.okta.authfoundation.credential.Credential
 import com.okta.oauth2.AuthorizationCodeFlow
-import com.okta.webauthenticationui.WebAuthenticationClient.Companion.webAuthenticationClient
+import com.okta.webauthenticationui.WebAuthenticationClient.Companion.createWebAuthenticationClient
 
 val uri: Uri = TODO("Available from previous steps.")
 val credential: Credential = TODO("Available from previous steps.")
 val authorizationCodeFlowContext: AuthorizationCodeFlow.Context = TODO("Available from previous steps.")
 
-when (val result = credential.oidcClient.webAuthenticationClient().resume(uri, authorizationCodeFlowContext)) {
-    is AuthorizationCodeFlow.Result.Error -> {
-        // Show the error the user using `result.message`.
+when (val result = credential.oidcClient.createWebAuthenticationClient().resume(uri, authorizationCodeFlowContext)) {
+    is OidcClientResult.Error -> {
+        // Show an error to the user. The relevant exception is available in `result.exception`.
     }
-    AuthorizationCodeFlow.Result.MissingResultCode -> {
-        // Show an error to the user.
-    }
-    AuthorizationCodeFlow.Result.RedirectSchemeMismatch -> {
-        // Show an error to the user.
-    }
-    is AuthorizationCodeFlow.Result.Token -> {
+    is OidcClientResult.Success -> {
         // The credential instance now has a token! You can use the `Credential` to make calls to OAuth endpoints, or to sign requests!
     }
 }
