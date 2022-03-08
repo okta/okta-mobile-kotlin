@@ -26,7 +26,6 @@ import com.okta.authfoundation.credential.Credential
 import com.okta.authfoundation.credential.SerializableToken
 import com.okta.authfoundation.credential.Token
 import com.okta.authfoundation.credential.TokenType
-import com.okta.authfoundation.jwt.JwtParser
 import com.okta.authfoundation.util.CoalescingOrchestrator
 import com.okta.authfoundation.claims.DefaultClaimsProvider.Companion.createClaimsDeserializer
 import kotlinx.serialization.json.JsonObject
@@ -231,25 +230,16 @@ class OidcClient private constructor(
         if (result is OidcClientResult.Success) {
             val token = result.result
 
-            validateIdToken(token, nonce)?.let { return it }
+            try {
+                TokenValidator(this, token, nonce).validate()
+            } catch (e: Exception) {
+                return OidcClientResult.Error(e)
+            }
 
             configuration.eventCoordinator.sendEvent(TokenCreatedEvent(token, credential))
 
             credential?.storeToken(token)
         }
         return result
-    }
-
-    private suspend fun validateIdToken(token: Token, nonce: String?): OidcClientResult<Token>? {
-        try {
-            if (token.idToken != null) {
-                val parser = JwtParser(configuration.json, configuration.computeDispatcher)
-                val jwt = parser.parse(token.idToken)
-                configuration.idTokenValidator.validate(oidcClient = this, idToken = jwt, nonce = nonce)
-            }
-        } catch (e: Exception) {
-            return OidcClientResult.Error(e)
-        }
-        return null
     }
 }
