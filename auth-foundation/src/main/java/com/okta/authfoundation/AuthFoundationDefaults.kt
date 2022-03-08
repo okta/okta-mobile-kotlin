@@ -15,15 +15,15 @@
  */
 package com.okta.authfoundation
 
+import com.okta.authfoundation.client.AccessTokenValidator
+import com.okta.authfoundation.client.DefaultAccessTokenValidator
 import com.okta.authfoundation.client.DefaultIdTokenValidator
 import com.okta.authfoundation.client.IdTokenValidator
 import com.okta.authfoundation.client.OidcClock
-import com.okta.authfoundation.credential.TokenStorage
 import com.okta.authfoundation.events.EventCoordinator
 import okhttp3.Call
 import okhttp3.OkHttpClient
 import java.time.Instant
-import java.util.Collections
 
 /**
  *  The defaults used in various classes throughout the rest of the SDK.
@@ -44,6 +44,9 @@ object AuthFoundationDefaults {
 
     /** The default IdTokenValidator. */
     var idTokenValidator: IdTokenValidator by NoSetAfterGetWithLazyDefaultFactory { DefaultIdTokenValidator() }
+
+    /** The default AccessTokenValidator. */
+    var accessTokenValidator: AccessTokenValidator by NoSetAfterGetWithLazyDefaultFactory { DefaultAccessTokenValidator() }
 
     private fun defaultClock(): OidcClock {
         return object : OidcClock {

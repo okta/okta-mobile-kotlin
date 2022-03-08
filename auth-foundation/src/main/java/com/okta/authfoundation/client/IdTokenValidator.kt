@@ -28,6 +28,8 @@ fun interface IdTokenValidator {
     /**
      * Called when the [OidcClient] receives a [Token] response.
      *
+     * This should throw an [Exception] if the token is invalid.
+     *
      * @param oidcClient the [OidcClient] that made the [Token] request.
      * @param idToken the [Jwt] representing the id token from the [Token] response.
      * @param nonce the nonce sent with the authorize request, if using Authorization Code Flow and available.

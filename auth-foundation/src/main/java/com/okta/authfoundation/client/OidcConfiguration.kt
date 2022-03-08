@@ -61,6 +61,9 @@ class OidcConfiguration(
 
     /** The IdTokenValidator used to validate the Id Token Jwt when tokens are minted. */
     val idTokenValidator: IdTokenValidator = AuthFoundationDefaults.idTokenValidator,
+
+    /** The AccessTokenValidator used to validate the Access Token Jwt when tokens are minted. */
+    val accessTokenValidator: AccessTokenValidator = AuthFoundationDefaults.accessTokenValidator,
 ) {
     /** The Call.Factory which makes calls to the okta server. */
     val okHttpClient: Call.Factory by lazy {

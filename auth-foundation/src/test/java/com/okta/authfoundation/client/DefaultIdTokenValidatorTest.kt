@@ -75,7 +75,7 @@ import kotlin.test.fail
  */
 class DefaultIdTokenValidatorTest {
     private val idTokenValidator: IdTokenValidator = DefaultIdTokenValidator()
-    @get:Rule val oktaRule = OktaRule(idTokenValidator)
+    @get:Rule val oktaRule = OktaRule(idTokenValidator = idTokenValidator)
 
     private suspend fun createJwt(idToken: String): Jwt {
         val parser = JwtParser(oktaRule.configuration.json, Dispatchers.Unconfined)
