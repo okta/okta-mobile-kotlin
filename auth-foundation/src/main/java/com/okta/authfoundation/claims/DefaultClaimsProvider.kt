@@ -13,30 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.okta.authfoundation.util
+package com.okta.authfoundation.claims
 
 import com.okta.authfoundation.client.OidcConfiguration
-import kotlinx.coroutines.withContext
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
-import kotlin.coroutines.CoroutineContext
 
-internal class JsonPayloadDeserializer(
-    private val payload: JsonElement,
+internal class DefaultClaimsProvider(
+    private val claims: JsonObject,
     private val json: Json,
-    private val dispatcher: CoroutineContext,
-) {
+) : ClaimsProvider {
     companion object {
-        fun OidcConfiguration.createJsonPayloadDeserializer(payload: JsonObject): JsonPayloadDeserializer {
-            return JsonPayloadDeserializer(payload, json, computeDispatcher)
+        fun OidcConfiguration.createClaimsDeserializer(claims: JsonObject): DefaultClaimsProvider {
+            return DefaultClaimsProvider(claims, json)
         }
     }
 
-    suspend fun <T> payload(deserializationStrategy: DeserializationStrategy<T>): T {
-        return withContext(dispatcher) {
-            json.decodeFromJsonElement(deserializationStrategy, payload)
-        }
+    override fun <T> deserializeClaims(deserializationStrategy: DeserializationStrategy<T>): T {
+        return json.decodeFromJsonElement(deserializationStrategy, claims)
+    }
+
+    override fun availableClaims(): Set<String> {
+        return claims.keys
+    }
+
+    override fun <T> deserializeClaim(claim: String, deserializationStrategy: DeserializationStrategy<T>): T? {
+        val element = claims[claim] ?: return null
+        return json.decodeFromJsonElement(deserializationStrategy, element)
     }
 }

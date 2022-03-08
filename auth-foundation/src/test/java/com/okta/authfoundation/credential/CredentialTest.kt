@@ -529,7 +529,7 @@ class CredentialTest {
         class ExampleUserInfo(
             @SerialName("sub") val sub: String
         )
-        assertThat(result.result.payload(ExampleUserInfo.serializer()).sub).isEqualTo("foobar")
+        assertThat(result.result.deserializeClaims(ExampleUserInfo.serializer()).sub).isEqualTo("foobar")
     }
 
     @Test fun testGetUserInfoNeedsRefresh(): Unit = runBlocking {
@@ -552,7 +552,7 @@ class CredentialTest {
             @SerialName("sub") val sub: String
         )
         val success = result as OidcClientResult.Success<OidcUserInfo>
-        assertThat(success.result.payload(ExampleUserInfo.serializer()).sub).isEqualTo("foobar")
+        assertThat(success.result.deserializeClaims(ExampleUserInfo.serializer()).sub).isEqualTo("foobar")
     }
 
     @Test fun testGetUserInfoNoToken(): Unit = runBlocking {

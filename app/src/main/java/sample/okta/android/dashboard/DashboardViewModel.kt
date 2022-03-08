@@ -116,7 +116,7 @@ internal class DashboardViewModel(private val credentialMetadataNameValue: Strin
                 is OidcClientResult.Success -> {
                     val successResult = result.result
                     if (successResult is OidcIntrospectInfo.Active) {
-                        RequestState.Result(successResult.payload(JsonObject.serializer()).asMap().displayableKeyValues())
+                        RequestState.Result(successResult.deserializeClaims(JsonObject.serializer()).asMap().displayableKeyValues())
                     } else {
                         RequestState.Result(mapOf("active" to "false").displayableKeyValues())
                     }
@@ -171,7 +171,7 @@ internal class DashboardViewModel(private val credentialMetadataNameValue: Strin
                 _userInfoLiveData.postValue(emptyMap())
             }
             is OidcClientResult.Success -> {
-                _userInfoLiveData.postValue(userInfoResult.result.payload(JsonObject.serializer()).asMap())
+                _userInfoLiveData.postValue(userInfoResult.result.deserializeClaims(JsonObject.serializer()).asMap())
             }
         }
     }

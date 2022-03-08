@@ -90,7 +90,7 @@ class OidcClientTest {
         class ExampleUserInfo(
             @SerialName("sub") val sub: String
         )
-        assertThat(userInfo.payload(ExampleUserInfo.serializer()).sub).isEqualTo("00ub41z7mgzNqryMv696")
+        assertThat(userInfo.deserializeClaims(ExampleUserInfo.serializer()).sub).isEqualTo("00ub41z7mgzNqryMv696")
     }
 
     @Test fun testGetUserInfoFailure(): Unit = runBlocking {
@@ -195,7 +195,7 @@ class OidcClientTest {
         val successResult = (result as OidcClientResult.Success<OidcIntrospectInfo>).result
         val activeResult = successResult as OidcIntrospectInfo.Active
         assertThat(successResult.active).isTrue()
-        assertThat(activeResult.payload(IntrospectExamplePayload.serializer()).username).isEqualTo("example@gmail.com")
+        assertThat(activeResult.deserializeClaims(IntrospectExamplePayload.serializer()).username).isEqualTo("example@gmail.com")
     }
 
     @Test fun testIntrospectInactiveAccessToken(): Unit = runBlocking {
@@ -226,7 +226,7 @@ class OidcClientTest {
         val successResult = (result as OidcClientResult.Success<OidcIntrospectInfo>).result
         val activeResult = successResult as OidcIntrospectInfo.Active
         assertThat(successResult.active).isTrue()
-        assertThat(activeResult.payload(IntrospectExamplePayload.serializer()).username).isEqualTo("example@gmail.com")
+        assertThat(activeResult.deserializeClaims(IntrospectExamplePayload.serializer()).username).isEqualTo("example@gmail.com")
     }
 
     @Test fun testIntrospectActiveIdToken(): Unit = runBlocking {
@@ -242,7 +242,7 @@ class OidcClientTest {
         val successResult = (result as OidcClientResult.Success<OidcIntrospectInfo>).result
         val activeResult = successResult as OidcIntrospectInfo.Active
         assertThat(successResult.active).isTrue()
-        assertThat(activeResult.payload(IntrospectExamplePayload.serializer()).username).isEqualTo("example@gmail.com")
+        assertThat(activeResult.deserializeClaims(IntrospectExamplePayload.serializer()).username).isEqualTo("example@gmail.com")
     }
 
     @Test fun testIntrospectActiveDeviceSecret(): Unit = runBlocking {
@@ -258,7 +258,7 @@ class OidcClientTest {
         val successResult = (result as OidcClientResult.Success<OidcIntrospectInfo>).result
         val activeResult = successResult as OidcIntrospectInfo.Active
         assertThat(successResult.active).isTrue()
-        assertThat(activeResult.payload(IntrospectExamplePayload.serializer()).username).isEqualTo("example@gmail.com")
+        assertThat(activeResult.deserializeClaims(IntrospectExamplePayload.serializer()).username).isEqualTo("example@gmail.com")
     }
 
     @Test fun testIntrospectWithNoActiveField(): Unit = runBlocking {

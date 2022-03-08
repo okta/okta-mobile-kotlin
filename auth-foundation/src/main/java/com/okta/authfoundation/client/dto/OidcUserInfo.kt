@@ -15,9 +15,7 @@
  */
 package com.okta.authfoundation.client.dto
 
-import com.okta.authfoundation.util.JsonPayloadDeserializer
-import kotlinx.serialization.DeserializationStrategy
-import kotlinx.serialization.SerializationException
+import com.okta.authfoundation.claims.ClaimsProvider
 
 /**
  * User profile information.
@@ -25,17 +23,5 @@ import kotlinx.serialization.SerializationException
  * This provides a convenience mechanism for accessing information related to a user.
  */
 class OidcUserInfo internal constructor(
-    private val jsonPayloadDeserializer: JsonPayloadDeserializer,
-) {
-    /**
-     * Used to get access to the payload data in a type safe way.
-     *
-     * @param deserializationStrategy the [DeserializationStrategy] capable of deserializing the specified type.
-     *
-     * @throws SerializationException if the payload data can't be deserialized into the specified type.
-     * @return the specified type, deserialized from the payload.
-     */
-    suspend fun <T> payload(deserializationStrategy: DeserializationStrategy<T>): T {
-        return jsonPayloadDeserializer.payload(deserializationStrategy)
-    }
-}
+    claimsProvider: ClaimsProvider,
+) : ClaimsProvider by claimsProvider
