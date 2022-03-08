@@ -38,6 +38,9 @@ This SDK consists of several different libraries, each with their own detailed d
 
 The use of this SDK enables you to build or support a myriad of different authentication flows and approaches. To simplify getting started, here are a few samples to demonstrate its usage.
 
+### Kotlin Coroutines
+[Kotlin Coroutines](https://kotlinlang.org/docs/coroutines-overview.html) are used extensively throughout the SDKs. All methods are intended to be used via the main thread, and will switch to a background thread internally if performing network IO or expensive computation.
+
 ### Web Authentication using OIDC redirect
 
 The simplest way to integrate authentication in your app is with OIDC through a web browser, using the Authorization Code Flow grant.
