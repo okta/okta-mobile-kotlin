@@ -73,5 +73,4 @@ internal class IdTokenValidationPayload(
     @SerialName("exp") val exp: Int,
     @SerialName("iat") val iat: Int,
     @SerialName("nonce") val nonce: String? = null,
-    @SerialName("auth_time") val auth_time: Int,
 )

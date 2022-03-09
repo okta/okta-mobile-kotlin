@@ -32,4 +32,24 @@ class Jwt internal constructor(
      * The base64 encoded signature.
      */
     val signature: String,
-) : ClaimsProvider by claimsProvider
+
+    /**
+     * The raw value in standard JWT format.
+     */
+    val rawValue: String,
+) : ClaimsProvider by claimsProvider {
+    override fun equals(other: Any?): Boolean {
+        if (other is Jwt) {
+            return other.rawValue == rawValue
+        }
+        return super.equals(other)
+    }
+
+    override fun hashCode(): Int {
+        return rawValue.hashCode()
+    }
+
+    override fun toString(): String {
+        return rawValue
+    }
+}

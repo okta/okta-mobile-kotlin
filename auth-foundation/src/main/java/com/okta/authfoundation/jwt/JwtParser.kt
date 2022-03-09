@@ -46,6 +46,7 @@ internal class JwtParser internal constructor(
                 keyId = header.kid,
                 claimsProvider = DefaultClaimsProvider(claims, json),
                 signature = sections[2],
+                rawValue = token,
             )
         }
     }

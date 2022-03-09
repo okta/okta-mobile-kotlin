@@ -142,7 +142,7 @@ class DefaultIdTokenValidatorTest {
         val idToken =
             "eyJraWQiOiJGSkEwSEdOdHN1dWRhX1BsNDVKNDJrdlFxY3N1XzBDNEZnN3BiSkxYVEhZIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiIwMHViNDF6N21nek5xcnlNdjY5NiIsIm5hbWUiOiJKYXkgTmV3c3Ryb20iLCJlbWFpbCI6ImpheW5ld3N0cm9tQGV4YW1wbGUuY29tIiwidmVyIjoxfQ.eLQinAQv7hC1KC7TvPhTCz2tBbZsyo-RrqfIsxYannaqIFR8G7OG00ynVTIdF53zKFbKdpZXTfiBs4b2qPDT6qIMLpVbBKr55r6M-d5iJ8EKwSfPeV9FzY23059jJ-kaJP8Qtq7feAN0xqd7MmiE2uxB1ZvbD3Rgsgpr5zQfGeuAvhsVn8E0gaTWLmk5oNzXrIkN1DhxEm6bBtXjsAhTAUZFbAwN-RvFjGlLNj349n4Xc6MJQP5E_zah3gAg_6sNg5zaJ6QYhVaEWMb7p5Jy5GR7Yyhi1mZl2PgAc28sgZAxcLndka1UXqm73hHbkhm12frwNWLUOunJ_GdzwaPYNg"
         assertFailsWithMessage(
-            "Fields [iss, aud, exp, iat, auth_time] are required for type with serial name 'com.okta.authfoundation.client.IdTokenValidationPayload', but they were missing",
+            "Fields [iss, aud, exp, iat] are required for type with serial name 'com.okta.authfoundation.client.IdTokenValidationPayload', but they were missing",
             idToken
         )
     }
