@@ -50,7 +50,7 @@ object AuthFoundationDefaults {
 
     private fun defaultClock(): OidcClock {
         return object : OidcClock {
-            override fun currentTimeMillis(): Long {
+            override fun currentTimeEpochSecond(): Long {
                 return Instant.now().epochSecond
             }
         }
