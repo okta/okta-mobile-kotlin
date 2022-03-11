@@ -44,7 +44,7 @@ class OidcEndpoints(
     val introspectionEndpoint: HttpUrl,
     val revocationEndpoint: HttpUrl,
     val endSessionEndpoint: HttpUrl,
-    val deviceAuthorizationEndpoint: HttpUrl? = null,
+    val deviceAuthorizationEndpoint: HttpUrl?,
 )
 
 @Serializable
