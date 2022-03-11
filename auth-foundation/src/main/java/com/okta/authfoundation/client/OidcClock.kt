@@ -27,7 +27,7 @@ import com.okta.authfoundation.AuthFoundationDefaults
 interface OidcClock {
 
     /**
-     *  Returns the current time in milliseconds, adjusting the system clock to correct for clock skew.
+     *  Returns the current time in seconds since January 1, 1970 UTC, adjusting the system clock to correct for clock skew.
      */
-    fun currentTimeMillis(): Long
+    fun currentTimeEpochSecond(): Long
 }

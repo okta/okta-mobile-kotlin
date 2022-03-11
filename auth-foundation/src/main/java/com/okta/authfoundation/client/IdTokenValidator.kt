@@ -24,7 +24,14 @@ import kotlin.math.abs
 /**
  * Used for validating Id Tokens minted by an Authorization Server.
  */
-fun interface IdTokenValidator {
+interface IdTokenValidator {
+    /**
+     * The grace period in seconds that will be permitted when verifying the ID Token [Jwt] `iss` field.
+     *
+     * *Default:* 10 minutes.
+     */
+    var issuedAtGracePeriodInSeconds: Int
+
     /**
      * Called when the [OidcClient] receives a [Token] response.
      *
@@ -39,6 +46,8 @@ fun interface IdTokenValidator {
 
 // https://openid.net/specs/openid-connect-core-1_0.html#IDTokenValidation
 internal class DefaultIdTokenValidator : IdTokenValidator {
+    override var issuedAtGracePeriodInSeconds: Int = 600
+
     override suspend fun validate(oidcClient: OidcClient, idToken: Jwt, nonce: String?) {
         val idTokenPayload = idToken.deserializeClaims(IdTokenValidationPayload.serializer())
 
@@ -54,10 +63,10 @@ internal class DefaultIdTokenValidator : IdTokenValidator {
         if (idToken.algorithm != "RS256") {
             throw IllegalStateException("Invalid JWT algorithm.")
         }
-        if (idTokenPayload.exp < oidcClient.configuration.clock.currentTimeMillis()) {
+        if (idTokenPayload.exp < oidcClient.configuration.clock.currentTimeEpochSecond()) {
             throw IllegalStateException("The current time MUST be before the time represented by the exp Claim.")
         }
-        if (abs(idTokenPayload.iat - oidcClient.configuration.clock.currentTimeMillis()) > 600) {
+        if (abs(idTokenPayload.iat - oidcClient.configuration.clock.currentTimeEpochSecond()) > issuedAtGracePeriodInSeconds) {
             throw IllegalStateException("Issued at time is not within the allowed threshold of now.")
         }
         if (idTokenPayload.nonce != nonce) {
