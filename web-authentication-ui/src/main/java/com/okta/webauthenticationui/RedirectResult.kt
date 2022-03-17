@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package sample.okta.android
+package com.okta.webauthenticationui
 
-import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
+import android.net.Uri
 
-class MainActivity : AppCompatActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+internal sealed class RedirectResult {
+    class Redirect(val uri: Uri) : RedirectResult()
 
-        setContentView(R.layout.activity_main)
-    }
+    class Error(val exception: Exception) : RedirectResult()
 }

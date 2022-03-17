@@ -16,8 +16,8 @@
 package com.okta.webauthenticationui
 
 import android.content.Context
-import android.net.Uri
 import android.app.Activity
+import androidx.annotation.VisibleForTesting
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundation.client.OidcConfiguration
@@ -57,10 +57,17 @@ class WebAuthenticationClient private constructor(
     private val authorizationCodeFlow: AuthorizationCodeFlow = oidcClient.createAuthorizationCodeFlow()
     private val redirectEndSessionFlow: RedirectEndSessionFlow = oidcClient.createRedirectEndSessionFlow()
 
+    @VisibleForTesting internal var redirectCoordinator: RedirectCoordinator = SingletonRedirectCoordinator
+
+    /**
+     * Used in a [OidcClientResult.Error.exception].
+     *
+     * Indicates the requested flow was cancelled.
+     */
+    class FlowCancelledException internal constructor() : Exception("Flow cancelled.")
+
     /**
      * Initiates the OIDC Authorization Code redirect flow.
-     *
-     * See [WebAuthenticationClient.resume] for completing the flow.
      *
      * @param context the Android [Activity] [Context] which is used to display the login flow via the configured
      * [WebAuthenticationProvider].
@@ -69,34 +76,27 @@ class WebAuthenticationClient private constructor(
     suspend fun login(
         context: Context,
         scopes: Set<String> = oidcClient.configuration.defaultScopes,
-    ): OidcClientResult<AuthorizationCodeFlow.Context> {
-        when (val result = authorizationCodeFlow.start(scopes)) {
+    ): OidcClientResult<Token> {
+        val flowContext = when (val result = authorizationCodeFlow.start(scopes)) {
             is OidcClientResult.Success -> {
-                when (val exception = webAuthenticationProvider.launch(context, result.result.url)) {
-                    null -> {
-                        return result
-                    }
-                    else -> {
-                        return OidcClientResult.Error(exception)
-                    }
-                }
+                redirectCoordinator.initialize(webAuthenticationProvider)
+                context.startActivity(ForegroundActivity.createIntent(context, result.result.url))
+                result.result
             }
             is OidcClientResult.Error -> {
-                return result
+                return OidcClientResult.Error(result.exception)
             }
         }
-    }
 
-    /**
-     * Resumes the OIDC Authorization Code redirect flow.
-     *
-     * @param uri the redirect [Uri] which includes the authorization code to complete the flow.
-     * @param flowContext the [AuthorizationCodeFlow.Context] used internally to maintain state.
-     */
-    suspend fun resume(
-        uri: Uri,
-        flowContext: AuthorizationCodeFlow.Context,
-    ): OidcClientResult<Token> {
+        val uri = when (val redirectResult = redirectCoordinator.listenForResult()) {
+            is RedirectResult.Error -> {
+                return OidcClientResult.Error(redirectResult.exception)
+            }
+            is RedirectResult.Redirect -> {
+                redirectResult.uri
+            }
+        }
+
         return authorizationCodeFlow.resume(uri, flowContext)
     }
 
@@ -105,37 +105,31 @@ class WebAuthenticationClient private constructor(
      *
      * > Note: OIDC Logout terminology is nuanced, see [Logout Documentation](https://github.com/okta/okta-mobile-kotlin#logout) for additional details.
      *
-     * See [WebAuthenticationClient.resume] for completing the flow.
-     *
      * @param context the Android [Activity] [Context] which is used to display the logout flow via the configured
      * [WebAuthenticationProvider].
      * @param idToken the token used to identify the session to log the user out of.
      */
-    suspend fun logoutOfBrowser(context: Context, idToken: String): OidcClientResult<RedirectEndSessionFlow.Context> {
-        when (val result = redirectEndSessionFlow.start(idToken)) {
+    suspend fun logoutOfBrowser(context: Context, idToken: String): OidcClientResult<Unit> {
+        val flowContext = when (val result = redirectEndSessionFlow.start(idToken)) {
             is OidcClientResult.Success -> {
-                when (val exception = webAuthenticationProvider.launch(context, result.result.url)) {
-                    null -> {
-                        return result
-                    }
-                    else -> {
-                        return OidcClientResult.Error(exception)
-                    }
-                }
+                redirectCoordinator.initialize(webAuthenticationProvider)
+                context.startActivity(ForegroundActivity.createIntent(context, result.result.url))
+                result.result
             }
             is OidcClientResult.Error -> {
-                return result
+                return OidcClientResult.Error(result.exception)
             }
         }
-    }
 
-    /**
-     * Resumes the OIDC logout redirect flow.
-     *
-     * @param uri the redirect [Uri] to complete the flow.
-     * @param flowContext the [RedirectEndSessionFlow.Context] used internally to maintain state.
-     */
-    fun resume(uri: Uri, flowContext: RedirectEndSessionFlow.Context): OidcClientResult<Unit> {
+        val uri = when (val redirectResult = redirectCoordinator.listenForResult()) {
+            is RedirectResult.Error -> {
+                return OidcClientResult.Error(redirectResult.exception)
+            }
+            is RedirectResult.Redirect -> {
+                redirectResult.uri
+            }
+        }
+
         return redirectEndSessionFlow.resume(uri, flowContext)
     }
 }

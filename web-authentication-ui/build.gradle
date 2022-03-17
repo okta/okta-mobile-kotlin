@@ -27,6 +27,20 @@ android {
         jvmTarget = '1.8'
         freeCompilerArgs += ["-Xopt-in=com.okta.authfoundation.InternalAuthFoundationApi"]
     }
+
+    testVariants.all {
+        it.mergedFlavor.manifestPlaceholders = [webAuthenticationRedirectScheme: "unitTest"]
+    }
+
+    unitTestVariants.all {
+        it.mergedFlavor.manifestPlaceholders = [webAuthenticationRedirectScheme: "unitTest"]
+    }
+
+    testOptions {
+        unitTests {
+            includeAndroidResources = true
+        }
+    }
 }
 
 dependencies {

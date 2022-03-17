@@ -21,7 +21,7 @@ android {
         buildConfigField "String", 'SIGN_OUT_REDIRECT_URI', "\"${oktaProperties.getProperty('signOutRedirectUri')}\""
 
         manifestPlaceholders = [
-                "oktaIdxRedirectScheme": parseScheme(oktaProperties.getProperty('signInRedirectUri'))
+                "webAuthenticationRedirectScheme": parseScheme(oktaProperties.getProperty('signInRedirectUri'))
         ]
 
         testInstrumentationRunner 'io.cucumber.android.runner.CucumberAndroidJUnitRunner'
