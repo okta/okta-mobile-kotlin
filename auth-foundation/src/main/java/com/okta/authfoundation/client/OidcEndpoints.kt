@@ -36,28 +36,28 @@ import okhttp3.HttpUrl.Companion.toHttpUrl
  */
 class OidcEndpoints(
     val issuer: HttpUrl,
-    val authorizationEndpoint: HttpUrl,
+    val authorizationEndpoint: HttpUrl?,
     val tokenEndpoint: HttpUrl,
-    val userInfoEndpoint: HttpUrl,
-    val jwksUri: HttpUrl,
-    val registrationEndpoint: HttpUrl,
-    val introspectionEndpoint: HttpUrl,
-    val revocationEndpoint: HttpUrl,
-    val endSessionEndpoint: HttpUrl,
+    val userInfoEndpoint: HttpUrl?,
+    val jwksUri: HttpUrl?,
+    val registrationEndpoint: HttpUrl?,
+    val introspectionEndpoint: HttpUrl?,
+    val revocationEndpoint: HttpUrl?,
+    val endSessionEndpoint: HttpUrl?,
     val deviceAuthorizationEndpoint: HttpUrl?,
 )
 
 @Serializable
 internal class SerializableOidcEndpoints(
     @SerialName("issuer") val issuer: HttpUrl,
-    @SerialName("authorization_endpoint") val authorizationEndpoint: HttpUrl,
+    @SerialName("authorization_endpoint") val authorizationEndpoint: HttpUrl? = null,
     @SerialName("token_endpoint") val tokenEndpoint: HttpUrl,
-    @SerialName("userinfo_endpoint") val userInfoEndpoint: HttpUrl,
-    @SerialName("jwks_uri") val jwksUri: HttpUrl,
-    @SerialName("registration_endpoint") val registrationEndpoint: HttpUrl,
-    @SerialName("introspection_endpoint") val introspectionEndpoint: HttpUrl,
-    @SerialName("revocation_endpoint") val revocationEndpoint: HttpUrl,
-    @SerialName("end_session_endpoint") val endSessionEndpoint: HttpUrl,
+    @SerialName("userinfo_endpoint") val userInfoEndpoint: HttpUrl? = null,
+    @SerialName("jwks_uri") val jwksUri: HttpUrl? = null,
+    @SerialName("registration_endpoint") val registrationEndpoint: HttpUrl? = null,
+    @SerialName("introspection_endpoint") val introspectionEndpoint: HttpUrl? = null,
+    @SerialName("revocation_endpoint") val revocationEndpoint: HttpUrl? = null,
+    @SerialName("end_session_endpoint") val endSessionEndpoint: HttpUrl? = null,
     @SerialName("device_authorization_endpoint") val deviceAuthorizationEndpoint: HttpUrl? = null,
 ) {
     fun asOidcEndpoints(): OidcEndpoints {
