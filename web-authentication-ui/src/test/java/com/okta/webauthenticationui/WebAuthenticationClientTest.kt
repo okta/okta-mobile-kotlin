@@ -15,30 +15,31 @@
  */
 package com.okta.webauthenticationui
 
-import android.app.Activity
+import android.content.Context
 import android.net.Uri
 import com.google.common.truth.Truth.assertThat
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundation.credential.Token
-import com.okta.oauth2.events.CustomizeAuthorizationUrlEvent
-import com.okta.oauth2.events.CustomizeLogoutUrlEvent
 import com.okta.testhelpers.OktaRule
 import com.okta.testhelpers.RequestMatchers.method
 import com.okta.testhelpers.RequestMatchers.path
 import com.okta.testhelpers.testBodyFromFile
 import com.okta.webauthenticationui.WebAuthenticationClient.Companion.createWebAuthenticationClient
 import kotlinx.coroutines.runBlocking
+import okhttp3.HttpUrl
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mockito.verify
+import org.mockito.kotlin.any
+import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doAnswer
+import org.mockito.kotlin.doNothing
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
-import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
-import org.robolectric.Shadows.shadowOf
 
 @RunWith(RobolectricTestRunner::class)
 class WebAuthenticationClientTest {
@@ -54,25 +55,23 @@ class WebAuthenticationClientTest {
             response.testBodyFromFile("$mockPrefix/token.json")
         }
 
+        val urlCaptor = argumentCaptor<HttpUrl>()
         val webAuthenticationProvider = mock<WebAuthenticationProvider>()
         val webAuthenticationClient = oktaRule.createOidcClient().createWebAuthenticationClient(webAuthenticationProvider)
         val redirectCoordinator = mock<RedirectCoordinator> {
             onBlocking { listenForResult() } doAnswer {
-                assertThat(oktaRule.eventHandler).hasSize(1)
-                val event = oktaRule.eventHandler[0] as CustomizeAuthorizationUrlEvent
-                val state = event.httpUrlBuilder.build().queryParameter("state")
+                val state = urlCaptor.firstValue.queryParameter("state")
                 val uri = Uri.parse("${oktaRule.configuration.signInRedirectUri}?state=$state&code=ExampleCode")
                 RedirectResult.Redirect(uri)
             }
         }
+        doNothing().`when`(redirectCoordinator).initialize(any(), any(), urlCaptor.capture())
         webAuthenticationClient.redirectCoordinator = redirectCoordinator
-        val context = Robolectric.buildActivity(Activity::class.java).get()
+        val context = mock<Context>()
 
         val loginResult = webAuthenticationClient.login(context)
 
-        verify(redirectCoordinator).initialize(webAuthenticationProvider)
-        val foregroundActivity = shadowOf(context).nextStartedActivity
-        assertThat(foregroundActivity.component?.className).isEqualTo(ForegroundActivity::class.java.name)
+        verify(redirectCoordinator).initialize(eq(webAuthenticationProvider), eq(context), any())
 
         val token = (loginResult as OidcClientResult.Success<Token>).result
         assertThat(token.tokenType).isEqualTo("Bearer")
@@ -94,13 +93,11 @@ class WebAuthenticationClientTest {
             }
         }
         webAuthenticationClient.redirectCoordinator = redirectCoordinator
-        val context = Robolectric.buildActivity(Activity::class.java).get()
+        val context = mock<Context>()
 
         val loginResult = webAuthenticationClient.login(context)
 
-        verify(redirectCoordinator).initialize(webAuthenticationProvider)
-        val foregroundActivity = shadowOf(context).nextStartedActivity
-        assertThat(foregroundActivity.component?.className).isEqualTo(ForegroundActivity::class.java.name)
+        verify(redirectCoordinator).initialize(eq(webAuthenticationProvider), eq(context), any())
 
         val exception = (loginResult as OidcClientResult.Error<Token>).exception
         assertThat(exception).isInstanceOf(WebAuthenticationClient.FlowCancelledException::class.java)
@@ -118,37 +115,34 @@ class WebAuthenticationClientTest {
         val webAuthenticationClient = client.createWebAuthenticationClient(webAuthenticationProvider)
         val redirectCoordinator = mock<RedirectCoordinator>()
         webAuthenticationClient.redirectCoordinator = redirectCoordinator
-        val context = Robolectric.buildActivity(Activity::class.java).get()
+        val context = mock<Context>()
 
         val loginResult = webAuthenticationClient.login(context)
 
-        verify(redirectCoordinator, never()).initialize(webAuthenticationProvider)
-        assertThat(shadowOf(context).nextStartedActivity).isNull()
+        verify(redirectCoordinator, never()).initialize(eq(webAuthenticationProvider), eq(context), any())
 
         val exception = (loginResult as OidcClientResult.Error<Token>).exception
         assertThat(exception).isInstanceOf(OidcClientResult.Error.OidcEndpointsNotAvailableException::class.java)
     }
 
     @Test fun testLogout(): Unit = runBlocking {
+        val urlCaptor = argumentCaptor<HttpUrl>()
         val webAuthenticationProvider = mock<WebAuthenticationProvider>()
         val webAuthenticationClient = oktaRule.createOidcClient().createWebAuthenticationClient(webAuthenticationProvider)
         val redirectCoordinator = mock<RedirectCoordinator> {
             onBlocking { listenForResult() } doAnswer {
-                assertThat(oktaRule.eventHandler).hasSize(1)
-                val event = oktaRule.eventHandler[0] as CustomizeLogoutUrlEvent
-                val state = event.httpUrlBuilder.build().queryParameter("state")
+                val state = urlCaptor.firstValue.queryParameter("state")
                 val uri = Uri.parse("${oktaRule.configuration.signOutRedirectUri}?state=$state")
                 RedirectResult.Redirect(uri)
             }
         }
+        doNothing().`when`(redirectCoordinator).initialize(any(), any(), urlCaptor.capture())
         webAuthenticationClient.redirectCoordinator = redirectCoordinator
-        val context = Robolectric.buildActivity(Activity::class.java).get()
+        val context = mock<Context>()
 
         val logoutResult = webAuthenticationClient.logoutOfBrowser(context, "ExampleIdToken")
 
-        verify(redirectCoordinator).initialize(webAuthenticationProvider)
-        val foregroundActivity = shadowOf(context).nextStartedActivity
-        assertThat(foregroundActivity.component?.className).isEqualTo(ForegroundActivity::class.java.name)
+        verify(redirectCoordinator).initialize(eq(webAuthenticationProvider), eq(context), any())
 
         assertThat(logoutResult).isInstanceOf(OidcClientResult.Success::class.java)
     }
@@ -162,13 +156,11 @@ class WebAuthenticationClientTest {
             }
         }
         webAuthenticationClient.redirectCoordinator = redirectCoordinator
-        val context = Robolectric.buildActivity(Activity::class.java).get()
+        val context = mock<Context>()
 
         val logoutResult = webAuthenticationClient.logoutOfBrowser(context, "ExampleIdToken")
 
-        verify(redirectCoordinator).initialize(webAuthenticationProvider)
-        val foregroundActivity = shadowOf(context).nextStartedActivity
-        assertThat(foregroundActivity.component?.className).isEqualTo(ForegroundActivity::class.java.name)
+        verify(redirectCoordinator).initialize(eq(webAuthenticationProvider), eq(context), any())
 
         val exception = (logoutResult as OidcClientResult.Error<Unit>).exception
         assertThat(exception).isInstanceOf(WebAuthenticationClient.FlowCancelledException::class.java)
@@ -186,12 +178,11 @@ class WebAuthenticationClientTest {
         val webAuthenticationClient = client.createWebAuthenticationClient(webAuthenticationProvider)
         val redirectCoordinator = mock<RedirectCoordinator>()
         webAuthenticationClient.redirectCoordinator = redirectCoordinator
-        val context = Robolectric.buildActivity(Activity::class.java).get()
+        val context = mock<Context>()
 
         val logoutResult = webAuthenticationClient.logoutOfBrowser(context, "ExampleIdToken")
 
-        verify(redirectCoordinator, never()).initialize(webAuthenticationProvider)
-        assertThat(shadowOf(context).nextStartedActivity).isNull()
+        verify(redirectCoordinator, never()).initialize(eq(webAuthenticationProvider), eq(context), any())
 
         val exception = (logoutResult as OidcClientResult.Error<Unit>).exception
         assertThat(exception).isInstanceOf(OidcClientResult.Error.OidcEndpointsNotAvailableException::class.java)

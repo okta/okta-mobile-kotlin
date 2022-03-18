@@ -71,16 +71,18 @@ class WebAuthenticationClient private constructor(
      *
      * @param context the Android [Activity] [Context] which is used to display the login flow via the configured
      * [WebAuthenticationProvider].
+     * @param extraRequestParameters the extra key value pairs to send to the authorize endpoint.
+     *  See [Authorize Documentation](https://developer.okta.com/docs/reference/api/oidc/#authorize) for parameter options.
      * @param scopes the scopes to request during sign in. Defaults to the configured [OidcClient] [OidcConfiguration.defaultScopes].
      */
     suspend fun login(
         context: Context,
+        extraRequestParameters: Map<String, String> = emptyMap(),
         scopes: Set<String> = oidcClient.configuration.defaultScopes,
     ): OidcClientResult<Token> {
-        val flowContext = when (val result = authorizationCodeFlow.start(scopes)) {
+        val flowContext = when (val result = authorizationCodeFlow.start(extraRequestParameters, scopes)) {
             is OidcClientResult.Success -> {
-                redirectCoordinator.initialize(webAuthenticationProvider)
-                context.startActivity(ForegroundActivity.createIntent(context, result.result.url))
+                redirectCoordinator.initialize(webAuthenticationProvider, context, result.result.url)
                 result.result
             }
             is OidcClientResult.Error -> {
@@ -112,8 +114,7 @@ class WebAuthenticationClient private constructor(
     suspend fun logoutOfBrowser(context: Context, idToken: String): OidcClientResult<Unit> {
         val flowContext = when (val result = redirectEndSessionFlow.start(idToken)) {
             is OidcClientResult.Success -> {
-                redirectCoordinator.initialize(webAuthenticationProvider)
-                context.startActivity(ForegroundActivity.createIntent(context, result.result.url))
+                redirectCoordinator.initialize(webAuthenticationProvider, context, result.result.url)
                 result.result
             }
             is OidcClientResult.Error -> {

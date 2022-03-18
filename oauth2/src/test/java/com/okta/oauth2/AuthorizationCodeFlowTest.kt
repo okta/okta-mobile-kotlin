@@ -20,7 +20,6 @@ import com.google.common.truth.Truth.assertThat
 import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundation.credential.Token
 import com.okta.oauth2.AuthorizationCodeFlow.Companion.createAuthorizationCodeFlow
-import com.okta.oauth2.events.CustomizeAuthorizationUrlEvent
 import com.okta.testhelpers.OktaRule
 import com.okta.testhelpers.RequestMatchers.body
 import com.okta.testhelpers.RequestMatchers.method
@@ -47,6 +46,7 @@ class AuthorizationCodeFlowTest {
             codeVerifier = "LEadFL0UCCWDlD0cdIiuv7TQfbxOP8OUep0U_xo_3oI",
             state = "25c1d684-8d30-42e3-acc0-b74b35fd47b4",
             nonce = "12345689",
+            extraRequestParameters = emptyMap(),
             scopes = oktaRule.configuration.defaultScopes,
         )
 
@@ -58,12 +58,30 @@ class AuthorizationCodeFlowTest {
         val expectedUrlEnding =
             "/oauth2/default/v1/authorize?code_challenge=pqwOUSjNbCP5x5DMxgLy7BTlzI2pjfDq7Q0iwKFjX5s&code_challenge_method=S256&client_id=unit_test_client_id&scope=openid%20email%20profile%20offline_access&redirect_uri=unitTest%3A%2Flogin&response_type=code&state=25c1d684-8d30-42e3-acc0-b74b35fd47b4&nonce=12345689"
         assertThat(context.url.toString()).endsWith(expectedUrlEnding)
+    }
 
-        assertThat(oktaRule.eventHandler).hasSize(1)
-        assertThat(oktaRule.eventHandler[0]).isInstanceOf(CustomizeAuthorizationUrlEvent::class.java)
-        assertThat((oktaRule.eventHandler[0] as CustomizeAuthorizationUrlEvent).httpUrlBuilder.build().toString()).endsWith(
-            expectedUrlEnding
+    @Test fun testStartWithExtraRequestParameters(): Unit = runBlocking {
+        val authorizationCodeFlow = oktaRule.createOidcClient().createAuthorizationCodeFlow()
+        assertThat(oktaRule.eventHandler).isEmpty()
+        val extraRequestParameters = mutableMapOf<String, String>()
+        extraRequestParameters["prompt"] = "login"
+        extraRequestParameters["login_hint"] = "jaynewstrom@example.com"
+        val result = authorizationCodeFlow.start(
+            codeVerifier = "LEadFL0UCCWDlD0cdIiuv7TQfbxOP8OUep0U_xo_3oI",
+            state = "25c1d684-8d30-42e3-acc0-b74b35fd47b4",
+            nonce = "12345689",
+            extraRequestParameters = extraRequestParameters,
+            scopes = oktaRule.configuration.defaultScopes,
         )
+
+        val context = (result as OidcClientResult.Success<AuthorizationCodeFlow.Context>).result
+
+        assertThat(context.codeVerifier).isEqualTo("LEadFL0UCCWDlD0cdIiuv7TQfbxOP8OUep0U_xo_3oI")
+        assertThat(context.state).isEqualTo("25c1d684-8d30-42e3-acc0-b74b35fd47b4")
+        assertThat(context.nonce).isEqualTo("12345689")
+        val expectedUrlEnding =
+            "/oauth2/default/v1/authorize?prompt=login&login_hint=jaynewstrom%40example.com&code_challenge=pqwOUSjNbCP5x5DMxgLy7BTlzI2pjfDq7Q0iwKFjX5s&code_challenge_method=S256&client_id=unit_test_client_id&scope=openid%20email%20profile%20offline_access&redirect_uri=unitTest%3A%2Flogin&response_type=code&state=25c1d684-8d30-42e3-acc0-b74b35fd47b4&nonce=12345689"
+        assertThat(context.url.toString()).endsWith(expectedUrlEnding)
     }
 
     @Test fun testResume(): Unit = runBlocking {

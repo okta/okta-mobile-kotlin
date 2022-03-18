@@ -39,7 +39,7 @@ class BrowserViewModel : ViewModel() {
         viewModelScope.launch {
             _state.value = BrowserState.Loading
 
-            when (val result = webAuthenticationClient.login(context, scopes)) {
+            when (val result = webAuthenticationClient.login(context, emptyMap(), scopes)) {
                 is OidcClientResult.Error -> {
                     Timber.e(result.exception, "Failed to start login flow.")
                     _state.value = BrowserState.Error("Failed to start login flow.")
