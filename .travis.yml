@@ -17,7 +17,7 @@ before_script:
 script:
   - set -e # Fail on error.
   - ./gradlew build assembleAndroidTest testDebugUnitTest --parallel
-  - ./runTestsInFirebaseTestLab.sh
+#  - ./runTestsInFirebaseTestLab.sh
 
 notifications:
   email: false
