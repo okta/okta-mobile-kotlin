@@ -38,8 +38,9 @@ internal class DefaultRedirectCoordinator : RedirectCoordinator {
         }
     }
 
-    override fun initialize(webAuthenticationProvider: WebAuthenticationProvider) {
+    override fun initialize(webAuthenticationProvider: WebAuthenticationProvider, context: Context, url: HttpUrl) {
         this.webAuthenticationProvider = webAuthenticationProvider
+        context.startActivity(ForegroundActivity.createIntent(context, url))
     }
 
     override fun launchWebAuthenticationProvider(context: Context, url: HttpUrl): Boolean {
@@ -80,7 +81,7 @@ internal class DefaultRedirectCoordinator : RedirectCoordinator {
 
 internal interface RedirectCoordinator {
     suspend fun listenForResult(): RedirectResult
-    fun initialize(webAuthenticationProvider: WebAuthenticationProvider)
+    fun initialize(webAuthenticationProvider: WebAuthenticationProvider, context: Context, url: HttpUrl)
     fun launchWebAuthenticationProvider(context: Context, url: HttpUrl): Boolean
     fun emitError(exception: Exception)
     fun emit(uri: Uri?)

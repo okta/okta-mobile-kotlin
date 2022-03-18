@@ -15,6 +15,7 @@
  */
 package com.okta.webauthenticationui
 
+import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.net.Uri
 import com.google.common.truth.Truth.assertThat
@@ -31,7 +32,9 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
+import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.Shadows.shadowOf
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
@@ -99,11 +102,24 @@ class RedirectCoordinatorTest {
         assertThat(error.exception).hasMessageThat().isEqualTo("RedirectListener has not been initialized.")
     }
 
+    @Test fun testInitializeStartsForegroundActivity(): Unit = runBlocking {
+        val webAuthenticationProvider = mock<WebAuthenticationProvider> {
+            on { launch(any(), any()) } doReturn null
+        }
+        val launchedFromActivity = Robolectric.buildActivity(Activity::class.java).get()
+        val url = "https://example.com/oauth".toHttpUrl()
+        subject.initialize(webAuthenticationProvider, launchedFromActivity, url)
+        assertThat(subject.launchWebAuthenticationProvider(launchedFromActivity, url)).isTrue()
+        verify(webAuthenticationProvider).launch(launchedFromActivity, url)
+        val foregroundActivity = shadowOf(launchedFromActivity).nextStartedActivity
+        assertThat(foregroundActivity.component?.className).isEqualTo(ForegroundActivity::class.java.name)
+    }
+
     @Test fun testLaunchWebAuthenticationProvider(): Unit = runBlocking {
         val webAuthenticationProvider = mock<WebAuthenticationProvider> {
             on { launch(any(), any()) } doReturn null
         }
-        subject.initialize(webAuthenticationProvider)
+        subject.initialize(webAuthenticationProvider, mock(), mock())
         assertThat(subject.launchWebAuthenticationProvider(mock(), mock())).isTrue()
         verify(webAuthenticationProvider).launch(any(), any())
     }
@@ -113,7 +129,7 @@ class RedirectCoordinatorTest {
         val webAuthenticationProvider = mock<WebAuthenticationProvider> {
             on { launch(any(), any()) } doReturn ActivityNotFoundException("From Test!")
         }
-        subject.initialize(webAuthenticationProvider)
+        subject.initialize(webAuthenticationProvider, mock(), mock())
         assertThat(subject.launchWebAuthenticationProvider(mock(), mock())).isFalse()
         verify(webAuthenticationProvider).launch(any(), any())
         val result = resultDeferred.await()

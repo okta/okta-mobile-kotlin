@@ -19,7 +19,6 @@ import android.net.Uri
 import com.google.common.truth.Truth.assertThat
 import com.okta.authfoundation.client.OidcClientResult
 import com.okta.oauth2.RedirectEndSessionFlow.Companion.createRedirectEndSessionFlow
-import com.okta.oauth2.events.CustomizeLogoutUrlEvent
 import com.okta.testhelpers.OktaRule
 import kotlinx.coroutines.runBlocking
 import okhttp3.HttpUrl.Companion.toHttpUrl
@@ -45,10 +44,6 @@ class RedirectEndSessionFlowTest {
         assertThat(context.state).isEqualTo("25c1d684-8d30-42e3-acc0-b74b35fd47b4")
         val expectedUrlEnding = "/oauth2/default/v1/logout?id_token_hint=exampleIdToken&post_logout_redirect_uri=unitTest%3A%2Flogout&state=25c1d684-8d30-42e3-acc0-b74b35fd47b4"
         assertThat(context.url.toString()).endsWith(expectedUrlEnding)
-
-        assertThat(oktaRule.eventHandler).hasSize(1)
-        assertThat(oktaRule.eventHandler[0]).isInstanceOf(CustomizeLogoutUrlEvent::class.java)
-        assertThat((oktaRule.eventHandler[0] as CustomizeLogoutUrlEvent).httpUrlBuilder.build().toString()).endsWith(expectedUrlEnding)
     }
 
     @Test fun testResume() {

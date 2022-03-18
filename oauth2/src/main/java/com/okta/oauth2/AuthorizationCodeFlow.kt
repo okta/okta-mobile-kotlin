@@ -20,7 +20,6 @@ import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.credential.Token
-import com.okta.oauth2.events.CustomizeAuthorizationUrlEvent
 import okhttp3.FormBody
 import okhttp3.HttpUrl
 import okhttp3.Request
@@ -85,15 +84,19 @@ class AuthorizationCodeFlow private constructor(
      *
      * See [AuthorizationCodeFlow.resume] for completing the flow.
      *
+     * @param extraRequestParameters the extra key value pairs to send to the authorize endpoint.
+     *  See [Authorize Documentation](https://developer.okta.com/docs/reference/api/oidc/#authorize) for parameter options.
      * @param scopes the scopes to request during sign in. Defaults to the configured [OidcClient] [OidcConfiguration.defaultScopes].
      */
     suspend fun start(
+        extraRequestParameters: Map<String, String> = emptyMap(),
         scopes: Set<String> = oidcClient.configuration.defaultScopes,
     ): OidcClientResult<Context> {
         return start(
             codeVerifier = PkceGenerator.codeVerifier(),
             state = UUID.randomUUID().toString(),
             nonce = UUID.randomUUID().toString(),
+            extraRequestParameters = extraRequestParameters,
             scopes = scopes
         )
     }
@@ -102,11 +105,17 @@ class AuthorizationCodeFlow private constructor(
         codeVerifier: String,
         state: String,
         nonce: String,
-        scopes: Set<String>
+        extraRequestParameters: Map<String, String>,
+        scopes: Set<String>,
     ): OidcClientResult<Context> {
         val endpoints = oidcClient.endpointsOrNull() ?: return oidcClient.endpointNotAvailableError()
 
         val urlBuilder = endpoints.authorizationEndpoint.newBuilder()
+
+        for (entry in extraRequestParameters.entries) {
+            urlBuilder.addQueryParameter(entry.key, entry.value)
+        }
+
         urlBuilder.addQueryParameter("code_challenge", PkceGenerator.codeChallenge(codeVerifier))
         urlBuilder.addQueryParameter("code_challenge_method", PkceGenerator.CODE_CHALLENGE_METHOD)
         urlBuilder.addQueryParameter("client_id", oidcClient.configuration.clientId)
@@ -115,9 +124,6 @@ class AuthorizationCodeFlow private constructor(
         urlBuilder.addQueryParameter("response_type", "code")
         urlBuilder.addQueryParameter("state", state)
         urlBuilder.addQueryParameter("nonce", nonce)
-
-        val event = CustomizeAuthorizationUrlEvent(urlBuilder)
-        oidcClient.configuration.eventCoordinator.sendEvent(event)
 
         return OidcClientResult.Success(Context(urlBuilder.build(), codeVerifier, state, nonce))
     }

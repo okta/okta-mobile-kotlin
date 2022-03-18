@@ -18,7 +18,6 @@ package com.okta.oauth2
 import android.net.Uri
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcClientResult
-import com.okta.oauth2.events.CustomizeLogoutUrlEvent
 import okhttp3.HttpUrl
 import java.util.UUID
 
@@ -87,9 +86,6 @@ class RedirectEndSessionFlow private constructor(
         urlBuilder.addQueryParameter("id_token_hint", idToken)
         urlBuilder.addQueryParameter("post_logout_redirect_uri", oidcClient.configuration.signOutRedirectUri)
         urlBuilder.addQueryParameter("state", state)
-
-        val event = CustomizeLogoutUrlEvent(urlBuilder)
-        oidcClient.configuration.eventCoordinator.sendEvent(event)
 
         return OidcClientResult.Success(Context(urlBuilder.build(), state))
     }
