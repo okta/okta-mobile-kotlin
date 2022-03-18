@@ -251,13 +251,11 @@ class OidcClient private constructor(
 
             try {
                 TokenValidator(this, token, nonce).validate()
+                configuration.eventCoordinator.sendEvent(TokenCreatedEvent(token, credential))
+                credential?.storeToken(token)
             } catch (e: Exception) {
                 return OidcClientResult.Error(e)
             }
-
-            configuration.eventCoordinator.sendEvent(TokenCreatedEvent(token, credential))
-
-            credential?.storeToken(token)
         }
         return result
     }

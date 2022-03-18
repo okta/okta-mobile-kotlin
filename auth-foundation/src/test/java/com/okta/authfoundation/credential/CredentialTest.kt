@@ -525,6 +525,7 @@ class CredentialTest {
             response.setBody(body)
         }
         val result = credential.getUserInfo() as OidcClientResult.Success<OidcUserInfo>
+
         @Serializable
         class ExampleUserInfo(
             @SerialName("sub") val sub: String
@@ -547,10 +548,12 @@ class CredentialTest {
             response.setBody(body)
         }
         val result = credential.getUserInfo()
+
         @Serializable
         class ExampleUserInfo(
             @SerialName("sub") val sub: String
         )
+
         val success = result as OidcClientResult.Success<OidcUserInfo>
         assertThat(success.result.deserializeClaims(ExampleUserInfo.serializer()).sub).isEqualTo("foobar")
     }
@@ -667,6 +670,37 @@ class CredentialTest {
         val errorResult = result as OidcClientResult.Error<OidcIntrospectInfo>
         assertThat(errorResult.exception).hasMessageThat().isEqualTo("Exception from mock!")
         assertThat(errorResult.exception).isInstanceOf(IllegalStateException::class.java)
+    }
+
+    @Test fun testStoreTokenExceptionCausesErrorResponse(): Unit = runBlocking {
+        val tokenStorage = object : TokenStorage {
+            override suspend fun entries(): List<TokenStorage.Entry> {
+                return emptyList()
+            }
+
+            override suspend fun add(id: String) {
+            }
+
+            override suspend fun remove(id: String) {
+            }
+
+            override suspend fun replace(updatedEntry: TokenStorage.Entry) {
+                throw IllegalStateException("Expected From Test!")
+            }
+        }
+        val credential = createCredential(
+            token = createToken(refreshToken = "exampleRefreshToken"),
+            tokenStorage = tokenStorage,
+        )
+        oktaRule.enqueue(path("/oauth2/default/v1/token")) { response ->
+            val body = oktaRule.configuration.json.encodeToString(createToken(refreshToken = "newRefreshToken").asSerializableToken())
+            response.setBody(body)
+        }
+        val result = credential.refreshToken()
+        assertThat(result).isInstanceOf(OidcClientResult.Error::class.java)
+        val exception = (result as OidcClientResult.Error<Token>).exception
+        assertThat(exception).isInstanceOf(IllegalStateException::class.java)
+        assertThat(exception).hasMessageThat().isEqualTo("Expected From Test!")
     }
 
     private fun createCredential(
