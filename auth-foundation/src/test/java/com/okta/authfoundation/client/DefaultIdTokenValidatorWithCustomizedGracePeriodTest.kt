@@ -65,7 +65,7 @@ class DefaultIdTokenValidatorWithCustomizedGracePeriodTest {
                 oktaRule.createOidcClient(oktaRule.createEndpoints("$issuerPrefix://example-test.okta.com".toHttpUrl().newBuilder()))
             runBlocking { idTokenValidator.validate(client, createJwt(idToken), nonce) }
             fail()
-        } catch (e: IllegalStateException) {
+        } catch (e: IdTokenValidator.Error) {
             assertThat(e).hasMessageThat().isEqualTo(message)
         } catch (e: SerializationException) {
             assertThat(e).hasMessageThat().isEqualTo(message)
