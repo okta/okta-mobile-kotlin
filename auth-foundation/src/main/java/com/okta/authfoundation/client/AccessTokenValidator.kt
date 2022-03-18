@@ -26,6 +26,11 @@ import okio.ByteString.Companion.toByteString
  */
 fun interface AccessTokenValidator {
     /**
+     * An error used for describing errors when validating the [Jwt].
+     */
+    class Error(message: String) : IllegalStateException(message)
+
+    /**
      * Called when the [OidcClient] receives a [Token] response.
      *
      * This should throw an [Exception] if the token is invalid.
@@ -41,14 +46,14 @@ fun interface AccessTokenValidator {
 internal class DefaultAccessTokenValidator : AccessTokenValidator {
     override suspend fun validate(oidcClient: OidcClient, accessToken: String, idToken: Jwt) {
         if (idToken.algorithm != "RS256") {
-            throw IllegalArgumentException("Unsupported algorithm")
+            throw AccessTokenValidator.Error("Unsupported algorithm")
         }
         val sha256 = accessToken.toByteArray(Charsets.US_ASCII).toByteString().sha256()
         val leftMost = sha256.substring(0, sha256.size / 2)
         val actualAccessTokenHash = leftMost.base64Url().removeSuffix("==")
         val expectedAccessTokenHash = idToken.deserializeClaims(IdTokenAtHash.serializer()).atHash
         if (actualAccessTokenHash != expectedAccessTokenHash) {
-            throw IllegalStateException("ID Token at_hash didn't match the access token.")
+            throw AccessTokenValidator.Error("ID Token at_hash didn't match the access token.")
         }
     }
 }

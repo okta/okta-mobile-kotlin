@@ -26,6 +26,11 @@ import kotlin.math.abs
  */
 interface IdTokenValidator {
     /**
+     * An error used for describing errors when validating the [Jwt].
+     */
+    class Error(message: String) : IllegalStateException(message)
+
+    /**
      * The grace period in seconds that will be permitted when verifying the ID Token [Jwt] `iss` field.
      *
      * *Default:* 10 minutes.
@@ -52,25 +57,25 @@ internal class DefaultIdTokenValidator : IdTokenValidator {
         val idTokenPayload = idToken.deserializeClaims(IdTokenValidationPayload.serializer())
 
         if (idTokenPayload.iss != oidcClient.endpointsOrNull()?.issuer.toString()) {
-            throw IllegalStateException("Invalid issuer.")
+            throw IdTokenValidator.Error("Invalid issuer.")
         }
         if (idTokenPayload.aud != oidcClient.configuration.clientId) {
-            throw IllegalStateException("Invalid audience.")
+            throw IdTokenValidator.Error("Invalid audience.")
         }
         if (!idTokenPayload.iss.startsWith("https://")) {
-            throw IllegalStateException("Issuer must use HTTPS.")
+            throw IdTokenValidator.Error("Issuer must use HTTPS.")
         }
         if (idToken.algorithm != "RS256") {
-            throw IllegalStateException("Invalid JWT algorithm.")
+            throw IdTokenValidator.Error("Invalid JWT algorithm.")
         }
         if (idTokenPayload.exp < oidcClient.configuration.clock.currentTimeEpochSecond()) {
-            throw IllegalStateException("The current time MUST be before the time represented by the exp Claim.")
+            throw IdTokenValidator.Error("The current time MUST be before the time represented by the exp Claim.")
         }
         if (abs(idTokenPayload.iat - oidcClient.configuration.clock.currentTimeEpochSecond()) > issuedAtGracePeriodInSeconds) {
-            throw IllegalStateException("Issued at time is not within the allowed threshold of now.")
+            throw IdTokenValidator.Error("Issued at time is not within the allowed threshold of now.")
         }
         if (idTokenPayload.nonce != nonce) {
-            throw IllegalStateException("Nonce mismatch.")
+            throw IdTokenValidator.Error("Nonce mismatch.")
         }
     }
 }
