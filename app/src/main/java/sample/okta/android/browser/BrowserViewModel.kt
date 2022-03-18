@@ -16,32 +16,19 @@
 package sample.okta.android.browser
 
 import android.content.Context
-import android.net.Uri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.okta.authfoundation.client.OidcClientResult
-import com.okta.oauth2.AuthorizationCodeFlow
 import com.okta.webauthenticationui.WebAuthenticationClient.Companion.createWebAuthenticationClient
 import kotlinx.coroutines.launch
 import sample.okta.android.SampleHelper
-import sample.okta.android.SocialRedirectCoordinator
 import timber.log.Timber
 
 class BrowserViewModel : ViewModel() {
-    private var authorizationCodeFlowContext: AuthorizationCodeFlow.Context? = null
-
     private val _state = MutableLiveData<BrowserState>(BrowserState.Idle)
     val state: LiveData<BrowserState> = _state
-
-    init {
-        SocialRedirectCoordinator.listeners += ::handleRedirect
-    }
-
-    override fun onCleared() {
-        SocialRedirectCoordinator.listeners -= ::handleRedirect
-    }
 
     fun login(context: Context, addDeviceSsoScope: Boolean) {
         val webAuthenticationClient = SampleHelper.defaultCredential.oidcClient.createWebAuthenticationClient()
@@ -56,23 +43,6 @@ class BrowserViewModel : ViewModel() {
                 is OidcClientResult.Error -> {
                     Timber.e(result.exception, "Failed to start login flow.")
                     _state.value = BrowserState.Error("Failed to start login flow.")
-                }
-                is OidcClientResult.Success -> {
-                    authorizationCodeFlowContext = result.result
-                    _state.value = BrowserState.Idle
-                }
-            }
-        }
-    }
-
-    fun handleRedirect(uri: Uri) {
-        viewModelScope.launch {
-            _state.value = BrowserState.Loading
-
-            when (val result =
-                SampleHelper.defaultCredential.oidcClient.createWebAuthenticationClient().resume(uri, authorizationCodeFlowContext!!)) {
-                is OidcClientResult.Error -> {
-                    _state.value = BrowserState.Error(result.exception.message ?: "An error occurred.")
                 }
                 is OidcClientResult.Success -> {
                     _state.value = BrowserState.Token

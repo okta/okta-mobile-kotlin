@@ -27,12 +27,9 @@ import okhttp3.HttpUrl.Companion.toHttpUrl
 import sample.okta.android.BuildConfig
 import sample.okta.android.SampleHelper
 import sample.okta.android.SampleApplication
+import sample.okta.android.SampleHelper.createDefaultCredential
 
 internal class StartupViewModel : ViewModel() {
-    companion object {
-        private const val DEFAULT_CREDENTIAL_NAME_METADATA_VALUE: String = "Default"
-    }
-
     private val _state = MutableLiveData<StartupState>(StartupState.Loading)
     val state: LiveData<StartupState> = _state
 
@@ -62,17 +59,10 @@ internal class StartupViewModel : ViewModel() {
             val credentialDataSource = oidcClient.createCredentialDataSource(SampleApplication.context)
             SampleHelper.credentialDataSource = credentialDataSource
             val credential = credentialDataSource.listCredentials().firstOrNull { credential ->
-                credential.metadata[SampleHelper.CREDENTIAL_NAME_METADATA_KEY] == DEFAULT_CREDENTIAL_NAME_METADATA_VALUE
-            } ?: credentialDataSource.createCredential()
+                credential.metadata[SampleHelper.CREDENTIAL_NAME_METADATA_KEY] == SampleHelper.DEFAULT_CREDENTIAL_NAME_METADATA_VALUE
+            } ?: credentialDataSource.createDefaultCredential()
             SampleHelper.defaultCredential = credential
-            SampleHelper.defaultCredential.storeToken(
-                metadata = mapOf(
-                    Pair(
-                        SampleHelper.CREDENTIAL_NAME_METADATA_KEY,
-                        DEFAULT_CREDENTIAL_NAME_METADATA_VALUE
-                    )
-                )
-            )
+
             _state.value = StartupState.Complete
         }
     }

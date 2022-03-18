@@ -16,7 +16,6 @@
 package sample.okta.android.dashboard
 
 import android.content.Context
-import android.net.Uri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -26,14 +25,13 @@ import com.okta.authfoundation.client.dto.OidcIntrospectInfo
 import com.okta.authfoundation.credential.Credential
 import com.okta.authfoundation.credential.RevokeTokenType
 import com.okta.authfoundation.credential.TokenType
-import com.okta.oauth2.RedirectEndSessionFlow
 import com.okta.webauthenticationui.WebAuthenticationClient.Companion.createWebAuthenticationClient
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import sample.okta.android.SampleHelper
-import sample.okta.android.SocialRedirectCoordinator
+import sample.okta.android.SampleHelper.createDefaultCredential
 import timber.log.Timber
 
 internal class DashboardViewModel(private val credentialMetadataNameValue: String?) : ViewModel() {
@@ -46,16 +44,12 @@ internal class DashboardViewModel(private val credentialMetadataNameValue: Strin
     private val _credentialLiveData = MutableLiveData<Credential>()
     val credentialLiveData: LiveData<Credential> = _credentialLiveData
 
-    private var logoutFlowContext: RedirectEndSessionFlow.Context? = null
-
     var lastButtonId: Int = 0
     private var lastRequestJob: Job? = null
 
     private lateinit var credential: Credential
 
     init {
-        SocialRedirectCoordinator.listeners += ::handleRedirect
-
         viewModelScope.launch {
             credential = if (credentialMetadataNameValue == null) {
                 SampleHelper.defaultCredential
@@ -74,11 +68,6 @@ internal class DashboardViewModel(private val credentialMetadataNameValue: Strin
             _credentialLiveData.value = credential
             getUserInfo()
         }
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        SocialRedirectCoordinator.listeners -= ::handleRedirect
     }
 
     fun revoke(buttonId: Int, tokenType: RevokeTokenType) {
@@ -134,7 +123,9 @@ internal class DashboardViewModel(private val credentialMetadataNameValue: Strin
                     _requestStateLiveData.value = RequestState.Result(result.exception.message ?: "An error occurred.")
                 }
                 is OidcClientResult.Success -> {
-                    logoutFlowContext = result.result
+                    credential.delete()
+                    SampleHelper.defaultCredential = SampleHelper.credentialDataSource.createDefaultCredential()
+                    _requestStateLiveData.value = RequestState.Result("Logout successful!")
                 }
             }
         }
@@ -181,24 +172,10 @@ internal class DashboardViewModel(private val credentialMetadataNameValue: Strin
         data class Result(val text: String) : RequestState()
     }
 
-    fun handleRedirect(uri: Uri) {
-        viewModelScope.launch {
-            when (val result = credential.oidcClient.createWebAuthenticationClient().resume(uri, logoutFlowContext!!)) {
-                is OidcClientResult.Error -> {
-                    _requestStateLiveData.value = RequestState.Result(result.exception.message ?: "An error occurred.")
-                }
-                is OidcClientResult.Success -> {
-                    credential.delete()
-                    SampleHelper.defaultCredential = SampleHelper.credentialDataSource.createCredential()
-                    _requestStateLiveData.value = RequestState.Result("Logout successful!")
-                }
-            }
-        }
-    }
-
     fun deleteCredential() {
         viewModelScope.launch {
             credential.delete()
+            SampleHelper.defaultCredential = SampleHelper.credentialDataSource.createDefaultCredential()
         }
     }
 }

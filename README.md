@@ -106,56 +106,26 @@ val credential: Credential = TODO("Available from previous steps.")
 val webAuthenticationClient = credential.oidcClient.createWebAuthenticationClient()
 when (val result = webAuthenticationClient.login(context)) {
     is OidcClientResult.Error -> {
-        // Timber.e(result.exception, "Failed to start login flow.")
+        // Timber.e(result.exception, "Failed to login.")
         // TODO: Display an error to the user.
     }
     is OidcClientResult.Success -> {
-        // TODO: Store the AuthorizationCodeFlow.Context in an instance variable, and wait for the application redirect to be called.
-        // val authorizationCodeFlowContext: AuthorizationCodeFlow.Context = result.result
+      // The credential instance now has a token! You can use the `Credential` to make calls to OAuth endpoints, or to sign requests!
     }
 }
 ```
 
-Next we need to be sure our application handles the redirect. Add the following `<intent-filter>` to your `AndroidManifest.xml`:
+Next we need to be sure our application handles the redirect. Add the following snippet to your `build.gradle`:
 
-Note: you'll need to replace the `{RedirectActivity}` and `{oktaIdxRedirectScheme}` listed below.
+Note: you will need to replace the `{redirectUriScheme}` with your applications redirect scheme. For example, a `signInRedirectUri` of `com.okta.sample.android:/login` would mean replacing `{redirectUriScheme}` with `com.okta.sample.android`.
 
-```xml
-<activity
-    android:name=".{RedirectActivity}"
-    android:autoRemoveFromRecents="true"
-    android:exported="true"
-    android:launchMode="singleInstance">
-    <intent-filter>
-        <action android:name="android.intent.action.VIEW" />
-
-        <category android:name="android.intent.category.DEFAULT" />
-        <category android:name="android.intent.category.BROWSABLE" />
-
-        <data android:scheme="{oktaIdxRedirectScheme}" />
-    </intent-filter>
-</activity>
-```
-
-Next once the redirect happens, pass the `Uri` to the SDK to finish the authentication process.
-
-```kotlin
-import android.net.Uri
-import com.okta.authfoundation.credential.Credential
-import com.okta.oauth2.AuthorizationCodeFlow
-import com.okta.webauthenticationui.WebAuthenticationClient.Companion.createWebAuthenticationClient
-
-val uri: Uri = TODO("Available from previous steps.")
-val credential: Credential = TODO("Available from previous steps.")
-val authorizationCodeFlowContext: AuthorizationCodeFlow.Context = TODO("Available from previous steps.")
-
-when (val result = credential.oidcClient.createWebAuthenticationClient().resume(uri, authorizationCodeFlowContext)) {
-    is OidcClientResult.Error -> {
-        // Show an error to the user. The relevant exception is available in `result.exception`.
-    }
-    is OidcClientResult.Success -> {
-        // The credential instance now has a token! You can use the `Credential` to make calls to OAuth endpoints, or to sign requests!
-    }
+```groovy
+android {
+  defaultConfig {
+    manifestPlaceholders = [
+      "webAuthenticationRedirectScheme": "{redirectUriScheme}"
+    ]
+  }
 }
 ```
 
