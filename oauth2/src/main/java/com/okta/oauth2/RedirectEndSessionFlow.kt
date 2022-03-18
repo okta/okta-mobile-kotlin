@@ -80,9 +80,9 @@ class RedirectEndSessionFlow private constructor(
         idToken: String,
         state: String,
     ): OidcClientResult<Context> {
-        val endpoints = oidcClient.endpointsOrNull() ?: return oidcClient.endpointNotAvailableError()
+        val endpoint = oidcClient.endpointsOrNull()?.endSessionEndpoint ?: return oidcClient.endpointNotAvailableError()
 
-        val urlBuilder = endpoints.endSessionEndpoint.newBuilder()
+        val urlBuilder = endpoint.newBuilder()
         urlBuilder.addQueryParameter("id_token_hint", idToken)
         urlBuilder.addQueryParameter("post_logout_redirect_uri", oidcClient.configuration.signOutRedirectUri)
         urlBuilder.addQueryParameter("state", state)

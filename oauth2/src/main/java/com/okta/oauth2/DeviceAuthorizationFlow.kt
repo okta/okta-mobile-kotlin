@@ -81,11 +81,6 @@ class DeviceAuthorizationFlow private constructor(
      */
     class TimeoutException : Exception()
 
-    /**
-     * An error occurred due to a missing device authorization endpoint in [OidcEndpoints.deviceAuthorizationEndpoint].
-     */
-    class DeviceAuthorizationEndpointNotAvailableException : Exception("Device authorization endpoint is null.")
-
     @Serializable
     internal class SerializableResponse(
         @SerialName("verification_uri") val verificationUri: String,
@@ -119,10 +114,7 @@ class DeviceAuthorizationFlow private constructor(
     suspend fun start(
         scopes: Set<String> = oidcClient.configuration.defaultScopes,
     ): OidcClientResult<Context> {
-        val endpoints = oidcClient.endpointsOrNull() ?: return oidcClient.endpointNotAvailableError()
-
-        val deviceAuthorizationEndpoint = endpoints.deviceAuthorizationEndpoint
-            ?: return OidcClientResult.Error(DeviceAuthorizationEndpointNotAvailableException())
+        val endpoint = oidcClient.endpointsOrNull()?.deviceAuthorizationEndpoint ?: return oidcClient.endpointNotAvailableError()
 
         val formBodyBuilder = FormBody.Builder()
             .add("client_id", oidcClient.configuration.clientId)
@@ -130,7 +122,7 @@ class DeviceAuthorizationFlow private constructor(
 
         val request = Request.Builder()
             .post(formBodyBuilder.build())
-            .url(deviceAuthorizationEndpoint)
+            .url(endpoint)
             .build()
 
         return oidcClient.configuration.performRequest(SerializableResponse.serializer(), request) { serializableResponse ->

@@ -59,8 +59,7 @@ class DeviceAuthorizationFlowTest {
 
         val flow = client.createDeviceAuthorizationFlow()
         val startResult = flow.start() as OidcClientResult.Error<DeviceAuthorizationFlow.Context>
-        assertThat(startResult.exception).isInstanceOf(DeviceAuthorizationFlow.DeviceAuthorizationEndpointNotAvailableException::class.java)
-        assertThat(startResult.exception).hasMessageThat().isEqualTo("Device authorization endpoint is null.")
+        assertThat(startResult.exception).isInstanceOf(OidcClientResult.Error.OidcEndpointsNotAvailableException::class.java)
     }
 
     @Test fun testStart(): Unit = runBlocking {

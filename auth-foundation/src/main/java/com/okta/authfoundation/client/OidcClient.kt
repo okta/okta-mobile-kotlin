@@ -99,11 +99,11 @@ class OidcClient private constructor(
      * @param accessToken the access token used for authorization to the Authorization Server
      */
     suspend fun getUserInfo(accessToken: String): OidcClientResult<OidcUserInfo> {
-        val endpoints = endpointsOrNull() ?: return endpointNotAvailableError()
+        val endpoint = endpointsOrNull()?.userInfoEndpoint ?: return endpointNotAvailableError()
 
         val request = Request.Builder()
             .addHeader("authorization", "Bearer $accessToken")
-            .url(endpoints.userInfoEndpoint)
+            .url(endpoint)
             .build()
 
         return configuration.performRequest(JsonObject.serializer(), request) {
@@ -146,7 +146,7 @@ class OidcClient private constructor(
      * @param token the token to attempt to revoke.
      */
     suspend fun revokeToken(token: String): OidcClientResult<Unit> {
-        val endpoints = endpointsOrNull() ?: return endpointNotAvailableError()
+        val endpoint = endpointsOrNull()?.revocationEndpoint ?: return endpointNotAvailableError()
 
         val formBody = FormBody.Builder()
             .add("client_id", configuration.clientId)
@@ -154,7 +154,7 @@ class OidcClient private constructor(
             .build()
 
         val request = Request.Builder()
-            .url(endpoints.revocationEndpoint)
+            .url(endpoint)
             .post(formBody)
             .build()
 
@@ -171,7 +171,7 @@ class OidcClient private constructor(
         tokenType: TokenType,
         token: String,
     ): OidcClientResult<OidcIntrospectInfo> {
-        val endpoints = endpointsOrNull() ?: return endpointNotAvailableError()
+        val introspectEndpoint = endpointsOrNull()?.introspectionEndpoint ?: return endpointNotAvailableError()
 
         val tokenTypeHint: String = when (tokenType) {
             TokenType.ACCESS_TOKEN -> {
@@ -195,7 +195,7 @@ class OidcClient private constructor(
             .build()
 
         val request = Request.Builder()
-            .url(endpoints.introspectionEndpoint)
+            .url(introspectEndpoint)
             .post(formBody)
             .build()
 

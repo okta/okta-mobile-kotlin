@@ -108,9 +108,9 @@ class AuthorizationCodeFlow private constructor(
         extraRequestParameters: Map<String, String>,
         scopes: Set<String>,
     ): OidcClientResult<Context> {
-        val endpoints = oidcClient.endpointsOrNull() ?: return oidcClient.endpointNotAvailableError()
+        val endpoint = oidcClient.endpointsOrNull()?.authorizationEndpoint ?: return oidcClient.endpointNotAvailableError()
 
-        val urlBuilder = endpoints.authorizationEndpoint.newBuilder()
+        val urlBuilder = endpoint.newBuilder()
 
         for (entry in extraRequestParameters.entries) {
             urlBuilder.addQueryParameter(entry.key, entry.value)
