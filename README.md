@@ -75,7 +75,7 @@ val client = OidcClient.createFromDiscoveryUrl(
 
 #### Create a Credential
 
-The Credential type handles storage, OAuth conveniences and signing requests to your Resource Server after login occurs. Before authenticating, we'll create the credential.
+The Credential type handles storage, OAuth conveniences and authorizing requests to your Resource Server after login occurs. Before authenticating, we'll create the credential.
 
 ```kotlin
 import android.content.Context
@@ -92,7 +92,7 @@ val credential: Credential = credentialDataSource.createCredential()
 
 Once you've created your `Credential`, we'll use it to create our `WebAuthenticationClient` and authenticate.
 
-This launches a [Chrome Custom Tab][https://developer.chrome.com/docs/android/custom-tabs/] to display the login form, and once complete, redirects back to the application.
+This launches a [Chrome Custom Tab](https://developer.chrome.com/docs/android/custom-tabs/) to display the login form, and once complete, redirects back to the application.
 
 ```kotlin
 import android.content.Context
@@ -133,7 +133,7 @@ android {
 
 Tokens minted via any flow are automatically stored in the credential via `Credential.storeToken` when using the `Credential.oidcClient` property.
 Using an `OidcClient` not fetched from a `Credential` (ie, one created via `OidcClient.createFromDiscoveryUrl`) will not result in automatic token storage.
-This means you do not need to call `Credential.storeToken` when refreshing a token via `Credential.refreshToken` or signing in via `Credential.oidcClient.createWebAuthenticationClient`.
+This means you do not need to call `Credential.storeToken` when refreshing a token via `Credential.refreshToken` or logging in via `Credential.oidcClient.createWebAuthenticationClient`.
 
 ### Logout 
 
@@ -188,12 +188,11 @@ signInRedirectUri=com.okta.sample.android:/login
 signOutRedirectUri=com.okta.sample.android:/logout
 ```
 
-Notes:
-
-- issuer - is your authorization server, usually https://your_okta_domain.okta.com/oauth2/default, but custom authorization servers are supported. See https://your_okta_domain.okta.com/admin/oauth2/as for available authorization servers.
-- clientId - is your applications client id, created in your Okta admin dashboard
-- signInRedirectUri - is used for browser redirect, and should follow the format of reverse domain name notation + /login, ie: com.okta.sample.android:/login
-- signOutRedirectUri - is used for browser redirect, and should follow the format of reverse domain name notation + /logout, ie: com.okta.sample.android:/logout
+> Notes:
+> - issuer - is your authorization server, usually https://your_okta_domain.okta.com/oauth2/default, but custom authorization servers are supported. See https://your_okta_domain.okta.com/admin/oauth2/as for available authorization servers.
+> - clientId - is your applications client id, created in your Okta admin dashboard
+> - signInRedirectUri - is used for browser redirect, and should follow the format of reverse domain name notation + /login, ie: com.okta.sample.android:/login
+> - signOutRedirectUri - is used for browser redirect, and should follow the format of reverse domain name notation + /logout, ie: com.okta.sample.android:/logout
 
 ### Launching the sample
 
