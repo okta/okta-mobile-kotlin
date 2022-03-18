@@ -48,10 +48,10 @@ internal class DefaultAccessTokenValidator : AccessTokenValidator {
         if (idToken.algorithm != "RS256") {
             throw AccessTokenValidator.Error("Unsupported algorithm")
         }
+        val expectedAccessTokenHash = idToken.deserializeClaims(IdTokenAtHash.serializer()).atHash ?: return
         val sha256 = accessToken.toByteArray(Charsets.US_ASCII).toByteString().sha256()
         val leftMost = sha256.substring(0, sha256.size / 2)
         val actualAccessTokenHash = leftMost.base64Url().removeSuffix("==")
-        val expectedAccessTokenHash = idToken.deserializeClaims(IdTokenAtHash.serializer()).atHash
         if (actualAccessTokenHash != expectedAccessTokenHash) {
             throw AccessTokenValidator.Error("ID Token at_hash didn't match the access token.")
         }
@@ -60,5 +60,5 @@ internal class DefaultAccessTokenValidator : AccessTokenValidator {
 
 @Serializable
 private class IdTokenAtHash(
-    @SerialName("at_hash") val atHash: String,
+    @SerialName("at_hash") val atHash: String? = null,
 )
