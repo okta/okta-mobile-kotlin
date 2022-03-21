@@ -260,6 +260,21 @@ class CredentialTest {
         assertThat(credential.token?.refreshToken).isEqualTo("newRefreshToken")
     }
 
+    @Test fun testRefreshTokenWithRealOidcClientPreservesRefreshToken(): Unit = runBlocking {
+        val credential = createCredential(
+            token = createToken(refreshToken = "exampleRefreshToken"),
+        )
+        oktaRule.enqueue(path("/oauth2/default/v1/token")) { response ->
+            val body = oktaRule.configuration.json.encodeToString(createToken(refreshToken = null).asSerializableToken())
+            response.setBody(body)
+        }
+        val result = credential.refreshToken()
+        assertThat(result).isInstanceOf(OidcClientResult.Success::class.java)
+        val token = (result as OidcClientResult.Success<Token>).result
+        assertThat(token.refreshToken).isNull()
+        assertThat(credential.token?.refreshToken).isEqualTo("exampleRefreshToken")
+    }
+
     @Test fun testRefreshTokenWithRealOidcClientEmitsEvent(): Unit = runBlocking {
         val credential = createCredential(
             token = createToken(refreshToken = "exampleRefreshToken"),

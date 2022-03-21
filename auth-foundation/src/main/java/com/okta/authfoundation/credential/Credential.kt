@@ -124,6 +124,8 @@ class Credential internal constructor(
             return
         }
         val tokenToStore = token?.copy(
+            // Refresh Token isn't ALWAYS returned when refreshing.
+            refreshToken = token.refreshToken ?: _token?.refreshToken,
             // Device Secret isn't returned when refreshing.
             deviceSecret = token.deviceSecret ?: _token?.deviceSecret,
         )
