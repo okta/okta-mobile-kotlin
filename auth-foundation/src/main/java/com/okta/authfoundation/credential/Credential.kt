@@ -23,7 +23,6 @@ import com.okta.authfoundation.credential.events.CredentialStoredAfterRemovedEve
 import com.okta.authfoundation.credential.events.NoAccessTokenAvailableEvent
 import com.okta.authfoundation.events.EventCoordinator
 import com.okta.authfoundation.jwt.Jwt
-import com.okta.authfoundation.jwt.JwtParser
 import com.okta.authfoundation.util.CoalescingOrchestrator
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -219,11 +218,11 @@ class Credential internal constructor(
      */
     suspend fun getAccessTokenIfValid(): String? {
         val accessToken = _token?.accessToken ?: return null
+        val idToken = idToken() ?: return null
+        val expiresIn = _token?.expiresIn ?: return null
         try {
-            val parser = JwtParser(oidcClient.configuration.json, oidcClient.configuration.computeDispatcher)
-            val jwt = parser.parse(accessToken)
-            val payload = jwt.deserializeClaims(AccessTokenExpirationPayload.serializer())
-            if (payload.exp > oidcClient.configuration.clock.currentTimeEpochSecond()) {
+            val payload = idToken.deserializeClaims(TokenIssuedAtPayload.serializer())
+            if (payload.issueAt + expiresIn > oidcClient.configuration.clock.currentTimeEpochSecond()) {
                 return accessToken
             }
         } catch (e: Exception) {
@@ -264,6 +263,6 @@ class Credential internal constructor(
 }
 
 @Serializable
-private class AccessTokenExpirationPayload(
-    @SerialName("exp") val exp: Long,
+private class TokenIssuedAtPayload(
+    @SerialName("iat") val issueAt: Long,
 )
