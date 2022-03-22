@@ -33,7 +33,7 @@ class OidcClientIdTokenValidationFailureTest {
 
     @get:Rule val oktaRule = OktaRule(idTokenValidator = object : IdTokenValidator {
         override var issuedAtGracePeriodInSeconds: Int = 600
-        override suspend fun validate(oidcClient: OidcClient, idToken: Jwt, nonce: String?) {
+        override suspend fun validate(oidcClient: OidcClient, idToken: Jwt, nonce: String?, maxAge: Int?) {
             throw IllegalStateException("Failure!")
         }
     })

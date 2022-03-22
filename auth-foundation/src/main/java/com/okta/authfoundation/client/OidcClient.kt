@@ -242,6 +242,7 @@ class OidcClient private constructor(
     suspend fun tokenRequest(
         request: Request,
         nonce: String? = null,
+        maxAge: Int? = null
     ): OidcClientResult<Token> {
         val result = configuration.performRequest(SerializableToken.serializer(), request) { serializableToken ->
             serializableToken.asToken()
@@ -250,7 +251,7 @@ class OidcClient private constructor(
             val token = result.result
 
             try {
-                TokenValidator(this, token, nonce).validate()
+                TokenValidator(this, token, nonce, maxAge).validate()
                 configuration.eventCoordinator.sendEvent(TokenCreatedEvent(token, credential))
                 credential?.storeToken(token)
             } catch (e: Exception) {

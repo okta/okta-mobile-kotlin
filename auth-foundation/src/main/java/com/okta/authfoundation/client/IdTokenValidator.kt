@@ -45,15 +45,16 @@ interface IdTokenValidator {
      * @param oidcClient the [OidcClient] that made the [Token] request.
      * @param idToken the [Jwt] representing the id token from the [Token] response.
      * @param nonce the nonce sent with the authorize request, if using Authorization Code Flow and available.
+     * @param maxAge the max_age sent to the authorize request, if using Authorization Code Flow and available.
      */
-    suspend fun validate(oidcClient: OidcClient, idToken: Jwt, nonce: String?)
+    suspend fun validate(oidcClient: OidcClient, idToken: Jwt, nonce: String?, maxAge: Int?)
 }
 
 // https://openid.net/specs/openid-connect-core-1_0.html#IDTokenValidation
 internal class DefaultIdTokenValidator : IdTokenValidator {
     override var issuedAtGracePeriodInSeconds: Int = 600
 
-    override suspend fun validate(oidcClient: OidcClient, idToken: Jwt, nonce: String?) {
+    override suspend fun validate(oidcClient: OidcClient, idToken: Jwt, nonce: String?, maxAge: Int?) {
         val idTokenPayload = idToken.deserializeClaims(IdTokenValidationPayload.serializer())
 
         if (idTokenPayload.iss != oidcClient.endpointsOrNull()?.issuer.toString()) {
@@ -77,6 +78,13 @@ internal class DefaultIdTokenValidator : IdTokenValidator {
         if (idTokenPayload.nonce != nonce) {
             throw IdTokenValidator.Error("Nonce mismatch.")
         }
+        if (maxAge != null) {
+            val authTime = idTokenPayload.authTime ?: throw IdTokenValidator.Error("Auth time not available.")
+            val elapsedTime = idTokenPayload.iat - authTime
+            if (elapsedTime < 0 || elapsedTime > maxAge) {
+                throw IdTokenValidator.Error("Max age not satisfied.")
+            }
+        }
     }
 }
 
@@ -87,4 +95,5 @@ internal class IdTokenValidationPayload(
     @SerialName("exp") val exp: Int,
     @SerialName("iat") val iat: Int,
     @SerialName("nonce") val nonce: String? = null,
+    @SerialName("auth_time") val authTime: Int? = null,
 )

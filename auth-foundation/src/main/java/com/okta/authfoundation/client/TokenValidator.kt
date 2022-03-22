@@ -22,6 +22,7 @@ internal class TokenValidator(
     private val oidcClient: OidcClient,
     private val token: Token,
     private val nonce: String?,
+    private val maxAge: Int?,
 ) {
     private val parser = JwtParser(oidcClient.configuration.json, oidcClient.configuration.computeDispatcher)
 
@@ -33,6 +34,7 @@ internal class TokenValidator(
                 oidcClient = oidcClient,
                 idToken = idToken,
                 nonce = nonce,
+                maxAge = maxAge,
             )
 
             oidcClient.configuration.accessTokenValidator.validate(

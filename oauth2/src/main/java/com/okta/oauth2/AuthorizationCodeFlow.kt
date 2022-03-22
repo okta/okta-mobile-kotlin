@@ -55,6 +55,7 @@ class AuthorizationCodeFlow private constructor(
         internal val codeVerifier: String,
         internal val state: String,
         internal val nonce: String,
+        internal val maxAge: Int?
     )
 
     /**
@@ -116,6 +117,8 @@ class AuthorizationCodeFlow private constructor(
             urlBuilder.addQueryParameter(entry.key, entry.value)
         }
 
+        val maxAge = extraRequestParameters["max_age"]?.toIntOrNull()
+
         urlBuilder.addQueryParameter("code_challenge", PkceGenerator.codeChallenge(codeVerifier))
         urlBuilder.addQueryParameter("code_challenge_method", PkceGenerator.CODE_CHALLENGE_METHOD)
         urlBuilder.addQueryParameter("client_id", oidcClient.configuration.clientId)
@@ -125,7 +128,7 @@ class AuthorizationCodeFlow private constructor(
         urlBuilder.addQueryParameter("state", state)
         urlBuilder.addQueryParameter("nonce", nonce)
 
-        return OidcClientResult.Success(Context(urlBuilder.build(), codeVerifier, state, nonce))
+        return OidcClientResult.Success(Context(urlBuilder.build(), codeVerifier, state, nonce, maxAge))
     }
 
     /**
@@ -168,6 +171,6 @@ class AuthorizationCodeFlow private constructor(
             .url(endpoints.tokenEndpoint)
             .build()
 
-        return oidcClient.tokenRequest(request, flowContext.nonce)
+        return oidcClient.tokenRequest(request, flowContext.nonce, flowContext.maxAge)
     }
 }
