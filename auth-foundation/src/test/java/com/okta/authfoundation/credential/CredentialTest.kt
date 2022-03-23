@@ -22,6 +22,8 @@ import com.okta.authfoundation.client.dto.OidcIntrospectInfo
 import com.okta.authfoundation.client.dto.OidcUserInfo
 import com.okta.authfoundation.client.events.TokenCreatedEvent
 import com.okta.authfoundation.credential.events.CredentialStoredAfterRemovedEvent
+import com.okta.authfoundation.jwt.IdTokenClaims
+import com.okta.authfoundation.jwt.JwtBuilder.Companion.createJwtBuilder
 import com.okta.testhelpers.OktaRule
 import com.okta.testhelpers.RequestMatchers.header
 import com.okta.testhelpers.RequestMatchers.method
@@ -452,35 +454,42 @@ class CredentialTest {
     }
 
     @Test fun accessTokenIfValidReturnsNullWithExpiredToken(): Unit = runBlocking {
-        val credential = oktaRule.createCredential(token = createToken(accessToken = "eyJraWQiOiJGSkEwSEdOdHN1dWRhX1BsNDVKNDJrdlFxY3N1XzBDNEZnN3BiSkxYVEhZIiwiYWxnIjoiUlMyNTYifQ.eyJ2ZXIiOjEsImp0aSI6IkFULmFacVZaaTlRd0oyLTR2TFFLTjUyNDJiMFRZLVlzU201b3hybVRQQjRLalUub2FyMXB3M28zbzNadW9icGo2OTYiLCJpc3MiOiJodHRwczovL2V4YW1wbGUub2t0YS5jb20vb2F1dGgyL2RlZmF1bHQiLCJhdWQiOiJhcGk6Ly9kZWZhdWx0IiwiaWF0IjoxNjQ0MzI3MDY5LCJleHAiOjE2NDQzMzcwNjksImNpZCI6IjBvYThmdXAwbEFQWUZDNEkyNjk2IiwidWlkIjoiMDB1YjQxejdtZ3pOcXJ5TXY2OTYiLCJzY3AiOlsib3BlbmlkIiwicHJvZmlsZSIsIm9mZmxpbmVfYWNjZXNzIiwiZW1haWwiLCJkZXZpY2Vfc3NvIl0sInN1YiI6ImpheW5ld3N0cm9tQGV4YW1wbGUuY29tIn0.0Pmlxd94xHkszXa_ira1olljQF8sgrf6zcA08qTzAq7AIwfanQW6dOng2Nd-JJpgO2KAKcBPOJ9qVO--A0wHWbPDuJ2BmasdCyQeYbdwTL-I1TnlXVp_zZUy15tE2Q5nCVQVUzcGsI36d9PD8WhkM8dzzvmVsar7KpGTFstb8N_Fwjo-lsCRPBEhvp1dVXEfbtE5xlNyG2l-HkTpAZqgLQzBJCCd6CmodD-SjKB3ikqblaL7sE7FUrCM7Mxs5YWF8S5TBzOo6SGC95JDomRqHk5Jhq6xmfwPmVywM5jJ8jte5mzGb6cJAj1NWIxawE7nkoeKmKwmIu5mG26an9u2bQ"))
+        val idTokenClaims = IdTokenClaims(issuedAt = oktaRule.clock.currentTime - MOCK_TOKEN_DURATION)
+        val idToken = oktaRule.createOidcClient().createJwtBuilder().createJwt(claims = idTokenClaims).rawValue
+        val credential = oktaRule.createCredential(token = createToken(accessToken = "exampleAccessToken", idToken = idToken))
         assertThat(credential.getAccessTokenIfValid()).isNull()
     }
 
     @Test fun accessTokenIfValidReturnsAccessToken(): Unit = runBlocking {
         val accessToken = "exampleAccessToken"
-        val idToken = "eyJraWQiOiJGSkEwSEdOdHN1dWRhX1BsNDVKNDJrdlFxY3N1XzBDNEZnN3BiSkxYVEhZIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiIwMHViNDF6N21nek5xcnlNdjY5NiIsIm5hbWUiOiJKYXkgTmV3c3Ryb20iLCJlbWFpbCI6ImpheW5ld3N0cm9tQGV4YW1wbGUuY29tIiwidmVyIjoxLCJpc3MiOiJodHRwczovL2V4YW1wbGUtdGVzdC5va3RhLmNvbS9vYXV0aDIvZGVmYXVsdCIsImF1ZCI6InVuaXRfdGVzdF9jbGllbnRfaWQiLCJpYXQiOjE2NDQzNDcwNjksImV4cCI6MTY0NDM1MDY2OSwianRpIjoiSUQuNTVjeEJ0ZFlsOGw2YXJLSVNQQndkMHlPVC05VUNUYVhhUVRYdDJsYVJMcyIsImFtciI6WyJwd2QiXSwiaWRwIjoiMDBvOGZvdTdzUmFHR3dkbjQ2OTYiLCJzaWQiOiJpZHhXeGtscF80a1N4dUNfblUxcFhELW5BIiwicHJlZmVycmVkX3VzZXJuYW1lIjoiamF5bmV3c3Ryb21AZXhhbXBsZS5jb20iLCJhdXRoX3RpbWUiOjE2NDQzNDcwNjgsImF0X2hhc2giOiJnTWNHVGJoR1QxR19sZHNIb0pzUHpRIiwiZHNfaGFzaCI6IkRBZUxPRlJxaWZ5c2Jnc3JiT2dib2cifQ.tT8aKK4r8yFcW9KgVtZxvjXRJVzz-_rve14CVtpUlyvCTE1yj20wmPS0z3-JirI9xXgt5KeNPYqo3Wbv8c9XY_HY3hsPQdILYpPsUkf-sctmzSoKC_dTbs5xe8uKSgmpMrggfUAWrNPiJt9Ek2p7GgP64Wx79Pq5vSHk0yWlonFfXut5ahpSfqWilmYlvLr8gFbqoLnAJfl4ZbTY8pPw_aQgCdcQ-ImHRu-8bCSCtbFRzZB-SMJFLfRF2kmx0H-QF855wUODTuUSydkff-BKb-8wnbqWg0R9NvRdoXhEybv8TXXZY3cQqgolWLAyiPMrz07n0q_UEjAilUiCjn1f4Q"
+        val idTokenClaims = IdTokenClaims(issuedAt = oktaRule.clock.currentTime)
+        val idToken = oktaRule.createOidcClient().createJwtBuilder().createJwt(claims = idTokenClaims).rawValue
         val credential = oktaRule.createCredential(token = createToken(accessToken = accessToken, idToken = idToken))
         assertThat(credential.getAccessTokenIfValid()).isEqualTo(accessToken)
     }
 
     @Test fun getValidAccessTokenReturnsAccessToken(): Unit = runBlocking {
         val accessToken = "exampleAccessToken"
-        val idToken = "eyJraWQiOiJGSkEwSEdOdHN1dWRhX1BsNDVKNDJrdlFxY3N1XzBDNEZnN3BiSkxYVEhZIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiIwMHViNDF6N21nek5xcnlNdjY5NiIsIm5hbWUiOiJKYXkgTmV3c3Ryb20iLCJlbWFpbCI6ImpheW5ld3N0cm9tQGV4YW1wbGUuY29tIiwidmVyIjoxLCJpc3MiOiJodHRwczovL2V4YW1wbGUtdGVzdC5va3RhLmNvbS9vYXV0aDIvZGVmYXVsdCIsImF1ZCI6InVuaXRfdGVzdF9jbGllbnRfaWQiLCJpYXQiOjE2NDQzNDcwNjksImV4cCI6MTY0NDM1MDY2OSwianRpIjoiSUQuNTVjeEJ0ZFlsOGw2YXJLSVNQQndkMHlPVC05VUNUYVhhUVRYdDJsYVJMcyIsImFtciI6WyJwd2QiXSwiaWRwIjoiMDBvOGZvdTdzUmFHR3dkbjQ2OTYiLCJzaWQiOiJpZHhXeGtscF80a1N4dUNfblUxcFhELW5BIiwicHJlZmVycmVkX3VzZXJuYW1lIjoiamF5bmV3c3Ryb21AZXhhbXBsZS5jb20iLCJhdXRoX3RpbWUiOjE2NDQzNDcwNjgsImF0X2hhc2giOiJnTWNHVGJoR1QxR19sZHNIb0pzUHpRIiwiZHNfaGFzaCI6IkRBZUxPRlJxaWZ5c2Jnc3JiT2dib2cifQ.tT8aKK4r8yFcW9KgVtZxvjXRJVzz-_rve14CVtpUlyvCTE1yj20wmPS0z3-JirI9xXgt5KeNPYqo3Wbv8c9XY_HY3hsPQdILYpPsUkf-sctmzSoKC_dTbs5xe8uKSgmpMrggfUAWrNPiJt9Ek2p7GgP64Wx79Pq5vSHk0yWlonFfXut5ahpSfqWilmYlvLr8gFbqoLnAJfl4ZbTY8pPw_aQgCdcQ-ImHRu-8bCSCtbFRzZB-SMJFLfRF2kmx0H-QF855wUODTuUSydkff-BKb-8wnbqWg0R9NvRdoXhEybv8TXXZY3cQqgolWLAyiPMrz07n0q_UEjAilUiCjn1f4Q"
+        val idTokenClaims = IdTokenClaims(issuedAt = oktaRule.clock.currentTime)
+        val idToken = oktaRule.createOidcClient().createJwtBuilder().createJwt(claims = idTokenClaims).rawValue
         val credential = oktaRule.createCredential(token = createToken(accessToken = accessToken, idToken = idToken))
         assertThat(credential.getValidAccessToken()).isEqualTo(accessToken)
     }
 
     @Test fun getValidAccessTokenReturnsNullWhenAccessTokenExpiredAndNoRefreshToken(): Unit = runBlocking {
-        val accessToken = "eyJraWQiOiJGSkEwSEdOdHN1dWRhX1BsNDVKNDJrdlFxY3N1XzBDNEZnN3BiSkxYVEhZIiwiYWxnIjoiUlMyNTYifQ.eyJ2ZXIiOjEsImp0aSI6IkFULmFacVZaaTlRd0oyLTR2TFFLTjUyNDJiMFRZLVlzU201b3hybVRQQjRLalUub2FyMXB3M28zbzNadW9icGo2OTYiLCJpc3MiOiJodHRwczovL2V4YW1wbGUub2t0YS5jb20vb2F1dGgyL2RlZmF1bHQiLCJhdWQiOiJhcGk6Ly9kZWZhdWx0IiwiaWF0IjoxNjQ0MzI3MDY5LCJleHAiOjE2NDQzMzcwNjksImNpZCI6IjBvYThmdXAwbEFQWUZDNEkyNjk2IiwidWlkIjoiMDB1YjQxejdtZ3pOcXJ5TXY2OTYiLCJzY3AiOlsib3BlbmlkIiwicHJvZmlsZSIsIm9mZmxpbmVfYWNjZXNzIiwiZW1haWwiLCJkZXZpY2Vfc3NvIl0sInN1YiI6ImpheW5ld3N0cm9tQGV4YW1wbGUuY29tIn0.0Pmlxd94xHkszXa_ira1olljQF8sgrf6zcA08qTzAq7AIwfanQW6dOng2Nd-JJpgO2KAKcBPOJ9qVO--A0wHWbPDuJ2BmasdCyQeYbdwTL-I1TnlXVp_zZUy15tE2Q5nCVQVUzcGsI36d9PD8WhkM8dzzvmVsar7KpGTFstb8N_Fwjo-lsCRPBEhvp1dVXEfbtE5xlNyG2l-HkTpAZqgLQzBJCCd6CmodD-SjKB3ikqblaL7sE7FUrCM7Mxs5YWF8S5TBzOo6SGC95JDomRqHk5Jhq6xmfwPmVywM5jJ8jte5mzGb6cJAj1NWIxawE7nkoeKmKwmIu5mG26an9u2bQ"
-        val credential = oktaRule.createCredential(token = createToken(accessToken = accessToken, refreshToken = null))
+        val idTokenClaims = IdTokenClaims(issuedAt = oktaRule.clock.currentTime - MOCK_TOKEN_DURATION)
+        val idToken = oktaRule.createOidcClient().createJwtBuilder().createJwt(claims = idTokenClaims).rawValue
+        val credential = oktaRule.createCredential(token = createToken(accessToken = "exampleAccessToken", idToken = idToken, refreshToken = null))
         assertThat(credential.getValidAccessToken()).isNull()
     }
 
     @Test fun getValidAccessTokenRefreshesWhenAccessTokenExpired(): Unit = runBlocking {
         val expiredAccessToken = "expiredAccessToken"
         val validAccessToken = "exampleAccessToken"
-        val expiredIdToken = "eyJraWQiOiJGSkEwSEdOdHN1dWRhX1BsNDVKNDJrdlFxY3N1XzBDNEZnN3BiSkxYVEhZIiwiYWxnIjoiUlMyNTYifQ.eyJ2ZXIiOjEsImp0aSI6IkFULmFacVZaaTlRd0oyLTR2TFFLTjUyNDJiMFRZLVlzU201b3hybVRQQjRLalUub2FyMXB3M28zbzNadW9icGo2OTYiLCJpc3MiOiJodHRwczovL2V4YW1wbGUub2t0YS5jb20vb2F1dGgyL2RlZmF1bHQiLCJhdWQiOiJhcGk6Ly9kZWZhdWx0IiwiaWF0IjoxNjQ0MzI3MDY5LCJleHAiOjE2NDQzMzcwNjksImNpZCI6IjBvYThmdXAwbEFQWUZDNEkyNjk2IiwidWlkIjoiMDB1YjQxejdtZ3pOcXJ5TXY2OTYiLCJzY3AiOlsib3BlbmlkIiwicHJvZmlsZSIsIm9mZmxpbmVfYWNjZXNzIiwiZW1haWwiLCJkZXZpY2Vfc3NvIl0sInN1YiI6ImpheW5ld3N0cm9tQGV4YW1wbGUuY29tIn0.0Pmlxd94xHkszXa_ira1olljQF8sgrf6zcA08qTzAq7AIwfanQW6dOng2Nd-JJpgO2KAKcBPOJ9qVO--A0wHWbPDuJ2BmasdCyQeYbdwTL-I1TnlXVp_zZUy15tE2Q5nCVQVUzcGsI36d9PD8WhkM8dzzvmVsar7KpGTFstb8N_Fwjo-lsCRPBEhvp1dVXEfbtE5xlNyG2l-HkTpAZqgLQzBJCCd6CmodD-SjKB3ikqblaL7sE7FUrCM7Mxs5YWF8S5TBzOo6SGC95JDomRqHk5Jhq6xmfwPmVywM5jJ8jte5mzGb6cJAj1NWIxawE7nkoeKmKwmIu5mG26an9u2bQ"
-        val validIdToken = "eyJraWQiOiJGSkEwSEdOdHN1dWRhX1BsNDVKNDJrdlFxY3N1XzBDNEZnN3BiSkxYVEhZIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiIwMHViNDF6N21nek5xcnlNdjY5NiIsIm5hbWUiOiJKYXkgTmV3c3Ryb20iLCJlbWFpbCI6ImpheW5ld3N0cm9tQGV4YW1wbGUuY29tIiwidmVyIjoxLCJpc3MiOiJodHRwczovL2V4YW1wbGUtdGVzdC5va3RhLmNvbS9vYXV0aDIvZGVmYXVsdCIsImF1ZCI6InVuaXRfdGVzdF9jbGllbnRfaWQiLCJpYXQiOjE2NDQzNDcwNjksImV4cCI6MTY0NDM1MDY2OSwianRpIjoiSUQuNTVjeEJ0ZFlsOGw2YXJLSVNQQndkMHlPVC05VUNUYVhhUVRYdDJsYVJMcyIsImFtciI6WyJwd2QiXSwiaWRwIjoiMDBvOGZvdTdzUmFHR3dkbjQ2OTYiLCJzaWQiOiJpZHhXeGtscF80a1N4dUNfblUxcFhELW5BIiwicHJlZmVycmVkX3VzZXJuYW1lIjoiamF5bmV3c3Ryb21AZXhhbXBsZS5jb20iLCJhdXRoX3RpbWUiOjE2NDQzNDcwNjgsImF0X2hhc2giOiJnTWNHVGJoR1QxR19sZHNIb0pzUHpRIiwiZHNfaGFzaCI6IkRBZUxPRlJxaWZ5c2Jnc3JiT2dib2cifQ.tT8aKK4r8yFcW9KgVtZxvjXRJVzz-_rve14CVtpUlyvCTE1yj20wmPS0z3-JirI9xXgt5KeNPYqo3Wbv8c9XY_HY3hsPQdILYpPsUkf-sctmzSoKC_dTbs5xe8uKSgmpMrggfUAWrNPiJt9Ek2p7GgP64Wx79Pq5vSHk0yWlonFfXut5ahpSfqWilmYlvLr8gFbqoLnAJfl4ZbTY8pPw_aQgCdcQ-ImHRu-8bCSCtbFRzZB-SMJFLfRF2kmx0H-QF855wUODTuUSydkff-BKb-8wnbqWg0R9NvRdoXhEybv8TXXZY3cQqgolWLAyiPMrz07n0q_UEjAilUiCjn1f4Q"
+        val expiredIdTokenClaims = IdTokenClaims(issuedAt = oktaRule.clock.currentTime - MOCK_TOKEN_DURATION)
+        val expiredIdToken = oktaRule.createOidcClient().createJwtBuilder().createJwt(claims = expiredIdTokenClaims).rawValue
+        val validIdTokenClaims = IdTokenClaims(issuedAt = oktaRule.clock.currentTime)
+        val validIdToken = oktaRule.createOidcClient().createJwtBuilder().createJwt(claims = validIdTokenClaims).rawValue
         oktaRule.enqueue(path("/oauth2/default/v1/token")) { response ->
             val body = oktaRule.configuration.json.encodeToString(createToken(accessToken = validAccessToken, idToken = validIdToken).asSerializableToken())
             response.setBody(body)
@@ -491,20 +500,21 @@ class CredentialTest {
     }
 
     @Test fun getValidAccessTokenReturnsNullWhenRefreshedAccessTokenExpired(): Unit = runBlocking {
-        val expiredAccessToken = "eyJraWQiOiJGSkEwSEdOdHN1dWRhX1BsNDVKNDJrdlFxY3N1XzBDNEZnN3BiSkxYVEhZIiwiYWxnIjoiUlMyNTYifQ.eyJ2ZXIiOjEsImp0aSI6IkFULmFacVZaaTlRd0oyLTR2TFFLTjUyNDJiMFRZLVlzU201b3hybVRQQjRLalUub2FyMXB3M28zbzNadW9icGo2OTYiLCJpc3MiOiJodHRwczovL2V4YW1wbGUub2t0YS5jb20vb2F1dGgyL2RlZmF1bHQiLCJhdWQiOiJhcGk6Ly9kZWZhdWx0IiwiaWF0IjoxNjQ0MzI3MDY5LCJleHAiOjE2NDQzMzcwNjksImNpZCI6IjBvYThmdXAwbEFQWUZDNEkyNjk2IiwidWlkIjoiMDB1YjQxejdtZ3pOcXJ5TXY2OTYiLCJzY3AiOlsib3BlbmlkIiwicHJvZmlsZSIsIm9mZmxpbmVfYWNjZXNzIiwiZW1haWwiLCJkZXZpY2Vfc3NvIl0sInN1YiI6ImpheW5ld3N0cm9tQGV4YW1wbGUuY29tIn0.0Pmlxd94xHkszXa_ira1olljQF8sgrf6zcA08qTzAq7AIwfanQW6dOng2Nd-JJpgO2KAKcBPOJ9qVO--A0wHWbPDuJ2BmasdCyQeYbdwTL-I1TnlXVp_zZUy15tE2Q5nCVQVUzcGsI36d9PD8WhkM8dzzvmVsar7KpGTFstb8N_Fwjo-lsCRPBEhvp1dVXEfbtE5xlNyG2l-HkTpAZqgLQzBJCCd6CmodD-SjKB3ikqblaL7sE7FUrCM7Mxs5YWF8S5TBzOo6SGC95JDomRqHk5Jhq6xmfwPmVywM5jJ8jte5mzGb6cJAj1NWIxawE7nkoeKmKwmIu5mG26an9u2bQ"
+        val expiredIdTokenClaims = IdTokenClaims(issuedAt = oktaRule.clock.currentTime - MOCK_TOKEN_DURATION)
+        val expiredIdToken = oktaRule.createOidcClient().createJwtBuilder().createJwt(claims = expiredIdTokenClaims).rawValue
         val oidcClient = mock<OidcClient> {
             onBlocking { refreshToken(any(), any()) } doAnswer {
-                OidcClientResult.Success(createToken(accessToken = expiredAccessToken))
+                OidcClientResult.Success(createToken(idToken = expiredIdToken))
             }
             on { withCredential(any()) } doReturn it
             on { configuration } doReturn oktaRule.configuration
         }
-        val credential = oktaRule.createCredential(oidcClient = oidcClient, token = createToken(accessToken = expiredAccessToken, refreshToken = "exampleRefreshToken"))
+        val credential = oktaRule.createCredential(oidcClient = oidcClient, token = createToken(accessToken = "exampleAccessToken", refreshToken = "exampleRefreshToken", idToken = expiredIdToken))
         assertThat(credential.getValidAccessToken()).isNull()
         verify(oidcClient).refreshToken(any(), any())
     }
 
-    @Test fun testInterceptor() {
+    @Test fun testInterceptor(): Unit = runBlocking {
         val accessToken = "exampleAccessToken"
 
         oktaRule.enqueue(
@@ -515,7 +525,8 @@ class CredentialTest {
             response.setBody("[]")
         }
 
-        val idToken = "eyJraWQiOiJGSkEwSEdOdHN1dWRhX1BsNDVKNDJrdlFxY3N1XzBDNEZnN3BiSkxYVEhZIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiIwMHViNDF6N21nek5xcnlNdjY5NiIsIm5hbWUiOiJKYXkgTmV3c3Ryb20iLCJlbWFpbCI6ImpheW5ld3N0cm9tQGV4YW1wbGUuY29tIiwidmVyIjoxLCJpc3MiOiJodHRwczovL2V4YW1wbGUtdGVzdC5va3RhLmNvbS9vYXV0aDIvZGVmYXVsdCIsImF1ZCI6InVuaXRfdGVzdF9jbGllbnRfaWQiLCJpYXQiOjE2NDQzNDcwNjksImV4cCI6MTY0NDM1MDY2OSwianRpIjoiSUQuNTVjeEJ0ZFlsOGw2YXJLSVNQQndkMHlPVC05VUNUYVhhUVRYdDJsYVJMcyIsImFtciI6WyJwd2QiXSwiaWRwIjoiMDBvOGZvdTdzUmFHR3dkbjQ2OTYiLCJzaWQiOiJpZHhXeGtscF80a1N4dUNfblUxcFhELW5BIiwicHJlZmVycmVkX3VzZXJuYW1lIjoiamF5bmV3c3Ryb21AZXhhbXBsZS5jb20iLCJhdXRoX3RpbWUiOjE2NDQzNDcwNjgsImF0X2hhc2giOiJnTWNHVGJoR1QxR19sZHNIb0pzUHpRIiwiZHNfaGFzaCI6IkRBZUxPRlJxaWZ5c2Jnc3JiT2dib2cifQ.tT8aKK4r8yFcW9KgVtZxvjXRJVzz-_rve14CVtpUlyvCTE1yj20wmPS0z3-JirI9xXgt5KeNPYqo3Wbv8c9XY_HY3hsPQdILYpPsUkf-sctmzSoKC_dTbs5xe8uKSgmpMrggfUAWrNPiJt9Ek2p7GgP64Wx79Pq5vSHk0yWlonFfXut5ahpSfqWilmYlvLr8gFbqoLnAJfl4ZbTY8pPw_aQgCdcQ-ImHRu-8bCSCtbFRzZB-SMJFLfRF2kmx0H-QF855wUODTuUSydkff-BKb-8wnbqWg0R9NvRdoXhEybv8TXXZY3cQqgolWLAyiPMrz07n0q_UEjAilUiCjn1f4Q"
+        val idTokenClaims = IdTokenClaims(issuedAt = oktaRule.clock.currentTime)
+        val idToken = oktaRule.createOidcClient().createJwtBuilder().createJwt(claims = idTokenClaims).rawValue
         val credential = oktaRule.createCredential(token = createToken(accessToken = accessToken, idToken = idToken))
         val interceptor = credential.accessTokenInterceptor()
         val okHttpClient = oktaRule.okHttpClient.newBuilder().addInterceptor(interceptor).build()
@@ -527,7 +538,8 @@ class CredentialTest {
 
     @Test fun testGetUserInfo(): Unit = runBlocking {
         val accessToken = "exampleAccessToken"
-        val idToken = "eyJraWQiOiJGSkEwSEdOdHN1dWRhX1BsNDVKNDJrdlFxY3N1XzBDNEZnN3BiSkxYVEhZIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiIwMHViNDF6N21nek5xcnlNdjY5NiIsIm5hbWUiOiJKYXkgTmV3c3Ryb20iLCJlbWFpbCI6ImpheW5ld3N0cm9tQGV4YW1wbGUuY29tIiwidmVyIjoxLCJpc3MiOiJodHRwczovL2V4YW1wbGUtdGVzdC5va3RhLmNvbS9vYXV0aDIvZGVmYXVsdCIsImF1ZCI6InVuaXRfdGVzdF9jbGllbnRfaWQiLCJpYXQiOjE2NDQzNDcwNjksImV4cCI6MTY0NDM1MDY2OSwianRpIjoiSUQuNTVjeEJ0ZFlsOGw2YXJLSVNQQndkMHlPVC05VUNUYVhhUVRYdDJsYVJMcyIsImFtciI6WyJwd2QiXSwiaWRwIjoiMDBvOGZvdTdzUmFHR3dkbjQ2OTYiLCJzaWQiOiJpZHhXeGtscF80a1N4dUNfblUxcFhELW5BIiwicHJlZmVycmVkX3VzZXJuYW1lIjoiamF5bmV3c3Ryb21AZXhhbXBsZS5jb20iLCJhdXRoX3RpbWUiOjE2NDQzNDcwNjgsImF0X2hhc2giOiJnTWNHVGJoR1QxR19sZHNIb0pzUHpRIiwiZHNfaGFzaCI6IkRBZUxPRlJxaWZ5c2Jnc3JiT2dib2cifQ.tT8aKK4r8yFcW9KgVtZxvjXRJVzz-_rve14CVtpUlyvCTE1yj20wmPS0z3-JirI9xXgt5KeNPYqo3Wbv8c9XY_HY3hsPQdILYpPsUkf-sctmzSoKC_dTbs5xe8uKSgmpMrggfUAWrNPiJt9Ek2p7GgP64Wx79Pq5vSHk0yWlonFfXut5ahpSfqWilmYlvLr8gFbqoLnAJfl4ZbTY8pPw_aQgCdcQ-ImHRu-8bCSCtbFRzZB-SMJFLfRF2kmx0H-QF855wUODTuUSydkff-BKb-8wnbqWg0R9NvRdoXhEybv8TXXZY3cQqgolWLAyiPMrz07n0q_UEjAilUiCjn1f4Q"
+        val idTokenClaims = IdTokenClaims(issuedAt = oktaRule.clock.currentTime)
+        val idToken = oktaRule.createOidcClient().createJwtBuilder().createJwt(claims = idTokenClaims).rawValue
         val credential = oktaRule.createCredential(
             token = createToken(accessToken = accessToken, idToken = idToken),
         )
@@ -547,8 +559,10 @@ class CredentialTest {
     @Test fun testGetUserInfoNeedsRefresh(): Unit = runBlocking {
         val expiredAccessToken = "expiredAccessToken"
         val validAccessToken = "exampleAccessToken"
-        val expiredIdToken = "eyJraWQiOiJGSkEwSEdOdHN1dWRhX1BsNDVKNDJrdlFxY3N1XzBDNEZnN3BiSkxYVEhZIiwiYWxnIjoiUlMyNTYifQ.eyJ2ZXIiOjEsImp0aSI6IkFULmFacVZaaTlRd0oyLTR2TFFLTjUyNDJiMFRZLVlzU201b3hybVRQQjRLalUub2FyMXB3M28zbzNadW9icGo2OTYiLCJpc3MiOiJodHRwczovL2V4YW1wbGUub2t0YS5jb20vb2F1dGgyL2RlZmF1bHQiLCJhdWQiOiJhcGk6Ly9kZWZhdWx0IiwiaWF0IjoxNjQ0MzI3MDY5LCJleHAiOjE2NDQzMzcwNjksImNpZCI6IjBvYThmdXAwbEFQWUZDNEkyNjk2IiwidWlkIjoiMDB1YjQxejdtZ3pOcXJ5TXY2OTYiLCJzY3AiOlsib3BlbmlkIiwicHJvZmlsZSIsIm9mZmxpbmVfYWNjZXNzIiwiZW1haWwiLCJkZXZpY2Vfc3NvIl0sInN1YiI6ImpheW5ld3N0cm9tQGV4YW1wbGUuY29tIn0.0Pmlxd94xHkszXa_ira1olljQF8sgrf6zcA08qTzAq7AIwfanQW6dOng2Nd-JJpgO2KAKcBPOJ9qVO--A0wHWbPDuJ2BmasdCyQeYbdwTL-I1TnlXVp_zZUy15tE2Q5nCVQVUzcGsI36d9PD8WhkM8dzzvmVsar7KpGTFstb8N_Fwjo-lsCRPBEhvp1dVXEfbtE5xlNyG2l-HkTpAZqgLQzBJCCd6CmodD-SjKB3ikqblaL7sE7FUrCM7Mxs5YWF8S5TBzOo6SGC95JDomRqHk5Jhq6xmfwPmVywM5jJ8jte5mzGb6cJAj1NWIxawE7nkoeKmKwmIu5mG26an9u2bQ"
-        val validIdToken = "eyJraWQiOiJGSkEwSEdOdHN1dWRhX1BsNDVKNDJrdlFxY3N1XzBDNEZnN3BiSkxYVEhZIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiIwMHViNDF6N21nek5xcnlNdjY5NiIsIm5hbWUiOiJKYXkgTmV3c3Ryb20iLCJlbWFpbCI6ImpheW5ld3N0cm9tQGV4YW1wbGUuY29tIiwidmVyIjoxLCJpc3MiOiJodHRwczovL2V4YW1wbGUtdGVzdC5va3RhLmNvbS9vYXV0aDIvZGVmYXVsdCIsImF1ZCI6InVuaXRfdGVzdF9jbGllbnRfaWQiLCJpYXQiOjE2NDQzNDcwNjksImV4cCI6MTY0NDM1MDY2OSwianRpIjoiSUQuNTVjeEJ0ZFlsOGw2YXJLSVNQQndkMHlPVC05VUNUYVhhUVRYdDJsYVJMcyIsImFtciI6WyJwd2QiXSwiaWRwIjoiMDBvOGZvdTdzUmFHR3dkbjQ2OTYiLCJzaWQiOiJpZHhXeGtscF80a1N4dUNfblUxcFhELW5BIiwicHJlZmVycmVkX3VzZXJuYW1lIjoiamF5bmV3c3Ryb21AZXhhbXBsZS5jb20iLCJhdXRoX3RpbWUiOjE2NDQzNDcwNjgsImF0X2hhc2giOiJnTWNHVGJoR1QxR19sZHNIb0pzUHpRIiwiZHNfaGFzaCI6IkRBZUxPRlJxaWZ5c2Jnc3JiT2dib2cifQ.tT8aKK4r8yFcW9KgVtZxvjXRJVzz-_rve14CVtpUlyvCTE1yj20wmPS0z3-JirI9xXgt5KeNPYqo3Wbv8c9XY_HY3hsPQdILYpPsUkf-sctmzSoKC_dTbs5xe8uKSgmpMrggfUAWrNPiJt9Ek2p7GgP64Wx79Pq5vSHk0yWlonFfXut5ahpSfqWilmYlvLr8gFbqoLnAJfl4ZbTY8pPw_aQgCdcQ-ImHRu-8bCSCtbFRzZB-SMJFLfRF2kmx0H-QF855wUODTuUSydkff-BKb-8wnbqWg0R9NvRdoXhEybv8TXXZY3cQqgolWLAyiPMrz07n0q_UEjAilUiCjn1f4Q"
+        val expiredIdTokenClaims = IdTokenClaims(issuedAt = oktaRule.clock.currentTime - MOCK_TOKEN_DURATION)
+        val expiredIdToken = oktaRule.createOidcClient().createJwtBuilder().createJwt(claims = expiredIdTokenClaims).rawValue
+        val validIdTokenClaims = IdTokenClaims(issuedAt = oktaRule.clock.currentTime)
+        val validIdToken = oktaRule.createOidcClient().createJwtBuilder().createJwt(claims = validIdTokenClaims).rawValue
         val credential = oktaRule.createCredential(
             token = createToken(accessToken = expiredAccessToken, refreshToken = "exampleRefreshToken", idToken = expiredIdToken),
         )
