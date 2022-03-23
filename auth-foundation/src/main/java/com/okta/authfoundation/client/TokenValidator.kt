@@ -42,6 +42,14 @@ internal class TokenValidator(
                 accessToken = token.accessToken,
                 idToken = idToken,
             )
+
+            token.deviceSecret?.let { deviceSecret ->
+                oidcClient.configuration.deviceSecretValidator.validate(
+                    oidcClient = oidcClient,
+                    deviceSecret = deviceSecret,
+                    idToken = idToken,
+                )
+            }
         }
     }
 }

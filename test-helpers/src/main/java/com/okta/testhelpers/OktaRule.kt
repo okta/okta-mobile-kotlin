@@ -16,6 +16,7 @@
 package com.okta.testhelpers
 
 import com.okta.authfoundation.client.AccessTokenValidator
+import com.okta.authfoundation.client.DeviceSecretValidator
 import com.okta.authfoundation.client.IdTokenValidator
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcConfiguration
@@ -33,6 +34,7 @@ import org.junit.runners.model.Statement
 class OktaRule(
     idTokenValidator: IdTokenValidator = NoOpIdTokenValidator(),
     accessTokenValidator: AccessTokenValidator = AccessTokenValidator { _, _, _ -> },
+    deviceSecretValidator: DeviceSecretValidator = DeviceSecretValidator {_, _, _ -> },
 ) : TestRule {
     private val mockWebServer: OktaMockWebServer = OktaMockWebServer()
 
@@ -52,6 +54,7 @@ class OktaRule(
         clock = clock,
         idTokenValidator = idTokenValidator,
         accessTokenValidator = accessTokenValidator,
+        deviceSecretValidator = deviceSecretValidator,
         ioDispatcher = Dispatchers.Unconfined,
         computeDispatcher = Dispatchers.Unconfined,
     )
