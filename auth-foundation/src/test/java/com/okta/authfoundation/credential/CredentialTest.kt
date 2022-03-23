@@ -53,21 +53,17 @@ import java.util.concurrent.TimeUnit
 import kotlin.test.assertFailsWith
 
 class CredentialTest {
-    companion object {
-        private const val tokenStorageId: String = "test_storage_id"
-    }
-
     @get:Rule val oktaRule = OktaRule()
 
     @Test fun testOidcClient() {
-        val credential = createCredential()
+        val credential = oktaRule.createCredential()
         assertThat(credential.oidcClient.credential).isEqualTo(credential)
     }
 
     @Test fun testMetadataChangeThrows() {
         val map = mutableMapOf<String, String>()
         map["name"] = "Default"
-        val credential = createCredential(metadata = map)
+        val credential = oktaRule.createCredential(metadata = map)
         assertFailsWith<UnsupportedOperationException> {
             (credential.metadata as MutableMap<String, String>)["secure"] = "true"
         }
@@ -77,10 +73,10 @@ class CredentialTest {
         val storage = mock<TokenStorage>()
         val credentialDataSource = mock<CredentialDataSource>()
         val token = createToken()
-        val credential = createCredential(token = token, tokenStorage = storage, credentialDataSource = credentialDataSource)
+        val credential = oktaRule.createCredential(token = token, tokenStorage = storage, credentialDataSource = credentialDataSource)
         credential.delete()
         verify(credentialDataSource).remove(credential)
-        verify(storage).remove(eq(tokenStorageId))
+        verify(storage).remove(eq(CredentialFactory.tokenStorageId))
         assertThat(credential.token).isNull()
     }
 
@@ -88,11 +84,11 @@ class CredentialTest {
         val storage = mock<TokenStorage>()
         val credentialDataSource = mock<CredentialDataSource>()
         val token = createToken()
-        val credential = createCredential(token = token, tokenStorage = storage, credentialDataSource = credentialDataSource)
+        val credential = oktaRule.createCredential(token = token, tokenStorage = storage, credentialDataSource = credentialDataSource)
         credential.delete()
         credential.delete()
         verify(credentialDataSource).remove(credential)
-        verify(storage).remove(eq(tokenStorageId))
+        verify(storage).remove(eq(CredentialFactory.tokenStorageId))
         assertThat(credential.token).isNull()
     }
 
@@ -100,7 +96,7 @@ class CredentialTest {
         val storage = mock<TokenStorage>()
         val credentialDataSource = mock<CredentialDataSource>()
         val token = createToken()
-        val credential = createCredential(token = token, tokenStorage = storage, credentialDataSource = credentialDataSource)
+        val credential = oktaRule.createCredential(token = token, tokenStorage = storage, credentialDataSource = credentialDataSource)
         credential.delete()
         credential.storeToken(token = createToken())
         verify(storage, never()).replace(any())
@@ -110,7 +106,7 @@ class CredentialTest {
         val storage = mock<TokenStorage>()
         val credentialDataSource = mock<CredentialDataSource>()
         val token = createToken()
-        val credential = createCredential(token = token, tokenStorage = storage, credentialDataSource = credentialDataSource)
+        val credential = oktaRule.createCredential(token = token, tokenStorage = storage, credentialDataSource = credentialDataSource)
         credential.delete()
         credential.storeToken(token = createToken())
         assertThat(oktaRule.eventHandler).hasSize(1)
@@ -125,7 +121,7 @@ class CredentialTest {
             onBlocking { revokeToken(any()) } doReturn OidcClientResult.Success(Unit)
             on { withCredential(any()) } doReturn it
         }
-        val credential = createCredential(token = createToken(), oidcClient = oidcClient)
+        val credential = oktaRule.createCredential(token = createToken(), oidcClient = oidcClient)
         credential.revokeToken(RevokeTokenType.ACCESS_TOKEN)
         verify(oidcClient).revokeToken(eq("exampleAccessToken"))
     }
@@ -135,7 +131,7 @@ class CredentialTest {
             onBlocking { revokeToken(any()) } doReturn OidcClientResult.Success(Unit)
             on { withCredential(any()) } doReturn it
         }
-        val credential = createCredential(token = createToken(refreshToken = "exampleRefreshToken"), oidcClient = oidcClient)
+        val credential = oktaRule.createCredential(token = createToken(refreshToken = "exampleRefreshToken"), oidcClient = oidcClient)
         credential.revokeToken(RevokeTokenType.REFRESH_TOKEN)
         verify(oidcClient).revokeToken(eq("exampleRefreshToken"))
     }
@@ -145,13 +141,13 @@ class CredentialTest {
             onBlocking { revokeToken(any()) } doReturn OidcClientResult.Success(Unit)
             on { withCredential(any()) } doReturn it
         }
-        val credential = createCredential(token = createToken(deviceSecret = "exampleDeviceSecret"), oidcClient = oidcClient)
+        val credential = oktaRule.createCredential(token = createToken(deviceSecret = "exampleDeviceSecret"), oidcClient = oidcClient)
         credential.revokeToken(RevokeTokenType.DEVICE_SECRET)
         verify(oidcClient).revokeToken(eq("exampleDeviceSecret"))
     }
 
     @Test fun testRevokeTokenWithNullTokenReturnsError(): Unit = runBlocking {
-        val credential = createCredential()
+        val credential = oktaRule.createCredential()
         val result = credential.revokeToken()
         assertThat(result).isInstanceOf(OidcClientResult.Error::class.java)
         val errorResult = result as OidcClientResult.Error<Unit>
@@ -159,7 +155,7 @@ class CredentialTest {
     }
 
     @Test fun testRevokeTokenWithNullRefreshTokenReturnsError(): Unit = runBlocking {
-        val credential = createCredential(token = createToken())
+        val credential = oktaRule.createCredential(token = createToken())
         val result = credential.revokeToken(RevokeTokenType.REFRESH_TOKEN)
         assertThat(result).isInstanceOf(OidcClientResult.Error::class.java)
         val errorResult = result as OidcClientResult.Error<Unit>
@@ -167,7 +163,7 @@ class CredentialTest {
     }
 
     @Test fun testRevokeTokenWithNullDeviceSecretReturnsError(): Unit = runBlocking {
-        val credential = createCredential(token = createToken())
+        val credential = oktaRule.createCredential(token = createToken())
         val result = credential.revokeToken(RevokeTokenType.DEVICE_SECRET)
         assertThat(result).isInstanceOf(OidcClientResult.Error::class.java)
         val errorResult = result as OidcClientResult.Error<Unit>
@@ -175,18 +171,18 @@ class CredentialTest {
     }
 
     @Test fun testScopesReturnDefaultScopes() {
-        val credential = createCredential()
+        val credential = oktaRule.createCredential()
         assertThat(credential.scopes()).isEqualTo(setOf("openid", "email", "profile", "offline_access"))
     }
 
     @Test fun testScopesReturnTokenScopes() {
-        val credential = createCredential(token = createToken(scope = "openid bank_account"))
+        val credential = oktaRule.createCredential(token = createToken(scope = "openid bank_account"))
         assertThat(credential.scopes()).isEqualTo(setOf("openid", "bank_account"))
     }
 
     @Test fun testRefreshWithNoToken(): Unit = runBlocking {
         val tokenStorage = mock<TokenStorage>()
-        val credential = createCredential(tokenStorage = tokenStorage)
+        val credential = oktaRule.createCredential(tokenStorage = tokenStorage)
         val result = credential.refreshToken()
         assertThat(result).isInstanceOf(OidcClientResult.Error::class.java)
         val exception = (result as OidcClientResult.Error<Token>).exception
@@ -197,7 +193,7 @@ class CredentialTest {
 
     @Test fun testRefreshWithNoRefreshToken(): Unit = runBlocking {
         val tokenStorage = mock<TokenStorage>()
-        val credential = createCredential(token = createToken(refreshToken = null), tokenStorage = tokenStorage)
+        val credential = oktaRule.createCredential(token = createToken(refreshToken = null), tokenStorage = tokenStorage)
         val result = credential.refreshToken()
         assertThat(result).isInstanceOf(OidcClientResult.Error::class.java)
         val exception = (result as OidcClientResult.Error<Token>).exception
@@ -213,7 +209,7 @@ class CredentialTest {
             on { withCredential(any()) } doReturn it
             on { configuration } doReturn oktaRule.configuration
         }
-        val credential = createCredential(
+        val credential = oktaRule.createCredential(
             token = createToken(refreshToken = "exampleRefreshToken"),
             oidcClient = oidcClient,
             tokenStorage = tokenStorage
@@ -233,7 +229,7 @@ class CredentialTest {
             on { withCredential(any()) } doReturn it
             on { configuration } doReturn oktaRule.configuration
         }
-        val credential = createCredential(
+        val credential = oktaRule.createCredential(
             token = createToken(refreshToken = "exampleRefreshToken"),
             oidcClient = oidcClient,
             tokenStorage = tokenStorage
@@ -246,7 +242,7 @@ class CredentialTest {
     }
 
     @Test fun testRefreshTokenWithRealOidcClient(): Unit = runBlocking {
-        val credential = createCredential(
+        val credential = oktaRule.createCredential(
             token = createToken(refreshToken = "exampleRefreshToken"),
         )
         oktaRule.enqueue(path("/oauth2/default/v1/token")) { response ->
@@ -261,7 +257,7 @@ class CredentialTest {
     }
 
     @Test fun testRefreshTokenWithRealOidcClientPreservesRefreshToken(): Unit = runBlocking {
-        val credential = createCredential(
+        val credential = oktaRule.createCredential(
             token = createToken(refreshToken = "exampleRefreshToken"),
         )
         oktaRule.enqueue(path("/oauth2/default/v1/token")) { response ->
@@ -276,7 +272,7 @@ class CredentialTest {
     }
 
     @Test fun testRefreshTokenWithRealOidcClientEmitsEvent(): Unit = runBlocking {
-        val credential = createCredential(
+        val credential = oktaRule.createCredential(
             token = createToken(refreshToken = "exampleRefreshToken"),
         )
         oktaRule.enqueue(path("/oauth2/default/v1/token")) { response ->
@@ -302,7 +298,7 @@ class CredentialTest {
             on { withCredential(any()) } doReturn it
             on { configuration } doReturn oktaRule.configuration
         }
-        val credential = createCredential(
+        val credential = oktaRule.createCredential(
             token = createToken(refreshToken = "exampleRefreshToken", deviceSecret = "saved"),
             oidcClient = oidcClient
         )
@@ -326,7 +322,7 @@ class CredentialTest {
             on { withCredential(any()) } doReturn it
             on { configuration } doReturn oktaRule.configuration
         }
-        val credential = createCredential(
+        val credential = oktaRule.createCredential(
             token = createToken(refreshToken = "exampleRefreshToken"),
             oidcClient = oidcClient,
             tokenStorage = tokenStorage
@@ -360,7 +356,7 @@ class CredentialTest {
             on { withCredential(any()) } doReturn it
             on { configuration } doReturn oktaRule.configuration
         }
-        val credential = createCredential(
+        val credential = oktaRule.createCredential(
             token = createToken(refreshToken = "exampleRefreshToken"),
             oidcClient = oidcClient,
             tokenStorage = tokenStorage
@@ -378,12 +374,12 @@ class CredentialTest {
 
     @Test fun testStoreToken(): Unit = runBlocking {
         val tokenStorage = mock<TokenStorage>()
-        val credential = createCredential(tokenStorage = tokenStorage)
+        val credential = oktaRule.createCredential(tokenStorage = tokenStorage)
         val metadata = mutableMapOf<String, String>()
         metadata["from_test"] = "It works"
         val token = createToken(refreshToken = "stored!")
         credential.storeToken(token = token, metadata = metadata)
-        verify(tokenStorage).replace(TokenStorage.Entry(tokenStorageId, token, metadata))
+        verify(tokenStorage).replace(TokenStorage.Entry(CredentialFactory.tokenStorageId, token, metadata))
         assertThat(credential.token).isEqualTo(token)
         assertThat(credential.metadata).isEqualTo(metadata)
     }
@@ -394,7 +390,7 @@ class CredentialTest {
             on { withCredential(any()) } doReturn it
             on { configuration } doReturn oktaRule.configuration
         }
-        val credential = createCredential(
+        val credential = oktaRule.createCredential(
             token = createToken(refreshToken = "exampleRefreshToken", deviceSecret = "originalDeviceSecret"),
             oidcClient = oidcClient,
             tokenStorage = tokenStorage
@@ -402,7 +398,7 @@ class CredentialTest {
         val token = createToken(refreshToken = "stored!")
         credential.storeToken(token = token)
         val expectedToken = createToken(refreshToken = "stored!", deviceSecret = "originalDeviceSecret")
-        verify(tokenStorage).replace(TokenStorage.Entry(tokenStorageId, expectedToken, emptyMap()))
+        verify(tokenStorage).replace(TokenStorage.Entry(CredentialFactory.tokenStorageId, expectedToken, emptyMap()))
         assertThat(credential.token).isEqualTo(expectedToken)
         assertThat(credential.token?.refreshToken).isEqualTo("stored!")
         assertThat(credential.token?.deviceSecret).isEqualTo("originalDeviceSecret")
@@ -414,69 +410,69 @@ class CredentialTest {
             on { withCredential(any()) } doReturn it
             on { configuration } doReturn oktaRule.configuration
         }
-        val credential = createCredential(
+        val credential = oktaRule.createCredential(
             token = createToken(refreshToken = "exampleRefreshToken", deviceSecret = "originalDeviceSecret"),
             oidcClient = oidcClient,
             tokenStorage = tokenStorage
         )
         val token = createToken(refreshToken = "stored!", deviceSecret = "updatedDeviceSecret")
         credential.storeToken(token = token)
-        verify(tokenStorage).replace(TokenStorage.Entry(tokenStorageId, token, emptyMap()))
+        verify(tokenStorage).replace(TokenStorage.Entry(CredentialFactory.tokenStorageId, token, emptyMap()))
         assertThat(credential.token).isEqualTo(token)
         assertThat(credential.token?.refreshToken).isEqualTo("stored!")
         assertThat(credential.token?.deviceSecret).isEqualTo("updatedDeviceSecret")
     }
 
     @Test fun testIdTokenWithNullTokenReturnsNullJwt(): Unit = runBlocking {
-        val credential = createCredential(token = null)
+        val credential = oktaRule.createCredential(token = null)
         assertThat(credential.idToken()).isNull()
     }
 
     @Test fun testIdTokenWithNullIdTokenReturnsNullJwt(): Unit = runBlocking {
-        val credential = createCredential(token = createToken(idToken = null))
+        val credential = oktaRule.createCredential(token = createToken(idToken = null))
         assertThat(credential.idToken()).isNull()
     }
 
     @Test fun testIdToken(): Unit = runBlocking {
-        val credential = createCredential(token = createToken(idToken = "eyJraWQiOiJGSkEwSEdOdHN1dWRhX1BsNDVKNDJrdlFxY3N1XzBDNEZnN3BiSkxYVEhZIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiIwMHViNDF6N21nek5xcnlNdjY5NiIsIm5hbWUiOiJKYXkgTmV3c3Ryb20iLCJlbWFpbCI6ImpheW5ld3N0cm9tQGV4YW1wbGUuY29tIiwidmVyIjoxLCJpc3MiOiJodHRwczovL2V4YW1wbGUtdGVzdC5va3RhLmNvbS9vYXV0aDIvZGVmYXVsdCIsImF1ZCI6InVuaXRfdGVzdF9jbGllbnRfaWQiLCJpYXQiOjE2NDQzNDcwNjksImV4cCI6MTY0NDM1MDY2OSwianRpIjoiSUQuNTVjeEJ0ZFlsOGw2YXJLSVNQQndkMHlPVC05VUNUYVhhUVRYdDJsYVJMcyIsImFtciI6WyJwd2QiXSwiaWRwIjoiMDBvOGZvdTdzUmFHR3dkbjQ2OTYiLCJzaWQiOiJpZHhXeGtscF80a1N4dUNfblUxcFhELW5BIiwicHJlZmVycmVkX3VzZXJuYW1lIjoiamF5bmV3c3Ryb21AZXhhbXBsZS5jb20iLCJhdXRoX3RpbWUiOjE2NDQzNDcwNjgsImF0X2hhc2giOiJnTWNHVGJoR1QxR19sZHNIb0pzUHpRIiwiZHNfaGFzaCI6IkRBZUxPRlJxaWZ5c2Jnc3JiT2dib2cifQ.tT8aKK4r8yFcW9KgVtZxvjXRJVzz-_rve14CVtpUlyvCTE1yj20wmPS0z3-JirI9xXgt5KeNPYqo3Wbv8c9XY_HY3hsPQdILYpPsUkf-sctmzSoKC_dTbs5xe8uKSgmpMrggfUAWrNPiJt9Ek2p7GgP64Wx79Pq5vSHk0yWlonFfXut5ahpSfqWilmYlvLr8gFbqoLnAJfl4ZbTY8pPw_aQgCdcQ-ImHRu-8bCSCtbFRzZB-SMJFLfRF2kmx0H-QF855wUODTuUSydkff-BKb-8wnbqWg0R9NvRdoXhEybv8TXXZY3cQqgolWLAyiPMrz07n0q_UEjAilUiCjn1f4Q"))
+        val credential = oktaRule.createCredential(token = createToken(idToken = "eyJraWQiOiJGSkEwSEdOdHN1dWRhX1BsNDVKNDJrdlFxY3N1XzBDNEZnN3BiSkxYVEhZIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiIwMHViNDF6N21nek5xcnlNdjY5NiIsIm5hbWUiOiJKYXkgTmV3c3Ryb20iLCJlbWFpbCI6ImpheW5ld3N0cm9tQGV4YW1wbGUuY29tIiwidmVyIjoxLCJpc3MiOiJodHRwczovL2V4YW1wbGUtdGVzdC5va3RhLmNvbS9vYXV0aDIvZGVmYXVsdCIsImF1ZCI6InVuaXRfdGVzdF9jbGllbnRfaWQiLCJpYXQiOjE2NDQzNDcwNjksImV4cCI6MTY0NDM1MDY2OSwianRpIjoiSUQuNTVjeEJ0ZFlsOGw2YXJLSVNQQndkMHlPVC05VUNUYVhhUVRYdDJsYVJMcyIsImFtciI6WyJwd2QiXSwiaWRwIjoiMDBvOGZvdTdzUmFHR3dkbjQ2OTYiLCJzaWQiOiJpZHhXeGtscF80a1N4dUNfblUxcFhELW5BIiwicHJlZmVycmVkX3VzZXJuYW1lIjoiamF5bmV3c3Ryb21AZXhhbXBsZS5jb20iLCJhdXRoX3RpbWUiOjE2NDQzNDcwNjgsImF0X2hhc2giOiJnTWNHVGJoR1QxR19sZHNIb0pzUHpRIiwiZHNfaGFzaCI6IkRBZUxPRlJxaWZ5c2Jnc3JiT2dib2cifQ.tT8aKK4r8yFcW9KgVtZxvjXRJVzz-_rve14CVtpUlyvCTE1yj20wmPS0z3-JirI9xXgt5KeNPYqo3Wbv8c9XY_HY3hsPQdILYpPsUkf-sctmzSoKC_dTbs5xe8uKSgmpMrggfUAWrNPiJt9Ek2p7GgP64Wx79Pq5vSHk0yWlonFfXut5ahpSfqWilmYlvLr8gFbqoLnAJfl4ZbTY8pPw_aQgCdcQ-ImHRu-8bCSCtbFRzZB-SMJFLfRF2kmx0H-QF855wUODTuUSydkff-BKb-8wnbqWg0R9NvRdoXhEybv8TXXZY3cQqgolWLAyiPMrz07n0q_UEjAilUiCjn1f4Q"))
         val idToken = credential.idToken()
         assertThat(idToken).isNotNull()
         assertThat(idToken?.keyId).isEqualTo("FJA0HGNtsuuda_Pl45J42kvQqcsu_0C4Fg7pbJLXTHY")
     }
 
     @Test fun testMalformedIdToken(): Unit = runBlocking {
-        val credential = createCredential(token = createToken(idToken = "InvalidJwt"))
+        val credential = oktaRule.createCredential(token = createToken(idToken = "InvalidJwt"))
         val idToken = credential.idToken()
         assertThat(idToken).isNull()
     }
 
     @Test fun accessTokenIfValidReturnsNullWithNullToken(): Unit = runBlocking {
-        val credential = createCredential(token = null)
+        val credential = oktaRule.createCredential(token = null)
         assertThat(credential.getAccessTokenIfValid()).isNull()
     }
 
     @Test fun accessTokenIfValidReturnsNullWithExpiredToken(): Unit = runBlocking {
-        val credential = createCredential(token = createToken(accessToken = "eyJraWQiOiJGSkEwSEdOdHN1dWRhX1BsNDVKNDJrdlFxY3N1XzBDNEZnN3BiSkxYVEhZIiwiYWxnIjoiUlMyNTYifQ.eyJ2ZXIiOjEsImp0aSI6IkFULmFacVZaaTlRd0oyLTR2TFFLTjUyNDJiMFRZLVlzU201b3hybVRQQjRLalUub2FyMXB3M28zbzNadW9icGo2OTYiLCJpc3MiOiJodHRwczovL2V4YW1wbGUub2t0YS5jb20vb2F1dGgyL2RlZmF1bHQiLCJhdWQiOiJhcGk6Ly9kZWZhdWx0IiwiaWF0IjoxNjQ0MzI3MDY5LCJleHAiOjE2NDQzMzcwNjksImNpZCI6IjBvYThmdXAwbEFQWUZDNEkyNjk2IiwidWlkIjoiMDB1YjQxejdtZ3pOcXJ5TXY2OTYiLCJzY3AiOlsib3BlbmlkIiwicHJvZmlsZSIsIm9mZmxpbmVfYWNjZXNzIiwiZW1haWwiLCJkZXZpY2Vfc3NvIl0sInN1YiI6ImpheW5ld3N0cm9tQGV4YW1wbGUuY29tIn0.0Pmlxd94xHkszXa_ira1olljQF8sgrf6zcA08qTzAq7AIwfanQW6dOng2Nd-JJpgO2KAKcBPOJ9qVO--A0wHWbPDuJ2BmasdCyQeYbdwTL-I1TnlXVp_zZUy15tE2Q5nCVQVUzcGsI36d9PD8WhkM8dzzvmVsar7KpGTFstb8N_Fwjo-lsCRPBEhvp1dVXEfbtE5xlNyG2l-HkTpAZqgLQzBJCCd6CmodD-SjKB3ikqblaL7sE7FUrCM7Mxs5YWF8S5TBzOo6SGC95JDomRqHk5Jhq6xmfwPmVywM5jJ8jte5mzGb6cJAj1NWIxawE7nkoeKmKwmIu5mG26an9u2bQ"))
+        val credential = oktaRule.createCredential(token = createToken(accessToken = "eyJraWQiOiJGSkEwSEdOdHN1dWRhX1BsNDVKNDJrdlFxY3N1XzBDNEZnN3BiSkxYVEhZIiwiYWxnIjoiUlMyNTYifQ.eyJ2ZXIiOjEsImp0aSI6IkFULmFacVZaaTlRd0oyLTR2TFFLTjUyNDJiMFRZLVlzU201b3hybVRQQjRLalUub2FyMXB3M28zbzNadW9icGo2OTYiLCJpc3MiOiJodHRwczovL2V4YW1wbGUub2t0YS5jb20vb2F1dGgyL2RlZmF1bHQiLCJhdWQiOiJhcGk6Ly9kZWZhdWx0IiwiaWF0IjoxNjQ0MzI3MDY5LCJleHAiOjE2NDQzMzcwNjksImNpZCI6IjBvYThmdXAwbEFQWUZDNEkyNjk2IiwidWlkIjoiMDB1YjQxejdtZ3pOcXJ5TXY2OTYiLCJzY3AiOlsib3BlbmlkIiwicHJvZmlsZSIsIm9mZmxpbmVfYWNjZXNzIiwiZW1haWwiLCJkZXZpY2Vfc3NvIl0sInN1YiI6ImpheW5ld3N0cm9tQGV4YW1wbGUuY29tIn0.0Pmlxd94xHkszXa_ira1olljQF8sgrf6zcA08qTzAq7AIwfanQW6dOng2Nd-JJpgO2KAKcBPOJ9qVO--A0wHWbPDuJ2BmasdCyQeYbdwTL-I1TnlXVp_zZUy15tE2Q5nCVQVUzcGsI36d9PD8WhkM8dzzvmVsar7KpGTFstb8N_Fwjo-lsCRPBEhvp1dVXEfbtE5xlNyG2l-HkTpAZqgLQzBJCCd6CmodD-SjKB3ikqblaL7sE7FUrCM7Mxs5YWF8S5TBzOo6SGC95JDomRqHk5Jhq6xmfwPmVywM5jJ8jte5mzGb6cJAj1NWIxawE7nkoeKmKwmIu5mG26an9u2bQ"))
         assertThat(credential.getAccessTokenIfValid()).isNull()
     }
 
     @Test fun accessTokenIfValidReturnsAccessToken(): Unit = runBlocking {
         val accessToken = "exampleAccessToken"
         val idToken = "eyJraWQiOiJGSkEwSEdOdHN1dWRhX1BsNDVKNDJrdlFxY3N1XzBDNEZnN3BiSkxYVEhZIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiIwMHViNDF6N21nek5xcnlNdjY5NiIsIm5hbWUiOiJKYXkgTmV3c3Ryb20iLCJlbWFpbCI6ImpheW5ld3N0cm9tQGV4YW1wbGUuY29tIiwidmVyIjoxLCJpc3MiOiJodHRwczovL2V4YW1wbGUtdGVzdC5va3RhLmNvbS9vYXV0aDIvZGVmYXVsdCIsImF1ZCI6InVuaXRfdGVzdF9jbGllbnRfaWQiLCJpYXQiOjE2NDQzNDcwNjksImV4cCI6MTY0NDM1MDY2OSwianRpIjoiSUQuNTVjeEJ0ZFlsOGw2YXJLSVNQQndkMHlPVC05VUNUYVhhUVRYdDJsYVJMcyIsImFtciI6WyJwd2QiXSwiaWRwIjoiMDBvOGZvdTdzUmFHR3dkbjQ2OTYiLCJzaWQiOiJpZHhXeGtscF80a1N4dUNfblUxcFhELW5BIiwicHJlZmVycmVkX3VzZXJuYW1lIjoiamF5bmV3c3Ryb21AZXhhbXBsZS5jb20iLCJhdXRoX3RpbWUiOjE2NDQzNDcwNjgsImF0X2hhc2giOiJnTWNHVGJoR1QxR19sZHNIb0pzUHpRIiwiZHNfaGFzaCI6IkRBZUxPRlJxaWZ5c2Jnc3JiT2dib2cifQ.tT8aKK4r8yFcW9KgVtZxvjXRJVzz-_rve14CVtpUlyvCTE1yj20wmPS0z3-JirI9xXgt5KeNPYqo3Wbv8c9XY_HY3hsPQdILYpPsUkf-sctmzSoKC_dTbs5xe8uKSgmpMrggfUAWrNPiJt9Ek2p7GgP64Wx79Pq5vSHk0yWlonFfXut5ahpSfqWilmYlvLr8gFbqoLnAJfl4ZbTY8pPw_aQgCdcQ-ImHRu-8bCSCtbFRzZB-SMJFLfRF2kmx0H-QF855wUODTuUSydkff-BKb-8wnbqWg0R9NvRdoXhEybv8TXXZY3cQqgolWLAyiPMrz07n0q_UEjAilUiCjn1f4Q"
-        val credential = createCredential(token = createToken(accessToken = accessToken, idToken = idToken))
+        val credential = oktaRule.createCredential(token = createToken(accessToken = accessToken, idToken = idToken))
         assertThat(credential.getAccessTokenIfValid()).isEqualTo(accessToken)
     }
 
     @Test fun getValidAccessTokenReturnsAccessToken(): Unit = runBlocking {
         val accessToken = "exampleAccessToken"
         val idToken = "eyJraWQiOiJGSkEwSEdOdHN1dWRhX1BsNDVKNDJrdlFxY3N1XzBDNEZnN3BiSkxYVEhZIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiIwMHViNDF6N21nek5xcnlNdjY5NiIsIm5hbWUiOiJKYXkgTmV3c3Ryb20iLCJlbWFpbCI6ImpheW5ld3N0cm9tQGV4YW1wbGUuY29tIiwidmVyIjoxLCJpc3MiOiJodHRwczovL2V4YW1wbGUtdGVzdC5va3RhLmNvbS9vYXV0aDIvZGVmYXVsdCIsImF1ZCI6InVuaXRfdGVzdF9jbGllbnRfaWQiLCJpYXQiOjE2NDQzNDcwNjksImV4cCI6MTY0NDM1MDY2OSwianRpIjoiSUQuNTVjeEJ0ZFlsOGw2YXJLSVNQQndkMHlPVC05VUNUYVhhUVRYdDJsYVJMcyIsImFtciI6WyJwd2QiXSwiaWRwIjoiMDBvOGZvdTdzUmFHR3dkbjQ2OTYiLCJzaWQiOiJpZHhXeGtscF80a1N4dUNfblUxcFhELW5BIiwicHJlZmVycmVkX3VzZXJuYW1lIjoiamF5bmV3c3Ryb21AZXhhbXBsZS5jb20iLCJhdXRoX3RpbWUiOjE2NDQzNDcwNjgsImF0X2hhc2giOiJnTWNHVGJoR1QxR19sZHNIb0pzUHpRIiwiZHNfaGFzaCI6IkRBZUxPRlJxaWZ5c2Jnc3JiT2dib2cifQ.tT8aKK4r8yFcW9KgVtZxvjXRJVzz-_rve14CVtpUlyvCTE1yj20wmPS0z3-JirI9xXgt5KeNPYqo3Wbv8c9XY_HY3hsPQdILYpPsUkf-sctmzSoKC_dTbs5xe8uKSgmpMrggfUAWrNPiJt9Ek2p7GgP64Wx79Pq5vSHk0yWlonFfXut5ahpSfqWilmYlvLr8gFbqoLnAJfl4ZbTY8pPw_aQgCdcQ-ImHRu-8bCSCtbFRzZB-SMJFLfRF2kmx0H-QF855wUODTuUSydkff-BKb-8wnbqWg0R9NvRdoXhEybv8TXXZY3cQqgolWLAyiPMrz07n0q_UEjAilUiCjn1f4Q"
-        val credential = createCredential(token = createToken(accessToken = accessToken, idToken = idToken))
+        val credential = oktaRule.createCredential(token = createToken(accessToken = accessToken, idToken = idToken))
         assertThat(credential.getValidAccessToken()).isEqualTo(accessToken)
     }
 
     @Test fun getValidAccessTokenReturnsNullWhenAccessTokenExpiredAndNoRefreshToken(): Unit = runBlocking {
         val accessToken = "eyJraWQiOiJGSkEwSEdOdHN1dWRhX1BsNDVKNDJrdlFxY3N1XzBDNEZnN3BiSkxYVEhZIiwiYWxnIjoiUlMyNTYifQ.eyJ2ZXIiOjEsImp0aSI6IkFULmFacVZaaTlRd0oyLTR2TFFLTjUyNDJiMFRZLVlzU201b3hybVRQQjRLalUub2FyMXB3M28zbzNadW9icGo2OTYiLCJpc3MiOiJodHRwczovL2V4YW1wbGUub2t0YS5jb20vb2F1dGgyL2RlZmF1bHQiLCJhdWQiOiJhcGk6Ly9kZWZhdWx0IiwiaWF0IjoxNjQ0MzI3MDY5LCJleHAiOjE2NDQzMzcwNjksImNpZCI6IjBvYThmdXAwbEFQWUZDNEkyNjk2IiwidWlkIjoiMDB1YjQxejdtZ3pOcXJ5TXY2OTYiLCJzY3AiOlsib3BlbmlkIiwicHJvZmlsZSIsIm9mZmxpbmVfYWNjZXNzIiwiZW1haWwiLCJkZXZpY2Vfc3NvIl0sInN1YiI6ImpheW5ld3N0cm9tQGV4YW1wbGUuY29tIn0.0Pmlxd94xHkszXa_ira1olljQF8sgrf6zcA08qTzAq7AIwfanQW6dOng2Nd-JJpgO2KAKcBPOJ9qVO--A0wHWbPDuJ2BmasdCyQeYbdwTL-I1TnlXVp_zZUy15tE2Q5nCVQVUzcGsI36d9PD8WhkM8dzzvmVsar7KpGTFstb8N_Fwjo-lsCRPBEhvp1dVXEfbtE5xlNyG2l-HkTpAZqgLQzBJCCd6CmodD-SjKB3ikqblaL7sE7FUrCM7Mxs5YWF8S5TBzOo6SGC95JDomRqHk5Jhq6xmfwPmVywM5jJ8jte5mzGb6cJAj1NWIxawE7nkoeKmKwmIu5mG26an9u2bQ"
-        val credential = createCredential(token = createToken(accessToken = accessToken, refreshToken = null))
+        val credential = oktaRule.createCredential(token = createToken(accessToken = accessToken, refreshToken = null))
         assertThat(credential.getValidAccessToken()).isNull()
     }
 
@@ -490,7 +486,7 @@ class CredentialTest {
             response.setBody(body)
         }
 
-        val credential = createCredential(token = createToken(accessToken = expiredAccessToken, refreshToken = "exampleRefreshToken", idToken = expiredIdToken))
+        val credential = oktaRule.createCredential(token = createToken(accessToken = expiredAccessToken, refreshToken = "exampleRefreshToken", idToken = expiredIdToken))
         assertThat(credential.getValidAccessToken()).isEqualTo(validAccessToken)
     }
 
@@ -503,7 +499,7 @@ class CredentialTest {
             on { withCredential(any()) } doReturn it
             on { configuration } doReturn oktaRule.configuration
         }
-        val credential = createCredential(oidcClient = oidcClient, token = createToken(accessToken = expiredAccessToken, refreshToken = "exampleRefreshToken"))
+        val credential = oktaRule.createCredential(oidcClient = oidcClient, token = createToken(accessToken = expiredAccessToken, refreshToken = "exampleRefreshToken"))
         assertThat(credential.getValidAccessToken()).isNull()
         verify(oidcClient).refreshToken(any(), any())
     }
@@ -520,7 +516,7 @@ class CredentialTest {
         }
 
         val idToken = "eyJraWQiOiJGSkEwSEdOdHN1dWRhX1BsNDVKNDJrdlFxY3N1XzBDNEZnN3BiSkxYVEhZIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiIwMHViNDF6N21nek5xcnlNdjY5NiIsIm5hbWUiOiJKYXkgTmV3c3Ryb20iLCJlbWFpbCI6ImpheW5ld3N0cm9tQGV4YW1wbGUuY29tIiwidmVyIjoxLCJpc3MiOiJodHRwczovL2V4YW1wbGUtdGVzdC5va3RhLmNvbS9vYXV0aDIvZGVmYXVsdCIsImF1ZCI6InVuaXRfdGVzdF9jbGllbnRfaWQiLCJpYXQiOjE2NDQzNDcwNjksImV4cCI6MTY0NDM1MDY2OSwianRpIjoiSUQuNTVjeEJ0ZFlsOGw2YXJLSVNQQndkMHlPVC05VUNUYVhhUVRYdDJsYVJMcyIsImFtciI6WyJwd2QiXSwiaWRwIjoiMDBvOGZvdTdzUmFHR3dkbjQ2OTYiLCJzaWQiOiJpZHhXeGtscF80a1N4dUNfblUxcFhELW5BIiwicHJlZmVycmVkX3VzZXJuYW1lIjoiamF5bmV3c3Ryb21AZXhhbXBsZS5jb20iLCJhdXRoX3RpbWUiOjE2NDQzNDcwNjgsImF0X2hhc2giOiJnTWNHVGJoR1QxR19sZHNIb0pzUHpRIiwiZHNfaGFzaCI6IkRBZUxPRlJxaWZ5c2Jnc3JiT2dib2cifQ.tT8aKK4r8yFcW9KgVtZxvjXRJVzz-_rve14CVtpUlyvCTE1yj20wmPS0z3-JirI9xXgt5KeNPYqo3Wbv8c9XY_HY3hsPQdILYpPsUkf-sctmzSoKC_dTbs5xe8uKSgmpMrggfUAWrNPiJt9Ek2p7GgP64Wx79Pq5vSHk0yWlonFfXut5ahpSfqWilmYlvLr8gFbqoLnAJfl4ZbTY8pPw_aQgCdcQ-ImHRu-8bCSCtbFRzZB-SMJFLfRF2kmx0H-QF855wUODTuUSydkff-BKb-8wnbqWg0R9NvRdoXhEybv8TXXZY3cQqgolWLAyiPMrz07n0q_UEjAilUiCjn1f4Q"
-        val credential = createCredential(token = createToken(accessToken = accessToken, idToken = idToken))
+        val credential = oktaRule.createCredential(token = createToken(accessToken = accessToken, idToken = idToken))
         val interceptor = credential.accessTokenInterceptor()
         val okHttpClient = oktaRule.okHttpClient.newBuilder().addInterceptor(interceptor).build()
         val url = oktaRule.baseUrl.newBuilder().addPathSegment("customers").build()
@@ -532,7 +528,7 @@ class CredentialTest {
     @Test fun testGetUserInfo(): Unit = runBlocking {
         val accessToken = "exampleAccessToken"
         val idToken = "eyJraWQiOiJGSkEwSEdOdHN1dWRhX1BsNDVKNDJrdlFxY3N1XzBDNEZnN3BiSkxYVEhZIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiIwMHViNDF6N21nek5xcnlNdjY5NiIsIm5hbWUiOiJKYXkgTmV3c3Ryb20iLCJlbWFpbCI6ImpheW5ld3N0cm9tQGV4YW1wbGUuY29tIiwidmVyIjoxLCJpc3MiOiJodHRwczovL2V4YW1wbGUtdGVzdC5va3RhLmNvbS9vYXV0aDIvZGVmYXVsdCIsImF1ZCI6InVuaXRfdGVzdF9jbGllbnRfaWQiLCJpYXQiOjE2NDQzNDcwNjksImV4cCI6MTY0NDM1MDY2OSwianRpIjoiSUQuNTVjeEJ0ZFlsOGw2YXJLSVNQQndkMHlPVC05VUNUYVhhUVRYdDJsYVJMcyIsImFtciI6WyJwd2QiXSwiaWRwIjoiMDBvOGZvdTdzUmFHR3dkbjQ2OTYiLCJzaWQiOiJpZHhXeGtscF80a1N4dUNfblUxcFhELW5BIiwicHJlZmVycmVkX3VzZXJuYW1lIjoiamF5bmV3c3Ryb21AZXhhbXBsZS5jb20iLCJhdXRoX3RpbWUiOjE2NDQzNDcwNjgsImF0X2hhc2giOiJnTWNHVGJoR1QxR19sZHNIb0pzUHpRIiwiZHNfaGFzaCI6IkRBZUxPRlJxaWZ5c2Jnc3JiT2dib2cifQ.tT8aKK4r8yFcW9KgVtZxvjXRJVzz-_rve14CVtpUlyvCTE1yj20wmPS0z3-JirI9xXgt5KeNPYqo3Wbv8c9XY_HY3hsPQdILYpPsUkf-sctmzSoKC_dTbs5xe8uKSgmpMrggfUAWrNPiJt9Ek2p7GgP64Wx79Pq5vSHk0yWlonFfXut5ahpSfqWilmYlvLr8gFbqoLnAJfl4ZbTY8pPw_aQgCdcQ-ImHRu-8bCSCtbFRzZB-SMJFLfRF2kmx0H-QF855wUODTuUSydkff-BKb-8wnbqWg0R9NvRdoXhEybv8TXXZY3cQqgolWLAyiPMrz07n0q_UEjAilUiCjn1f4Q"
-        val credential = createCredential(
+        val credential = oktaRule.createCredential(
             token = createToken(accessToken = accessToken, idToken = idToken),
         )
         oktaRule.enqueue(path("/oauth2/default/v1/userinfo")) { response ->
@@ -553,7 +549,7 @@ class CredentialTest {
         val validAccessToken = "exampleAccessToken"
         val expiredIdToken = "eyJraWQiOiJGSkEwSEdOdHN1dWRhX1BsNDVKNDJrdlFxY3N1XzBDNEZnN3BiSkxYVEhZIiwiYWxnIjoiUlMyNTYifQ.eyJ2ZXIiOjEsImp0aSI6IkFULmFacVZaaTlRd0oyLTR2TFFLTjUyNDJiMFRZLVlzU201b3hybVRQQjRLalUub2FyMXB3M28zbzNadW9icGo2OTYiLCJpc3MiOiJodHRwczovL2V4YW1wbGUub2t0YS5jb20vb2F1dGgyL2RlZmF1bHQiLCJhdWQiOiJhcGk6Ly9kZWZhdWx0IiwiaWF0IjoxNjQ0MzI3MDY5LCJleHAiOjE2NDQzMzcwNjksImNpZCI6IjBvYThmdXAwbEFQWUZDNEkyNjk2IiwidWlkIjoiMDB1YjQxejdtZ3pOcXJ5TXY2OTYiLCJzY3AiOlsib3BlbmlkIiwicHJvZmlsZSIsIm9mZmxpbmVfYWNjZXNzIiwiZW1haWwiLCJkZXZpY2Vfc3NvIl0sInN1YiI6ImpheW5ld3N0cm9tQGV4YW1wbGUuY29tIn0.0Pmlxd94xHkszXa_ira1olljQF8sgrf6zcA08qTzAq7AIwfanQW6dOng2Nd-JJpgO2KAKcBPOJ9qVO--A0wHWbPDuJ2BmasdCyQeYbdwTL-I1TnlXVp_zZUy15tE2Q5nCVQVUzcGsI36d9PD8WhkM8dzzvmVsar7KpGTFstb8N_Fwjo-lsCRPBEhvp1dVXEfbtE5xlNyG2l-HkTpAZqgLQzBJCCd6CmodD-SjKB3ikqblaL7sE7FUrCM7Mxs5YWF8S5TBzOo6SGC95JDomRqHk5Jhq6xmfwPmVywM5jJ8jte5mzGb6cJAj1NWIxawE7nkoeKmKwmIu5mG26an9u2bQ"
         val validIdToken = "eyJraWQiOiJGSkEwSEdOdHN1dWRhX1BsNDVKNDJrdlFxY3N1XzBDNEZnN3BiSkxYVEhZIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiIwMHViNDF6N21nek5xcnlNdjY5NiIsIm5hbWUiOiJKYXkgTmV3c3Ryb20iLCJlbWFpbCI6ImpheW5ld3N0cm9tQGV4YW1wbGUuY29tIiwidmVyIjoxLCJpc3MiOiJodHRwczovL2V4YW1wbGUtdGVzdC5va3RhLmNvbS9vYXV0aDIvZGVmYXVsdCIsImF1ZCI6InVuaXRfdGVzdF9jbGllbnRfaWQiLCJpYXQiOjE2NDQzNDcwNjksImV4cCI6MTY0NDM1MDY2OSwianRpIjoiSUQuNTVjeEJ0ZFlsOGw2YXJLSVNQQndkMHlPVC05VUNUYVhhUVRYdDJsYVJMcyIsImFtciI6WyJwd2QiXSwiaWRwIjoiMDBvOGZvdTdzUmFHR3dkbjQ2OTYiLCJzaWQiOiJpZHhXeGtscF80a1N4dUNfblUxcFhELW5BIiwicHJlZmVycmVkX3VzZXJuYW1lIjoiamF5bmV3c3Ryb21AZXhhbXBsZS5jb20iLCJhdXRoX3RpbWUiOjE2NDQzNDcwNjgsImF0X2hhc2giOiJnTWNHVGJoR1QxR19sZHNIb0pzUHpRIiwiZHNfaGFzaCI6IkRBZUxPRlJxaWZ5c2Jnc3JiT2dib2cifQ.tT8aKK4r8yFcW9KgVtZxvjXRJVzz-_rve14CVtpUlyvCTE1yj20wmPS0z3-JirI9xXgt5KeNPYqo3Wbv8c9XY_HY3hsPQdILYpPsUkf-sctmzSoKC_dTbs5xe8uKSgmpMrggfUAWrNPiJt9Ek2p7GgP64Wx79Pq5vSHk0yWlonFfXut5ahpSfqWilmYlvLr8gFbqoLnAJfl4ZbTY8pPw_aQgCdcQ-ImHRu-8bCSCtbFRzZB-SMJFLfRF2kmx0H-QF855wUODTuUSydkff-BKb-8wnbqWg0R9NvRdoXhEybv8TXXZY3cQqgolWLAyiPMrz07n0q_UEjAilUiCjn1f4Q"
-        val credential = createCredential(
+        val credential = oktaRule.createCredential(
             token = createToken(accessToken = expiredAccessToken, refreshToken = "exampleRefreshToken", idToken = expiredIdToken),
         )
         oktaRule.enqueue(path("/oauth2/default/v1/token")) { response ->
@@ -576,14 +572,14 @@ class CredentialTest {
     }
 
     @Test fun testGetUserInfoNoToken(): Unit = runBlocking {
-        val credential = createCredential()
+        val credential = oktaRule.createCredential()
         val result = credential.getUserInfo() as OidcClientResult.Error<OidcUserInfo>
         assertThat(result.exception).hasMessageThat().isEqualTo("No Access Token.")
         assertThat(result.exception).isInstanceOf(IllegalStateException::class.java)
     }
 
     @Test fun testIntrospectNullToken(): Unit = runBlocking {
-        val credential = createCredential()
+        val credential = oktaRule.createCredential()
         val result = credential.introspectToken(TokenType.ACCESS_TOKEN)
         val errorResult = result as OidcClientResult.Error<OidcIntrospectInfo>
         assertThat(errorResult.exception).hasMessageThat().isEqualTo("No token.")
@@ -591,7 +587,7 @@ class CredentialTest {
     }
 
     @Test fun testIntrospectNullRefreshToken(): Unit = runBlocking {
-        val credential = createCredential(token = createToken(refreshToken = null))
+        val credential = oktaRule.createCredential(token = createToken(refreshToken = null))
         val result = credential.introspectToken(TokenType.REFRESH_TOKEN)
         val errorResult = result as OidcClientResult.Error<OidcIntrospectInfo>
         assertThat(errorResult.exception).hasMessageThat().isEqualTo("No refresh token.")
@@ -599,7 +595,7 @@ class CredentialTest {
     }
 
     @Test fun testIntrospectNullIdToken(): Unit = runBlocking {
-        val credential = createCredential(token = createToken(idToken = null))
+        val credential = oktaRule.createCredential(token = createToken(idToken = null))
         val result = credential.introspectToken(TokenType.ID_TOKEN)
         val errorResult = result as OidcClientResult.Error<OidcIntrospectInfo>
         assertThat(errorResult.exception).hasMessageThat().isEqualTo("No id token.")
@@ -607,7 +603,7 @@ class CredentialTest {
     }
 
     @Test fun testIntrospectNullDeviceSecret(): Unit = runBlocking {
-        val credential = createCredential(token = createToken(deviceSecret = null))
+        val credential = oktaRule.createCredential(token = createToken(deviceSecret = null))
         val result = credential.introspectToken(TokenType.DEVICE_SECRET)
         val errorResult = result as OidcClientResult.Error<OidcIntrospectInfo>
         assertThat(errorResult.exception).hasMessageThat().isEqualTo("No device secret.")
@@ -622,7 +618,7 @@ class CredentialTest {
             on { withCredential(any()) } doReturn it
             on { configuration } doReturn oktaRule.configuration
         }
-        val credential = createCredential(token = createToken(refreshToken = "exampleRefreshToken"), oidcClient = oidcClient)
+        val credential = oktaRule.createCredential(token = createToken(refreshToken = "exampleRefreshToken"), oidcClient = oidcClient)
         val result = credential.introspectToken(TokenType.REFRESH_TOKEN)
         val successResult = result as OidcClientResult.Success<OidcIntrospectInfo>
         assertThat(successResult.result.active).isFalse()
@@ -637,7 +633,7 @@ class CredentialTest {
             on { withCredential(any()) } doReturn it
             on { configuration } doReturn oktaRule.configuration
         }
-        val credential = createCredential(token = createToken(accessToken = "exampleAccessToken"), oidcClient = oidcClient)
+        val credential = oktaRule.createCredential(token = createToken(accessToken = "exampleAccessToken"), oidcClient = oidcClient)
         val result = credential.introspectToken(TokenType.ACCESS_TOKEN)
         val successResult = result as OidcClientResult.Success<OidcIntrospectInfo>
         assertThat(successResult.result.active).isFalse()
@@ -652,7 +648,7 @@ class CredentialTest {
             on { withCredential(any()) } doReturn it
             on { configuration } doReturn oktaRule.configuration
         }
-        val credential = createCredential(token = createToken(idToken = "exampleIdToken"), oidcClient = oidcClient)
+        val credential = oktaRule.createCredential(token = createToken(idToken = "exampleIdToken"), oidcClient = oidcClient)
         val result = credential.introspectToken(TokenType.ID_TOKEN)
         val successResult = result as OidcClientResult.Success<OidcIntrospectInfo>
         assertThat(successResult.result.active).isFalse()
@@ -667,7 +663,7 @@ class CredentialTest {
             on { withCredential(any()) } doReturn it
             on { configuration } doReturn oktaRule.configuration
         }
-        val credential = createCredential(token = createToken(deviceSecret = "exampleDeviceSecret"), oidcClient = oidcClient)
+        val credential = oktaRule.createCredential(token = createToken(deviceSecret = "exampleDeviceSecret"), oidcClient = oidcClient)
         val result = credential.introspectToken(TokenType.DEVICE_SECRET)
         val successResult = result as OidcClientResult.Success<OidcIntrospectInfo>
         assertThat(successResult.result.active).isFalse()
@@ -682,7 +678,7 @@ class CredentialTest {
             on { withCredential(any()) } doReturn it
             on { configuration } doReturn oktaRule.configuration
         }
-        val credential = createCredential(token = createToken(accessToken = "exampleAccessToken"), oidcClient = oidcClient)
+        val credential = oktaRule.createCredential(token = createToken(accessToken = "exampleAccessToken"), oidcClient = oidcClient)
         val result = credential.introspectToken(TokenType.ACCESS_TOKEN)
         val errorResult = result as OidcClientResult.Error<OidcIntrospectInfo>
         assertThat(errorResult.exception).hasMessageThat().isEqualTo("Exception from mock!")
@@ -705,7 +701,7 @@ class CredentialTest {
                 throw IllegalStateException("Expected From Test!")
             }
         }
-        val credential = createCredential(
+        val credential = oktaRule.createCredential(
             token = createToken(refreshToken = "exampleRefreshToken"),
             tokenStorage = tokenStorage,
         )
@@ -718,38 +714,5 @@ class CredentialTest {
         val exception = (result as OidcClientResult.Error<Token>).exception
         assertThat(exception).isInstanceOf(IllegalStateException::class.java)
         assertThat(exception).hasMessageThat().isEqualTo("Expected From Test!")
-    }
-
-    private fun createCredential(
-        token: Token? = null,
-        metadata: Map<String, String> = emptyMap(),
-        oidcClient: OidcClient = oktaRule.createOidcClient(),
-        tokenStorage: TokenStorage = InMemoryTokenStorage(),
-        credentialDataSource: CredentialDataSource = mock(),
-    ): Credential {
-        if (token != null) {
-            runBlocking {
-                tokenStorage.add(tokenStorageId)
-            }
-        }
-        return Credential(oidcClient, tokenStorage, credentialDataSource, tokenStorageId, token, metadata)
-    }
-
-    private fun createToken(
-        scope: String = "openid email profile offline_access",
-        accessToken: String = "exampleAccessToken",
-        idToken: String? = null,
-        refreshToken: String? = null,
-        deviceSecret: String? = null,
-    ): Token {
-        return Token(
-            tokenType = "Bearer",
-            expiresIn = 3600,
-            accessToken = accessToken,
-            scope = scope,
-            refreshToken = refreshToken,
-            deviceSecret = deviceSecret,
-            idToken = idToken,
-        )
     }
 }
