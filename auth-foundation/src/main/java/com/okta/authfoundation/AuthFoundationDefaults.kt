@@ -17,7 +17,9 @@ package com.okta.authfoundation
 
 import com.okta.authfoundation.client.AccessTokenValidator
 import com.okta.authfoundation.client.DefaultAccessTokenValidator
+import com.okta.authfoundation.client.DefaultDeviceSecretValidator
 import com.okta.authfoundation.client.DefaultIdTokenValidator
+import com.okta.authfoundation.client.DeviceSecretValidator
 import com.okta.authfoundation.client.IdTokenValidator
 import com.okta.authfoundation.client.OidcClock
 import com.okta.authfoundation.events.EventCoordinator
@@ -47,6 +49,9 @@ object AuthFoundationDefaults {
 
     /** The default AccessTokenValidator. */
     var accessTokenValidator: AccessTokenValidator by NoSetAfterGetWithLazyDefaultFactory { DefaultAccessTokenValidator() }
+
+    /** The default DeviceSecretValidator. */
+    var deviceSecretValidator: DeviceSecretValidator by NoSetAfterGetWithLazyDefaultFactory { DefaultDeviceSecretValidator() }
 
     private fun defaultClock(): OidcClock {
         return object : OidcClock {
