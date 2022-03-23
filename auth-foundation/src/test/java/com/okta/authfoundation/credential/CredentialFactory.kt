@@ -48,7 +48,7 @@ fun createToken(
 ): Token {
     return Token(
         tokenType = "Bearer",
-        expiresIn = 3600,
+        expiresIn = MOCK_TOKEN_DURATION,
         accessToken = accessToken,
         scope = scope,
         refreshToken = refreshToken,
@@ -56,3 +56,5 @@ fun createToken(
         idToken = idToken,
     )
 }
+
+const val MOCK_TOKEN_DURATION: Int = 3600

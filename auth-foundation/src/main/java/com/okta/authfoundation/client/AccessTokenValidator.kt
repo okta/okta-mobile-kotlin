@@ -51,7 +51,7 @@ internal class DefaultAccessTokenValidator : AccessTokenValidator {
         val expectedAccessTokenHash = idToken.deserializeClaims(IdTokenAtHash.serializer()).atHash ?: return
         val sha256 = accessToken.toByteArray(Charsets.US_ASCII).toByteString().sha256()
         val leftMost = sha256.substring(0, sha256.size / 2)
-        val actualAccessTokenHash = leftMost.base64Url().removeSuffix("==")
+        val actualAccessTokenHash = leftMost.base64Url().trimEnd('=')
         if (actualAccessTokenHash != expectedAccessTokenHash) {
             throw AccessTokenValidator.Error("ID Token at_hash didn't match the access token.")
         }

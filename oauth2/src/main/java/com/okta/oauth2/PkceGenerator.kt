@@ -38,6 +38,6 @@ internal object PkceGenerator {
     }
 
     private fun base64Encode(source: ByteArray): String {
-        return source.toByteString().base64Url().removeSuffix("=")
+        return source.toByteString().base64Url().trimEnd('=')
     }
 }
