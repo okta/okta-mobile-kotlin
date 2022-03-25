@@ -1,6 +1,6 @@
 # Changelog
 
-## [2.0.0] - TBD
+## [2.0.0-BETA2] - 2022-03-25
 ### Added
 - Integrated with AuthFoundation, this included the ability to security store and access credentials.
 
