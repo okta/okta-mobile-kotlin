@@ -17,20 +17,27 @@ package com.okta.authfoundation.client
 
 import com.google.common.truth.Truth.assertThat
 import com.okta.authfoundation.claims.preferredUsername
+import com.okta.authfoundation.jwt.Jwks
 import com.okta.authfoundation.client.dto.OidcIntrospectInfo
 import com.okta.authfoundation.client.dto.OidcUserInfo
 import com.okta.authfoundation.client.events.TokenCreatedEvent
 import com.okta.authfoundation.credential.Token
 import com.okta.authfoundation.credential.TokenType
+import com.okta.authfoundation.credential.createToken
+import com.okta.authfoundation.jwt.IdTokenClaims
+import com.okta.authfoundation.jwt.JwtBuilder.Companion.createJwtBuilder
+import com.okta.authfoundation.jwt.createJwks
 import com.okta.testhelpers.OktaRule
 import com.okta.testhelpers.RequestMatchers.body
 import com.okta.testhelpers.RequestMatchers.header
 import com.okta.testhelpers.RequestMatchers.method
 import com.okta.testhelpers.RequestMatchers.path
+import com.okta.testhelpers.RequestMatchers.query
 import com.okta.testhelpers.testBodyFromFile
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.junit.Rule
 import org.junit.Test
@@ -87,6 +94,7 @@ class OidcClientTest {
         }
         val result = oktaRule.createOidcClient().getUserInfo("ExampleToken!")
         val userInfo = (result as OidcClientResult.Success<OidcUserInfo>).result
+
         @Serializable
         class ExampleUserInfo(
             @SerialName("sub") val sub: String
@@ -298,6 +306,128 @@ class OidcClientTest {
         val jwt = client.parseJwt("eyJraWQiOiJGSkEwSEdOdHN1dWRhX1BsNDVKNDJrdlFxY3N1XzBDNEZnN3BiSkxYVEhZIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiIwMHViNDF6N21nek5xcnlNdjY5NiIsIm5hbWUiOiJKYXkgTmV3c3Ryb20iLCJlbWFpbCI6ImpheW5ld3N0cm9tQGV4YW1wbGUuY29tIiwidmVyIjoxLCJpc3MiOiJodHRwczovL2V4YW1wbGUtdGVzdC5va3RhLmNvbS9vYXV0aDIvZGVmYXVsdCIsImF1ZCI6InVuaXRfdGVzdF9jbGllbnRfaWQiLCJpYXQiOjE2NDQzNDcwNjksImV4cCI6MTY0NDM1MDY2OSwianRpIjoiSUQuNTVjeEJ0ZFlsOGw2YXJLSVNQQndkMHlPVC05VUNUYVhhUVRYdDJsYVJMcyIsImFtciI6WyJwd2QiXSwiaWRwIjoiMDBvOGZvdTdzUmFHR3dkbjQ2OTYiLCJzaWQiOiJpZHhXeGtscF80a1N4dUNfblUxcFhELW5BIiwicHJlZmVycmVkX3VzZXJuYW1lIjoiamF5bmV3c3Ryb21AZXhhbXBsZS5jb20iLCJhdXRoX3RpbWUiOjE2NDQzNDcwNjgsImF0X2hhc2giOiJnTWNHVGJoR1QxR19sZHNIb0pzUHpRIiwiZHNfaGFzaCI6IkRBZUxPRlJxaWZ5c2Jnc3JiT2dib2cifQ.tT8aKK4r8yFcW9KgVtZxvjXRJVzz-_rve14CVtpUlyvCTE1yj20wmPS0z3-JirI9xXgt5KeNPYqo3Wbv8c9XY_HY3hsPQdILYpPsUkf-sctmzSoKC_dTbs5xe8uKSgmpMrggfUAWrNPiJt9Ek2p7GgP64Wx79Pq5vSHk0yWlonFfXut5ahpSfqWilmYlvLr8gFbqoLnAJfl4ZbTY8pPw_aQgCdcQ-ImHRu-8bCSCtbFRzZB-SMJFLfRF2kmx0H-QF855wUODTuUSydkff-BKb-8wnbqWg0R9NvRdoXhEybv8TXXZY3cQqgolWLAyiPMrz07n0q_UEjAilUiCjn1f4Q")
         assertThat(jwt).isNotNull()
         assertThat(jwt?.preferredUsername).isEqualTo("jaynewstrom@example.com")
+    }
+
+    @Test fun testJwks(): Unit = runBlocking {
+        oktaRule.enqueue(
+            method("GET"),
+            path("/oauth2/default/v1/keys"),
+            query("client_id=unit_test_client_id")
+        ) { response ->
+            response.testBodyFromFile("$mockPrefix/jwks.json")
+        }
+        val result = oktaRule.createOidcClient(oktaRule.createEndpoints(includeJwks = true)).jwks()
+        val jwks = (result as OidcClientResult.Success<Jwks>).result
+        assertThat(jwks.keys).hasSize(1)
+        val key = jwks.keys[0]
+        assertThat(key.algorithm).isEqualTo("RS256")
+        assertThat(key.exponent).isEqualTo("AQAB")
+        assertThat(key.modulus).isEqualTo("lbTQ6Q4bpE_htcqJ_36Z_WslsY5AVC9Gb-BisCEu-Pg0sdDXc0zPyhHtO4_VETO6VALz3ct_7PhTqbAmF71UcWNMQfBAwpkDfey4Pvl5X8zqRLsirRv-ufA0mnP85HdXrywE3_5mH_Se6ToPSWEIva516OMR66LgJPKQ09vWUavkwlWriU_NDjFCnj5a-IOJz73UGdPizweEVbmSNKzKArxH6r7ZyGnkGr4NLNDr5h_HvWj5lgE6eos87ZAID-lvxNdwREKXBrL8zmsaxQUfRYCI9pd_M4ZbGRzVq6n7LXo-SOvreI2cw9_wfJowWGqgGq655-X3bCbH9ob5_W44tw")
+        assertThat(key.keyId).isEqualTo("8hivsGE-wrYPQsEOk5tLdAzPB-cVSpbbBvKFg0mjvLE")
+        assertThat(key.keyType).isEqualTo("RSA")
+        assertThat(key.use).isEqualTo("sig")
+    }
+
+    @Test fun testJwksIsCached(): Unit = runBlocking {
+        oktaRule.enqueue(
+            path("/oauth2/default/v1/keys"),
+        ) { response ->
+            response.testBodyFromFile("$mockPrefix/jwks.json")
+        }
+        val client = oktaRule.createOidcClient(oktaRule.createEndpoints(includeJwks = true))
+        val result = client.jwks()
+        assertThat(result).isInstanceOf(OidcClientResult.Success::class.java)
+        val result2 = client.jwks() // This would fail, since we remove all network requests once it's consumed.
+        assertThat(result2).isInstanceOf(OidcClientResult.Success::class.java)
+        assertThat(result).isSameInstanceAs(result2)
+    }
+
+    @Test fun testJwksIsNotCachedWhenTheRequestFails(): Unit = runBlocking {
+        oktaRule.enqueue(
+            path("/oauth2/default/v1/keys"),
+        ) { response ->
+            response.testBodyFromFile("$mockPrefix/jwks.json")
+        }
+        oktaRule.enqueue(
+            path("/oauth2/default/v1/keys"),
+        ) { response ->
+            response.setResponseCode(503)
+        }
+        val client = oktaRule.createOidcClient(oktaRule.createEndpoints(includeJwks = true))
+        val result = client.jwks()
+        assertThat(result).isInstanceOf(OidcClientResult.Error::class.java)
+        val result2 = client.jwks()
+        assertThat(result2).isInstanceOf(OidcClientResult.Success::class.java)
+    }
+
+    @Test fun testRefreshTokenValidationWithJwks(): Unit = runBlocking {
+        val client = oktaRule.createOidcClient(oktaRule.createEndpoints(includeJwks = true))
+        oktaRule.enqueue(
+            path("/oauth2/default/v1/keys"),
+        ) { response ->
+            val keys = createJwks().toSerializableJwks()
+            response.setBody(oktaRule.configuration.json.encodeToString(keys))
+        }
+        oktaRule.enqueue(
+            method("POST"),
+            path("/oauth2/default/v1/token"),
+        ) { response ->
+            runBlocking {
+                val token = createToken(idToken = client.createJwtBuilder().createJwt(claims = IdTokenClaims()).rawValue)
+                response.setBody(oktaRule.configuration.json.encodeToString(token.asSerializableToken()))
+            }
+        }
+        val result = client.refreshToken("ExampleRefreshToken")
+        assertThat(result).isInstanceOf(OidcClientResult.Success::class.java)
+    }
+
+    @Test fun testRefreshTokenValidationFailsWithJwksError(): Unit = runBlocking {
+        val client = oktaRule.createOidcClient(oktaRule.createEndpoints(includeJwks = true))
+        oktaRule.enqueue(
+            path("/oauth2/default/v1/keys"),
+        ) { response ->
+            response.setBody("{}")
+            response.setResponseCode(503)
+        }
+        oktaRule.enqueue(
+            method("POST"),
+            path("/oauth2/default/v1/token"),
+        ) { response ->
+            response.testBodyFromFile("$mockPrefix/token.json")
+        }
+        val result = client.refreshToken("ExampleRefreshToken")
+        assertThat(result).isInstanceOf(OidcClientResult.Error::class.java)
+        val exception = (result as OidcClientResult.Error<Token>).exception
+        assertThat(exception).hasMessageThat().isEqualTo("HTTP Error: status code - 503")
+        assertThat(exception).isInstanceOf(OidcClientResult.Error.HttpResponseException::class.java)
+        val httpException = exception as OidcClientResult.Error.HttpResponseException
+        assertThat(httpException.responseCode).isEqualTo(503)
+    }
+
+    @Test fun testRefreshTokenValidationFailsWithInvalidSignature(): Unit = runBlocking {
+        val client = oktaRule.createOidcClient(oktaRule.createEndpoints(includeJwks = true))
+        oktaRule.enqueue(
+            path("/oauth2/default/v1/keys"),
+        ) { response ->
+            val keys = createJwks().toSerializableJwks()
+            response.setBody(oktaRule.configuration.json.encodeToString(keys))
+        }
+        oktaRule.enqueue(
+            method("POST"),
+            path("/oauth2/default/v1/token"),
+        ) { response ->
+            runBlocking {
+                val idTokenContent = client.createJwtBuilder()
+                    .createJwt(claims = IdTokenClaims()).rawValue.substringBeforeLast(".")
+                val token = createToken(idToken = "$idTokenContent.invalidSignature")
+                response.setBody(oktaRule.configuration.json.encodeToString(token.asSerializableToken()))
+            }
+        }
+        val result = client.refreshToken("ExampleRefreshToken")
+        assertThat(result).isInstanceOf(OidcClientResult.Error::class.java)
+        val exception = (result as OidcClientResult.Error<Token>).exception
+        assertThat(exception).hasMessageThat().isEqualTo("Invalid id_token signature")
+        assertThat(exception).isInstanceOf(IdTokenValidator.Error::class.java)
     }
 }
 
