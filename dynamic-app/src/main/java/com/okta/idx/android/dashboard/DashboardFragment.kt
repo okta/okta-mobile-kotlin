@@ -20,7 +20,7 @@ import android.view.View
 import android.widget.Toast
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
-import com.okta.idx.android.OktaHelper
+import com.okta.idx.android.SampleHelper
 import com.okta.idx.android.dynamic.R
 import com.okta.idx.android.dynamic.databinding.FragmentDashboardBinding
 import com.okta.idx.android.dynamic.databinding.RowDashboardClaimBinding
@@ -33,7 +33,7 @@ internal class DashboardFragment : BaseFragment<FragmentDashboardBinding>(
     private val viewModel: DashboardViewModel by viewModels()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        OktaHelper.defaultCredential.token?.let { token ->
+        SampleHelper.defaultCredential.token?.let { token ->
             binding.tokenType.text = token.tokenType
             binding.expiresIn.text = token.expiresIn.toString()
             binding.accessToken.text = token.accessToken

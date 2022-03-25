@@ -44,7 +44,7 @@ This is a high level flowchart of how the idx-kotlin SDK methods would be used b
 
 ```mermaid
 graph TD
-    A(OidcClient.idxFlow) --> B(idxFlow.resume)
+    A(OidcClient.createIdxFlow) --> B(idxFlow.resume)
     B --> C[Gather User Input]
     C --> D(idxFlow.proceed)
     D --> E{idxResponse.isLoginSuccessful}
@@ -70,8 +70,8 @@ The `IdxFlow` class is used to define and initiate an authentication workflow ut
 
 This class makes heavy use of [Kotlin Coroutines][kotlin-coroutines] to perform the actions asynchronously.
 
-#### OidcClient.idxFlow
-The `idxFlow` extension method on `OidcClient` is used to create an `IdxFlow`, and to start an authorization flow.
+#### OidcClient.createIdxFlow
+The `createIdxFlow` extension method on `OidcClient` is used to create an `IdxFlow`, and to start an authorization flow.
 
 #### IdxFlow.resume
 The `resume` method on an `IdxFlow` is used to reveal the current remediations.

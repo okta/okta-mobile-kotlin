@@ -20,7 +20,7 @@ import androidx.lifecycle.viewModelScope
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.credential.CredentialDataSource.Companion.createCredentialDataSource
-import com.okta.idx.android.OktaHelper
+import com.okta.idx.android.SampleHelper
 import kotlinx.coroutines.launch
 import okhttp3.HttpUrl.Companion.toHttpUrl
 
@@ -30,7 +30,7 @@ internal class LaunchViewModel : ViewModel() {
     }
 
     fun start() {
-        if (OktaHelper.isInitialized()) return
+        if (SampleHelper.isInitialized()) return
 
         viewModelScope.launch {
             val oidcConfiguration = OidcConfiguration(
@@ -43,15 +43,15 @@ internal class LaunchViewModel : ViewModel() {
                 "${BuildConfig.ISSUER}/.well-known/openid-configuration".toHttpUrl(),
             )
             val credentialDataSource = oidcClient.createCredentialDataSource(SampleApplication.context)
-            OktaHelper.credentialDataSource = credentialDataSource
+            SampleHelper.credentialDataSource = credentialDataSource
             val credential = credentialDataSource.listCredentials().firstOrNull { credential ->
-                credential.metadata[OktaHelper.CREDENTIAL_NAME_METADATA_KEY] == DEFAULT_CREDENTIAL_NAME_METADATA_VALUE
+                credential.metadata[SampleHelper.CREDENTIAL_NAME_METADATA_KEY] == DEFAULT_CREDENTIAL_NAME_METADATA_VALUE
             } ?: credentialDataSource.createCredential()
-            OktaHelper.defaultCredential = credential
-            OktaHelper.defaultCredential.storeToken(
+            SampleHelper.defaultCredential = credential
+            SampleHelper.defaultCredential.storeToken(
                 metadata = mapOf(
                     Pair(
-                        OktaHelper.CREDENTIAL_NAME_METADATA_KEY,
+                        SampleHelper.CREDENTIAL_NAME_METADATA_KEY,
                         DEFAULT_CREDENTIAL_NAME_METADATA_VALUE
                     )
                 )

@@ -63,8 +63,8 @@ class RequestMiddlewareTest {
     }
 
     @Test fun testTokenRequestFromInteractionCode(): Unit = runBlocking {
-        val clientContext = IdxFlowContext(codeVerifier = "123456", interactionHandle = "234567", state = "345678")
-        val request = tokenRequestFromInteractionCode(networkRule.createOidcClient(), clientContext, "654321")
+        val flowContext = IdxFlowContext(codeVerifier = "123456", interactionHandle = "234567", state = "345678")
+        val request = tokenRequestFromInteractionCode(networkRule.createOidcClient(), flowContext, "654321")
         assertThat(request.url.toString()).endsWith("/oauth2/default/v1/token")
         assertThat(request.method).isEqualTo("POST")
         val buffer = Buffer()
@@ -74,8 +74,8 @@ class RequestMiddlewareTest {
     }
 
     @Test fun testIntrospectRequest(): Unit = runBlocking {
-        val clientContext = IdxFlowContext(codeVerifier = "123456", interactionHandle = "234567", state = "345678")
-        val request = introspectRequest(networkRule.createOidcClient(), clientContext)
+        val flowContext = IdxFlowContext(codeVerifier = "123456", interactionHandle = "234567", state = "345678")
+        val request = introspectRequest(networkRule.createOidcClient(), flowContext)
         assertThat(request.url.toString()).endsWith("/idp/idx/introspect")
         assertThat(request.method).isEqualTo("POST")
         val buffer = Buffer()

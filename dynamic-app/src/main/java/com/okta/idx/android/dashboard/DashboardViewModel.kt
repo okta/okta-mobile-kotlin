@@ -20,7 +20,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.okta.authfoundation.client.OidcClientResult
-import com.okta.idx.android.OktaHelper
+import com.okta.idx.android.SampleHelper
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -35,7 +35,7 @@ internal class DashboardViewModel : ViewModel() {
 
     init {
         viewModelScope.launch {
-            when (val result = OktaHelper.defaultCredential.getUserInfo()) {
+            when (val result = SampleHelper.defaultCredential.getUserInfo()) {
                 is OidcClientResult.Error -> {
                     Timber.e(result.exception, "User info request failed.")
                 }
@@ -51,7 +51,7 @@ internal class DashboardViewModel : ViewModel() {
         _logoutStateLiveData.value = LogoutState.Loading
 
         viewModelScope.launch {
-            when (OktaHelper.defaultCredential.revokeToken()) {
+            when (SampleHelper.defaultCredential.revokeToken()) {
                 is OidcClientResult.Error -> {
                     _logoutStateLiveData.postValue(LogoutState.Failed)
                 }

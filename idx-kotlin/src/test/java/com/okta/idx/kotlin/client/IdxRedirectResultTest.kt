@@ -33,8 +33,8 @@ class IdxRedirectResultTest {
     @get:Rule val networkRule = NetworkRule()
 
     private fun createClient(): IdxFlow {
-        val clientContext = IdxFlowContext("abcd", "bcde", "cdef")
-        return IdxFlow(networkRule.createOidcClient(), clientContext)
+        val flowContext = IdxFlowContext("abcd", "bcde", "cdef")
+        return IdxFlow(networkRule.createOidcClient(), flowContext)
     }
 
     @Test fun testRedirectResultInvalidUrl(): Unit = runBlocking {

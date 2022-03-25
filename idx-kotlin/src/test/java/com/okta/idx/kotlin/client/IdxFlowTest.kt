@@ -19,7 +19,7 @@ import com.google.common.truth.Truth.assertThat
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundation.credential.Token
-import com.okta.idx.kotlin.client.IdxFlow.Companion.idxFlow
+import com.okta.idx.kotlin.client.IdxFlow.Companion.createIdxFlow
 import com.okta.idx.kotlin.dto.IdxRemediation
 import com.okta.idx.kotlin.dto.IdxResponse
 import com.okta.idx.kotlin.dto.createRemediation
@@ -41,7 +41,7 @@ class IdxFlowTest {
             response.testBodyFromFile("client/interactResponse.json")
         }
 
-        val clientResult = networkRule.createOidcClient().idxFlow() as OidcClientResult.Success<IdxFlow>
+        val clientResult = networkRule.createOidcClient().createIdxFlow() as OidcClientResult.Success<IdxFlow>
         assertThat(clientResult.result.flowContext.interactionHandle).isEqualTo("029ZAB")
     }
 
@@ -55,7 +55,7 @@ class IdxFlowTest {
             networkRule.mockedUrl().newBuilder()
                 .addPathSegments(".well-known/openid-configuration").build(),
         )
-        val clientResult = oidcClient.idxFlow() as OidcClientResult.Error<IdxFlow>
+        val clientResult = oidcClient.createIdxFlow() as OidcClientResult.Error<IdxFlow>
         assertThat(clientResult.exception).isInstanceOf(OidcClientResult.Error.OidcEndpointsNotAvailableException::class.java)
     }
 
@@ -68,7 +68,7 @@ class IdxFlowTest {
         }
 
         val extraParameters = mapOf(Pair("recovery_token", "secret123"))
-        val clientResult = networkRule.createOidcClient().idxFlow(extraParameters) as OidcClientResult.Success<IdxFlow>
+        val clientResult = networkRule.createOidcClient().createIdxFlow(extraParameters) as OidcClientResult.Success<IdxFlow>
         assertThat(clientResult.result.flowContext.interactionHandle).isEqualTo("029ZAB")
     }
 
@@ -81,7 +81,7 @@ class IdxFlowTest {
             response.testBodyFromFile("client/identifyRemediationResponse.json")
         }
 
-        val clientResult = networkRule.createOidcClient().idxFlow() as OidcClientResult.Success<IdxFlow>
+        val clientResult = networkRule.createOidcClient().createIdxFlow() as OidcClientResult.Success<IdxFlow>
         val client = clientResult.result
         assertThat(client.flowContext.interactionHandle).isEqualTo("029ZAB")
 
@@ -101,7 +101,7 @@ class IdxFlowTest {
             response.testBodyFromFile("client/successWithInteractionCodeResponse.json")
         }
 
-        val clientResult = networkRule.createOidcClient().idxFlow() as OidcClientResult.Success<IdxFlow>
+        val clientResult = networkRule.createOidcClient().createIdxFlow() as OidcClientResult.Success<IdxFlow>
         val client = clientResult.result
         assertThat(client.flowContext.interactionHandle).isEqualTo("029ZAB")
 
@@ -128,7 +128,7 @@ class IdxFlowTest {
             response.testBodyFromFile("client/identifyRemediationResponse.json")
         }
 
-        val clientResult = networkRule.createOidcClient().idxFlow() as OidcClientResult.Success<IdxFlow>
+        val clientResult = networkRule.createOidcClient().createIdxFlow() as OidcClientResult.Success<IdxFlow>
         val client = clientResult.result
         assertThat(client.flowContext.interactionHandle).isEqualTo("029ZAB")
 
@@ -159,7 +159,7 @@ class IdxFlowTest {
             response.testBodyFromFile("client/tokenResponse.json")
         }
 
-        val clientResult = networkRule.createOidcClient().idxFlow() as OidcClientResult.Success<IdxFlow>
+        val clientResult = networkRule.createOidcClient().createIdxFlow() as OidcClientResult.Success<IdxFlow>
         val client = clientResult.result
         assertThat(client.flowContext.interactionHandle).isEqualTo("029ZAB")
 
@@ -184,7 +184,7 @@ class IdxFlowTest {
             response.testBodyFromFile("client/interactResponse.json")
         }
 
-        val clientResult = networkRule.createOidcClient().idxFlow() as OidcClientResult.Success<IdxFlow>
+        val clientResult = networkRule.createOidcClient().createIdxFlow() as OidcClientResult.Success<IdxFlow>
         assertThat(clientResult.result.flowContext.interactionHandle).isEqualTo("029ZAB")
 
         val client = clientResult.result

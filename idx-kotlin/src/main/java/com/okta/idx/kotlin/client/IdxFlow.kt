@@ -45,25 +45,25 @@ class IdxFlow internal constructor(
         /**
          * Used to create an IdxFlow, and to start an authorization flow.
          */
-        suspend fun OidcClient.idxFlow(
+        suspend fun OidcClient.createIdxFlow(
             extraStartRequestParameters: Map<String, String> = emptyMap(),
         ): OidcClientResult<IdxFlow> {
             val interactContext = withContext(configuration.computeDispatcher) {
-                InteractContext.create(this@idxFlow, extraStartRequestParameters)
+                InteractContext.create(this@createIdxFlow, extraStartRequestParameters)
             } ?: return endpointNotAvailableError()
 
             return configuration.performRequest<InteractResponse, IdxFlow>(
                 InteractResponse.serializer(),
                 interactContext.request
             ) {
-                val clientContext = IdxFlowContext(
+                val flowContext = IdxFlowContext(
                     codeVerifier = interactContext.codeVerifier,
                     interactionHandle = it.interactionHandle,
                     state = interactContext.state,
                 )
                 IdxFlow(
                     oidcClient = this,
-                    flowContext = clientContext,
+                    flowContext = flowContext,
                 )
             }
         }
@@ -187,7 +187,7 @@ class IdxFlow internal constructor(
     }
 
     /** IdxResponse can come back in both HTTP 200 as well as others such as 400s. */
-    private fun idxShouldAttemptJsonDeserialization(response: Response): Boolean {
+    private fun idxShouldAttemptJsonDeserialization(@Suppress("UNUSED_PARAMETER") response: Response): Boolean {
         return true
     }
 }
