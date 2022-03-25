@@ -63,6 +63,18 @@ Okta is busy adding new functionality to its identity platform. We're excited to
 * [Device Authorization Grant](https://datatracker.ietf.org/doc/html/rfc8628)
 * [Okta Identity Engine](https://github.com/okta/okta-idx-android)
 
+# Installation
+
+Add the `Okta Mobile Kotlin` dependencies to your `build.gradle` file:
+
+```gradle
+implementation 'com.okta.kotlin:auth-foundation:0.2.0-BETA'
+implementation 'com.okta.kotlin:oauth2:0.2.0-BETA'
+implementation 'com.okta.kotlin:web-authentication-ui:0.2.0-BETA'
+```
+
+See the [CHANGELOG](CHANGELOG.md) for the most recent changes.
+
 # Okta Mobile SDK for Kotlin
 
 ## Release status

@@ -56,3 +56,13 @@ dependencies {
     androidTestImplementation deps.androidx_test.runner
     androidTestImplementation deps.androidx_test.rules
 }
+
+if (hasProperty('mavenCentralUsername')) {
+    apply plugin: "com.vanniktech.maven.publish"
+    afterEvaluate {
+        signing {
+            useGpgCmd()
+            sign configurations.archives
+        }
+    }
+}
