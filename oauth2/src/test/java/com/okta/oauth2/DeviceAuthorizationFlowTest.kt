@@ -31,7 +31,6 @@ import okhttp3.HttpUrl
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.mock
-import java.io.IOException
 import java.util.concurrent.atomic.AtomicInteger
 
 class DeviceAuthorizationFlowTest {
@@ -104,7 +103,8 @@ class DeviceAuthorizationFlowTest {
         val flow = oktaRule.createOidcClient().createDeviceAuthorizationFlow()
         val startResult = flow.start() as OidcClientResult.Error<DeviceAuthorizationFlow.Context>
 
-        assertThat(startResult.exception).hasMessageThat().isEqualTo("Request failed.")
+        assertThat(startResult.exception).isInstanceOf(OidcClientResult.Error.HttpResponseException::class.java)
+        assertThat(startResult.exception).hasMessageThat().isEqualTo("HTTP Error: status code - 500")
     }
 
     @Test fun testResumeWithNoEndpoints(): Unit = runBlocking {
@@ -242,8 +242,8 @@ class DeviceAuthorizationFlowTest {
         )
         val resumeResult = flow.resume(context) as OidcClientResult.Error<Token>
 
-        assertThat(resumeResult.exception).isInstanceOf(IOException::class.java)
-        assertThat(resumeResult.exception).hasMessageThat().isEqualTo("Request failed.")
+        assertThat(resumeResult.exception).isInstanceOf(OidcClientResult.Error.HttpResponseException::class.java)
+        assertThat(resumeResult.exception).hasMessageThat().isEqualTo("HTTP Error: status code - 400")
     }
 }
 

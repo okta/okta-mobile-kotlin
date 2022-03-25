@@ -28,7 +28,6 @@ import okhttp3.Request
 import okhttp3.mockwebserver.SocketPolicy
 import org.junit.Rule
 import org.junit.Test
-import java.io.IOException
 
 class NetworkingTest {
     @get:Rule val oktaRule = OktaRule()
@@ -199,7 +198,7 @@ class NetworkingTest {
             it["foo"]!!.jsonPrimitive.content
         }
         val exception = (result as OidcClientResult.Error<String>).exception
-        assertThat(exception).isInstanceOf(IOException::class.java)
-        assertThat(exception).hasMessageThat().isEqualTo("Request failed.")
+        assertThat(exception).isInstanceOf(OidcClientResult.Error.HttpResponseException::class.java)
+        assertThat(exception).hasMessageThat().isEqualTo("HTTP Error: status code - 401")
     }
 }

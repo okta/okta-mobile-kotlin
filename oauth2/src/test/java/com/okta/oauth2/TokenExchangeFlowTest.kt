@@ -27,7 +27,6 @@ import com.okta.testhelpers.RequestMatchers.path
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
-import java.io.IOException
 
 class TokenExchangeFlowTest {
     @get:Rule val oktaRule = OktaRule()
@@ -59,8 +58,8 @@ class TokenExchangeFlowTest {
 
         val flow = oktaRule.createOidcClient().createTokenExchangeFlow()
         val result = flow.start("foo", "bar") as OidcClientResult.Error<Token>
-        assertThat(result.exception).isInstanceOf(IOException::class.java)
-        assertThat(result.exception).hasMessageThat().isEqualTo("Request failed.")
+        assertThat(result.exception).isInstanceOf(OidcClientResult.Error.HttpResponseException::class.java)
+        assertThat(result.exception).hasMessageThat().isEqualTo("HTTP Error: status code - 503")
     }
 
     @Test fun testReturnsToken(): Unit = runBlocking {
