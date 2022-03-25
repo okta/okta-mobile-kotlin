@@ -44,3 +44,13 @@ dependencies {
     testImplementation deps.robolectric
     testImplementation project(':test-helpers')
 }
+
+if (hasProperty('mavenCentralUsername')) {
+    apply plugin: "com.vanniktech.maven.publish"
+    afterEvaluate {
+        signing {
+            useGpgCmd()
+            sign configurations.archives
+        }
+    }
+}

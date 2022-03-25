@@ -62,3 +62,13 @@ dependencies {
     testImplementation deps.mockito.kotlin
     testImplementation project(':test-helpers')
 }
+
+if (hasProperty('mavenCentralUsername')) {
+    apply plugin: "com.vanniktech.maven.publish"
+    afterEvaluate {
+        signing {
+            useGpgCmd()
+            sign configurations.archives
+        }
+    }
+}
