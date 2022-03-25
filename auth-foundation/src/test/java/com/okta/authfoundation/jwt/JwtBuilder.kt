@@ -22,60 +22,19 @@ import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
-import okio.ByteString.Companion.decodeBase64
 import okio.ByteString.Companion.toByteString
-import java.security.KeyFactory
 import java.security.PrivateKey
 import java.security.Signature
-import java.security.spec.PKCS8EncodedKeySpec
 
 class JwtBuilder private constructor(
     private val oidcClient: OidcClient,
     private val privateKey: PrivateKey,
 ) {
     companion object {
-        private val privateKeyString = """
-        -----BEGIN PRIVATE KEY-----
-        MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDbFwJnJx6l4Lq1
-        tsiV0np3aow39puw2S/ziH00D9TM6WtsGKXdmWFn/XjvV85JDe0mNP7o5w4gfVan
-        cm866vOm6gaspHIcl+Q8PqM2gZv7kKbacIzmTgEmMrilL9fp+Q2Fhk7rZXWNHytU
-        1C24T44AaMNfpCp+EEVmyKZJx8EXWgDjCZ1Mgd1+bLDB5PS5CgaabQrKadzwDhGf
-        caunqtuYyb1yuUXfEL4CCVviQdvktGeDI++8/Udwjm82mHsOjT23/oub5Zzn1ksq
-        GB4ktcSEJk55TEyjTjxH+8uQ22rlJQr2CVDe+U5keXiV2G8JKEq4G3IWKaSqeQvo
-        BGNgOwz5AgMBAAECggEAZHXZiTk76W3xz08ADQsVUtqNbz/qRh5gyXfFiXDU8Bz8
-        P/XRYJprOsbUhFMr6P20x3c3h84jASzX5jIn5MlFbj0TUGibVpcjdah3KJAn2SOM
-        Ds/bG+OazUwmtMAKbmPgGmDqoS/Fxi8LrHsad9Aq2e8v3xQk0+dcG3RYI66v0KeA
-        Rdq1GQ4DsFyICwWqhbjz0gBx45QGn5U9PPmXrpQpXR//HdUQWmYqth/549Udpt+A
-        2S5QSpeK+7kZKzGK1RyOO+Guw4gku1V8NrqKEhCexgGneEXyYc35v1Sie0Zhtn6H
-        4yg5zmBMi/KZZFSqEHv46dXgckPJDo0Gb8lUV/JgXQKBgQDz5iQE8zfEkUH3f+Oi
-        vuiNzNlBucZEfAvgke+NDu9PNV6wJdUlU21CteDcRBeJIcGrVs8CxgZRIx6JDon3
-        sBacykf5JvjZDEbvNs3h6/nuAtMx7PtRFRsyP3swC5KqRDP8Uq6PfE4aE5FsPHah
-        97u+FnpI826OyNf/gnwMNXb/pwKBgQDl9cIbIdkJkFFr3iza/bAFj3bOIi4aD/KC
-        itJwK/K+FbtQg/sijU3KIOKVjAdVDZ1WADG2lMcftdoav9brPgdgxPWuyeJYIfmX
-        1gei9luEQkO0k36CpBkpqT3HWdSoXAoBce+JlyCARssW+zSl1Dc8J8lD2X4FBQqQ
-        IjxTX7IiXwKBgQC7iE5TvAs6ShI10pDeNvoq5cJ7BfPL/rFHOA7AICajeb7XpA9S
-        huYw8BX4ZybNmzYFn1bGpCqBQoadDZ/J4gxQ/DwA+BVJFmaIUlRVjRL8DhIDhlrq
-        ylbB+QuoMo3P+2cZcR2lWAfZhwg+9/KjsQ8bJr9ZzktI4GcsoFDvNkDMawKBgG9X
-        0yg391J+Ii5MYQOXmcbXc/rS6eeMmStD9CiD3wDSnOObQ9my+VtJGOy35ET2Vpvx
-        dCCnYNKlxnj1Mias3f2o4BxFe+aYbLVr2D67cgxT2Vxxneu7cMOPQm5nvGPYTK/u
-        bsD7/6ycmnECKLeyTRw/V2AWysG7cyXerb7gsuuZAoGBAKt6NNVpxqmHB6/Wdqsi
-        sct6YBeZSLPuK/PtK5anVwTYlN7Omg2BjS+/yCygNuDp+px9ykHwYicSgDsJxyOt
-        1Spw+uMVoNG6yvIE3q7mjhDoHDu5lUA8s6uzzcTsvDnSLR6uNV2iqDzR/Osu3+bp
-        QjRCFXd0Tr5PlKpAHb6dk+aI
-        -----END PRIVATE KEY-----
-        """.trimIndent()
+        const val KEY_ID = "FJA0HGNtsuuda_Pl45J42kvQqcsu_0C4Fg7pbJLXTHY"
 
         fun OidcClient.createJwtBuilder(): JwtBuilder {
-            val privateKeyBytes = privateKeyString.replace("-----END PRIVATE KEY-----", "")
-                .replace("-----BEGIN PRIVATE KEY-----", "")
-                .replace("\n", "")
-                .decodeBase64()?.toByteArray() ?: throw IllegalStateException("Invalid private key.")
-
-            val keySpec = PKCS8EncodedKeySpec(privateKeyBytes)
-            val keyFactory = KeyFactory.getInstance("RSA")
-            val privateKey = keyFactory.generatePrivate(keySpec)
-
-            return JwtBuilder(this, privateKey)
+            return JwtBuilder(this, TestKeyFactory.privateKey())
         }
     }
 
@@ -85,7 +44,7 @@ class JwtBuilder private constructor(
 
     suspend inline fun <reified T> createJwt(
         algorithm: String = "RS256",
-        keyId: String = "FJA0HGNtsuuda_Pl45J42kvQqcsu_0C4Fg7pbJLXTHY",
+        keyId: String = KEY_ID,
         claims: T,
     ): Jwt {
         val serializer = json.serializersModule.serializer<T>()

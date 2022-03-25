@@ -59,13 +59,13 @@ class OktaRule(
         computeDispatcher = Dispatchers.Unconfined,
     )
 
-    fun createEndpoints(urlBuilder: HttpUrl.Builder = baseUrl.newBuilder()): OidcEndpoints {
+    fun createEndpoints(urlBuilder: HttpUrl.Builder = baseUrl.newBuilder(), includeJwks: Boolean = false): OidcEndpoints {
         return OidcEndpoints(
             issuer = urlBuilder.encodedPath("/oauth2/default").build(),
             authorizationEndpoint = urlBuilder.encodedPath("/oauth2/default/v1/authorize").build(),
             tokenEndpoint = urlBuilder.encodedPath("/oauth2/default/v1/token").build(),
             userInfoEndpoint = urlBuilder.encodedPath("/oauth2/default/v1/userinfo").build(),
-            jwksUri = urlBuilder.encodedPath("/oauth2/default/v1/keys").build(),
+            jwksUri = if (includeJwks) urlBuilder.encodedPath("/oauth2/default/v1/keys").build() else null,
             registrationEndpoint = urlBuilder.encodedPath("/oauth2/v1/clients").build(),
             introspectionEndpoint = urlBuilder.encodedPath("/oauth2/default/v1/introspect").build(),
             revocationEndpoint = urlBuilder.encodedPath("/oauth2/default/v1/revoke").build(),

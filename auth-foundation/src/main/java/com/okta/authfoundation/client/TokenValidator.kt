@@ -16,6 +16,7 @@
 package com.okta.authfoundation.client
 
 import com.okta.authfoundation.credential.Token
+import com.okta.authfoundation.jwt.Jwks
 import com.okta.authfoundation.jwt.JwtParser
 
 internal class TokenValidator(
@@ -23,6 +24,7 @@ internal class TokenValidator(
     private val token: Token,
     private val nonce: String?,
     private val maxAge: Int?,
+    private val jwksResult: OidcClientResult<Jwks>?,
 ) {
     private val parser = JwtParser(oidcClient.configuration.json, oidcClient.configuration.computeDispatcher)
 
@@ -36,6 +38,19 @@ internal class TokenValidator(
                 nonce = nonce,
                 maxAge = maxAge,
             )
+
+            if (jwksResult != null) {
+                when (jwksResult) {
+                    is OidcClientResult.Success -> {
+                        if (!idToken.hasValidSignature(jwksResult.result)) {
+                            throw IdTokenValidator.Error("Invalid id_token signature")
+                        }
+                    }
+                    is OidcClientResult.Error -> {
+                        throw jwksResult.exception
+                    }
+                }
+            }
 
             oidcClient.configuration.accessTokenValidator.validate(
                 oidcClient = oidcClient,

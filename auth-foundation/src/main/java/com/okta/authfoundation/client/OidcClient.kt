@@ -28,8 +28,13 @@ import com.okta.authfoundation.credential.Token
 import com.okta.authfoundation.credential.TokenType
 import com.okta.authfoundation.util.CoalescingOrchestrator
 import com.okta.authfoundation.claims.DefaultClaimsProvider.Companion.createClaimsDeserializer
+import com.okta.authfoundation.jwt.Jwks
 import com.okta.authfoundation.jwt.Jwt
 import com.okta.authfoundation.jwt.JwtParser
+import com.okta.authfoundation.jwt.SerializableJwks
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonObject
 import okhttp3.FormBody
 import okhttp3.HttpUrl
@@ -45,6 +50,7 @@ import okhttp3.Request
 class OidcClient private constructor(
     @property:InternalAuthFoundationApi val configuration: OidcConfiguration,
     internal val endpoints: CoalescingOrchestrator<OidcClientResult<OidcEndpoints>>,
+    jwks: CoalescingOrchestrator<OidcClientResult<Jwks>>? = null,
     internal val credential: Credential? = null,
 ) {
     companion object {
@@ -89,8 +95,10 @@ class OidcClient private constructor(
         }
     }
 
+    private val jwks: CoalescingOrchestrator<OidcClientResult<Jwks>> = jwks ?: jwksCoalescingOrchestrator()
+
     internal fun withCredential(credential: Credential): OidcClient {
-        return OidcClient(configuration, endpoints, credential)
+        return OidcClient(configuration, endpoints, jwks, credential)
     }
 
     /**
@@ -205,6 +213,40 @@ class OidcClient private constructor(
     }
 
     /**
+     * Performs a call to the Authorization Server to fetch [Jwks].
+     */
+    suspend fun jwks(): OidcClientResult<Jwks> {
+        return jwks.get()
+    }
+
+    private fun jwksCoalescingOrchestrator(): CoalescingOrchestrator<OidcClientResult<Jwks>> {
+        return CoalescingOrchestrator(
+            factory = {
+                actualJwks()
+            },
+            keepDataInMemory = { result ->
+                result is OidcClientResult.Success
+            },
+        )
+    }
+
+    private suspend fun actualJwks(): OidcClientResult<Jwks> {
+        val endpoint = endpointsOrNull()?.jwksUri ?: return endpointNotAvailableError()
+
+        val url = endpoint.newBuilder()
+            .addQueryParameter("client_id", configuration.clientId)
+            .build()
+
+        val request = Request.Builder()
+            .url(url)
+            .build()
+
+        return configuration.performRequest(SerializableJwks.serializer(), request) { serializableJwks ->
+            serializableJwks.toJwks()
+        }
+    }
+
+    /**
      * Parses a given string into a [Jwt], if possible.
      *
      * Returns `null` if an error occurs attempted to parse the [Jwt].
@@ -244,20 +286,29 @@ class OidcClient private constructor(
         nonce: String? = null,
         maxAge: Int? = null
     ): OidcClientResult<Token> {
-        val result = configuration.performRequest(SerializableToken.serializer(), request) { serializableToken ->
-            serializableToken.asToken()
-        }
-        if (result is OidcClientResult.Success) {
-            val token = result.result
-
-            try {
-                TokenValidator(this, token, nonce, maxAge).validate()
-                configuration.eventCoordinator.sendEvent(TokenCreatedEvent(token, credential))
-                credential?.storeToken(token)
-            } catch (e: Exception) {
-                return OidcClientResult.Error(e)
+        return withContext(Dispatchers.Unconfined) {
+            val tokenDeferred = async {
+                configuration.performRequest(SerializableToken.serializer(), request) { serializableToken ->
+                    serializableToken.asToken()
+                }
             }
+            val jwksDeferred = async {
+                endpointsOrNull()?.jwksUri ?: return@async null
+                jwks()
+            }
+            val tokenResult = tokenDeferred.await()
+            if (tokenResult is OidcClientResult.Success) {
+                val token = tokenResult.result
+
+                try {
+                    TokenValidator(this@OidcClient, token, nonce, maxAge, jwksDeferred.await()).validate()
+                    configuration.eventCoordinator.sendEvent(TokenCreatedEvent(token, credential))
+                    credential?.storeToken(token)
+                } catch (e: Exception) {
+                    return@withContext OidcClientResult.Error(e)
+                }
+            }
+            return@withContext tokenResult
         }
-        return result
     }
 }

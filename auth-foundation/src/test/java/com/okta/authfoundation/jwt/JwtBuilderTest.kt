@@ -29,7 +29,7 @@ class JwtBuilderTest {
         val idTokenClaims = IdTokenClaims()
         val idToken = oktaRule.createOidcClient().createJwtBuilder().createJwt(claims = idTokenClaims)
         assertThat(idToken.algorithm).isEqualTo("RS256")
-        assertThat(idToken.keyId).isEqualTo("FJA0HGNtsuuda_Pl45J42kvQqcsu_0C4Fg7pbJLXTHY")
+        assertThat(idToken.keyId).isEqualTo(JwtBuilder.KEY_ID)
         assertThat(idToken.signature).isEqualTo("Py4hkTtY4dnBTzlZuS-oMLuPa-08SnBKHqQEB7PPLxtKak6RXRiYcEFSoqLJlflYrloWt5iHbbWVNsUpx9EoCt8hfnbinFjRq99A__Zky1pW6WF6l6hCxGK60tI_kOLFIBc3Wzu4w-Kj6z1B7RXl0R_W739cxkYHrlpqiCuJyZAwX5Qwf1SmZZDmrqWlUdHefaO6L2TlNSgJGLrsyb2vZ8JYdvIANCbkl5gCF5gx6ebd9QkXf2EZdyxbIlBI2weSLtlGwTtLZi3k4Q2pk8pz_zDqyfOtVhOb4OxAiu0YuPikvJ8iddAxM94-f_n8SUZTSlQ2n39UWPrQw0mcUsmWzA")
     }
 }
