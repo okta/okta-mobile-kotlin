@@ -22,6 +22,8 @@ import androidx.lifecycle.viewModelScope
 import com.okta.authfoundation.client.OidcClientResult
 import com.okta.idx.android.OktaHelper
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import timber.log.Timber
 
 internal class DashboardViewModel : ViewModel() {
@@ -38,7 +40,8 @@ internal class DashboardViewModel : ViewModel() {
                     Timber.e(result.exception, "User info request failed.")
                 }
                 is OidcClientResult.Success -> {
-                    _userInfoLiveData.postValue(result.result.asMap())
+                    val successResult = result.result
+                    _userInfoLiveData.postValue(successResult.deserializeClaims(JsonObject.serializer()).asMap())
                 }
             }
         }
@@ -69,4 +72,17 @@ internal class DashboardViewModel : ViewModel() {
         object Success : LogoutState()
         object Failed : LogoutState()
     }
+}
+
+private fun JsonObject.asMap(): Map<String, String> {
+    val map = mutableMapOf<String, String>()
+    for (entry in this) {
+        val value = entry.value
+        if (value is JsonPrimitive) {
+            map[entry.key] = value.content
+        } else {
+            map[entry.key] = value.toString()
+        }
+    }
+    return map
 }

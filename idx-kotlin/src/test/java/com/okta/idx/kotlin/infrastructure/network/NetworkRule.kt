@@ -15,10 +15,12 @@
  */
 package com.okta.idx.kotlin.infrastructure.network
 
+import com.okta.authfoundation.client.IdTokenValidator
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.client.OidcEndpoints
 import com.okta.authfoundation.events.EventCoordinator
+import com.okta.authfoundation.jwt.Jwt
 import kotlinx.coroutines.Dispatchers
 import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
@@ -72,7 +74,9 @@ class NetworkRule : TestRule {
         okHttpClientFactory = { okHttpClient() },
         eventCoordinator = EventCoordinator(emptyList()),
         clock = clock,
-        idTokenValidator = { _, _ -> },
+        idTokenValidator = NoOpIdTokenValidator(),
+        accessTokenValidator = { _, _, _ -> },
+        deviceSecretValidator = { _, _, _ -> },
         ioDispatcher = Dispatchers.Unconfined,
         computeDispatcher = Dispatchers.Unconfined,
     )
@@ -83,12 +87,20 @@ class NetworkRule : TestRule {
             authorizationEndpoint = urlBuilder.encodedPath("/oauth2/default/v1/authorize").build(),
             tokenEndpoint = urlBuilder.encodedPath("/oauth2/default/v1/token").build(),
             userInfoEndpoint = urlBuilder.encodedPath("/oauth2/default/v1/userinfo").build(),
-            jwksUri = urlBuilder.encodedPath("/oauth2/default/v1/keys").build(),
+            jwksUri = null,
             registrationEndpoint = urlBuilder.encodedPath("/oauth2/v1/clients").build(),
             introspectionEndpoint = urlBuilder.encodedPath("/oauth2/default/v1/introspect").build(),
             revocationEndpoint = urlBuilder.encodedPath("/oauth2/default/v1/revoke").build(),
             endSessionEndpoint = urlBuilder.encodedPath("/oauth2/default/v1/logout").build(),
+            deviceAuthorizationEndpoint = null,
         )
         return OidcClient.create(configuration, endpoints)
+    }
+}
+
+private class NoOpIdTokenValidator : IdTokenValidator {
+    override var issuedAtGracePeriodInSeconds: Int = 600
+
+    override suspend fun validate(oidcClient: OidcClient, idToken: Jwt, nonce: String?, maxAge: Int?) {
     }
 }
