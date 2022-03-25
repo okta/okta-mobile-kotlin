@@ -38,7 +38,6 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.reset
 import org.mockito.kotlin.verify
 import org.robolectric.RobolectricTestRunner
-import java.io.IOException
 
 @RunWith(RobolectricTestRunner::class)
 class AuthorizationCodeFlowTest {
@@ -226,8 +225,8 @@ class AuthorizationCodeFlowTest {
             flowContext = flowContext,
         )
         val errorResult = result as OidcClientResult.Error<Token>
-        assertThat(errorResult.exception).isInstanceOf(IOException::class.java)
-        assertThat(errorResult.exception).hasMessageThat().isEqualTo("Request failed.")
+        assertThat(errorResult.exception).isInstanceOf(OidcClientResult.Error.HttpResponseException::class.java)
+        assertThat(errorResult.exception).hasMessageThat().isEqualTo("HTTP Error: status code - 503")
     }
 
     @Test fun testResumeRedirectMismatch(): Unit = runBlocking {

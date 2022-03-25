@@ -28,7 +28,6 @@ import com.okta.testhelpers.testBodyFromFile
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
-import java.io.IOException
 
 class ResourceOwnerFlowTest {
     private val mockPrefix = "test_responses"
@@ -94,7 +93,7 @@ class ResourceOwnerFlowTest {
         val result = resourceOwnerFlow.start("foo", "bar")
         assertThat(result).isInstanceOf(OidcClientResult.Error::class.java)
         val errorResult = result as OidcClientResult.Error<Token>
-        assertThat(errorResult.exception).isInstanceOf(IOException::class.java)
-        assertThat(errorResult.exception).hasMessageThat().isEqualTo("Request failed.")
+        assertThat(errorResult.exception).isInstanceOf(OidcClientResult.Error.HttpResponseException::class.java)
+        assertThat(errorResult.exception).hasMessageThat().isEqualTo("HTTP Error: status code - 503")
     }
 }

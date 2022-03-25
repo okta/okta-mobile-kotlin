@@ -101,18 +101,18 @@ private fun <T> Response.toOidcClientResultError(
     configuration: OidcConfiguration,
     responseBody: InputStream,
 ): OidcClientResult<T> {
-    return try {
-        val errorResponse = responseBody.let { configuration.json.decodeFromStream<ErrorResponse>(it) }
-        OidcClientResult.Error(
-            OidcClientResult.Error.HttpResponseException(
-                responseCode = code,
-                error = errorResponse.error,
-                errorDescription = errorResponse.errorDescription,
-            )
-        )
+    val errorResponse = try {
+        responseBody.let { configuration.json.decodeFromStream<ErrorResponse>(it) }
     } catch (e: Exception) {
-        OidcClientResult.Error(IOException("Request failed."))
+        null
     }
+    return OidcClientResult.Error(
+        OidcClientResult.Error.HttpResponseException(
+            responseCode = code,
+            error = errorResponse?.error,
+            errorDescription = errorResponse?.errorDescription,
+        )
+    )
 }
 
 private suspend fun Call.await(): Response {

@@ -41,7 +41,6 @@ import kotlinx.serialization.encodeToString
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.junit.Rule
 import org.junit.Test
-import java.io.IOException
 
 class OidcClientTest {
     private val mockPrefix = "client_test_responses"
@@ -80,8 +79,8 @@ class OidcClientTest {
             oktaRule.baseUrl.newBuilder().encodedPath("/.well-known/openid-configuration").build()
         )
         val errorResult = (client.endpoints.get() as OidcClientResult.Error<OidcEndpoints>)
-        assertThat(errorResult.exception).isInstanceOf(IOException::class.java)
-        assertThat(errorResult.exception).hasMessageThat().isEqualTo("Request failed.")
+        assertThat(errorResult.exception).isInstanceOf(OidcClientResult.Error.HttpResponseException::class.java)
+        assertThat(errorResult.exception).hasMessageThat().isEqualTo("HTTP Error: status code - 503")
     }
 
     @Test fun testGetUserInfo(): Unit = runBlocking {
@@ -110,8 +109,8 @@ class OidcClientTest {
         }
         val result = oktaRule.createOidcClient().getUserInfo("ExampleToken!")
         val errorResult = (result as OidcClientResult.Error<OidcUserInfo>)
-        assertThat(errorResult.exception).isInstanceOf(IOException::class.java)
-        assertThat(errorResult.exception).hasMessageThat().isEqualTo("Request failed.")
+        assertThat(errorResult.exception).isInstanceOf(OidcClientResult.Error.HttpResponseException::class.java)
+        assertThat(errorResult.exception).hasMessageThat().isEqualTo("HTTP Error: status code - 503")
     }
 
     @Test fun testRefreshToken(): Unit = runBlocking {
@@ -162,8 +161,8 @@ class OidcClientTest {
         }
         val result = oktaRule.createOidcClient().refreshToken("ExampleToken!")
         val errorResult = (result as OidcClientResult.Error<Token>)
-        assertThat(errorResult.exception).isInstanceOf(IOException::class.java)
-        assertThat(errorResult.exception).hasMessageThat().isEqualTo("Request failed.")
+        assertThat(errorResult.exception).isInstanceOf(OidcClientResult.Error.HttpResponseException::class.java)
+        assertThat(errorResult.exception).hasMessageThat().isEqualTo("HTTP Error: status code - 503")
     }
 
     @Test fun testRevokeToken(): Unit = runBlocking {
@@ -187,8 +186,8 @@ class OidcClientTest {
         }
         val result = oktaRule.createOidcClient().revokeToken("ExampleRefreshToken")
         val errorResult = (result as OidcClientResult.Error<Unit>)
-        assertThat(errorResult.exception).isInstanceOf(IOException::class.java)
-        assertThat(errorResult.exception).hasMessageThat().isEqualTo("Request failed.")
+        assertThat(errorResult.exception).isInstanceOf(OidcClientResult.Error.HttpResponseException::class.java)
+        assertThat(errorResult.exception).hasMessageThat().isEqualTo("HTTP Error: status code - 503")
     }
 
     @Test fun testIntrospectActiveAccessToken(): Unit = runBlocking {
@@ -291,8 +290,8 @@ class OidcClientTest {
         }
         val result = oktaRule.createOidcClient().introspectToken(TokenType.ID_TOKEN, "ExampleIdToken")
         val errorResult = (result as OidcClientResult.Error<OidcIntrospectInfo>)
-        assertThat(errorResult.exception).isInstanceOf(IOException::class.java)
-        assertThat(errorResult.exception).hasMessageThat().isEqualTo("Request failed.")
+        assertThat(errorResult.exception).isInstanceOf(OidcClientResult.Error.HttpResponseException::class.java)
+        assertThat(errorResult.exception).hasMessageThat().isEqualTo("HTTP Error: status code - 503")
     }
 
     @Test fun testParseJwtWithInvalidFormat(): Unit = runBlocking {
@@ -386,7 +385,6 @@ class OidcClientTest {
         oktaRule.enqueue(
             path("/oauth2/default/v1/keys"),
         ) { response ->
-            response.setBody("{}")
             response.setResponseCode(503)
         }
         oktaRule.enqueue(
