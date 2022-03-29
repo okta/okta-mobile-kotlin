@@ -41,10 +41,12 @@ import org.hamcrest.Matcher
 fun authenticatorViewInteraction(authenticatorTitle: String): ViewInteraction {
     waitForElementWithText(authenticatorTitle)
     return onView(
-        allOf(
-            withText(authenticatorTitle),
-            withParent(withId(R.id.radio_group)),
-            withEffectiveVisibility(ViewMatchers.Visibility.VISIBLE),
+        first(
+            allOf(
+                withText(authenticatorTitle),
+                withParent(withId(R.id.radio_group)),
+                withEffectiveVisibility(ViewMatchers.Visibility.VISIBLE),
+            )
         )
     )
 }

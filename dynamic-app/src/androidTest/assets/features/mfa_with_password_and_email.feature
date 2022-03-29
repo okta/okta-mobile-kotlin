@@ -1,5 +1,6 @@
 Feature: 6.1 Multi-Factor Authentication with Password And Email
 
+  @skipScenario
   @requireA18NProfile
   @requireExistingUser
   @requireMFAGroupsForUser
@@ -16,6 +17,7 @@ Feature: 6.1 Multi-Factor Authentication with Password And Email
     Then she is redirected to the Root View
     And an application session is created
 
+  @skipScenario
   @requireA18NProfile
   @requireExistingUser
   @requireMFAGroupsForUser

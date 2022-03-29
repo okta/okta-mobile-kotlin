@@ -1,6 +1,7 @@
 Feature: 11.1 Account Unlock with Single factor (Email, Phone, Okta Verify Push)
   As a user, Mary should be able to unlock her account and access her profile
 
+  @skipScenario
   @requireA18NProfile
   @requireExistingUser
   @lockUser

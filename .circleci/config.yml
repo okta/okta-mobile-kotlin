@@ -1,0 +1,29 @@
+version: 2.1
+
+jobs:
+  build:
+    docker:
+      - image: cimg/android:2021.10.2
+    environment:
+      JVM_OPTS: -Xmx3200m
+    steps:
+      - checkout
+      - run:
+          name: Setup E2E test credentials
+          command: |
+            mkdir -p dynamic-app/src/androidTest/resources
+            echo $E2E_CREDENTIALS_BASE64 | base64 --decode > dynamic-app/src/androidTest/resources/e2eCredentials.yaml
+            echo $OKTA_PROPERTIES_BASE64 | base64 --decode > okta.properties
+            ./signInToGcloud.sh && source $HOME/google-cloud-sdk/path.bash.inc && export CLOUDSDK_CORE_DISABLE_PROMPTS=1
+      - run:
+          name: Build
+          command: ./gradlew build assembleAndroidTest testDebugUnitTest
+      - run:
+          name: E2E Test
+          command: ./runTestsInFirebaseTestLab.sh
+          no_output_timeout: 25m
+
+workflows:
+  build_and_test:
+    jobs:
+      - build

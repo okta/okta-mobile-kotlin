@@ -10,14 +10,9 @@ before_install:
   - sudo apt-get install python3.5
   - export CLOUDSDK_PYTHON=python3.5
 
-before_script:
-  - ./signInToGcloud.sh && source $HOME/google-cloud-sdk/path.bash.inc && export CLOUDSDK_CORE_DISABLE_PROMPTS=1
-  - ruby createSecretsFilesFromEnv.rb
-
 script:
   - set -e # Fail on error.
   - ./gradlew build assembleAndroidTest testDebugUnitTest --parallel
-#  - ./runTestsInFirebaseTestLab.sh
 
 notifications:
   email: false
