@@ -146,7 +146,7 @@ import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.credential.Credential
 import com.okta.authfoundation.credential.CredentialDataSource.Companion.createCredentialDataSource
 
-val context: Context = TODO("Available from previous steps.")
+val context: Context = TODO("Supplied by the developer.")
 val credentialDataSource = oidcClient.createCredentialDataSource(context)
 val credential: Credential = credentialDataSource.createCredential()
 ```
@@ -164,7 +164,7 @@ import com.okta.oauth2.AuthorizationCodeFlow
 import com.okta.webauthenticationui.WebAuthenticationClient
 import com.okta.webauthenticationui.WebAuthenticationClient.Companion.createWebAuthenticationClient
 
-val context: Context = TODO("Available from previous steps.")
+val context: Context = TODO("Supplied by the developer.")
 val credential: Credential = TODO("Available from previous steps.")
 val webAuthenticationClient = credential.oidcClient.createWebAuthenticationClient()
 when (val result = webAuthenticationClient.login(context)) {
@@ -207,7 +207,7 @@ import com.okta.authfoundation.credential.CredentialDataSource.Companion.createC
 import com.okta.oauth2.DeviceAuthorizationFlow
 import com.okta.oauth2.DeviceAuthorizationFlow.Companion.createDeviceAuthorizationFlow
 
-val context: Context = TODO("Available from previous steps.")
+val context: Context = TODO("Supplied by the developer.")
 val credentialDataSource: CredentialDataSource = oidcClient.createCredentialDataSource(context)
 val credential: Credential = credentialDataSource.createCredential()
 val deviceAuthorizationFlow: DeviceAuthorizationFlow = credential.oidcClient.createDeviceAuthorizationFlow()
@@ -250,7 +250,7 @@ import com.okta.authfoundation.credential.CredentialDataSource.Companion.createC
 import com.okta.oauth2.TokenExchangeFlow
 import com.okta.oauth2.TokenExchangeFlow.Companion.createTokenExchangeFlow
 
-val context: Context = TODO("Available from previous steps.")
+val context: Context = TODO("Supplied by the developer.")
 val credentialDataSource: CredentialDataSource = oidcClient.createCredentialDataSource(context)
 val credential: Credential = credentialDataSource.createCredential()
 val tokenExchangeFlow: TokenExchangeFlow = credential.oidcClient.createTokenExchangeFlow()
