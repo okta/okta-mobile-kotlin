@@ -28,18 +28,18 @@ This SDK is being actively developed and is in Beta release status. At this time
 
 ### Feature roadmap
 
-| Feature | Status |
-| ------- | ------ |
-| Login and logout via web redirect | ✅ |
-| Credential management | ✅ |
-| Secure token storage | ✅ |
-| Native SSO / Token Exchange Flow | ✅ |
-| Device Authorization Grant Flow | ✅ |
-| OkHttp Interceptor for authorizing requests | ✅ |
-| Support for multiple accounts | ✅ |
-| Time synchronization via NTP | 🚧 |
-| Advanced Eventing | 🚧 |
-| Migrating Tokens from okta-oidc-android | 🚧 |
+| Feature | Status | Milestone |
+| ------- | ------ | --------- |
+| Login and logout via web redirect | ✅ | Beta 2 |
+| Credential management | ✅ | Beta 2 |
+| Secure token storage | ✅ | Beta 2 |
+| Native SSO / Token Exchange Flow | ✅ | Beta 2 |
+| Device Authorization Grant Flow | ✅ | Beta 2 |
+| OkHttp Interceptor for authorizing requests | ✅ | Beta 2 |
+| Support for multiple accounts | ✅ | Beta 2 |
+| Time synchronization via NTP | 🚧 | Beta 3 |
+| Advanced Eventing | 🚧 | Beta 3 |
+| Migrating Tokens from okta-oidc-android | 🚧 | Beta 3 |
 
 ## Support Policy
 
@@ -80,10 +80,6 @@ See the [CHANGELOG](CHANGELOG.md) for the most recent changes.
 ## Release status
 
 This library uses semantic versioning and follows Okta's [Library Version Policy][okta-library-versioning].
-
-| Version | Status                             |
-| ------- | ---------------------------------- |
-| 0.1.0   | ✔️ Beta                             |
 
 The latest release can always be found on the [releases page][github-releases].
 
@@ -195,6 +191,81 @@ android {
   }
 }
 ```
+
+### Device Authorization Flow
+
+[DeviceAuthorizationFlow](oauth2/src/main/java/com/okta/oauth2/DeviceAuthorizationFlow.kt) can be used to perform [OAuth 2.0 Device Authorization Grant](https://datatracker.ietf.org/doc/html/rfc8628).
+
+The Device Authorization Flow is designed for Internet connected devices that either lack a browser to perform a user-agent based authorization or are input constrained to the extent that requiring the user to input text in order to authenticate during the authorization flow is impractical.
+
+```kotlin
+import android.content.Context
+import com.okta.authfoundation.client.OidcClient
+import com.okta.authfoundation.credential.Credential
+import com.okta.authfoundation.credential.CredentialDataSource
+import com.okta.authfoundation.credential.CredentialDataSource.Companion.createCredentialDataSource
+import com.okta.oauth2.DeviceAuthorizationFlow
+import com.okta.oauth2.DeviceAuthorizationFlow.Companion.createDeviceAuthorizationFlow
+
+val context: Context = TODO("Available from previous steps.")
+val credentialDataSource: CredentialDataSource = oidcClient.createCredentialDataSource(context)
+val credential: Credential = credentialDataSource.createCredential()
+val deviceAuthorizationFlow: DeviceAuthorizationFlow = credential.oidcClient.createDeviceAuthorizationFlow()
+
+when (val result = deviceAuthorizationFlow.start()) {
+  is OidcClientResult.Error -> {
+    // Timber.e(result.exception, "Failed to login.")
+    // TODO: Display an error to the user.
+  }
+  is OidcClientResult.Success -> {
+    val flowContext: DeviceAuthorizationFlow.Context = result.result
+    // TODO: Show the user the code and uri to complete the login via `flowContext.userCode` and `flowContext.verificationUri`.
+
+    // Poll the Authorization Server. When the user completes their login, this will complete.
+    when (val resumeResult = deviceAuthorizationFlow.resume(flowContext)) {
+      is OidcClientResult.Error -> {
+        // Timber.e(resumeResult.exception, "Failed to login.")
+        // TODO: Display an error to the user.
+      }
+      is OidcClientResult.Success -> {
+        // The credential instance now has a token! You can use the `Credential` to make calls to OAuth endpoints, or to sign requests!
+      }
+    }
+  }
+}
+```
+
+### Token Exchange Flow
+
+[TokenExchangeFlow](oauth2/src/main/java/com/okta/oauth2/TokenExchangeFlow.kt) can be used to perform [OIDC Native SSO](https://openid.net/specs/openid-connect-native-sso-1_0.html).
+
+The Token Exchange Flow exchanges an ID Token and a Device Secret for a new set of tokens.
+
+```kotlin
+import android.content.Context
+import com.okta.authfoundation.client.OidcClient
+import com.okta.authfoundation.credential.Credential
+import com.okta.authfoundation.credential.CredentialDataSource
+import com.okta.authfoundation.credential.CredentialDataSource.Companion.createCredentialDataSource
+import com.okta.oauth2.TokenExchangeFlow
+import com.okta.oauth2.TokenExchangeFlow.Companion.createTokenExchangeFlow
+
+val context: Context = TODO("Available from previous steps.")
+val credentialDataSource: CredentialDataSource = oidcClient.createCredentialDataSource(context)
+val credential: Credential = credentialDataSource.createCredential()
+val tokenExchangeFlow: TokenExchangeFlow = credential.oidcClient.createTokenExchangeFlow()
+when (val result = tokenExchangeFlow.start(idToken, deviceSecret)) {
+  is OidcClientResult.Error -> {
+      // Timber.e(result.exception, "Failed to login.")
+      // TODO: Display an error to the user.
+  }
+  is OidcClientResult.Success -> {
+    // The credential instance now has a token! You can use the `Credential` to make calls to OAuth endpoints, or to sign requests!
+  }
+}
+```
+
+> Note: You'll want to ensure you have 2 *DIFFERENT* `Credential`s. The first needs to have the `idToken`, and `deviceSecret` minted via a `WebAuthenticationClient`. The second will be used in the `TokenExchangeFlow`.
 
 ### Automatic Credential Storage
 
