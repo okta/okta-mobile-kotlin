@@ -36,6 +36,7 @@ import com.okta.idx.android.infrastructure.espresso.waitForElementWithText
 import io.cucumber.java.en.And
 import io.cucumber.java.en.Then
 import io.cucumber.java.en.When
+import org.hamcrest.CoreMatchers.anyOf
 
 class MfaDefinitions {
     @When("^she fills in her correct username for mfa$")
@@ -59,7 +60,7 @@ class MfaDefinitions {
     @When("^she selects Email$")
     fun she_selects_email() {
         selectAuthenticator("Email")
-        onView(withText("Choose")).perform(click())
+        onView(first(anyOf(withText("Continue"), withText("Choose")))).perform(click())
     }
 
     @Then("^she is presented with a list of factors$")
