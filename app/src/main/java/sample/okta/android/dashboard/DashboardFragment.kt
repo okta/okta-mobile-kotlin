@@ -21,11 +21,13 @@ import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.okta.authfoundation.credential.RevokeTokenType
 import com.okta.authfoundation.credential.TokenType
-import sample.okta.android.SampleHelper
+import com.okta.authfoundationbootstrap.CredentialBootstrap
+import kotlinx.coroutines.launch
 import sample.okta.android.R
 import sample.okta.android.databinding.FragmentDashboardBinding
 import sample.okta.android.databinding.RowDashboardClaimBinding
@@ -48,16 +50,20 @@ internal class DashboardFragment : BaseFragment<FragmentDashboardBinding>(
 
     private val onBackPressedCallback = object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {
-            viewModel.setCredential(SampleHelper.defaultCredential)
+            lifecycleScope.launch {
+                viewModel.setCredential(CredentialBootstrap.credential())
+            }
         }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         viewModel.credentialLiveData.observe(viewLifecycleOwner) { credential ->
-            onBackPressedCallback.isEnabled = SampleHelper.defaultCredential != credential
+            lifecycleScope.launch {
+                val defaultCredential = CredentialBootstrap.credential()
+                onBackPressedCallback.isEnabled = defaultCredential != credential
 
-            val name = credential.metadata[SampleHelper.CREDENTIAL_NAME_METADATA_KEY] ?: ""
-            binding.credentialName.text = name
+                binding.credentialName.text = if (defaultCredential == credential) "Default" else "TokenExchange"
+            }
 
             val token = credential.token ?: return@observe
             binding.tokenType.text = token.tokenType

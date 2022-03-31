@@ -24,6 +24,7 @@ import com.okta.authfoundation.client.events.TokenCreatedEvent
 import com.okta.authfoundation.credential.events.CredentialStoredAfterRemovedEvent
 import com.okta.authfoundation.jwt.IdTokenClaims
 import com.okta.authfoundation.jwt.JwtBuilder.Companion.createJwtBuilder
+import com.okta.testhelpers.InMemoryTokenStorage
 import com.okta.testhelpers.OktaRule
 import com.okta.testhelpers.RequestMatchers.header
 import com.okta.testhelpers.RequestMatchers.method

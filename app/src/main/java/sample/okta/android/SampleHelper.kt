@@ -15,30 +15,6 @@
  */
 package sample.okta.android
 
-import com.okta.authfoundation.credential.Credential
-import com.okta.authfoundation.credential.CredentialDataSource
-
 internal object SampleHelper {
     const val CREDENTIAL_NAME_METADATA_KEY: String = "sample.okta.android.credential.name"
-    const val DEFAULT_CREDENTIAL_NAME_METADATA_VALUE: String = "Default"
-
-    lateinit var defaultCredential: Credential
-    lateinit var credentialDataSource: CredentialDataSource
-
-    fun isInitialized(): Boolean {
-        return ::credentialDataSource.isInitialized
-    }
-
-    suspend fun CredentialDataSource.createDefaultCredential(): Credential {
-        val credential = createCredential()
-        credential.storeToken(
-            metadata = mapOf(
-                Pair(
-                    CREDENTIAL_NAME_METADATA_KEY,
-                    DEFAULT_CREDENTIAL_NAME_METADATA_VALUE
-                )
-            )
-        )
-        return credential
-    }
 }

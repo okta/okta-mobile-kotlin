@@ -18,6 +18,11 @@ package sample.okta.android
 import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
+import com.okta.authfoundation.client.OidcClient
+import com.okta.authfoundation.client.OidcConfiguration
+import com.okta.authfoundation.credential.CredentialDataSource.Companion.createCredentialDataSource
+import com.okta.authfoundationbootstrap.CredentialBootstrap
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import timber.log.Timber
 
 class SampleApplication : Application() {
@@ -32,5 +37,17 @@ class SampleApplication : Application() {
         context = this
 
         Timber.plant(Timber.DebugTree())
+
+        val oidcConfiguration = OidcConfiguration(
+            clientId = BuildConfig.CLIENT_ID,
+            defaultScopes = setOf("openid", "email", "profile", "offline_access"),
+            signInRedirectUri = BuildConfig.SIGN_IN_REDIRECT_URI,
+            signOutRedirectUri = BuildConfig.SIGN_OUT_REDIRECT_URI,
+        )
+        val oidcClient = OidcClient.createFromDiscoveryUrl(
+            oidcConfiguration,
+            "${BuildConfig.ISSUER}/.well-known/openid-configuration".toHttpUrl(),
+        )
+        CredentialBootstrap.initialize(oidcClient.createCredentialDataSource(this))
     }
 }

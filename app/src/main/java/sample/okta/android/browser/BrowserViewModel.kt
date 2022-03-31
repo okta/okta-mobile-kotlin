@@ -21,9 +21,9 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.okta.authfoundation.client.OidcClientResult
+import com.okta.authfoundationbootstrap.CredentialBootstrap
 import com.okta.webauthenticationui.WebAuthenticationClient.Companion.createWebAuthenticationClient
 import kotlinx.coroutines.launch
-import sample.okta.android.SampleHelper
 import timber.log.Timber
 
 class BrowserViewModel : ViewModel() {
@@ -31,13 +31,15 @@ class BrowserViewModel : ViewModel() {
     val state: LiveData<BrowserState> = _state
 
     fun login(context: Context, addDeviceSsoScope: Boolean) {
-        val webAuthenticationClient = SampleHelper.defaultCredential.oidcClient.createWebAuthenticationClient()
-        var scopes = SampleHelper.defaultCredential.scopes()
-        if (addDeviceSsoScope) {
-            scopes = scopes + setOf("device_sso")
-        }
         viewModelScope.launch {
             _state.value = BrowserState.Loading
+
+            val credential = CredentialBootstrap.credential()
+            val webAuthenticationClient = credential.oidcClient.createWebAuthenticationClient()
+            var scopes = credential.scopes()
+            if (addDeviceSsoScope) {
+                scopes = scopes + setOf("device_sso")
+            }
 
             when (val result = webAuthenticationClient.login(context, emptyMap(), scopes)) {
                 is OidcClientResult.Error -> {

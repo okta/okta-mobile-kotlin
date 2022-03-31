@@ -20,10 +20,10 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.okta.authfoundation.client.OidcClientResult
+import com.okta.authfoundationbootstrap.CredentialBootstrap
 import com.okta.oauth2.DeviceAuthorizationFlow
 import com.okta.oauth2.DeviceAuthorizationFlow.Companion.createDeviceAuthorizationFlow
 import kotlinx.coroutines.launch
-import sample.okta.android.SampleHelper
 
 internal class DeviceAuthorizationViewModel : ViewModel() {
     private val _state = MutableLiveData<DeviceAuthorizationState>(DeviceAuthorizationState.Loading)
@@ -37,7 +37,7 @@ internal class DeviceAuthorizationViewModel : ViewModel() {
         _state.value = DeviceAuthorizationState.Loading
 
         viewModelScope.launch {
-            val deviceAuthorizationFlow = SampleHelper.defaultCredential.oidcClient.createDeviceAuthorizationFlow()
+            val deviceAuthorizationFlow = CredentialBootstrap.credential().oidcClient.createDeviceAuthorizationFlow()
             when (val result = deviceAuthorizationFlow.start()) {
                 is OidcClientResult.Error -> {
                     _state.value = DeviceAuthorizationState.Error(result.exception.message ?: "An error occurred.")

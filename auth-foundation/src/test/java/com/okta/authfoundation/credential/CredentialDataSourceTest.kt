@@ -18,6 +18,7 @@ package com.okta.authfoundation.credential
 import com.google.common.truth.Truth.assertThat
 import com.okta.authfoundation.credential.CredentialDataSource.Companion.createCredentialDataSource
 import com.okta.authfoundation.credential.events.CredentialCreatedEvent
+import com.okta.testhelpers.InMemoryTokenStorage
 import com.okta.testhelpers.OktaRule
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
