@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-Present Okta, Inc.
+ * Copyright 2021-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package sample.okta.android.sessiontoken
+package com.okta.idx.android.dynamic.auth
 
-import android.content.Context
-import com.okta.authfoundation.AuthFoundation
-import com.okta.authfoundation.client.OidcConfiguration
+import com.okta.idx.android.dynamic.BuildConfig
+import com.okta.idx.kotlin.client.IdxClientConfiguration
+import okhttp3.HttpUrl.Companion.toHttpUrl
 
-internal object SampleCredentialHelper {
-    fun initialize(context: Context) {
-        AuthFoundation.initializeAndroidContext(context)
-        OidcConfiguration.default = OidcConfiguration(
+/**
+ * Provides Okta organization configuration for IDX client.
+ */
+internal object IdxClientConfigurationProvider {
+    fun get(): IdxClientConfiguration {
+        return IdxClientConfiguration(
+            issuer = BuildConfig.ISSUER.toHttpUrl(),
             clientId = BuildConfig.CLIENT_ID,
-            defaultScope = "openid email profile offline_access",
-            issuer = BuildConfig.ISSUER
+            scopes = setOf("openid", "email", "profile", "offline_access"),
+            redirectUri = BuildConfig.REDIRECT_URI,
         )
     }
 }

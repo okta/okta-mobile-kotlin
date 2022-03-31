@@ -22,7 +22,13 @@ import androidx.lifecycle.MutableLiveData
 import com.okta.idx.android.util.emitValidation
 import com.okta.idx.kotlin.dto.IdxRemediation
 
+/**
+ * Data model classes representing `IdxRemediation` as a View Model. 
+ */
 sealed class DynamicAuthField {
+    /**
+     * `DynamicAuthField.Text` are displayed as a `TextInputLayout`, and represents a `IdxRemediation.Form.Field.type` `string` fields.
+     */
     data class Text(
         val label: String,
         val isRequired: Boolean,
@@ -40,14 +46,17 @@ sealed class DynamicAuthField {
             }
 
         override fun validate(): Boolean {
-            if (isRequired) {
-                return _errorsLiveData.emitValidation { value.isNotEmpty() }
+            return if (isRequired) {
+                _errorsLiveData.emitValidation { value.isNotEmpty() }
             } else {
-                return true
+                true
             }
         }
     }
 
+    /**
+     * `DynamicAuthField.Checkbox` is displayed as a `Checkbox`, and represents a `IdxRemediation.Form.Field.type` `boolean` fields.
+     */
     data class CheckBox(
         val label: String,
         private val valueUpdater: (Boolean) -> Unit
@@ -59,6 +68,11 @@ sealed class DynamicAuthField {
             }
     }
 
+    /**
+     * `DynamicAuthField.Options` is displayed as a `RadioButton`, and represents a `IdxRemediation.Form.Field` with `options` fields.
+     * Selection state is maintained on the IdxRemediation.Form.Field instance.
+     * Supports inline validation.
+     */
     data class Options(
         val label: String?,
         val options: List<Option>,
@@ -86,7 +100,7 @@ sealed class DynamicAuthField {
             }
 
         override fun validate(): Boolean {
-            if (isRequired) {
+            return if (isRequired) {
                 val nestedFieldsAreValid: Boolean = options.flatMap { option ->
                     option.fields.map { field ->
                         field.validate()
@@ -94,24 +108,33 @@ sealed class DynamicAuthField {
                 }.reduce { acc, b ->
                     acc && b
                 }
-                return _errorsLiveData.emitValidation { option != null } && nestedFieldsAreValid
+                _errorsLiveData.emitValidation { option != null } && nestedFieldsAreValid
             } else {
-                return true
+                true
             }
         }
     }
 
+    /**
+     * `DynamicAuthField.Action` is displayed as a `Button`, and typically represents a call submitting an `IdxRemediation` to `IdxClient.proceed`.
+     */
     data class Action(
         val label: String,
         val onClick: (context: Context) -> Unit
     ) : DynamicAuthField()
 
+    /**
+     * `DynamicAuthField.Image` is displayed as an `ImageView`, and represents an `IdxRemediation.authenticators` capability of `IdxTotpCapability`.
+     */
     data class Image(
         val label: String,
         val bitmap: Bitmap,
         val sharedSecret: String?,
     ) : DynamicAuthField()
 
+    /**
+     * `DynamicAuthField.Label` is displayed as a `TextView`, and represents an `IdxRemdiation.authenticators` capability of `IdxNumberChallengeCapability` label.
+     */
     data class Label(
         val label: String,
     ) : DynamicAuthField()
