@@ -20,9 +20,9 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.okta.authfoundation.client.OidcClientResult
+import com.okta.authfoundationbootstrap.CredentialBootstrap
 import com.okta.oauth2.ResourceOwnerFlow.Companion.createResourceOwnerFlow
 import kotlinx.coroutines.launch
-import sample.okta.android.SampleHelper
 
 internal class ResourceOwnerViewModel : ViewModel() {
     private val _state = MutableLiveData<ResourceOwnerState>(ResourceOwnerState.Idle)
@@ -32,7 +32,7 @@ internal class ResourceOwnerViewModel : ViewModel() {
         _state.value = ResourceOwnerState.Loading
 
         viewModelScope.launch {
-            val resourceOwnerFlow = SampleHelper.defaultCredential.oidcClient.createResourceOwnerFlow()
+            val resourceOwnerFlow = CredentialBootstrap.credential().oidcClient.createResourceOwnerFlow()
             when (val result = resourceOwnerFlow.start(username, password)) {
                 is OidcClientResult.Error -> {
                     _state.value = ResourceOwnerState.Error(result.exception.message ?: "An error occurred.")

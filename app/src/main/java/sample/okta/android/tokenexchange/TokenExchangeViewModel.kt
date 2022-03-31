@@ -20,6 +20,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.okta.authfoundation.client.OidcClientResult
+import com.okta.authfoundationbootstrap.CredentialBootstrap
 import com.okta.oauth2.TokenExchangeFlow.Companion.createTokenExchangeFlow
 import kotlinx.coroutines.launch
 import sample.okta.android.SampleHelper
@@ -40,10 +41,11 @@ class TokenExchangeViewModel : ViewModel() {
         _state.value = TokenExchangeState.Loading
 
         viewModelScope.launch {
-            val credential = SampleHelper.defaultCredential
-            val tokenExchangeCredential = SampleHelper.credentialDataSource.listCredentials().firstOrNull { c ->
+            val credential = CredentialBootstrap.credential()
+            val credentialDataSource = CredentialBootstrap.credentialDataSource
+            val tokenExchangeCredential = credentialDataSource.listCredentials().firstOrNull { c ->
                 c.metadata[SampleHelper.CREDENTIAL_NAME_METADATA_KEY] == NAME_METADATA_VALUE
-            } ?: SampleHelper.credentialDataSource.createCredential()
+            } ?: credentialDataSource.createCredential()
             tokenExchangeCredential.storeToken(metadata = mapOf(Pair(SampleHelper.CREDENTIAL_NAME_METADATA_KEY, NAME_METADATA_VALUE)))
             val tokenExchangeFlow = tokenExchangeCredential.oidcClient.createTokenExchangeFlow()
             val idToken = credential.token?.idToken

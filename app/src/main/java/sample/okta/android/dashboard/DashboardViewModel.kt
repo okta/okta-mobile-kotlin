@@ -25,13 +25,13 @@ import com.okta.authfoundation.client.dto.OidcIntrospectInfo
 import com.okta.authfoundation.credential.Credential
 import com.okta.authfoundation.credential.RevokeTokenType
 import com.okta.authfoundation.credential.TokenType
+import com.okta.authfoundationbootstrap.CredentialBootstrap
 import com.okta.webauthenticationui.WebAuthenticationClient.Companion.createWebAuthenticationClient
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import sample.okta.android.SampleHelper
-import sample.okta.android.SampleHelper.createDefaultCredential
 import timber.log.Timber
 
 internal class DashboardViewModel(private val credentialMetadataNameValue: String?) : ViewModel() {
@@ -52,11 +52,11 @@ internal class DashboardViewModel(private val credentialMetadataNameValue: Strin
     init {
         viewModelScope.launch {
             credential = if (credentialMetadataNameValue == null) {
-                SampleHelper.defaultCredential
+                CredentialBootstrap.credential()
             } else {
-                SampleHelper.credentialDataSource.listCredentials().firstOrNull { credential ->
+                CredentialBootstrap.credentialDataSource.listCredentials().firstOrNull { credential ->
                     credential.metadata[SampleHelper.CREDENTIAL_NAME_METADATA_KEY] == credentialMetadataNameValue
-                } ?: SampleHelper.defaultCredential
+                } ?: CredentialBootstrap.credential()
             }
             setCredential(credential)
         }
@@ -124,7 +124,6 @@ internal class DashboardViewModel(private val credentialMetadataNameValue: Strin
                 }
                 is OidcClientResult.Success -> {
                     credential.delete()
-                    SampleHelper.defaultCredential = SampleHelper.credentialDataSource.createDefaultCredential()
                     _requestStateLiveData.value = RequestState.Result("Logout successful!")
                 }
             }
@@ -175,7 +174,6 @@ internal class DashboardViewModel(private val credentialMetadataNameValue: Strin
     fun deleteCredential() {
         viewModelScope.launch {
             credential.delete()
-            SampleHelper.defaultCredential = SampleHelper.credentialDataSource.createDefaultCredential()
         }
     }
 }

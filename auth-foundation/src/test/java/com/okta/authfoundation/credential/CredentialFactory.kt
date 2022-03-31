@@ -16,6 +16,7 @@
 package com.okta.authfoundation.credential
 
 import com.okta.authfoundation.client.OidcClient
+import com.okta.testhelpers.InMemoryTokenStorage
 import com.okta.testhelpers.OktaRule
 import kotlinx.coroutines.runBlocking
 import org.mockito.kotlin.mock

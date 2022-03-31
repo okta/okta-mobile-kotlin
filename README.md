@@ -13,6 +13,7 @@ The Okta Mobile Kotlin SDK is intended to be used on the Android platform.
 This SDK consists of several different libraries, each with detailed documentation.
 
 - [AuthFoundation](auth-foundation) -- Common classes for managing credentials and used as a foundation for other libraries.
+- [AuthFoundationBootstrap](auth-foundation-bootstrap) -- A simplified API for common use cases.
 - [OktaOAuth2](oauth2) -- OAuth2 authentication capabilities for authenticating users.
 - [WebAuthenticationUI](web-authentication-ui) -- Authenticate users using web-based OIDC flows.
 
@@ -71,6 +72,7 @@ Add the `Okta Mobile Kotlin` dependencies to your `build.gradle` file:
 
 ```gradle
 implementation 'com.okta.kotlin:auth-foundation:0.2.0-BETA'
+implementation 'com.okta.kotlin:auth-foundation-bootstrap:0.2.0-BETA'
 implementation 'com.okta.kotlin:oauth2:0.2.0-BETA'
 implementation 'com.okta.kotlin:web-authentication-ui:0.2.0-BETA'
 ```
@@ -118,14 +120,18 @@ The simplest way to integrate authentication in your app is with OIDC through a 
 
 #### Configure your OIDC Settings
 
-Before authenticating your user, you need to create your `OidcClient`, using the settings defined in your application in the Okta Developer Console.
+Before authenticating your user, you need to create your `OidcClient`, using the settings defined in your application in the Okta Developer Console, and initialize the bootstrap module.
 
 ```kotlin
+import android.content.Context
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundation.client.OidcConfiguration
+import com.okta.authfoundation.credential.CredentialDataSource.Companion.createCredentialDataSource
+import com.okta.authfoundationbootstrap.CredentialBootstrap
 import okhttp3.HttpUrl.Companion.toHttpUrl
 
+val context: Context = TODO("Supplied by the developer.")
 val oidcConfiguration = OidcConfiguration(
     clientId = "{clientId}",
     defaultScopes = setOf("openid", "email", "profile", "offline_access"),
@@ -136,6 +142,7 @@ val client = OidcClient.createFromDiscoveryUrl(
     oidcConfiguration,
     "https://{yourOktaOrg}.okta.com/.well-known/openid-configuration".toHttpUrl(),
 )
+CredentialBootstrap.initialize(oidcClient.createCredentialDataSource(context))
 ```
 
 #### Create a Credential
@@ -143,14 +150,9 @@ val client = OidcClient.createFromDiscoveryUrl(
 The Credential type handles storage, OAuth conveniences and authorizing requests to your Resource Server after login occurs. Before authenticating, we'll create the credential.
 
 ```kotlin
-import android.content.Context
-import com.okta.authfoundation.client.OidcClient
-import com.okta.authfoundation.credential.Credential
-import com.okta.authfoundation.credential.CredentialDataSource.Companion.createCredentialDataSource
+import com.okta.authfoundationbootstrap.CredentialBootstrap
 
-val context: Context = TODO("Supplied by the developer.")
-val credentialDataSource = oidcClient.createCredentialDataSource(context)
-val credential: Credential = credentialDataSource.createCredential()
+val credential: Credential = CredentialBootstrap.credential()
 ```
 
 #### Create a Web Authentication Client
@@ -201,17 +203,13 @@ android {
 The Device Authorization Flow is designed for Internet connected devices that either lack a browser to perform a user-agent based authorization or are input constrained to the extent that requiring the user to input text in order to authenticate during the authorization flow is impractical.
 
 ```kotlin
-import android.content.Context
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.credential.Credential
-import com.okta.authfoundation.credential.CredentialDataSource
-import com.okta.authfoundation.credential.CredentialDataSource.Companion.createCredentialDataSource
+import com.okta.authfoundationbootstrap.CredentialBootstrap
 import com.okta.oauth2.DeviceAuthorizationFlow
 import com.okta.oauth2.DeviceAuthorizationFlow.Companion.createDeviceAuthorizationFlow
 
-val context: Context = TODO("Supplied by the developer.")
-val credentialDataSource: CredentialDataSource = oidcClient.createCredentialDataSource(context)
-val credential: Credential = credentialDataSource.createCredential()
+val credential: Credential = CredentialBootstrap.credential()
 val deviceAuthorizationFlow: DeviceAuthorizationFlow = credential.oidcClient.createDeviceAuthorizationFlow()
 
 when (val result = deviceAuthorizationFlow.start()) {
@@ -244,16 +242,14 @@ when (val result = deviceAuthorizationFlow.start()) {
 The Token Exchange Flow exchanges an ID Token and a Device Secret for a new set of tokens.
 
 ```kotlin
-import android.content.Context
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.credential.Credential
 import com.okta.authfoundation.credential.CredentialDataSource
-import com.okta.authfoundation.credential.CredentialDataSource.Companion.createCredentialDataSource
+import com.okta.authfoundationbootstrap.CredentialBootstrap
 import com.okta.oauth2.TokenExchangeFlow
 import com.okta.oauth2.TokenExchangeFlow.Companion.createTokenExchangeFlow
 
-val context: Context = TODO("Supplied by the developer.")
-val credentialDataSource: CredentialDataSource = oidcClient.createCredentialDataSource(context)
+val credentialDataSource: CredentialDataSource = CredentialBootstrap.credentialDataSource()
 val credential: Credential = credentialDataSource.createCredential()
 val tokenExchangeFlow: TokenExchangeFlow = credential.oidcClient.createTokenExchangeFlow()
 when (val result = tokenExchangeFlow.start(idToken, deviceSecret)) {

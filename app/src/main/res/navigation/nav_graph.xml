@@ -3,23 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/StartupFragment">
-    <fragment
-        android:id="@+id/StartupFragment"
-        android:name="sample.okta.android.startup.StartupFragment"
-        tools:layout="@layout/fragment_startup">
-        <action
-            android:id="@+id/startup_to_launch"
-            app:destination="@id/LaunchFragment"
-            app:popUpTo="@+id/nav_graph"
-            app:popUpToInclusive="true" />
-
-        <action
-            android:id="@+id/startup_to_dashboard"
-            app:destination="@id/DashboardFragment"
-            app:popUpTo="@+id/nav_graph"
-            app:popUpToInclusive="true" />
-    </fragment>
+    app:startDestination="@id/LaunchFragment">
 
     <fragment
         android:id="@+id/LaunchFragment"
@@ -34,6 +18,11 @@
         <action
             android:id="@+id/launch_to_device_authorization_flow"
             app:destination="@id/DeviceAuthorizationFragment" />
+        <action
+            android:id="@+id/launch_to_dashboard"
+            app:destination="@id/DashboardFragment"
+            app:popUpTo="@+id/nav_graph"
+            app:popUpToInclusive="true" />
     </fragment>
 
     <fragment
