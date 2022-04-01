@@ -37,6 +37,18 @@ class DefaultIdTokenValidatorTest {
         idTokenValidator.validate(client, idToken, null, null)
     }
 
+    @Test fun testValidIdTokenWithNoPathInIssuer(): Unit = runBlocking {
+        val client = oktaRule.createOidcClient(
+            oktaRule.createEndpoints(
+                "https://example-test.okta.com".toHttpUrl().newBuilder(),
+                includeIssuerPath = false
+            )
+        )
+        val idTokenClaims = IdTokenClaims(issuer = "https://example-test.okta.com")
+        val idToken = client.createJwtBuilder().createJwt(claims = idTokenClaims)
+        idTokenValidator.validate(client, idToken, null, null)
+    }
+
     @Test fun testValidIdTokenWithNonce(): Unit = runBlocking {
         val client = oktaRule.createOidcClient(oktaRule.createEndpoints("https://example-test.okta.com".toHttpUrl().newBuilder()))
         val idTokenClaims = IdTokenClaims(nonce = "6ccdb66d-ad56-4072-b864-7a8fe73c0ac2")
