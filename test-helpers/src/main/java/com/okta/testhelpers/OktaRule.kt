@@ -59,9 +59,18 @@ class OktaRule(
         computeDispatcher = Dispatchers.Unconfined,
     )
 
-    fun createEndpoints(urlBuilder: HttpUrl.Builder = baseUrl.newBuilder(), includeJwks: Boolean = false): OidcEndpoints {
+    fun createEndpoints(
+        urlBuilder: HttpUrl.Builder = baseUrl.newBuilder(),
+        includeJwks: Boolean = false,
+        includeIssuerPath: Boolean = true,
+    ): OidcEndpoints {
+        val issuer = if (includeIssuerPath) {
+            urlBuilder.encodedPath("/oauth2/default").build()
+        } else {
+            urlBuilder.build()
+        }
         return OidcEndpoints(
-            issuer = urlBuilder.encodedPath("/oauth2/default").build(),
+            issuer = issuer,
             authorizationEndpoint = urlBuilder.encodedPath("/oauth2/default/v1/authorize").build(),
             tokenEndpoint = urlBuilder.encodedPath("/oauth2/default/v1/token").build(),
             userInfoEndpoint = urlBuilder.encodedPath("/oauth2/default/v1/userinfo").build(),

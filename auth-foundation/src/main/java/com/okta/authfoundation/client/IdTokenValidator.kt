@@ -19,6 +19,7 @@ import com.okta.authfoundation.jwt.Jwt
 import com.okta.authfoundation.credential.Token
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import kotlin.math.abs
 
 /**
@@ -57,7 +58,7 @@ internal class DefaultIdTokenValidator : IdTokenValidator {
     override suspend fun validate(oidcClient: OidcClient, idToken: Jwt, nonce: String?, maxAge: Int?) {
         val idTokenPayload = idToken.deserializeClaims(IdTokenValidationPayload.serializer())
 
-        if (idTokenPayload.iss != oidcClient.endpointsOrNull()?.issuer.toString()) {
+        if (idTokenPayload.iss.toHttpUrl() != oidcClient.endpointsOrNull()?.issuer) {
             throw IdTokenValidator.Error("Invalid issuer.")
         }
         if (idTokenPayload.aud != oidcClient.configuration.clientId) {
