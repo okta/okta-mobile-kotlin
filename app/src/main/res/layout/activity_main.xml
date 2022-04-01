@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:filterTouchesWhenObscured="true"
-    tools:context="sample.okta.oidc.android.MainActivity"
+    tools:context="sample.okta.android.MainActivity"
     >
 
     <include layout="@layout/content_main" />

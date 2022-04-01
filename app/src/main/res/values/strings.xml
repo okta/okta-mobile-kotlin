@@ -32,4 +32,6 @@
     <string name="credential_name">Credential Name</string>
     <string name="introspect_device_secret">Introspect device secret</string>
     <string name="revoke_device_secret">Revoke device secret</string>
+    <string name="go_to_dashboard">Go to dashboard</string>
+    <string name="already_logged_in_text">To continue using the existing credential, click go to dashboard!</string>
 </resources>
