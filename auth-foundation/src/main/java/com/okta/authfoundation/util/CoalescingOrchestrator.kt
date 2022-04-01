@@ -15,6 +15,7 @@
  */
 package com.okta.authfoundation.util
 
+import com.okta.authfoundation.InternalAuthFoundationApi
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
@@ -23,7 +24,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
 
-internal class CoalescingOrchestrator<T : Any>(
+@InternalAuthFoundationApi
+class CoalescingOrchestrator<T : Any>(
     private val factory: suspend () -> T,
     private val keepDataInMemory: (T) -> Boolean,
     // This should only be used for testing.

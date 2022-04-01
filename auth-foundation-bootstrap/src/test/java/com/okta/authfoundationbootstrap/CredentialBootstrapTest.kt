@@ -19,6 +19,8 @@ import com.google.common.truth.Truth.assertThat
 import com.okta.authfoundation.credential.CredentialDataSource.Companion.createCredentialDataSource
 import com.okta.testhelpers.InMemoryTokenStorage
 import com.okta.testhelpers.OktaRule
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
@@ -82,5 +84,14 @@ class CredentialBootstrapTest {
         assertThat(credential2).isNotNull()
         assertThat(credential1).isNotSameInstanceAs(credential2)
         assertThat(CredentialBootstrap.credentialDataSource.listCredentials()).hasSize(2)
+    }
+
+    @Test fun testCredentialReturnsSameInstanceWhenAsync(): Unit = runBlocking {
+        initialize()
+        val credential1 = async(Dispatchers.IO) { CredentialBootstrap.credential() }
+        val credential2 = async(Dispatchers.IO) { CredentialBootstrap.credential() }
+        assertThat(credential1.await()).isNotNull()
+        assertThat(credential1.await()).isSameInstanceAs(credential2.await())
+        assertThat(CredentialBootstrap.credentialDataSource.listCredentials()).hasSize(1)
     }
 }
