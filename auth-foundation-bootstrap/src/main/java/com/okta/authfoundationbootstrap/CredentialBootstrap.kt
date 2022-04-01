@@ -17,6 +17,7 @@ package com.okta.authfoundationbootstrap
 
 import com.okta.authfoundation.credential.Credential
 import com.okta.authfoundation.credential.CredentialDataSource
+import com.okta.authfoundation.util.CoalescingOrchestrator
 
 /**
  * [CredentialBootstrap] implements best practices for single [Credential] use cases.
@@ -30,6 +31,11 @@ object CredentialBootstrap {
     private const val DEFAULT_CREDENTIAL_NAME_METADATA_VALUE: String = "Default"
 
     @Volatile private var privateCredentialDataSource: CredentialDataSource? = null
+
+    private val credentialCoalescingOrchestrator = CoalescingOrchestrator(
+        factory = ::realFetchCredential,
+        keepDataInMemory = { false },
+    )
 
     /**
      * The singleton [CredentialDataSource].
@@ -52,6 +58,10 @@ object CredentialBootstrap {
      * The default [Credential] associated with the associated [CredentialDataSource].
      */
     suspend fun credential(): Credential {
+        return credentialCoalescingOrchestrator.get()
+    }
+
+    private suspend fun realFetchCredential(): Credential {
         return credentialDataSource.listCredentials().firstOrNull { credential ->
             credential.metadata[CREDENTIAL_NAME_METADATA_KEY] == DEFAULT_CREDENTIAL_NAME_METADATA_VALUE
         } ?: createDefaultCredential()
