@@ -32,7 +32,11 @@ internal class LaunchFragment : BaseFragment<FragmentLaunchBinding>(
 
         lifecycleScope.launch {
             if (CredentialBootstrap.credential().token != null) {
-                findNavController().navigate(LaunchFragmentDirections.launchToDashboard())
+                binding.loggedInTextView.visibility = View.VISIBLE
+                binding.dashboardButton.visibility = View.VISIBLE
+                binding.dashboardButton.setOnClickListener {
+                    findNavController().navigate(LaunchFragmentDirections.launchToDashboard())
+                }
             }
         }
 
