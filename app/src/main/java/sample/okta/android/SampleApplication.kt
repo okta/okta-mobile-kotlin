@@ -18,10 +18,16 @@ package sample.okta.android
 import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
+import com.instacart.library.truetime.TrueTime
+import com.okta.authfoundation.AuthFoundationDefaults
 import com.okta.authfoundation.client.OidcClient
+import com.okta.authfoundation.client.OidcClock
 import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.credential.CredentialDataSource.Companion.createCredentialDataSource
 import com.okta.authfoundationbootstrap.CredentialBootstrap
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import timber.log.Timber
 
@@ -37,6 +43,14 @@ class SampleApplication : Application() {
         context = this
 
         Timber.plant(Timber.DebugTree())
+
+        GlobalScope.launch(Dispatchers.IO) {
+            TrueTime.build().initialize()
+        }
+
+        AuthFoundationDefaults.clock = OidcClock {
+            TrueTime.now().toInstant().epochSecond
+        }
 
         val oidcConfiguration = OidcConfiguration(
             clientId = BuildConfig.CLIENT_ID,

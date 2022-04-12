@@ -72,6 +72,8 @@ android {
 dependencies {
     coreLibraryDesugaring deps.desugar_libs
 
+    implementation 'com.github.instacart.truetime-android:library:3.5'
+
     implementation project(':web-authentication-ui')
     implementation project(':auth-foundation-bootstrap')
 

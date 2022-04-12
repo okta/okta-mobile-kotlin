@@ -138,6 +138,9 @@ static def addRepos(RepositoryHandler handler) {
     handler.mavenLocal()
     handler.google()
     handler.mavenCentral()
+    handler.maven {
+        url "https://jitpack.io"
+    }
 }
 
 def forceVersions(ConfigurationContainer configurations) {
