@@ -18,16 +18,20 @@ package com.okta.authfoundation.client
 import com.google.common.truth.Truth.assertThat
 import com.okta.authfoundation.client.internal.performRequest
 import com.okta.authfoundation.client.internal.performRequestNonJson
+import com.okta.authfoundation.credential.Credential
 import com.okta.testhelpers.OktaRule
 import com.okta.testhelpers.RequestMatchers.path
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import okhttp3.Interceptor
 import okhttp3.Request
+import okhttp3.Response
 import okhttp3.mockwebserver.SocketPolicy
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.mock
 
 class NetworkingTest {
     @get:Rule val oktaRule = OktaRule()
@@ -43,7 +47,7 @@ class NetworkingTest {
             .url(oktaRule.baseUrl.newBuilder().addPathSegments("test").build())
             .build()
 
-        val result = oktaRule.configuration.performRequest(JsonObject.serializer(), request) {
+        val result = oktaRule.createOidcClient().performRequest(JsonObject.serializer(), request) {
             it["foo"]!!.jsonPrimitive.content
         }
         assertThat((result as OidcClientResult.Success<String>).result).isEqualTo("bar")
@@ -61,7 +65,7 @@ class NetworkingTest {
             .url(oktaRule.baseUrl.newBuilder().addPathSegments("test").build())
             .build()
 
-        val result = oktaRule.configuration.performRequest(JsonObject.serializer(), request, { true }) {
+        val result = oktaRule.createOidcClient().performRequest(JsonObject.serializer(), request, { true }) {
             it["foo"]!!.jsonPrimitive.content
         }
         assertThat((result as OidcClientResult.Success<String>).result).isEqualTo("bar")
@@ -78,7 +82,7 @@ class NetworkingTest {
             .url(oktaRule.baseUrl.newBuilder().addPathSegments("test").build())
             .build()
 
-        val result = oktaRule.configuration.performRequest<JsonObject, String>(JsonObject.serializer(), request, { true }) {
+        val result = oktaRule.createOidcClient().performRequest<JsonObject, String>(JsonObject.serializer(), request, { true }) {
             throw IllegalArgumentException("Test Exception From Mapper")
         }
         val message = (result as OidcClientResult.Error<String>).exception.message
@@ -94,7 +98,7 @@ class NetworkingTest {
             .url(oktaRule.baseUrl.newBuilder().addPathSegments("test").build())
             .build()
 
-        val result = oktaRule.configuration.performRequest(JsonObject.serializer(), request, { true }) {
+        val result = oktaRule.createOidcClient().performRequest(JsonObject.serializer(), request, { true }) {
             it["foo"]!!.jsonPrimitive.content
         }
         val message = (result as OidcClientResult.Error<String>).exception.message
@@ -113,7 +117,7 @@ class NetworkingTest {
             .url(oktaRule.baseUrl.newBuilder().addPathSegments("test").build())
             .build()
 
-        val result = oktaRule.configuration.performRequest(JsonObject.serializer(), request) {
+        val result = oktaRule.createOidcClient().performRequest(JsonObject.serializer(), request) {
             it["foo"]!!.jsonPrimitive.content
         }
         val exception = (result as OidcClientResult.Error<String>).exception
@@ -136,7 +140,7 @@ class NetworkingTest {
             .url(oktaRule.baseUrl.newBuilder().addPathSegments("test").build())
             .build()
 
-        val result = oktaRule.configuration.performRequest(JsonObject.serializer(), request) {
+        val result = oktaRule.createOidcClient().performRequest(JsonObject.serializer(), request) {
             it["foo"]!!.jsonPrimitive.content
         }
         val exception = (result as OidcClientResult.Error<String>).exception
@@ -158,7 +162,7 @@ class NetworkingTest {
             .url(oktaRule.baseUrl.newBuilder().addPathSegments("test").build())
             .build()
 
-        val result = oktaRule.configuration.performRequestNonJson(request)
+        val result = oktaRule.createOidcClient().performRequestNonJson(request)
         val result2 = (result as OidcClientResult.Success<Unit>).result
         assertThat(result2).isEqualTo(Unit)
     }
@@ -174,7 +178,7 @@ class NetworkingTest {
             .url(oktaRule.baseUrl.newBuilder().addPathSegments("test").build())
             .build()
 
-        val result = oktaRule.configuration.performRequest(JsonObject.serializer(), request) {
+        val result = oktaRule.createOidcClient().performRequest(JsonObject.serializer(), request) {
             it["foo"]!!.jsonPrimitive.content
         }
         val exception = (result as OidcClientResult.Error<String>).exception
@@ -194,11 +198,81 @@ class NetworkingTest {
             .url(oktaRule.baseUrl.newBuilder().addPathSegments("test").build())
             .build()
 
-        val result = oktaRule.configuration.performRequest(JsonObject.serializer(), request) {
+        val result = oktaRule.createOidcClient().performRequest(JsonObject.serializer(), request) {
             it["foo"]!!.jsonPrimitive.content
         }
         val exception = (result as OidcClientResult.Error<String>).exception
         assertThat(exception).isInstanceOf(OidcClientResult.Error.HttpResponseException::class.java)
         assertThat(exception).hasMessageThat().isEqualTo("HTTP Error: status code - 401")
+    }
+
+    @Test fun testPerformRequestHasNoTagWithNoCredential(): Unit = runBlocking {
+        val interceptor = RecordingInterceptor()
+        val configuration = OidcConfiguration(
+            clientId = "unit_test_client_id",
+            defaultScopes = setOf("openid", "email", "profile", "offline_access"),
+            okHttpClientFactory = {
+                val builder = oktaRule.okHttpClient.newBuilder()
+                builder.addInterceptor(interceptor)
+                builder.build()
+            }
+        )
+        val oidcClient = OidcClient.create(configuration, oktaRule.createEndpoints())
+        oktaRule.enqueue(
+            path("/test"),
+        ) { response ->
+            response.setBody("""{"foo":"bar"}""")
+        }
+
+        val request = Request.Builder()
+            .url(oktaRule.baseUrl.newBuilder().addPathSegments("test").build())
+            .build()
+
+        val result = oidcClient.performRequest(JsonObject.serializer(), request) {
+            it["foo"]!!.jsonPrimitive.content
+        }
+        assertThat((result as OidcClientResult.Success<String>).result).isEqualTo("bar")
+        assertThat(interceptor.request?.tag(Credential::class.java)).isNull()
+    }
+
+    @Test fun testPerformRequestHasTagWhenCredentialIsAttachedToOidcClient(): Unit = runBlocking {
+        val interceptor = RecordingInterceptor()
+        val configuration = OidcConfiguration(
+            clientId = "unit_test_client_id",
+            defaultScopes = setOf("openid", "email", "profile", "offline_access"),
+            okHttpClientFactory = {
+                val builder = oktaRule.okHttpClient.newBuilder()
+                builder.addInterceptor(interceptor)
+                builder.build()
+            }
+        )
+        val credential = mock<Credential>()
+        val oidcClient = OidcClient.create(configuration, oktaRule.createEndpoints())
+            .withCredential(credential)
+        oktaRule.enqueue(
+            path("/test"),
+        ) { response ->
+            response.setBody("""{"foo":"bar"}""")
+        }
+
+        val request = Request.Builder()
+            .url(oktaRule.baseUrl.newBuilder().addPathSegments("test").build())
+            .build()
+
+        val result = oidcClient.performRequest(JsonObject.serializer(), request) {
+            it["foo"]!!.jsonPrimitive.content
+        }
+        assertThat((result as OidcClientResult.Success<String>).result).isEqualTo("bar")
+        assertThat(interceptor.request?.tag(Credential::class.java)).isNotNull()
+        assertThat(interceptor.request?.tag(Credential::class.java)).isEqualTo(credential)
+    }
+}
+
+private class RecordingInterceptor : Interceptor {
+    var request: Request? = null
+
+    override fun intercept(chain: Interceptor.Chain): Response {
+        request = chain.request()
+        return chain.proceed(chain.request())
     }
 }

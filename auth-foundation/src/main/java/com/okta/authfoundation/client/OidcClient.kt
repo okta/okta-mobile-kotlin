@@ -28,6 +28,7 @@ import com.okta.authfoundation.credential.Token
 import com.okta.authfoundation.credential.TokenType
 import com.okta.authfoundation.util.CoalescingOrchestrator
 import com.okta.authfoundation.claims.DefaultClaimsProvider.Companion.createClaimsDeserializer
+import com.okta.authfoundation.client.internal.internalPerformRequest
 import com.okta.authfoundation.jwt.Jwks
 import com.okta.authfoundation.jwt.Jwt
 import com.okta.authfoundation.jwt.JwtParser
@@ -35,7 +36,9 @@ import com.okta.authfoundation.jwt.SerializableJwks
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.decodeFromStream
 import okhttp3.FormBody
 import okhttp3.HttpUrl
 import okhttp3.Request
@@ -73,7 +76,11 @@ class OidcClient private constructor(
                         val request = Request.Builder()
                             .url(discoveryUrl)
                             .build()
-                        configuration.performRequest(SerializableOidcEndpoints.serializer(), request) { serializableOidcEndpoints ->
+                        configuration.internalPerformRequest(request, { it.isSuccessful }) { responseBody ->
+                            @OptIn(ExperimentalSerializationApi::class)
+                            val serializableOidcEndpoints = configuration.json.decodeFromStream(
+                                SerializableOidcEndpoints.serializer(), responseBody
+                            )
                             serializableOidcEndpoints.asOidcEndpoints()
                         }
                     },
@@ -114,7 +121,7 @@ class OidcClient private constructor(
             .url(endpoint)
             .build()
 
-        return configuration.performRequest(JsonObject.serializer(), request) {
+        return performRequest(JsonObject.serializer(), request) {
             OidcUserInfo(configuration.createClaimsDeserializer(it))
         }
     }
@@ -166,7 +173,7 @@ class OidcClient private constructor(
             .post(formBody)
             .build()
 
-        return configuration.performRequestNonJson(request)
+        return performRequestNonJson(request)
     }
 
     /**
@@ -207,7 +214,7 @@ class OidcClient private constructor(
             .post(formBody)
             .build()
 
-        return configuration.performRequest(JsonObject.serializer(), request) { response ->
+        return performRequest(JsonObject.serializer(), request) { response ->
             response.asOidcIntrospectInfo(configuration)
         }
     }
@@ -241,7 +248,7 @@ class OidcClient private constructor(
             .url(url)
             .build()
 
-        return configuration.performRequest(SerializableJwks.serializer(), request) { serializableJwks ->
+        return performRequest(SerializableJwks.serializer(), request) { serializableJwks ->
             serializableJwks.toJwks()
         }
     }
@@ -288,7 +295,7 @@ class OidcClient private constructor(
     ): OidcClientResult<Token> {
         return withContext(Dispatchers.Unconfined) {
             val tokenDeferred = async {
-                configuration.performRequest(SerializableToken.serializer(), request) { serializableToken ->
+                performRequest(SerializableToken.serializer(), request) { serializableToken ->
                     serializableToken.asToken()
                 }
             }

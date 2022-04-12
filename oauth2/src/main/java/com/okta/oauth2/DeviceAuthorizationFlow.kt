@@ -18,7 +18,6 @@ package com.okta.oauth2
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundation.client.OidcConfiguration
-import com.okta.authfoundation.client.OidcEndpoints
 import com.okta.authfoundation.client.internal.performRequest
 import com.okta.authfoundation.credential.Token
 import kotlinx.coroutines.delay
@@ -125,7 +124,7 @@ class DeviceAuthorizationFlow private constructor(
             .url(endpoint)
             .build()
 
-        return oidcClient.configuration.performRequest(SerializableResponse.serializer(), request) { serializableResponse ->
+        return oidcClient.performRequest(SerializableResponse.serializer(), request) { serializableResponse ->
             serializableResponse.asFlowContext()
         }
     }

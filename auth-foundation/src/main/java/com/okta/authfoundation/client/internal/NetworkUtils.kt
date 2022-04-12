@@ -16,8 +16,10 @@
 package com.okta.authfoundation.client.internal
 
 import com.okta.authfoundation.InternalAuthFoundationApi
+import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundation.client.OidcConfiguration
+import com.okta.authfoundation.credential.Credential
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.CompletionHandler
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -38,21 +40,21 @@ import kotlin.coroutines.resumeWithException
 
 @InternalAuthFoundationApi
 @OptIn(ExperimentalSerializationApi::class)
-suspend fun <Raw, Dto> OidcConfiguration.performRequest(
+suspend fun <Raw, Dto> OidcClient.performRequest(
     deserializationStrategy: DeserializationStrategy<Raw>,
     request: Request,
     shouldAttemptJsonDeserialization: (Response) -> Boolean = { it.isSuccessful },
     responseMapper: (Raw) -> Dto,
 ): OidcClientResult<Dto> {
     return internalPerformRequest(request, shouldAttemptJsonDeserialization) { responseBody ->
-        val rawResponse = json.decodeFromStream(deserializationStrategy, responseBody)
+        val rawResponse = configuration.json.decodeFromStream(deserializationStrategy, responseBody)
         responseMapper(rawResponse)
     }
 }
 
 @InternalAuthFoundationApi
 @OptIn(ExperimentalSerializationApi::class)
-suspend fun <Raw> OidcConfiguration.performRequest(
+suspend fun <Raw> OidcClient.performRequest(
     deserializationStrategy: DeserializationStrategy<Raw>,
     request: Request,
 ): OidcClientResult<Raw> {
@@ -61,10 +63,21 @@ suspend fun <Raw> OidcConfiguration.performRequest(
     }
 }
 
-internal suspend fun OidcConfiguration.performRequestNonJson(
+internal suspend fun OidcClient.performRequestNonJson(
     request: Request
 ): OidcClientResult<Unit> {
     return internalPerformRequest(request) { }
+}
+
+internal suspend fun <T> OidcClient.internalPerformRequest(
+    request: Request,
+    shouldAttemptJsonDeserialization: (Response) -> Boolean = { it.isSuccessful },
+    responseHandler: OidcConfiguration.(InputStream) -> T,
+): OidcClientResult<T> {
+    val requestWithTag = credential?.let { request.newBuilder().tag(Credential::class.java, it).build() } ?: request
+    return configuration.internalPerformRequest(requestWithTag, shouldAttemptJsonDeserialization) {
+        configuration.run { responseHandler(it) }
+    }
 }
 
 internal suspend fun <T> OidcConfiguration.internalPerformRequest(
