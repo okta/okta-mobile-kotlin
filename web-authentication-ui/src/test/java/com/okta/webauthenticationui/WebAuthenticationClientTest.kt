@@ -26,20 +26,16 @@ import com.okta.testhelpers.RequestMatchers.method
 import com.okta.testhelpers.RequestMatchers.path
 import com.okta.testhelpers.testBodyFromFile
 import com.okta.webauthenticationui.WebAuthenticationClient.Companion.createWebAuthenticationClient
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
-import okhttp3.HttpUrl
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.Mockito.verify
-import org.mockito.kotlin.any
-import org.mockito.kotlin.argumentCaptor
-import org.mockito.kotlin.doAnswer
-import org.mockito.kotlin.doNothing
-import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
-import org.mockito.kotlin.never
 import org.robolectric.RobolectricTestRunner
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 @RunWith(RobolectricTestRunner::class)
 class WebAuthenticationClientTest {
@@ -55,25 +51,33 @@ class WebAuthenticationClientTest {
             response.testBodyFromFile("$mockPrefix/token.json")
         }
 
-        val urlCaptor = argumentCaptor<HttpUrl>()
         val webAuthenticationProvider = mock<WebAuthenticationProvider>()
         val webAuthenticationClient = oktaRule.createOidcClient().createWebAuthenticationClient(webAuthenticationProvider)
-        val redirectCoordinator = mock<RedirectCoordinator> {
-            onBlocking { listenForResult() } doAnswer {
-                val state = urlCaptor.firstValue.queryParameter("state")
-                val uri = Uri.parse("${oktaRule.configuration.signInRedirectUri}?state=$state&code=ExampleCode")
-                RedirectResult.Redirect(uri)
-            }
-        }
-        doNothing().`when`(redirectCoordinator).initialize(any(), any(), urlCaptor.capture())
-        webAuthenticationClient.redirectCoordinator = redirectCoordinator
         val context = mock<Context>()
 
-        val loginResult = webAuthenticationClient.login(context)
+        val redirectCoordinator = DefaultRedirectCoordinator()
+        webAuthenticationClient.redirectCoordinator = redirectCoordinator
 
-        verify(redirectCoordinator).initialize(eq(webAuthenticationProvider), eq(context), any())
+        val initializeCountDownLatch = CountDownLatch(1)
+        redirectCoordinator.initializerContinuationListeningCallback = {
+            initializeCountDownLatch.countDown()
+        }
+        val redirectCountDownLatch = CountDownLatch(1)
+        redirectCoordinator.redirectContinuationListeningCallback = {
+            redirectCountDownLatch.countDown()
+        }
+        val loginResultDeferred = async(Dispatchers.IO) {
+            webAuthenticationClient.login(context)
+        }
+        assertThat(initializeCountDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
+        val initializationResult = redirectCoordinator.runInitializationFunction() as RedirectInitializationResult.Success<*>
 
-        val token = (loginResult as OidcClientResult.Success<Token>).result
+        assertThat(redirectCountDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
+        val state = initializationResult.url.queryParameter("state")
+        val uri = Uri.parse("${oktaRule.configuration.signInRedirectUri}?state=$state&code=ExampleCode")
+        redirectCoordinator.emit(uri)
+
+        val token = (loginResultDeferred.await() as OidcClientResult.Success<Token>).result
         assertThat(token.tokenType).isEqualTo("Bearer")
         assertThat(token.expiresIn).isEqualTo(3600)
         assertThat(token.accessToken).isEqualTo("exampleAccessToken")
@@ -84,22 +88,54 @@ class WebAuthenticationClientTest {
         )
     }
 
-    @Test fun testLoginCancellation(): Unit = runBlocking {
+    @Test fun testLoginInitializationCancellation(): Unit = runBlocking {
         val webAuthenticationProvider = mock<WebAuthenticationProvider>()
         val webAuthenticationClient = oktaRule.createOidcClient().createWebAuthenticationClient(webAuthenticationProvider)
-        val redirectCoordinator = mock<RedirectCoordinator> {
-            onBlocking { listenForResult() } doAnswer {
-                RedirectResult.Error(WebAuthenticationClient.FlowCancelledException())
-            }
-        }
-        webAuthenticationClient.redirectCoordinator = redirectCoordinator
         val context = mock<Context>()
 
-        val loginResult = webAuthenticationClient.login(context)
+        val redirectCoordinator = DefaultRedirectCoordinator()
+        webAuthenticationClient.redirectCoordinator = redirectCoordinator
 
-        verify(redirectCoordinator).initialize(eq(webAuthenticationProvider), eq(context), any())
+        val initializeCountDownLatch = CountDownLatch(1)
+        redirectCoordinator.initializerContinuationListeningCallback = {
+            initializeCountDownLatch.countDown()
+        }
+        val loginResultDeferred = async(Dispatchers.IO) {
+            webAuthenticationClient.login(context)
+        }
+        assertThat(initializeCountDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
+        redirectCoordinator.emit(null)
 
-        val exception = (loginResult as OidcClientResult.Error<Token>).exception
+        val exception = (loginResultDeferred.await() as OidcClientResult.Error<Token>).exception
+        assertThat(exception).isInstanceOf(WebAuthenticationClient.FlowCancelledException::class.java)
+    }
+
+    @Test fun testLoginRedirectCancellation(): Unit = runBlocking {
+        val webAuthenticationProvider = mock<WebAuthenticationProvider>()
+        val webAuthenticationClient = oktaRule.createOidcClient().createWebAuthenticationClient(webAuthenticationProvider)
+        val context = mock<Context>()
+
+        val redirectCoordinator = DefaultRedirectCoordinator()
+        webAuthenticationClient.redirectCoordinator = redirectCoordinator
+
+        val initializeCountDownLatch = CountDownLatch(1)
+        redirectCoordinator.initializerContinuationListeningCallback = {
+            initializeCountDownLatch.countDown()
+        }
+        val redirectCountDownLatch = CountDownLatch(1)
+        redirectCoordinator.redirectContinuationListeningCallback = {
+            redirectCountDownLatch.countDown()
+        }
+        val loginResultDeferred = async(Dispatchers.IO) {
+            webAuthenticationClient.login(context)
+        }
+        assertThat(initializeCountDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
+        redirectCoordinator.runInitializationFunction()
+
+        assertThat(redirectCountDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
+        redirectCoordinator.emit(null)
+
+        val exception = (loginResultDeferred.await() as OidcClientResult.Error<Token>).exception
         assertThat(exception).isInstanceOf(WebAuthenticationClient.FlowCancelledException::class.java)
     }
 
@@ -113,56 +149,103 @@ class WebAuthenticationClientTest {
         )
         val webAuthenticationProvider = mock<WebAuthenticationProvider>()
         val webAuthenticationClient = client.createWebAuthenticationClient(webAuthenticationProvider)
-        val redirectCoordinator = mock<RedirectCoordinator>()
-        webAuthenticationClient.redirectCoordinator = redirectCoordinator
         val context = mock<Context>()
 
-        val loginResult = webAuthenticationClient.login(context)
+        val redirectCoordinator = DefaultRedirectCoordinator()
+        webAuthenticationClient.redirectCoordinator = redirectCoordinator
 
-        verify(redirectCoordinator, never()).initialize(eq(webAuthenticationProvider), eq(context), any())
+        val initializeCountDownLatch = CountDownLatch(1)
+        redirectCoordinator.initializerContinuationListeningCallback = {
+            initializeCountDownLatch.countDown()
+        }
+        val loginResultDeferred = async(Dispatchers.IO) {
+            webAuthenticationClient.login(context)
+        }
+        assertThat(initializeCountDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
+        redirectCoordinator.runInitializationFunction()
 
-        val exception = (loginResult as OidcClientResult.Error<Token>).exception
+        val exception = (loginResultDeferred.await() as OidcClientResult.Error<Token>).exception
         assertThat(exception).isInstanceOf(OidcClientResult.Error.OidcEndpointsNotAvailableException::class.java)
     }
 
     @Test fun testLogout(): Unit = runBlocking {
-        val urlCaptor = argumentCaptor<HttpUrl>()
         val webAuthenticationProvider = mock<WebAuthenticationProvider>()
         val webAuthenticationClient = oktaRule.createOidcClient().createWebAuthenticationClient(webAuthenticationProvider)
-        val redirectCoordinator = mock<RedirectCoordinator> {
-            onBlocking { listenForResult() } doAnswer {
-                val state = urlCaptor.firstValue.queryParameter("state")
-                val uri = Uri.parse("${oktaRule.configuration.signOutRedirectUri}?state=$state")
-                RedirectResult.Redirect(uri)
-            }
-        }
-        doNothing().`when`(redirectCoordinator).initialize(any(), any(), urlCaptor.capture())
-        webAuthenticationClient.redirectCoordinator = redirectCoordinator
         val context = mock<Context>()
 
-        val logoutResult = webAuthenticationClient.logoutOfBrowser(context, "ExampleIdToken")
+        val redirectCoordinator = DefaultRedirectCoordinator()
+        webAuthenticationClient.redirectCoordinator = redirectCoordinator
 
-        verify(redirectCoordinator).initialize(eq(webAuthenticationProvider), eq(context), any())
+        val initializeCountDownLatch = CountDownLatch(1)
+        redirectCoordinator.initializerContinuationListeningCallback = {
+            initializeCountDownLatch.countDown()
+        }
+        val redirectCountDownLatch = CountDownLatch(1)
+        redirectCoordinator.redirectContinuationListeningCallback = {
+            redirectCountDownLatch.countDown()
+        }
+        val logoutResultDeferred = async(Dispatchers.IO) {
+            webAuthenticationClient.logoutOfBrowser(context, "ExampleIdToken")
+        }
+        assertThat(initializeCountDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
+        val initializationResult = redirectCoordinator.runInitializationFunction() as RedirectInitializationResult.Success<*>
 
-        assertThat(logoutResult).isInstanceOf(OidcClientResult.Success::class.java)
+        assertThat(redirectCountDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
+        val state = initializationResult.url.queryParameter("state")
+        val uri = Uri.parse("${oktaRule.configuration.signOutRedirectUri}?state=$state")
+        redirectCoordinator.emit(uri)
+
+        assertThat(logoutResultDeferred.await()).isInstanceOf(OidcClientResult.Success::class.java)
     }
 
-    @Test fun testLogoutCancellation(): Unit = runBlocking {
+    @Test fun testLogoutInitializerCancellation(): Unit = runBlocking {
         val webAuthenticationProvider = mock<WebAuthenticationProvider>()
         val webAuthenticationClient = oktaRule.createOidcClient().createWebAuthenticationClient(webAuthenticationProvider)
-        val redirectCoordinator = mock<RedirectCoordinator> {
-            onBlocking { listenForResult() } doAnswer {
-                RedirectResult.Error(WebAuthenticationClient.FlowCancelledException())
-            }
-        }
-        webAuthenticationClient.redirectCoordinator = redirectCoordinator
         val context = mock<Context>()
 
-        val logoutResult = webAuthenticationClient.logoutOfBrowser(context, "ExampleIdToken")
+        val redirectCoordinator = DefaultRedirectCoordinator()
+        webAuthenticationClient.redirectCoordinator = redirectCoordinator
 
-        verify(redirectCoordinator).initialize(eq(webAuthenticationProvider), eq(context), any())
+        val initializeCountDownLatch = CountDownLatch(1)
+        redirectCoordinator.initializerContinuationListeningCallback = {
+            initializeCountDownLatch.countDown()
+        }
+        val logoutResultDeferred = async(Dispatchers.IO) {
+            webAuthenticationClient.logoutOfBrowser(context, "ExampleIdToken")
+        }
+        assertThat(initializeCountDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
+        redirectCoordinator.emit(null)
 
-        val exception = (logoutResult as OidcClientResult.Error<Unit>).exception
+        val exception = (logoutResultDeferred.await() as OidcClientResult.Error<Unit>).exception
+        assertThat(exception).isInstanceOf(WebAuthenticationClient.FlowCancelledException::class.java)
+    }
+
+    @Test fun testLogoutRedirectCancellation(): Unit = runBlocking {
+        val webAuthenticationProvider = mock<WebAuthenticationProvider>()
+        val webAuthenticationClient = oktaRule.createOidcClient().createWebAuthenticationClient(webAuthenticationProvider)
+        val context = mock<Context>()
+
+        val redirectCoordinator = DefaultRedirectCoordinator()
+        webAuthenticationClient.redirectCoordinator = redirectCoordinator
+
+        val initializeCountDownLatch = CountDownLatch(1)
+        redirectCoordinator.initializerContinuationListeningCallback = {
+            initializeCountDownLatch.countDown()
+        }
+        val redirectCountDownLatch = CountDownLatch(1)
+        redirectCoordinator.redirectContinuationListeningCallback = {
+            redirectCountDownLatch.countDown()
+        }
+        val logoutResultDeferred = async(Dispatchers.IO) {
+            webAuthenticationClient.logoutOfBrowser(context, "ExampleIdToken")
+        }
+        assertThat(initializeCountDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
+        redirectCoordinator.runInitializationFunction()
+
+        assertThat(redirectCountDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
+        redirectCoordinator.emit(null)
+
+        val exception = (logoutResultDeferred.await() as OidcClientResult.Error<Unit>).exception
         assertThat(exception).isInstanceOf(WebAuthenticationClient.FlowCancelledException::class.java)
     }
 
@@ -176,15 +259,22 @@ class WebAuthenticationClientTest {
         )
         val webAuthenticationProvider = mock<WebAuthenticationProvider>()
         val webAuthenticationClient = client.createWebAuthenticationClient(webAuthenticationProvider)
-        val redirectCoordinator = mock<RedirectCoordinator>()
-        webAuthenticationClient.redirectCoordinator = redirectCoordinator
         val context = mock<Context>()
 
-        val logoutResult = webAuthenticationClient.logoutOfBrowser(context, "ExampleIdToken")
+        val redirectCoordinator = DefaultRedirectCoordinator()
+        webAuthenticationClient.redirectCoordinator = redirectCoordinator
 
-        verify(redirectCoordinator, never()).initialize(eq(webAuthenticationProvider), eq(context), any())
+        val initializeCountDownLatch = CountDownLatch(1)
+        redirectCoordinator.initializerContinuationListeningCallback = {
+            initializeCountDownLatch.countDown()
+        }
+        val logoutResultDeferred = async(Dispatchers.IO) {
+            webAuthenticationClient.logoutOfBrowser(context, "ExampleIdToken")
+        }
+        assertThat(initializeCountDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
+        redirectCoordinator.runInitializationFunction()
 
-        val exception = (logoutResult as OidcClientResult.Error<Unit>).exception
+        val exception = (logoutResultDeferred.await() as OidcClientResult.Error<Unit>).exception
         assertThat(exception).isInstanceOf(OidcClientResult.Error.OidcEndpointsNotAvailableException::class.java)
     }
 }

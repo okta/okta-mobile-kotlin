@@ -23,6 +23,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.junit.Before
@@ -32,6 +33,7 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoInteractions
 import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows.shadowOf
@@ -46,9 +48,9 @@ class RedirectCoordinatorTest {
         subject = DefaultRedirectCoordinator()
     }
 
-    private fun CoroutineScope.listenAsync(): Deferred<RedirectResult> {
+    private fun CoroutineScope.listenRedirectAsync(): Deferred<RedirectResult> {
         val countDownLatch = CountDownLatch(1)
-        subject.listeningCallback = {
+        subject.redirectContinuationListeningCallback = {
             countDownLatch.countDown()
         }
         val resultDeferred = async(Dispatchers.IO) { subject.listenForResult() }
@@ -57,7 +59,7 @@ class RedirectCoordinatorTest {
     }
 
     @Test fun testEmitError(): Unit = runBlocking {
-        val resultDeferred = listenAsync()
+        val resultDeferred = listenRedirectAsync()
         subject.emitError(IllegalStateException("From Test!"))
         val result = resultDeferred.await()
         assertThat(result).isInstanceOf(RedirectResult.Error::class.java)
@@ -67,7 +69,7 @@ class RedirectCoordinatorTest {
     }
 
     @Test fun testEmit(): Unit = runBlocking {
-        val resultDeferred = listenAsync()
+        val resultDeferred = listenRedirectAsync()
         subject.emit(Uri.parse("unitTest:/hello"))
         val result = resultDeferred.await()
         assertThat(result).isInstanceOf(RedirectResult.Redirect::class.java)
@@ -76,11 +78,29 @@ class RedirectCoordinatorTest {
     }
 
     @Test fun testEmitNullIsCancel(): Unit = runBlocking {
-        val resultDeferred = listenAsync()
+        val resultDeferred = listenRedirectAsync()
         subject.emit(null)
         val result = resultDeferred.await()
         assertThat(result).isInstanceOf(RedirectResult.Error::class.java)
         val error = result as RedirectResult.Error
+        assertThat(error.exception).isInstanceOf(WebAuthenticationClient.FlowCancelledException::class.java)
+    }
+
+    @Test fun testEmitNullCancelsInitialization(): Unit = runBlocking {
+        val countDownLatch = CountDownLatch(1)
+        subject.initializerContinuationListeningCallback = {
+            countDownLatch.countDown()
+        }
+        val resultDeferred = async(Dispatchers.IO) {
+            subject.initialize(mock(), mock()) {
+                RedirectInitializationResult.Success(mock(), Any())
+            }
+        }
+        assertThat(countDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
+        subject.emit(null)
+        val result = resultDeferred.await()
+        assertThat(result).isInstanceOf(RedirectInitializationResult.Error::class.java)
+        val error = result as RedirectInitializationResult.Error
         assertThat(error.exception).isInstanceOf(WebAuthenticationClient.FlowCancelledException::class.java)
     }
 
@@ -93,7 +113,7 @@ class RedirectCoordinatorTest {
     }
 
     @Test fun testLaunchWebAuthenticationProviderWithoutInitialize(): Unit = runBlocking {
-        val resultDeferred = listenAsync()
+        val resultDeferred = listenRedirectAsync()
         assertThat(subject.launchWebAuthenticationProvider(mock(), "https://example.com".toHttpUrl())).isFalse()
         val result = resultDeferred.await()
         assertThat(result).isInstanceOf(RedirectResult.Error::class.java)
@@ -102,13 +122,55 @@ class RedirectCoordinatorTest {
         assertThat(error.exception).hasMessageThat().isEqualTo("RedirectListener has not been initialized.")
     }
 
+    @Test fun testRunInitializationFunctionReturnsErrorIfInitializeIsNotCalled(): Unit = runBlocking {
+        val webAuthenticationProvider = mock<WebAuthenticationProvider>()
+        val result = subject.runInitializationFunction()
+        verifyNoInteractions(webAuthenticationProvider)
+        assertThat(result).isInstanceOf(RedirectInitializationResult.Error::class.java)
+        val errorResult = result as RedirectInitializationResult.Error<*>
+        assertThat(errorResult.exception).isInstanceOf(IllegalStateException::class.java)
+        assertThat(errorResult.exception).hasMessageThat().isEqualTo("No initializer")
+    }
+
+    @Test fun testRunInitializationFunctionClearsInitializer(): Unit = runBlocking {
+        val webAuthenticationProvider = mock<WebAuthenticationProvider>()
+        val initializerCountDownLatch = CountDownLatch(1)
+        subject.initializerContinuationListeningCallback = {
+            initializerCountDownLatch.countDown()
+        }
+        launch(Dispatchers.IO) {
+            subject.initialize(webAuthenticationProvider, mock()) {
+                RedirectInitializationResult.Success(mock(), Any())
+            }
+        }
+        assertThat(initializerCountDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
+        val result1 = subject.runInitializationFunction()
+        assertThat(result1).isInstanceOf(RedirectInitializationResult.Success::class.java)
+        val result2 = subject.runInitializationFunction()
+        verifyNoInteractions(webAuthenticationProvider)
+        assertThat(result2).isInstanceOf(RedirectInitializationResult.Error::class.java)
+        val errorResult = result2 as RedirectInitializationResult.Error<*>
+        assertThat(errorResult.exception).isInstanceOf(IllegalStateException::class.java)
+        assertThat(errorResult.exception).hasMessageThat().isEqualTo("No initializer")
+    }
+
     @Test fun testInitializeStartsForegroundActivity(): Unit = runBlocking {
         val webAuthenticationProvider = mock<WebAuthenticationProvider> {
             on { launch(any(), any()) } doReturn null
         }
         val launchedFromActivity = Robolectric.buildActivity(Activity::class.java).get()
         val url = "https://example.com/oauth".toHttpUrl()
-        subject.initialize(webAuthenticationProvider, launchedFromActivity, url)
+        val initializerCountDownLatch = CountDownLatch(1)
+        subject.initializerContinuationListeningCallback = {
+            initializerCountDownLatch.countDown()
+        }
+        launch(Dispatchers.IO) {
+            subject.initialize(webAuthenticationProvider, launchedFromActivity) {
+                RedirectInitializationResult.Success(url, Any())
+            }
+        }
+        assertThat(initializerCountDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
+        subject.runInitializationFunction()
         assertThat(subject.launchWebAuthenticationProvider(launchedFromActivity, url)).isTrue()
         verify(webAuthenticationProvider).launch(launchedFromActivity, url)
         val foregroundActivity = shadowOf(launchedFromActivity).nextStartedActivity
@@ -119,17 +181,37 @@ class RedirectCoordinatorTest {
         val webAuthenticationProvider = mock<WebAuthenticationProvider> {
             on { launch(any(), any()) } doReturn null
         }
-        subject.initialize(webAuthenticationProvider, mock(), mock())
+        val initializerCountDownLatch = CountDownLatch(1)
+        subject.initializerContinuationListeningCallback = {
+            initializerCountDownLatch.countDown()
+        }
+        launch(Dispatchers.IO) {
+            subject.initialize(webAuthenticationProvider, mock()) {
+                RedirectInitializationResult.Success(mock(), Any())
+            }
+        }
+        assertThat(initializerCountDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
+        subject.runInitializationFunction()
         assertThat(subject.launchWebAuthenticationProvider(mock(), mock())).isTrue()
         verify(webAuthenticationProvider).launch(any(), any())
     }
 
     @Test fun testLaunchWebAuthenticationProviderActivityNotFound(): Unit = runBlocking {
-        val resultDeferred = listenAsync()
+        val resultDeferred = listenRedirectAsync()
         val webAuthenticationProvider = mock<WebAuthenticationProvider> {
             on { launch(any(), any()) } doReturn ActivityNotFoundException("From Test!")
         }
-        subject.initialize(webAuthenticationProvider, mock(), mock())
+        val initializerCountDownLatch = CountDownLatch(1)
+        subject.initializerContinuationListeningCallback = {
+            initializerCountDownLatch.countDown()
+        }
+        launch(Dispatchers.IO) {
+            subject.initialize(webAuthenticationProvider, mock()) {
+                RedirectInitializationResult.Success(mock(), Any())
+            }
+        }
+        assertThat(initializerCountDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
+        subject.runInitializationFunction()
         assertThat(subject.launchWebAuthenticationProvider(mock(), mock())).isFalse()
         verify(webAuthenticationProvider).launch(any(), any())
         val result = resultDeferred.await()

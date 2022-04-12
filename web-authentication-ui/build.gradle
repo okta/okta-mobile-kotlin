@@ -52,6 +52,10 @@ dependencies {
     api project(':oauth2')
     api deps.androidx_browser
 
+    implementation deps.lifecycle.viewmodel_ktx
+    implementation deps.androidx_activity_ktx
+    implementation deps.app_compat
+
     testImplementation deps.junit
     testImplementation deps.truth
     testImplementation deps.kotlin.test

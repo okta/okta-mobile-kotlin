@@ -1,4 +1,5 @@
 def versions = [:]
+versions.androidx_activity = '1.4.0'
 versions.androidx_browser = '1.4.0'
 versions.androidx_test = '1.4.0'
 versions.androidx_test_ext = '1.1.3'
@@ -38,6 +39,8 @@ build_versions.target_sdk = 31
 ext.build_versions = build_versions
 
 def deps = [:]
+
+deps.androidx_activity_ktx = "androidx.activity:activity-ktx:$versions.androidx_activity"
 
 deps.androidx_browser = "androidx.browser:browser:$versions.androidx_browser"
 
