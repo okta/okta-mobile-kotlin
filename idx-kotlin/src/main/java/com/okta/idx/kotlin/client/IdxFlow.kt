@@ -52,7 +52,7 @@ class IdxFlow internal constructor(
                 InteractContext.create(this@createIdxFlow, extraStartRequestParameters)
             } ?: return endpointNotAvailableError()
 
-            return configuration.performRequest<InteractResponse, IdxFlow>(
+            return performRequest(
                 InteractResponse.serializer(),
                 interactContext.request
             ) {
@@ -79,7 +79,7 @@ class IdxFlow internal constructor(
             introspectRequest(oidcClient, flowContext)
         }
 
-        return oidcClient.configuration.performRequest(
+        return oidcClient.performRequest(
             deserializationStrategy = V1Response.serializer(),
             request = request,
             shouldAttemptJsonDeserialization = ::idxShouldAttemptJsonDeserialization,
@@ -98,7 +98,7 @@ class IdxFlow internal constructor(
             remediation.asJsonRequest(oidcClient)
         }
 
-        return oidcClient.configuration.performRequest(
+        return oidcClient.performRequest(
             deserializationStrategy = V1Response.serializer(),
             request = request,
             shouldAttemptJsonDeserialization = ::idxShouldAttemptJsonDeserialization,
