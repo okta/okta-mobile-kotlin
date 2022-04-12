@@ -24,10 +24,10 @@ import com.okta.authfoundation.AuthFoundationDefaults
  *
  * To use a custom [OidcClock], you construct an instance of your class implementing this interface, and assign it to the [AuthFoundationDefaults.clock] property.
  */
-interface OidcClock {
+fun interface OidcClock {
 
     /**
      *  Returns the current time in seconds since January 1, 1970 UTC, adjusting the system clock to correct for clock skew.
      */
-    fun currentTimeEpochSecond(): Long
+    suspend fun currentTimeEpochSecond(): Long
 }
