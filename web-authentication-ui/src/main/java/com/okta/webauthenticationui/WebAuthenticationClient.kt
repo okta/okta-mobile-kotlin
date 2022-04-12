@@ -80,13 +80,23 @@ class WebAuthenticationClient private constructor(
         extraRequestParameters: Map<String, String> = emptyMap(),
         scopes: Set<String> = oidcClient.configuration.defaultScopes,
     ): OidcClientResult<Token> {
-        val flowContext = when (val result = authorizationCodeFlow.start(extraRequestParameters, scopes)) {
-            is OidcClientResult.Success -> {
-                redirectCoordinator.initialize(webAuthenticationProvider, context, result.result.url)
-                result.result
+        val initializationResult = redirectCoordinator.initialize(webAuthenticationProvider, context) {
+            when (val result = authorizationCodeFlow.start(extraRequestParameters, scopes)) {
+                is OidcClientResult.Success -> {
+                    RedirectInitializationResult.Success(result.result.url, result.result)
+                }
+                is OidcClientResult.Error -> {
+                    RedirectInitializationResult.Error(result.exception)
+                }
             }
-            is OidcClientResult.Error -> {
-                return OidcClientResult.Error(result.exception)
+        }
+
+        val flowContext = when (initializationResult) {
+            is RedirectInitializationResult.Error -> {
+                return OidcClientResult.Error(initializationResult.exception)
+            }
+            is RedirectInitializationResult.Success -> {
+                initializationResult.flowContext
             }
         }
 
@@ -112,13 +122,23 @@ class WebAuthenticationClient private constructor(
      * @param idToken the token used to identify the session to log the user out of.
      */
     suspend fun logoutOfBrowser(context: Context, idToken: String): OidcClientResult<Unit> {
-        val flowContext = when (val result = redirectEndSessionFlow.start(idToken)) {
-            is OidcClientResult.Success -> {
-                redirectCoordinator.initialize(webAuthenticationProvider, context, result.result.url)
-                result.result
+        val initializationResult = redirectCoordinator.initialize(webAuthenticationProvider, context) {
+            when (val result = redirectEndSessionFlow.start(idToken)) {
+                is OidcClientResult.Success -> {
+                    RedirectInitializationResult.Success(result.result.url, result.result)
+                }
+                is OidcClientResult.Error -> {
+                    RedirectInitializationResult.Error(result.exception)
+                }
             }
-            is OidcClientResult.Error -> {
-                return OidcClientResult.Error(result.exception)
+        }
+
+        val flowContext = when (initializationResult) {
+            is RedirectInitializationResult.Error -> {
+                return OidcClientResult.Error(initializationResult.exception)
+            }
+            is RedirectInitializationResult.Success -> {
+                initializationResult.flowContext
             }
         }
 

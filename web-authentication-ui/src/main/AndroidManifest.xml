@@ -13,13 +13,14 @@
             android:name=".ForegroundActivity"
             android:autoRemoveFromRecents="true"
             android:launchMode="singleInstance"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+            android:theme="@style/NoAnimationTheme" />
 
         <activity
             android:name=".RedirectActivity"
             android:autoRemoveFromRecents="true"
             android:exported="true"
-            android:launchMode="singleTop">
+            android:launchMode="singleTop"
+            android:theme="@style/NoAnimationTheme">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 

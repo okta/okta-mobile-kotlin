@@ -26,21 +26,47 @@ import kotlin.coroutines.suspendCoroutine
 internal object SingletonRedirectCoordinator : RedirectCoordinator by DefaultRedirectCoordinator()
 
 internal class DefaultRedirectCoordinator : RedirectCoordinator {
-    @Volatile private var continuation: Continuation<RedirectResult>? = null
+    @Volatile private var initializationContinuation: Continuation<RedirectInitializationResult<*>>? = null
+    @VisibleForTesting var initializerContinuationListeningCallback: (() -> Unit)? = null
+    @Volatile private var initializer: (suspend () -> RedirectInitializationResult<*>)? = null
+
+    @Volatile private var redirectContinuation: Continuation<RedirectResult>? = null
+    @VisibleForTesting var redirectContinuationListeningCallback: (() -> Unit)? = null
+
     @Volatile private var webAuthenticationProvider: WebAuthenticationProvider? = null
 
-    @VisibleForTesting var listeningCallback: (() -> Unit)? = null
+    @Suppress("UNCHECKED_CAST")
+    override suspend fun <T> initialize(
+        webAuthenticationProvider: WebAuthenticationProvider,
+        context: Context,
+        initializer: suspend () -> RedirectInitializationResult<T>,
+    ): RedirectInitializationResult<T> {
+        this.webAuthenticationProvider = webAuthenticationProvider
+        this.initializer = initializer
 
-    override suspend fun listenForResult(): RedirectResult {
+        context.startActivity(ForegroundActivity.createIntent(context))
+
         return suspendCoroutine { continuation ->
-            this.continuation = continuation
-            listeningCallback?.invoke()
+            this.initializationContinuation = continuation as Continuation<RedirectInitializationResult<*>>
+            initializerContinuationListeningCallback?.invoke()
         }
     }
 
-    override fun initialize(webAuthenticationProvider: WebAuthenticationProvider, context: Context, url: HttpUrl) {
-        this.webAuthenticationProvider = webAuthenticationProvider
-        context.startActivity(ForegroundActivity.createIntent(context, url))
+    override suspend fun runInitializationFunction(): RedirectInitializationResult<*> {
+        val localInitializer = initializer ?: return RedirectInitializationResult.Error<Any>(IllegalStateException("No initializer"))
+        initializer = null
+        val result = localInitializer()
+        val localContinuation = initializationContinuation
+        initializationContinuation = null
+        localContinuation?.resume(result)
+        return result
+    }
+
+    override suspend fun listenForResult(): RedirectResult {
+        return suspendCoroutine { continuation ->
+            this.redirectContinuation = continuation
+            redirectContinuationListeningCallback?.invoke()
+        }
     }
 
     override fun launchWebAuthenticationProvider(context: Context, url: HttpUrl): Boolean {
@@ -62,8 +88,8 @@ internal class DefaultRedirectCoordinator : RedirectCoordinator {
 
     override fun emitError(exception: Exception) {
         val result = RedirectResult.Error(exception)
-        val localContinuation = continuation
-        continuation = null
+        val localContinuation = redirectContinuation
+        redirectContinuation = null
         localContinuation?.resume(result)
     }
 
@@ -71,17 +97,30 @@ internal class DefaultRedirectCoordinator : RedirectCoordinator {
         val result = if (uri != null) {
             RedirectResult.Redirect(uri)
         } else {
+            cancelInitializerIfPresent()
             RedirectResult.Error(WebAuthenticationClient.FlowCancelledException())
         }
-        val localContinuation = continuation
-        continuation = null
+        val localContinuation = redirectContinuation
+        redirectContinuation = null
         localContinuation?.resume(result)
+    }
+
+    private fun cancelInitializerIfPresent() {
+        val localContinuation = initializationContinuation
+        initializationContinuation = null
+        localContinuation?.resume(RedirectInitializationResult.Error<Any>(WebAuthenticationClient.FlowCancelledException()))
     }
 }
 
 internal interface RedirectCoordinator {
+    suspend fun <T> initialize(
+        webAuthenticationProvider: WebAuthenticationProvider,
+        context: Context,
+        initializer: suspend () -> RedirectInitializationResult<T>,
+    ): RedirectInitializationResult<T>
+    suspend fun runInitializationFunction(): RedirectInitializationResult<*>
+
     suspend fun listenForResult(): RedirectResult
-    fun initialize(webAuthenticationProvider: WebAuthenticationProvider, context: Context, url: HttpUrl)
     fun launchWebAuthenticationProvider(context: Context, url: HttpUrl): Boolean
     fun emitError(exception: Exception)
     fun emit(uri: Uri?)

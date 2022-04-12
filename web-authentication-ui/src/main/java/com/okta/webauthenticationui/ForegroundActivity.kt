@@ -15,27 +15,20 @@
  */
 package com.okta.webauthenticationui
 
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import androidx.activity.viewModels
 import androidx.annotation.VisibleForTesting
-import okhttp3.HttpUrl
-import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
+import androidx.appcompat.app.AppCompatActivity
 
-internal class ForegroundActivity : Activity() {
+internal class ForegroundActivity : AppCompatActivity() {
     companion object {
-        private const val EXTRA_URL = "com.okta.webauthenticationui.ForegroundActivity.url"
-
         private const val ACTION_REDIRECT = "com.okta.webauthenticationui.ForegroundActivity.redirect"
 
-        private const val SAVED_STATE_HAS_STARTED = "com.okta.webauthenticationui.ForegroundActivity.hasStarted"
-
-        fun createIntent(context: Context, url: HttpUrl): Intent {
-            val intent = Intent(context, ForegroundActivity::class.java)
-            intent.putExtra(EXTRA_URL, url.toString())
-            return intent
+        fun createIntent(context: Context): Intent {
+            return Intent(context, ForegroundActivity::class.java)
         }
 
         fun redirectIntent(context: Context, uri: Uri?): Intent {
@@ -47,41 +40,33 @@ internal class ForegroundActivity : Activity() {
         }
     }
 
-    private var hasStarted: Boolean = false
-
-    @VisibleForTesting var redirectCoordinator: RedirectCoordinator = SingletonRedirectCoordinator
+    @VisibleForTesting val viewModel by viewModels<ForegroundViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        if (savedInstanceState != null) {
-            hasStarted = savedInstanceState.getBoolean(SAVED_STATE_HAS_STARTED, hasStarted)
+        viewModel.stateLiveData.observe(this) { state ->
+            when (state) {
+                ForegroundViewModel.State.Error -> {
+                    finish()
+                }
+                is ForegroundViewModel.State.LaunchBrowser -> {
+                    viewModel.launchBrowser(this, state.url)
+                }
+                ForegroundViewModel.State.AwaitingInitialization -> {
+                    // Idle, nothing to do.
+                }
+                ForegroundViewModel.State.AwaitingBrowserCallback -> {
+                    // Idle, nothing to do.
+                }
+            }
         }
-    }
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        outState.putBoolean(SAVED_STATE_HAS_STARTED, hasStarted)
     }
 
     override fun onResume() {
         super.onResume()
 
-        if (hasStarted) {
-            redirectCoordinator.emit(null)
-            finish()
-        } else {
-            val url = intent.getStringExtra(EXTRA_URL)?.toHttpUrlOrNull()
-            if (url != null) {
-                if (!redirectCoordinator.launchWebAuthenticationProvider(this, url)) {
-                    finish()
-                }
-                hasStarted = true
-            } else {
-                redirectCoordinator.emitError(IllegalStateException("Url not provided when launching ForegroundActivity."))
-                finish()
-            }
-        }
+        viewModel.onResume(this)
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -91,8 +76,18 @@ internal class ForegroundActivity : Activity() {
 
     private fun handleRedirectIfAvailable(intent: Intent) {
         if (intent.action == ACTION_REDIRECT) {
-            redirectCoordinator.emit(intent.data)
+            viewModel.onRedirect(intent.data)
             finish()
         }
+    }
+
+    override fun onBackPressed() {
+        super.onBackPressed()
+        viewModel.flowCancelled()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        viewModel.flowCancelled()
     }
 }

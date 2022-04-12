@@ -15,14 +15,9 @@
  */
 package com.okta.webauthenticationui
 
-import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
+import okhttp3.HttpUrl
 
-internal class RedirectActivity : AppCompatActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        val redirectIntent = ForegroundActivity.redirectIntent(this, intent.data)
-        startActivity(redirectIntent)
-        finish()
-    }
+internal sealed class RedirectInitializationResult<T> {
+    class Success<T>(val url: HttpUrl, val flowContext: T) : RedirectInitializationResult<T>()
+    class Error<T>(val exception: Exception): RedirectInitializationResult<T>()
 }
