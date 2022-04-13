@@ -23,6 +23,8 @@ import com.okta.authfoundation.credential.Credential
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.CompletionHandler
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.DeserializationStrategy
@@ -52,17 +54,6 @@ suspend fun <Raw, Dto> OidcClient.performRequest(
     }
 }
 
-@InternalAuthFoundationApi
-@OptIn(ExperimentalSerializationApi::class)
-suspend fun <Raw> OidcClient.performRequest(
-    deserializationStrategy: DeserializationStrategy<Raw>,
-    request: Request,
-): OidcClientResult<Raw> {
-    return internalPerformRequest(request) { responseBody ->
-        json.decodeFromStream(deserializationStrategy, responseBody)
-    }
-}
-
 internal suspend fun OidcClient.performRequestNonJson(
     request: Request
 ): OidcClientResult<Unit> {
@@ -85,6 +76,7 @@ internal suspend fun <T> OidcConfiguration.internalPerformRequest(
     shouldAttemptJsonDeserialization: (Response) -> Boolean = { it.isSuccessful },
     responseHandler: (InputStream) -> T,
 ): OidcClientResult<T> {
+    currentCoroutineContext().ensureActive()
     return withContext(ioDispatcher) {
         try {
             val okHttpResponse = okHttpClient.newCall(request).await()

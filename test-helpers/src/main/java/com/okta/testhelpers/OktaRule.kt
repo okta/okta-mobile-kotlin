@@ -38,6 +38,8 @@ class OktaRule(
 ) : TestRule {
     private val mockWebServer: OktaMockWebServer = OktaMockWebServer()
 
+    val mockWebServerDispatcher: NetworkDispatcher = mockWebServer.dispatcher
+
     val okHttpClient: OkHttpClient = mockWebServer.okHttpClient
     val baseUrl: HttpUrl = mockWebServer.baseUrl
 

@@ -32,6 +32,7 @@ import org.junit.runner.RunWith
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.robolectric.Robolectric
@@ -219,5 +220,47 @@ class RedirectCoordinatorTest {
         val error = result as RedirectResult.Error
         assertThat(error.exception).isInstanceOf(ActivityNotFoundException::class.java)
         assertThat(error.exception).hasMessageThat().isEqualTo("From Test!")
+    }
+
+    @Test fun testInitializeDoesNothingWhenCancelled(): Unit = runBlocking {
+        val webAuthenticationProvider = mock<WebAuthenticationProvider> {
+            on { launch(any(), any()) } doReturn null
+        }
+        val launchedFromActivity = Robolectric.buildActivity(Activity::class.java).get()
+        subject.initializerContinuationListeningCallback = {
+            throw IllegalStateException("Initializer callback was called.")
+        }
+        val startedCountDownLatch = CountDownLatch(1)
+        val cancelledCountDownLatch = CountDownLatch(1)
+        val job = launch(Dispatchers.IO) {
+            startedCountDownLatch.countDown()
+            assertThat(cancelledCountDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
+            subject.initialize(webAuthenticationProvider, launchedFromActivity) {
+                RedirectInitializationResult.Success("https://example.com/oauth".toHttpUrl(), Any())
+            }
+        }
+        assertThat(startedCountDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
+        job.cancel()
+        cancelledCountDownLatch.countDown()
+        verify(webAuthenticationProvider, never()).launch(any(), any())
+        val foregroundActivity = shadowOf(launchedFromActivity).nextStartedActivity
+        assertThat(foregroundActivity).isNull()
+    }
+
+    @Test fun testListenForRedirectDoesNothingWhenCancelled(): Unit = runBlocking {
+        val startedCountDownLatch = CountDownLatch(1)
+        val cancelledCountDownLatch = CountDownLatch(1)
+        subject.redirectContinuationListeningCallback = {
+            throw IllegalStateException("Redirect callback was called.")
+        }
+        val job = launch(Dispatchers.IO) {
+            startedCountDownLatch.countDown()
+            assertThat(cancelledCountDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
+            subject.listenForResult()
+        }
+        assertThat(startedCountDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
+        job.cancel()
+        cancelledCountDownLatch.countDown()
+        // Nothing happened due to no exception thrown above.
     }
 }
