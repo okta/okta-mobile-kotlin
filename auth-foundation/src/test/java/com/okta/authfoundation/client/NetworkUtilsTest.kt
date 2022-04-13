@@ -21,6 +21,8 @@ import com.okta.authfoundation.client.internal.performRequestNonJson
 import com.okta.authfoundation.credential.Credential
 import com.okta.testhelpers.OktaRule
 import com.okta.testhelpers.RequestMatchers.path
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.JsonObject
@@ -32,6 +34,9 @@ import okhttp3.mockwebserver.SocketPolicy
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.mock
+import java.lang.IllegalStateException
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 class NetworkingTest {
     @get:Rule val oktaRule = OktaRule()
@@ -265,6 +270,26 @@ class NetworkingTest {
         assertThat((result as OidcClientResult.Success<String>).result).isEqualTo("bar")
         assertThat(interceptor.request?.tag(Credential::class.java)).isNotNull()
         assertThat(interceptor.request?.tag(Credential::class.java)).isEqualTo(credential)
+    }
+
+    @Test fun testPerformRequestEnsuresTheCoroutineIsActiveBeforeMakingNetworkRequest(): Unit = runBlocking {
+        val request = Request.Builder()
+            .url(oktaRule.baseUrl.newBuilder().addPathSegments("test").build())
+            .build()
+
+        val startedCountDownLatch = CountDownLatch(1)
+        val cancelledCountDownLatch = CountDownLatch(1)
+        val job = async(Dispatchers.IO) {
+            startedCountDownLatch.countDown()
+            assertThat(cancelledCountDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
+            oktaRule.createOidcClient().performRequest(JsonObject.serializer(), request) {
+                throw IllegalStateException("We got a response.")
+            }
+        }
+        assertThat(startedCountDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
+        job.cancel()
+        cancelledCountDownLatch.countDown()
+        assertThat(oktaRule.mockWebServerDispatcher.numberRemainingInQueue()).isEqualTo(0)
     }
 }
 

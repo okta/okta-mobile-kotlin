@@ -18,10 +18,13 @@ package com.okta.webauthenticationui
 import android.content.Context
 import android.net.Uri
 import androidx.annotation.VisibleForTesting
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.suspendCancellableCoroutine
 import okhttp3.HttpUrl
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 internal object SingletonRedirectCoordinator : RedirectCoordinator by DefaultRedirectCoordinator()
 
@@ -41,12 +44,18 @@ internal class DefaultRedirectCoordinator : RedirectCoordinator {
         context: Context,
         initializer: suspend () -> RedirectInitializationResult<T>,
     ): RedirectInitializationResult<T> {
+        if (!currentCoroutineContext().isActive) {
+            reset()
+        }
+        currentCoroutineContext().ensureActive()
+
         this.webAuthenticationProvider = webAuthenticationProvider
         this.initializer = initializer
 
         context.startActivity(ForegroundActivity.createIntent(context))
 
-        return suspendCoroutine { continuation ->
+        return suspendCancellableCoroutine { continuation ->
+            continuation.invokeOnCancellation { reset() }
             this.initializationContinuation = continuation as Continuation<RedirectInitializationResult<*>>
             initializerContinuationListeningCallback?.invoke()
         }
@@ -63,7 +72,13 @@ internal class DefaultRedirectCoordinator : RedirectCoordinator {
     }
 
     override suspend fun listenForResult(): RedirectResult {
-        return suspendCoroutine { continuation ->
+        if (!currentCoroutineContext().isActive) {
+            reset()
+        }
+        currentCoroutineContext().ensureActive()
+
+        return suspendCancellableCoroutine { continuation ->
+            continuation.invokeOnCancellation { reset() }
             this.redirectContinuation = continuation
             redirectContinuationListeningCallback?.invoke()
         }
@@ -89,7 +104,7 @@ internal class DefaultRedirectCoordinator : RedirectCoordinator {
     override fun emitError(exception: Exception) {
         val result = RedirectResult.Error(exception)
         val localContinuation = redirectContinuation
-        redirectContinuation = null
+        reset()
         localContinuation?.resume(result)
     }
 
@@ -97,18 +112,23 @@ internal class DefaultRedirectCoordinator : RedirectCoordinator {
         val result = if (uri != null) {
             RedirectResult.Redirect(uri)
         } else {
-            cancelInitializerIfPresent()
-            RedirectResult.Error(WebAuthenticationClient.FlowCancelledException())
+            val exception = WebAuthenticationClient.FlowCancelledException()
+            initializationContinuation?.resume(RedirectInitializationResult.Error<Any>(exception))
+            RedirectResult.Error(exception)
         }
         val localContinuation = redirectContinuation
-        redirectContinuation = null
+        reset()
         localContinuation?.resume(result)
     }
 
-    private fun cancelInitializerIfPresent() {
-        val localContinuation = initializationContinuation
+    // Nulls all instance variables.
+    private fun reset() {
         initializationContinuation = null
-        localContinuation?.resume(RedirectInitializationResult.Error<Any>(WebAuthenticationClient.FlowCancelledException()))
+        initializerContinuationListeningCallback = null
+        initializer = null
+        redirectContinuation = null
+        redirectContinuationListeningCallback = null
+        webAuthenticationProvider = null
     }
 }
 

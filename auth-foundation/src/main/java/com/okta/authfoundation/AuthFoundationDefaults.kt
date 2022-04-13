@@ -54,10 +54,6 @@ object AuthFoundationDefaults {
     var deviceSecretValidator: DeviceSecretValidator by NoSetAfterGetWithLazyDefaultFactory { DefaultDeviceSecretValidator() }
 
     private fun defaultClock(): OidcClock {
-        return object : OidcClock {
-            override suspend fun currentTimeEpochSecond(): Long {
-                return Instant.now().epochSecond
-            }
-        }
+        return OidcClock { Instant.now().epochSecond }
     }
 }
