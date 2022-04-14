@@ -40,9 +40,10 @@ class CredentialBootstrapTest {
     }
 
     @Test fun testCredentialFailsBeforeInitialize(): Unit = runBlocking {
-        assertFailsWith<Exception> {
+        val exception = assertFailsWith<IllegalStateException> {
             CredentialBootstrap.credential()
         }
+        assertThat(exception).hasMessageThat().isEqualTo("CredentialBoostrap not initialized. Please call initialize before attempting to access properties and methods.")
     }
 
     @Test fun testCredentialDataSourceFailsBeforeInitialize(): Unit = runBlocking {
