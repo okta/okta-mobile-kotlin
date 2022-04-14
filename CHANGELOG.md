@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.0.0-BETA3] - 2022-04-14
+### Changed
+- Updated to the latest auth-foundation (0.3.0-BETA)
+
 ## [2.0.0-BETA2] - 2022-03-25
 ### Added
 - Integrated with AuthFoundation, this included the ability to security store and access credentials.
