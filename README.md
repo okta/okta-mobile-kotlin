@@ -40,9 +40,9 @@ This SDK is being actively developed and is in Beta release status. At this time
 | Device Authorization Grant Flow | ✅ | Beta 2 |
 | OkHttp Interceptor for authorizing requests | ✅ | Beta 2 |
 | Support for multiple accounts | ✅ | Beta 2 |
-| Time synchronization via NTP | 🚧 | Beta 3 |
-| Advanced Eventing | 🚧 | Beta 3 |
-| Migrating Tokens from okta-oidc-android | 🚧 | Beta 3 |
+| Time synchronization via NTP | 🚧 | Beta 4 |
+| Advanced Eventing | 🚧 | Beta 4 |
+| Migrating Tokens from okta-oidc-android | 🚧 | Beta 4 |
 
 ## Support Policy
 
@@ -71,10 +71,10 @@ Okta is busy adding new functionality to its identity platform. We're excited to
 Add the `Okta Mobile Kotlin` dependencies to your `build.gradle` file:
 
 ```gradle
-implementation 'com.okta.kotlin:auth-foundation:0.2.0-BETA'
-implementation 'com.okta.kotlin:auth-foundation-bootstrap:0.2.0-BETA'
-implementation 'com.okta.kotlin:oauth2:0.2.0-BETA'
-implementation 'com.okta.kotlin:web-authentication-ui:0.2.0-BETA'
+implementation 'com.okta.kotlin:auth-foundation:0.3.0-BETA'
+implementation 'com.okta.kotlin:auth-foundation-bootstrap:0.3.0-BETA'
+implementation 'com.okta.kotlin:oauth2:0.3.0-BETA'
+implementation 'com.okta.kotlin:web-authentication-ui:0.3.0-BETA'
 ```
 
 See the [CHANGELOG](CHANGELOG.md) for the most recent changes.
