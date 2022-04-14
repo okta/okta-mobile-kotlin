@@ -88,6 +88,8 @@ internal class ForegroundActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        viewModel.flowCancelled()
+        if (isFinishing) {
+            viewModel.flowCancelled()
+        }
     }
 }
