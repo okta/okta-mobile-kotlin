@@ -1,0 +1,102 @@
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'androidx.navigation.safeargs.kotlin'
+
+def oktaProperties = new Properties()
+rootProject.file("okta.properties").withInputStream { oktaProperties.load(it) }
+
+android {
+    compileSdkVersion build_versions.compile_sdk
+
+    defaultConfig {
+        applicationId "sample.okta.oidc.android.legacy"
+        minSdkVersion 23
+        targetSdkVersion build_versions.target_sdk
+        versionCode 1
+        versionName '1.0'
+
+        buildConfigField "String", 'ISSUER', "\"${oktaProperties.getProperty('issuer')}\""
+        buildConfigField "String", 'CLIENT_ID', "\"${oktaProperties.getProperty('clientId')}\""
+        buildConfigField "String", 'SIGN_IN_REDIRECT_URI', "\"${oktaProperties.getProperty('signInRedirectUri')}\""
+        buildConfigField "String", 'SIGN_OUT_REDIRECT_URI', "\"${oktaProperties.getProperty('signOutRedirectUri')}\""
+        buildConfigField "String", 'LEGACY_SIGN_IN_REDIRECT_URI', "\"${oktaProperties.getProperty('legacySignInRedirectUri')}\""
+        buildConfigField "String", 'LEGACY_SIGN_OUT_REDIRECT_URI', "\"${oktaProperties.getProperty('legacySignOutRedirectUri')}\""
+
+        manifestPlaceholders = [
+                "webAuthenticationRedirectScheme": parseScheme(oktaProperties.getProperty('signInRedirectUri')),
+                "appAuthRedirectScheme": parseScheme(oktaProperties.getProperty('legacySignInRedirectUri')),
+        ]
+    }
+
+    sourceSets {
+        androidTest {
+            java.srcDirs += ['src/sharedTest/java']
+        }
+        test {
+            java.srcDirs += ['src/sharedTest/java']
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        coreLibraryDesugaringEnabled true
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+    buildFeatures {
+        viewBinding true
+    }
+
+    packagingOptions {
+        exclude 'META-INF/AL2.0'
+        exclude 'META-INF/LGPL2.1'
+    }
+
+    testOptions {
+        animationsDisabled true
+
+        execution = "ANDROIDX_TEST_ORCHESTRATOR"
+    }
+}
+
+dependencies {
+    coreLibraryDesugaring deps.desugar_libs
+
+    implementation project(':web-authentication-ui')
+    implementation project(':auth-foundation-bootstrap')
+    implementation project(':legacy-token-migration')
+
+    implementation deps.kotlin.stdlib
+    implementation deps.core_ktx
+    implementation deps.app_compat
+    implementation deps.constraint_layout
+    implementation deps.navigation.fragment_ktx
+    implementation deps.navigation.ui_ktx
+    implementation deps.lifecycle.viewmodel_ktx
+    implementation deps.lifecycle.livedata_ktx
+    implementation deps.lifecycle.runtime_ktx
+    implementation deps.lifecycle.java8
+    implementation deps.material
+    implementation deps.coroutines.android
+    implementation deps.okhttp.core
+    implementation deps.okhttp.tls
+    implementation deps.timber
+
+    debugImplementation deps.leakcanary.android
+}
+
+static def parseScheme(String uri) {
+    def index = uri.indexOf(':/')
+    if (index == -1) {
+        throw new IllegalStateException("Scheme is not in a valid format.")
+    }
+    return uri.substring(0, index)
+}

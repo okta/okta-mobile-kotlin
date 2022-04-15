@@ -26,6 +26,7 @@ versions.mockito_kotlin = '4.0.0'
 versions.navigation = '2.4.1'
 versions.okhttp = '4.9.3'
 versions.okio = '3.0.0'
+versions.okta_legacy_oidc = '1.2.4'
 versions.robolectric = '4.7.3'
 versions.security_crypto = '1.0.0'
 versions.timber = '5.0.1'
@@ -124,6 +125,10 @@ okhttp.core = "com.squareup.okhttp3:okhttp:$versions.okhttp"
 okhttp.mock_web_server = "com.squareup.okhttp3:mockwebserver:$versions.okhttp"
 okhttp.tls = "com.squareup.okhttp3:okhttp-tls:$versions.okhttp"
 deps.okhttp = okhttp
+
+def okta = [:]
+okta.legacy_oidc = "com.okta.android:okta-oidc-android:$versions.okta_legacy_oidc"
+deps.okta = okta
 
 deps.robolectric = "org.robolectric:robolectric:$versions.robolectric"
 

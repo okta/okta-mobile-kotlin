@@ -13,25 +13,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package sample.okta.android.util
+package sample.okta.android.legacy.util
 
+import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.annotation.LayoutRes
+import androidx.fragment.app.Fragment
+import androidx.viewbinding.ViewBinding
 
-internal fun ViewGroup.inflate(@LayoutRes layoutId: Int): View {
-    return LayoutInflater.from(context).inflate(layoutId, this, false)
-}
-
-internal fun <B> ViewGroup.inflateBinding(
-    bindingFactory: (
+abstract class BaseFragment<B : ViewBinding>(
+    private val bindingFactory: (
         inflater: LayoutInflater,
         container: ViewGroup?,
         attachToParent: Boolean
-    ) -> B,
-    attachToParent: Boolean = false
-): B {
-    val inflater = LayoutInflater.from(context)
-    return bindingFactory(inflater, this, attachToParent)
+    ) -> B
+) : Fragment() {
+    private var _binding: B? = null
+
+    // This property is only valid between onCreateView and
+    // onDestroyView.
+    protected val binding get() = _binding!!
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        _binding = bindingFactory(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
 }
+

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package sample.okta.android.dashboard
+package sample.okta.android.legacy.dashboard
 
 import android.content.Context
 import androidx.lifecycle.LiveData
@@ -21,20 +21,17 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.okta.authfoundation.client.OidcClientResult
-import com.okta.authfoundation.client.dto.OidcIntrospectInfo
 import com.okta.authfoundation.credential.Credential
 import com.okta.authfoundation.credential.RevokeTokenType
-import com.okta.authfoundation.credential.TokenType
 import com.okta.authfoundationbootstrap.CredentialBootstrap
 import com.okta.webauthenticationui.WebAuthenticationClient.Companion.createWebAuthenticationClient
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
-import sample.okta.android.SampleHelper
 import timber.log.Timber
 
-internal class DashboardViewModel(private val credentialMetadataNameValue: String?) : ViewModel() {
+internal class DashboardViewModel : ViewModel() {
     private val _requestStateLiveData = MutableLiveData<RequestState>(RequestState.Result(""))
     val requestStateLiveData: LiveData<RequestState> = _requestStateLiveData
 
@@ -51,20 +48,7 @@ internal class DashboardViewModel(private val credentialMetadataNameValue: Strin
 
     init {
         viewModelScope.launch {
-            credential = if (credentialMetadataNameValue == null) {
-                CredentialBootstrap.credential()
-            } else {
-                CredentialBootstrap.credentialDataSource.listCredentials().firstOrNull { credential ->
-                    credential.metadata[SampleHelper.CREDENTIAL_NAME_METADATA_KEY] == credentialMetadataNameValue
-                } ?: CredentialBootstrap.credential()
-            }
-            setCredential(credential)
-        }
-    }
-
-    fun setCredential(credential: Credential) {
-        this.credential = credential
-        viewModelScope.launch {
+            credential = CredentialBootstrap.credential()
             _credentialLiveData.value = credential
             getUserInfo()
         }
@@ -92,24 +76,6 @@ internal class DashboardViewModel(private val credentialMetadataNameValue: Strin
                 is OidcClientResult.Success -> {
                     _credentialLiveData.value = credential // Update the UI.
                     RequestState.Result("Token Refreshed.")
-                }
-            }
-        }
-    }
-
-    fun introspect(buttonId: Int, tokenType: TokenType) {
-        performRequest(buttonId) { credential ->
-            when (val result = credential.introspectToken(tokenType)) {
-                is OidcClientResult.Error -> {
-                    RequestState.Result("Failed to introspect token.")
-                }
-                is OidcClientResult.Success -> {
-                    val successResult = result.result
-                    if (successResult is OidcIntrospectInfo.Active) {
-                        RequestState.Result(successResult.deserializeClaims(JsonObject.serializer()).asMap().displayableKeyValues())
-                    } else {
-                        RequestState.Result(mapOf("active" to "false").displayableKeyValues())
-                    }
                 }
             }
         }
@@ -145,14 +111,6 @@ internal class DashboardViewModel(private val credentialMetadataNameValue: Strin
         lastRequestJob = viewModelScope.launch {
             _requestStateLiveData.postValue(performer(credential))
         }
-    }
-
-    private fun Map<String, String>.displayableKeyValues(): String {
-        var result = ""
-        for (entry in this) {
-            result += entry.key + ": " + entry.value + "\n"
-        }
-        return result
     }
 
     private suspend fun getUserInfo() {
