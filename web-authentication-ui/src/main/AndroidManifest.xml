@@ -12,7 +12,7 @@
         <activity
             android:name=".ForegroundActivity"
             android:autoRemoveFromRecents="true"
-            android:launchMode="singleInstance"
+            android:launchMode="singleTop"
             android:theme="@style/NoAnimationTheme" />
 
         <activity
