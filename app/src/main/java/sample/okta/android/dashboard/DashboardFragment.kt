@@ -77,11 +77,19 @@ internal class DashboardFragment : BaseFragment<FragmentDashboardBinding>(
                 binding.refreshAccessTokenButton.visibility = View.GONE
                 binding.introspectRefreshTokenButton.visibility = View.GONE
                 binding.revokeRefreshTokenButton.visibility = View.GONE
+            } else {
+                binding.refreshAccessTokenButton.visibility = View.VISIBLE
+                binding.introspectRefreshTokenButton.visibility = View.VISIBLE
+                binding.revokeRefreshTokenButton.visibility = View.VISIBLE
             }
             if (token.deviceSecret == null) {
                 binding.tokenExchangeButton.visibility = View.GONE
                 binding.introspectDeviceSecretButton.visibility = View.GONE
                 binding.revokeDeviceSecretButton.visibility = View.GONE
+            } else {
+                binding.tokenExchangeButton.visibility = View.VISIBLE
+                binding.introspectDeviceSecretButton.visibility = View.VISIBLE
+                binding.revokeDeviceSecretButton.visibility = View.VISIBLE
             }
         }
 
