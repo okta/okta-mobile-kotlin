@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package sample.okta.android.util
+package sample.okta.android.legacy.util
 
 import android.view.LayoutInflater
 import android.view.View

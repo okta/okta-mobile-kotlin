@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/LaunchFragment">
+
+    <fragment
+        android:id="@+id/LaunchFragment"
+        android:name="sample.okta.android.legacy.launch.LaunchFragment"
+        tools:layout="@layout/fragment_launch">
+        <action
+            android:id="@+id/launch_to_browser"
+            app:destination="@id/BrowserFragment" />
+        <action
+            android:id="@+id/launch_to_legacy_browser"
+            app:destination="@id/LegacyBrowserFragment" />
+        <action
+            android:id="@+id/launch_to_dashboard"
+            app:destination="@id/DashboardFragment"
+            app:popUpTo="@+id/nav_graph"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/launch_to_legacy_dashboard"
+            app:destination="@id/LegacyDashboardFragment"
+            app:popUpTo="@+id/nav_graph"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/BrowserFragment"
+        android:name="sample.okta.android.legacy.browser.BrowserFragment"
+        tools:layout="@layout/fragment_browser">
+        <action
+            android:id="@+id/browser_to_dashboard"
+            app:destination="@id/DashboardFragment"
+            app:popUpTo="@+id/nav_graph"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/LegacyBrowserFragment"
+        android:name="sample.okta.android.legacy.legacybrowser.LegacyBrowserFragment"
+        tools:layout="@layout/fragment_browser">
+        <action
+            android:id="@+id/legacy_browser_to_dashboard"
+            app:destination="@id/LegacyDashboardFragment"
+            app:popUpTo="@+id/nav_graph"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/DashboardFragment"
+        android:name="sample.okta.android.legacy.dashboard.DashboardFragment"
+        tools:layout="@layout/fragment_dashboard">
+        <action
+            android:id="@+id/dashboard_to_login"
+            app:destination="@id/LaunchFragment"
+            app:popUpTo="@+id/nav_graph"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/LegacyDashboardFragment"
+        android:name="sample.okta.android.legacy.legacydashboard.LegacyDashboardFragment"
+        tools:layout="@layout/fragment_dashboard">
+        <action
+            android:id="@+id/legacy_dashboard_to_login"
+            app:destination="@id/LaunchFragment"
+            app:popUpTo="@+id/nav_graph"
+            app:popUpToInclusive="true" />
+    </fragment>
+</navigation>

@@ -21,7 +21,7 @@ import kotlinx.serialization.Serializable
 /**
  * Token information representing a user's access to a resource server, including access token, refresh token, and other related information.
  */
-data class Token internal constructor(
+data class Token(
     /**
      * The string type of the token (e.g. `Bearer`).
      */

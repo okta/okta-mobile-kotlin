@@ -41,8 +41,8 @@ This SDK is being actively developed and is in Beta release status. At this time
 | OkHttp Interceptor for authorizing requests | ✅ | Beta 2 |
 | Support for multiple accounts | ✅ | Beta 2 |
 | Time synchronization via NTP | 🚧 | Beta 4 |
-| Advanced Eventing | 🚧 | Beta 4 |
-| Migrating Tokens from okta-oidc-android | 🚧 | Beta 4 |
+| Advanced Eventing | ✅ | Beta 4 |
+| Migrating Tokens from okta-oidc-android | ✅ | Beta 4 |
 
 ## Support Policy
 
@@ -78,6 +78,8 @@ implementation 'com.okta.kotlin:web-authentication-ui:0.3.0-BETA'
 ```
 
 See the [CHANGELOG](CHANGELOG.md) for the most recent changes.
+
+If you're migrating from [okta-oidc-android](https://github.com/okta/okta-oidc-android) see [migrate.md](migrate.md) for more information.
 
 # Okta Mobile SDK for Kotlin
 
@@ -322,6 +324,8 @@ issuer=https://YOUR_ORG.okta.com/oauth2/default
 clientId=test-client-id
 signInRedirectUri=com.okta.sample.android:/login
 signOutRedirectUri=com.okta.sample.android:/logout
+legacySignInRedirectUri=com.okta.sample.android.legacy:/login
+legacySignOutRedirectUri=com.okta.sample.android.legacy:/logout
 ```
 
 > Notes:

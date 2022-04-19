@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Legacy OIDC Sample</string>
+    <string name="you_are_logged_in">You\'re logged in!</string>
+    <string name="token_type">Token Type:</string>
+    <string name="expires_in">Expires In:</string>
+    <string name="access_token">Access Token:</string>
+    <string name="refresh_token">Refresh Token:</string>
+    <string name="id_token">Id Token:</string>
+    <string name="scope">Scope:</string>
+    <string name="claims">Claims</string>
+    <string name="try_again">Try Again</string>
+    <string name="welcome_to_sample">Welcome to the Legacy Token Migration Okta Sample!</string>
+    <string name="revoke_access_token">Revoke Access Token</string>
+    <string name="revoke_refresh_token">Revoke Refresh Token</string>
+    <string name="refresh_access_token">Refresh Access Token</string>
+    <string name="back_to_login">Go Back To Login Page</string>
+    <string name="login_with_browser">Browser</string>
+    <string name="login_with_legacy_browser">Legacy Browser</string>
+    <string name="logout_web">Logout of Web</string>
+    <string name="delete_credential">Delete Credential</string>
+    <string name="go_to_legacy_dashboard">Go to legacy dashboard</string>
+    <string name="go_to_dashboard">Go to dashboard</string>
+    <string name="already_logged_in_text">To continue using the existing credential, click go to dashboard!</string>
+    <string name="migrate_tokens">Migrate Tokens</string>
+</resources>

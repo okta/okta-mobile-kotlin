@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    android:padding="16dp"
+    >
+
+    <TextView
+        android:id="@+id/title_text_view"
+        style="@style/TitleTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/welcome_to_sample"
+        />
+
+    <Button
+        android:id="@+id/login_with_legacy_browser_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/login_with_legacy_browser"
+        />
+
+    <Button
+        android:id="@+id/login_with_browser_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/login_with_browser"
+        />
+
+    <Button
+        android:id="@+id/migrate_tokens"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/migrate_tokens"
+        />
+
+    <TextView
+        android:id="@+id/logged_in_text_view"
+        style="@style/TitleTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/already_logged_in_text"
+        android:visibility="gone"
+        />
+
+    <Button
+        android:id="@+id/legacy_dashboard_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/go_to_legacy_dashboard"
+        android:visibility="gone"
+        />
+
+    <Button
+        android:id="@+id/dashboard_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/go_to_dashboard"
+        android:visibility="gone"
+        />
+</LinearLayout>
