@@ -30,7 +30,7 @@ import com.okta.oidc.clients.sessions.SessionClient
 
 val context: Context = TODO("Supplied by the developer.")
 val sessionClient: SessionClient = TODO("Supplied by the developer.")
-val credential: Credential = CredentialBootstrap.credential()
+val credential: Credential = CredentialBootstrap.defaultCredential()
 
 when (val result = LegacyTokenMigration.migrate(context, sessionClient, credential)) {
     is LegacyTokenMigration.Result.Error -> TODO("An error occurred: ${result.exception}")

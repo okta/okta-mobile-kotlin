@@ -41,13 +41,13 @@ class TokenExchangeViewModel : ViewModel() {
         _state.value = TokenExchangeState.Loading
 
         viewModelScope.launch {
-            val credential = CredentialBootstrap.credential()
+            val credential = CredentialBootstrap.defaultCredential()
             val credentialDataSource = CredentialBootstrap.credentialDataSource
             val tokenExchangeCredential = credentialDataSource.listCredentials().firstOrNull { c ->
                 c.metadata[SampleHelper.CREDENTIAL_NAME_METADATA_KEY] == NAME_METADATA_VALUE
             } ?: credentialDataSource.createCredential()
             tokenExchangeCredential.storeToken(metadata = mapOf(Pair(SampleHelper.CREDENTIAL_NAME_METADATA_KEY, NAME_METADATA_VALUE)))
-            val tokenExchangeFlow = tokenExchangeCredential.oidcClient.createTokenExchangeFlow()
+            val tokenExchangeFlow = CredentialBootstrap.oidcClient.createTokenExchangeFlow()
             val idToken = credential.token?.idToken
             if (idToken == null) {
                 _state.value = TokenExchangeState.Error("Missing Id Token")
@@ -63,6 +63,7 @@ class TokenExchangeViewModel : ViewModel() {
                     _state.value = TokenExchangeState.Error(result.exception.message ?: "An error occurred.")
                 }
                 is OidcClientResult.Success -> {
+                    tokenExchangeCredential.storeToken(token = result.result)
                     _state.value = TokenExchangeState.Token(NAME_METADATA_VALUE)
                 }
             }

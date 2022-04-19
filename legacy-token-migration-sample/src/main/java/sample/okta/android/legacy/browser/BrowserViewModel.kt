@@ -34,14 +34,14 @@ class BrowserViewModel : ViewModel() {
         viewModelScope.launch {
             _state.value = BrowserState.Loading
 
-            val credential = CredentialBootstrap.credential()
-            val webAuthenticationClient = credential.oidcClient.createWebAuthenticationClient()
+            val webAuthenticationClient = CredentialBootstrap.oidcClient.createWebAuthenticationClient()
             when (val result = webAuthenticationClient.login(context)) {
                 is OidcClientResult.Error -> {
                     Timber.e(result.exception, "Failed to login.")
                     _state.value = BrowserState.Error("Failed to login.")
                 }
                 is OidcClientResult.Success -> {
+                    CredentialBootstrap.defaultCredential().storeToken(token = result.result)
                     _state.value = BrowserState.Token
                 }
             }

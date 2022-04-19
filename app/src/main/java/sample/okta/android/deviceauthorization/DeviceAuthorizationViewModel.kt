@@ -37,7 +37,7 @@ internal class DeviceAuthorizationViewModel : ViewModel() {
         _state.value = DeviceAuthorizationState.Loading
 
         viewModelScope.launch {
-            val deviceAuthorizationFlow = CredentialBootstrap.credential().oidcClient.createDeviceAuthorizationFlow()
+            val deviceAuthorizationFlow = CredentialBootstrap.oidcClient.createDeviceAuthorizationFlow()
             when (val result = deviceAuthorizationFlow.start()) {
                 is OidcClientResult.Error -> {
                     _state.value = DeviceAuthorizationState.Error(result.exception.message ?: "An error occurred.")
@@ -56,6 +56,7 @@ internal class DeviceAuthorizationViewModel : ViewModel() {
                 _state.value = DeviceAuthorizationState.Error(result.exception.message ?: "An error occurred.")
             }
             is OidcClientResult.Success -> {
+                CredentialBootstrap.defaultCredential().storeToken(token = result.result)
                 _state.value = DeviceAuthorizationState.Token
             }
         }

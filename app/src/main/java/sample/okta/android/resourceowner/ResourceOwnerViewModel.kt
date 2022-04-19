@@ -32,12 +32,13 @@ internal class ResourceOwnerViewModel : ViewModel() {
         _state.value = ResourceOwnerState.Loading
 
         viewModelScope.launch {
-            val resourceOwnerFlow = CredentialBootstrap.credential().oidcClient.createResourceOwnerFlow()
+            val resourceOwnerFlow = CredentialBootstrap.oidcClient.createResourceOwnerFlow()
             when (val result = resourceOwnerFlow.start(username, password)) {
                 is OidcClientResult.Error -> {
                     _state.value = ResourceOwnerState.Error(result.exception.message ?: "An error occurred.")
                 }
                 is OidcClientResult.Success -> {
+                    CredentialBootstrap.defaultCredential().storeToken(token = result.result)
                     _state.value = ResourceOwnerState.Token
                 }
             }

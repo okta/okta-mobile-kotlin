@@ -18,6 +18,7 @@ package com.okta.authfoundation.credential
 import android.content.Context
 import android.os.Build
 import androidx.annotation.RequiresApi
+import com.okta.authfoundation.InternalAuthFoundationApi
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.credential.events.CredentialCreatedEvent
 import com.okta.authfoundation.util.CoalescingOrchestrator
@@ -30,7 +31,7 @@ import java.util.UUID
  * This is intended to be held as a singleton, and used throughout the lifecycle of the application.
  */
 class CredentialDataSource internal constructor(
-    private val oidcClient: OidcClient,
+    @property:InternalAuthFoundationApi val oidcClient: OidcClient,
     private val storage: TokenStorage,
 ) {
     companion object {

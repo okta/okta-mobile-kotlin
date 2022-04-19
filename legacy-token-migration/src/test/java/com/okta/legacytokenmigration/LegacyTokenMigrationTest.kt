@@ -55,9 +55,7 @@ class LegacyTokenMigrationTest {
     }
 
     private fun mockCredential(): Credential {
-        return mock {
-            on { oidcClient } doReturn oktaRule.createOidcClient()
-        }
+        return mock()
     }
 
     private fun mockSessionClient(token: Tokens?): SessionClient {
