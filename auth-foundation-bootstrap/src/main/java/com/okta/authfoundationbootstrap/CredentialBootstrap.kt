@@ -52,6 +52,9 @@ object CredentialBootstrap {
      * @param credentialDataSource the [CredentialDataSource] to associate with [CredentialBootstrap] as a singleton.
      */
     fun initialize(credentialDataSource: CredentialDataSource) {
+        if (privateCredentialDataSource != null) {
+            throw IllegalStateException("Credential bootstrap was already initialized.")
+        }
         privateCredentialDataSource = credentialDataSource
     }
 
