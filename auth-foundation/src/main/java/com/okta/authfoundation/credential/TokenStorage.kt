@@ -16,6 +16,7 @@
 package com.okta.authfoundation.credential
 
 import com.okta.authfoundation.AuthFoundationDefaults
+import java.util.Objects
 
 /**
  * Interface used to customize the way tokens are stored, updated, and removed throughout the lifecycle of an application.
@@ -56,7 +57,7 @@ interface TokenStorage {
     /**
      *  Represents the data to store in [TokenStorage].
      */
-    data class Entry(
+    class Entry(
         /**
          * The unique identifier for this [TokenStorage] entry.
          */
@@ -69,5 +70,25 @@ interface TokenStorage {
          *  The metadata associated with the [TokenStorage] entry.
          */
         val metadata: Map<String, String>,
-    )
+    ) {
+        override fun equals(other: Any?): Boolean {
+            if (other === this) {
+                return true
+            }
+            if (other !is Entry) {
+                return false
+            }
+            return other.identifier == identifier &&
+                other.token == token &&
+                other.metadata == metadata
+        }
+
+        override fun hashCode(): Int {
+            return Objects.hash(
+                identifier,
+                token,
+                metadata,
+            )
+        }
+    }
 }

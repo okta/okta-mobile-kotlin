@@ -17,11 +17,12 @@ package com.okta.authfoundation.credential
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import java.util.Objects
 
 /**
  * Token information representing a user's access to a resource server, including access token, refresh token, and other related information.
  */
-data class Token(
+class Token(
     /**
      * The string type of the token (e.g. `Bearer`).
      */
@@ -65,6 +66,52 @@ data class Token(
             idToken = idToken,
             deviceSecret = deviceSecret,
             issuedTokenType = issuedTokenType,
+        )
+    }
+
+    internal fun copy(
+        refreshToken: String? = this.refreshToken,
+        deviceSecret: String? = this.deviceSecret,
+    ): Token {
+        return Token(
+            tokenType = tokenType,
+            expiresIn = expiresIn,
+            accessToken = accessToken,
+            scope = scope,
+            refreshToken = refreshToken,
+            idToken = idToken,
+            deviceSecret = deviceSecret,
+            issuedTokenType = issuedTokenType,
+        )
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (other === this) {
+            return true
+        }
+        if (other !is Token) {
+            return false
+        }
+        return other.tokenType == tokenType &&
+            other.expiresIn == expiresIn &&
+            other.accessToken == accessToken &&
+            other.scope == scope &&
+            other.refreshToken == refreshToken &&
+            other.idToken == idToken &&
+            other.deviceSecret == deviceSecret &&
+            other.issuedTokenType == issuedTokenType
+    }
+
+    override fun hashCode(): Int {
+        return Objects.hash(
+            tokenType,
+            expiresIn,
+            accessToken,
+            scope,
+            refreshToken,
+            idToken,
+            deviceSecret,
+            issuedTokenType,
         )
     }
 }
