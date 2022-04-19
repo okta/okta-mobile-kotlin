@@ -52,6 +52,14 @@ class CredentialBootstrapTest {
         }
     }
 
+    @Test fun testInitializeTwiceFails(): Unit = runBlocking {
+        initialize()
+        val exception = assertFailsWith<IllegalStateException> {
+            initialize()
+        }
+        assertThat(exception).hasMessageThat().isEqualTo("Credential bootstrap was already initialized.")
+    }
+
     @Test fun testCredentialReturnsSameInstance(): Unit = runBlocking {
         initialize()
         val credential1 = CredentialBootstrap.credential()
