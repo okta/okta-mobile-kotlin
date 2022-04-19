@@ -287,6 +287,24 @@ There are multiple terms that might be confused when logging a user out.
 > - Revoking a `RevokeTokenType.DEVICE_SECRET` does not revoke the associated `Token.accessToken` or `Token.refreshToken`
 > - Revoking a `RevokeTokenType.REFRESH_TOKEN` *DOES* revoke the associated `Token.accessToken` AND `Token.refreshToken`
 
+### Using a Credential to determine user authentication status
+There are a few options to determine the status of a user authentication. Each option has unique pros and cons and should be chosen based on the needs of your use case.
+
+- Non null token: `CredentialBootstrap.defaultCredential().token != null`
+- getValidAccessToken: `CredentialBootstrap.defaultCredential().getValidAccessToken() != null`
+- Custom implementation: `CredentialBootstrap.defaultCredential().token`, `CredentialBootstrap.defaultCredential().refresh()`, and `CredentialBootstrap.defaultCredential().getAccessTokenIfValid()`
+
+Details on each approach are below.
+
+#### Determine authentication status via non null token
+`Credential`s do not require a `Token`. If `credential.token == null` then it is not possible for a user to be authenticated. The benefit to using this approach is that the `token` property is available in memory, and can be accessed immediately in a non blocking way.
+
+#### Determine authentication status via getValidAccessToken
+`Credential` has a method called `getValidAccessToken` which checks to see if the credential has a token, and has a valid access token. If the access token is expired, and a refresh token exists, a `refresh` is implicitly called on the `Credential`. If the implicit `refresh` is successful, `getValidAccessToken` returns the new access token. There are two main down sides to this approach. First, it's a `suspend fun` and could make network calls. Second, the failure is not returned, an error could occur due to a network error, a missing token, a missing refresh token, or a configuration error.
+
+#### Determine authentication status via custom implementation
+If your use case requires insight into errors and the current state of the `Credential`, you can use implement it to your needs with the primitives `Credential` provides. See the documentation for the associated properties and methods: `Credential.token`, `Credential.refresh()`, `Credential.getAccessTokenIfValid()`.
+
 ### Networking customization
 
 The Okta Mobile Kotlin SDKs should provide all the required networking by default, however, if you would like to customize networking
