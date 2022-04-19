@@ -52,11 +52,11 @@ internal class DashboardViewModel(private val credentialMetadataNameValue: Strin
     init {
         viewModelScope.launch {
             credential = if (credentialMetadataNameValue == null) {
-                CredentialBootstrap.credential()
+                CredentialBootstrap.defaultCredential()
             } else {
                 CredentialBootstrap.credentialDataSource.listCredentials().firstOrNull { credential ->
                     credential.metadata[SampleHelper.CREDENTIAL_NAME_METADATA_KEY] == credentialMetadataNameValue
-                } ?: CredentialBootstrap.credential()
+                } ?: CredentialBootstrap.defaultCredential()
             }
             setCredential(credential)
         }
@@ -118,7 +118,7 @@ internal class DashboardViewModel(private val credentialMetadataNameValue: Strin
     fun logoutOfWeb(context: Context) {
         viewModelScope.launch {
             val idToken = credential.token?.idToken ?: return@launch
-            when (val result = credential.oidcClient.createWebAuthenticationClient().logoutOfBrowser(context, idToken)) {
+            when (val result = CredentialBootstrap.oidcClient.createWebAuthenticationClient().logoutOfBrowser(context, idToken)) {
                 is OidcClientResult.Error -> {
                     Timber.e(result.exception, "Failed to start logout flow.")
                     _requestStateLiveData.value = RequestState.Result(result.exception.message ?: "An error occurred.")

@@ -154,7 +154,7 @@ The Credential type handles storage, OAuth conveniences and authorizing requests
 ```kotlin
 import com.okta.authfoundationbootstrap.CredentialBootstrap
 
-val credential: Credential = CredentialBootstrap.credential()
+val credential: Credential = CredentialBootstrap.defaultCredential()
 ```
 
 #### Create a Web Authentication Client
@@ -166,19 +166,21 @@ This launches a [Chrome Custom Tab](https://developer.chrome.com/docs/android/cu
 ```kotlin
 import android.content.Context
 import com.okta.authfoundation.credential.Credential
+import com.okta.authfoundationbootstrap.CredentialBootstrap
 import com.okta.oauth2.AuthorizationCodeFlow
 import com.okta.webauthenticationui.WebAuthenticationClient
 import com.okta.webauthenticationui.WebAuthenticationClient.Companion.createWebAuthenticationClient
 
 val context: Context = TODO("Supplied by the developer.")
 val credential: Credential = TODO("Available from previous steps.")
-val webAuthenticationClient = credential.oidcClient.createWebAuthenticationClient()
+val webAuthenticationClient = CredentialBoostrap.oidcClient.createWebAuthenticationClient()
 when (val result = webAuthenticationClient.login(context)) {
     is OidcClientResult.Error -> {
         // Timber.e(result.exception, "Failed to login.")
         // TODO: Display an error to the user.
     }
     is OidcClientResult.Success -> {
+      credential.storeToken(token = result.result)
       // The credential instance now has a token! You can use the `Credential` to make calls to OAuth endpoints, or to sign requests!
     }
 }
@@ -211,8 +213,8 @@ import com.okta.authfoundationbootstrap.CredentialBootstrap
 import com.okta.oauth2.DeviceAuthorizationFlow
 import com.okta.oauth2.DeviceAuthorizationFlow.Companion.createDeviceAuthorizationFlow
 
-val credential: Credential = CredentialBootstrap.credential()
-val deviceAuthorizationFlow: DeviceAuthorizationFlow = credential.oidcClient.createDeviceAuthorizationFlow()
+val credential: Credential = CredentialBootstrap.defaultCredential()
+val deviceAuthorizationFlow: DeviceAuthorizationFlow = CredentialBootstrap.oidcClient.createDeviceAuthorizationFlow()
 
 when (val result = deviceAuthorizationFlow.start()) {
   is OidcClientResult.Error -> {
@@ -230,6 +232,7 @@ when (val result = deviceAuthorizationFlow.start()) {
         // TODO: Display an error to the user.
       }
       is OidcClientResult.Success -> {
+        credential.storeToken(token = result.result)
         // The credential instance now has a token! You can use the `Credential` to make calls to OAuth endpoints, or to sign requests!
       }
     }
@@ -251,27 +254,22 @@ import com.okta.authfoundationbootstrap.CredentialBootstrap
 import com.okta.oauth2.TokenExchangeFlow
 import com.okta.oauth2.TokenExchangeFlow.Companion.createTokenExchangeFlow
 
-val credentialDataSource: CredentialDataSource = CredentialBootstrap.credentialDataSource()
-val credential: Credential = credentialDataSource.createCredential()
-val tokenExchangeFlow: TokenExchangeFlow = credential.oidcClient.createTokenExchangeFlow()
+val credentialDataSource: CredentialDataSource = CredentialBootstrap.defaultCredentialDataSource()
+val tokenExchangeCredential: Credential = credentialDataSource.createCredential()
+val tokenExchangeFlow: TokenExchangeFlow = CredentialBootstrap.oidcClient.createTokenExchangeFlow()
 when (val result = tokenExchangeFlow.start(idToken, deviceSecret)) {
   is OidcClientResult.Error -> {
       // Timber.e(result.exception, "Failed to login.")
       // TODO: Display an error to the user.
   }
   is OidcClientResult.Success -> {
+    tokenExchangeCredential.storeToken(token = result.result)
     // The credential instance now has a token! You can use the `Credential` to make calls to OAuth endpoints, or to sign requests!
   }
 }
 ```
 
 > Note: You'll want to ensure you have 2 *DIFFERENT* `Credential`s. The first needs to have the `idToken`, and `deviceSecret` minted via a `WebAuthenticationClient`. The second will be used in the `TokenExchangeFlow`.
-
-### Automatic Credential Storage
-
-Tokens minted via any flow are automatically stored in the credential via `Credential.storeToken` when using the `Credential.oidcClient` property.
-Using an `OidcClient` not fetched from a `Credential` (ie, one created via `OidcClient.createFromDiscoveryUrl`) will not result in automatic token storage.
-This means you do not need to call `Credential.storeToken` when refreshing a token via `Credential.refreshToken` or logging in via `Credential.oidcClient.createWebAuthenticationClient`.
 
 ### Logout 
 

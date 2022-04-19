@@ -15,6 +15,7 @@
  */
 package com.okta.authfoundationbootstrap
 
+import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.credential.Credential
 import com.okta.authfoundation.credential.CredentialDataSource
 import com.okta.authfoundation.util.CoalescingOrchestrator
@@ -47,6 +48,14 @@ object CredentialBootstrap {
         }
 
     /**
+     * The singleton [OidcClient].
+     */
+    val oidcClient: OidcClient
+        get() {
+            return credentialDataSource.oidcClient
+        }
+
+    /**
      * Initializes [CredentialBootstrap] with a [CredentialDataSource].
      *
      * @param credentialDataSource the [CredentialDataSource] to associate with [CredentialBootstrap] as a singleton.
@@ -57,8 +66,10 @@ object CredentialBootstrap {
 
     /**
      * The default [Credential] associated with the associated [CredentialDataSource].
+     *
+     * This will get the default [Credential] if one exists, or create the default [Credential] is there is not an existing one.
      */
-    suspend fun credential(): Credential {
+    suspend fun defaultCredential(): Credential {
         return credentialCoalescingOrchestrator.get()
     }
 

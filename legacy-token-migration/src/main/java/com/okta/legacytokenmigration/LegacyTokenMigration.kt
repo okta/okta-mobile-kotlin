@@ -21,6 +21,7 @@ import androidx.annotation.VisibleForTesting
 import com.okta.authfoundation.credential.Credential
 import com.okta.authfoundation.credential.Token
 import com.okta.oidc.clients.sessions.SessionClient
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
@@ -44,7 +45,7 @@ object LegacyTokenMigration {
      * @return a [Result] with the outcome of the migration.
      */
     suspend fun migrate(context: Context, sessionClient: SessionClient, credential: Credential): Result {
-        return withContext(credential.oidcClient.configuration.computeDispatcher) {
+        return withContext(Dispatchers.IO) {
             val sharedPreferences = context.sharedPreferences()
             if (sharedPreferences.hasMarkedTokensAsMigrated()) {
                 return@withContext Result.PreviouslyMigrated

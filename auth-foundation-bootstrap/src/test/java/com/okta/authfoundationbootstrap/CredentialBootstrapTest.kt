@@ -41,7 +41,7 @@ class CredentialBootstrapTest {
 
     @Test fun testCredentialFailsBeforeInitialize(): Unit = runBlocking {
         val exception = assertFailsWith<IllegalStateException> {
-            CredentialBootstrap.credential()
+            CredentialBootstrap.defaultCredential()
         }
         assertThat(exception).hasMessageThat().isEqualTo("CredentialBoostrap not initialized. Please call initialize before attempting to access properties and methods.")
     }
@@ -54,8 +54,8 @@ class CredentialBootstrapTest {
 
     @Test fun testCredentialReturnsSameInstance(): Unit = runBlocking {
         initialize()
-        val credential1 = CredentialBootstrap.credential()
-        val credential2 = CredentialBootstrap.credential()
+        val credential1 = CredentialBootstrap.defaultCredential()
+        val credential2 = CredentialBootstrap.defaultCredential()
         assertThat(credential1).isNotNull()
         assertThat(credential1).isSameInstanceAs(credential2)
         assertThat(CredentialBootstrap.credentialDataSource.listCredentials()).hasSize(1)
@@ -68,9 +68,9 @@ class CredentialBootstrapTest {
 
     @Test fun testDeletedCredentialCreatesNewCredential(): Unit = runBlocking {
         initialize()
-        val credential1 = CredentialBootstrap.credential()
+        val credential1 = CredentialBootstrap.defaultCredential()
         credential1.delete()
-        val credential2 = CredentialBootstrap.credential()
+        val credential2 = CredentialBootstrap.defaultCredential()
         assertThat(credential1).isNotNull()
         assertThat(credential2).isNotNull()
         assertThat(credential1).isNotSameInstanceAs(credential2)
@@ -80,7 +80,7 @@ class CredentialBootstrapTest {
     @Test fun testCredentialOnlyReturnsDefaultCredential(): Unit = runBlocking {
         initialize()
         val credential1 = CredentialBootstrap.credentialDataSource.createCredential()
-        val credential2 = CredentialBootstrap.credential()
+        val credential2 = CredentialBootstrap.defaultCredential()
         assertThat(credential1).isNotNull()
         assertThat(credential2).isNotNull()
         assertThat(credential1).isNotSameInstanceAs(credential2)
@@ -89,8 +89,8 @@ class CredentialBootstrapTest {
 
     @Test fun testCredentialReturnsSameInstanceWhenAsync(): Unit = runBlocking {
         initialize()
-        val credential1 = async(Dispatchers.IO) { CredentialBootstrap.credential() }
-        val credential2 = async(Dispatchers.IO) { CredentialBootstrap.credential() }
+        val credential1 = async(Dispatchers.IO) { CredentialBootstrap.defaultCredential() }
+        val credential2 = async(Dispatchers.IO) { CredentialBootstrap.defaultCredential() }
         assertThat(credential1.await()).isNotNull()
         assertThat(credential1.await()).isSameInstanceAs(credential2.await())
         assertThat(CredentialBootstrap.credentialDataSource.listCredentials()).hasSize(1)

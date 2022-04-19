@@ -34,8 +34,8 @@ class BrowserViewModel : ViewModel() {
         viewModelScope.launch {
             _state.value = BrowserState.Loading
 
-            val credential = CredentialBootstrap.credential()
-            val webAuthenticationClient = credential.oidcClient.createWebAuthenticationClient()
+            val credential = CredentialBootstrap.defaultCredential()
+            val webAuthenticationClient = CredentialBootstrap.oidcClient.createWebAuthenticationClient()
             var scopes = credential.scopes()
             if (addDeviceSsoScope) {
                 scopes = scopes + setOf("device_sso")
@@ -47,6 +47,7 @@ class BrowserViewModel : ViewModel() {
                     _state.value = BrowserState.Error("Failed to start login flow.")
                 }
                 is OidcClientResult.Success -> {
+                    credential.storeToken(token = result.result)
                     _state.value = BrowserState.Token
                 }
             }

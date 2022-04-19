@@ -51,7 +51,7 @@ internal class DashboardFragment : BaseFragment<FragmentDashboardBinding>(
     private val onBackPressedCallback = object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {
             lifecycleScope.launch {
-                viewModel.setCredential(CredentialBootstrap.credential())
+                viewModel.setCredential(CredentialBootstrap.defaultCredential())
             }
         }
     }
@@ -59,7 +59,7 @@ internal class DashboardFragment : BaseFragment<FragmentDashboardBinding>(
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         viewModel.credentialLiveData.observe(viewLifecycleOwner) { credential ->
             lifecycleScope.launch {
-                val defaultCredential = CredentialBootstrap.credential()
+                val defaultCredential = CredentialBootstrap.defaultCredential()
                 onBackPressedCallback.isEnabled = defaultCredential != credential
 
                 binding.credentialName.text = if (defaultCredential == credential) "Default" else "TokenExchange"

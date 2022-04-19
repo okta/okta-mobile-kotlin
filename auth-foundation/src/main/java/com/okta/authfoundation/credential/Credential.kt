@@ -15,6 +15,7 @@
  */
 package com.okta.authfoundation.credential
 
+import androidx.annotation.VisibleForTesting
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundation.client.dto.OidcIntrospectInfo
@@ -53,10 +54,9 @@ class Credential internal constructor(
 
     /**
      * The [OidcClient] associated with this [Credential].
-     *
-     * This is the [OidcClient] that should be used for all other operations related to this [Credential].
      */
-    val oidcClient: OidcClient = oidcClient.withCredential(this)
+    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+    internal val oidcClient: OidcClient = oidcClient.withCredential(this)
 
     /**
      * The current [Token] that's stored and associated with this [Credential].

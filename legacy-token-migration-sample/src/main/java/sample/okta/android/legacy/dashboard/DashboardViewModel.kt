@@ -48,7 +48,7 @@ internal class DashboardViewModel : ViewModel() {
 
     init {
         viewModelScope.launch {
-            credential = CredentialBootstrap.credential()
+            credential = CredentialBootstrap.defaultCredential()
             _credentialLiveData.value = credential
             getUserInfo()
         }
@@ -84,7 +84,7 @@ internal class DashboardViewModel : ViewModel() {
     fun logoutOfWeb(context: Context) {
         viewModelScope.launch {
             val idToken = credential.token?.idToken ?: return@launch
-            when (val result = credential.oidcClient.createWebAuthenticationClient().logoutOfBrowser(context, idToken)) {
+            when (val result = CredentialBootstrap.oidcClient.createWebAuthenticationClient().logoutOfBrowser(context, idToken)) {
                 is OidcClientResult.Error -> {
                     Timber.e(result.exception, "Failed to start logout flow.")
                     _requestStateLiveData.value = RequestState.Result(result.exception.message ?: "An error occurred.")
