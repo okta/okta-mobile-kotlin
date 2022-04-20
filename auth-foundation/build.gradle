@@ -55,6 +55,7 @@ dependencies {
     androidTestImplementation deps.androidx_test.ext_junit
     androidTestImplementation deps.androidx_test.runner
     androidTestImplementation deps.androidx_test.rules
+    androidTestImplementation project(':test-helpers')
 }
 
 if (hasProperty('mavenCentralUsername')) {

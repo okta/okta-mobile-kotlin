@@ -19,8 +19,11 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.annotation.VisibleForTesting
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKeys
+import com.okta.authfoundation.credential.events.TokenStorageAccessErrorEvent
+import com.okta.authfoundation.events.EventCoordinator
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -31,26 +34,45 @@ import kotlin.coroutines.CoroutineContext
 internal class SharedPreferencesTokenStorage(
     private val json: Json,
     private val dispatcher: CoroutineContext,
+    eventCoordinator: EventCoordinator,
     context: Context,
 ) : TokenStorage {
-    private companion object {
-        private const val FILE_NAME = "com.okta.authfoundation.storage"
+    internal companion object {
+        @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+        internal const val FILE_NAME = "com.okta.authfoundation.storage"
+
         private const val PREFERENCE_KEY = "com.okta.authfoundation.storage_entries"
+
+        private fun createSharedPreferences(applicationContext: Context): SharedPreferences {
+            val masterKeyAlias = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC)
+
+            return EncryptedSharedPreferences.create(
+                FILE_NAME,
+                masterKeyAlias,
+                applicationContext,
+                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+            )
+        }
     }
 
     private val applicationContext: Context = context.applicationContext
     private val accessLock: Any = Any()
 
     private val sharedPreferences: SharedPreferences by lazy {
-        val masterKeyAlias = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC)
-
-        EncryptedSharedPreferences.create(
-            FILE_NAME,
-            masterKeyAlias,
-            applicationContext,
-            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-        )
+        try {
+            createSharedPreferences(applicationContext)
+        } catch (e: Exception) {
+            val event = TokenStorageAccessErrorEvent(e, true)
+            eventCoordinator.sendEvent(event)
+            if (event.shouldClearStorageAndTryAgain) {
+                val sharedPreferences = applicationContext.getSharedPreferences(FILE_NAME, Context.MODE_PRIVATE)
+                sharedPreferences.edit().clear().commit()
+                createSharedPreferences(applicationContext)
+            } else {
+                throw e
+            }
+        }
     }
 
     override suspend fun entries(): List<TokenStorage.Entry> {

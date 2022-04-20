@@ -15,9 +15,18 @@
  */
 package com.okta.authfoundation.credential
 
-import androidx.test.ext.junit.runners.AndroidJUnit4
+import android.content.Context
+import android.security.keystore.KeyGenParameterSpec
+import android.security.keystore.KeyProperties
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKeys
 import androidx.test.core.app.ApplicationProvider
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
+import com.okta.authfoundation.credential.events.TokenStorageAccessErrorEvent
+import com.okta.authfoundation.events.EventCoordinator
+import com.okta.authfoundation.events.EventHandler
+import com.okta.testhelpers.RecordingEventHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
@@ -25,15 +34,20 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import kotlin.test.assertFailsWith
 
 @RunWith(AndroidJUnit4::class)
 class SharedPreferencesTokenStorageTest {
     private lateinit var subject: SharedPreferencesTokenStorage
+    private lateinit var eventHandler: RecordingEventHandler
 
     @Before fun setup() {
+        eventHandler = RecordingEventHandler()
+        val eventCoordinator = EventCoordinator(eventHandler)
         subject = SharedPreferencesTokenStorage(
             json = Json,
             dispatcher = Dispatchers.Unconfined,
+            eventCoordinator = eventCoordinator,
             context = ApplicationProvider.getApplicationContext(),
         )
         cleanup() // Cleanup before and after!
@@ -41,8 +55,11 @@ class SharedPreferencesTokenStorageTest {
 
     @After fun cleanup() {
         runBlocking {
-            for (entry in subject.entries()) {
-                subject.remove(entry.identifier)
+            try {
+                for (entry in subject.entries()) {
+                    subject.remove(entry.identifier)
+                }
+            } catch (ignored: Exception) {
             }
         }
     }
@@ -88,5 +105,75 @@ class SharedPreferencesTokenStorageTest {
         assertThat(entry.identifier).isEqualTo("one")
         assertThat(entry.token).isEqualTo(token)
         assertThat(entry.metadata).containsEntry("foo", "bar")
+    }
+
+    @Test fun testInvalidKeyClearsSharedPreferencesAndIsInitializedWithoutError(): Unit = runBlocking {
+        subject.add("one")
+        assertThat(subject.entries()).hasSize(1)
+        assertThat(eventHandler.size).isEqualTo(0)
+
+        corruptEncryptedSharedPreferences()
+
+        val eventCoordinator = EventCoordinator(eventHandler)
+        subject = SharedPreferencesTokenStorage(
+            json = Json,
+            dispatcher = Dispatchers.Unconfined,
+            eventCoordinator = eventCoordinator,
+            context = ApplicationProvider.getApplicationContext(),
+        )
+        assertThat(eventHandler.size).isEqualTo(0) // Access should be lazy!
+        assertThat(subject.entries()).hasSize(0)
+        assertThat(eventHandler.size).isEqualTo(1)
+        val event = eventHandler[0]
+        assertThat(event).isInstanceOf(TokenStorageAccessErrorEvent::class.java)
+
+        // It should be functional after it's been reset!
+        subject.add("another")
+        assertThat(subject.entries()).hasSize(1)
+    }
+
+    @Test fun testCorruptEncryptedSharedPreferencesWithShouldClearStorageAndTryAgainSetToFalseShouldThrow() {
+        corruptEncryptedSharedPreferences()
+        val eventCoordinator = EventCoordinator(object : EventHandler {
+            override fun onEvent(event: Any) {
+                val errorEvent = event as TokenStorageAccessErrorEvent
+                errorEvent.shouldClearStorageAndTryAgain = false
+            }
+        })
+        subject = SharedPreferencesTokenStorage(
+            json = Json,
+            dispatcher = Dispatchers.Unconfined,
+            eventCoordinator = eventCoordinator,
+            context = ApplicationProvider.getApplicationContext(),
+        )
+        assertFailsWith<Exception> {
+            runBlocking {
+                subject.add("another")
+            }
+        }
+    }
+
+    private fun corruptEncryptedSharedPreferences() {
+        val context: Context = ApplicationProvider.getApplicationContext()
+        val sharedPreferences = context.getSharedPreferences(SharedPreferencesTokenStorage.FILE_NAME, Context.MODE_PRIVATE)
+        sharedPreferences.edit().clear().commit()
+
+        // Create with a different key!
+        val builder = KeyGenParameterSpec.Builder(
+            "TestingOnly!",
+            KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
+        )
+            .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+            .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+            .setKeySize(256)
+        val masterKeyAlias = MasterKeys.getOrCreate(builder.build())
+
+        EncryptedSharedPreferences.create(
+            SharedPreferencesTokenStorage.FILE_NAME,
+            masterKeyAlias,
+            context,
+            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+        )
     }
 }
