@@ -20,6 +20,7 @@ import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundation.client.dto.OidcIntrospectInfo
 import com.okta.authfoundation.client.dto.OidcUserInfo
+import com.okta.authfoundation.credential.events.CredentialDeletedEvent
 import com.okta.authfoundation.credential.events.CredentialStoredAfterRemovedEvent
 import com.okta.authfoundation.credential.events.NoAccessTokenAvailableEvent
 import com.okta.authfoundation.events.EventCoordinator
@@ -152,6 +153,7 @@ class Credential internal constructor(
         storage.remove(storageIdentifier)
         _token = null
         isDeleted = true
+        oidcClient.configuration.eventCoordinator.sendEvent(CredentialDeletedEvent(this))
     }
 
     /**
