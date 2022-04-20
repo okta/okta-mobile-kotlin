@@ -40,7 +40,6 @@ This SDK is being actively developed and is in Beta release status. At this time
 | Device Authorization Grant Flow | ✅ | Beta 2 |
 | OkHttp Interceptor for authorizing requests | ✅ | Beta 2 |
 | Support for multiple accounts | ✅ | Beta 2 |
-| Time synchronization via NTP | 🚧 | Beta 4 |
 | Advanced Eventing | ✅ | Beta 4 |
 | Migrating Tokens from okta-oidc-android | ✅ | Beta 4 |
 
