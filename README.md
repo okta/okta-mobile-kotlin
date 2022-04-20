@@ -136,8 +136,6 @@ val context: Context = TODO("Supplied by the developer.")
 val oidcConfiguration = OidcConfiguration(
     clientId = "{clientId}",
     defaultScopes = setOf("openid", "email", "profile", "offline_access"),
-    signInRedirectUri = "{signInRedirectUri}",
-    signOutRedirectUri = "{signOutRedirectUri}",
 )
 val client = OidcClient.createFromDiscoveryUrl(
     oidcConfiguration,
@@ -172,8 +170,9 @@ import com.okta.webauthenticationui.WebAuthenticationClient.Companion.createWebA
 
 val context: Context = TODO("Supplied by the developer.")
 val credential: Credential = TODO("Available from previous steps.")
+val redirectUrl: String = TODO("signInRedirectUri supplied by the developer.")
 val webAuthenticationClient = CredentialBoostrap.oidcClient.createWebAuthenticationClient()
-when (val result = webAuthenticationClient.login(context)) {
+when (val result = webAuthenticationClient.login(context, redirectUrl)) {
     is OidcClientResult.Error -> {
         // Timber.e(result.exception, "Failed to login.")
         // TODO: Display an error to the user.

@@ -71,17 +71,19 @@ class WebAuthenticationClient private constructor(
      *
      * @param context the Android [Activity] [Context] which is used to display the login flow via the configured
      * [WebAuthenticationProvider].
+     * @param redirectUrl the redirect URL.
      * @param extraRequestParameters the extra key value pairs to send to the authorize endpoint.
      *  See [Authorize Documentation](https://developer.okta.com/docs/reference/api/oidc/#authorize) for parameter options.
      * @param scopes the scopes to request during sign in. Defaults to the configured [OidcClient] [OidcConfiguration.defaultScopes].
      */
     suspend fun login(
         context: Context,
+        redirectUrl: String,
         extraRequestParameters: Map<String, String> = emptyMap(),
         scopes: Set<String> = oidcClient.configuration.defaultScopes,
     ): OidcClientResult<Token> {
         val initializationResult = redirectCoordinator.initialize(webAuthenticationProvider, context) {
-            when (val result = authorizationCodeFlow.start(extraRequestParameters, scopes)) {
+            when (val result = authorizationCodeFlow.start(redirectUrl, extraRequestParameters, scopes)) {
                 is OidcClientResult.Success -> {
                     RedirectInitializationResult.Success(result.result.url, result.result)
                 }
@@ -119,11 +121,12 @@ class WebAuthenticationClient private constructor(
      *
      * @param context the Android [Activity] [Context] which is used to display the logout flow via the configured
      * [WebAuthenticationProvider].
+     * @param redirectUrl the redirect URL.
      * @param idToken the token used to identify the session to log the user out of.
      */
-    suspend fun logoutOfBrowser(context: Context, idToken: String): OidcClientResult<Unit> {
+    suspend fun logoutOfBrowser(context: Context, redirectUrl: String, idToken: String): OidcClientResult<Unit> {
         val initializationResult = redirectCoordinator.initialize(webAuthenticationProvider, context) {
-            when (val result = redirectEndSessionFlow.start(idToken)) {
+            when (val result = redirectEndSessionFlow.start(redirectUrl, idToken)) {
                 is OidcClientResult.Success -> {
                     RedirectInitializationResult.Success(result.result.url, result.result)
                 }

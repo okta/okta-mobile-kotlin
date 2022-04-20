@@ -24,6 +24,7 @@ import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundationbootstrap.CredentialBootstrap
 import com.okta.webauthenticationui.WebAuthenticationClient.Companion.createWebAuthenticationClient
 import kotlinx.coroutines.launch
+import sample.okta.android.legacy.BuildConfig
 import timber.log.Timber
 
 class BrowserViewModel : ViewModel() {
@@ -35,7 +36,7 @@ class BrowserViewModel : ViewModel() {
             _state.value = BrowserState.Loading
 
             val webAuthenticationClient = CredentialBootstrap.oidcClient.createWebAuthenticationClient()
-            when (val result = webAuthenticationClient.login(context)) {
+            when (val result = webAuthenticationClient.login(context, BuildConfig.SIGN_IN_REDIRECT_URI)) {
                 is OidcClientResult.Error -> {
                     Timber.e(result.exception, "Failed to login.")
                     _state.value = BrowserState.Error("Failed to login.")

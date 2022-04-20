@@ -37,6 +37,7 @@ class RedirectEndSessionFlowTest {
         val result = redirectEndSessionFlow.start(
             idToken = "exampleIdToken",
             state = "25c1d684-8d30-42e3-acc0-b74b35fd47b4",
+            redirectUrl = "unitTest:/logout",
         )
 
         val context = (result as OidcClientResult.Success<RedirectEndSessionFlow.Context>).result
@@ -51,6 +52,7 @@ class RedirectEndSessionFlowTest {
         val flowContext = RedirectEndSessionFlow.Context(
             state = "25c1d684-8d30-42e3-acc0-b74b35fd47b4",
             url = "https://example.okta.com/not_used".toHttpUrl(),
+            redirectUrl = "unitTest:/logout",
         )
         val result = redirectEndSessionFlow.resume(
             uri = Uri.parse("unitTest:/logout?state=${flowContext.state}"),
@@ -64,6 +66,7 @@ class RedirectEndSessionFlowTest {
         val flowContext = RedirectEndSessionFlow.Context(
             state = "25c1d684-8d30-42e3-acc0-b74b35fd47b4",
             url = "https://example.okta.com/not_used".toHttpUrl(),
+            redirectUrl = "unitTest:/logout",
         )
         val result = redirectEndSessionFlow.resume(
             uri = Uri.parse("wrong:/logout?state=${flowContext.state}"),
@@ -78,6 +81,7 @@ class RedirectEndSessionFlowTest {
         val flowContext = RedirectEndSessionFlow.Context(
             state = "25c1d684-8d30-42e3-acc0-b74b35fd47b4",
             url = "https://example.okta.com/not_used".toHttpUrl(),
+            redirectUrl = "unitTest:/logout",
         )
         val result = redirectEndSessionFlow.resume(
             uri = Uri.parse("unitTest:/logout?state=MISMATCH"),
@@ -94,6 +98,7 @@ class RedirectEndSessionFlowTest {
         val flowContext = RedirectEndSessionFlow.Context(
             state = "25c1d684-8d30-42e3-acc0-b74b35fd47b4",
             url = "https://example.okta.com/not_used".toHttpUrl(),
+            redirectUrl = "unitTest:/logout",
         )
         val result = redirectEndSessionFlow.resume(
             uri = Uri.parse("unitTest:/logout?error=foo"),
@@ -110,6 +115,7 @@ class RedirectEndSessionFlowTest {
         val flowContext = RedirectEndSessionFlow.Context(
             state = "25c1d684-8d30-42e3-acc0-b74b35fd47b4",
             url = "https://example.okta.com/not_used".toHttpUrl(),
+            redirectUrl = "unitTest:/logout",
         )
         val result = redirectEndSessionFlow.resume(
             uri = Uri.parse("unitTest:/logout?error=foo&error_description=Invalid%20Client%20Id"),

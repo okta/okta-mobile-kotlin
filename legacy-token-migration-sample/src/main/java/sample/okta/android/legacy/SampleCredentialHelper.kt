@@ -27,8 +27,6 @@ internal object SampleCredentialHelper {
         val oidcConfiguration = OidcConfiguration(
             clientId = BuildConfig.CLIENT_ID,
             defaultScopes = setOf("openid", "email", "profile", "offline_access"),
-            signInRedirectUri = BuildConfig.SIGN_IN_REDIRECT_URI,
-            signOutRedirectUri = BuildConfig.SIGN_OUT_REDIRECT_URI,
         )
         val oidcClient = OidcClient.createFromDiscoveryUrl(
             oidcConfiguration,

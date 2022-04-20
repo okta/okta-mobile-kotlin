@@ -67,14 +67,14 @@ class WebAuthenticationClientTest {
             redirectCountDownLatch.countDown()
         }
         val loginResultDeferred = async(Dispatchers.IO) {
-            webAuthenticationClient.login(context)
+            webAuthenticationClient.login(context, "unitTest:/login")
         }
         assertThat(initializeCountDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
         val initializationResult = redirectCoordinator.runInitializationFunction() as RedirectInitializationResult.Success<*>
 
         assertThat(redirectCountDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
         val state = initializationResult.url.queryParameter("state")
-        val uri = Uri.parse("${oktaRule.configuration.signInRedirectUri}?state=$state&code=ExampleCode")
+        val uri = Uri.parse("unitTest:/login?state=$state&code=ExampleCode")
         redirectCoordinator.emit(uri)
 
         val token = (loginResultDeferred.await() as OidcClientResult.Success<Token>).result
@@ -101,7 +101,7 @@ class WebAuthenticationClientTest {
             initializeCountDownLatch.countDown()
         }
         val loginResultDeferred = async(Dispatchers.IO) {
-            webAuthenticationClient.login(context)
+            webAuthenticationClient.login(context, "unitTest:/login")
         }
         assertThat(initializeCountDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
         redirectCoordinator.emit(null)
@@ -127,7 +127,7 @@ class WebAuthenticationClientTest {
             redirectCountDownLatch.countDown()
         }
         val loginResultDeferred = async(Dispatchers.IO) {
-            webAuthenticationClient.login(context)
+            webAuthenticationClient.login(context, "unitTest:/login")
         }
         assertThat(initializeCountDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
         redirectCoordinator.runInitializationFunction()
@@ -159,7 +159,7 @@ class WebAuthenticationClientTest {
             initializeCountDownLatch.countDown()
         }
         val loginResultDeferred = async(Dispatchers.IO) {
-            webAuthenticationClient.login(context)
+            webAuthenticationClient.login(context, "unitTest:/login")
         }
         assertThat(initializeCountDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
         redirectCoordinator.runInitializationFunction()
@@ -185,14 +185,14 @@ class WebAuthenticationClientTest {
             redirectCountDownLatch.countDown()
         }
         val logoutResultDeferred = async(Dispatchers.IO) {
-            webAuthenticationClient.logoutOfBrowser(context, "ExampleIdToken")
+            webAuthenticationClient.logoutOfBrowser(context, "unitTest:/logout", "ExampleIdToken")
         }
         assertThat(initializeCountDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
         val initializationResult = redirectCoordinator.runInitializationFunction() as RedirectInitializationResult.Success<*>
 
         assertThat(redirectCountDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
         val state = initializationResult.url.queryParameter("state")
-        val uri = Uri.parse("${oktaRule.configuration.signOutRedirectUri}?state=$state")
+        val uri = Uri.parse("unitTest:/logout?state=$state")
         redirectCoordinator.emit(uri)
 
         assertThat(logoutResultDeferred.await()).isInstanceOf(OidcClientResult.Success::class.java)
@@ -211,7 +211,7 @@ class WebAuthenticationClientTest {
             initializeCountDownLatch.countDown()
         }
         val logoutResultDeferred = async(Dispatchers.IO) {
-            webAuthenticationClient.logoutOfBrowser(context, "ExampleIdToken")
+            webAuthenticationClient.logoutOfBrowser(context, "unitTest:/logout", "ExampleIdToken")
         }
         assertThat(initializeCountDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
         redirectCoordinator.emit(null)
@@ -237,7 +237,7 @@ class WebAuthenticationClientTest {
             redirectCountDownLatch.countDown()
         }
         val logoutResultDeferred = async(Dispatchers.IO) {
-            webAuthenticationClient.logoutOfBrowser(context, "ExampleIdToken")
+            webAuthenticationClient.logoutOfBrowser(context, "unitTest:/logout", "ExampleIdToken")
         }
         assertThat(initializeCountDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
         redirectCoordinator.runInitializationFunction()
@@ -269,7 +269,7 @@ class WebAuthenticationClientTest {
             initializeCountDownLatch.countDown()
         }
         val logoutResultDeferred = async(Dispatchers.IO) {
-            webAuthenticationClient.logoutOfBrowser(context, "ExampleIdToken")
+            webAuthenticationClient.logoutOfBrowser(context, "unitTest:/logout", "ExampleIdToken")
         }
         assertThat(initializeCountDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
         redirectCoordinator.runInitializationFunction()

@@ -31,6 +31,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import sample.okta.android.BuildConfig
 import sample.okta.android.SampleHelper
 import timber.log.Timber
 
@@ -118,7 +119,11 @@ internal class DashboardViewModel(private val credentialMetadataNameValue: Strin
     fun logoutOfWeb(context: Context) {
         viewModelScope.launch {
             val idToken = credential.token?.idToken ?: return@launch
-            when (val result = CredentialBootstrap.oidcClient.createWebAuthenticationClient().logoutOfBrowser(context, idToken)) {
+            when (val result = CredentialBootstrap.oidcClient.createWebAuthenticationClient().logoutOfBrowser(
+                context = context,
+                redirectUrl = BuildConfig.SIGN_OUT_REDIRECT_URI,
+                idToken = idToken,
+            )) {
                 is OidcClientResult.Error -> {
                     Timber.e(result.exception, "Failed to start logout flow.")
                     _requestStateLiveData.value = RequestState.Result(result.exception.message ?: "An error occurred.")
