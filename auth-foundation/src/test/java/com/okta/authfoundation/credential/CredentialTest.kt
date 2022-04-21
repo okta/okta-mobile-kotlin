@@ -21,6 +21,7 @@ import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundation.client.dto.OidcIntrospectInfo
 import com.okta.authfoundation.client.dto.OidcUserInfo
 import com.okta.authfoundation.client.events.TokenCreatedEvent
+import com.okta.authfoundation.credential.events.CredentialDeletedEvent
 import com.okta.authfoundation.credential.events.CredentialStoredAfterRemovedEvent
 import com.okta.authfoundation.jwt.IdTokenClaims
 import com.okta.authfoundation.jwt.JwtBuilder.Companion.createJwtBuilder
@@ -72,7 +73,7 @@ class CredentialTest {
         }
     }
 
-    @Test fun testRemove(): Unit = runBlocking {
+    @Test fun testDelete(): Unit = runBlocking {
         val storage = mock<TokenStorage>()
         val credentialDataSource = mock<CredentialDataSource>()
         val token = createToken()
@@ -81,6 +82,11 @@ class CredentialTest {
         verify(credentialDataSource).remove(credential)
         verify(storage).remove(eq(CredentialFactory.tokenStorageId))
         assertThat(credential.token).isNull()
+        assertThat(oktaRule.eventHandler).hasSize(1)
+        val event = oktaRule.eventHandler[0]
+        assertThat(event).isInstanceOf(CredentialDeletedEvent::class.java)
+        val deletedEvent = event as CredentialDeletedEvent
+        assertThat(deletedEvent.credential).isEqualTo(credential)
     }
 
     @Test fun testRemoveIsNoOpAfterRemove(): Unit = runBlocking {
@@ -111,9 +117,10 @@ class CredentialTest {
         val token = createToken()
         val credential = oktaRule.createCredential(token = token, tokenStorage = storage, credentialDataSource = credentialDataSource)
         credential.delete()
-        credential.storeToken(token = createToken())
         assertThat(oktaRule.eventHandler).hasSize(1)
-        val event = oktaRule.eventHandler[0]
+        credential.storeToken(token = createToken())
+        assertThat(oktaRule.eventHandler).hasSize(2)
+        val event = oktaRule.eventHandler[1]
         assertThat(event).isInstanceOf(CredentialStoredAfterRemovedEvent::class.java)
         val removedEvent = event as CredentialStoredAfterRemovedEvent
         assertThat(removedEvent.credential).isEqualTo(credential)
