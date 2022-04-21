@@ -57,7 +57,12 @@ class CredentialDataSource internal constructor(
         fun OidcClient.createCredentialDataSource(
             context: Context,
         ): CredentialDataSource {
-            val storage = SharedPreferencesTokenStorage(configuration.json, configuration.ioDispatcher, context)
+            val storage = SharedPreferencesTokenStorage(
+                json = configuration.json,
+                dispatcher = configuration.ioDispatcher,
+                eventCoordinator = configuration.eventCoordinator,
+                context = context
+            )
             return CredentialDataSource(this, storage)
         }
     }
