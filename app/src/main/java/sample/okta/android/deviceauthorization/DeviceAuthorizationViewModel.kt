@@ -24,6 +24,7 @@ import com.okta.authfoundationbootstrap.CredentialBootstrap
 import com.okta.oauth2.DeviceAuthorizationFlow
 import com.okta.oauth2.DeviceAuthorizationFlow.Companion.createDeviceAuthorizationFlow
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 internal class DeviceAuthorizationViewModel : ViewModel() {
     private val _state = MutableLiveData<DeviceAuthorizationState>(DeviceAuthorizationState.Loading)
@@ -40,7 +41,8 @@ internal class DeviceAuthorizationViewModel : ViewModel() {
             val deviceAuthorizationFlow = CredentialBootstrap.oidcClient.createDeviceAuthorizationFlow()
             when (val result = deviceAuthorizationFlow.start()) {
                 is OidcClientResult.Error -> {
-                    _state.value = DeviceAuthorizationState.Error(result.exception.message ?: "An error occurred.")
+                    Timber.e(result.exception, "Failed to start device authorization flow.")
+                    _state.value = DeviceAuthorizationState.Error("An error occurred.")
                 }
                 is OidcClientResult.Success -> {
                     _state.value = DeviceAuthorizationState.Polling(result.result.userCode, result.result.verificationUri)
@@ -53,7 +55,8 @@ internal class DeviceAuthorizationViewModel : ViewModel() {
     private suspend fun resume(deviceAuthorizationFlow: DeviceAuthorizationFlow, flowContext: DeviceAuthorizationFlow.Context) {
         when (val result = deviceAuthorizationFlow.resume(flowContext)) {
             is OidcClientResult.Error -> {
-                _state.value = DeviceAuthorizationState.Error(result.exception.message ?: "An error occurred.")
+                Timber.e(result.exception, "Failed to resume device authorization flow.")
+                _state.value = DeviceAuthorizationState.Error("An error occurred.")
             }
             is OidcClientResult.Success -> {
                 CredentialBootstrap.defaultCredential().storeToken(token = result.result)

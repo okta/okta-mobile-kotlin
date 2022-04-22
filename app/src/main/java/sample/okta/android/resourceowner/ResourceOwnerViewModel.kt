@@ -23,6 +23,7 @@ import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundationbootstrap.CredentialBootstrap
 import com.okta.oauth2.ResourceOwnerFlow.Companion.createResourceOwnerFlow
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 internal class ResourceOwnerViewModel : ViewModel() {
     private val _state = MutableLiveData<ResourceOwnerState>(ResourceOwnerState.Idle)
@@ -35,7 +36,8 @@ internal class ResourceOwnerViewModel : ViewModel() {
             val resourceOwnerFlow = CredentialBootstrap.oidcClient.createResourceOwnerFlow()
             when (val result = resourceOwnerFlow.start(username, password)) {
                 is OidcClientResult.Error -> {
-                    _state.value = ResourceOwnerState.Error(result.exception.message ?: "An error occurred.")
+                    Timber.e(result.exception, "Failed to start resource owner flow.")
+                    _state.value = ResourceOwnerState.Error("An error occurred.")
                 }
                 is OidcClientResult.Success -> {
                     CredentialBootstrap.defaultCredential().storeToken(token = result.result)
