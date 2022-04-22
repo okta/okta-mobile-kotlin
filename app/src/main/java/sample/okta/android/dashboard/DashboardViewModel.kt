@@ -121,7 +121,7 @@ internal class DashboardViewModel(private val credentialMetadataNameValue: Strin
             when (val result = CredentialBootstrap.oidcClient.createWebAuthenticationClient().logoutOfBrowser(context, idToken)) {
                 is OidcClientResult.Error -> {
                     Timber.e(result.exception, "Failed to start logout flow.")
-                    _requestStateLiveData.value = RequestState.Result(result.exception.message ?: "An error occurred.")
+                    _requestStateLiveData.value = RequestState.Result("Logout failed.")
                 }
                 is OidcClientResult.Success -> {
                     credential.delete()

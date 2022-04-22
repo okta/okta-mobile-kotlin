@@ -24,6 +24,7 @@ import com.okta.authfoundationbootstrap.CredentialBootstrap
 import com.okta.oauth2.TokenExchangeFlow.Companion.createTokenExchangeFlow
 import kotlinx.coroutines.launch
 import sample.okta.android.SampleHelper
+import timber.log.Timber
 
 class TokenExchangeViewModel : ViewModel() {
     companion object {
@@ -60,7 +61,8 @@ class TokenExchangeViewModel : ViewModel() {
             }
             when (val result = tokenExchangeFlow.start(idToken, deviceSecret)) {
                 is OidcClientResult.Error -> {
-                    _state.value = TokenExchangeState.Error(result.exception.message ?: "An error occurred.")
+                    Timber.e(result.exception, "Failed to start token exchange flow.")
+                    _state.value = TokenExchangeState.Error("An error occurred.")
                 }
                 is OidcClientResult.Success -> {
                     tokenExchangeCredential.storeToken(token = result.result)
