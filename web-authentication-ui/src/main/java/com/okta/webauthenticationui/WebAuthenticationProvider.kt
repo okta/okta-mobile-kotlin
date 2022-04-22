@@ -52,7 +52,7 @@ internal class DefaultWebAuthenticationProvider(
     companion object {
         const val X_OKTA_USER_AGENT = "X-Okta-User-Agent-Extended"
 
-        val USER_AGENT_HEADER = "okta-oidc-android/${Build.VERSION.SDK_INT} ${BuildConfig.LIBRARY_PACKAGE_NAME}/2.0.0"
+        val USER_AGENT_HEADER = "web-authentication-ui/${Build.VERSION.SDK_INT} com.okta.webauthenticationui/2.0.0"
     }
 
     override fun launch(context: Context, url: HttpUrl): Exception? {

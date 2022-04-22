@@ -70,7 +70,7 @@ class OidcConfiguration(
     /** The Json object to do the decoding from the okta server responses. */
     @InternalAuthFoundationApi val json: Json = Json { ignoreUnknownKeys = true }
 
-    companion object {
+    private companion object {
         private fun addInterceptor(callFactory: Call.Factory): Call.Factory {
             if (callFactory is OkHttpClient) {
                 return callFactory.newBuilder()

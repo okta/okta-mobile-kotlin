@@ -2,6 +2,7 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'org.jetbrains.kotlin.plugin.serialization'
 apply plugin: 'com.vanniktech.maven.publish.base'
+apply plugin: 'binary-compatibility-validator'
 
 android {
     compileSdkVersion build_versions.compile_sdk
@@ -29,6 +30,9 @@ android {
     kotlinOptions {
         jvmTarget = '1.8'
         freeCompilerArgs += ["-Xopt-in=kotlin.RequiresOptIn", "-Xopt-in=com.okta.authfoundation.InternalAuthFoundationApi"]
+    }
+    buildFeatures {
+        buildConfig = false
     }
 }
 
