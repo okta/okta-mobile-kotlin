@@ -1,0 +1,25 @@
+public final class com/okta/legacytokenmigration/LegacyTokenMigration {
+	public static final field INSTANCE Lcom/okta/legacytokenmigration/LegacyTokenMigration;
+	public final fun migrate (Landroid/content/Context;Lcom/okta/oidc/clients/sessions/SessionClient;Lcom/okta/authfoundation/credential/Credential;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public abstract class com/okta/legacytokenmigration/LegacyTokenMigration$Result {
+}
+
+public final class com/okta/legacytokenmigration/LegacyTokenMigration$Result$Error : com/okta/legacytokenmigration/LegacyTokenMigration$Result {
+	public fun <init> (Ljava/lang/Exception;)V
+	public final fun getException ()Ljava/lang/Exception;
+}
+
+public final class com/okta/legacytokenmigration/LegacyTokenMigration$Result$MissingLegacyToken : com/okta/legacytokenmigration/LegacyTokenMigration$Result {
+	public static final field INSTANCE Lcom/okta/legacytokenmigration/LegacyTokenMigration$Result$MissingLegacyToken;
+}
+
+public final class com/okta/legacytokenmigration/LegacyTokenMigration$Result$PreviouslyMigrated : com/okta/legacytokenmigration/LegacyTokenMigration$Result {
+	public static final field INSTANCE Lcom/okta/legacytokenmigration/LegacyTokenMigration$Result$PreviouslyMigrated;
+}
+
+public final class com/okta/legacytokenmigration/LegacyTokenMigration$Result$SuccessfullyMigrated : com/okta/legacytokenmigration/LegacyTokenMigration$Result {
+	public static final field INSTANCE Lcom/okta/legacytokenmigration/LegacyTokenMigration$Result$SuccessfullyMigrated;
+}
+
