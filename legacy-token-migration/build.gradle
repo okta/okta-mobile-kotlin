@@ -1,5 +1,6 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
+apply plugin: 'com.vanniktech.maven.publish.base'
 
 android {
     compileSdkVersion build_versions.compile_sdk
@@ -56,12 +57,6 @@ dependencies {
     testImplementation project(':test-helpers')
 }
 
-if (hasProperty('mavenCentralUsername')) {
-    apply plugin: "com.vanniktech.maven.publish"
-    afterEvaluate {
-        signing {
-            useGpgCmd()
-            sign configurations.archives
-        }
-    }
+mavenPublishing {
+    configure(new com.vanniktech.maven.publish.AndroidSingleVariantLibrary("release"))
 }
