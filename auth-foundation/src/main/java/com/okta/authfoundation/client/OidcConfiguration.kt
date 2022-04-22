@@ -38,12 +38,6 @@ class OidcConfiguration(
     /** The default access scopes required by the client, can be overridden when logging in. */
     val defaultScopes: Set<String>,
 
-    /** The application's redirect URI. */
-    val signInRedirectUri: String = "",
-
-    /** The application's end session redirect URI. */
-    val signOutRedirectUri: String = "",
-
     /** The Call.Factory which makes calls to the okta server. */
     okHttpClientFactory: () -> Call.Factory = AuthFoundationDefaults.okHttpClientFactory,
 

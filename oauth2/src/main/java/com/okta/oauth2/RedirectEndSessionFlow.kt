@@ -48,6 +48,7 @@ class RedirectEndSessionFlow private constructor(
          * The url which should be used to log the user out.
          */
         val url: HttpUrl,
+        internal val redirectUrl: String,
         internal val state: String,
     )
 
@@ -69,14 +70,15 @@ class RedirectEndSessionFlow private constructor(
      * Initiates the logout redirect flow.
      *
      * See [RedirectEndSessionFlow.resume] for completing the flow.
-     *
+     * @param redirectUrl the redirect URL.
      * @param idToken the token used to identify the session to log the user out of.
      */
-    suspend fun start(idToken: String): OidcClientResult<Context> {
-        return start(idToken, UUID.randomUUID().toString())
+    suspend fun start(redirectUrl: String, idToken: String): OidcClientResult<Context> {
+        return start(redirectUrl, idToken, UUID.randomUUID().toString())
     }
 
     internal suspend fun start(
+        redirectUrl: String,
         idToken: String,
         state: String,
     ): OidcClientResult<Context> {
@@ -84,10 +86,10 @@ class RedirectEndSessionFlow private constructor(
 
         val urlBuilder = endpoint.newBuilder()
         urlBuilder.addQueryParameter("id_token_hint", idToken)
-        urlBuilder.addQueryParameter("post_logout_redirect_uri", oidcClient.configuration.signOutRedirectUri)
+        urlBuilder.addQueryParameter("post_logout_redirect_uri", redirectUrl)
         urlBuilder.addQueryParameter("state", state)
 
-        return OidcClientResult.Success(Context(urlBuilder.build(), state))
+        return OidcClientResult.Success(Context(urlBuilder.build(), redirectUrl, state))
     }
 
     /**
@@ -97,7 +99,7 @@ class RedirectEndSessionFlow private constructor(
      * @param flowContext the [RedirectEndSessionFlow.Context] used internally to maintain state.
      */
     fun resume(uri: Uri, flowContext: Context): OidcClientResult<Unit> {
-        if (!uri.toString().startsWith(oidcClient.configuration.signOutRedirectUri)) {
+        if (!uri.toString().startsWith(flowContext.redirectUrl)) {
             return OidcClientResult.Error(RedirectSchemeMismatchException())
         }
 

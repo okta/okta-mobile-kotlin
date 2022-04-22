@@ -49,8 +49,6 @@ class OktaRule(
     val configuration: OidcConfiguration = OidcConfiguration(
         clientId = "unit_test_client_id",
         defaultScopes = setOf("openid", "email", "profile", "offline_access"),
-        signInRedirectUri = "unitTest:/login",
-        signOutRedirectUri = "unitTest:/logout",
         okHttpClientFactory = { okHttpClient },
         eventCoordinator = EventCoordinator(eventHandler),
         clock = clock,

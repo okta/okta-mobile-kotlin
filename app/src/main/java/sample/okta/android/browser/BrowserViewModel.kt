@@ -24,6 +24,7 @@ import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundationbootstrap.CredentialBootstrap
 import com.okta.webauthenticationui.WebAuthenticationClient.Companion.createWebAuthenticationClient
 import kotlinx.coroutines.launch
+import sample.okta.android.BuildConfig
 import timber.log.Timber
 
 class BrowserViewModel : ViewModel() {
@@ -41,7 +42,12 @@ class BrowserViewModel : ViewModel() {
                 scopes = scopes + setOf("device_sso")
             }
 
-            when (val result = webAuthenticationClient.login(context, emptyMap(), scopes)) {
+            when (val result = webAuthenticationClient.login(
+                context = context,
+                redirectUrl = BuildConfig.SIGN_IN_REDIRECT_URI,
+                extraRequestParameters = emptyMap(),
+                scopes = scopes,
+            )) {
                 is OidcClientResult.Error -> {
                     Timber.e(result.exception, "Failed to start login flow.")
                     _state.value = BrowserState.Error("Failed to start login flow.")

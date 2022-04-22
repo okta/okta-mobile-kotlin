@@ -55,6 +55,7 @@ class AuthorizationCodeFlowTest {
             nonce = "12345689",
             extraRequestParameters = emptyMap(),
             scopes = oktaRule.configuration.defaultScopes,
+            redirectUrl = "unitTest:/login",
         )
 
         val context = (result as OidcClientResult.Success<AuthorizationCodeFlow.Context>).result
@@ -79,6 +80,7 @@ class AuthorizationCodeFlowTest {
             nonce = "12345689",
             extraRequestParameters = requestParameters,
             scopes = oktaRule.configuration.defaultScopes,
+            redirectUrl = "unitTest:/login",
         )
 
         val context = (result as OidcClientResult.Success<AuthorizationCodeFlow.Context>).result
@@ -103,6 +105,7 @@ class AuthorizationCodeFlowTest {
             nonce = "12345689",
             extraRequestParameters = requestParameters,
             scopes = oktaRule.configuration.defaultScopes,
+            redirectUrl = "unitTest:/login",
         )
 
         val context = (result as OidcClientResult.Success<AuthorizationCodeFlow.Context>).result
@@ -128,6 +131,7 @@ class AuthorizationCodeFlowTest {
             nonce = "12345689",
             extraRequestParameters = extraRequestParameters,
             scopes = oktaRule.configuration.defaultScopes,
+            redirectUrl = "unitTest:/login",
         )
 
         val context = (result as OidcClientResult.Success<AuthorizationCodeFlow.Context>).result
@@ -156,6 +160,7 @@ class AuthorizationCodeFlowTest {
             state = "25c1d684-8d30-42e3-acc0-b74b35fd47b4",
             nonce = "12345689",
             maxAge = null,
+            redirectUrl = "unitTest:/login",
         )
         val result = authorizationCodeFlow.resume(
             uri = Uri.parse("unitTest:/login?state=${flowContext.state}&code=D13x1bzHhzG7Q1oxSmCcoQg5wjbJzopF4ua1f8UZiE4"),
@@ -189,6 +194,7 @@ class AuthorizationCodeFlowTest {
             state = "25c1d684-8d30-42e3-acc0-b74b35fd47b4",
             nonce = "12345689",
             maxAge = 300,
+            redirectUrl = "unitTest:/login",
         )
         val result = authorizationCodeFlow.resume(
             uri = Uri.parse("unitTest:/login?state=${flowContext.state}&code=D13x1bzHhzG7Q1oxSmCcoQg5wjbJzopF4ua1f8UZiE4"),
@@ -219,6 +225,7 @@ class AuthorizationCodeFlowTest {
             state = "25c1d684-8d30-42e3-acc0-b74b35fd47b4",
             nonce = "12345689",
             maxAge = null,
+            redirectUrl = "unitTest:/login",
         )
         val result = authorizationCodeFlow.resume(
             uri = Uri.parse("unitTest:/login?state=${flowContext.state}&code=D13x1bzHhzG7Q1oxSmCcoQg5wjbJzopF4ua1f8UZiE4"),
@@ -237,6 +244,7 @@ class AuthorizationCodeFlowTest {
             state = "25c1d684-8d30-42e3-acc0-b74b35fd47b4",
             nonce = "12345689",
             maxAge = null,
+            redirectUrl = "unitTest:/login",
         )
         val result = authorizationCodeFlow.resume(
             uri = Uri.parse("wrong:/login?state=${flowContext.state}&code=D13x1bzHhzG7Q1oxSmCcoQg5wjbJzopF4ua1f8UZiE4"),
@@ -254,6 +262,7 @@ class AuthorizationCodeFlowTest {
             state = "25c1d684-8d30-42e3-acc0-b74b35fd47b4",
             nonce = "12345689",
             maxAge = null,
+            redirectUrl = "unitTest:/login",
         )
         val result = authorizationCodeFlow.resume(
             uri = Uri.parse("unitTest:/login?state=MISMATCHED&code=D13x1bzHhzG7Q1oxSmCcoQg5wjbJzopF4ua1f8UZiE4"),
@@ -272,6 +281,7 @@ class AuthorizationCodeFlowTest {
             state = "25c1d684-8d30-42e3-acc0-b74b35fd47b4",
             nonce = "12345689",
             maxAge = null,
+            redirectUrl = "unitTest:/login",
         )
         val result = authorizationCodeFlow.resume(
             uri = Uri.parse("unitTest:/login?error=foo"),
@@ -290,6 +300,7 @@ class AuthorizationCodeFlowTest {
             state = "25c1d684-8d30-42e3-acc0-b74b35fd47b4",
             nonce = "12345689",
             maxAge = null,
+            redirectUrl = "unitTest:/login",
         )
         val result = authorizationCodeFlow.resume(
             uri = Uri.parse("unitTest:/login?error=foo&error_description=Invalid%20Username"),

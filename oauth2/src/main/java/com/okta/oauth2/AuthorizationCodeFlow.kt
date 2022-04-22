@@ -52,6 +52,7 @@ class AuthorizationCodeFlow private constructor(
          * The current authentication Url.
          */
         val url: HttpUrl,
+        internal val redirectUrl: String,
         internal val codeVerifier: String,
         internal val state: String,
         internal val nonce: String,
@@ -85,15 +86,18 @@ class AuthorizationCodeFlow private constructor(
      *
      * See [AuthorizationCodeFlow.resume] for completing the flow.
      *
+     * @param redirectUrl the redirect URL.
      * @param extraRequestParameters the extra key value pairs to send to the authorize endpoint.
      *  See [Authorize Documentation](https://developer.okta.com/docs/reference/api/oidc/#authorize) for parameter options.
      * @param scopes the scopes to request during sign in. Defaults to the configured [OidcClient] [OidcConfiguration.defaultScopes].
      */
     suspend fun start(
+        redirectUrl: String,
         extraRequestParameters: Map<String, String> = emptyMap(),
         scopes: Set<String> = oidcClient.configuration.defaultScopes,
     ): OidcClientResult<Context> {
         return start(
+            redirectUrl = redirectUrl,
             codeVerifier = PkceGenerator.codeVerifier(),
             state = UUID.randomUUID().toString(),
             nonce = UUID.randomUUID().toString(),
@@ -103,6 +107,7 @@ class AuthorizationCodeFlow private constructor(
     }
 
     internal suspend fun start(
+        redirectUrl: String,
         codeVerifier: String,
         state: String,
         nonce: String,
@@ -123,12 +128,12 @@ class AuthorizationCodeFlow private constructor(
         urlBuilder.addQueryParameter("code_challenge_method", PkceGenerator.CODE_CHALLENGE_METHOD)
         urlBuilder.addQueryParameter("client_id", oidcClient.configuration.clientId)
         urlBuilder.addQueryParameter("scope", scopes.joinToString(" "))
-        urlBuilder.addQueryParameter("redirect_uri", oidcClient.configuration.signInRedirectUri)
+        urlBuilder.addQueryParameter("redirect_uri", redirectUrl)
         urlBuilder.addQueryParameter("response_type", "code")
         urlBuilder.addQueryParameter("state", state)
         urlBuilder.addQueryParameter("nonce", nonce)
 
-        return OidcClientResult.Success(Context(urlBuilder.build(), codeVerifier, state, nonce, maxAge))
+        return OidcClientResult.Success(Context(urlBuilder.build(), redirectUrl, codeVerifier, state, nonce, maxAge))
     }
 
     /**
@@ -139,7 +144,7 @@ class AuthorizationCodeFlow private constructor(
      * @param flowContext the [AuthorizationCodeFlow.Context] used internally to maintain state.
      */
     suspend fun resume(uri: Uri, flowContext: Context): OidcClientResult<Token> {
-        if (!uri.toString().startsWith(oidcClient.configuration.signInRedirectUri)) {
+        if (!uri.toString().startsWith(flowContext.redirectUrl)) {
             return OidcClientResult.Error(RedirectSchemeMismatchException())
         }
 
@@ -160,7 +165,7 @@ class AuthorizationCodeFlow private constructor(
         val endpoints = oidcClient.endpointsOrNull() ?: return oidcClient.endpointNotAvailableError()
 
         val formBodyBuilder = FormBody.Builder()
-            .add("redirect_uri", oidcClient.configuration.signInRedirectUri)
+            .add("redirect_uri", flowContext.redirectUrl)
             .add("code_verifier", flowContext.codeVerifier)
             .add("client_id", oidcClient.configuration.clientId)
             .add("grant_type", "authorization_code")
