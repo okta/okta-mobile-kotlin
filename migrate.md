@@ -11,7 +11,7 @@ There are many reasons to upgrade from [okta-oidc-android](https://github.com/ok
 Add the Legacy Token Migration dependency to your `build.gradle` file:
 
 ```gradle
-implementation 'com.okta.kotlin:legacy-token-migration:<latest-version>'
+implementation('com.okta.kotlin:legacy-token-migration')
 ```
 
 ## Configuration

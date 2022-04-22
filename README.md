@@ -70,10 +70,14 @@ Okta is busy adding new functionality to its identity platform. We're excited to
 Add the `Okta Mobile Kotlin` dependencies to your `build.gradle` file:
 
 ```gradle
-implementation 'com.okta.kotlin:auth-foundation:0.3.0-BETA'
-implementation 'com.okta.kotlin:auth-foundation-bootstrap:0.3.0-BETA'
-implementation 'com.okta.kotlin:oauth2:0.3.0-BETA'
-implementation 'com.okta.kotlin:web-authentication-ui:0.3.0-BETA'
+// Ensure all dependencies are compatible using the Bill of Materials (BOM).
+implementation(platform('com.okta.kotlin:bom:0.4.0-BETA'))
+
+// Add the dependencies to your project.
+implementation('com.okta.kotlin:auth-foundation')
+implementation('com.okta.kotlin:auth-foundation-bootstrap')
+implementation('com.okta.kotlin:oauth2')
+implementation('com.okta.kotlin:web-authentication-ui')
 ```
 
 See the [CHANGELOG](CHANGELOG.md) for the most recent changes.

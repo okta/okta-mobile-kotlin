@@ -13,8 +13,12 @@ buildscript {
 }
 
 allprojects {
+    group = project.property('GROUP')
+    version = project.property('VERSION_NAME')
+
     addRepos(repositories)
     forceVersions(configurations)
+    configurePublishing(it)
 }
 
 task clean(type: Delete) {

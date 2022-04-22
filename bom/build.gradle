@@ -1,0 +1,20 @@
+apply plugin: 'java-platform'
+apply plugin: 'com.vanniktech.maven.publish.base'
+
+dependencies {
+    constraints {
+        project.rootProject.subprojects.forEach { subproject ->
+            if (subproject.name != "bom") {
+                api(subproject)
+            }
+        }
+    }
+}
+
+publishing {
+    publications {
+        release(MavenPublication) {
+            from(project.components["javaPlatform"])
+        }
+    }
+}
