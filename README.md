@@ -330,6 +330,11 @@ before they are processed by the SDK.
 Providing a custom call factory is an advanced use case, and is not recommended. The possibilities are endless, including the ability to
 replace the engine that executes the HTTP requests.
 
+## Troubleshooting
+
+- java.lang.NoClassDefFoundError: Failed resolution of: Ljava/time/Instant;
+  - Fix: configure [Core Library Desugaring](https://developer.android.com/studio/write/java8-support#library-desugaring)
+
 ## Running the sample
 
 The sample is designed to show what is possible when using the SDK.
