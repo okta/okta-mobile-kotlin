@@ -139,6 +139,7 @@ internal class InteractContext private constructor(
     companion object {
         suspend fun create(
             oidcClient: OidcClient,
+            redirectUrl: String,
             extraParameters: Map<String, String> = emptyMap(),
             codeVerifier: String = PkceGenerator.codeVerifier(),
             state: String = UUID.randomUUID().toString(),
@@ -153,7 +154,7 @@ internal class InteractContext private constructor(
                 .add("scope", oidcClient.configuration.defaultScopes.joinToString(separator = " "))
                 .add("code_challenge", codeChallenge)
                 .add("code_challenge_method", PkceGenerator.CODE_CHALLENGE_METHOD)
-                .add("redirect_uri", oidcClient.configuration.signInRedirectUri)
+                .add("redirect_uri", redirectUrl)
                 .add("state", state)
 
             for (extraParameter in extraParameters) {

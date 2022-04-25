@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.0.0-BETA4] - 2022-04-25
+### Changed
+- Updated to the latest auth-foundation (0.4.0-BETA)
+
 ## [2.0.0-BETA3] - 2022-04-14
 ### Changed
 - Updated to the latest auth-foundation (0.3.0-BETA)

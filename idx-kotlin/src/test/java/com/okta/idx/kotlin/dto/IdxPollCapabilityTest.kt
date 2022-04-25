@@ -43,7 +43,7 @@ class IdxPollCapabilityTest {
             response.testBodyFromFile("client/challengeAuthenticatorRemediationResponseLongPoll.json")
         }
 
-        val clientResult = networkRule.createOidcClient().createIdxFlow() as OidcClientResult.Success<IdxFlow>
+        val clientResult = networkRule.createOidcClient().createIdxFlow("test.okta.com/login") as OidcClientResult.Success<IdxFlow>
         val client = clientResult.result
         val resumeResult = client.resume() as OidcClientResult.Success<IdxResponse>
         val resumeResponse = resumeResult.result
@@ -68,7 +68,7 @@ class IdxPollCapabilityTest {
             response.testBodyFromFile("client/selectAuthenticatorAuthenticateRemediationResponse.json")
         }
 
-        val clientResult = networkRule.createOidcClient().createIdxFlow() as OidcClientResult.Success<IdxFlow>
+        val clientResult = networkRule.createOidcClient().createIdxFlow("test.okta.com/login") as OidcClientResult.Success<IdxFlow>
         val client = clientResult.result
         val resumeResult = client.resume() as OidcClientResult.Success<IdxResponse>
         val resumeResponse = resumeResult.result
@@ -96,7 +96,7 @@ class IdxPollCapabilityTest {
             response.testBodyFromFile("client/challengePollRemediationResponseLong.json")
         }
 
-        val clientResult = networkRule.createOidcClient().createIdxFlow() as OidcClientResult.Success<IdxFlow>
+        val clientResult = networkRule.createOidcClient().createIdxFlow("test.okta.com/login") as OidcClientResult.Success<IdxFlow>
         val client = clientResult.result
         val resumeResult = client.resume() as OidcClientResult.Success<IdxResponse>
         val resumeResponse = resumeResult.result
@@ -121,7 +121,7 @@ class IdxPollCapabilityTest {
             response.testBodyFromFile("client/selectAuthenticatorAuthenticateRemediationResponse.json")
         }
 
-        val clientResult = networkRule.createOidcClient().createIdxFlow() as OidcClientResult.Success<IdxFlow>
+        val clientResult = networkRule.createOidcClient().createIdxFlow("test.okta.com/login") as OidcClientResult.Success<IdxFlow>
         val client = clientResult.result
         val resumeResult = client.resume() as OidcClientResult.Success<IdxResponse>
         val resumeResponse = resumeResult.result

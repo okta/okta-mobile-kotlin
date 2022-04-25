@@ -24,7 +24,8 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.okta.authfoundation.client.OidcClientResult
-import com.okta.idx.android.SampleHelper
+import com.okta.authfoundationbootstrap.CredentialBootstrap
+import com.okta.idx.android.dynamic.BuildConfig
 import com.okta.idx.android.dynamic.SocialRedirectCoordinator
 import com.okta.idx.kotlin.client.IdxFlow
 import com.okta.idx.kotlin.client.IdxFlow.Companion.createIdxFlow
@@ -69,7 +70,10 @@ internal class DynamicAuthViewModel(private val recoveryToken: String) : ViewMod
             if (recoveryToken.isNotEmpty()) {
                 extraRequestParameters["recovery_token"] = recoveryToken
             }
-            when (val clientResult = SampleHelper.defaultCredential.oidcClient.createIdxFlow(extraRequestParameters)) {
+            when (val clientResult = CredentialBootstrap.oidcClient.createIdxFlow(
+                redirectUrl = BuildConfig.REDIRECT_URI,
+                extraStartRequestParameters = extraRequestParameters,
+            )) {
                 is OidcClientResult.Error -> {
                     _state.value = DynamicAuthState.Error("Failed to create client")
                 }
@@ -129,11 +133,12 @@ internal class DynamicAuthViewModel(private val recoveryToken: String) : ViewMod
 
     private suspend fun handleResponse(response: IdxResponse) {
         if (response.isLoginSuccessful) {
-            when (flow?.exchangeInteractionCodeForTokens(response.remediations[IdxRemediation.Type.ISSUE]!!)) {
+            when (val result = flow?.exchangeInteractionCodeForTokens(response.remediations[IdxRemediation.Type.ISSUE]!!)) {
                 is OidcClientResult.Error -> {
                     _state.value = DynamicAuthState.Error("Failed to call resume")
                 }
                 is OidcClientResult.Success -> {
+                    CredentialBootstrap.defaultCredential().storeToken(result.result)
                     _state.value = DynamicAuthState.Tokens
                 }
             }

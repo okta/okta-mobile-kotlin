@@ -18,6 +18,7 @@ package com.okta.idx.android.dynamic
 import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
+import com.okta.idx.android.SampleCredentialHelper
 import timber.log.Timber
 
 class SampleApplication : Application() {
@@ -32,5 +33,7 @@ class SampleApplication : Application() {
         context = this
 
         Timber.plant(Timber.DebugTree())
+
+        SampleCredentialHelper.initialize(this)
     }
 }

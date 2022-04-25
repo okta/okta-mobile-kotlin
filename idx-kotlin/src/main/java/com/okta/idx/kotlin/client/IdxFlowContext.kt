@@ -31,4 +31,6 @@ class IdxFlowContext internal constructor(
      * This value can be used to associate a redirect URI to the associated Context that can be used to resume an authentication session.
      */
     internal val state: String,
+
+    internal val redirectUrl: String,
 )

@@ -63,7 +63,7 @@ class RequestMiddlewareTest {
     }
 
     @Test fun testTokenRequestFromInteractionCode(): Unit = runBlocking {
-        val flowContext = IdxFlowContext(codeVerifier = "123456", interactionHandle = "234567", state = "345678")
+        val flowContext = IdxFlowContext(codeVerifier = "123456", interactionHandle = "234567", state = "345678", redirectUrl = "test.okta.com/login")
         val request = tokenRequestFromInteractionCode(networkRule.createOidcClient(), flowContext, "654321")
         assertThat(request.url.toString()).endsWith("/oauth2/default/v1/token")
         assertThat(request.method).isEqualTo("POST")
@@ -74,7 +74,7 @@ class RequestMiddlewareTest {
     }
 
     @Test fun testIntrospectRequest(): Unit = runBlocking {
-        val flowContext = IdxFlowContext(codeVerifier = "123456", interactionHandle = "234567", state = "345678")
+        val flowContext = IdxFlowContext(codeVerifier = "123456", interactionHandle = "234567", state = "345678", redirectUrl = "test.okta.com/login")
         val request = introspectRequest(networkRule.createOidcClient(), flowContext)
         assertThat(request.url.toString()).endsWith("/idp/idx/introspect")
         assertThat(request.method).isEqualTo("POST")
@@ -85,7 +85,7 @@ class RequestMiddlewareTest {
     }
 
     @Test fun testInteractContext(): Unit = runBlocking {
-        val interactContext = InteractContext.create(networkRule.createOidcClient(), codeVerifier = "asdfasdf", state = "randomGen")!!
+        val interactContext = InteractContext.create(networkRule.createOidcClient(), "test.okta.com/login", codeVerifier = "asdfasdf", state = "randomGen")!!
         assertThat(interactContext.codeVerifier).isEqualTo("asdfasdf")
         assertThat(interactContext.state).isEqualTo("randomGen")
         val request = interactContext.request
@@ -106,14 +106,14 @@ class RequestMiddlewareTest {
                 networkRule.configuration,
                 networkRule.mockedUrl().newBuilder()
                     .addPathSegments(".well-known/openid-configuration").build(),
-            ), codeVerifier = "asdfasdf", state = "randomGen"
+            ), "test.okta.com/login", codeVerifier = "asdfasdf", state = "randomGen"
         )
         assertThat(interactContext).isNull()
     }
 
     @Test fun testInteractContextWithExtraParameters(): Unit = runBlocking {
         val extraParameters = mapOf(Pair("recovery_token", "secret"))
-        val interactContext = InteractContext.create(networkRule.createOidcClient(), extraParameters, codeVerifier = "asdfasdf", state = "randomGen")!!
+        val interactContext = InteractContext.create(networkRule.createOidcClient(), "test.okta.com/login", extraParameters, codeVerifier = "asdfasdf", state = "randomGen")!!
         assertThat(interactContext.codeVerifier).isEqualTo("asdfasdf")
         assertThat(interactContext.state).isEqualTo("randomGen")
         val request = interactContext.request

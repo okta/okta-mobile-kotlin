@@ -46,10 +46,15 @@ class IdxFlow internal constructor(
          * Used to create an IdxFlow, and to start an authorization flow.
          */
         suspend fun OidcClient.createIdxFlow(
+            redirectUrl: String,
             extraStartRequestParameters: Map<String, String> = emptyMap(),
         ): OidcClientResult<IdxFlow> {
             val interactContext = withContext(configuration.computeDispatcher) {
-                InteractContext.create(this@createIdxFlow, extraStartRequestParameters)
+                InteractContext.create(
+                    oidcClient = this@createIdxFlow,
+                    redirectUrl = redirectUrl,
+                    extraParameters = extraStartRequestParameters,
+                )
             } ?: return endpointNotAvailableError()
 
             return performRequest(
@@ -60,6 +65,7 @@ class IdxFlow internal constructor(
                     codeVerifier = interactContext.codeVerifier,
                     interactionHandle = it.interactionHandle,
                     state = interactContext.state,
+                    redirectUrl = redirectUrl,
                 )
                 IdxFlow(
                     oidcClient = this,
@@ -132,7 +138,7 @@ class IdxFlow internal constructor(
      * Evaluates the given redirect url to determine what next steps can be performed. This is usually used when receiving a redirection from an IDP authentication flow.
      */
     suspend fun evaluateRedirectUri(uri: Uri): IdxRedirectResult {
-        if (!uri.toString().startsWith(oidcClient.configuration.signInRedirectUri)) {
+        if (!uri.toString().startsWith(flowContext.redirectUrl)) {
             val error = "IDP redirect failed due not matching the configured redirect uri."
             return IdxRedirectResult.Error(error)
         }

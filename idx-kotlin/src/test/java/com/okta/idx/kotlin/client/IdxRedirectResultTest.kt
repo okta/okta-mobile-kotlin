@@ -33,7 +33,7 @@ class IdxRedirectResultTest {
     @get:Rule val networkRule = NetworkRule()
 
     private fun createClient(): IdxFlow {
-        val flowContext = IdxFlowContext("abcd", "bcde", "cdef")
+        val flowContext = IdxFlowContext("abcd", "bcde", "cdef", "test.okta.com/login")
         return IdxFlow(networkRule.createOidcClient(), flowContext)
     }
 

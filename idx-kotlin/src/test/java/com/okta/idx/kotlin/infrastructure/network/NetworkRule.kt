@@ -69,8 +69,6 @@ class NetworkRule : TestRule {
     val configuration: OidcConfiguration = OidcConfiguration(
         clientId = "test",
         defaultScopes = setOf("openid", "email", "profile", "offline_access"),
-        signInRedirectUri = "test.okta.com/login",
-        signOutRedirectUri = "unitTest:/logout",
         okHttpClientFactory = { okHttpClient() },
         eventCoordinator = EventCoordinator(emptyList()),
         clock = clock,
