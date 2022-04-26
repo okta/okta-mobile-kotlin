@@ -34,6 +34,12 @@ android {
     buildFeatures {
         buildConfig = false
     }
+
+    sourceSets {
+        main {
+            kotlin.srcDir("$buildDir/generated/sources/kotlinTemplates")
+        }
+    }
 }
 
 dependencies {
@@ -51,6 +57,7 @@ dependencies {
     testImplementation deps.kotlin.test
     testImplementation deps.mockito.core
     testImplementation deps.mockito.kotlin
+    testImplementation deps.robolectric
     testImplementation project(':test-helpers')
 
     androidTestImplementation deps.junit
@@ -61,6 +68,16 @@ dependencies {
     androidTestImplementation deps.androidx_test.runner
     androidTestImplementation deps.androidx_test.rules
     androidTestImplementation project(':test-helpers')
+}
+
+task copyKotlinTemplates(type: Copy) {
+    from("src/main/kotlinTemplates")
+    into("$buildDir/generated/sources/kotlinTemplates")
+    expand(projectVersion: project.version)
+}
+
+tasks.withType(org.jetbrains.kotlin.gradle.dsl.KotlinCompile) {
+    dependsOn(copyKotlinTemplates)
 }
 
 mavenPublishing {

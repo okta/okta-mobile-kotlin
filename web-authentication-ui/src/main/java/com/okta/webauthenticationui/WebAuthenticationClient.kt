@@ -21,6 +21,7 @@ import androidx.annotation.VisibleForTesting
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundation.client.OidcConfiguration
+import com.okta.authfoundation.client.internal.SdkVersionsRegistry
 import com.okta.authfoundation.credential.Token
 import com.okta.oauth2.AuthorizationCodeFlow
 import com.okta.oauth2.AuthorizationCodeFlow.Companion.createAuthorizationCodeFlow
@@ -40,6 +41,10 @@ class WebAuthenticationClient private constructor(
     private val webAuthenticationProvider: WebAuthenticationProvider,
 ) {
     companion object {
+        init {
+            SdkVersionsRegistry.register(SDK_VERSION)
+        }
+
         /**
          * Initializes a web authentication client using the [OidcClient].
          *

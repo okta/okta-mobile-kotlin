@@ -179,6 +179,11 @@ public final class com/okta/authfoundation/client/internal/NetworkUtilsKt {
 	public static synthetic fun performRequest$default (Lcom/okta/authfoundation/client/OidcClient;Lkotlinx/serialization/DeserializationStrategy;Lokhttp3/Request;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
+public final class com/okta/authfoundation/client/internal/SdkVersionsRegistry {
+	public static final field INSTANCE Lcom/okta/authfoundation/client/internal/SdkVersionsRegistry;
+	public final fun register (Ljava/lang/String;)V
+}
+
 public final class com/okta/authfoundation/credential/Credential {
 	public final fun accessTokenInterceptor ()Lokhttp3/Interceptor;
 	public final fun delete (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;

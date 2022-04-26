@@ -32,6 +32,12 @@ android {
     buildFeatures {
         buildConfig = false
     }
+
+    sourceSets {
+        main {
+            kotlin.srcDir("$buildDir/generated/sources/kotlinTemplates")
+        }
+    }
 }
 
 dependencies {
@@ -48,6 +54,16 @@ dependencies {
     testImplementation deps.kotlin.test
     testImplementation deps.robolectric
     testImplementation project(':test-helpers')
+}
+
+task copyKotlinTemplates(type: Copy) {
+    from("src/main/kotlinTemplates")
+    into("$buildDir/generated/sources/kotlinTemplates")
+    expand(projectVersion: project.version)
+}
+
+tasks.withType(org.jetbrains.kotlin.gradle.dsl.KotlinCompile) {
+    dependsOn(copyKotlinTemplates)
 }
 
 mavenPublishing {
