@@ -122,6 +122,7 @@ internal class DynamicAuthViewModel(private val recoveryToken: String) : ViewMod
                     handleResponse(redirectResult.response)
                 }
                 is IdxRedirectResult.Tokens -> {
+                    CredentialBootstrap.defaultCredential().storeToken(redirectResult.response)
                     _state.value = DynamicAuthState.Tokens
                 }
                 null -> {

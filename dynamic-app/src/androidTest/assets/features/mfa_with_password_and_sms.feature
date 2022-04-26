@@ -17,6 +17,7 @@ Feature: 6.2 Multi-Factor Authentication with Password and SMS
     Then the screen changes to receive an input for a code
     When she inputs the correct code from the SMS
     And she submits the verify form
+    When she selects skip
     Then she is redirected to the Root View
     And an application session is created
 
