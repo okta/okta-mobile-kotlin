@@ -19,6 +19,7 @@ import android.net.Uri
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundation.client.OidcConfiguration
+import com.okta.authfoundation.client.internal.SdkVersionsRegistry
 import com.okta.authfoundation.credential.Token
 import okhttp3.FormBody
 import okhttp3.HttpUrl
@@ -34,6 +35,10 @@ class AuthorizationCodeFlow private constructor(
     private val oidcClient: OidcClient,
 ) {
     companion object {
+        init {
+            SdkVersionsRegistry.register(SDK_VERSION)
+        }
+
         /**
          * Initializes an authorization code flow using the [OidcClient].
          *

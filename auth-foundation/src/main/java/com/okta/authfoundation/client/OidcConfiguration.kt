@@ -17,6 +17,7 @@ package com.okta.authfoundation.client
 
 import com.okta.authfoundation.AuthFoundationDefaults
 import com.okta.authfoundation.InternalAuthFoundationApi
+import com.okta.authfoundation.client.internal.SdkVersionsRegistry
 import com.okta.authfoundation.events.EventCoordinator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.json.Json
@@ -85,7 +86,7 @@ class OidcConfiguration(
 private object OidcUserAgentInterceptor : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
         val request = chain.request().newBuilder()
-            .header("user-agent", "okta-oidc-kotlin/1.0.0")
+            .header("user-agent", SdkVersionsRegistry.userAgent)
             .build()
 
         return chain.proceed(request)

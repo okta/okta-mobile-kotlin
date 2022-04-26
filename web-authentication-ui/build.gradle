@@ -46,6 +46,12 @@ android {
             includeAndroidResources = true
         }
     }
+
+    sourceSets {
+        main {
+            kotlin.srcDir("$buildDir/generated/sources/kotlinTemplates")
+        }
+    }
 }
 
 dependencies {
@@ -70,6 +76,16 @@ dependencies {
     testImplementation deps.mockito.core
     testImplementation deps.mockito.kotlin
     testImplementation project(':test-helpers')
+}
+
+task copyKotlinTemplates(type: Copy) {
+    from("src/main/kotlinTemplates")
+    into("$buildDir/generated/sources/kotlinTemplates")
+    expand(projectVersion: project.version)
+}
+
+tasks.withType(org.jetbrains.kotlin.gradle.dsl.KotlinCompile) {
+    dependsOn(copyKotlinTemplates)
 }
 
 mavenPublishing {

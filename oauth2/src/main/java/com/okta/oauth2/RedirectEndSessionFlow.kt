@@ -18,6 +18,7 @@ package com.okta.oauth2
 import android.net.Uri
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcClientResult
+import com.okta.authfoundation.client.internal.SdkVersionsRegistry
 import okhttp3.HttpUrl
 import java.util.UUID
 
@@ -30,6 +31,10 @@ class RedirectEndSessionFlow private constructor(
     private val oidcClient: OidcClient,
 ) {
     companion object {
+        init {
+            SdkVersionsRegistry.register(SDK_VERSION)
+        }
+
         /**
          * Initializes an end session redirect flow using the [OidcClient].
          *

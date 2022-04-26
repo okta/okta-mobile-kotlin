@@ -18,6 +18,7 @@ package com.okta.oauth2
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundation.client.OidcConfiguration
+import com.okta.authfoundation.client.internal.SdkVersionsRegistry
 import com.okta.authfoundation.client.internal.performRequest
 import com.okta.authfoundation.credential.Token
 import kotlinx.coroutines.delay
@@ -39,6 +40,10 @@ class DeviceAuthorizationFlow private constructor(
     private val oidcClient: OidcClient,
 ) {
     companion object {
+        init {
+            SdkVersionsRegistry.register(SDK_VERSION)
+        }
+
         /**
          * Initializes a device authorization grant flow using the [OidcClient].
          *
