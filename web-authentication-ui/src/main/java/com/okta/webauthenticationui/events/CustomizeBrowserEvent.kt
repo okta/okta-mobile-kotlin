@@ -15,9 +15,9 @@
  */
 package com.okta.webauthenticationui.events
 
+import android.content.pm.PackageManager
 import com.okta.authfoundation.events.EventHandler
 import com.okta.webauthenticationui.WebAuthenticationClient
-import android.content.pm.PackageManager
 
 /**
  * Emitted via [EventHandler.onEvent] when [WebAuthenticationClient.login] or [WebAuthenticationClient.logoutOfBrowser] is invoked.

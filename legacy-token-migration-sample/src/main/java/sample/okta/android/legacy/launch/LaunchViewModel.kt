@@ -32,11 +32,13 @@ internal class LaunchViewModel : ViewModel() {
 
     fun migrateTokens(context: Context) {
         viewModelScope.launch {
-            when (val result = LegacyTokenMigration.migrate(
-                context = context,
-                sessionClient = SampleWebAuthClientHelper.webAuthClient.sessionClient,
-                credential = CredentialBootstrap.defaultCredential(),
-            )) {
+            when (
+                val result = LegacyTokenMigration.migrate(
+                    context = context,
+                    sessionClient = SampleWebAuthClientHelper.webAuthClient.sessionClient,
+                    credential = CredentialBootstrap.defaultCredential(),
+                )
+            ) {
                 is LegacyTokenMigration.Result.Error -> {
                     Timber.d(result.exception, "Token migration failed.")
                 }

@@ -10,6 +10,7 @@ buildscript {
         classpath deps.kotlin.plugin
         classpath deps.kotlin.serialization_plugin
         classpath deps.navigation.safe_args_plugin
+        classpath deps.spotless
     }
 }
 
@@ -20,8 +21,5 @@ allprojects {
     addRepos(repositories)
     forceVersions(configurations)
     configurePublishing(it)
-}
-
-task clean(type: Delete) {
-    delete rootProject.buildDir
+    configureSpotless(it)
 }

@@ -31,12 +31,14 @@ import org.junit.Test
 class OidcClientIdTokenValidationFailureTest {
     private val mockPrefix = "client_test_responses"
 
-    @get:Rule val oktaRule = OktaRule(idTokenValidator = object : IdTokenValidator {
-        override var issuedAtGracePeriodInSeconds: Int = 600
-        override suspend fun validate(oidcClient: OidcClient, idToken: Jwt, nonce: String?, maxAge: Int?) {
-            throw IllegalStateException("Failure!")
+    @get:Rule val oktaRule = OktaRule(
+        idTokenValidator = object : IdTokenValidator {
+            override var issuedAtGracePeriodInSeconds: Int = 600
+            override suspend fun validate(oidcClient: OidcClient, idToken: Jwt, nonce: String?, maxAge: Int?) {
+                throw IllegalStateException("Failure!")
+            }
         }
-    })
+    )
 
     @Test fun testRefreshTokenIdTokenValidationFailure(): Unit = runBlocking {
         oktaRule.enqueue(

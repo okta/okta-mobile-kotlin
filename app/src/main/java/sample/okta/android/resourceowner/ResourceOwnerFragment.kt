@@ -44,7 +44,6 @@ internal class ResourceOwnerFragment : BaseFragment<FragmentResourceOwnerBinding
                     binding.errorTextView.text = state.message
                 }
                 ResourceOwnerState.Idle -> {
-
                 }
                 ResourceOwnerState.Token -> {
                     findNavController().navigate(ResourceOwnerFragmentDirections.resourceOwnerToDashboard())

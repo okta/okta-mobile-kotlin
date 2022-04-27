@@ -35,24 +35,27 @@ internal class LegacyBrowserViewModel : ViewModel() {
     fun registerCallback(activity: Activity) {
         val webClient = SampleWebAuthClientHelper.webAuthClient
 
-        webClient.registerCallback(object : ResultCallback<AuthorizationStatus, AuthorizationException> {
-            override fun onSuccess(@NonNull status: AuthorizationStatus) {
-                if (status == AuthorizationStatus.AUTHORIZED) {
-                    _state.value = BrowserState.Token
-                } else {
-                    _state.value = BrowserState.Error("An error occurred.")
+        webClient.registerCallback(
+            object : ResultCallback<AuthorizationStatus, AuthorizationException> {
+                override fun onSuccess(@NonNull status: AuthorizationStatus) {
+                    if (status == AuthorizationStatus.AUTHORIZED) {
+                        _state.value = BrowserState.Token
+                    } else {
+                        _state.value = BrowserState.Error("An error occurred.")
+                    }
                 }
-            }
 
-            override fun onCancel() {
-                _state.value = BrowserState.Error("Login was cancelled.")
-            }
+                override fun onCancel() {
+                    _state.value = BrowserState.Error("Login was cancelled.")
+                }
 
-            override fun onError(@NonNull msg: String?, error: AuthorizationException?) {
-                Timber.e(error, "Failed to login.")
-                _state.value = BrowserState.Error(msg ?: "An error occurred.")
-            }
-        }, activity)
+                override fun onError(@NonNull msg: String?, error: AuthorizationException?) {
+                    Timber.e(error, "Failed to login.")
+                    _state.value = BrowserState.Error(msg ?: "An error occurred.")
+                }
+            },
+            activity,
+        )
     }
 
     fun login(activity: Activity) {

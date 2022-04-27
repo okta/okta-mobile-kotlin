@@ -43,7 +43,6 @@ internal class BrowserFragment : BaseFragment<FragmentBrowserBinding>(
                     binding.errorTextView.text = state.message
                 }
                 BrowserState.Idle -> {
-
                 }
                 BrowserState.Token -> {
                     findNavController().navigate(BrowserFragmentDirections.browserToDashboard())
