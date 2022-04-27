@@ -48,7 +48,6 @@ class LegacyBrowserFragment : BaseFragment<FragmentBrowserBinding>(
                     binding.errorTextView.text = state.message
                 }
                 BrowserState.Idle -> {
-
                 }
                 BrowserState.Token -> {
                     findNavController().navigate(LegacyBrowserFragmentDirections.legacyBrowserToDashboard())

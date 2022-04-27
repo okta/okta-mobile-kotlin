@@ -6,7 +6,7 @@
 
 The Okta Mobile SDK represents a suite of libraries that intends to replace our legacy mobile SDKs, with the aim to streamline development, ease maintenance and feature development, and enable new use cases that were previously difficult or impractical to implement. We are building a platform to support the development of many SDKs, allowing application developers to choose which SDKs they need.
 
-The Okta Mobile Kotlin SDK is intended to be used on the Android platform.  
+The Okta Mobile Kotlin SDK is intended to be used on the Android platform.
 
 ## SDK Overview
 
@@ -93,9 +93,9 @@ This library uses semantic versioning and follows Okta's [Library Version Policy
 The latest release can always be found on the [releases page][github-releases].
 
 ## Need help?
- 
+
 If you run into problems using the SDK, you can:
- 
+
 * Ask questions on the [Okta Developer Forums][devforum]
 * Post [issues][github-issues] here on GitHub (for code errors)
 
@@ -111,7 +111,7 @@ To get started, you will need:
 
 This SDK consists of several different libraries, each with their own detailed documentation.
 
-SDKs are split between two primary use cases: 
+SDKs are split between two primary use cases:
 - Minting tokens (authentication)
   - Okta supports many OAuth flows, our Android SDKs support the following: Authorization Code, Interaction Code, Refresh Token, Resource Owner Password, Device Authorization, and Token Exchange.
 - Managing the token lifecycle (refresh, storage, validation, etc)
@@ -273,17 +273,17 @@ when (val result = tokenExchangeFlow.start(idToken, deviceSecret)) {
 
 > Note: You'll want to ensure you have 2 *DIFFERENT* `Credential`s. The first needs to have the `idToken`, and `deviceSecret` minted via a `WebAuthenticationClient`. The second will be used in the `TokenExchangeFlow`.
 
-### Logout 
+### Logout
 
 There are multiple terms that might be confused when logging a user out.
 
 - `Credential.delete` - Clears the in memory reference to the `Token` and removes the information from `TokenStorage`, the `Credential` can no longer be used.
 - `Credential.revokeToken`/`OidcClient.revokeToken` - Revokes the specified `RevokeTokenType` from the Authorization Server.
-- `WebAuthenticationClient.logoutOfBrowser` - Removes the Okta session if the user was logged in via the OIDC Browser redirect flow. Also revokes the associated `Token`(s) minted via this flow. 
+- `WebAuthenticationClient.logoutOfBrowser` - Removes the Okta session if the user was logged in via the OIDC Browser redirect flow. Also revokes the associated `Token`(s) minted via this flow.
 
 > Notes:
 > - `Credential.delete` does not revoke a token
-> - `Credential.revokeToken`/`OidcClient.revokeToken` does not remove the `Token` from memory, or `TokenStorage`. It also does not invalidate the browser session if the `Token` was minted via the OIDC Browser redirect flow. 
+> - `Credential.revokeToken`/`OidcClient.revokeToken` does not remove the `Token` from memory, or `TokenStorage`. It also does not invalidate the browser session if the `Token` was minted via the OIDC Browser redirect flow.
 > - `WebAuthenticationClient.logoutOfBrowser` revokes the `Token`, but does not remove it from memory or `TokenStorage`
 > - Revoking a `RevokeTokenType.ACCESS_TOKEN` does not revoke the associated `Token.refreshToken` or `Token.deviceSecret`
 > - Revoking a `RevokeTokenType.DEVICE_SECRET` does not revoke the associated `Token.accessToken` or `Token.refreshToken`

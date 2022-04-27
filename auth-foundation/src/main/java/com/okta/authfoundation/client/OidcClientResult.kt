@@ -43,7 +43,7 @@ sealed class OidcClientResult<T> {
          *
          * This can happen due to a misconfigured setup, or just a common HTTP error.
          */
-        class OidcEndpointsNotAvailableException internal constructor(): Exception("OIDC Endpoints not available.")
+        class OidcEndpointsNotAvailableException internal constructor() : Exception("OIDC Endpoints not available.")
     }
 
     /** Success with the expected result. */

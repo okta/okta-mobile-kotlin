@@ -34,7 +34,7 @@ import org.junit.runners.model.Statement
 class OktaRule(
     idTokenValidator: IdTokenValidator = NoOpIdTokenValidator(),
     accessTokenValidator: AccessTokenValidator = AccessTokenValidator { _, _, _ -> },
-    deviceSecretValidator: DeviceSecretValidator = DeviceSecretValidator {_, _, _ -> },
+    deviceSecretValidator: DeviceSecretValidator = DeviceSecretValidator { _, _, _ -> },
 ) : TestRule {
     private val mockWebServer: OktaMockWebServer = OktaMockWebServer()
 

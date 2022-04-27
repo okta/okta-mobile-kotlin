@@ -15,8 +15,8 @@
  */
 package com.okta.authfoundation.client
 
-import com.okta.authfoundation.jwt.Jwt
 import com.okta.authfoundation.credential.Token
+import com.okta.authfoundation.jwt.Jwt
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import okio.ByteString.Companion.toByteString

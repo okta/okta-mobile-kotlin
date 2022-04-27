@@ -17,7 +17,6 @@ package com.okta.authfoundation.client
 
 import com.google.common.truth.Truth.assertThat
 import com.okta.authfoundation.claims.preferredUsername
-import com.okta.authfoundation.jwt.Jwks
 import com.okta.authfoundation.client.dto.OidcIntrospectInfo
 import com.okta.authfoundation.client.dto.OidcUserInfo
 import com.okta.authfoundation.client.events.TokenCreatedEvent
@@ -25,6 +24,7 @@ import com.okta.authfoundation.credential.Token
 import com.okta.authfoundation.credential.TokenType
 import com.okta.authfoundation.credential.createToken
 import com.okta.authfoundation.jwt.IdTokenClaims
+import com.okta.authfoundation.jwt.Jwks
 import com.okta.authfoundation.jwt.JwtBuilder.Companion.createJwtBuilder
 import com.okta.authfoundation.jwt.createJwks
 import com.okta.testhelpers.OktaRule

@@ -16,9 +16,9 @@
 package com.okta.authfoundation.client.dto
 
 import com.okta.authfoundation.claims.ClaimsProvider
+import com.okta.authfoundation.claims.DefaultClaimsProvider.Companion.createClaimsDeserializer
 import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.credential.Token
-import com.okta.authfoundation.claims.DefaultClaimsProvider.Companion.createClaimsDeserializer
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.boolean

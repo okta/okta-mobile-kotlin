@@ -1,5 +1,5 @@
 # Migrating from okta-oidc-android
-There are many reasons to upgrade from [okta-oidc-android](https://github.com/okta/okta-oidc-android)!  
+There are many reasons to upgrade from [okta-oidc-android](https://github.com/okta/okta-oidc-android)!
 
 - [Unlocking new use cases](README.md#unlocking-use-cases)
 - Kotlin Support

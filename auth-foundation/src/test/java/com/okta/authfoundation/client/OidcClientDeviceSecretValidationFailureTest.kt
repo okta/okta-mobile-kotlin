@@ -25,7 +25,6 @@ import com.okta.testhelpers.RequestMatchers.body
 import com.okta.testhelpers.RequestMatchers.header
 import com.okta.testhelpers.RequestMatchers.method
 import com.okta.testhelpers.RequestMatchers.path
-import com.okta.testhelpers.testBodyFromFile
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
 import org.junit.Rule

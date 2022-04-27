@@ -16,23 +16,23 @@
 package com.okta.authfoundation.client
 
 import com.okta.authfoundation.InternalAuthFoundationApi
+import com.okta.authfoundation.claims.DefaultClaimsProvider.Companion.createClaimsDeserializer
 import com.okta.authfoundation.client.dto.OidcIntrospectInfo
 import com.okta.authfoundation.client.dto.OidcIntrospectInfo.Companion.asOidcIntrospectInfo
 import com.okta.authfoundation.client.dto.OidcUserInfo
 import com.okta.authfoundation.client.events.TokenCreatedEvent
+import com.okta.authfoundation.client.internal.internalPerformRequest
 import com.okta.authfoundation.client.internal.performRequest
 import com.okta.authfoundation.client.internal.performRequestNonJson
 import com.okta.authfoundation.credential.Credential
 import com.okta.authfoundation.credential.SerializableToken
 import com.okta.authfoundation.credential.Token
 import com.okta.authfoundation.credential.TokenType
-import com.okta.authfoundation.util.CoalescingOrchestrator
-import com.okta.authfoundation.claims.DefaultClaimsProvider.Companion.createClaimsDeserializer
-import com.okta.authfoundation.client.internal.internalPerformRequest
 import com.okta.authfoundation.jwt.Jwks
 import com.okta.authfoundation.jwt.Jwt
 import com.okta.authfoundation.jwt.JwtParser
 import com.okta.authfoundation.jwt.SerializableJwks
+import com.okta.authfoundation.util.CoalescingOrchestrator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext

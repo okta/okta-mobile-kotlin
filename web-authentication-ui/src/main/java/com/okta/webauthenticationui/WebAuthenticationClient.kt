@@ -15,8 +15,8 @@
  */
 package com.okta.webauthenticationui
 
-import android.content.Context
 import android.app.Activity
+import android.content.Context
 import androidx.annotation.VisibleForTesting
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcClientResult

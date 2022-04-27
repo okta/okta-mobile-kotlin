@@ -1,6 +1,5 @@
 /*
  * Copyright 2022-Present Okta, Inc.
- * Copyright 2019 Google Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +38,6 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.shadows.ShadowResolveInfo
-
 
 @RunWith(RobolectricTestRunner::class)
 class DefaultWebAuthenticationProviderTest {
@@ -118,6 +116,7 @@ class DefaultWebAuthenticationProviderTest {
         assertThat(exception).isInstanceOf(ActivityNotFoundException::class.java)
     }
 
+    // Copyright 2019 Google Inc. All Rights Reserved.
     // https://chromium.googlesource.com/custom-tabs-client/+/refs/heads/main/customtabs/junit/src/android/support/customtabs/trusted/TwaProviderPickerTest.java
     private fun installBrowser(packageName: String) {
         val intent = Intent()
