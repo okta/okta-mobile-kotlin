@@ -84,8 +84,7 @@ public final class com/okta/authfoundation/client/OidcClient {
 	public final fun introspectToken (Lcom/okta/authfoundation/credential/TokenType;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun jwks (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun parseJwt (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public final fun refreshToken (Ljava/lang/String;Ljava/util/Set;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun refreshToken$default (Lcom/okta/authfoundation/client/OidcClient;Ljava/lang/String;Ljava/util/Set;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public final fun refreshToken (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun revokeToken (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun tokenRequest (Lokhttp3/Request;Ljava/lang/String;Ljava/lang/Integer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun tokenRequest$default (Lcom/okta/authfoundation/client/OidcClient;Lokhttp3/Request;Ljava/lang/String;Ljava/lang/Integer;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
@@ -187,11 +186,13 @@ public final class com/okta/authfoundation/client/internal/SdkVersionsRegistry {
 public final class com/okta/authfoundation/credential/Credential {
 	public final fun accessTokenInterceptor ()Lokhttp3/Interceptor;
 	public final fun delete (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun equals (Ljava/lang/Object;)Z
 	public final fun getAccessTokenIfValid (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun getMetadata ()Ljava/util/Map;
 	public final fun getToken ()Lcom/okta/authfoundation/credential/Token;
 	public final fun getUserInfo (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun getValidAccessToken (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun hashCode ()I
 	public final fun idToken (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun introspectToken (Lcom/okta/authfoundation/credential/TokenType;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun refreshToken (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;

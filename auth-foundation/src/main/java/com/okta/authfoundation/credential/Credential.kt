@@ -31,6 +31,7 @@ import kotlinx.serialization.Serializable
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import java.util.Collections
+import java.util.Objects
 
 /**
  * Convenience object that wraps a [Token], providing methods and properties for interacting with credential resources.
@@ -166,8 +167,7 @@ class Credential internal constructor(
     private suspend fun performRealRefresh(): OidcClientResult<Token> {
         val localToken = token ?: return OidcClientResult.Error(IllegalStateException("No Token."))
         val refresh = localToken.refreshToken ?: return OidcClientResult.Error(IllegalStateException("No Refresh Token."))
-        val scopes = localToken.scope.split(" ").toSet()
-        return oidcClient.refreshToken(refresh, scopes)
+        return oidcClient.refreshToken(refresh)
     }
 
     /**
@@ -263,6 +263,26 @@ class Credential internal constructor(
      */
     fun accessTokenInterceptor(): Interceptor {
         return AccessTokenInterceptor(::getValidAccessToken, oidcClient.configuration.eventCoordinator, this)
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (other === this) {
+            return true
+        }
+        if (other !is Credential) {
+            return false
+        }
+        return storageIdentifier == other.storageIdentifier &&
+            _token == other._token &&
+            _metadata == other._metadata
+    }
+
+    override fun hashCode(): Int {
+        return Objects.hash(
+            storageIdentifier,
+            _token,
+            _metadata,
+        )
     }
 }
 

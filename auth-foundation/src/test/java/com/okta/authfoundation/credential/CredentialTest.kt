@@ -215,7 +215,7 @@ class CredentialTest {
     @Test fun testRefreshTokenForwardsError(): Unit = runBlocking {
         val tokenStorage = mock<TokenStorage>()
         val oidcClient = mock<OidcClient> {
-            onBlocking { refreshToken(any(), any()) } doReturn OidcClientResult.Error(Exception("From Test"))
+            onBlocking { refreshToken(any()) } doReturn OidcClientResult.Error(Exception("From Test"))
             on { withCredential(any()) } doReturn it
             on { configuration } doReturn oktaRule.configuration
         }
@@ -225,7 +225,7 @@ class CredentialTest {
             tokenStorage = tokenStorage
         )
         val result = credential.refreshToken()
-        verify(oidcClient).refreshToken(eq("exampleRefreshToken"), eq(setOf("openid", "email", "profile", "offline_access")))
+        verify(oidcClient).refreshToken(eq("exampleRefreshToken"))
         assertThat(result).isInstanceOf(OidcClientResult.Error::class.java)
         val exception = (result as OidcClientResult.Error<Token>).exception
         assertThat(exception).hasMessageThat().isEqualTo("From Test")
@@ -235,7 +235,7 @@ class CredentialTest {
     @Test fun testRefreshToken(): Unit = runBlocking {
         val tokenStorage = spy(InMemoryTokenStorage())
         val oidcClient = mock<OidcClient> {
-            onBlocking { refreshToken(any(), any()) } doReturn OidcClientResult.Success(createToken(refreshToken = "newRefreshToken"))
+            onBlocking { refreshToken(any()) } doReturn OidcClientResult.Success(createToken(refreshToken = "newRefreshToken"))
             on { withCredential(any()) } doReturn it
             on { configuration } doReturn oktaRule.configuration
         }
@@ -245,7 +245,7 @@ class CredentialTest {
             tokenStorage = tokenStorage
         )
         val result = credential.refreshToken()
-        verify(oidcClient).refreshToken(eq("exampleRefreshToken"), eq(setOf("openid", "email", "profile", "offline_access")))
+        verify(oidcClient).refreshToken(eq("exampleRefreshToken"))
         assertThat(result).isInstanceOf(OidcClientResult.Success::class.java)
         val token = (result as OidcClientResult.Success<Token>).result
         assertThat(token.refreshToken).isEqualTo("newRefreshToken")
@@ -304,7 +304,7 @@ class CredentialTest {
 
     @Test fun testRefreshTokenPreservesDeviceSecret(): Unit = runBlocking {
         val oidcClient = mock<OidcClient> {
-            onBlocking { refreshToken(any(), any()) } doReturn OidcClientResult.Success(createToken(refreshToken = "newRefreshToken"))
+            onBlocking { refreshToken(any()) } doReturn OidcClientResult.Success(createToken(refreshToken = "newRefreshToken"))
             on { withCredential(any()) } doReturn it
             on { configuration } doReturn oktaRule.configuration
         }
@@ -313,7 +313,7 @@ class CredentialTest {
             oidcClient = oidcClient
         )
         credential.refreshToken()
-        verify(oidcClient).refreshToken(eq("exampleRefreshToken"), any())
+        verify(oidcClient).refreshToken(eq("exampleRefreshToken"))
         assertThat(credential.token!!.deviceSecret).isEqualTo("saved")
     }
 
@@ -321,7 +321,7 @@ class CredentialTest {
         val countDownLatch = CountDownLatch(2)
         val tokenStorage = spy(InMemoryTokenStorage())
         val oidcClient = mock<OidcClient> {
-            onBlocking { refreshToken(any(), any()) } doSuspendableAnswer {
+            onBlocking { refreshToken(any()) } doSuspendableAnswer {
                 assertThat(countDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
                 // Delay and change threads before returning the result to make sure we enqueue both requests before returning.
                 delay(10)
@@ -354,13 +354,13 @@ class CredentialTest {
         assertThat(token.refreshToken).isEqualTo("newRefreshToken")
         assertThat(result1).isSameInstanceAs(result2)
 
-        verify(oidcClient).refreshToken(eq("exampleRefreshToken"), eq(setOf("openid", "email", "profile", "offline_access")))
+        verify(oidcClient).refreshToken(eq("exampleRefreshToken"))
     }
 
     @Test fun testSerialRefreshToken(): Unit = runBlocking {
         val tokenStorage = spy(InMemoryTokenStorage())
         val oidcClient = mock<OidcClient> {
-            onBlocking { refreshToken(any(), any()) } doAnswer {
+            onBlocking { refreshToken(any()) } doAnswer {
                 OidcClientResult.Success(createToken(refreshToken = "newRefreshToken"))
             }
             on { withCredential(any()) } doReturn it
@@ -379,7 +379,7 @@ class CredentialTest {
         val result2 = credential.refreshToken()
         assertThat(result1).isNotSameInstanceAs(result2)
 
-        verify(oidcClient, times(2)).refreshToken(any(), any())
+        verify(oidcClient, times(2)).refreshToken(any())
     }
 
     @Test fun testStoreToken(): Unit = runBlocking {
@@ -511,7 +511,7 @@ class CredentialTest {
         val expiredIdTokenClaims = IdTokenClaims(issuedAt = oktaRule.clock.currentTime - MOCK_TOKEN_DURATION)
         val expiredIdToken = oktaRule.createOidcClient().createJwtBuilder().createJwt(claims = expiredIdTokenClaims).rawValue
         val oidcClient = mock<OidcClient> {
-            onBlocking { refreshToken(any(), any()) } doAnswer {
+            onBlocking { refreshToken(any()) } doAnswer {
                 OidcClientResult.Success(createToken(idToken = expiredIdToken))
             }
             on { withCredential(any()) } doReturn it
@@ -519,7 +519,7 @@ class CredentialTest {
         }
         val credential = oktaRule.createCredential(oidcClient = oidcClient, token = createToken(accessToken = "exampleAccessToken", refreshToken = "exampleRefreshToken", idToken = expiredIdToken))
         assertThat(credential.getValidAccessToken()).isNull()
-        verify(oidcClient).refreshToken(any(), any())
+        verify(oidcClient).refreshToken(any())
     }
 
     @Test fun testInterceptor(): Unit = runBlocking {
