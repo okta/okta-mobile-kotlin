@@ -45,7 +45,7 @@ class OidcClientIdTokenValidationFailureTest {
             method("POST"),
             header("content-type", "application/x-www-form-urlencoded"),
             path("/oauth2/default/v1/token"),
-            body("client_id=unit_test_client_id&grant_type=refresh_token&refresh_token=ExampleRefreshToken&scope=openid%20email%20profile%20offline_access"),
+            body("client_id=unit_test_client_id&grant_type=refresh_token&refresh_token=ExampleRefreshToken"),
         ) { response ->
             response.testBodyFromFile("$mockPrefix/token.json")
         }

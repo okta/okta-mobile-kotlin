@@ -130,11 +130,9 @@ class OidcClient private constructor(
      * Attempt to refresh the token.
      *
      * @param refreshToken the refresh token for which to mint a new [Token] for.
-     * @param scopes the scopes to request from the Authorization Server, defaults to the configured [OidcConfiguration.defaultScopes].
      */
     suspend fun refreshToken(
         refreshToken: String,
-        scopes: Set<String> = configuration.defaultScopes,
     ): OidcClientResult<Token> {
         val endpoints = endpointsOrNull() ?: return endpointNotAvailableError()
 
@@ -142,7 +140,6 @@ class OidcClient private constructor(
             .add("client_id", configuration.clientId)
             .add("grant_type", "refresh_token")
             .add("refresh_token", refreshToken)
-            .add("scope", scopes.joinToString(separator = " "))
             .build()
 
         val request = Request.Builder()
