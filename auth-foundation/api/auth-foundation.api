@@ -138,14 +138,13 @@ public final class com/okta/authfoundation/client/OidcConfiguration {
 }
 
 public final class com/okta/authfoundation/client/OidcEndpoints {
-	public fun <init> (Lokhttp3/HttpUrl;Lokhttp3/HttpUrl;Lokhttp3/HttpUrl;Lokhttp3/HttpUrl;Lokhttp3/HttpUrl;Lokhttp3/HttpUrl;Lokhttp3/HttpUrl;Lokhttp3/HttpUrl;Lokhttp3/HttpUrl;Lokhttp3/HttpUrl;)V
+	public fun <init> (Lokhttp3/HttpUrl;Lokhttp3/HttpUrl;Lokhttp3/HttpUrl;Lokhttp3/HttpUrl;Lokhttp3/HttpUrl;Lokhttp3/HttpUrl;Lokhttp3/HttpUrl;Lokhttp3/HttpUrl;Lokhttp3/HttpUrl;)V
 	public final fun getAuthorizationEndpoint ()Lokhttp3/HttpUrl;
 	public final fun getDeviceAuthorizationEndpoint ()Lokhttp3/HttpUrl;
 	public final fun getEndSessionEndpoint ()Lokhttp3/HttpUrl;
 	public final fun getIntrospectionEndpoint ()Lokhttp3/HttpUrl;
 	public final fun getIssuer ()Lokhttp3/HttpUrl;
 	public final fun getJwksUri ()Lokhttp3/HttpUrl;
-	public final fun getRegistrationEndpoint ()Lokhttp3/HttpUrl;
 	public final fun getRevocationEndpoint ()Lokhttp3/HttpUrl;
 	public final fun getTokenEndpoint ()Lokhttp3/HttpUrl;
 	public final fun getUserInfoEndpoint ()Lokhttp3/HttpUrl;

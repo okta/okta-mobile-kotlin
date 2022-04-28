@@ -254,7 +254,6 @@ private fun OidcEndpoints.copy(deviceAuthorizationEndpoint: HttpUrl?): OidcEndpo
         tokenEndpoint = tokenEndpoint,
         userInfoEndpoint = userInfoEndpoint,
         jwksUri = jwksUri,
-        registrationEndpoint = registrationEndpoint,
         introspectionEndpoint = introspectionEndpoint,
         revocationEndpoint = revocationEndpoint,
         endSessionEndpoint = endSessionEndpoint,
