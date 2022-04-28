@@ -7,7 +7,6 @@ public abstract class com/okta/legacytokenmigration/LegacyTokenMigration$Result 
 }
 
 public final class com/okta/legacytokenmigration/LegacyTokenMigration$Result$Error : com/okta/legacytokenmigration/LegacyTokenMigration$Result {
-	public fun <init> (Ljava/lang/Exception;)V
 	public final fun getException ()Ljava/lang/Exception;
 }
 

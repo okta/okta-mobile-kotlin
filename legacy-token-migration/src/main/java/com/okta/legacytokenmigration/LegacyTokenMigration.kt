@@ -96,7 +96,7 @@ object LegacyTokenMigration {
          * An error occurred when migrating the token.
          * See the associated [exception] for details.
          */
-        class Error(
+        class Error internal constructor(
             /**
              *
              */
