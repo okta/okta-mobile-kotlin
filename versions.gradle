@@ -183,6 +183,7 @@ def configureSpotless(Project project) {
     project.spotless {
         format 'misc', {
             target '**/*.gradle', '**/*.md', '**/.gitignore', '**/*.xml', '**/*.json', '**/*.properties', '**/*.yml', '**/*.kt'
+            targetExclude '.idea/*', '**/build/*', '.gradle/*'
 
             trimTrailingWhitespace()
             endWithNewline()
