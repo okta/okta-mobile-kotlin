@@ -66,8 +66,6 @@ public final class com/okta/authfoundation/client/DeviceSecretValidator$Error : 
 }
 
 public abstract interface class com/okta/authfoundation/client/IdTokenValidator {
-	public abstract fun getIssuedAtGracePeriodInSeconds ()I
-	public abstract fun setIssuedAtGracePeriodInSeconds (I)V
 	public abstract fun validate (Lcom/okta/authfoundation/client/OidcClient;Lcom/okta/authfoundation/jwt/Jwt;Ljava/lang/String;Ljava/lang/Integer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
@@ -170,6 +168,11 @@ public final class com/okta/authfoundation/client/dto/OidcUserInfo : com/okta/au
 public final class com/okta/authfoundation/client/events/TokenCreatedEvent {
 	public final fun getCredential ()Lcom/okta/authfoundation/credential/Credential;
 	public final fun getToken ()Lcom/okta/authfoundation/credential/Token;
+}
+
+public final class com/okta/authfoundation/client/events/ValidateIdTokenEvent {
+	public final fun getIssuedAtGracePeriodInSeconds ()I
+	public final fun setIssuedAtGracePeriodInSeconds (I)V
 }
 
 public final class com/okta/authfoundation/client/internal/NetworkUtilsKt {

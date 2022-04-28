@@ -13,23 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.okta.testhelpers
+package com.okta.authfoundation.client.events
 
+import com.okta.authfoundation.credential.Token
 import com.okta.authfoundation.events.EventHandler
-import java.util.Collections
+import com.okta.authfoundation.jwt.Jwt
 
-class RecordingEventHandler(
-    private val list: MutableList<Any> = Collections.synchronizedList(mutableListOf<Any>()),
-    private val nestedEventHandlers: MutableList<EventHandler> = Collections.synchronizedList(mutableListOf()),
-) : EventHandler, List<Any> by list {
-    override fun onEvent(event: Any) {
-        for (eventHandler in nestedEventHandlers) {
-            eventHandler.onEvent(event)
-        }
-        list += event
-    }
-
-    fun registerEventHandler(eventHandler: EventHandler) {
-        nestedEventHandlers += eventHandler
-    }
-}
+/**
+ * Emitted via [EventHandler.onEvent] when a [Token] is being validated.
+ */
+class ValidateIdTokenEvent internal constructor(
+    /**
+     * The grace period in seconds that will be permitted when verifying the ID Token [Jwt] `iss` field.
+     *
+     * *Default:* 10 minutes.
+     */
+    var issuedAtGracePeriodInSeconds: Int
+)

@@ -17,7 +17,6 @@ package com.okta.authfoundation.client
 
 import com.google.common.truth.Truth.assertThat
 import com.okta.authfoundation.credential.Token
-import com.okta.authfoundation.jwt.Jwt
 import com.okta.testhelpers.OktaRule
 import com.okta.testhelpers.RequestMatchers.body
 import com.okta.testhelpers.RequestMatchers.header
@@ -32,12 +31,7 @@ class OidcClientIdTokenValidationFailureTest {
     private val mockPrefix = "client_test_responses"
 
     @get:Rule val oktaRule = OktaRule(
-        idTokenValidator = object : IdTokenValidator {
-            override var issuedAtGracePeriodInSeconds: Int = 600
-            override suspend fun validate(oidcClient: OidcClient, idToken: Jwt, nonce: String?, maxAge: Int?) {
-                throw IllegalStateException("Failure!")
-            }
-        }
+        idTokenValidator = { _, _, _, _ -> throw IllegalStateException("Failure!") }
     )
 
     @Test fun testRefreshTokenIdTokenValidationFailure(): Unit = runBlocking {

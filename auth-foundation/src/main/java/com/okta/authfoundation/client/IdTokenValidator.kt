@@ -15,6 +15,7 @@
  */
 package com.okta.authfoundation.client
 
+import com.okta.authfoundation.client.events.ValidateIdTokenEvent
 import com.okta.authfoundation.credential.Token
 import com.okta.authfoundation.jwt.Jwt
 import kotlinx.serialization.SerialName
@@ -25,18 +26,11 @@ import kotlin.math.abs
 /**
  * Used for validating Id Tokens minted by an Authorization Server.
  */
-interface IdTokenValidator {
+fun interface IdTokenValidator {
     /**
      * An error used for describing errors when validating the [Jwt].
      */
     class Error(message: String) : IllegalStateException(message)
-
-    /**
-     * The grace period in seconds that will be permitted when verifying the ID Token [Jwt] `iss` field.
-     *
-     * *Default:* 10 minutes.
-     */
-    var issuedAtGracePeriodInSeconds: Int
 
     /**
      * Called when the [OidcClient] receives a [Token] response.
@@ -53,10 +47,11 @@ interface IdTokenValidator {
 
 // https://openid.net/specs/openid-connect-core-1_0.html#IDTokenValidation
 internal class DefaultIdTokenValidator : IdTokenValidator {
-    override var issuedAtGracePeriodInSeconds: Int = 600
-
     override suspend fun validate(oidcClient: OidcClient, idToken: Jwt, nonce: String?, maxAge: Int?) {
         val idTokenPayload = idToken.deserializeClaims(IdTokenValidationPayload.serializer())
+
+        val event = ValidateIdTokenEvent(600)
+        oidcClient.configuration.eventCoordinator.sendEvent(event)
 
         if (idTokenPayload.iss.toHttpUrl() != oidcClient.endpointsOrNull()?.issuer) {
             throw IdTokenValidator.Error("Invalid issuer.")
@@ -73,7 +68,7 @@ internal class DefaultIdTokenValidator : IdTokenValidator {
         if (idTokenPayload.exp < oidcClient.configuration.clock.currentTimeEpochSecond()) {
             throw IdTokenValidator.Error("The current time MUST be before the time represented by the exp Claim.")
         }
-        if (abs(idTokenPayload.iat - oidcClient.configuration.clock.currentTimeEpochSecond()) > issuedAtGracePeriodInSeconds) {
+        if (abs(idTokenPayload.iat - oidcClient.configuration.clock.currentTimeEpochSecond()) > event.issuedAtGracePeriodInSeconds) {
             throw IdTokenValidator.Error("Issued at time is not within the allowed threshold of now.")
         }
         if (idTokenPayload.nonce != nonce) {
