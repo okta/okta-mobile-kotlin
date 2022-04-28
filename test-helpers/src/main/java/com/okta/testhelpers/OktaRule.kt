@@ -22,7 +22,6 @@ import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.client.OidcEndpoints
 import com.okta.authfoundation.events.EventCoordinator
-import com.okta.authfoundation.jwt.Jwt
 import kotlinx.coroutines.Dispatchers
 import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
@@ -32,7 +31,7 @@ import org.junit.runner.Description
 import org.junit.runners.model.Statement
 
 class OktaRule(
-    idTokenValidator: IdTokenValidator = NoOpIdTokenValidator(),
+    idTokenValidator: IdTokenValidator = IdTokenValidator { _, _, _, _ -> },
     accessTokenValidator: AccessTokenValidator = AccessTokenValidator { _, _, _ -> },
     deviceSecretValidator: DeviceSecretValidator = DeviceSecretValidator { _, _, _ -> },
 ) : TestRule {
@@ -94,12 +93,5 @@ class OktaRule(
         mockWebServer.dispatcher.enqueue(*requestMatcher) { response ->
             responseFactory(response)
         }
-    }
-}
-
-private class NoOpIdTokenValidator : IdTokenValidator {
-    override var issuedAtGracePeriodInSeconds: Int = 600
-
-    override suspend fun validate(oidcClient: OidcClient, idToken: Jwt, nonce: String?, maxAge: Int?) {
     }
 }

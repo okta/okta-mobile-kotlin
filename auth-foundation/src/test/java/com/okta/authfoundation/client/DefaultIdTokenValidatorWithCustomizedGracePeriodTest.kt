@@ -16,6 +16,8 @@
 package com.okta.authfoundation.client
 
 import com.google.common.truth.Truth.assertThat
+import com.okta.authfoundation.client.events.ValidateIdTokenEvent
+import com.okta.authfoundation.events.EventHandler
 import com.okta.authfoundation.jwt.IdTokenClaims
 import com.okta.authfoundation.jwt.JwtBuilder.Companion.createJwtBuilder
 import com.okta.testhelpers.OktaRule
@@ -31,7 +33,7 @@ class DefaultIdTokenValidatorWithCustomizedGracePeriodTest {
     @get:Rule val oktaRule = OktaRule(idTokenValidator = idTokenValidator)
 
     init {
-        idTokenValidator.issuedAtGracePeriodInSeconds = 30 * 60
+        oktaRule.eventHandler.registerEventHandler(UpdateIssuedAtGracePeriodEventHandler())
     }
 
     @Test fun testValidIdToken(): Unit = runBlocking {
@@ -76,6 +78,14 @@ class DefaultIdTokenValidatorWithCustomizedGracePeriodTest {
             assertThat(e).hasMessageThat().isEqualTo(message)
         } catch (e: SerializationException) {
             assertThat(e).hasMessageThat().isEqualTo(message)
+        }
+    }
+}
+
+private class UpdateIssuedAtGracePeriodEventHandler : EventHandler {
+    override fun onEvent(event: Any) {
+        if (event is ValidateIdTokenEvent) {
+            event.issuedAtGracePeriodInSeconds = 30 * 60
         }
     }
 }
