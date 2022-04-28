@@ -75,7 +75,6 @@ class OktaRule(
             tokenEndpoint = urlBuilder.encodedPath("/oauth2/default/v1/token").build(),
             userInfoEndpoint = urlBuilder.encodedPath("/oauth2/default/v1/userinfo").build(),
             jwksUri = if (includeJwks) urlBuilder.encodedPath("/oauth2/default/v1/keys").build() else null,
-            registrationEndpoint = urlBuilder.encodedPath("/oauth2/v1/clients").build(),
             introspectionEndpoint = urlBuilder.encodedPath("/oauth2/default/v1/introspect").build(),
             revocationEndpoint = urlBuilder.encodedPath("/oauth2/default/v1/revoke").build(),
             endSessionEndpoint = urlBuilder.encodedPath("/oauth2/default/v1/logout").build(),
