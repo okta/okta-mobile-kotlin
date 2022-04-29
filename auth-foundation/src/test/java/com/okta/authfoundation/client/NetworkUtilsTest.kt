@@ -215,7 +215,7 @@ class NetworkingTest {
         val interceptor = RecordingInterceptor()
         val configuration = OidcConfiguration(
             clientId = "unit_test_client_id",
-            defaultScopes = setOf("openid", "email", "profile", "offline_access"),
+            defaultScope = "openid email profile offline_access",
             okHttpClientFactory = {
                 val builder = oktaRule.okHttpClient.newBuilder()
                 builder.addInterceptor(interceptor)
@@ -244,7 +244,7 @@ class NetworkingTest {
         val interceptor = RecordingInterceptor()
         val configuration = OidcConfiguration(
             clientId = "unit_test_client_id",
-            defaultScopes = setOf("openid", "email", "profile", "offline_access"),
+            defaultScope = "openid email profile offline_access",
             okHttpClientFactory = {
                 val builder = oktaRule.okHttpClient.newBuilder()
                 builder.addInterceptor(interceptor)

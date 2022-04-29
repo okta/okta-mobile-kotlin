@@ -53,12 +53,12 @@ class ResourceOwnerFlow private constructor(
      *
      * @param username the username
      * @param password the password
-     * @param scopes the scopes to request during sign in. Defaults to the configured [OidcClient] [OidcConfiguration.defaultScopes].
+     * @param scope the scopes to request during sign in. Defaults to the configured [OidcClient] [OidcConfiguration.defaultScope].
      */
     suspend fun start(
         username: String,
         password: String,
-        scopes: Set<String> = oidcClient.configuration.defaultScopes,
+        scope: String = oidcClient.configuration.defaultScope,
     ): OidcClientResult<Token> {
         val endpoints = oidcClient.endpointsOrNull() ?: return oidcClient.endpointNotAvailableError()
 
@@ -67,7 +67,7 @@ class ResourceOwnerFlow private constructor(
             .add("password", password)
             .add("client_id", oidcClient.configuration.clientId)
             .add("grant_type", "password")
-            .add("scope", scopes.joinToString(" "))
+            .add("scope", scope)
 
         val request = Request.Builder()
             .post(formBodyBuilder.build())

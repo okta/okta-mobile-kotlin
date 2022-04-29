@@ -198,8 +198,8 @@ class Credential internal constructor(
     /**
      * Returns the scopes associated with the current [Token] if present, otherwise the default scopes associated with the [OidcClient].
      */
-    fun scopes(): Set<String> {
-        return token?.scope?.split(" ")?.toSet() ?: oidcClient.configuration.defaultScopes
+    fun scope(): String {
+        return token?.scope ?: oidcClient.configuration.defaultScope
     }
 
     /**

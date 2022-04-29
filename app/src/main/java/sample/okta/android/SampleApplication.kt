@@ -40,7 +40,7 @@ class SampleApplication : Application() {
 
         val oidcConfiguration = OidcConfiguration(
             clientId = BuildConfig.CLIENT_ID,
-            defaultScopes = setOf("openid", "email", "profile", "offline_access"),
+            defaultScope = "openid email profile offline_access",
         )
         val oidcClient = OidcClient.createFromDiscoveryUrl(
             oidcConfiguration,

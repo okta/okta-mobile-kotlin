@@ -54,7 +54,7 @@ class AuthorizationCodeFlowTest {
             state = "25c1d684-8d30-42e3-acc0-b74b35fd47b4",
             nonce = "12345689",
             extraRequestParameters = emptyMap(),
-            scopes = oktaRule.configuration.defaultScopes,
+            scope = oktaRule.configuration.defaultScope,
             redirectUrl = "unitTest:/login",
         )
 
@@ -79,7 +79,7 @@ class AuthorizationCodeFlowTest {
             state = "25c1d684-8d30-42e3-acc0-b74b35fd47b4",
             nonce = "12345689",
             extraRequestParameters = requestParameters,
-            scopes = oktaRule.configuration.defaultScopes,
+            scope = oktaRule.configuration.defaultScope,
             redirectUrl = "unitTest:/login",
         )
 
@@ -104,7 +104,7 @@ class AuthorizationCodeFlowTest {
             state = "25c1d684-8d30-42e3-acc0-b74b35fd47b4",
             nonce = "12345689",
             extraRequestParameters = requestParameters,
-            scopes = oktaRule.configuration.defaultScopes,
+            scope = oktaRule.configuration.defaultScope,
             redirectUrl = "unitTest:/login",
         )
 
@@ -130,7 +130,7 @@ class AuthorizationCodeFlowTest {
             state = "25c1d684-8d30-42e3-acc0-b74b35fd47b4",
             nonce = "12345689",
             extraRequestParameters = extraRequestParameters,
-            scopes = oktaRule.configuration.defaultScopes,
+            scope = oktaRule.configuration.defaultScope,
             redirectUrl = "unitTest:/login",
         )
 

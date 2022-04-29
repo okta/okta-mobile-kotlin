@@ -47,7 +47,7 @@ class OktaRule(
 
     val configuration: OidcConfiguration = OidcConfiguration(
         clientId = "unit_test_client_id",
-        defaultScopes = setOf("openid", "email", "profile", "offline_access"),
+        defaultScope = "openid email profile offline_access",
         okHttpClientFactory = { okHttpClient },
         eventCoordinator = EventCoordinator(eventHandler),
         clock = clock,

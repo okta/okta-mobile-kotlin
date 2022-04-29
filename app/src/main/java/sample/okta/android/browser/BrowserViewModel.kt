@@ -37,9 +37,9 @@ class BrowserViewModel : ViewModel() {
 
             val credential = CredentialBootstrap.defaultCredential()
             val webAuthenticationClient = CredentialBootstrap.oidcClient.createWebAuthenticationClient()
-            var scopes = credential.scopes()
+            var scope = credential.scope()
             if (addDeviceSsoScope) {
-                scopes = scopes + setOf("device_sso")
+                scope += "device_sso"
             }
 
             when (
@@ -47,7 +47,7 @@ class BrowserViewModel : ViewModel() {
                     context = context,
                     redirectUrl = BuildConfig.SIGN_IN_REDIRECT_URI,
                     extraRequestParameters = emptyMap(),
-                    scopes = scopes,
+                    scope = scope,
                 )
             ) {
                 is OidcClientResult.Error -> {

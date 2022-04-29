@@ -120,13 +120,13 @@ public abstract interface class com/okta/authfoundation/client/OidcClock {
 }
 
 public final class com/okta/authfoundation/client/OidcConfiguration {
-	public fun <init> (Ljava/lang/String;Ljava/util/Set;Lkotlin/jvm/functions/Function0;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;Lcom/okta/authfoundation/client/OidcClock;Lcom/okta/authfoundation/events/EventCoordinator;Lcom/okta/authfoundation/client/IdTokenValidator;Lcom/okta/authfoundation/client/AccessTokenValidator;Lcom/okta/authfoundation/client/DeviceSecretValidator;)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/util/Set;Lkotlin/jvm/functions/Function0;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;Lcom/okta/authfoundation/client/OidcClock;Lcom/okta/authfoundation/events/EventCoordinator;Lcom/okta/authfoundation/client/IdTokenValidator;Lcom/okta/authfoundation/client/AccessTokenValidator;Lcom/okta/authfoundation/client/DeviceSecretValidator;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function0;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;Lcom/okta/authfoundation/client/OidcClock;Lcom/okta/authfoundation/events/EventCoordinator;Lcom/okta/authfoundation/client/IdTokenValidator;Lcom/okta/authfoundation/client/AccessTokenValidator;Lcom/okta/authfoundation/client/DeviceSecretValidator;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function0;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;Lcom/okta/authfoundation/client/OidcClock;Lcom/okta/authfoundation/events/EventCoordinator;Lcom/okta/authfoundation/client/IdTokenValidator;Lcom/okta/authfoundation/client/AccessTokenValidator;Lcom/okta/authfoundation/client/DeviceSecretValidator;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getAccessTokenValidator ()Lcom/okta/authfoundation/client/AccessTokenValidator;
 	public final fun getClientId ()Ljava/lang/String;
 	public final fun getClock ()Lcom/okta/authfoundation/client/OidcClock;
 	public final fun getComputeDispatcher ()Lkotlin/coroutines/CoroutineContext;
-	public final fun getDefaultScopes ()Ljava/util/Set;
+	public final fun getDefaultScope ()Ljava/lang/String;
 	public final fun getDeviceSecretValidator ()Lcom/okta/authfoundation/client/DeviceSecretValidator;
 	public final fun getEventCoordinator ()Lcom/okta/authfoundation/events/EventCoordinator;
 	public final fun getIdTokenValidator ()Lcom/okta/authfoundation/client/IdTokenValidator;
@@ -200,7 +200,7 @@ public final class com/okta/authfoundation/credential/Credential {
 	public final fun refreshToken (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun revokeToken (Lcom/okta/authfoundation/credential/RevokeTokenType;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun revokeToken$default (Lcom/okta/authfoundation/credential/Credential;Lcom/okta/authfoundation/credential/RevokeTokenType;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
-	public final fun scopes ()Ljava/util/Set;
+	public final fun scope ()Ljava/lang/String;
 	public final fun storeToken (Lcom/okta/authfoundation/credential/Token;Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun storeToken$default (Lcom/okta/authfoundation/credential/Credential;Lcom/okta/authfoundation/credential/Token;Ljava/util/Map;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }

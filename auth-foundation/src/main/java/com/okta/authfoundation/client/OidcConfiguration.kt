@@ -37,7 +37,7 @@ class OidcConfiguration(
     val clientId: String,
 
     /** The default access scopes required by the client, can be overridden when logging in. */
-    val defaultScopes: Set<String>,
+    val defaultScope: String,
 
     /** The Call.Factory which makes calls to the okta server. */
     okHttpClientFactory: () -> Call.Factory = AuthFoundationDefaults.okHttpClientFactory,
