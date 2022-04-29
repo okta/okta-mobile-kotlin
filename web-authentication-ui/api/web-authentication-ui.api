@@ -1,8 +1,8 @@
 public final class com/okta/webauthenticationui/WebAuthenticationClient {
 	public static final field Companion Lcom/okta/webauthenticationui/WebAuthenticationClient$Companion;
 	public synthetic fun <init> (Lcom/okta/authfoundation/client/OidcClient;Lcom/okta/webauthenticationui/WebAuthenticationProvider;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun login (Landroid/content/Context;Ljava/lang/String;Ljava/util/Map;Ljava/util/Set;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun login$default (Lcom/okta/webauthenticationui/WebAuthenticationClient;Landroid/content/Context;Ljava/lang/String;Ljava/util/Map;Ljava/util/Set;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public final fun login (Landroid/content/Context;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun login$default (Lcom/okta/webauthenticationui/WebAuthenticationClient;Landroid/content/Context;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public final fun logoutOfBrowser (Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 

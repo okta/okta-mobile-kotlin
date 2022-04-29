@@ -54,13 +54,13 @@ class TokenExchangeFlow private constructor(
      * @param idToken the id token for the user to create a new token for.
      * @param deviceSecret the [Token.deviceSecret] obtained via another authentication flow.
      * @param audience the audience of the authorization server. Defaults to `api://default`.
-     * @param scopes the scopes to request during sign in. Defaults to the configured [OidcClient] [OidcConfiguration.defaultScopes].
+     * @param scope the scopes to request during sign in. Defaults to the configured [OidcClient] [OidcConfiguration.defaultScope].
      */
     suspend fun start(
         idToken: String,
         deviceSecret: String,
         audience: String = "api://default",
-        scopes: Set<String> = oidcClient.configuration.defaultScopes,
+        scope: String = oidcClient.configuration.defaultScope,
     ): OidcClientResult<Token> {
         val endpoints = oidcClient.endpointsOrNull() ?: return oidcClient.endpointNotAvailableError()
 
@@ -72,7 +72,7 @@ class TokenExchangeFlow private constructor(
             .add("actor_token", deviceSecret)
             .add("client_id", oidcClient.configuration.clientId)
             .add("grant_type", "urn:ietf:params:oauth:grant-type:token-exchange")
-            .add("scope", scopes.joinToString(" "))
+            .add("scope", scope)
 
         val request = Request.Builder()
             .post(formBodyBuilder.build())

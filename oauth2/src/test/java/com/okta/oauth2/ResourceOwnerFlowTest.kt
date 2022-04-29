@@ -62,7 +62,7 @@ class ResourceOwnerFlowTest {
             response.testBodyFromFile("$mockPrefix/token.json")
         }
         val resourceOwnerFlow = oktaRule.createOidcClient().createResourceOwnerFlow()
-        val result = resourceOwnerFlow.start("foo", "bar", setOf("openid", "custom"))
+        val result = resourceOwnerFlow.start("foo", "bar", "openid custom")
         val token = (result as OidcClientResult.Success<Token>).result
         assertThat(token.tokenType).isEqualTo("Bearer")
     }

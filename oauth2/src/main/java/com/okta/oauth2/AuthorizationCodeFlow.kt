@@ -94,12 +94,12 @@ class AuthorizationCodeFlow private constructor(
      * @param redirectUrl the redirect URL.
      * @param extraRequestParameters the extra key value pairs to send to the authorize endpoint.
      *  See [Authorize Documentation](https://developer.okta.com/docs/reference/api/oidc/#authorize) for parameter options.
-     * @param scopes the scopes to request during sign in. Defaults to the configured [OidcClient] [OidcConfiguration.defaultScopes].
+     * @param scope the scopes to request during sign in. Defaults to the configured [OidcClient] [OidcConfiguration.defaultScope].
      */
     suspend fun start(
         redirectUrl: String,
         extraRequestParameters: Map<String, String> = emptyMap(),
-        scopes: Set<String> = oidcClient.configuration.defaultScopes,
+        scope: String = oidcClient.configuration.defaultScope,
     ): OidcClientResult<Context> {
         return start(
             redirectUrl = redirectUrl,
@@ -107,7 +107,7 @@ class AuthorizationCodeFlow private constructor(
             state = UUID.randomUUID().toString(),
             nonce = UUID.randomUUID().toString(),
             extraRequestParameters = extraRequestParameters,
-            scopes = scopes
+            scope = scope
         )
     }
 
@@ -117,7 +117,7 @@ class AuthorizationCodeFlow private constructor(
         state: String,
         nonce: String,
         extraRequestParameters: Map<String, String>,
-        scopes: Set<String>,
+        scope: String,
     ): OidcClientResult<Context> {
         val endpoint = oidcClient.endpointsOrNull()?.authorizationEndpoint ?: return oidcClient.endpointNotAvailableError()
 
@@ -132,7 +132,7 @@ class AuthorizationCodeFlow private constructor(
         urlBuilder.addQueryParameter("code_challenge", PkceGenerator.codeChallenge(codeVerifier))
         urlBuilder.addQueryParameter("code_challenge_method", PkceGenerator.CODE_CHALLENGE_METHOD)
         urlBuilder.addQueryParameter("client_id", oidcClient.configuration.clientId)
-        urlBuilder.addQueryParameter("scope", scopes.joinToString(" "))
+        urlBuilder.addQueryParameter("scope", scope)
         urlBuilder.addQueryParameter("redirect_uri", redirectUrl)
         urlBuilder.addQueryParameter("response_type", "code")
         urlBuilder.addQueryParameter("state", state)

@@ -182,12 +182,12 @@ class CredentialTest {
 
     @Test fun testScopesReturnDefaultScopes() {
         val credential = oktaRule.createCredential()
-        assertThat(credential.scopes()).isEqualTo(setOf("openid", "email", "profile", "offline_access"))
+        assertThat(credential.scope()).isEqualTo("openid email profile offline_access")
     }
 
     @Test fun testScopesReturnTokenScopes() {
         val credential = oktaRule.createCredential(token = createToken(scope = "openid bank_account"))
-        assertThat(credential.scopes()).isEqualTo(setOf("openid", "bank_account"))
+        assertThat(credential.scope()).isEqualTo("openid bank_account")
     }
 
     @Test fun testRefreshWithNoToken(): Unit = runBlocking {

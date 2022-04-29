@@ -113,16 +113,16 @@ class DeviceAuthorizationFlow private constructor(
      *
      * See [DeviceAuthorizationFlow.resume] for completing the flow.
      *
-     * @param scopes the scopes to request during sign in. Defaults to the configured [OidcClient] [OidcConfiguration.defaultScopes].
+     * @param scope the scopes to request during sign in. Defaults to the configured [OidcClient] [OidcConfiguration.defaultScope].
      */
     suspend fun start(
-        scopes: Set<String> = oidcClient.configuration.defaultScopes,
+        scope: String = oidcClient.configuration.defaultScope,
     ): OidcClientResult<Context> {
         val endpoint = oidcClient.endpointsOrNull()?.deviceAuthorizationEndpoint ?: return oidcClient.endpointNotAvailableError()
 
         val formBodyBuilder = FormBody.Builder()
             .add("client_id", oidcClient.configuration.clientId)
-            .add("scope", scopes.joinToString(" "))
+            .add("scope", scope)
 
         val request = Request.Builder()
             .post(formBodyBuilder.build())
