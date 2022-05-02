@@ -24,19 +24,7 @@ android {
                 "webAuthenticationRedirectScheme": parseScheme(oktaProperties.getProperty('signInRedirectUri'))
         ]
 
-        testInstrumentationRunner 'io.cucumber.android.runner.CucumberAndroidJUnitRunner'
-        testInstrumentationRunnerArguments = [
-                cucumberUseAndroidJUnitRunner: findProperty("cucumberUseAndroidJUnitRunner") ?: 'false',
-        ]
-    }
-
-    sourceSets {
-        androidTest {
-            java.srcDirs += ['src/sharedTest/java']
-        }
-        test {
-            java.srcDirs += ['src/sharedTest/java']
-        }
+        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
 
     buildTypes {
@@ -92,6 +80,29 @@ dependencies {
     implementation deps.timber
 
     debugImplementation deps.leakcanary.android
+
+    androidTestUtil deps.androidx_test.orchestrator
+
+    androidTestImplementation deps.jackson_yaml
+    androidTestImplementation deps.junit
+    androidTestImplementation deps.androidx_test.core
+    androidTestImplementation deps.androidx_test.ext_junit
+    androidTestImplementation deps.androidx_test.navigation
+    androidTestImplementation deps.androidx_test.runner
+    androidTestImplementation deps.androidx_test.rules
+    androidTestImplementation deps.androidx_test.uiautomator
+    androidTestImplementation deps.coroutines.test
+    androidTestImplementation deps.espresso.core
+    androidTestImplementation(deps.espresso.contrib) {
+        exclude group: 'org.checkerframework', module: 'checker'
+    }
+    androidTestImplementation deps.espresso.intents
+    androidTestImplementation deps.truth
+
+    androidTestImplementation(deps.okta.management_sdk) {
+        exclude group: 'org.bouncycastle'
+    }
+    androidTestImplementation deps.okta.http_okhttp
 }
 
 static def parseScheme(String uri) {
