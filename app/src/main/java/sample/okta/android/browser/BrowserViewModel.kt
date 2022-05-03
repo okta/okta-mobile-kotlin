@@ -39,7 +39,7 @@ class BrowserViewModel : ViewModel() {
             val webAuthenticationClient = CredentialBootstrap.oidcClient.createWebAuthenticationClient()
             var scope = credential.scope()
             if (addDeviceSsoScope) {
-                scope += "device_sso"
+                scope += " device_sso"
             }
 
             when (
