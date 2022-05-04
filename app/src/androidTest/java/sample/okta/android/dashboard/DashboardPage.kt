@@ -16,6 +16,7 @@
 package sample.okta.android.dashboard
 
 import androidx.test.espresso.Espresso.onView
+import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.action.ViewActions.scrollTo
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.ViewMatchers.withChild
@@ -23,25 +24,14 @@ import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.espresso.matcher.ViewMatchers.withParent
 import androidx.test.espresso.matcher.ViewMatchers.withTagKey
 import androidx.test.espresso.matcher.ViewMatchers.withText
-import androidx.test.platform.app.InstrumentationRegistry
-import androidx.test.uiautomator.UiDevice
-import androidx.test.uiautomator.UiSelector
 import org.hamcrest.Matchers.allOf
 import org.hamcrest.Matchers.equalTo
 import sample.okta.android.R
+import sample.okta.android.test.waitForResourceId
 
 internal class DashboardPage {
     init {
-        waitUntilExists()
-    }
-
-    private fun waitUntilExists(): DashboardPage {
-        val uiDevice = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
-        val selector = UiSelector().resourceIdMatches(".*credential_name")
-        if (!uiDevice.findObject(selector).waitForExists(10_000)) {
-            throw AssertionError("Dashboard page does not exist.")
-        }
-        return this
+        waitForResourceId(".*credential_name")
     }
 
     fun assertIsDefaultCredential(): DashboardPage {
@@ -58,6 +48,16 @@ internal class DashboardPage {
                 withText(value)
             )
         ).perform(scrollTo()).check(matches(withText(value)))
+        return this
+    }
+
+    fun logOut(): DashboardPage {
+        onView(withId(R.id.logout_web_button)).perform(scrollTo(), click())
+        return this
+    }
+
+    fun verifyLastRequestInfo(statusText: String): DashboardPage {
+        onView(withId(R.id.last_request_info)).perform(scrollTo()).check(matches(withText(statusText)))
         return this
     }
 }
