@@ -35,7 +35,7 @@ import sample.okta.android.BuildConfig
 import sample.okta.android.SampleHelper
 import timber.log.Timber
 
-internal class DashboardViewModel(private val credentialMetadataNameValue: String?) : ViewModel() {
+internal class DashboardViewModel(private val credentialTagNameValue: String?) : ViewModel() {
     private val _requestStateLiveData = MutableLiveData<RequestState>(RequestState.Result(""))
     val requestStateLiveData: LiveData<RequestState> = _requestStateLiveData
 
@@ -52,11 +52,11 @@ internal class DashboardViewModel(private val credentialMetadataNameValue: Strin
 
     init {
         viewModelScope.launch {
-            credential = if (credentialMetadataNameValue == null) {
+            credential = if (credentialTagNameValue == null) {
                 CredentialBootstrap.defaultCredential()
             } else {
                 CredentialBootstrap.credentialDataSource.listCredentials().firstOrNull { credential ->
-                    credential.metadata[SampleHelper.CREDENTIAL_NAME_METADATA_KEY] == credentialMetadataNameValue
+                    credential.tags[SampleHelper.CREDENTIAL_NAME_TAG_KEY] == credentialTagNameValue
                 } ?: CredentialBootstrap.defaultCredential()
             }
             setCredential(credential)

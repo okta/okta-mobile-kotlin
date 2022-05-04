@@ -64,12 +64,12 @@ class CredentialTest {
         assertThat(credential.oidcClient.credential).isEqualTo(credential)
     }
 
-    @Test fun testMetadataChangeThrows() {
+    @Test fun testTagsChangeThrows() {
         val map = mutableMapOf<String, String>()
         map["name"] = "Default"
-        val credential = oktaRule.createCredential(metadata = map)
+        val credential = oktaRule.createCredential(tags = map)
         assertFailsWith<UnsupportedOperationException> {
-            (credential.metadata as MutableMap<String, String>)["secure"] = "true"
+            (credential.tags as MutableMap<String, String>)["secure"] = "true"
         }
     }
 
@@ -385,13 +385,13 @@ class CredentialTest {
     @Test fun testStoreToken(): Unit = runBlocking {
         val tokenStorage = mock<TokenStorage>()
         val credential = oktaRule.createCredential(tokenStorage = tokenStorage)
-        val metadata = mutableMapOf<String, String>()
-        metadata["from_test"] = "It works"
+        val tags = mutableMapOf<String, String>()
+        tags["from_test"] = "It works"
         val token = createToken(refreshToken = "stored!")
-        credential.storeToken(token = token, metadata = metadata)
-        verify(tokenStorage).replace(TokenStorage.Entry(CredentialFactory.tokenStorageId, token, metadata))
+        credential.storeToken(token = token, tags = tags)
+        verify(tokenStorage).replace(TokenStorage.Entry(CredentialFactory.tokenStorageId, token, tags))
         assertThat(credential.token).isEqualTo(token)
-        assertThat(credential.metadata).isEqualTo(metadata)
+        assertThat(credential.tags).isEqualTo(tags)
     }
 
     @Test fun testStoreTokenKeepsPreviousDeviceSecret(): Unit = runBlocking {

@@ -28,7 +28,7 @@ import timber.log.Timber
 
 class TokenExchangeViewModel : ViewModel() {
     companion object {
-        private const val NAME_METADATA_VALUE: String = "TokenExchange"
+        private const val NAME_TAG_VALUE: String = "TokenExchange"
     }
 
     private val _state = MutableLiveData<TokenExchangeState>(TokenExchangeState.Loading)
@@ -45,9 +45,9 @@ class TokenExchangeViewModel : ViewModel() {
             val credential = CredentialBootstrap.defaultCredential()
             val credentialDataSource = CredentialBootstrap.credentialDataSource
             val tokenExchangeCredential = credentialDataSource.listCredentials().firstOrNull { c ->
-                c.metadata[SampleHelper.CREDENTIAL_NAME_METADATA_KEY] == NAME_METADATA_VALUE
+                c.tags[SampleHelper.CREDENTIAL_NAME_TAG_KEY] == NAME_TAG_VALUE
             } ?: credentialDataSource.createCredential()
-            tokenExchangeCredential.storeToken(metadata = mapOf(Pair(SampleHelper.CREDENTIAL_NAME_METADATA_KEY, NAME_METADATA_VALUE)))
+            tokenExchangeCredential.storeToken(tags = mapOf(Pair(SampleHelper.CREDENTIAL_NAME_TAG_KEY, NAME_TAG_VALUE)))
             val tokenExchangeFlow = CredentialBootstrap.oidcClient.createTokenExchangeFlow()
             val idToken = credential.token?.idToken
             if (idToken == null) {
@@ -66,7 +66,7 @@ class TokenExchangeViewModel : ViewModel() {
                 }
                 is OidcClientResult.Success -> {
                     tokenExchangeCredential.storeToken(token = result.result)
-                    _state.value = TokenExchangeState.Token(NAME_METADATA_VALUE)
+                    _state.value = TokenExchangeState.Token(NAME_TAG_VALUE)
                 }
             }
         }
@@ -76,5 +76,5 @@ class TokenExchangeViewModel : ViewModel() {
 sealed class TokenExchangeState {
     object Loading : TokenExchangeState()
     data class Error(val message: String) : TokenExchangeState()
-    data class Token(val nameMetadataValue: String) : TokenExchangeState()
+    data class Token(val nameTagValue: String) : TokenExchangeState()
 }

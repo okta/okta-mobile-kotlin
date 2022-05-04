@@ -27,7 +27,7 @@ object CredentialFactory {
 
 fun OktaRule.createCredential(
     token: Token? = null,
-    metadata: Map<String, String> = emptyMap(),
+    tags: Map<String, String> = emptyMap(),
     oidcClient: OidcClient = createOidcClient(),
     tokenStorage: TokenStorage = InMemoryTokenStorage(),
     credentialDataSource: CredentialDataSource = mock(),
@@ -37,7 +37,7 @@ fun OktaRule.createCredential(
             tokenStorage.add(CredentialFactory.tokenStorageId)
         }
     }
-    return Credential(oidcClient, tokenStorage, credentialDataSource, CredentialFactory.tokenStorageId, token, metadata)
+    return Credential(oidcClient, tokenStorage, credentialDataSource, CredentialFactory.tokenStorageId, token, tags)
 }
 
 fun createToken(

@@ -16,5 +16,5 @@
 package sample.okta.android
 
 internal object SampleHelper {
-    const val CREDENTIAL_NAME_METADATA_KEY: String = "sample.okta.android.credential.name"
+    const val CREDENTIAL_NAME_TAG_KEY: String = "sample.okta.android.credential.name"
 }

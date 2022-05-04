@@ -75,8 +75,8 @@ class CredentialDataSource internal constructor(
     private suspend fun fetchCredentialsFromStorage(): MutableList<Credential> {
         return Collections.synchronizedList(
             storage.entries().map {
-                val metadataCopy = it.metadata.toMap() // Making a defensive copy, so it's not modified outside our control.
-                Credential(oidcClient, storage, this, it.identifier, it.token, metadataCopy)
+                val tagsCopy = it.tags.toMap() // Making a defensive copy, so it's not modified outside our control.
+                Credential(oidcClient, storage, this, it.identifier, it.token, tagsCopy)
             }.toMutableList()
         )
     }

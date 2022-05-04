@@ -63,7 +63,7 @@
         android:name="sample.okta.android.dashboard.DashboardFragment"
         tools:layout="@layout/fragment_dashboard">
         <argument
-            android:name="credentialMetadataNameValue"
+            android:name="credentialTagNameValue"
             android:defaultValue="@null"
             app:argType="string"
             app:nullable="true" />

@@ -5,7 +5,7 @@ There are many reasons to upgrade from [okta-oidc-android](https://github.com/ok
 - Kotlin Support
 - Coroutines based APIs
 - Multiple signed in users via [CredentialDataSource](auth-foundation/src/main/java/com/okta/authfoundation/credential/CredentialDataSource.kt)
-- Store associated data with tokens via `Credential.metadata`
+- Store associated data with tokens via `Credential.tags`
 
 ## Installation
 Add the Legacy Token Migration dependency to your `build.gradle` file:

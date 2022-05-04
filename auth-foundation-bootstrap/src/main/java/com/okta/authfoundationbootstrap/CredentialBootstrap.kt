@@ -28,8 +28,8 @@ import com.okta.authfoundation.util.CoalescingOrchestrator
  * [CredentialBootstrap] must be initialized via [CredentialBootstrap.initialize] before accessing any properties or methods.
  */
 object CredentialBootstrap {
-    private const val CREDENTIAL_NAME_METADATA_KEY: String = "com.okta.kotlin.credential.name"
-    private const val DEFAULT_CREDENTIAL_NAME_METADATA_VALUE: String = "Default"
+    private const val CREDENTIAL_NAME_TAG_KEY: String = "com.okta.kotlin.credential.name"
+    private const val DEFAULT_CREDENTIAL_NAME_TAG_VALUE: String = "Default"
 
     @Volatile private var privateCredentialDataSource: CredentialDataSource? = null
 
@@ -78,17 +78,17 @@ object CredentialBootstrap {
 
     private suspend fun realFetchCredential(): Credential {
         return credentialDataSource.listCredentials().firstOrNull { credential ->
-            credential.metadata[CREDENTIAL_NAME_METADATA_KEY] == DEFAULT_CREDENTIAL_NAME_METADATA_VALUE
+            credential.tags[CREDENTIAL_NAME_TAG_KEY] == DEFAULT_CREDENTIAL_NAME_TAG_VALUE
         } ?: createDefaultCredential()
     }
 
     private suspend fun createDefaultCredential(): Credential {
         val credential = credentialDataSource.createCredential()
         credential.storeToken(
-            metadata = mapOf(
+            tags = mapOf(
                 Pair(
-                    CREDENTIAL_NAME_METADATA_KEY,
-                    DEFAULT_CREDENTIAL_NAME_METADATA_VALUE
+                    CREDENTIAL_NAME_TAG_KEY,
+                    DEFAULT_CREDENTIAL_NAME_TAG_VALUE
                 )
             )
         )

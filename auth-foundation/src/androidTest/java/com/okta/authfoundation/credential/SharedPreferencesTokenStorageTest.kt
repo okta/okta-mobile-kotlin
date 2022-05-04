@@ -87,7 +87,7 @@ class SharedPreferencesTokenStorageTest {
         val entry = subject.entries().first()
         assertThat(entry.identifier).isEqualTo("one")
         assertThat(entry.token).isNull()
-        assertThat(entry.metadata).containsEntry("foo", "bar")
+        assertThat(entry.tags).containsEntry("foo", "bar")
     }
 
     @Test fun testTokenStorageAndRestoration(): Unit = runBlocking {
@@ -104,7 +104,7 @@ class SharedPreferencesTokenStorageTest {
         val entry = subject.entries().first()
         assertThat(entry.identifier).isEqualTo("one")
         assertThat(entry.token).isEqualTo(token)
-        assertThat(entry.metadata).containsEntry("foo", "bar")
+        assertThat(entry.tags).containsEntry("foo", "bar")
     }
 
     @Test fun testInvalidKeyClearsSharedPreferencesAndIsInitializedWithoutError(): Unit = runBlocking {
