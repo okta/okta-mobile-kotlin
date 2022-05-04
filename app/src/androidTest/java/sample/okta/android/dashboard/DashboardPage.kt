@@ -18,6 +18,7 @@ package sample.okta.android.dashboard
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.action.ViewActions.scrollTo
+import androidx.test.espresso.assertion.ViewAssertions.doesNotExist
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.ViewMatchers.withChild
 import androidx.test.espresso.matcher.ViewMatchers.withId
@@ -25,9 +26,11 @@ import androidx.test.espresso.matcher.ViewMatchers.withParent
 import androidx.test.espresso.matcher.ViewMatchers.withTagKey
 import androidx.test.espresso.matcher.ViewMatchers.withText
 import org.hamcrest.Matchers.allOf
+import org.hamcrest.Matchers.containsString
 import org.hamcrest.Matchers.equalTo
 import sample.okta.android.R
 import sample.okta.android.test.waitForResourceId
+import sample.okta.android.test.waitForText
 
 internal class DashboardPage {
     init {
@@ -36,6 +39,28 @@ internal class DashboardPage {
 
     fun assertIsDefaultCredential(): DashboardPage {
         onView(withId(R.id.credential_name)).check(matches(withText("Default")))
+        return this
+    }
+
+    fun assertIsTokenExchangeCredential(): DashboardPage {
+        waitForText("TokenExchange")
+        onView(withId(R.id.credential_name)).check(matches(withText("TokenExchange")))
+        return this
+    }
+
+    fun assertHasScope(scope: String): DashboardPage {
+        onView(withId(R.id.scope)).perform(scrollTo())
+        for (s in scope.split(" ")) {
+            onView(withId(R.id.scope)).check(matches(withText(containsString(s))))
+        }
+        return this
+    }
+
+    fun assertMissingScope(scope: String): DashboardPage {
+        onView(withId(R.id.scope)).perform(scrollTo())
+        for (s in scope.split(" ")) {
+            onView(allOf(withId(R.id.scope), withText(containsString(s)))).check(doesNotExist())
+        }
         return this
     }
 
@@ -53,6 +78,11 @@ internal class DashboardPage {
 
     fun logOut(): DashboardPage {
         onView(withId(R.id.logout_web_button)).perform(scrollTo(), click())
+        return this
+    }
+
+    fun goToTokenExchangeFlow(): DashboardPage {
+        onView(withId(R.id.token_exchange_button)).perform(scrollTo(), click())
         return this
     }
 
