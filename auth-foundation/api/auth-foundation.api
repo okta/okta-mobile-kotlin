@@ -190,7 +190,7 @@ public final class com/okta/authfoundation/credential/Credential {
 	public final fun delete (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getAccessTokenIfValid (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public final fun getMetadata ()Ljava/util/Map;
+	public final fun getTags ()Ljava/util/Map;
 	public final fun getToken ()Lcom/okta/authfoundation/credential/Token;
 	public final fun getUserInfo (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun getValidAccessToken (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -251,7 +251,7 @@ public final class com/okta/authfoundation/credential/TokenStorage$Entry {
 	public fun <init> (Ljava/lang/String;Lcom/okta/authfoundation/credential/Token;Ljava/util/Map;)V
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getIdentifier ()Ljava/lang/String;
-	public final fun getMetadata ()Ljava/util/Map;
+	public final fun getTags ()Ljava/util/Map;
 	public final fun getToken ()Lcom/okta/authfoundation/credential/Token;
 	public fun hashCode ()I
 }

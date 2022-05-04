@@ -67,9 +67,9 @@ interface TokenStorage {
          */
         val token: Token?,
         /**
-         *  The metadata associated with the [TokenStorage] entry.
+         *  The tags associated with the [TokenStorage] entry.
          */
-        val metadata: Map<String, String>,
+        val tags: Map<String, String>,
     ) {
         override fun equals(other: Any?): Boolean {
             if (other === this) {
@@ -80,14 +80,14 @@ interface TokenStorage {
             }
             return other.identifier == identifier &&
                 other.token == token &&
-                other.metadata == metadata
+                other.tags == tags
         }
 
         override fun hashCode(): Int {
             return Objects.hash(
                 identifier,
                 token,
-                metadata,
+                tags,
             )
         }
     }

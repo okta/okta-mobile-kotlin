@@ -43,7 +43,7 @@ internal class DashboardFragment : BaseFragment<FragmentDashboardBinding>(
         object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
                 @Suppress("UNCHECKED_CAST")
-                return DashboardViewModel(args.credentialMetadataNameValue) as T
+                return DashboardViewModel(args.credentialTagNameValue) as T
             }
         }
     })

@@ -45,7 +45,7 @@ class Credential internal constructor(
     private val credentialDataSource: CredentialDataSource,
     internal val storageIdentifier: String,
     @Volatile private var _token: Token? = null,
-    @Volatile private var _metadata: Map<String, String> = emptyMap()
+    @Volatile private var _tags: Map<String, String> = emptyMap()
 ) {
     private val refreshCoalescingOrchestrator = CoalescingOrchestrator(
         factory = ::performRealRefresh,
@@ -69,13 +69,13 @@ class Credential internal constructor(
         }
 
     /**
-     * The metadata associated with this [Credential].
+     * The tags associated with this [Credential].
      *
      * This can be used when calling [Credential.storeToken] to associate this [Credential] with data relevant to your application.
      */
-    val metadata: Map<String, String>
+    val tags: Map<String, String>
         get() {
-            return Collections.unmodifiableMap(_metadata)
+            return Collections.unmodifiableMap(_tags)
         }
 
     /**
@@ -115,12 +115,12 @@ class Credential internal constructor(
 
     /**
      * Store a token, or update the existing token.
-     * This can also be used to store custom metadata.
+     * This can also be used to store custom tags.
      *
      * @param token the token to update this [Credential] with, defaults to the current [Token].
-     * @param metadata the map to associate with this [Credential], defaults to the current metadata.
+     * @param tags the map to associate with this [Credential], defaults to the current tags.
      */
-    suspend fun storeToken(token: Token? = _token, metadata: Map<String, String> = _metadata) {
+    suspend fun storeToken(token: Token? = _token, tags: Map<String, String> = _tags) {
         if (isDeleted) {
             oidcClient.configuration.eventCoordinator.sendEvent(CredentialStoredAfterRemovedEvent(this))
             return
@@ -131,12 +131,12 @@ class Credential internal constructor(
             // Device Secret isn't returned when refreshing.
             deviceSecret = token.deviceSecret ?: _token?.deviceSecret,
         )
-        val metadataCopy = metadata.toMap() // Making a defensive copy, so it's not modified outside our control.
+        val tagsCopy = tags.toMap() // Making a defensive copy, so it's not modified outside our control.
         storage.replace(
-            updatedEntry = TokenStorage.Entry(storageIdentifier, tokenToStore, metadataCopy),
+            updatedEntry = TokenStorage.Entry(storageIdentifier, tokenToStore, tagsCopy),
         )
         _token = tokenToStore
-        _metadata = metadataCopy
+        _tags = tagsCopy
     }
 
     /**
@@ -274,14 +274,14 @@ class Credential internal constructor(
         }
         return storageIdentifier == other.storageIdentifier &&
             _token == other._token &&
-            _metadata == other._metadata
+            _tags == other._tags
     }
 
     override fun hashCode(): Int {
         return Objects.hash(
             storageIdentifier,
             _token,
-            _metadata,
+            _tags,
         )
     }
 }

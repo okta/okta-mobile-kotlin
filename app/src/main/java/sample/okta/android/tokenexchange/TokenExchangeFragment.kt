@@ -47,7 +47,7 @@ internal class TokenExchangeFragment : BaseFragment<FragmentTokenExchangeBinding
                 }
                 is TokenExchangeState.Token -> {
                     findNavController().navigate(
-                        TokenExchangeFragmentDirections.tokenExchangeToDashboard(state.nameMetadataValue)
+                        TokenExchangeFragmentDirections.tokenExchangeToDashboard(state.nameTagValue)
                     )
                 }
                 TokenExchangeState.Loading -> {
