@@ -13,23 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package sample.okta.android.launch
+package sample.okta.android.browser
 
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions.click
+import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.ViewMatchers.withId
+import androidx.test.espresso.matcher.ViewMatchers.withText
 import sample.okta.android.R
-import sample.okta.android.browser.BrowserPage
-import sample.okta.android.resourceowner.ResourceOwnerPage
+import sample.okta.android.test.waitForResourceIdWithText
+import sample.okta.android.web.WebPage
 
-internal object LaunchPage {
-    fun goToResourceOwnerPage(): ResourceOwnerPage {
-        onView(withId(R.id.login_with_resource_owner_flow)).perform(click())
-        return ResourceOwnerPage()
+internal class BrowserPage {
+    fun loginWithWeb(): WebPage<BrowserPage> {
+        onView(withId(R.id.login_with_browser_button)).perform(click())
+        return WebPage(this)
     }
 
-    fun goToBrowserPage(): BrowserPage {
-        onView(withId(R.id.login_with_browser_button)).perform(click())
-        return BrowserPage()
+    fun assertHasError(error: String): BrowserPage {
+        waitForResourceIdWithText(".*error_text_view", error)
+        onView(withId(R.id.error_text_view)).check(matches(withText(error)))
+        return this
     }
 }

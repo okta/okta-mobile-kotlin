@@ -22,11 +22,9 @@ import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.ViewMatchers.withHint
 import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.espresso.matcher.ViewMatchers.withText
-import androidx.test.platform.app.InstrumentationRegistry
-import androidx.test.uiautomator.UiDevice
-import androidx.test.uiautomator.UiSelector
 import sample.okta.android.R
 import sample.okta.android.dashboard.DashboardPage
+import sample.okta.android.test.waitForResourceIdWithText
 
 internal class ResourceOwnerPage {
     fun username(username: String): ResourceOwnerPage {
@@ -50,11 +48,7 @@ internal class ResourceOwnerPage {
     }
 
     fun assertHasError(error: String): ResourceOwnerPage {
-        val uiDevice = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
-        val selector = UiSelector().resourceIdMatches(".*error_text_view").text(error)
-        if (!uiDevice.findObject(selector).waitForExists(10_000)) {
-            throw AssertionError("Error does not exist.")
-        }
+        waitForResourceIdWithText(".*error_text_view", error)
         onView(withId(R.id.error_text_view)).check(matches(withText(error)))
         return this
     }
