@@ -34,13 +34,19 @@ fun clickButtonWithTextMatching(text: String) {
 
 fun setText(resourceId: String, text: String) {
     val uiDevice = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
-    val selector = UiSelector().resourceId(resourceId)
+    val selector = UiSelector().resourceIdMatches(resourceId)
     assertThat(uiDevice.findObject(selector).setText(text)).isTrue()
 }
 
 fun waitForText(text: String) {
     val uiDevice = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
     val selector = UiSelector().text(text)
+    assertThat(uiDevice.findObject(selector).waitForExists(10_000)).isTrue()
+}
+
+fun waitForTextMatching(text: String) {
+    val uiDevice = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
+    val selector = UiSelector().textMatches(text)
     assertThat(uiDevice.findObject(selector).waitForExists(10_000)).isTrue()
 }
 
