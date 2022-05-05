@@ -54,6 +54,7 @@ internal class BrowserTest {
             .password("Invalid")
             .loginExpectingError()
             .assertHasError("Unable to sign in")
+            .cancel()
     }
 
     @Test fun testBrowserCancellation() {
