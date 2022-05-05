@@ -20,6 +20,7 @@ import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.matcher.ViewMatchers.withId
 import sample.okta.android.R
 import sample.okta.android.browser.BrowserPage
+import sample.okta.android.deviceauthorization.DeviceAuthorizationPage
 import sample.okta.android.resourceowner.ResourceOwnerPage
 
 internal object LaunchPage {
@@ -31,5 +32,10 @@ internal object LaunchPage {
     fun goToBrowserPage(): BrowserPage {
         onView(withId(R.id.login_with_browser_button)).perform(click())
         return BrowserPage()
+    }
+
+    fun goToDeviceAuthorizationPage(): DeviceAuthorizationPage {
+        onView(withId(R.id.login_with_device_authorization_flow)).perform(click())
+        return DeviceAuthorizationPage()
     }
 }

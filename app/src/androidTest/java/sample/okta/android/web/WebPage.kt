@@ -16,6 +16,7 @@
 package sample.okta.android.web
 
 import android.app.Application
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.test.core.app.ApplicationProvider
@@ -31,7 +32,10 @@ import sample.okta.android.test.setText
 import sample.okta.android.test.waitForText
 import timber.log.Timber
 
-internal class WebPage<PreviousPage>(private val previousPage: PreviousPage) {
+internal class WebPage<PreviousPage>(
+    private val previousPage: PreviousPage,
+    private val initialText: String = "Sign in"
+) {
     companion object {
         fun clearData() {
             execShellCommand("pm clear com.android.chrome")
@@ -59,6 +63,14 @@ internal class WebPage<PreviousPage>(private val previousPage: PreviousPage) {
             execShellCommand("am force-stop com.android.chrome")
             Thread.sleep(2000)
         }
+
+        fun launch(url: String, initialText: String): WebPage<Any?> {
+            val intent = Intent(Intent.ACTION_VIEW)
+            intent.data = Uri.parse(url)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            ApplicationProvider.getApplicationContext<Context>().startActivity(intent)
+            return WebPage(null, initialText)
+        }
     }
 
     init {
@@ -66,17 +78,17 @@ internal class WebPage<PreviousPage>(private val previousPage: PreviousPage) {
     }
 
     private fun waitUntilExists(): WebPage<PreviousPage> {
-        waitForText("Sign in")
+        waitForText(initialText)
         return this
     }
 
     fun username(username: String): WebPage<PreviousPage> {
-        setText("input28", username)
+        setText("input28|input50", username)
         return this
     }
 
     fun password(password: String): WebPage<PreviousPage> {
-        setText("input36", password)
+        setText("input36|input58", password)
         return this
     }
 
@@ -90,6 +102,12 @@ internal class WebPage<PreviousPage>(private val previousPage: PreviousPage) {
         return this
     }
 
+    fun loginExpectingDeviceActivated(): WebPage<PreviousPage> {
+        clickButtonWithText("Sign in")
+        waitForText("Device activated")
+        return this
+    }
+
     fun cancel(): PreviousPage {
         val device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
         device.pressBack()
@@ -99,6 +117,16 @@ internal class WebPage<PreviousPage>(private val previousPage: PreviousPage) {
 
     fun assertHasError(error: String): WebPage<PreviousPage> {
         waitForText(error)
+        return this
+    }
+
+    fun enterCode(code: String): WebPage<PreviousPage> {
+        setText("input28", code)
+        return this
+    }
+
+    fun clickNext(): WebPage<PreviousPage> {
+        clickButtonWithText("Next")
         return this
     }
 }
