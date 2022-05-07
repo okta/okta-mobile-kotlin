@@ -87,7 +87,3 @@ task copyKotlinTemplates(type: Copy) {
 tasks.withType(org.jetbrains.kotlin.gradle.dsl.KotlinCompile) {
     dependsOn(copyKotlinTemplates)
 }
-
-mavenPublishing {
-    configure(new com.vanniktech.maven.publish.AndroidSingleVariantLibrary("release"))
-}

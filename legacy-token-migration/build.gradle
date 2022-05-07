@@ -60,7 +60,3 @@ dependencies {
     testImplementation deps.truth
     testImplementation project(':test-helpers')
 }
-
-mavenPublishing {
-    configure(new com.vanniktech.maven.publish.AndroidSingleVariantLibrary("release"))
-}
