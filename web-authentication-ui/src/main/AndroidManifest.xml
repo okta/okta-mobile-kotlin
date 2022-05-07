@@ -19,7 +19,7 @@
             android:name=".RedirectActivity"
             android:autoRemoveFromRecents="true"
             android:exported="true"
-            android:launchMode="singleTop"
+            android:launchMode="singleInstance"
             android:theme="@style/NoAnimationTheme">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
