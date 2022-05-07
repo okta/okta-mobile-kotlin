@@ -164,26 +164,6 @@ def forceVersions(ConfigurationContainer configurations) {
     }
 }
 
-def configurePublishing(Project project) {
-    project.plugins.withId('com.vanniktech.maven.publish.base') {
-        project.apply plugin: 'signing'
-
-        project.mavenPublishing {
-            publishToMavenCentral("DEFAULT")
-            pomFromGradleProperties()
-        }
-
-        if (project.hasProperty('mavenCentralUsername')) {
-            project.afterEvaluate {
-                project.signing {
-                    useGpgCmd()
-                    sign project.publishing.publications
-                }
-            }
-        }
-    }
-}
-
 def configureSpotless(Project project) {
     project.apply plugin: 'com.diffplug.spotless'
 
@@ -210,5 +190,4 @@ def configureSpotless(Project project) {
 
 ext.addRepos = this.&addRepos
 ext.forceVersions = this.&forceVersions
-ext.configurePublishing = this.&configurePublishing
 ext.configureSpotless = this.&configureSpotless
