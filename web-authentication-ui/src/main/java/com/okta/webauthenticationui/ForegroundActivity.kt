@@ -45,6 +45,8 @@ internal class ForegroundActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        handleRedirectIfAvailable(intent)
+
         viewModel.stateLiveData.observe(this) { state ->
             when (state) {
                 ForegroundViewModel.State.Error -> {
