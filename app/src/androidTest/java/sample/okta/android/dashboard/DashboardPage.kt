@@ -87,7 +87,9 @@ internal class DashboardPage {
     }
 
     fun verifyLastRequestInfo(statusText: String): DashboardPage {
-        onView(withId(R.id.last_request_info)).perform(scrollTo()).check(matches(withText(statusText)))
+        onView(withId(R.id.last_request_info)).perform(scrollTo())
+        waitForText(statusText)
+        onView(withId(R.id.last_request_info)).check(matches(withText(statusText)))
         return this
     }
 }

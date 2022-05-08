@@ -15,6 +15,7 @@
  */
 package sample.okta.android.test
 
+import android.widget.EditText
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.UiDevice
 import androidx.test.uiautomator.UiSelector
@@ -32,9 +33,9 @@ fun clickButtonWithTextMatching(text: String) {
     assertThat(uiDevice.findObject(selector).click()).isTrue()
 }
 
-fun setText(resourceId: String, text: String) {
+fun setTextForIndex(index: Int, text: String) {
     val uiDevice = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
-    val selector = UiSelector().resourceIdMatches(resourceId)
+    val selector = UiSelector().className(EditText::class.java).instance(index)
     assertThat(uiDevice.findObject(selector).setText(text)).isTrue()
 }
 

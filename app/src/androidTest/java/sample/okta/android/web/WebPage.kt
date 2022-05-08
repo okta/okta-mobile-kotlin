@@ -28,13 +28,13 @@ import sample.okta.android.dashboard.DashboardPage
 import sample.okta.android.test.clickButtonWithText
 import sample.okta.android.test.clickButtonWithTextMatching
 import sample.okta.android.test.execShellCommand
-import sample.okta.android.test.setText
+import sample.okta.android.test.setTextForIndex
 import sample.okta.android.test.waitForText
 import timber.log.Timber
 
 internal class WebPage<PreviousPage>(
     private val previousPage: PreviousPage,
-    private val initialText: String = "Sign in"
+    initialText: String = "Sign in"
 ) {
     companion object {
         fun clearData() {
@@ -74,21 +74,16 @@ internal class WebPage<PreviousPage>(
     }
 
     init {
-        waitUntilExists()
-    }
-
-    private fun waitUntilExists(): WebPage<PreviousPage> {
         waitForText(initialText)
-        return this
     }
 
     fun username(username: String): WebPage<PreviousPage> {
-        setText("input28|input50", username)
+        setTextForIndex(0, username)
         return this
     }
 
     fun password(password: String): WebPage<PreviousPage> {
-        setText("input36|input58", password)
+        setTextForIndex(1, password)
         return this
     }
 
@@ -121,12 +116,13 @@ internal class WebPage<PreviousPage>(
     }
 
     fun enterCode(code: String): WebPage<PreviousPage> {
-        setText("input28", code)
+        setTextForIndex(0, code)
         return this
     }
 
     fun clickNext(): WebPage<PreviousPage> {
         clickButtonWithText("Next")
+        waitForText("Sign in")
         return this
     }
 }
