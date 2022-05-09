@@ -41,7 +41,7 @@ interface WebAuthenticationProvider {
      * @param context the Android [Activity] [Context] which is used to display the flow.
      * @param url the url the instance should display.
      *
-     * @return if the launch was successful.
+     * @return the exception causing the launch to fail.
      */
     fun launch(context: Context, url: HttpUrl): Exception?
 }
@@ -56,6 +56,8 @@ internal class DefaultWebAuthenticationProvider(
     }
 
     override fun launch(context: Context, url: HttpUrl): Exception? {
+        ensureSingleRedirectRegistered(context, url)?.let { return it }
+
         val intentBuilder: CustomTabsIntent.Builder = CustomTabsIntent.Builder()
         eventCoordinator.sendEvent(CustomizeCustomTabsEvent(context, intentBuilder))
         val tabsIntent: CustomTabsIntent = intentBuilder.build()
@@ -75,6 +77,37 @@ internal class DefaultWebAuthenticationProvider(
         } catch (e: ActivityNotFoundException) {
             return e
         }
+    }
+
+    private fun ensureSingleRedirectRegistered(context: Context, url: HttpUrl): Exception? {
+        val redirectUri = url.queryParameterValues("redirect_uri").firstOrNull()
+            ?: url.queryParameterValues("post_logout_redirect_uri").firstOrNull()
+
+        val uri = Uri.parse(redirectUri ?: return null)
+
+        val packageManager = context.packageManager
+        val intent = Intent()
+        intent.action = Intent.ACTION_VIEW
+        intent.addCategory(Intent.CATEGORY_BROWSABLE)
+        intent.data = uri
+        val resolveInfo = packageManager.queryIntentActivities(intent, PackageManager.GET_RESOLVED_FILTER)
+        var found = false
+        for (info in resolveInfo) {
+            val activityInfo = info.activityInfo
+            if (activityInfo.name.equals(RedirectActivity::class.java.canonicalName) &&
+                activityInfo.packageName.equals(context.packageName)
+            ) {
+                found = true
+            } else {
+                return IllegalStateException("Multiple applications registered with same scheme.")
+            }
+        }
+
+        if (!found) {
+            return IllegalStateException("Application does not handle the callback.")
+        }
+
+        return null
     }
 
     private fun getBrowser(context: Context): String? {
