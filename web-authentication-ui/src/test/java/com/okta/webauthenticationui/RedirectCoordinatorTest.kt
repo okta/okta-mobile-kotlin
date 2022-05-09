@@ -18,6 +18,7 @@ package com.okta.webauthenticationui
 import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.net.Uri
+import androidx.activity.ComponentActivity
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
@@ -30,6 +31,7 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
@@ -159,7 +161,9 @@ class RedirectCoordinatorTest {
         val webAuthenticationProvider = mock<WebAuthenticationProvider> {
             on { launch(any(), any()) } doReturn null
         }
-        val launchedFromActivity = Robolectric.buildActivity(Activity::class.java).get()
+        val activityController = Robolectric.buildActivity(ComponentActivity::class.java)
+        activityController.create().start().resume()
+        val launchedFromActivity = activityController.get()
         val url = "https://example.com/oauth".toHttpUrl()
         val initializerCountDownLatch = CountDownLatch(1)
         subject.initializerContinuationListeningCallback = {
@@ -176,6 +180,20 @@ class RedirectCoordinatorTest {
         verify(webAuthenticationProvider).launch(launchedFromActivity, url)
         val foregroundActivity = shadowOf(launchedFromActivity).nextStartedActivity
         assertThat(foregroundActivity.component?.className).isEqualTo(ForegroundActivity::class.java.name)
+    }
+
+    @Test fun testInitializeDoesNotStartsForegroundActivityWhenBackgrounded(): Unit = runBlocking {
+        val webAuthenticationProvider = mock<WebAuthenticationProvider>()
+        val activityController = Robolectric.buildActivity(ComponentActivity::class.java)
+        activityController.create().start().resume().pause().stop()
+        val launchedFromActivity = activityController.get()
+        val result = subject.initialize(webAuthenticationProvider, launchedFromActivity) {
+            RedirectInitializationResult.Success("https://example.com/oauth".toHttpUrl(), Any())
+        }
+        verify(webAuthenticationProvider, never()).launch(anyOrNull(), anyOrNull())
+        assertThat(result).isInstanceOf(RedirectInitializationResult.Error::class.java)
+        val errorResult = result as RedirectInitializationResult.Error
+        assertThat(errorResult.exception).hasMessageThat().isEqualTo("Activity is not resumed.")
     }
 
     @Test fun testLaunchWebAuthenticationProvider(): Unit = runBlocking {

@@ -17,7 +17,9 @@ package com.okta.webauthenticationui
 
 import android.content.Context
 import android.net.Uri
+import androidx.activity.ComponentActivity
 import androidx.annotation.VisibleForTesting
+import androidx.lifecycle.Lifecycle
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.isActive
@@ -51,6 +53,12 @@ internal class DefaultRedirectCoordinator : RedirectCoordinator {
 
         this.webAuthenticationProvider = webAuthenticationProvider
         this.initializer = initializer
+
+        if (context is ComponentActivity) {
+            if (!context.lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
+                return RedirectInitializationResult.Error(IllegalStateException("Activity is not resumed."))
+            }
+        }
 
         context.startActivity(ForegroundActivity.createIntent(context))
 
@@ -138,6 +146,7 @@ internal interface RedirectCoordinator {
         context: Context,
         initializer: suspend () -> RedirectInitializationResult<T>,
     ): RedirectInitializationResult<T>
+
     suspend fun runInitializationFunction(): RedirectInitializationResult<*>
 
     suspend fun listenForResult(): RedirectResult
