@@ -25,8 +25,13 @@ import androidx.test.espresso.matcher.ViewMatchers.withText
 import sample.okta.android.R
 import sample.okta.android.dashboard.DashboardPage
 import sample.okta.android.test.waitForResourceIdWithText
+import sample.okta.android.test.waitForText
 
 internal class ResourceOwnerPage {
+    init {
+        waitForText("Username")
+    }
+
     fun username(username: String): ResourceOwnerPage {
         onView(withHint(R.string.username)).perform(replaceText(username))
         return this
