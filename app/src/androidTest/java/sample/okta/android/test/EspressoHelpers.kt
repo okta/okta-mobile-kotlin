@@ -17,10 +17,20 @@ package sample.okta.android.test
 
 import android.view.View
 import android.widget.TextView
+import androidx.test.espresso.Espresso.onView
+import androidx.test.espresso.PerformException
 import androidx.test.espresso.UiController
 import androidx.test.espresso.ViewAction
 import androidx.test.espresso.ViewInteraction
+import androidx.test.espresso.matcher.ViewMatchers
 import androidx.test.espresso.matcher.ViewMatchers.isAssignableFrom
+import androidx.test.espresso.matcher.ViewMatchers.isRoot
+import androidx.test.espresso.matcher.ViewMatchers.withEffectiveVisibility
+import androidx.test.espresso.util.HumanReadables
+import androidx.test.espresso.util.TreeIterables
+import org.hamcrest.CoreMatchers.allOf
+import org.hamcrest.Matcher
+import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicReference
 
 fun ViewInteraction.getText(): String {
@@ -36,4 +46,38 @@ fun ViewInteraction.getText(): String {
         }
     })
     return text.get()
+}
+
+fun waitForView(matcher: Matcher<View>, timeout: Long) {
+    val viewAction = object : ViewAction {
+        override fun getConstraints(): Matcher<View> {
+            return isRoot()
+        }
+
+        override fun getDescription(): String {
+            return "Timeout waiting for view."
+        }
+
+        override fun perform(uiController: UiController, rootView: View) {
+            uiController.loopMainThreadUntilIdle()
+            val endTime = System.currentTimeMillis() + timeout
+
+            val matcherWithVisibility = allOf(matcher, withEffectiveVisibility(ViewMatchers.Visibility.VISIBLE))
+            do {
+                for (child in TreeIterables.breadthFirstViewTraversal(rootView)) {
+                    if (matcherWithVisibility.matches(child)) {
+                        return
+                    }
+                }
+                uiController.loopMainThreadForAtLeast(100)
+            } while (System.currentTimeMillis() < endTime) // in case of a timeout we throw an exception -&gt; test fails
+            throw PerformException.Builder()
+                .withCause(TimeoutException())
+                .withActionDescription(description)
+                .withViewDescription(HumanReadables.describe(rootView))
+                .build()
+        }
+    }
+
+    onView(isRoot()).perform(viewAction)
 }

@@ -31,6 +31,7 @@ import org.hamcrest.Matchers.equalTo
 import sample.okta.android.R
 import sample.okta.android.test.waitForResourceId
 import sample.okta.android.test.waitForText
+import sample.okta.android.test.waitForView
 
 internal class DashboardPage {
     init {
@@ -65,6 +66,7 @@ internal class DashboardPage {
     }
 
     fun assertHasClaim(claim: String, value: String): DashboardPage {
+        waitForView(withId(R.id.claims_title), 10_000)
         onView(
             allOf(
                 withParent(withChild(withText(claim))),
