@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.5.0-BETA] - 2022-05-10
+### Changed
+- `OidcClient.refresh` no longer accepts scopes, as they are not used.
+- Changed the way id token validation customization happens.
+- Made scope a string, rather than a set.
+- Renamed metadata to tags.
+
+### Fixed
+- Fixed issues with non Chrome browsers.
+- Eagerly error when launching a web based flow when an Activity is backgrounded.
+- Properly support backgrounded internal Activities during web authentication.
+
 ## [0.4.0-BETA] - 2022-04-25
 ### Added
 - Legacy token migration - migrate tokens from okta-oidc-android, see [migrate.md](migrate.md).
