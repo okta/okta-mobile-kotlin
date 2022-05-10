@@ -25,6 +25,7 @@ import com.okta.authfoundationbootstrap.CredentialBootstrap
 import com.okta.webauthenticationui.WebAuthenticationClient.Companion.createWebAuthenticationClient
 import kotlinx.coroutines.launch
 import sample.okta.android.BuildConfig
+import sample.okta.android.SampleHelper
 import timber.log.Timber
 
 class BrowserViewModel : ViewModel() {
@@ -37,7 +38,7 @@ class BrowserViewModel : ViewModel() {
 
             val credential = CredentialBootstrap.defaultCredential()
             val webAuthenticationClient = CredentialBootstrap.oidcClient.createWebAuthenticationClient()
-            var scope = credential.scope()
+            var scope = SampleHelper.DEFAULT_SCOPE
             if (addDeviceSsoScope) {
                 scope += " device_sso"
             }
