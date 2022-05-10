@@ -17,4 +17,5 @@ package sample.okta.android
 
 internal object SampleHelper {
     const val CREDENTIAL_NAME_TAG_KEY: String = "sample.okta.android.credential.name"
+    const val DEFAULT_SCOPE: String = "openid email profile offline_access"
 }
