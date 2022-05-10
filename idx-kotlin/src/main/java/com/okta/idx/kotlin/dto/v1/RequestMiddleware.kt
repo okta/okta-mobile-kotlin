@@ -151,7 +151,7 @@ internal class InteractContext private constructor(
 
             val formBody = FormBody.Builder()
                 .add("client_id", oidcClient.configuration.clientId)
-                .add("scope", oidcClient.configuration.defaultScopes.joinToString(separator = " "))
+                .add("scope", oidcClient.configuration.defaultScope)
                 .add("code_challenge", codeChallenge)
                 .add("code_challenge_method", PkceGenerator.CODE_CHALLENGE_METHOD)
                 .add("redirect_uri", redirectUrl)

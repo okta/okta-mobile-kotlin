@@ -27,6 +27,11 @@ android {
         jvmTarget = '1.8'
         freeCompilerArgs += ["-Xopt-in=com.okta.authfoundation.InternalAuthFoundationApi"]
     }
+    sourceSets {
+        main {
+            kotlin.srcDir("$buildDir/generated/sources/kotlinTemplates")
+        }
+    }
 }
 
 dependencies {
@@ -53,4 +58,14 @@ if (hasProperty('mavenCentralUsername')) {
             sign configurations.archives
         }
     }
+}
+
+task copyKotlinTemplates(type: Copy) {
+    from("src/main/kotlinTemplates")
+    into("$buildDir/generated/sources/kotlinTemplates")
+    expand(projectVersion: project.version)
+}
+
+tasks.withType(org.jetbrains.kotlin.gradle.dsl.KotlinCompile) {
+    dependsOn(copyKotlinTemplates)
 }

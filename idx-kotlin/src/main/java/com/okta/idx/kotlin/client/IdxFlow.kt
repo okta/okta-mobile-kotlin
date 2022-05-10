@@ -18,6 +18,7 @@ package com.okta.idx.kotlin.client
 import android.net.Uri
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcClientResult
+import com.okta.authfoundation.client.internal.SdkVersionsRegistry
 import com.okta.authfoundation.client.internal.performRequest
 import com.okta.authfoundation.credential.Token
 import com.okta.idx.kotlin.dto.IdxRemediation
@@ -42,6 +43,10 @@ class IdxFlow internal constructor(
     val flowContext: IdxFlowContext,
 ) {
     companion object {
+        init {
+            SdkVersionsRegistry.register(SDK_VERSION)
+        }
+
         /**
          * Used to create an IdxFlow, and to start an authorization flow.
          */
