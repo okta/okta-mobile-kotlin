@@ -22,6 +22,7 @@ import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.annotation.VisibleForTesting
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Observer
 
 internal class ForegroundActivity : AppCompatActivity() {
     companion object {
@@ -46,29 +47,22 @@ internal class ForegroundActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         handleRedirectIfAvailable(intent)
-
-        viewModel.stateLiveData.observe(this) { state ->
-            when (state) {
-                ForegroundViewModel.State.Error -> {
-                    finish()
-                }
-                is ForegroundViewModel.State.LaunchBrowser -> {
-                    viewModel.launchBrowser(this, state.url)
-                }
-                ForegroundViewModel.State.AwaitingInitialization -> {
-                    // Idle, nothing to do.
-                }
-                ForegroundViewModel.State.AwaitingBrowserCallback -> {
-                    // Idle, nothing to do.
-                }
-            }
-        }
     }
 
     override fun onResume() {
         super.onResume()
 
         viewModel.onResume(this)
+
+        viewModel.stateLiveData.observe(this, stateObserver)
+    }
+
+    override fun onPause() {
+        super.onPause()
+
+        // Removing the observer because we want the result delivered in onResume (where we observer), rather than onStart in the case
+        // where the activity was backgrounded.
+        viewModel.stateLiveData.removeObserver(stateObserver)
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -92,6 +86,23 @@ internal class ForegroundActivity : AppCompatActivity() {
         super.onDestroy()
         if (isFinishing) {
             viewModel.flowCancelled()
+        }
+    }
+
+    private val stateObserver = Observer<ForegroundViewModel.State> { state ->
+        when (state) {
+            ForegroundViewModel.State.Error -> {
+                finish()
+            }
+            is ForegroundViewModel.State.LaunchBrowser -> {
+                viewModel.launchBrowser(this, state.url)
+            }
+            ForegroundViewModel.State.AwaitingInitialization -> {
+                // Idle, nothing to do.
+            }
+            ForegroundViewModel.State.AwaitingBrowserCallback -> {
+                // Idle, nothing to do.
+            }
         }
     }
 }

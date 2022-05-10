@@ -18,18 +18,19 @@ package com.okta.webauthenticationui
 import android.app.Activity
 import android.net.Uri
 import com.google.common.truth.Truth.assertThat
+import kotlinx.coroutines.CompletableDeferred
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.doSuspendableAnswer
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
-import org.robolectric.shadows.ShadowLooper
 import java.lang.IllegalStateException
 
 @RunWith(RobolectricTestRunner::class)
@@ -48,10 +49,30 @@ class ForegroundActivityTest {
         ForegroundViewModel.redirectCoordinator = redirectCoordinator
         controller.create().resume()
 
-        // Needs to run in a delay to ensure it's not instantly cancelled by onResume.
-        verify(redirectCoordinator, never()).launchWebAuthenticationProvider(any(), any())
+        verify(redirectCoordinator).launchWebAuthenticationProvider(any(), any())
+        assertThat(activity.isFinishing).isFalse()
+        verify(redirectCoordinator, never()).emit(anyOrNull())
+        verify(redirectCoordinator, never()).emitError(any())
+    }
 
-        ShadowLooper.runUiThreadTasksIncludingDelayedTasks()
+    @Test fun testLaunchingWebAuthenticationProviderIsDelayedUntilActivityIsInForeground() {
+        val launchedFromActivity = Robolectric.buildActivity(Activity::class.java).create().get()
+        val intent = ForegroundActivity.createIntent(launchedFromActivity)
+        val controller = Robolectric.buildActivity(ForegroundActivity::class.java, intent)
+        val activity = controller.get()
+        val deferred = CompletableDeferred<RedirectInitializationResult<Any>>()
+        val redirectCoordinator = mock<RedirectCoordinator> {
+            on { launchWebAuthenticationProvider(any(), any()) } doReturn true
+            onBlocking { runInitializationFunction() } doSuspendableAnswer {
+                deferred.await()
+            }
+        }
+        ForegroundViewModel.redirectCoordinator = redirectCoordinator
+        controller.create().resume().pause()
+        verify(redirectCoordinator, never()).launchWebAuthenticationProvider(any(), any())
+        deferred.complete(RedirectInitializationResult.Success(mock(), Any()))
+        controller.resume()
+
         verify(redirectCoordinator).launchWebAuthenticationProvider(any(), any())
         assertThat(activity.isFinishing).isFalse()
         verify(redirectCoordinator, never()).emit(anyOrNull())
@@ -71,7 +92,6 @@ class ForegroundActivityTest {
         }
         ForegroundViewModel.redirectCoordinator = redirectCoordinator
         controller.create().resume()
-        ShadowLooper.runUiThreadTasksIncludingDelayedTasks()
         assertThat(activity.isFinishing).isTrue()
         verify(redirectCoordinator, never()).emit(anyOrNull())
         verify(redirectCoordinator, never()).emitError(any())
@@ -90,10 +110,8 @@ class ForegroundActivityTest {
         }
         ForegroundViewModel.redirectCoordinator = redirectCoordinator
         controller.create().resume()
-        ShadowLooper.runUiThreadTasksIncludingDelayedTasks()
         assertThat(activity.isFinishing).isFalse()
         controller.pause().resume()
-        ShadowLooper.runUiThreadTasksIncludingDelayedTasks()
         assertThat(activity.isFinishing).isTrue()
         verify(redirectCoordinator).emit(null)
         verify(redirectCoordinator, never()).emitError(any())
@@ -112,7 +130,6 @@ class ForegroundActivityTest {
         }
         ForegroundViewModel.redirectCoordinator = redirectCoordinator
         controller.create().resume()
-        ShadowLooper.runUiThreadTasksIncludingDelayedTasks()
         assertThat(activity.isFinishing).isFalse()
         verify(redirectCoordinator, never()).emit(anyOrNull())
         verify(redirectCoordinator, never()).emitError(any())
@@ -136,7 +153,6 @@ class ForegroundActivityTest {
         }
         ForegroundViewModel.redirectCoordinator = redirectCoordinator
         controller.create().resume()
-        ShadowLooper.runUiThreadTasksIncludingDelayedTasks()
 
         verify(redirectCoordinator, never()).launchWebAuthenticationProvider(any(), any())
         assertThat(activity.isFinishing).isTrue()

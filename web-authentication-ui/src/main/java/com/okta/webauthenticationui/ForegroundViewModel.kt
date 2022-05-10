@@ -50,8 +50,7 @@ internal class ForegroundViewModel : ViewModel() {
                     _stateLiveData.value = State.Error
                 }
                 is RedirectInitializationResult.Success -> {
-                    // Need to post so when we get the result back instantly, we don't resume, and cancel right away.
-                    _stateLiveData.postValue(State.LaunchBrowser(result.url))
+                    _stateLiveData.value = State.LaunchBrowser(result.url)
                 }
             }
         }
