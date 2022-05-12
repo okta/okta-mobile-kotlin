@@ -23,9 +23,11 @@ import com.okta.authfoundation.client.DeviceSecretValidator
 import com.okta.authfoundation.client.IdTokenValidator
 import com.okta.authfoundation.client.OidcClock
 import com.okta.authfoundation.events.EventCoordinator
+import kotlinx.coroutines.Dispatchers
 import okhttp3.Call
 import okhttp3.OkHttpClient
 import java.time.Instant
+import kotlin.coroutines.CoroutineContext
 
 /**
  *  The defaults used in various classes throughout the rest of the SDK.
@@ -37,6 +39,12 @@ import java.time.Instant
 object AuthFoundationDefaults {
     /** The default Call.Factory. */
     var okHttpClientFactory: () -> Call.Factory by NoSetAfterGetWithLazyDefaultFactory { { OkHttpClient() } }
+
+    /** The CoroutineDispatcher which should be used for IO bound tasks. */
+    var ioDispatcher: CoroutineContext by NoSetAfterGetWithLazyDefaultFactory { Dispatchers.IO }
+
+    /** The CoroutineDispatcher which should be used for compute bound tasks. */
+    var computeDispatcher: CoroutineContext by NoSetAfterGetWithLazyDefaultFactory { Dispatchers.Default }
 
     /** The default EventCoordinator. */
     var eventCoordinator: EventCoordinator by NoSetAfterGetWithLazyDefaultFactory { EventCoordinator(emptyList()) }

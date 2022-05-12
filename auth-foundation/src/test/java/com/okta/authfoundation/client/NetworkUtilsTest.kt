@@ -213,15 +213,9 @@ class NetworkingTest {
 
     @Test fun testPerformRequestHasNoTagWithNoCredential(): Unit = runBlocking {
         val interceptor = RecordingInterceptor()
-        val configuration = OidcConfiguration(
-            clientId = "unit_test_client_id",
-            defaultScope = "openid email profile offline_access",
-            okHttpClientFactory = {
-                val builder = oktaRule.okHttpClient.newBuilder()
-                builder.addInterceptor(interceptor)
-                builder.build()
-            }
-        )
+        val builder = oktaRule.okHttpClient.newBuilder()
+        builder.addInterceptor(interceptor)
+        val configuration = oktaRule.createConfiguration(builder.build())
         val oidcClient = OidcClient.create(configuration, oktaRule.createEndpoints())
         oktaRule.enqueue(
             path("/test"),
@@ -242,15 +236,9 @@ class NetworkingTest {
 
     @Test fun testPerformRequestHasTagWhenCredentialIsAttachedToOidcClient(): Unit = runBlocking {
         val interceptor = RecordingInterceptor()
-        val configuration = OidcConfiguration(
-            clientId = "unit_test_client_id",
-            defaultScope = "openid email profile offline_access",
-            okHttpClientFactory = {
-                val builder = oktaRule.okHttpClient.newBuilder()
-                builder.addInterceptor(interceptor)
-                builder.build()
-            }
-        )
+        val builder = oktaRule.okHttpClient.newBuilder()
+        builder.addInterceptor(interceptor)
+        val configuration = oktaRule.createConfiguration(builder.build())
         val credential = mock<Credential>()
         val oidcClient = OidcClient.create(configuration, oktaRule.createEndpoints())
             .withCredential(credential)

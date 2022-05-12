@@ -2,15 +2,19 @@ public final class com/okta/authfoundation/AuthFoundationDefaults {
 	public static final field INSTANCE Lcom/okta/authfoundation/AuthFoundationDefaults;
 	public final fun getAccessTokenValidator ()Lcom/okta/authfoundation/client/AccessTokenValidator;
 	public final fun getClock ()Lcom/okta/authfoundation/client/OidcClock;
+	public final fun getComputeDispatcher ()Lkotlin/coroutines/CoroutineContext;
 	public final fun getDeviceSecretValidator ()Lcom/okta/authfoundation/client/DeviceSecretValidator;
 	public final fun getEventCoordinator ()Lcom/okta/authfoundation/events/EventCoordinator;
 	public final fun getIdTokenValidator ()Lcom/okta/authfoundation/client/IdTokenValidator;
+	public final fun getIoDispatcher ()Lkotlin/coroutines/CoroutineContext;
 	public final fun getOkHttpClientFactory ()Lkotlin/jvm/functions/Function0;
 	public final fun setAccessTokenValidator (Lcom/okta/authfoundation/client/AccessTokenValidator;)V
 	public final fun setClock (Lcom/okta/authfoundation/client/OidcClock;)V
+	public final fun setComputeDispatcher (Lkotlin/coroutines/CoroutineContext;)V
 	public final fun setDeviceSecretValidator (Lcom/okta/authfoundation/client/DeviceSecretValidator;)V
 	public final fun setEventCoordinator (Lcom/okta/authfoundation/events/EventCoordinator;)V
 	public final fun setIdTokenValidator (Lcom/okta/authfoundation/client/IdTokenValidator;)V
+	public final fun setIoDispatcher (Lkotlin/coroutines/CoroutineContext;)V
 	public final fun setOkHttpClientFactory (Lkotlin/jvm/functions/Function0;)V
 }
 
@@ -120,8 +124,8 @@ public abstract interface class com/okta/authfoundation/client/OidcClock {
 }
 
 public final class com/okta/authfoundation/client/OidcConfiguration {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function0;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;Lcom/okta/authfoundation/client/OidcClock;Lcom/okta/authfoundation/events/EventCoordinator;Lcom/okta/authfoundation/client/IdTokenValidator;Lcom/okta/authfoundation/client/AccessTokenValidator;Lcom/okta/authfoundation/client/DeviceSecretValidator;)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function0;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;Lcom/okta/authfoundation/client/OidcClock;Lcom/okta/authfoundation/events/EventCoordinator;Lcom/okta/authfoundation/client/IdTokenValidator;Lcom/okta/authfoundation/client/AccessTokenValidator;Lcom/okta/authfoundation/client/DeviceSecretValidator;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getAccessTokenValidator ()Lcom/okta/authfoundation/client/AccessTokenValidator;
 	public final fun getClientId ()Ljava/lang/String;
 	public final fun getClock ()Lcom/okta/authfoundation/client/OidcClock;
