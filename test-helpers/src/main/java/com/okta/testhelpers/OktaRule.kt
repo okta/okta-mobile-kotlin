@@ -15,6 +15,7 @@
  */
 package com.okta.testhelpers
 
+import com.okta.authfoundation.InternalAuthFoundationApi
 import com.okta.authfoundation.client.AccessTokenValidator
 import com.okta.authfoundation.client.DeviceSecretValidator
 import com.okta.authfoundation.client.IdTokenValidator
@@ -30,10 +31,11 @@ import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
 
+@OptIn(InternalAuthFoundationApi::class)
 class OktaRule(
-    idTokenValidator: IdTokenValidator = IdTokenValidator { _, _, _, _ -> },
-    accessTokenValidator: AccessTokenValidator = AccessTokenValidator { _, _, _ -> },
-    deviceSecretValidator: DeviceSecretValidator = DeviceSecretValidator { _, _, _ -> },
+    private val idTokenValidator: IdTokenValidator = IdTokenValidator { _, _, _, _ -> },
+    private val accessTokenValidator: AccessTokenValidator = AccessTokenValidator { _, _, _ -> },
+    private val deviceSecretValidator: DeviceSecretValidator = DeviceSecretValidator { _, _, _ -> },
 ) : TestRule {
     private val mockWebServer: OktaMockWebServer = OktaMockWebServer()
 
@@ -45,7 +47,11 @@ class OktaRule(
     val eventHandler: RecordingEventHandler = RecordingEventHandler()
     val clock: TestClock = TestClock()
 
-    val configuration: OidcConfiguration = OidcConfiguration(
+    val configuration: OidcConfiguration = createConfiguration()
+
+    fun createConfiguration(
+        okHttpClient: OkHttpClient = this.okHttpClient
+    ) = OidcConfiguration(
         clientId = "unit_test_client_id",
         defaultScope = "openid email profile offline_access",
         okHttpClientFactory = { okHttpClient },
