@@ -92,6 +92,8 @@ class LegacyTokenMigrationTest {
             scope = "openid profile offline_access",
             refreshToken = "ExampleRefreshToken",
             idToken = "ExampleIdToken",
+            deviceSecret = null,
+            issuedTokenType = null,
         )
         verify(credential).storeToken(eq(token), anyOrNull())
     }

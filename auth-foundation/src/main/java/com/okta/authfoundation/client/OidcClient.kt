@@ -109,7 +109,7 @@ class OidcClient private constructor(
     }
 
     /**
-     * Performs the OIDC User Info call, which returns claims associated with supplied `accessToken`.
+     * Performs the OIDC User Info call, which returns claims associated with the supplied `accessToken`.
      *
      * @param accessToken the access token used for authorization to the Authorization Server
      */
@@ -174,7 +174,7 @@ class OidcClient private constructor(
     }
 
     /**
-     * Performs a call to the Authorization Server to validate if the specified [TokenType] is valid.
+     * Performs a call to the Authorization Server to validate the specified [TokenType].
      *
      * @param tokenType the [TokenType] to check for validity.
      * @param token the token associated with the [TokenType] to check for validity.

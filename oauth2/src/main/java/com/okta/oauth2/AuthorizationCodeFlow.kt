@@ -66,8 +66,6 @@ class AuthorizationCodeFlow private constructor(
 
     /**
      * Used in a [OidcClientResult.Error.exception] from [resume].
-     *
-     * Includes a message giving more information as to what went wrong.
      */
     class ResumeException internal constructor(message: String) : Exception(message)
 

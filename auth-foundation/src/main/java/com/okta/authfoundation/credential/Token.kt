@@ -42,19 +42,19 @@ class Token(
     /**
      * The refresh token, if requested.
      */
-    val refreshToken: String? = null,
+    val refreshToken: String?,
     /**
      * The ID token, if requested.
      */
-    val idToken: String? = null,
+    val idToken: String?,
     /**
      * The device secret, if requested.
      */
-    val deviceSecret: String? = null,
+    val deviceSecret: String?,
     /**
      * The issued token type, if returned.
      */
-    val issuedTokenType: String? = null,
+    val issuedTokenType: String?,
 ) {
     internal fun asSerializableToken(): SerializableToken {
         return SerializableToken(

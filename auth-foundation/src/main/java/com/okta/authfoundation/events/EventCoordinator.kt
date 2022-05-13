@@ -18,7 +18,7 @@ package com.okta.authfoundation.events
 import com.okta.authfoundation.InternalAuthFoundationApi
 
 /**
- * A centralized coordinator of events emitted through Auth Foundation and other Okta SDKs.
+ * A centralized coordinator of events emitted throughout Auth Foundation and other Okta SDKs.
  */
 class EventCoordinator(
     /**

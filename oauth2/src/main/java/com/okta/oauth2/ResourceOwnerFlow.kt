@@ -26,7 +26,7 @@ import okhttp3.Request
 /**
  * An authentication flow class that implements the Resource Owner Flow exchange.
  *
- * This simple authentication flow permits a suer to authenticate using a simple username and password. As such, the configuration is straightforward.
+ * This simple authentication flow permits a user to authenticate using a simple username and password. As such, the configuration is straightforward.
  *
  * > Important: Resource Owner authentication does not support MFA or other more secure authentication models, and is not recommended for production applications.
  */
