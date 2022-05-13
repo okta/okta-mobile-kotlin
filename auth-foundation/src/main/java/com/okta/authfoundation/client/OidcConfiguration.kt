@@ -65,6 +65,8 @@ class OidcConfiguration @InternalAuthFoundationApi constructor(
 ) {
     /**
      * Used to create an OidcConfiguration.
+     *
+     * See [AuthFoundationDefaults] for further customization options.
      */
     constructor(
         /** The application's client ID. */

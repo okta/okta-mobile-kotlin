@@ -27,13 +27,17 @@ import com.okta.oauth2.AuthorizationCodeFlow
 import com.okta.oauth2.AuthorizationCodeFlow.Companion.createAuthorizationCodeFlow
 import com.okta.oauth2.RedirectEndSessionFlow
 import com.okta.oauth2.RedirectEndSessionFlow.Companion.createRedirectEndSessionFlow
+import com.okta.webauthenticationui.events.CustomizeBrowserEvent
+import com.okta.webauthenticationui.events.CustomizeCustomTabsEvent
 
 /**
  * Authentication coordinator that simplifies signing users in using browser-based OIDC authentication flows.
  *
  * This simple class encapsulates the details of launching the browser, and coordinating with OAuth2 endpoints.
  *
- * To customize the authentication flow, please read more about the underlying flows: [AuthorizationCodeFlow] and
+ * To customize the flow, please read more about customization options: [WebAuthenticationProvider], [CustomizeBrowserEvent],
+ * [CustomizeCustomTabsEvent].
+ * To further customize the authentication flow, please read more about the underlying flows: [AuthorizationCodeFlow],
  * [RedirectEndSessionFlow].
  */
 class WebAuthenticationClient private constructor(

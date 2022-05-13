@@ -59,6 +59,8 @@ object LegacyTokenMigration {
                     scope = legacyToken.scope?.joinToString(" ") ?: "",
                     refreshToken = legacyToken.refreshToken,
                     idToken = legacyToken.idToken,
+                    deviceSecret = null,
+                    issuedTokenType = null,
                 )
                 credential.storeToken(token)
                 sharedPreferences.markTokensAsMigrated()

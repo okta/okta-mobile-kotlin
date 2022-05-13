@@ -89,7 +89,7 @@ class Credential internal constructor(
     }
 
     /**
-     * Performs a call to the Authorization Server to validate if the specified [TokenType] is valid.
+     * Performs a call to the Authorization Server to validate the specified [TokenType].
      *
      * @param tokenType the [TokenType] to check for validity.
      */
@@ -158,7 +158,7 @@ class Credential internal constructor(
     }
 
     /**
-     * Attempt to refresh the [Token] currently associated with this [Credential].
+     * Attempt to refresh the [Token] associated with this [Credential].
      */
     suspend fun refreshToken(): OidcClientResult<Token> {
         return refreshCoalescingOrchestrator.get()
@@ -196,7 +196,7 @@ class Credential internal constructor(
     }
 
     /**
-     * Returns the scopes associated with the current [Token] if present, otherwise the default scopes associated with the [OidcClient].
+     * Returns the scopes associated with the associated [Token] if present, otherwise the default scopes associated with the [OidcClient].
      */
     fun scope(): String {
         return token?.scope ?: oidcClient.configuration.defaultScope
@@ -216,7 +216,7 @@ class Credential internal constructor(
      * Checks to see if the current access token is valid, and if it is, returns it.
      * If there is no [Token] associated with the [Credential], null is returned.
      *
-     * Access tokens are valid if they haven't expired.
+     * Access tokens are considered valid if they haven't expired.
      *
      * See [Credential.introspectToken] for checking if the token is valid with the Authorization Server.
      */
@@ -259,7 +259,7 @@ class Credential internal constructor(
      * The [Interceptor] attaches an authorization: Bearer header with the access token to all requests.
      * Internally, this uses [Credential.getValidAccessToken] to automatically refresh the access token once it expires.
      * If no valid access token is available, no authorization header will be added, and a [NoAccessTokenAvailableEvent] event will
-     * be fired to the associated [EventCoordinator].
+     * be emitted to the associated [EventCoordinator].
      */
     fun accessTokenInterceptor(): Interceptor {
         return AccessTokenInterceptor(::getValidAccessToken, oidcClient.configuration.eventCoordinator, this)

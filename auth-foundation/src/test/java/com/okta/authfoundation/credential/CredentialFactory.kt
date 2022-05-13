@@ -55,6 +55,7 @@ fun createToken(
         refreshToken = refreshToken,
         deviceSecret = deviceSecret,
         idToken = idToken,
+        issuedTokenType = null,
     )
 }
 

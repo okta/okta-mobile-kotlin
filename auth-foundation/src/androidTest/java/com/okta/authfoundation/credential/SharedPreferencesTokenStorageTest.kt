@@ -98,7 +98,10 @@ class SharedPreferencesTokenStorageTest {
             expiresIn = 600,
             accessToken = "anExampleButInvalidAccessToken",
             scope = "openid email offline_access etc",
-            refreshToken = "anExampleButInvalidRefreshToken"
+            refreshToken = "anExampleButInvalidRefreshToken",
+            idToken = null,
+            deviceSecret = null,
+            issuedTokenType = null,
         )
         subject.replace(TokenStorage.Entry("one", token, mapOf("foo" to "bar")))
         val entry = subject.entries().first()

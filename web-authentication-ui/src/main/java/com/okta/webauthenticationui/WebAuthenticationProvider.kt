@@ -41,7 +41,7 @@ interface WebAuthenticationProvider {
      * @param context the Android [Activity] [Context] which is used to display the flow.
      * @param url the url the instance should display.
      *
-     * @return if the launch was successful.
+     * @return the exception causing the launch to fail.
      */
     fun launch(context: Context, url: HttpUrl): Exception?
 }

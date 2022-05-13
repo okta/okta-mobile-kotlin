@@ -113,6 +113,10 @@ class TokenTest {
             expiresIn = 3600,
             accessToken = "exampleAccessToken",
             scope = "offline_access profile openid email",
+            idToken = null,
+            refreshToken = null,
+            deviceSecret = null,
+            issuedTokenType = null,
         )
         val json = oktaRule.configuration.json.encodeToString(SerializableToken.serializer(), token.asSerializableToken())
         assertThat(json).isEqualTo(

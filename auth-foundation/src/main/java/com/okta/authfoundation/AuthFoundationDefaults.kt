@@ -50,7 +50,7 @@ object AuthFoundationDefaults {
     var eventCoordinator: EventCoordinator by NoSetAfterGetWithLazyDefaultFactory { EventCoordinator(emptyList()) }
 
     /** The default OidcClock. */
-    var clock: OidcClock by NoSetAfterGetWithLazyDefaultFactory { defaultClock() }
+    var clock: OidcClock by NoSetAfterGetWithLazyDefaultFactory { OidcClock { Instant.now().epochSecond } }
 
     /** The default IdTokenValidator. */
     var idTokenValidator: IdTokenValidator by NoSetAfterGetWithLazyDefaultFactory { DefaultIdTokenValidator() }
@@ -60,8 +60,4 @@ object AuthFoundationDefaults {
 
     /** The default DeviceSecretValidator. */
     var deviceSecretValidator: DeviceSecretValidator by NoSetAfterGetWithLazyDefaultFactory { DefaultDeviceSecretValidator() }
-
-    private fun defaultClock(): OidcClock {
-        return OidcClock { Instant.now().epochSecond }
-    }
 }
