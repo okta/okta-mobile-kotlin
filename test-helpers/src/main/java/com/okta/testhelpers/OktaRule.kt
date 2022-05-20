@@ -100,4 +100,10 @@ class OktaRule(
             responseFactory(response)
         }
     }
+
+    fun enqueue(vararg requestMatcher: RequestMatcher, responseFactory: (OktaRecordedRequest, MockResponse) -> Unit) {
+        mockWebServer.dispatcher.enqueue(*requestMatcher) { request, response ->
+            responseFactory(request, response)
+        }
+    }
 }

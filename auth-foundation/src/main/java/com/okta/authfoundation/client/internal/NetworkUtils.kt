@@ -54,6 +54,21 @@ suspend fun <Raw, Dto> OidcClient.performRequest(
     }
 }
 
+@InternalAuthFoundationApi
+suspend fun OidcClient.performRequest(
+    request: Request,
+): OidcClientResult<Response> {
+    currentCoroutineContext().ensureActive()
+    return withContext(configuration.ioDispatcher) {
+        try {
+            val response = configuration.okHttpClient.newCall(request).await()
+            OidcClientResult.Success(response)
+        } catch (e: Exception) {
+            OidcClientResult.Error(e)
+        }
+    }
+}
+
 internal suspend fun OidcClient.performRequestNonJson(
     request: Request
 ): OidcClientResult<Unit> {

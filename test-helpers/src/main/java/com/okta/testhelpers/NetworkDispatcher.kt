@@ -30,14 +30,25 @@ class NetworkDispatcher : Dispatcher() {
     }
 
     fun enqueue(vararg requestMatcher: RequestMatcher, responseFactory: (MockResponse) -> Unit) {
-        val response = MockResponse()
-        response.setResponseCode(200)
-        responseFactory(response)
-        enqueue(composite(*requestMatcher), response)
+        enqueuedResponses.add(
+            Entry(composite(*requestMatcher)) {
+                val response = MockResponse()
+                response.setResponseCode(200)
+                responseFactory(response)
+                response
+            }
+        )
     }
 
-    fun enqueue(requestMatcher: RequestMatcher, response: MockResponse) {
-        enqueuedResponses.add(Entry(requestMatcher, response))
+    fun enqueue(vararg requestMatcher: RequestMatcher, responseFactory: (OktaRecordedRequest, MockResponse) -> Unit) {
+        enqueuedResponses.add(
+            Entry(composite(*requestMatcher)) {
+                val response = MockResponse()
+                response.setResponseCode(200)
+                responseFactory(it, response)
+                response
+            }
+        )
     }
 
     fun clear() {
@@ -60,13 +71,13 @@ class NetworkDispatcher : Dispatcher() {
 
         matchedEntry?.let { capturedEntry ->
             enqueuedResponses.remove(capturedEntry)
-            return capturedEntry.response
+            return capturedEntry.responseFactory(oktaRequest)
         }
 
         throw RequestNotFoundException("$request not mocked\n${oktaRequest.bodyText}")
     }
 }
 
-private class Entry(val requestMatcher: RequestMatcher, val response: MockResponse)
+private class Entry(val requestMatcher: RequestMatcher, val responseFactory: (OktaRecordedRequest) -> MockResponse)
 
 internal class RequestNotFoundException(message: String) : Exception(message)

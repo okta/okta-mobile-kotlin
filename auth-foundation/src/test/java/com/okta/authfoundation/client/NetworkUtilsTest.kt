@@ -279,6 +279,58 @@ class NetworkingTest {
         cancelledCountDownLatch.countDown()
         assertThat(oktaRule.mockWebServerDispatcher.numberRemainingInQueue()).isEqualTo(0)
     }
+
+    @Test fun testPerformRequestRawResponseEnsuresTheCoroutineIsActiveBeforeMakingNetworkRequest(): Unit = runBlocking {
+        val request = Request.Builder()
+            .url(oktaRule.baseUrl.newBuilder().addPathSegments("test").build())
+            .build()
+
+        val startedCountDownLatch = CountDownLatch(1)
+        val cancelledCountDownLatch = CountDownLatch(1)
+        val job = async(Dispatchers.IO) {
+            startedCountDownLatch.countDown()
+            assertThat(cancelledCountDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
+            oktaRule.createOidcClient().performRequest(request)
+            throw IllegalStateException("We got a response.")
+        }
+        assertThat(startedCountDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
+        job.cancel()
+        cancelledCountDownLatch.countDown()
+        assertThat(oktaRule.mockWebServerDispatcher.numberRemainingInQueue()).isEqualTo(0)
+    }
+
+    @Test fun testPerformRequestRawResponse(): Unit = runBlocking {
+        oktaRule.enqueue(
+            path("/test"),
+        ) { response ->
+            response.setBody("")
+            response.setResponseCode(302)
+            response.addHeader("location", "example:/callback")
+        }
+
+        val request = Request.Builder()
+            .url(oktaRule.baseUrl.newBuilder().addPathSegments("test").build())
+            .build()
+
+        val response = oktaRule.createOidcClient().performRequest(request)
+        val successResponse = response as OidcClientResult.Success<Response>
+        assertThat(successResponse.result.code).isEqualTo(302)
+        assertThat(successResponse.result.header("location")).isEqualTo("example:/callback")
+    }
+
+    @Test fun testPerformRequestRawResponseNetworkFailure(): Unit = runBlocking {
+        oktaRule.enqueue(path("/test")) { response ->
+            response.socketPolicy = SocketPolicy.DISCONNECT_AFTER_REQUEST
+        }
+
+        val request = Request.Builder()
+            .url(oktaRule.baseUrl.newBuilder().addPathSegments("test").build())
+            .build()
+
+        val result = oktaRule.createOidcClient().performRequest(request)
+        val message = (result as OidcClientResult.Error<Response>).exception.message
+        assertThat(message).contains("Failed to connect to")
+    }
 }
 
 private class RecordingInterceptor : Interceptor {
