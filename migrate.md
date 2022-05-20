@@ -67,5 +67,10 @@ See all available methods here: [Credential](auth-foundation/src/main/java/com/o
 `WebAuthenticationClient` replaces `WebAuthClient`, remove usages of `WebAuthClient` in your application.
 See all available methods here: [WebAuthenticationClient](web-authentication-ui/src/main/java/com/okta/webauthenticationui/WebAuthenticationClient.kt).
 
+## Use SessionTokenFlow
+If you're using the legacy Authn APIs to do "custom authentication", you will need to use `SessionTokenFlow` which replaces `authClient.signIn`.
+See associated docs here: [SessionTokenFlow](oauth2/src/main/java/com/okta/oauth2/SessionTokenFlow.kt).
+There is a sample using the flow available here: [session-token-sample](session-token-sample).
+
 ## Sample
 There's a sample demonstrating migration in the `legacy-token-migration-sample` [directory](legacy-token-migration-sample).

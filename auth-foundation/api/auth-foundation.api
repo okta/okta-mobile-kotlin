@@ -181,6 +181,7 @@ public final class com/okta/authfoundation/client/events/ValidateIdTokenEvent {
 
 public final class com/okta/authfoundation/client/internal/NetworkUtilsKt {
 	public static final fun performRequest (Lcom/okta/authfoundation/client/OidcClient;Lkotlinx/serialization/DeserializationStrategy;Lokhttp3/Request;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun performRequest (Lcom/okta/authfoundation/client/OidcClient;Lokhttp3/Request;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun performRequest$default (Lcom/okta/authfoundation/client/OidcClient;Lkotlinx/serialization/DeserializationStrategy;Lokhttp3/Request;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
@@ -231,7 +232,6 @@ public final class com/okta/authfoundation/credential/RevokeTokenType : java/lan
 
 public final class com/okta/authfoundation/credential/Token {
 	public fun <init> (Ljava/lang/String;ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public synthetic fun <init> (Ljava/lang/String;ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getAccessToken ()Ljava/lang/String;
 	public final fun getDeviceSecret ()Ljava/lang/String;

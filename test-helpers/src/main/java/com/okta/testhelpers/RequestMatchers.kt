@@ -39,25 +39,31 @@ object RequestMatchers {
     fun path(path: String): RequestMatcher {
         return { request ->
             var requestPath = request.path
-            val queryIndex = requestPath?.indexOf("?") ?: -1
+            val queryIndex = requestPath.indexOf("?")
             if (queryIndex > -1) {
                 // Remove the query params.
-                requestPath = requestPath?.substring(0, queryIndex)
+                requestPath = requestPath.substring(0, queryIndex)
             }
-            requestPath?.endsWith(path) ?: false
+            requestPath.endsWith(path)
         }
     }
 
     fun query(query: String): RequestMatcher {
         return { request ->
             val requestPath = request.path
-            val queryIndex = requestPath?.indexOf("?") ?: -1
+            val queryIndex = requestPath.indexOf("?")
             if (queryIndex > -1) {
-                requestPath?.substring(queryIndex + 1) == query
+                requestPath.substring(queryIndex + 1) == query
             } else {
                 false
             }
         }
+    }
+
+    fun query(name: String, value: String): RequestMatcher = { request ->
+        request.path.substringAfter("?")
+            .split("&")
+            .associate { Pair(it.substringBefore("="), it.substringAfter("=")) }[name] == value
     }
 
     fun method(method: String): RequestMatcher {
@@ -69,6 +75,12 @@ object RequestMatchers {
             val actual = request.bodyText
             actual == body
         }
+    }
+
+    fun bodyPart(name: String, value: String): RequestMatcher = { request ->
+        request.bodyText.substringAfter("?")
+            .split("&")
+            .associate { Pair(it.substringBefore("="), it.substringAfter("=")) }[name] == value
     }
 
     fun composite(vararg matchers: RequestMatcher): RequestMatcher {

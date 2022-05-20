@@ -78,6 +78,17 @@ public final class com/okta/oauth2/ResourceOwnerFlow$Companion {
 	public final fun createResourceOwnerFlow (Lcom/okta/authfoundation/client/OidcClient;)Lcom/okta/oauth2/ResourceOwnerFlow;
 }
 
+public final class com/okta/oauth2/SessionTokenFlow {
+	public static final field Companion Lcom/okta/oauth2/SessionTokenFlow$Companion;
+	public synthetic fun <init> (Lcom/okta/authfoundation/client/OidcClient;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun start (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun start$default (Lcom/okta/oauth2/SessionTokenFlow;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class com/okta/oauth2/SessionTokenFlow$Companion {
+	public final fun createSessionTokenFlow (Lcom/okta/authfoundation/client/OidcClient;)Lcom/okta/oauth2/SessionTokenFlow;
+}
+
 public final class com/okta/oauth2/TokenExchangeFlow {
 	public static final field Companion Lcom/okta/oauth2/TokenExchangeFlow$Companion;
 	public synthetic fun <init> (Lcom/okta/authfoundation/client/OidcClient;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
