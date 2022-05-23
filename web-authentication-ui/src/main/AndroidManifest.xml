@@ -12,6 +12,7 @@
         <activity
             android:name=".ForegroundActivity"
             android:autoRemoveFromRecents="true"
+            android:configChanges="orientation|keyboard|keyboardHidden|screenLayout|screenSize|smallestScreenSize"
             android:launchMode="singleTop"
             android:theme="@style/NoAnimationTheme" />
 
