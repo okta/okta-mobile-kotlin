@@ -23,6 +23,7 @@ import com.okta.authfoundation.credential.Token
 import com.okta.oauth2.DeviceAuthorizationFlow.Companion.createDeviceAuthorizationFlow
 import com.okta.testhelpers.OktaRule
 import com.okta.testhelpers.RequestMatchers.body
+import com.okta.testhelpers.RequestMatchers.bodyPart
 import com.okta.testhelpers.RequestMatchers.method
 import com.okta.testhelpers.RequestMatchers.path
 import com.okta.testhelpers.testBodyFromFile
@@ -35,6 +36,16 @@ import java.util.concurrent.atomic.AtomicInteger
 
 class DeviceAuthorizationFlowTest {
     private val mockPrefix = "test_responses"
+    private val successBody = """
+    {
+        "device_code": "1a521d9f-0922-4e6d-8db9-8b654297435a",
+        "user_code": "GDLMZQCT",
+        "verification_uri": "https://example.okta.com/activate",
+        "verification_uri_complete": "https://example.okta.com/activate?user_code=GDLMZQCT",
+        "expires_in": 600,
+        "interval": 5
+    }
+    """.trimIndent()
 
     @get:Rule val oktaRule = OktaRule()
 
@@ -65,19 +76,10 @@ class DeviceAuthorizationFlowTest {
         oktaRule.enqueue(
             method("POST"),
             path("/oauth2/default/v1/device/authorize"),
-            body("client_id=unit_test_client_id&scope=openid%20email%20profile%20offline_access")
+            bodyPart("client_id", "unit_test_client_id"),
+            bodyPart("scope", "openid%20email%20profile%20offline_access"),
         ) { response ->
-            val body = """
-            {
-                "device_code": "1a521d9f-0922-4e6d-8db9-8b654297435a",
-                "user_code": "GDLMZQCT",
-                "verification_uri": "https://example.okta.com/activate",
-                "verification_uri_complete": "https://example.okta.com/activate?user_code=GDLMZQCT",
-                "expires_in": 600,
-                "interval": 5
-            }
-            """.trimIndent()
-            response.setBody(body)
+            response.setBody(successBody)
         }
 
         val flow = oktaRule.createOidcClient().createDeviceAuthorizationFlow()
@@ -89,6 +91,28 @@ class DeviceAuthorizationFlowTest {
         assertThat(startResult.verificationUri).isEqualTo("https://example.okta.com/activate")
         assertThat(startResult.verificationUriComplete).isEqualTo("https://example.okta.com/activate?user_code=GDLMZQCT")
         assertThat(startResult.userCode).isEqualTo("GDLMZQCT")
+    }
+
+    @Test fun testStartWithExtraParameters(): Unit = runBlocking {
+        oktaRule.enqueue(
+            method("POST"),
+            path("/oauth2/default/v1/device/authorize"),
+            bodyPart("client_id", "unit_test_client_id"),
+            bodyPart("scope", "openid%20email%20profile%20offline_access%20custom%3Aread"),
+            bodyPart("foo", "bar"),
+        ) { response ->
+            response.setBody(successBody)
+        }
+
+        val flow = oktaRule.createOidcClient().createDeviceAuthorizationFlow()
+        val startResult = (
+            flow.start(
+                extraRequestParameters = mapOf(Pair("foo", "bar")),
+                scope = "openid email profile offline_access custom:read",
+            ) as OidcClientResult.Success<DeviceAuthorizationFlow.Context>
+            ).result
+
+        assertThat(startResult.deviceCode).isEqualTo("1a521d9f-0922-4e6d-8db9-8b654297435a")
     }
 
     @Test fun testStartError(): Unit = runBlocking {
