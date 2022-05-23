@@ -113,14 +113,24 @@ class DeviceAuthorizationFlow private constructor(
      *
      * See [DeviceAuthorizationFlow.resume] for completing the flow.
      *
+     * @param extraRequestParameters the extra key value pairs to send to the device authorize endpoint.
+     *  See [Device Authorize Documentation](https://developer.okta.com/docs/reference/api/oidc/#device-authorize) for parameter
+     *  options.
      * @param scope the scopes to request during sign in. Defaults to the configured [OidcClient] [OidcConfiguration.defaultScope].
      */
     suspend fun start(
+        extraRequestParameters: Map<String, String> = emptyMap(),
         scope: String = oidcClient.configuration.defaultScope,
     ): OidcClientResult<Context> {
         val endpoint = oidcClient.endpointsOrNull()?.deviceAuthorizationEndpoint ?: return oidcClient.endpointNotAvailableError()
 
         val formBodyBuilder = FormBody.Builder()
+
+        for (entry in extraRequestParameters.entries) {
+            formBodyBuilder.add(entry.key, entry.value)
+        }
+
+        formBodyBuilder
             .add("client_id", oidcClient.configuration.clientId)
             .add("scope", scope)
 
