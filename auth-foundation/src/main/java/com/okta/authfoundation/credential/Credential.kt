@@ -175,10 +175,10 @@ class Credential internal constructor(
      *
      * > Note: OIDC Logout terminology is nuanced, see [Logout Documentation](https://github.com/okta/okta-mobile-kotlin#logout) for additional details.
      *
-     * @param tokenType the [TokenType] to revoke, defaults to [RevokeTokenType.ACCESS_TOKEN].
+     * @param tokenType the [TokenType] to revoke.
      */
     suspend fun revokeToken(
-        tokenType: RevokeTokenType = RevokeTokenType.ACCESS_TOKEN
+        tokenType: RevokeTokenType
     ): OidcClientResult<Unit> {
         val localToken = token ?: return OidcClientResult.Error(IllegalStateException("No token."))
         val token = when (tokenType) {

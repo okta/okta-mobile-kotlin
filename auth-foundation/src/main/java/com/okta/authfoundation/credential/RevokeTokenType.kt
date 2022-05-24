@@ -17,6 +17,8 @@ package com.okta.authfoundation.credential
 
 /**
  * The possible token types that can be revoked.
+ *
+ * See [Logout Documentation](https://github.com/okta/okta-mobile-kotlin#logout) for additional details.
  */
 enum class RevokeTokenType {
     /**

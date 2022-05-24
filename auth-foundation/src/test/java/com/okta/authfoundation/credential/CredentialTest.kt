@@ -158,7 +158,7 @@ class CredentialTest {
 
     @Test fun testRevokeTokenWithNullTokenReturnsError(): Unit = runBlocking {
         val credential = oktaRule.createCredential()
-        val result = credential.revokeToken()
+        val result = credential.revokeToken(RevokeTokenType.ACCESS_TOKEN)
         assertThat(result).isInstanceOf(OidcClientResult.Error::class.java)
         val errorResult = result as OidcClientResult.Error<Unit>
         assertThat(errorResult.exception).hasMessageThat().isEqualTo("No token.")
