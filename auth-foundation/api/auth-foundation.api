@@ -204,7 +204,6 @@ public final class com/okta/authfoundation/credential/Credential {
 	public final fun introspectToken (Lcom/okta/authfoundation/credential/TokenType;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun refreshToken (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun revokeToken (Lcom/okta/authfoundation/credential/RevokeTokenType;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun revokeToken$default (Lcom/okta/authfoundation/credential/Credential;Lcom/okta/authfoundation/credential/RevokeTokenType;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public final fun scope ()Ljava/lang/String;
 	public final fun storeToken (Lcom/okta/authfoundation/credential/Token;Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun storeToken$default (Lcom/okta/authfoundation/credential/Credential;Lcom/okta/authfoundation/credential/Token;Ljava/util/Map;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
