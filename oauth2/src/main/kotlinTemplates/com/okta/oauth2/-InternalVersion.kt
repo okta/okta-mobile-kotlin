@@ -15,4 +15,4 @@
  */
 package com.okta.oauth2
 
-internal const val SDK_VERSION = "okta-oauth2-kotlin$projectVersion"
+internal const val SDK_VERSION = "okta-oauth2-kotlin/$projectVersion"
