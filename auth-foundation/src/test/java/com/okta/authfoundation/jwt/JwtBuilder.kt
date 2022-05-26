@@ -16,6 +16,7 @@
 package com.okta.authfoundation.jwt
 
 import com.okta.authfoundation.client.OidcClient
+import com.okta.authfoundation.client.OidcConfiguration
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationStrategy
@@ -27,18 +28,18 @@ import java.security.PrivateKey
 import java.security.Signature
 
 class JwtBuilder private constructor(
-    private val oidcClient: OidcClient,
+    private val jwtParser: JwtParser,
     private val privateKey: PrivateKey,
 ) {
     companion object {
         const val KEY_ID = "FJA0HGNtsuuda_Pl45J42kvQqcsu_0C4Fg7pbJLXTHY"
 
         fun OidcClient.createJwtBuilder(): JwtBuilder {
-            return JwtBuilder(this, TestKeyFactory.privateKey())
+            return JwtBuilder(JwtParser(configuration.json, configuration.computeDispatcher), TestKeyFactory.privateKey())
         }
     }
 
-    val json = Json(from = oidcClient.configuration.json) {
+    val json = Json(from = OidcConfiguration.defaultJson()) {
         encodeDefaults = true
     }
 
@@ -61,7 +62,7 @@ class JwtBuilder private constructor(
         val claimsString = json.encodeToString(serializer, claims).toBase64()
         val signatureString = "$headerString.$claimsString".rs256()
         val rawJwt = "$headerString.$claimsString.$signatureString"
-        return oidcClient.parseJwt(rawJwt)!!
+        return jwtParser.parse(rawJwt)
     }
 
     private fun String.rs256(): String {

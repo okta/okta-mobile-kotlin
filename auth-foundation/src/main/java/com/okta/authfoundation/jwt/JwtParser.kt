@@ -15,7 +15,9 @@
  */
 package com.okta.authfoundation.jwt
 
+import com.okta.authfoundation.AuthFoundationDefaults
 import com.okta.authfoundation.claims.DefaultClaimsProvider
+import com.okta.authfoundation.client.OidcConfiguration
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -25,13 +27,31 @@ import kotlinx.serialization.json.JsonObject
 import okio.ByteString.Companion.decodeBase64
 import kotlin.coroutines.CoroutineContext
 
-internal class JwtParser internal constructor(
+/**
+ * Used to parse [String]s into [Jwt]s.
+ */
+class JwtParser internal constructor(
     private val json: Json,
     private val computeDispatcher: CoroutineContext,
 ) {
-    suspend fun parse(token: String): Jwt {
+    companion object {
+        /**
+         * Initialize a [JwtParser].
+         */
+        fun create(): JwtParser {
+            return JwtParser(OidcConfiguration.defaultJson(), AuthFoundationDefaults.computeDispatcher)
+        }
+    }
+
+    /**
+     * Parses a given string into a [Jwt], if possible.
+     *
+     * @param rawValue the string representation of a [Jwt].
+     * @throws IllegalArgumentException if [rawValue] is malformed.
+     */
+    suspend fun parse(rawValue: String): Jwt {
         return withContext(computeDispatcher) {
-            val sections = token.split(".")
+            val sections = rawValue.split(".")
             if (sections.size != 3) {
                 throw IllegalArgumentException("Token doesn't contain 3 parts. Needs header, claims data, and signature.")
             }
@@ -46,7 +66,7 @@ internal class JwtParser internal constructor(
                 keyId = header.kid,
                 claimsProvider = DefaultClaimsProvider(claims, json),
                 signature = sections[2],
-                rawValue = token,
+                rawValue = rawValue,
                 computeDispatcher = computeDispatcher,
             )
         }

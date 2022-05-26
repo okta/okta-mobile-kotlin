@@ -97,9 +97,9 @@ class OidcConfiguration @InternalAuthFoundationApi constructor(
     }
 
     /** The Json object to do the decoding from the okta server responses. */
-    @InternalAuthFoundationApi val json: Json = Json { ignoreUnknownKeys = true }
+    @InternalAuthFoundationApi val json: Json = defaultJson()
 
-    private companion object {
+    internal companion object {
         private fun addInterceptor(callFactory: Call.Factory): Call.Factory {
             if (callFactory is OkHttpClient) {
                 return callFactory.newBuilder()
@@ -108,6 +108,8 @@ class OidcConfiguration @InternalAuthFoundationApi constructor(
             }
             return callFactory
         }
+
+        internal fun defaultJson(): Json = Json { ignoreUnknownKeys = true }
     }
 }
 

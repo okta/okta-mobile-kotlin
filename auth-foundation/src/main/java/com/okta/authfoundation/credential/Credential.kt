@@ -25,6 +25,7 @@ import com.okta.authfoundation.credential.events.CredentialStoredAfterRemovedEve
 import com.okta.authfoundation.credential.events.NoAccessTokenAvailableEvent
 import com.okta.authfoundation.events.EventCoordinator
 import com.okta.authfoundation.jwt.Jwt
+import com.okta.authfoundation.jwt.JwtParser
 import com.okta.authfoundation.util.CoalescingOrchestrator
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -209,7 +210,13 @@ class Credential internal constructor(
      */
     suspend fun idToken(): Jwt? {
         val idToken = _token?.idToken ?: return null
-        return oidcClient.parseJwt(idToken)
+        try {
+            val parser = JwtParser(oidcClient.configuration.json, oidcClient.configuration.computeDispatcher)
+            return parser.parse(idToken)
+        } catch (e: Exception) {
+            // The token was malformed.
+            return null
+        }
     }
 
     /**
