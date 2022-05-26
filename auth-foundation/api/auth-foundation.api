@@ -1,6 +1,7 @@
 public final class com/okta/authfoundation/AuthFoundationDefaults {
 	public static final field INSTANCE Lcom/okta/authfoundation/AuthFoundationDefaults;
 	public final fun getAccessTokenValidator ()Lcom/okta/authfoundation/client/AccessTokenValidator;
+	public final fun getCache ()Lcom/okta/authfoundation/client/Cache;
 	public final fun getClock ()Lcom/okta/authfoundation/client/OidcClock;
 	public final fun getComputeDispatcher ()Lkotlin/coroutines/CoroutineContext;
 	public final fun getDeviceSecretValidator ()Lcom/okta/authfoundation/client/DeviceSecretValidator;
@@ -9,6 +10,7 @@ public final class com/okta/authfoundation/AuthFoundationDefaults {
 	public final fun getIoDispatcher ()Lkotlin/coroutines/CoroutineContext;
 	public final fun getOkHttpClientFactory ()Lkotlin/jvm/functions/Function0;
 	public final fun setAccessTokenValidator (Lcom/okta/authfoundation/client/AccessTokenValidator;)V
+	public final fun setCache (Lcom/okta/authfoundation/client/Cache;)V
 	public final fun setClock (Lcom/okta/authfoundation/client/OidcClock;)V
 	public final fun setComputeDispatcher (Lkotlin/coroutines/CoroutineContext;)V
 	public final fun setDeviceSecretValidator (Lcom/okta/authfoundation/client/DeviceSecretValidator;)V
@@ -59,6 +61,11 @@ public abstract interface class com/okta/authfoundation/client/AccessTokenValida
 
 public final class com/okta/authfoundation/client/AccessTokenValidator$Error : java/lang/IllegalStateException {
 	public fun <init> (Ljava/lang/String;)V
+}
+
+public abstract interface class com/okta/authfoundation/client/Cache {
+	public abstract fun get (Ljava/lang/String;)Ljava/lang/String;
+	public abstract fun set (Ljava/lang/String;Ljava/lang/String;)V
 }
 
 public abstract interface class com/okta/authfoundation/client/DeviceSecretValidator {
@@ -125,8 +132,9 @@ public abstract interface class com/okta/authfoundation/client/OidcClock {
 
 public final class com/okta/authfoundation/client/OidcConfiguration {
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
-	public fun <init> (Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function0;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;Lcom/okta/authfoundation/client/OidcClock;Lcom/okta/authfoundation/events/EventCoordinator;Lcom/okta/authfoundation/client/IdTokenValidator;Lcom/okta/authfoundation/client/AccessTokenValidator;Lcom/okta/authfoundation/client/DeviceSecretValidator;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function0;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;Lcom/okta/authfoundation/client/OidcClock;Lcom/okta/authfoundation/events/EventCoordinator;Lcom/okta/authfoundation/client/IdTokenValidator;Lcom/okta/authfoundation/client/AccessTokenValidator;Lcom/okta/authfoundation/client/DeviceSecretValidator;Lcom/okta/authfoundation/client/Cache;)V
 	public final fun getAccessTokenValidator ()Lcom/okta/authfoundation/client/AccessTokenValidator;
+	public final fun getCache ()Lcom/okta/authfoundation/client/Cache;
 	public final fun getClientId ()Ljava/lang/String;
 	public final fun getClock ()Lcom/okta/authfoundation/client/OidcClock;
 	public final fun getComputeDispatcher ()Lkotlin/coroutines/CoroutineContext;
@@ -150,6 +158,17 @@ public final class com/okta/authfoundation/client/OidcEndpoints {
 	public final fun getRevocationEndpoint ()Lokhttp3/HttpUrl;
 	public final fun getTokenEndpoint ()Lokhttp3/HttpUrl;
 	public final fun getUserInfoEndpoint ()Lokhttp3/HttpUrl;
+}
+
+public final class com/okta/authfoundation/client/SharedPreferencesCache : com/okta/authfoundation/client/Cache {
+	public static final field Companion Lcom/okta/authfoundation/client/SharedPreferencesCache$Companion;
+	public synthetic fun <init> (Landroid/content/Context;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun get (Ljava/lang/String;)Ljava/lang/String;
+	public fun set (Ljava/lang/String;Ljava/lang/String;)V
+}
+
+public final class com/okta/authfoundation/client/SharedPreferencesCache$Companion {
+	public final fun create (Landroid/content/Context;)Lcom/okta/authfoundation/client/Cache;
 }
 
 public abstract class com/okta/authfoundation/client/dto/OidcIntrospectInfo {

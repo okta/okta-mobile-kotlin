@@ -18,8 +18,10 @@ package sample.okta.android
 import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
+import com.okta.authfoundation.AuthFoundationDefaults
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcConfiguration
+import com.okta.authfoundation.client.SharedPreferencesCache
 import com.okta.authfoundation.credential.CredentialDataSource.Companion.createCredentialDataSource
 import com.okta.authfoundationbootstrap.CredentialBootstrap
 import okhttp3.HttpUrl.Companion.toHttpUrl
@@ -38,6 +40,7 @@ class SampleApplication : Application() {
 
         Timber.plant(Timber.DebugTree())
 
+        AuthFoundationDefaults.cache = SharedPreferencesCache.create(this)
         val oidcConfiguration = OidcConfiguration(
             clientId = BuildConfig.CLIENT_ID,
             defaultScope = SampleHelper.DEFAULT_SCOPE,

@@ -62,6 +62,10 @@ class OidcConfiguration @InternalAuthFoundationApi constructor(
     /** The DeviceSecretValidator used to validate the device secret when tokens are minted. */
     @property:InternalAuthFoundationApi
     val deviceSecretValidator: DeviceSecretValidator,
+
+    /** The Cache used to optimize network calls by the SDK. */
+    @property:InternalAuthFoundationApi
+    val cache: Cache
 ) {
     /**
      * Used to create an OidcConfiguration.
@@ -83,7 +87,8 @@ class OidcConfiguration @InternalAuthFoundationApi constructor(
         eventCoordinator = AuthFoundationDefaults.eventCoordinator,
         idTokenValidator = AuthFoundationDefaults.idTokenValidator,
         accessTokenValidator = AuthFoundationDefaults.accessTokenValidator,
-        deviceSecretValidator = AuthFoundationDefaults.deviceSecretValidator
+        deviceSecretValidator = AuthFoundationDefaults.deviceSecretValidator,
+        cache = AuthFoundationDefaults.cache,
     )
 
     /** The Call.Factory which makes calls to the okta server. */
