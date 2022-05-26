@@ -16,11 +16,13 @@
 package com.okta.authfoundation
 
 import com.okta.authfoundation.client.AccessTokenValidator
+import com.okta.authfoundation.client.Cache
 import com.okta.authfoundation.client.DefaultAccessTokenValidator
 import com.okta.authfoundation.client.DefaultDeviceSecretValidator
 import com.okta.authfoundation.client.DefaultIdTokenValidator
 import com.okta.authfoundation.client.DeviceSecretValidator
 import com.okta.authfoundation.client.IdTokenValidator
+import com.okta.authfoundation.client.NoOpCache
 import com.okta.authfoundation.client.OidcClock
 import com.okta.authfoundation.events.EventCoordinator
 import kotlinx.coroutines.Dispatchers
@@ -60,4 +62,7 @@ object AuthFoundationDefaults {
 
     /** The default DeviceSecretValidator. */
     var deviceSecretValidator: DeviceSecretValidator by NoSetAfterGetWithLazyDefaultFactory { DefaultDeviceSecretValidator() }
+
+    /** The default [Cache]. No caching is enabled by default. */
+    var cache: Cache by NoSetAfterGetWithLazyDefaultFactory { NoOpCache() }
 }

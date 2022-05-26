@@ -52,6 +52,7 @@ dependencies {
 
     implementation deps.security_crypto
 
+    testImplementation deps.androidx_test.core
     testImplementation deps.junit
     testImplementation deps.truth
     testImplementation deps.kotlin.test

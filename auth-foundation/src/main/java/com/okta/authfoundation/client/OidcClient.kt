@@ -21,7 +21,6 @@ import com.okta.authfoundation.client.dto.OidcIntrospectInfo
 import com.okta.authfoundation.client.dto.OidcIntrospectInfo.Companion.asOidcIntrospectInfo
 import com.okta.authfoundation.client.dto.OidcUserInfo
 import com.okta.authfoundation.client.events.TokenCreatedEvent
-import com.okta.authfoundation.client.internal.internalPerformRequest
 import com.okta.authfoundation.client.internal.performRequest
 import com.okta.authfoundation.client.internal.performRequestNonJson
 import com.okta.authfoundation.credential.Credential
@@ -36,9 +35,7 @@ import com.okta.authfoundation.util.CoalescingOrchestrator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.decodeFromStream
 import okhttp3.FormBody
 import okhttp3.HttpUrl
 import okhttp3.Request
@@ -73,16 +70,7 @@ class OidcClient private constructor(
                 configuration = configuration,
                 endpoints = CoalescingOrchestrator(
                     factory = {
-                        val request = Request.Builder()
-                            .url(discoveryUrl)
-                            .build()
-                        configuration.internalPerformRequest(request, { it.isSuccessful }) { responseBody ->
-                            @OptIn(ExperimentalSerializationApi::class)
-                            val serializableOidcEndpoints = configuration.json.decodeFromStream(
-                                SerializableOidcEndpoints.serializer(), responseBody
-                            )
-                            serializableOidcEndpoints.asOidcEndpoints()
-                        }
+                        EndpointsFactory.get(configuration, discoveryUrl)
                     },
                     keepDataInMemory = { result ->
                         result is OidcClientResult.Success

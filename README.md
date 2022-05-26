@@ -129,14 +129,17 @@ Before authenticating your user, you need to create your `OidcClient`, using the
 
 ```kotlin
 import android.content.Context
+import com.okta.authfoundation.AuthFoundationDefaults
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundation.client.OidcConfiguration
+import com.okta.authfoundation.client.SharedPreferencesCache
 import com.okta.authfoundation.credential.CredentialDataSource.Companion.createCredentialDataSource
 import com.okta.authfoundationbootstrap.CredentialBootstrap
 import okhttp3.HttpUrl.Companion.toHttpUrl
 
 val context: Context = TODO("Supplied by the developer.")
+AuthFoundationDefaults.cache = SharedPreferencesCache.create(context)
 val oidcConfiguration = OidcConfiguration(
     clientId = "{clientId}",
     defaultScopes = setOf("openid", "email", "profile", "offline_access"),

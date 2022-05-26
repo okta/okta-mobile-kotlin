@@ -15,8 +15,10 @@
  */
 package com.okta.testhelpers
 
+import com.okta.authfoundation.AuthFoundationDefaults
 import com.okta.authfoundation.InternalAuthFoundationApi
 import com.okta.authfoundation.client.AccessTokenValidator
+import com.okta.authfoundation.client.Cache
 import com.okta.authfoundation.client.DeviceSecretValidator
 import com.okta.authfoundation.client.IdTokenValidator
 import com.okta.authfoundation.client.OidcClient
@@ -50,7 +52,8 @@ class OktaRule(
     val configuration: OidcConfiguration = createConfiguration()
 
     fun createConfiguration(
-        okHttpClient: OkHttpClient = this.okHttpClient
+        okHttpClient: OkHttpClient = this.okHttpClient,
+        cache: Cache = AuthFoundationDefaults.cache,
     ) = OidcConfiguration(
         clientId = "unit_test_client_id",
         defaultScope = "openid email profile offline_access",
@@ -62,6 +65,7 @@ class OktaRule(
         deviceSecretValidator = deviceSecretValidator,
         ioDispatcher = Dispatchers.Unconfined,
         computeDispatcher = Dispatchers.Unconfined,
+        cache = cache,
     )
 
     fun createEndpoints(
