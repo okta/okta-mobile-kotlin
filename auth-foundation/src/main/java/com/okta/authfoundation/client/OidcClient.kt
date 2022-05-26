@@ -28,8 +28,6 @@ import com.okta.authfoundation.credential.SerializableToken
 import com.okta.authfoundation.credential.Token
 import com.okta.authfoundation.credential.TokenType
 import com.okta.authfoundation.jwt.Jwks
-import com.okta.authfoundation.jwt.Jwt
-import com.okta.authfoundation.jwt.JwtParser
 import com.okta.authfoundation.jwt.SerializableJwks
 import com.okta.authfoundation.util.CoalescingOrchestrator
 import kotlinx.coroutines.Dispatchers
@@ -235,23 +233,6 @@ class OidcClient private constructor(
 
         return performRequest(SerializableJwks.serializer(), request) { serializableJwks ->
             serializableJwks.toJwks()
-        }
-    }
-
-    /**
-     * Parses a given string into a [Jwt], if possible.
-     *
-     * Returns `null` if an error occurs attempted to parse the [Jwt].
-     *
-     * @param jwt the string representation of a [Jwt].
-     */
-    suspend fun parseJwt(jwt: String): Jwt? {
-        try {
-            val parser = JwtParser(configuration.json, configuration.computeDispatcher)
-            return parser.parse(jwt)
-        } catch (e: Exception) {
-            // The token was malformed.
-            return null
         }
     }
 

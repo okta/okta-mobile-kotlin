@@ -59,7 +59,8 @@ class JwtTest {
         val jwks = createJwks()
         val client = oktaRule.createOidcClient()
         val jwt = client.createJwtBuilder().createJwt(claims = IdTokenClaims())
-        val invalidJwt = client.parseJwt("${jwt.rawValue.substringBeforeLast(".")}.invalid")!!
+        val jwtParser = JwtParser.create()
+        val invalidJwt = jwtParser.parse("${jwt.rawValue.substringBeforeLast(".")}.invalid")
         assertThat(invalidJwt.hasValidSignature(jwks)).isFalse()
     }
 }
