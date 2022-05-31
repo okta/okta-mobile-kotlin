@@ -35,7 +35,7 @@ jobs:
         uses: gradle/gradle-build-action@v2
 
       - name: Run Tests
-        run: ./gradlew assembleDebug testDebugUnitTest assembleAndroidTest
+        run: ./gradlew assembleDebug testReleaseUnitTest assembleAndroidTest
 
       - name: Authenticate Gcloud command line
         if: github.ref == 'refs/heads/master' || contains(github.event.pull_request.labels.*.name, 'e2e')
