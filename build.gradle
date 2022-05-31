@@ -22,7 +22,6 @@ allprojects {
     forceVersions(configurations)
     configurePublishing(it)
     configureSpotless(it)
-    configureSingleVariantAndroidLibraries(it)
 }
 
 def configurePublishing(Project project) {
@@ -45,26 +44,6 @@ def configurePublishing(Project project) {
 
         if (project.plugins.hasPlugin('com.android.library')) {
             project.mavenPublishing.configure(new com.vanniktech.maven.publish.AndroidSingleVariantLibrary("release"))
-        }
-    }
-}
-
-def configureSingleVariantAndroidLibraries(Project project) {
-    project.plugins.withId('com.android.library') {
-        project.androidComponents {
-            beforeVariants(selector().withBuildType('debug')) { builder ->
-                builder.enable = false
-            }
-        }
-    }
-
-    project.plugins.withId('com.android.application') {
-        project.android {
-            buildTypes {
-                debug {
-                    matchingFallbacks = ['release']
-                }
-            }
         }
     }
 }
