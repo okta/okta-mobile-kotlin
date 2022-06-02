@@ -142,7 +142,7 @@ val context: Context = TODO("Supplied by the developer.")
 AuthFoundationDefaults.cache = SharedPreferencesCache.create(context)
 val oidcConfiguration = OidcConfiguration(
     clientId = "{clientId}",
-    defaultScopes = setOf("openid", "email", "profile", "offline_access"),
+    defaultScope = "openid email profile offline_access",
 )
 val client = OidcClient.createFromDiscoveryUrl(
     oidcConfiguration,
