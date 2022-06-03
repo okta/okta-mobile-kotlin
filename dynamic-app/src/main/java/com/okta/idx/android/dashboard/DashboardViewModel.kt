@@ -20,6 +20,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.okta.authfoundation.client.OidcClientResult
+import com.okta.authfoundation.credential.RevokeTokenType
 import com.okta.authfoundationbootstrap.CredentialBootstrap
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
@@ -51,7 +52,7 @@ internal class DashboardViewModel : ViewModel() {
         _logoutStateLiveData.value = LogoutState.Loading
 
         viewModelScope.launch {
-            when (CredentialBootstrap.defaultCredential().revokeToken()) {
+            when (CredentialBootstrap.defaultCredential().revokeToken(RevokeTokenType.ACCESS_TOKEN)) {
                 is OidcClientResult.Error -> {
                     _logoutStateLiveData.postValue(LogoutState.Failed)
                 }

@@ -15,6 +15,7 @@
  */
 package com.okta.idx.kotlin.infrastructure.network
 
+import com.okta.authfoundation.client.Cache
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.client.OidcEndpoints
@@ -75,6 +76,7 @@ class NetworkRule : TestRule {
         deviceSecretValidator = { _, _, _ -> },
         ioDispatcher = Dispatchers.Unconfined,
         computeDispatcher = Dispatchers.Unconfined,
+        cache = NoOpCache(),
     )
 
     fun createOidcClient(urlBuilder: HttpUrl.Builder = mockedUrl().newBuilder()): OidcClient {
@@ -90,5 +92,14 @@ class NetworkRule : TestRule {
             deviceAuthorizationEndpoint = null,
         )
         return OidcClient.create(configuration, endpoints)
+    }
+}
+
+private class NoOpCache : Cache {
+    override fun set(key: String, value: String) {
+    }
+
+    override fun get(key: String): String? {
+        return null
     }
 }
