@@ -1,6 +1,27 @@
 # Changelog
 
+## [0.6.0-BETA] - 2022-06-03
+
+[Commits](https://github.com/okta/okta-mobile-kotlin/compare/0.5.0-BETA...0.6.0-BETA)
+
+### Added
+- `SessionTokenFlow` which aids migration from legacy Authn APIs.
+- Cache .well-known/openid-configuration results.
+
+### Changed
+- Made most of `OidcConfiguration` internal, use `AuthFoundationDefaults` for customization.
+- Add extra parameters to the `DeviceAuthorizationFlow`.
+- Remove the default on `Credential.revoke`.
+- Expose `JwtParser.parse` instead of `OidcClient.parseJwt`.
+
+### Fixed
+- Listen for configuration changes in `ForegroundActivity`.
+- Fix missing slash in SDK version.
+
 ## [0.5.0-BETA] - 2022-05-10
+
+[Commits](https://github.com/okta/okta-mobile-kotlin/compare/0.4.0-BETA...0.5.0-BETA)
+
 ### Changed
 - `OidcClient.refresh` no longer accepts scopes, as they are not used.
 - Changed the way id token validation customization happens.
@@ -13,6 +34,9 @@
 - Properly support backgrounded internal Activities during web authentication.
 
 ## [0.4.0-BETA] - 2022-04-25
+
+[Commits](https://github.com/okta/okta-mobile-kotlin/compare/0.3.0-BETA...0.4.0-BETA)
+
 ### Added
 - Legacy token migration - migrate tokens from okta-oidc-android, see [migrate.md](migrate.md).
 - Consumer proguard rules, allowing R8 including with full mode.
@@ -30,6 +54,9 @@
 - Fixed an issue where the chrome custom tab would linger after authentication.
 
 ## [0.3.0-BETA] - 2022-04-14
+
+[Commits](https://github.com/okta/okta-mobile-kotlin/compare/0.2.0-BETA...0.3.0-BETA)
+
 ### Added
 - Added CredentialBootstrap for handling common `Credential` use cases.
 - Added a tag to OkHttp requests with the associated `Credential`.
