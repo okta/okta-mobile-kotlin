@@ -148,7 +148,7 @@ val client = OidcClient.createFromDiscoveryUrl(
     oidcConfiguration,
     "https://{yourOktaOrg}.okta.com/.well-known/openid-configuration".toHttpUrl(),
 )
-CredentialBootstrap.initialize(oidcClient.createCredentialDataSource(context))
+CredentialBootstrap.initialize(client.createCredentialDataSource(context))
 ```
 
 #### Create a Credential
