@@ -57,7 +57,7 @@ internal class DynamicAuthFragment : BaseFragment<FragmentDynamicAuthBinding>(
 
     private val viewModel by viewModels<DynamicAuthViewModel>(factoryProducer = {
         object : ViewModelProvider.Factory {
-            override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
                 return DynamicAuthViewModel(args.recoveryToken) as T
             }
         }

@@ -33,8 +33,8 @@ import androidx.test.uiautomator.UiScrollable
 import androidx.test.uiautomator.UiSelector
 import com.google.common.truth.Truth.assertThat
 import com.okta.idx.android.dynamic.R
-import org.hamcrest.Matchers.allOf
 import org.hamcrest.BaseMatcher
+import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.Description
 import org.hamcrest.Matcher
 

@@ -15,14 +15,11 @@
  */
 package com.okta.idx.android.cucumber.hooks
 
-import io.cucumber.core.api.Scenario
 import io.cucumber.java.Before
 import org.junit.Assume
-import timber.log.Timber
 
 internal class SkipScenario {
-    @Before("@skipScenario") fun skip_scenario(scenario: Scenario) {
-        Timber.d("SKIP SCENARIO: %s", scenario.name)
+    @Before("@skipScenario") fun skip_scenario() {
         Assume.assumeTrue(false)
     }
 }

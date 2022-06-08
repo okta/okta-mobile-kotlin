@@ -25,12 +25,7 @@ android {
     }
     kotlinOptions {
         jvmTarget = '1.8'
-        freeCompilerArgs += ["-Xopt-in=com.okta.authfoundation.InternalAuthFoundationApi"]
-    }
-    sourceSets {
-        main {
-            kotlin.srcDir("$buildDir/generated/sources/kotlinTemplates")
-        }
+        freeCompilerArgs += ["-Xopt-in=kotlin.RequiresOptIn"]
     }
 }
 
@@ -38,7 +33,6 @@ dependencies {
     api deps.kotlin.stdlib
     api deps.okhttp.core
     api deps.coroutines.android
-    api deps.okta.auth_foundation
 
     implementation deps.kotlin.serialization_json
 
@@ -58,14 +52,4 @@ if (hasProperty('mavenCentralUsername')) {
             sign configurations.archives
         }
     }
-}
-
-task copyKotlinTemplates(type: Copy) {
-    from("src/main/kotlinTemplates")
-    into("$buildDir/generated/sources/kotlinTemplates")
-    expand(projectVersion: project.version)
-}
-
-tasks.withType(org.jetbrains.kotlin.gradle.dsl.KotlinCompile) {
-    dependsOn(copyKotlinTemplates)
 }

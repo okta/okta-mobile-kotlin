@@ -17,20 +17,16 @@ package com.okta.idx.android.cucumber.hooks
 
 import com.okta.idx.android.infrastructure.management.OktaManagementSdk
 import com.okta.sdk.resource.group.Group
-import io.cucumber.core.api.Scenario
 import io.cucumber.java.Before
 import org.junit.Assert
 import java.util.function.Consumer
 import java.util.stream.Collectors
 
 class RequireMFAGroupsForUser {
-    @Before("@requireMFAGroupsForUser") fun assignMFAGroupBeforeScenario(scenario: Scenario) {
+    @Before("@requireMFAGroupsForUser") fun assignMFAGroupBeforeScenario() {
         Assert.assertNotNull(SharedState.user)
         val groups: MutableList<String> = ArrayList()
         groups.add("MFA Required")
-        if (scenario.id.contains("mfa_with_password_and_sms")) {
-            groups.add("Phone Enrollment Required")
-        }
         val groupList: List<Group> = OktaManagementSdk.client.listGroups()
             .stream()
             .filter { group -> groups.contains(group.profile.name) }

@@ -36,10 +36,9 @@ import com.okta.idx.android.infrastructure.espresso.waitForElement
 import io.cucumber.java.en.And
 import io.cucumber.java.en.Then
 import io.cucumber.java.en.When
-import org.hamcrest.Matchers.allOf
-import org.hamcrest.Matchers.equalTo
-import org.hamcrest.Matchers.isEmptyOrNullString
-import org.hamcrest.Matchers.not
+import org.hamcrest.CoreMatchers.allOf
+import org.hamcrest.CoreMatchers.containsString
+import org.hamcrest.CoreMatchers.equalTo
 import javax.annotation.CheckReturnValue
 
 class DashboardDefinitions {
@@ -61,7 +60,7 @@ class DashboardDefinitions {
             matches(
                 allOf(
                     isDisplayed(),
-                    withText(not(isEmptyOrNullString()))
+                    withText(containsString("."))
                 )
             )
         )
@@ -74,7 +73,7 @@ class DashboardDefinitions {
                 matches(
                     allOf(
                         isDisplayed(),
-                        withText(not(isEmptyOrNullString()))
+                        withText(containsString("."))
                     )
                 )
             )
@@ -87,7 +86,7 @@ class DashboardDefinitions {
                 matches(
                     allOf(
                         isDisplayed(),
-                        withText(not(isEmptyOrNullString()))
+                        withText(containsString("."))
                     )
                 )
             )

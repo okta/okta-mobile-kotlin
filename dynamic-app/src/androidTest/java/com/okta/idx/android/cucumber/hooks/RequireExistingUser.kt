@@ -19,14 +19,13 @@ import com.okta.idx.android.infrastructure.EndToEndCredentials
 import com.okta.idx.android.infrastructure.management.OktaManagementSdk
 import com.okta.sdk.resource.user.User
 import com.okta.sdk.resource.user.UserBuilder
-import io.cucumber.core.api.Scenario
 import io.cucumber.java.After
 import io.cucumber.java.Before
 import org.junit.Assert
 import timber.log.Timber
 
 class RequireExistingUser {
-    @Before("@requireExistingUser", order = 100) fun createUserBeforeScenario(scenario: Scenario) {
+    @Before("@requireExistingUser", order = 100) fun createUserBeforeScenario() {
         Assert.assertNotNull(SharedState.a18NProfile)
         val user: User = UserBuilder.instance()
             .setEmail(SharedState.a18NProfile!!.emailAddress)
@@ -37,7 +36,7 @@ class RequireExistingUser {
             .setActive(true)
             .buildAndCreate(OktaManagementSdk.client)
         Assert.assertNotNull(user.id)
-        Timber.i("User created: %s - Scenario name: %s", user.profile.email, scenario.name)
+        Timber.i("User created: %s", user.profile.email)
         SharedState.user = user
     }
 

@@ -116,7 +116,9 @@ dependencies {
 
     androidTestImplementation deps.cucumber.android
     androidTestImplementation deps.cucumber.pico_container
-    androidTestImplementation deps.okta.management_sdk
+    androidTestImplementation(deps.okta.management_sdk) {
+        exclude group: 'org.bouncycastle'
+    }
 }
 
 static def parseScheme(String uri) {
