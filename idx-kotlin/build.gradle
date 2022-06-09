@@ -1,7 +1,7 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'org.jetbrains.kotlin.plugin.serialization'
-apply plugin: 'binary-compatibility-validator'
+apply plugin: 'com.vanniktech.maven.publish.base'
 
 android {
     compileSdkVersion build_versions.compile_sdk
@@ -26,17 +26,7 @@ android {
     }
     kotlinOptions {
         jvmTarget = '1.8'
-        freeCompilerArgs += ["-Xopt-in=com.okta.authfoundation.InternalAuthFoundationApi"]
-    }
-
-    buildFeatures {
-        buildConfig = false
-    }
-
-    sourceSets {
-        main {
-            kotlin.srcDir("$buildDir/generated/sources/kotlinTemplates")
-        }
+        freeCompilerArgs += ["-Xopt-in=kotlin.RequiresOptIn"]
     }
 }
 
@@ -44,7 +34,6 @@ dependencies {
     api deps.kotlin.stdlib
     api deps.okhttp.core
     api deps.coroutines.android
-    api deps.okta.auth_foundation
 
     implementation deps.kotlin.serialization_json
 
@@ -54,24 +43,4 @@ dependencies {
     testImplementation deps.truth
     testImplementation deps.jackson_databind
     testImplementation deps.robolectric
-}
-
-if (hasProperty('mavenCentralUsername')) {
-    apply plugin: "com.vanniktech.maven.publish"
-    afterEvaluate {
-        signing {
-            useGpgCmd()
-            sign configurations.archives
-        }
-    }
-}
-
-task copyKotlinTemplates(type: Copy) {
-    from("src/main/kotlinTemplates")
-    into("$buildDir/generated/sources/kotlinTemplates")
-    expand(projectVersion: project.version)
-}
-
-tasks.withType(org.jetbrains.kotlin.gradle.dsl.KotlinCompile) {
-    dependsOn(copyKotlinTemplates)
 }
