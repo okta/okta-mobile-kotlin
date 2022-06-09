@@ -33,12 +33,18 @@ def configurePublishing(Project project) {
             pomFromGradleProperties()
         }
 
-        if (project.hasProperty('mavenCentralUsername')) {
+        if (project.hasProperty('signWithGpgCommand')) {
             project.afterEvaluate {
                 project.signing {
                     useGpgCmd()
                     sign project.publishing.publications
                 }
+            }
+        }
+
+        if (project.hasProperty('signAllPublications')) {
+            project.mavenPublishing {
+                signAllPublications()
             }
         }
 
