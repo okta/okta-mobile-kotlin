@@ -16,13 +16,13 @@
 package com.okta.idx.kotlin.dto.v1
 
 import com.okta.idx.kotlin.dto.IdxAuthenticator
-import com.okta.idx.kotlin.dto.IdxIdpCapability
 import com.okta.idx.kotlin.dto.IdxAuthenticatorCollection
+import com.okta.idx.kotlin.dto.IdxCapabilityCollection
+import com.okta.idx.kotlin.dto.IdxIdpCapability
 import com.okta.idx.kotlin.dto.IdxMessageCollection
+import com.okta.idx.kotlin.dto.IdxPollRemediationCapability
 import com.okta.idx.kotlin.dto.IdxRemediation
 import com.okta.idx.kotlin.dto.IdxRemediationCollection
-import com.okta.idx.kotlin.dto.IdxCapabilityCollection
-import com.okta.idx.kotlin.dto.IdxPollRemediationCapability
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.serializer

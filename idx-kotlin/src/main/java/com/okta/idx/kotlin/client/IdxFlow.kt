@@ -176,8 +176,9 @@ class IdxFlow internal constructor(
                 val error = "IDP redirect failed due to state mismatch."
                 return IdxRedirectResult.Error(error)
             }
-            return when (val result =
-                exchangeInteractionCodeForTokens(interactionCodeQueryParameter)) {
+            return when (
+                val result = exchangeInteractionCodeForTokens(interactionCodeQueryParameter)
+            ) {
                 is OidcClientResult.Error -> {
                     IdxRedirectResult.Error("Failed to exchangeCodes.", result.exception)
                 }

@@ -23,8 +23,7 @@ import com.okta.idx.android.util.emitValidation
 import com.okta.idx.kotlin.dto.IdxRemediation
 
 /**
- * Data model classes representing `IdxRemediation` as a View Model. 
- */
+ * Data model classes representing `IdxRemediation` as a View Model. */
 sealed class DynamicAuthField {
     /**
      * `DynamicAuthField.Text` are displayed as a `TextInputLayout`, and represents a `IdxRemediation.Form.Field.type` `string` fields.

@@ -44,9 +44,10 @@ class RequireGroupsForUser {
             .filter { group -> groups.contains(group.profile.name) }
             .collect(Collectors.toList())
         Assert.assertFalse(groupList.isEmpty())
-        groupList.forEach(Consumer { group: Group ->
-            SharedState.user!!.addToGroup(group.id)
-        })
+        groupList.forEach(
+            Consumer { group: Group ->
+                SharedState.user!!.addToGroup(group.id)
+            }
+        )
     }
-
 }

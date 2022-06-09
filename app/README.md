@@ -2,8 +2,8 @@
 
 # Okta IDX Android - embedded-auth-with-sdk
 
-This repository contains a sample Android application which can be used a reference for using 
-[Okta IDX Java][okta-idx-java-github] on Android. 
+This repository contains a sample Android application which can be used a reference for using
+[Okta IDX Java][okta-idx-java-github] on Android.
 
 * [Introduction](#introduction)
 * [Need help?](#need-help)
@@ -11,12 +11,12 @@ This repository contains a sample Android application which can be used a refere
 * [Contributing](#contributing)
 
 ## Introduction
-> :grey_exclamation: This Sample Application uses an SDK that requires usage of the Okta Identity Engine. 
-This functionality is in [General Availability](https://developer.okta.com/docs/reference/releases-at-okta/#general-availability-ga) but is being gradually rolled out to customers. If you want to gain access to the Okta Identity Engine, please reach out to your account manager. If you 
+> :grey_exclamation: This Sample Application uses an SDK that requires usage of the Okta Identity Engine.
+This functionality is in [General Availability](https://developer.okta.com/docs/reference/releases-at-okta/#general-availability-ga) but is being gradually rolled out to customers. If you want to gain access to the Okta Identity Engine, please reach out to your account manager. If you
 do not have an account manager, please reach out to oie@okta.com for more information.
 
 This Sample Application will show you the best practices for integrating Authentication into your app
-using [Okta's Identity Engine](https://developer.okta.com/docs/concepts/ie-intro/). Specifically, this 
+using [Okta's Identity Engine](https://developer.okta.com/docs/concepts/ie-intro/). Specifically, this
 application will cover some basic needed use cases to get you up and running quickly with Okta.
 These Examples are:
 1. Sign In
@@ -37,7 +37,7 @@ If you run into problems using the SDK, you can
 
 ### Prerequisites
 
-#### Okta Admin Dashboard 
+#### Okta Admin Dashboard
 
 Before running this sample, you will need the following:
 
@@ -75,7 +75,7 @@ clientId=test-client-id
 redirectUri=com.okta.sample.android:/login
 ```
 
-Notes: 
+Notes:
 - `issuer` - is your authorization server, usually `https://your_okta_domain.okta.com/oauth2/default`, but custom authorization servers are supported. See `https://your_okta_domain.okta.com/admin/oauth2/as` for available authorization servers.
 - `clientId` - is your applications client id, created in your okta admin dashboard
 - `redirectUri` - is used for external [identity providers](https://developer.okta.com/docs/reference/api/idps/), and should follow the format of [reverse domain name notation](https://en.wikipedia.org/wiki/Reverse_domain_name_notation) + `/login`, ie: `com.okta.sample.android:/login`

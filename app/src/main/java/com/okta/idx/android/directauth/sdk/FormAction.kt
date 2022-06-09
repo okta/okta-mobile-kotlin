@@ -17,12 +17,12 @@ package com.okta.idx.android.directauth.sdk
 
 import androidx.lifecycle.MutableLiveData
 import com.okta.idx.android.directauth.TestingGlobals
+import com.okta.idx.android.directauth.sdk.forms.LaunchForm
+import com.okta.idx.android.directauth.sdk.forms.RegisterForm
 import com.okta.idx.android.directauth.sdk.forms.RegisterPasswordForm
 import com.okta.idx.android.directauth.sdk.forms.RegisterPhoneForm
 import com.okta.idx.android.directauth.sdk.forms.SelectAuthenticatorForm
 import com.okta.idx.android.directauth.sdk.forms.SelectFactorForm
-import com.okta.idx.android.directauth.sdk.forms.LaunchForm
-import com.okta.idx.android.directauth.sdk.forms.RegisterForm
 import com.okta.idx.android.directauth.sdk.forms.UsernamePasswordForm
 import com.okta.idx.android.directauth.sdk.forms.VerifyCodeForm
 import com.okta.idx.sdk.api.client.Authenticator

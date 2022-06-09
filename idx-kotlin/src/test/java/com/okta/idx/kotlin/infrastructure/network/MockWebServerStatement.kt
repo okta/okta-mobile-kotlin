@@ -29,7 +29,7 @@ internal class MockWebServerStatement(
             val numberRemainingInQueue = networkDispatcher.numberRemainingInQueue()
             if (numberRemainingInQueue != 0) {
                 throw IllegalStateException(
-                    "${description.testClass}#${description.methodName} - mock responses is not empty. Remaining: ${numberRemainingInQueue}."
+                    "${description.testClass}#${description.methodName} - mock responses is not empty. Remaining: $numberRemainingInQueue."
                 )
             }
         } finally {

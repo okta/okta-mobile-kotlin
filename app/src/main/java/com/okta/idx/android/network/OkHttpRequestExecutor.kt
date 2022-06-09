@@ -1,6 +1,5 @@
 /*
- * Copyright 2014 Stormpath, Inc.
- * Modifications Copyright 2018 Okta, Inc.
+ * Copyright 2014-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.okta.idx.android.network
 
 import com.okta.commons.http.DefaultResponse
@@ -126,7 +124,7 @@ internal class OkHttpRequestExecutor constructor(
         var bodyInputStream: InputStream? = null
         val contentLength: Long
 
-        //ensure that the content has been fully acquired before closing the http stream
+        // ensure that the content has been fully acquired before closing the http stream
         if (body != null) {
             contentLength = body.contentLength()
             bodyInputStream = ByteArrayInputStream(body.bytes())

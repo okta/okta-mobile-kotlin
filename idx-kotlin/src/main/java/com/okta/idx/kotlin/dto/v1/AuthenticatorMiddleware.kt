@@ -16,15 +16,15 @@
 package com.okta.idx.kotlin.dto.v1
 
 import com.okta.idx.kotlin.dto.IdxAuthenticator
+import com.okta.idx.kotlin.dto.IdxCapabilityCollection
+import com.okta.idx.kotlin.dto.IdxNumberChallengeCapability
+import com.okta.idx.kotlin.dto.IdxPasswordSettingsCapability
 import com.okta.idx.kotlin.dto.IdxPollAuthenticatorCapability
 import com.okta.idx.kotlin.dto.IdxProfileCapability
 import com.okta.idx.kotlin.dto.IdxRecoverCapability
 import com.okta.idx.kotlin.dto.IdxResendCapability
 import com.okta.idx.kotlin.dto.IdxSendCapability
 import com.okta.idx.kotlin.dto.IdxTotpCapability
-import com.okta.idx.kotlin.dto.IdxCapabilityCollection
-import com.okta.idx.kotlin.dto.IdxNumberChallengeCapability
-import com.okta.idx.kotlin.dto.IdxPasswordSettingsCapability
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
@@ -46,13 +46,13 @@ internal fun Response.toIdxAuthenticatorPathPairs(
     authenticatorEnrollments?.value?.let {
         it.forEachIndexed { index, authenticator ->
             result += authenticator.toIdxAuthenticator(json, IdxAuthenticator.State.ENROLLED)
-                .toPathPair("$.authenticatorEnrollments.value[${index}]")
+                .toPathPair("$.authenticatorEnrollments.value[$index]")
         }
     }
     authenticators?.value?.let {
         it.forEachIndexed { index, authenticator ->
             result += authenticator.toIdxAuthenticator(json, IdxAuthenticator.State.NORMAL)
-                .toPathPair("$.authenticators.value[${index}]")
+                .toPathPair("$.authenticators.value[$index]")
         }
     }
     return result

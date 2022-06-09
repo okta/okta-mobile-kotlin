@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.okta.idx.android.network
 
 import com.okta.commons.http.RequestExecutor

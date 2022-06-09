@@ -16,21 +16,21 @@
 package com.okta.idx.android.directauth.sdk
 
 import com.okta.idx.android.directauth.sdk.forms.ForgotPasswordForm
+import com.okta.idx.android.directauth.sdk.forms.LaunchForm
 import com.okta.idx.android.directauth.sdk.forms.RegisterForm
 import com.okta.idx.android.directauth.sdk.forms.RegisterPasswordForm
 import com.okta.idx.android.directauth.sdk.forms.RegisterPhoneForm
 import com.okta.idx.android.directauth.sdk.forms.SelectAuthenticatorForm
 import com.okta.idx.android.directauth.sdk.forms.SelectFactorForm
-import com.okta.idx.android.directauth.sdk.forms.LaunchForm
 import com.okta.idx.android.directauth.sdk.forms.UsernamePasswordForm
 import com.okta.idx.android.directauth.sdk.forms.VerifyCodeForm
 import com.okta.idx.android.directauth.sdk.viewFactories.ForgotPasswordFormViewFactory
+import com.okta.idx.android.directauth.sdk.viewFactories.LaunchFormViewFactory
 import com.okta.idx.android.directauth.sdk.viewFactories.RegisterFormViewFactory
 import com.okta.idx.android.directauth.sdk.viewFactories.RegisterPasswordFormViewFactory
 import com.okta.idx.android.directauth.sdk.viewFactories.RegisterPhoneFormViewFactory
 import com.okta.idx.android.directauth.sdk.viewFactories.SelectAuthenticatorFormViewFactory
 import com.okta.idx.android.directauth.sdk.viewFactories.SelectFactorFormViewFactory
-import com.okta.idx.android.directauth.sdk.viewFactories.LaunchFormViewFactory
 import com.okta.idx.android.directauth.sdk.viewFactories.UsernamePasswordFormViewFactory
 import com.okta.idx.android.directauth.sdk.viewFactories.VerifyCodeFormViewFactory
 

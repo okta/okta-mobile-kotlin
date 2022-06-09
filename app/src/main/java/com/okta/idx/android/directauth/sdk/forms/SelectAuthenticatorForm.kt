@@ -18,7 +18,6 @@ package com.okta.idx.android.directauth.sdk.forms
 import com.okta.idx.android.directauth.sdk.Form
 import com.okta.idx.android.directauth.sdk.FormAction
 import com.okta.idx.sdk.api.client.Authenticator
-import com.okta.idx.sdk.api.client.ProceedContext
 import com.okta.idx.sdk.api.model.AuthenticationStatus
 
 class SelectAuthenticatorForm internal constructor(

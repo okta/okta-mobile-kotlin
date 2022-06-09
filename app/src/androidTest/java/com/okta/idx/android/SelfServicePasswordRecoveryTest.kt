@@ -60,14 +60,16 @@ class SelfServicePasswordRecoveryTest : BaseMainActivityTest() {
             path("idp/idx/challenge/answer"),
             bodyWithJsonPath("/credentials/passcode") {
                 it.textValue().equals("123456")
-            }) { response ->
+            }
+        ) { response ->
             response.testBodyFromFile("$mockPrefix/answerEmailCode.json")
         }
         networkRule.enqueue(
             path("idp/idx/challenge/answer"),
             bodyWithJsonPath("/credentials/passcode") {
                 it.textValue().equals("abc123")
-            }) { response ->
+            }
+        ) { response ->
             response.testBodyFromFile("$mockPrefix/answerNewPassword.json")
         }
         networkRule.enqueue(path("oauth2/v1/token")) { response ->

@@ -70,28 +70,32 @@ class SelfServiceRegistrationTest : BaseMainActivityTest() {
             path("idp/idx/credential/enroll"),
             bodyWithJsonPath("/authenticator/id") {
                 it.textValue() == "autkx2th9yt4eRdhM5d6"
-            }) { response ->
+            }
+        ) { response ->
             response.testBodyFromFile("$mockPrefix/credentialEnrollPassword.json")
         }
         networkRule.enqueue(
             path("idp/idx/challenge/answer"),
             bodyWithJsonPath("/credentials/passcode") {
                 it.textValue() == "Abcd1234"
-            }) { response ->
+            }
+        ) { response ->
             response.testBodyFromFile("$mockPrefix/challengeAnswerPassword.json")
         }
         networkRule.enqueue(
             path("idp/idx/credential/enroll"),
             bodyWithJsonPath("/authenticator/id") {
                 it.textValue() == "autkx2thaMq4XkX2I5d6"
-            }) { response ->
+            }
+        ) { response ->
             response.testBodyFromFile("$mockPrefix/credentialEnrollEmail.json")
         }
         networkRule.enqueue(
             path("idp/idx/challenge/answer"),
             bodyWithJsonPath("/credentials/passcode") {
                 it.textValue() == "471537"
-            }) { response ->
+            }
+        ) { response ->
             response.testBodyFromFile("$mockPrefix/challengeAnswerEmail.json")
         }
         networkRule.enqueue(path("idp/idx/skip")) { response ->
@@ -163,62 +167,73 @@ class SelfServiceRegistrationTest : BaseMainActivityTest() {
             path("idp/idx/credential/enroll"),
             bodyWithJsonPath("/authenticator/id") {
                 it.textValue() == "autkx2th9yt4eRdhM5d6"
-            }) { response ->
+            }
+        ) { response ->
             response.testBodyFromFile("$mockPrefix/credentialEnrollPassword.json")
         }
         networkRule.enqueue(
             path("idp/idx/challenge/answer"),
             bodyWithJsonPath("/credentials/passcode") {
                 it.textValue() == "Abcd1234"
-            }) { response ->
+            }
+        ) { response ->
             response.testBodyFromFile("$mockPrefix/challengeAnswerPassword.json")
         }
         networkRule.enqueue(
             path("idp/idx/credential/enroll"),
             bodyWithJsonPath("/authenticator/id") {
                 it.textValue() == "autkx2thaMq4XkX2I5d6"
-            }) { response ->
+            }
+        ) { response ->
             response.testBodyFromFile("$mockPrefix/credentialEnrollEmail.json")
         }
         networkRule.enqueue(
             path("idp/idx/challenge/answer"),
             bodyWithJsonPath("/credentials/passcode") {
                 it.textValue() == "471537"
-            }) { response ->
+            }
+        ) { response ->
             response.testBodyFromFile("$mockPrefix/challengeAnswerEmail.json")
         }
         networkRule.enqueue(
             path("idp/idx/credential/enroll"),
             bodyWithJsonPath("/authenticator/id") {
                 it.textValue() == "autkx2thbuHB4hZa75d6"
-            }) { response ->
+            }
+        ) { response ->
             response.testBodyFromFile("$mockPrefix/credentialEnrollPhone.json")
         }
         networkRule.enqueue(
             path("idp/idx/credential/enroll"),
             bodyWithJsonPath("/authenticator/id") {
                 it.textValue() == "autkx2thbuHB4hZa75d6"
-            }, bodyWithJsonPath("/authenticator/methodType") {
+            },
+            bodyWithJsonPath("/authenticator/methodType") {
                 it.textValue() == "sms"
-            }) { response ->
+            }
+        ) { response ->
             response.testBodyFromFile("$mockPrefix/credentialEnrollSms.json")
         }
         networkRule.enqueue(
             path("idp/idx/credential/enroll"),
             bodyWithJsonPath("/authenticator/id") {
                 it.textValue() == "autkx2thbuHB4hZa75d6"
-            }, bodyWithJsonPath("/authenticator/methodType") {
+            },
+            bodyWithJsonPath("/authenticator/methodType") {
                 it.textValue() == "sms"
-            }, bodyWithJsonPath("/authenticator/phoneNumber") {
+            },
+            bodyWithJsonPath("/authenticator/phoneNumber") {
                 it.textValue() == "+14021234567"
-            }) { response ->
+            }
+        ) { response ->
             response.testBodyFromFile("$mockPrefix/credentialEnrollPhoneNumber.json")
         }
         networkRule.enqueue(
             path("idp/idx/challenge/answer"),
             bodyWithJsonPath("/credentials/passcode") {
                 it.textValue() == "134165"
-            }) { response ->
+            }
+        ) { response ->
             response.testBodyFromFile("$mockPrefix/challengeAnswerPhone.json")
         }
         networkRule.enqueue(path("oauth2/v1/token")) { response ->
@@ -347,55 +362,65 @@ class SelfServiceRegistrationTest : BaseMainActivityTest() {
             path("idp/idx/credential/enroll"),
             bodyWithJsonPath("/authenticator/id") {
                 it.textValue() == "autkx2th9yt4eRdhM5d6"
-            }) { response ->
+            }
+        ) { response ->
             response.testBodyFromFile("$mockPrefix/credentialEnrollPassword.json")
         }
         networkRule.enqueue(
             path("idp/idx/challenge/answer"),
             bodyWithJsonPath("/credentials/passcode") {
                 it.textValue() == "Abcd1234"
-            }) { response ->
+            }
+        ) { response ->
             response.testBodyFromFile("$mockPrefix/challengeAnswerPassword.json")
         }
         networkRule.enqueue(
             path("idp/idx/credential/enroll"),
             bodyWithJsonPath("/authenticator/id") {
                 it.textValue() == "autkx2thaMq4XkX2I5d6"
-            }) { response ->
+            }
+        ) { response ->
             response.testBodyFromFile("$mockPrefix/credentialEnrollEmail.json")
         }
         networkRule.enqueue(
             path("idp/idx/challenge/answer"),
             bodyWithJsonPath("/credentials/passcode") {
                 it.textValue() == "471537"
-            }) { response ->
+            }
+        ) { response ->
             response.testBodyFromFile("$mockPrefix/challengeAnswerEmail.json")
         }
         networkRule.enqueue(
             path("idp/idx/credential/enroll"),
             bodyWithJsonPath("/authenticator/id") {
                 it.textValue() == "autkx2thbuHB4hZa75d6"
-            }) { response ->
+            }
+        ) { response ->
             response.testBodyFromFile("$mockPrefix/credentialEnrollPhone.json")
         }
         networkRule.enqueue(
             path("idp/idx/credential/enroll"),
             bodyWithJsonPath("/authenticator/id") {
                 it.textValue() == "autkx2thbuHB4hZa75d6"
-            }, bodyWithJsonPath("/authenticator/methodType") {
+            },
+            bodyWithJsonPath("/authenticator/methodType") {
                 it.textValue() == "sms"
-            }) { response ->
+            }
+        ) { response ->
             response.testBodyFromFile("$mockPrefix/credentialEnrollSms.json")
         }
         networkRule.enqueue(
             path("idp/idx/credential/enroll"),
             bodyWithJsonPath("/authenticator/id") {
                 it.textValue() == "autkx2thbuHB4hZa75d6"
-            }, bodyWithJsonPath("/authenticator/methodType") {
+            },
+            bodyWithJsonPath("/authenticator/methodType") {
                 it.textValue() == "sms"
-            }, bodyWithJsonPath("/authenticator/phoneNumber") {
+            },
+            bodyWithJsonPath("/authenticator/phoneNumber") {
                 it.textValue() == "+1402123456789012"
-            }) { response ->
+            }
+        ) { response ->
             response.testBodyFromFile("$mockPrefix/credentialEnrollPhoneNumber.json")
         }
 

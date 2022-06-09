@@ -20,7 +20,6 @@ import androidx.lifecycle.MutableLiveData
 import com.okta.idx.android.directauth.sdk.Form
 import com.okta.idx.android.directauth.sdk.FormAction
 import com.okta.idx.android.directauth.sdk.util.emitValidation
-import com.okta.idx.sdk.api.client.ProceedContext
 import com.okta.idx.sdk.api.model.VerifyAuthenticatorOptions
 
 class RegisterPasswordForm internal constructor(

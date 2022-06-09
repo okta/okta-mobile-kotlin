@@ -34,10 +34,12 @@ class RequestMiddlewareTest {
     @get:Rule val networkRule = NetworkRule()
 
     @Test fun testAsJsonRequest() {
-        val remediation = createRemediation(listOf(
-            createField(name = "first", value = "apple"),
-            createField(name = "second", value = "orange"),
-        ))
+        val remediation = createRemediation(
+            listOf(
+                createField(name = "first", value = "apple"),
+                createField(name = "second", value = "orange"),
+            )
+        )
         val request = remediation.asJsonRequest(networkRule.createOidcClient())
         assertThat(request.url).isEqualTo("https://test.okta.com/idp/idx/identify".toHttpUrl())
         assertThat(request.method).isEqualTo("POST")
@@ -49,10 +51,12 @@ class RequestMiddlewareTest {
     }
 
     @Test fun testAsFormRequest() {
-        val remediation = createRemediation(listOf(
-            createField(name = "first", value = "apple"),
-            createField(name = "second", value = "orange"),
-        ))
+        val remediation = createRemediation(
+            listOf(
+                createField(name = "first", value = "apple"),
+                createField(name = "second", value = "orange"),
+            )
+        )
         val request = remediation.asFormRequest()
         assertThat(request.url).isEqualTo("https://test.okta.com/idp/idx/identify".toHttpUrl())
         assertThat(request.method).isEqualTo("POST")
@@ -106,7 +110,8 @@ class RequestMiddlewareTest {
                 networkRule.configuration,
                 networkRule.mockedUrl().newBuilder()
                     .addPathSegments(".well-known/openid-configuration").build(),
-            ), "test.okta.com/login", codeVerifier = "asdfasdf", state = "randomGen"
+            ),
+            "test.okta.com/login", codeVerifier = "asdfasdf", state = "randomGen"
         )
         assertThat(interactContext).isNull()
     }
