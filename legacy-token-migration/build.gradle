@@ -51,6 +51,8 @@ dependencies {
     api deps.kotlin.stdlib
     api deps.coroutines.core
 
+    implementation deps.androidx_annotation
+
     testImplementation deps.androidx_test.core_ktx
     testImplementation deps.junit
     testImplementation deps.kotlin.test
