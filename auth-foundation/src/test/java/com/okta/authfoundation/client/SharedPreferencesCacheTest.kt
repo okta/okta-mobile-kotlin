@@ -33,4 +33,12 @@ internal class SharedPreferencesCacheTest {
         subject.set("foo", "bar")
         assertThat(subject.get("foo")).isEqualTo("bar")
     }
+
+    @Test fun testCacheEntriesAreNotShared() {
+        val subject = SharedPreferencesCache.create(ApplicationProvider.getApplicationContext())
+        subject.set("foo", "bar")
+        subject.set("food", "chocolate")
+        assertThat(subject.get("foo")).isEqualTo("bar")
+        assertThat(subject.get("food")).isEqualTo("chocolate")
+    }
 }
