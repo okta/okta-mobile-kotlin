@@ -245,6 +245,20 @@ class DefaultClaimsProviderTest {
         val result = subject.username
         assertThat(result).isEqualTo("bar")
     }
+
+    @Test fun `test acr`() {
+        val claims: JsonObject = json.decodeFromString("""{"acr":"pop"}""")
+        val subject = DefaultClaimsProvider(claims, json)
+        val result = subject.authContextClassReference
+        assertThat(result).isEqualTo("pop")
+    }
+
+    @Test fun `test amr`() {
+        val claims: JsonObject = json.decodeFromString("""{"amr":["pwd", "mfa"]}""")
+        val subject = DefaultClaimsProvider(claims, json)
+        val result = subject.authMethodsReference
+        assertThat(result).containsExactlyElementsIn(listOf("pwd", "mfa"))
+    }
 }
 
 @Serializable
