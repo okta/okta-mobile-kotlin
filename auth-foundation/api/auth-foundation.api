@@ -32,6 +32,8 @@ public abstract interface class com/okta/authfoundation/claims/ClaimsProvider {
 public final class com/okta/authfoundation/claims/ClaimsProviderKt {
 	public static final fun getActive (Lcom/okta/authfoundation/claims/ClaimsProvider;)Ljava/lang/Boolean;
 	public static final fun getAudience (Lcom/okta/authfoundation/claims/ClaimsProvider;)Ljava/lang/String;
+	public static final fun getAuthContextClassReference (Lcom/okta/authfoundation/claims/ClaimsProvider;)Ljava/lang/String;
+	public static final fun getAuthMethodsReference (Lcom/okta/authfoundation/claims/ClaimsProvider;)Ljava/util/List;
 	public static final fun getClientId (Lcom/okta/authfoundation/claims/ClaimsProvider;)Ljava/lang/String;
 	public static final fun getDeviceId (Lcom/okta/authfoundation/claims/ClaimsProvider;)Ljava/lang/String;
 	public static final fun getEmail (Lcom/okta/authfoundation/claims/ClaimsProvider;)Ljava/lang/String;

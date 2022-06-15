@@ -17,6 +17,7 @@ package com.okta.authfoundation.claims
 
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.SerializationException
+import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.serializer
 
 /**
@@ -185,4 +186,16 @@ val ClaimsProvider.userId: String?
 val ClaimsProvider.username: String?
     get() {
         return deserializeClaim("username", String.serializer())
+    }
+
+/** The `amr` claim, Authentication Methods References, associated with the token. */
+val ClaimsProvider.authMethodsReference: List<String>?
+    get() {
+        return deserializeClaim("amr", ListSerializer(String.serializer()))
+    }
+
+/** The `acr` claim, Authentication Context Class Reference, associated with the token. */
+val ClaimsProvider.authContextClassReference: String?
+    get() {
+        return deserializeClaim("acr", String.serializer())
     }
