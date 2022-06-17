@@ -1,0 +1,288 @@
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>Credential</title>
+<link href="../../../images/logo-icon.svg" rel="icon" type="image/svg">
+    <script>var pathToRoot = "../../../";</script>    <script>const storage = localStorage.getItem("dokka-dark-mode")
+const savedDarkMode = storage ? JSON.parse(storage) : false
+if(savedDarkMode === true){
+    document.getElementsByTagName("html")[0].classList.add("theme-dark")
+}</script>
+<script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async></script>
+<link href="../../../styles/style.css" rel="Stylesheet">
+<link href="../../../styles/jetbrains-mono.css" rel="Stylesheet">
+<link href="../../../styles/main.css" rel="Stylesheet">
+<link href="../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../styles/logo-styles.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../scripts/clipboard.js" async></script>
+<script type="text/javascript" src="../../../scripts/navigation-loader.js" async></script>
+<script type="text/javascript" src="../../../scripts/platform-content-handler.js" async></script>
+<script type="text/javascript" src="../../../scripts/main.js" defer></script>
+<script type="text/javascript" src="../../../scripts/prism.js" async></script></head>
+<body>
+<div class="navigation-wrapper" id="navigation-wrapper">
+    <div id="leftToggler"><span class="icon-toggler"></span></div>
+    <div class="library-name">
+<a href="../../../index.html">
+<span>okta-mobile-kotlin</span>            </a>    </div>
+    <div>0.6.0-BETA
+    </div>
+    <div class="pull-right d-flex">
+        <button id="theme-toggle-button"><span id="theme-toggle"></span></button>
+        <div id="searchBar"></div>
+    </div>
+</div>
+<div id="container">
+    <div id="leftColumn">
+        <div id="sideMenu"></div>
+    </div>
+    <div id="main">
+<div class="main-content" id="content" pageids="auth-foundation::com.okta.authfoundation.credential/Credential///PointingToDeclaration//1152495213">
+  <div class="breadcrumbs"><a href="../../index.html">auth-foundation</a><span class="delimiter">/</span><a href="../index.html">com.okta.authfoundation.credential</a><span class="delimiter">/</span><a href="index.html">Credential</a></div>
+  <div class="cover ">
+    <h1 class="cover"><span><span>Credential</span></span></h1>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-depenent-content" data-active="" data-togglable=":auth-foundation:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">class </span><a href="index.html">Credential</a><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><p class="paragraph">Convenience object that wraps a <a href="../-token/index.html">Token</a>, providing methods and properties for interacting with credential resources.</p><p class="paragraph">This class can be used as a convenience mechanism for managing stored credentials, performing operations on or for a user using their credentials, and interacting with resources scoped to the credential.</p></div></div>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="Functions">Functions</button><button class="section-tab" data-togglable="Properties">Properties</button></div>
+    <div class="tabs-section-body">
+      <h2 class="">Functions</h2>
+      <div class="table" data-togglable="Functions"><a data-name="-1820477710%2FFunctions%2F1152495213" anchor-label="accessTokenInterceptor" id="-1820477710%2FFunctions%2F1152495213" data-filterable-set=":auth-foundation:dokkaHtmlPartial/release"></a>
+        <div class="table-row" data-filterable-current=":auth-foundation:dokkaHtmlPartial/release" data-filterable-set=":auth-foundation:dokkaHtmlPartial/release">
+          <div class="main-subrow keyValue ">
+            <div class=""><span class="inline-flex">
+                <div><a href="access-token-interceptor.html"><span>access</span><wbr><span>Token</span><wbr><span><span>Interceptor</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1820477710%2FFunctions%2F1152495213"></span>
+                  <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                </span></span></div>
+            <div>
+              <div class="title">
+                <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-depenent-content" data-active="" data-togglable=":auth-foundation:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">fun </span><a href="access-token-interceptor.html"><span class="token function">accessTokenInterceptor</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://square.github.io/okhttp/4.x/okhttp/okhttp3/-interceptor/index.md">Interceptor</a><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><div class="brief "><p class="paragraph">Returns an <a href="https://square.github.io/okhttp/4.x/okhttp/okhttp3/-interceptor/index.md">Interceptor</a> that can be can be added to an <a href="https://square.github.io/okhttp/4.x/okhttp/okhttp3/-ok-http-client/index.md">OkHttpClient</a> via <a href="https://square.github.io/okhttp/4.x/okhttp/okhttp3/-ok-http-client/-builder/add-interceptor.md">OkHttpClient.Builder.addInterceptor</a> to access a Resource Server.</p></div></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+<a data-name="-851029097%2FFunctions%2F1152495213" anchor-label="delete" id="-851029097%2FFunctions%2F1152495213" data-filterable-set=":auth-foundation:dokkaHtmlPartial/release"></a>
+        <div class="table-row" data-filterable-current=":auth-foundation:dokkaHtmlPartial/release" data-filterable-set=":auth-foundation:dokkaHtmlPartial/release">
+          <div class="main-subrow keyValue ">
+            <div class=""><span class="inline-flex">
+                <div><a href="delete.html"><span><span>delete</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-851029097%2FFunctions%2F1152495213"></span>
+                  <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                </span></span></div>
+            <div>
+              <div class="title">
+                <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-depenent-content" data-active="" data-togglable=":auth-foundation:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="delete.html"><span class="token function">delete</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><div class="brief "><p class="paragraph">Removes this <a href="index.html">Credential</a> from the associated <a href="../-credential-data-source/index.html">CredentialDataSource</a>. Also, sets the <a href="../-token/index.html">Token</a> to <code class="lang-kotlin">null</code>. This <a href="index.html">Credential</a> should not be used after it's been removed.</p></div></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+<a data-name="779428895%2FFunctions%2F1152495213" anchor-label="equals" id="779428895%2FFunctions%2F1152495213" data-filterable-set=":auth-foundation:dokkaHtmlPartial/release"></a>
+        <div class="table-row" data-filterable-current=":auth-foundation:dokkaHtmlPartial/release" data-filterable-set=":auth-foundation:dokkaHtmlPartial/release">
+          <div class="main-subrow keyValue ">
+            <div class=""><span class="inline-flex">
+                <div><a href="equals.html"><span><span>equals</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="779428895%2FFunctions%2F1152495213"></span>
+                  <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                </span></span></div>
+            <div>
+              <div class="title">
+                <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-depenent-content" data-active="" data-togglable=":auth-foundation:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">operator override </span><span class="token keyword">fun </span><a href="equals.html"><span class="token function">equals</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">other<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-any/index.html">Any</a><span class="token operator">?</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+<a data-name="1911542744%2FFunctions%2F1152495213" anchor-label="getAccessTokenIfValid" id="1911542744%2FFunctions%2F1152495213" data-filterable-set=":auth-foundation:dokkaHtmlPartial/release"></a>
+        <div class="table-row" data-filterable-current=":auth-foundation:dokkaHtmlPartial/release" data-filterable-set=":auth-foundation:dokkaHtmlPartial/release">
+          <div class="main-subrow keyValue ">
+            <div class=""><span class="inline-flex">
+                <div><a href="get-access-token-if-valid.html"><span>get</span><wbr><span>Access</span><wbr><span>Token</span><wbr><span>If</span><wbr><span><span>Valid</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1911542744%2FFunctions%2F1152495213"></span>
+                  <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                </span></span></div>
+            <div>
+              <div class="title">
+                <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-depenent-content" data-active="" data-togglable=":auth-foundation:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="get-access-token-if-valid.html"><span class="token function">getAccessTokenIfValid</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><div class="brief "><p class="paragraph">Checks to see if the current access token is valid, and if it is, returns it. If there is no <a href="../-token/index.html">Token</a> associated with the <a href="index.html">Credential</a>, null is returned.</p></div></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+<a data-name="290721289%2FFunctions%2F1152495213" anchor-label="getUserInfo" id="290721289%2FFunctions%2F1152495213" data-filterable-set=":auth-foundation:dokkaHtmlPartial/release"></a>
+        <div class="table-row" data-filterable-current=":auth-foundation:dokkaHtmlPartial/release" data-filterable-set=":auth-foundation:dokkaHtmlPartial/release">
+          <div class="main-subrow keyValue ">
+            <div class=""><span class="inline-flex">
+                <div><a href="get-user-info.html"><span>get</span><wbr><span>User</span><wbr><span><span>Info</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="290721289%2FFunctions%2F1152495213"></span>
+                  <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                </span></span></div>
+            <div>
+              <div class="title">
+                <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-depenent-content" data-active="" data-togglable=":auth-foundation:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="get-user-info.html"><span class="token function">getUserInfo</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../com.okta.authfoundation.client/-oidc-client-result/index.html">OidcClientResult</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="../../com.okta.authfoundation.client.dto/-oidc-user-info/index.html">OidcUserInfo</a><span class="token operator">&gt;</span><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><div class="brief "><p class="paragraph">Performs the OIDC User Info call, which returns claims associated with this <a href="index.html">Credential</a>.</p></div></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+<a data-name="-1422781751%2FFunctions%2F1152495213" anchor-label="getValidAccessToken" id="-1422781751%2FFunctions%2F1152495213" data-filterable-set=":auth-foundation:dokkaHtmlPartial/release"></a>
+        <div class="table-row" data-filterable-current=":auth-foundation:dokkaHtmlPartial/release" data-filterable-set=":auth-foundation:dokkaHtmlPartial/release">
+          <div class="main-subrow keyValue ">
+            <div class=""><span class="inline-flex">
+                <div><a href="get-valid-access-token.html"><span>get</span><wbr><span>Valid</span><wbr><span>Access</span><wbr><span><span>Token</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1422781751%2FFunctions%2F1152495213"></span>
+                  <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                </span></span></div>
+            <div>
+              <div class="title">
+                <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-depenent-content" data-active="" data-togglable=":auth-foundation:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="get-valid-access-token.html"><span class="token function">getValidAccessToken</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><div class="brief "><p class="paragraph">Returns a valid access token if one is present. If the access token is invalid, and there is a refresh token, a <a href="../-token/index.html">Token</a> refresh is attempted via <a href="refresh-token.html">Credential.refreshToken</a>. If the refresh results in a valid access token, it is returned.</p></div></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+<a data-name="-1247603225%2FFunctions%2F1152495213" anchor-label="hashCode" id="-1247603225%2FFunctions%2F1152495213" data-filterable-set=":auth-foundation:dokkaHtmlPartial/release"></a>
+        <div class="table-row" data-filterable-current=":auth-foundation:dokkaHtmlPartial/release" data-filterable-set=":auth-foundation:dokkaHtmlPartial/release">
+          <div class="main-subrow keyValue ">
+            <div class=""><span class="inline-flex">
+                <div><a href="hash-code.html"><span>hash</span><wbr><span><span>Code</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1247603225%2FFunctions%2F1152495213"></span>
+                  <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                </span></span></div>
+            <div>
+              <div class="title">
+                <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-depenent-content" data-active="" data-togglable=":auth-foundation:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="hash-code.html"><span class="token function">hashCode</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+<a data-name="-650202790%2FFunctions%2F1152495213" anchor-label="idToken" id="-650202790%2FFunctions%2F1152495213" data-filterable-set=":auth-foundation:dokkaHtmlPartial/release"></a>
+        <div class="table-row" data-filterable-current=":auth-foundation:dokkaHtmlPartial/release" data-filterable-set=":auth-foundation:dokkaHtmlPartial/release">
+          <div class="main-subrow keyValue ">
+            <div class=""><span class="inline-flex">
+                <div><a href="id-token.html"><span>id</span><wbr><span><span>Token</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-650202790%2FFunctions%2F1152495213"></span>
+                  <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                </span></span></div>
+            <div>
+              <div class="title">
+                <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-depenent-content" data-active="" data-togglable=":auth-foundation:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="id-token.html"><span class="token function">idToken</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../com.okta.authfoundation.jwt/-jwt/index.html">Jwt</a><span class="token operator">?</span><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><div class="brief "><p class="paragraph">Retrieve the <a href="../../com.okta.authfoundation.jwt/-jwt/index.html">Jwt</a> associated with the <a href="../-token/id-token.html">Token.idToken</a> field.</p></div></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+<a data-name="-1480481451%2FFunctions%2F1152495213" anchor-label="introspectToken" id="-1480481451%2FFunctions%2F1152495213" data-filterable-set=":auth-foundation:dokkaHtmlPartial/release"></a>
+        <div class="table-row" data-filterable-current=":auth-foundation:dokkaHtmlPartial/release" data-filterable-set=":auth-foundation:dokkaHtmlPartial/release">
+          <div class="main-subrow keyValue ">
+            <div class=""><span class="inline-flex">
+                <div><a href="introspect-token.html"><span>introspect</span><wbr><span><span>Token</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1480481451%2FFunctions%2F1152495213"></span>
+                  <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                </span></span></div>
+            <div>
+              <div class="title">
+                <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-depenent-content" data-active="" data-togglable=":auth-foundation:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="introspect-token.html"><span class="token function">introspectToken</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">tokenType<span class="token operator">: </span><a href="../-token-type/index.html">TokenType</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../com.okta.authfoundation.client/-oidc-client-result/index.html">OidcClientResult</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="../../com.okta.authfoundation.client.dto/-oidc-introspect-info/index.html">OidcIntrospectInfo</a><span class="token operator">&gt;</span><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><div class="brief "><p class="paragraph">Performs a call to the Authorization Server to validate the specified <a href="../-token-type/index.html">TokenType</a>.</p></div></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+<a data-name="-106680060%2FFunctions%2F1152495213" anchor-label="refreshToken" id="-106680060%2FFunctions%2F1152495213" data-filterable-set=":auth-foundation:dokkaHtmlPartial/release"></a>
+        <div class="table-row" data-filterable-current=":auth-foundation:dokkaHtmlPartial/release" data-filterable-set=":auth-foundation:dokkaHtmlPartial/release">
+          <div class="main-subrow keyValue ">
+            <div class=""><span class="inline-flex">
+                <div><a href="refresh-token.html"><span>refresh</span><wbr><span><span>Token</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-106680060%2FFunctions%2F1152495213"></span>
+                  <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                </span></span></div>
+            <div>
+              <div class="title">
+                <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-depenent-content" data-active="" data-togglable=":auth-foundation:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="refresh-token.html"><span class="token function">refreshToken</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../com.okta.authfoundation.client/-oidc-client-result/index.html">OidcClientResult</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="../-token/index.html">Token</a><span class="token operator">&gt;</span><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><div class="brief "><p class="paragraph">Attempt to refresh the <a href="../-token/index.html">Token</a> associated with this <a href="index.html">Credential</a>.</p></div></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+<a data-name="1482536852%2FFunctions%2F1152495213" anchor-label="revokeToken" id="1482536852%2FFunctions%2F1152495213" data-filterable-set=":auth-foundation:dokkaHtmlPartial/release"></a>
+        <div class="table-row" data-filterable-current=":auth-foundation:dokkaHtmlPartial/release" data-filterable-set=":auth-foundation:dokkaHtmlPartial/release">
+          <div class="main-subrow keyValue ">
+            <div class=""><span class="inline-flex">
+                <div><a href="revoke-token.html"><span>revoke</span><wbr><span><span>Token</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1482536852%2FFunctions%2F1152495213"></span>
+                  <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                </span></span></div>
+            <div>
+              <div class="title">
+                <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-depenent-content" data-active="" data-togglable=":auth-foundation:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="revoke-token.html"><span class="token function">revokeToken</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">tokenType<span class="token operator">: </span><a href="../-revoke-token-type/index.html">RevokeTokenType</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../com.okta.authfoundation.client/-oidc-client-result/index.html">OidcClientResult</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html">Unit</a><span class="token operator">&gt;</span><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><div class="brief "><p class="paragraph">Attempt to revoke the specified <a href="../-token-type/index.html">TokenType</a>.</p></div></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+<a data-name="32072740%2FFunctions%2F1152495213" anchor-label="scope" id="32072740%2FFunctions%2F1152495213" data-filterable-set=":auth-foundation:dokkaHtmlPartial/release"></a>
+        <div class="table-row" data-filterable-current=":auth-foundation:dokkaHtmlPartial/release" data-filterable-set=":auth-foundation:dokkaHtmlPartial/release">
+          <div class="main-subrow keyValue ">
+            <div class=""><span class="inline-flex">
+                <div><a href="scope.html"><span><span>scope</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="32072740%2FFunctions%2F1152495213"></span>
+                  <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                </span></span></div>
+            <div>
+              <div class="title">
+                <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-depenent-content" data-active="" data-togglable=":auth-foundation:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">fun </span><a href="scope.html"><span class="token function">scope</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><div class="brief "><p class="paragraph">Returns the scopes associated with the associated <a href="../-token/index.html">Token</a> if present, otherwise the default scopes associated with the <a href="../../com.okta.authfoundation.client/-oidc-client/index.html">OidcClient</a>.</p></div></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+<a data-name="1332591399%2FFunctions%2F1152495213" anchor-label="storeToken" id="1332591399%2FFunctions%2F1152495213" data-filterable-set=":auth-foundation:dokkaHtmlPartial/release"></a>
+        <div class="table-row" data-filterable-current=":auth-foundation:dokkaHtmlPartial/release" data-filterable-set=":auth-foundation:dokkaHtmlPartial/release">
+          <div class="main-subrow keyValue ">
+            <div class=""><span class="inline-flex">
+                <div><a href="store-token.html"><span>store</span><wbr><span><span>Token</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1332591399%2FFunctions%2F1152495213"></span>
+                  <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                </span></span></div>
+            <div>
+              <div class="title">
+                <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-depenent-content" data-active="" data-togglable=":auth-foundation:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="store-token.html"><span class="token function">storeToken</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">token<span class="token operator">: </span><a href="../-token/index.html">Token</a><span class="token operator">?</span><span class="token operator"> = </span>_token<span class="token punctuation">, </span></span><span class="parameter ">tags<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-map/index.html">Map</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span><span class="token keyword"></span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token operator">&gt;</span><span class="token operator"> = </span>_tags</span></span><span class="token punctuation">)</span><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><div class="brief "><p class="paragraph">Store a token, or update the existing token. This can also be used to store custom tags.</p></div></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <h2 class="">Properties</h2>
+      <div class="table" data-togglable="Properties"><a data-name="1602986537%2FProperties%2F1152495213" anchor-label="tags" id="1602986537%2FProperties%2F1152495213" data-filterable-set=":auth-foundation:dokkaHtmlPartial/release"></a>
+        <div class="table-row" data-filterable-current=":auth-foundation:dokkaHtmlPartial/release" data-filterable-set=":auth-foundation:dokkaHtmlPartial/release">
+          <div class="main-subrow keyValue ">
+            <div class=""><span class="inline-flex">
+                <div><a href="tags.html">tags</a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1602986537%2FProperties%2F1152495213"></span>
+                  <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                </span></span></div>
+            <div>
+              <div class="title">
+                <div class="platform-hinted " data-platform-hinted="data-platform-hinted" data-togglable="Properties"><div class="content sourceset-depenent-content" data-active="" data-togglable=":auth-foundation:dokkaHtmlPartial/release"><a data-name="1602986537%2FProperties%2F1152495213" anchor-label="tags" id="1602986537%2FProperties%2F1152495213" data-filterable-set=":auth-foundation:dokkaHtmlPartial/release"></a><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">val </span><a href="tags.html">tags</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-map/index.html">Map</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span><span class="token keyword"></span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token operator">&gt;</span><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><div class="brief "><a data-name="1602986537%2FProperties%2F1152495213" anchor-label="tags" id="1602986537%2FProperties%2F1152495213" data-filterable-set=":auth-foundation:dokkaHtmlPartial/release"></a><p class="paragraph">The tags associated with this <a href="index.html">Credential</a>.</p></div></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+<a data-name="-919020513%2FProperties%2F1152495213" anchor-label="token" id="-919020513%2FProperties%2F1152495213" data-filterable-set=":auth-foundation:dokkaHtmlPartial/release"></a>
+        <div class="table-row" data-filterable-current=":auth-foundation:dokkaHtmlPartial/release" data-filterable-set=":auth-foundation:dokkaHtmlPartial/release">
+          <div class="main-subrow keyValue ">
+            <div class=""><span class="inline-flex">
+                <div><a href="token.html">token</a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-919020513%2FProperties%2F1152495213"></span>
+                  <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                </span></span></div>
+            <div>
+              <div class="title">
+                <div class="platform-hinted " data-platform-hinted="data-platform-hinted" data-togglable="Properties"><div class="content sourceset-depenent-content" data-active="" data-togglable=":auth-foundation:dokkaHtmlPartial/release"><a data-name="-919020513%2FProperties%2F1152495213" anchor-label="token" id="-919020513%2FProperties%2F1152495213" data-filterable-set=":auth-foundation:dokkaHtmlPartial/release"></a><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">val </span><a href="token.html">token</a><span class="token operator">: </span><a href="../-token/index.html">Token</a><span class="token operator">?</span><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><div class="brief "><a data-name="-919020513%2FProperties%2F1152495213" anchor-label="token" id="-919020513%2FProperties%2F1152495213" data-filterable-set=":auth-foundation:dokkaHtmlPartial/release"></a><p class="paragraph">The current <a href="../-token/index.html">Token</a> that's stored and associated with this <a href="index.html">Credential</a>.</p></div></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+        <div class="footer"><span class="go-to-top-icon"><a href="#content" id="go-to-top-link"></a></span><span>© 2022 Copyright</span><span class="pull-right"><span>Generated by </span><a href="https://github.com/Kotlin/dokka"><span>dokka</span><span class="padded-icon"></span></a></span>
+        </div>
+    </div>
+</div>
+
+</body></html>
+
