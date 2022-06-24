@@ -12,6 +12,8 @@ android {
         consumerProguardFiles "consumer-rules.pro"
     }
 
+    namespace 'com.okta.testhelpers'
+
     buildTypes {
         release {
             minifyEnabled false
