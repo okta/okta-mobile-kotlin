@@ -27,9 +27,9 @@ import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundationbootstrap.CredentialBootstrap
 import com.okta.idx.android.dynamic.BuildConfig
 import com.okta.idx.android.dynamic.SocialRedirectCoordinator
-import com.okta.idx.kotlin.client.IdxFlow
-import com.okta.idx.kotlin.client.IdxFlow.Companion.createIdxFlow
 import com.okta.idx.kotlin.client.IdxRedirectResult
+import com.okta.idx.kotlin.client.InteractionCodeFlow
+import com.okta.idx.kotlin.client.InteractionCodeFlow.Companion.createInteractionCodeFlow
 import com.okta.idx.kotlin.dto.IdxAuthenticator
 import com.okta.idx.kotlin.dto.IdxAuthenticatorCollection
 import com.okta.idx.kotlin.dto.IdxIdpCapability
@@ -51,7 +51,7 @@ internal class DynamicAuthViewModel(private val recoveryToken: String) : ViewMod
     private val _state = MutableLiveData<DynamicAuthState>(DynamicAuthState.Loading)
     val state: LiveData<DynamicAuthState> = _state
 
-    @Volatile private var flow: IdxFlow? = null
+    @Volatile private var flow: InteractionCodeFlow? = null
     @Volatile private var pollingJob: Job? = null
 
     init {
@@ -72,7 +72,7 @@ internal class DynamicAuthViewModel(private val recoveryToken: String) : ViewMod
             }
             // Initiate the IDX client and start IDX flow.
             when (
-                val clientResult = CredentialBootstrap.oidcClient.createIdxFlow(
+                val clientResult = CredentialBootstrap.oidcClient.createInteractionCodeFlow(
                     redirectUrl = BuildConfig.REDIRECT_URI,
                     extraStartRequestParameters = extraRequestParameters,
                 )

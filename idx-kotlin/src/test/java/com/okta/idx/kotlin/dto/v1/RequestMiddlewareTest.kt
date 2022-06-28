@@ -17,7 +17,7 @@ package com.okta.idx.kotlin.dto.v1
 
 import com.google.common.truth.Truth.assertThat
 import com.okta.authfoundation.client.OidcClient
-import com.okta.idx.kotlin.client.IdxFlowContext
+import com.okta.idx.kotlin.client.InteractionCodeFlowContext
 import com.okta.idx.kotlin.dto.createField
 import com.okta.idx.kotlin.dto.createRemediation
 import com.okta.idx.kotlin.infrastructure.network.NetworkRule
@@ -67,7 +67,7 @@ class RequestMiddlewareTest {
     }
 
     @Test fun testTokenRequestFromInteractionCode(): Unit = runBlocking {
-        val flowContext = IdxFlowContext(codeVerifier = "123456", interactionHandle = "234567", state = "345678", redirectUrl = "test.okta.com/login")
+        val flowContext = InteractionCodeFlowContext(codeVerifier = "123456", interactionHandle = "234567", state = "345678", redirectUrl = "test.okta.com/login")
         val request = tokenRequestFromInteractionCode(networkRule.createOidcClient(), flowContext, "654321")
         assertThat(request.url.toString()).endsWith("/oauth2/default/v1/token")
         assertThat(request.method).isEqualTo("POST")
@@ -78,7 +78,7 @@ class RequestMiddlewareTest {
     }
 
     @Test fun testIntrospectRequest(): Unit = runBlocking {
-        val flowContext = IdxFlowContext(codeVerifier = "123456", interactionHandle = "234567", state = "345678", redirectUrl = "test.okta.com/login")
+        val flowContext = InteractionCodeFlowContext(codeVerifier = "123456", interactionHandle = "234567", state = "345678", redirectUrl = "test.okta.com/login")
         val request = introspectRequest(networkRule.createOidcClient(), flowContext)
         assertThat(request.url.toString()).endsWith("/idp/idx/introspect")
         assertThat(request.method).isEqualTo("POST")

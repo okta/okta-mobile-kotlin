@@ -36,11 +36,11 @@ import okhttp3.Response
 import com.okta.idx.kotlin.dto.v1.Response as V1Response
 
 /**
- * The IdxFlow class is used to define and initiate an authentication workflow utilizing the Okta Identity Engine.
+ * The InteractionCodeFlow class is used to define and initiate an authentication workflow utilizing the Okta Identity Engine.
  */
-class IdxFlow internal constructor(
+class InteractionCodeFlow internal constructor(
     private val oidcClient: OidcClient,
-    val flowContext: IdxFlowContext,
+    val flowContext: InteractionCodeFlowContext,
 ) {
     companion object {
         init {
@@ -48,15 +48,15 @@ class IdxFlow internal constructor(
         }
 
         /**
-         * Used to create an IdxFlow, and to start an authorization flow.
+         * Used to create an InteractionCodeFlow, and to start an authorization flow.
          */
-        suspend fun OidcClient.createIdxFlow(
+        suspend fun OidcClient.createInteractionCodeFlow(
             redirectUrl: String,
             extraStartRequestParameters: Map<String, String> = emptyMap(),
-        ): OidcClientResult<IdxFlow> {
+        ): OidcClientResult<InteractionCodeFlow> {
             val interactContext = withContext(configuration.computeDispatcher) {
                 InteractContext.create(
-                    oidcClient = this@createIdxFlow,
+                    oidcClient = this@createInteractionCodeFlow,
                     redirectUrl = redirectUrl,
                     extraParameters = extraStartRequestParameters,
                 )
@@ -66,13 +66,13 @@ class IdxFlow internal constructor(
                 InteractResponse.serializer(),
                 interactContext.request
             ) {
-                val flowContext = IdxFlowContext(
+                val flowContext = InteractionCodeFlowContext(
                     codeVerifier = interactContext.codeVerifier,
                     interactionHandle = it.interactionHandle,
                     state = interactContext.state,
                     redirectUrl = redirectUrl,
                 )
-                IdxFlow(
+                InteractionCodeFlow(
                     oidcClient = this,
                     flowContext = flowContext,
                 )
@@ -83,7 +83,7 @@ class IdxFlow internal constructor(
     /**
      * Resumes the authentication state to identify the available remediation steps.
      *
-     * This method is usually performed after an IdxFlow is created, but can also be called at any time to identify what next remediation steps are available to the user.
+     * This method is usually performed after an InteractionCodeFlow is created, but can also be called at any time to identify what next remediation steps are available to the user.
      */
     suspend fun resume(): OidcClientResult<IdxResponse> {
         val request = withContext(oidcClient.configuration.computeDispatcher) {

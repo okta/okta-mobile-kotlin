@@ -18,7 +18,7 @@ package com.okta.idx.kotlin.dto
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import com.okta.authfoundation.client.OidcClientResult
-import com.okta.idx.kotlin.client.IdxFlow
+import com.okta.idx.kotlin.client.InteractionCodeFlow
 import com.okta.idx.kotlin.dto.IdxRemediation.Type
 import kotlinx.coroutines.delay
 import okhttp3.HttpUrl
@@ -67,7 +67,7 @@ class IdxPollRemediationCapability internal constructor(
      *
      * @return the [OidcClientResult] when the state changes.
      */
-    suspend fun poll(flow: IdxFlow): OidcClientResult<IdxResponse> {
+    suspend fun poll(flow: InteractionCodeFlow): OidcClientResult<IdxResponse> {
         var result: OidcClientResult<IdxResponse>
         var currentWait = wait
         var currentRemediation = remediation
@@ -138,7 +138,7 @@ class IdxPollAuthenticatorCapability internal constructor(
      *
      * @return the [OidcClientResult] when the state changes.
      */
-    suspend fun poll(flow: IdxFlow): OidcClientResult<IdxResponse> {
+    suspend fun poll(flow: InteractionCodeFlow): OidcClientResult<IdxResponse> {
         var result: OidcClientResult<IdxResponse>
         var currentAuthenticatorId: String?
         var currentWait = wait

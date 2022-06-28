@@ -17,8 +17,8 @@ package com.okta.idx.kotlin.dto
 
 import com.google.common.truth.Truth.assertThat
 import com.okta.authfoundation.client.OidcClientResult
-import com.okta.idx.kotlin.client.IdxFlow
-import com.okta.idx.kotlin.client.IdxFlow.Companion.createIdxFlow
+import com.okta.idx.kotlin.client.InteractionCodeFlow
+import com.okta.idx.kotlin.client.InteractionCodeFlow.Companion.createInteractionCodeFlow
 import com.okta.idx.kotlin.infrastructure.network.NetworkRule
 import com.okta.idx.kotlin.infrastructure.network.RequestMatchers.path
 import com.okta.idx.kotlin.infrastructure.testBodyFromFile
@@ -43,7 +43,7 @@ class IdxPollCapabilityTest {
             response.testBodyFromFile("client/challengeAuthenticatorRemediationResponseLongPoll.json")
         }
 
-        val clientResult = networkRule.createOidcClient().createIdxFlow("test.okta.com/login") as OidcClientResult.Success<IdxFlow>
+        val clientResult = networkRule.createOidcClient().createInteractionCodeFlow("test.okta.com/login") as OidcClientResult.Success<InteractionCodeFlow>
         val client = clientResult.result
         val resumeResult = client.resume() as OidcClientResult.Success<IdxResponse>
         val resumeResponse = resumeResult.result
@@ -68,7 +68,7 @@ class IdxPollCapabilityTest {
             response.testBodyFromFile("client/selectAuthenticatorAuthenticateRemediationResponse.json")
         }
 
-        val clientResult = networkRule.createOidcClient().createIdxFlow("test.okta.com/login") as OidcClientResult.Success<IdxFlow>
+        val clientResult = networkRule.createOidcClient().createInteractionCodeFlow("test.okta.com/login") as OidcClientResult.Success<InteractionCodeFlow>
         val client = clientResult.result
         val resumeResult = client.resume() as OidcClientResult.Success<IdxResponse>
         val resumeResponse = resumeResult.result
@@ -96,7 +96,7 @@ class IdxPollCapabilityTest {
             response.testBodyFromFile("client/challengePollRemediationResponseLong.json")
         }
 
-        val clientResult = networkRule.createOidcClient().createIdxFlow("test.okta.com/login") as OidcClientResult.Success<IdxFlow>
+        val clientResult = networkRule.createOidcClient().createInteractionCodeFlow("test.okta.com/login") as OidcClientResult.Success<InteractionCodeFlow>
         val client = clientResult.result
         val resumeResult = client.resume() as OidcClientResult.Success<IdxResponse>
         val resumeResponse = resumeResult.result
@@ -121,7 +121,7 @@ class IdxPollCapabilityTest {
             response.testBodyFromFile("client/selectAuthenticatorAuthenticateRemediationResponse.json")
         }
 
-        val clientResult = networkRule.createOidcClient().createIdxFlow("test.okta.com/login") as OidcClientResult.Success<IdxFlow>
+        val clientResult = networkRule.createOidcClient().createInteractionCodeFlow("test.okta.com/login") as OidcClientResult.Success<InteractionCodeFlow>
         val client = clientResult.result
         val resumeResult = client.resume() as OidcClientResult.Success<IdxResponse>
         val resumeResponse = resumeResult.result

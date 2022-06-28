@@ -32,9 +32,9 @@ import org.robolectric.RobolectricTestRunner
 class IdxRedirectResultTest {
     @get:Rule val networkRule = NetworkRule()
 
-    private fun createClient(): IdxFlow {
-        val flowContext = IdxFlowContext("abcd", "bcde", "cdef", "test.okta.com/login")
-        return IdxFlow(networkRule.createOidcClient(), flowContext)
+    private fun createClient(): InteractionCodeFlow {
+        val flowContext = InteractionCodeFlowContext("abcd", "bcde", "cdef", "test.okta.com/login")
+        return InteractionCodeFlow(networkRule.createOidcClient(), flowContext)
     }
 
     @Test fun testRedirectResultInvalidUrl(): Unit = runBlocking {

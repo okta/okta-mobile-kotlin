@@ -19,7 +19,7 @@ import com.okta.authfoundation.credential.Token
 import com.okta.idx.kotlin.dto.IdxResponse
 
 /**
- * Describes the result when using [IdxFlow.evaluateRedirectUri].
+ * Describes the result when using [InteractionCodeFlow.evaluateRedirectUri].
  */
 sealed class IdxRedirectResult {
     /**

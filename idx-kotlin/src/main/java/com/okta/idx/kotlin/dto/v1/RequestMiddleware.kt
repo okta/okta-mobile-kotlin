@@ -16,7 +16,7 @@
 package com.okta.idx.kotlin.dto.v1
 
 import com.okta.authfoundation.client.OidcClient
-import com.okta.idx.kotlin.client.IdxFlowContext
+import com.okta.idx.kotlin.client.InteractionCodeFlowContext
 import com.okta.idx.kotlin.dto.IdxRemediation
 import com.okta.idx.kotlin.util.PkceGenerator
 import kotlinx.serialization.encodeToString
@@ -100,7 +100,7 @@ internal fun IdxRemediation.asFormRequest(): Request {
 
 internal suspend fun tokenRequestFromInteractionCode(
     oidcClient: OidcClient,
-    flowContext: IdxFlowContext,
+    flowContext: InteractionCodeFlowContext,
     interactionCode: String,
 ): Request {
     val formBodyBuilder = FormBody.Builder()
@@ -117,7 +117,7 @@ internal suspend fun tokenRequestFromInteractionCode(
 
 internal suspend fun introspectRequest(
     oidcClient: OidcClient,
-    flowContext: IdxFlowContext,
+    flowContext: InteractionCodeFlowContext,
 ): Request {
     val urlBuilder = oidcClient.endpointsOrNull()!!.issuer.newBuilder()
         .encodedPath("/idp/idx/introspect")
