@@ -12,6 +12,7 @@ versions.constraint_layout = '2.1.4'
 versions.core_library_desugaring = '1.1.5'
 versions.core_ktx = '1.8.0'
 versions.coroutines = '1.6.2'
+versions.dokka = '1.6.21'
 versions.espresso = '3.4.0'
 versions.fragment = '1.4.1'
 versions.gradle_maven_publish = '0.20.0'
@@ -81,6 +82,8 @@ coroutines.test = "org.jetbrains.kotlinx:kotlinx-coroutines-test:$versions.corou
 deps.coroutines = coroutines
 
 deps.desugar_libs = "com.android.tools:desugar_jdk_libs:$versions.core_library_desugaring"
+
+deps.dokka_gradle_plugin = "org.jetbrains.dokka:dokka-gradle-plugin:$versions.dokka"
 
 def espresso = [:]
 espresso.core = "androidx.test.espresso:espresso-core:$versions.espresso"

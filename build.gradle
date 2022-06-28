@@ -5,6 +5,7 @@ buildscript {
 
     dependencies {
         classpath deps.android_gradle_plugin
+        classpath deps.dokka_gradle_plugin
         classpath deps.gradle_maven_publish
         classpath deps.kotlin.binary_compatibility_plugin
         classpath deps.kotlin.plugin
@@ -14,6 +15,8 @@ buildscript {
     }
 }
 
+apply plugin: 'org.jetbrains.dokka'
+
 allprojects {
     group = project.property('GROUP')
     version = project.property('VERSION_NAME')
@@ -22,6 +25,7 @@ allprojects {
     forceVersions(configurations)
     configurePublishing(it)
     configureSpotless(it)
+    configureDokka(it)
 }
 
 def configurePublishing(Project project) {
@@ -52,4 +56,33 @@ def configurePublishing(Project project) {
             project.mavenPublishing.configure(new com.vanniktech.maven.publish.AndroidSingleVariantLibrary("release"))
         }
     }
+}
+
+def configureDokka(Project project) {
+    project.tasks.withType(org.jetbrains.dokka.gradle.DokkaTaskPartial).configureEach {
+        dokkaSourceSets {
+            configureEach {
+                jdkVersion.set(8)
+                suppressInheritedMembers.set(true)
+
+                perPackageOption {
+                    matchingRegex.set(".*\\.internal.*")
+                    suppress.set(true)
+                }
+
+                externalDocumentationLink {
+                    url.set(new URL("https://square.github.io/okhttp/4.x/"))
+                    packageListUrl.set(new URL("https://square.github.io/okhttp/4.x/okhttp/package-list"))
+                }
+                externalDocumentationLink {
+                    url.set(new URL("https://kotlin.github.io/kotlinx.serialization/"))
+                    packageListUrl.set(new URL("https://kotlin.github.io/kotlinx.serialization/package-list"))
+                }
+            }
+        }
+    }
+}
+
+tasks.dokkaHtmlMultiModule.configure {
+    outputDirectory.set(file("${rootDir}/docs"))
 }
