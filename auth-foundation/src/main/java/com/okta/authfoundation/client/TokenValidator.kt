@@ -35,8 +35,10 @@ internal class TokenValidator(
             oidcClient.configuration.idTokenValidator.validate(
                 oidcClient = oidcClient,
                 idToken = idToken,
-                nonce = nonce,
-                maxAge = maxAge,
+                parameters = IdTokenValidator.Parameters(
+                    nonce = nonce,
+                    maxAge = maxAge,
+                ),
             )
 
             if (jwksResult != null) {

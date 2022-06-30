@@ -40,7 +40,7 @@ class DefaultIdTokenValidatorWithCustomizedGracePeriodTest {
         val client = oktaRule.createOidcClient(oktaRule.createEndpoints("https://example-test.okta.com".toHttpUrl().newBuilder()))
         val idTokenClaims = IdTokenClaims()
         val idToken = client.createJwtBuilder().createJwt(claims = idTokenClaims)
-        idTokenValidator.validate(client, idToken, null, null)
+        idTokenValidator.validate(client, idToken, IdTokenValidator.Parameters(null, null))
     }
 
     @Test fun testIssuedAtTooFarBeforeNow() {
@@ -69,8 +69,7 @@ class DefaultIdTokenValidatorWithCustomizedGracePeriodTest {
                 idTokenValidator.validate(
                     client,
                     client.createJwtBuilder().createJwt(algorithm = algorithm, claims = idTokenClaims),
-                    nonce,
-                    maxAge,
+                    IdTokenValidator.Parameters(nonce, maxAge),
                 )
             }
             fail()

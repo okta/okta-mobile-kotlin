@@ -31,7 +31,7 @@ class OidcClientIdTokenValidationFailureTest {
     private val mockPrefix = "client_test_responses"
 
     @get:Rule val oktaRule = OktaRule(
-        idTokenValidator = { _, _, _, _ -> throw IllegalStateException("Failure!") }
+        idTokenValidator = { _, _, _ -> throw IllegalStateException("Failure!") }
     )
 
     @Test fun testRefreshTokenIdTokenValidationFailure(): Unit = runBlocking {

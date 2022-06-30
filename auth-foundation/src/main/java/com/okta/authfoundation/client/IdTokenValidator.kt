@@ -33,21 +33,35 @@ fun interface IdTokenValidator {
     class Error(message: String) : IllegalStateException(message)
 
     /**
+     * The parameters used in [validate].
+     */
+    class Parameters internal constructor(
+        /**
+         * The `nonce` sent with the authorize request, if using Authorization Code Flow and available.
+         */
+        val nonce: String?,
+
+        /**
+         * The `max_age` sent to the authorize request, if using Authorization Code Flow and available.
+         */
+        val maxAge: Int?,
+    )
+
+    /**
      * Called when the [OidcClient] receives a [Token] response.
      *
      * This should throw an [Exception] if the token is invalid.
      *
      * @param oidcClient the [OidcClient] that made the [Token] request.
      * @param idToken the [Jwt] representing the id token from the [Token] response.
-     * @param nonce the nonce sent with the authorize request, if using Authorization Code Flow and available.
-     * @param maxAge the max_age sent to the authorize request, if using Authorization Code Flow and available.
+     * @param parameters the [Parameters] used to validate the id token.
      */
-    suspend fun validate(oidcClient: OidcClient, idToken: Jwt, nonce: String?, maxAge: Int?)
+    suspend fun validate(oidcClient: OidcClient, idToken: Jwt, parameters: Parameters)
 }
 
 // https://openid.net/specs/openid-connect-core-1_0.html#IDTokenValidation
 internal class DefaultIdTokenValidator : IdTokenValidator {
-    override suspend fun validate(oidcClient: OidcClient, idToken: Jwt, nonce: String?, maxAge: Int?) {
+    override suspend fun validate(oidcClient: OidcClient, idToken: Jwt, parameters: IdTokenValidator.Parameters) {
         val idTokenPayload = idToken.deserializeClaims(IdTokenValidationPayload.serializer())
 
         val event = ValidateIdTokenEvent(600)
@@ -71,13 +85,13 @@ internal class DefaultIdTokenValidator : IdTokenValidator {
         if (abs(idTokenPayload.iat - oidcClient.configuration.clock.currentTimeEpochSecond()) > event.issuedAtGracePeriodInSeconds) {
             throw IdTokenValidator.Error("Issued at time is not within the allowed threshold of now.")
         }
-        if (idTokenPayload.nonce != nonce) {
+        if (idTokenPayload.nonce != parameters.nonce) {
             throw IdTokenValidator.Error("Nonce mismatch.")
         }
-        if (maxAge != null) {
+        if (parameters.maxAge != null) {
             val authTime = idTokenPayload.authTime ?: throw IdTokenValidator.Error("Auth time not available.")
             val elapsedTime = idTokenPayload.iat - authTime
-            if (elapsedTime < 0 || elapsedTime > maxAge) {
+            if (elapsedTime < 0 || elapsedTime > parameters.maxAge) {
                 throw IdTokenValidator.Error("Max age not satisfied.")
             }
         }

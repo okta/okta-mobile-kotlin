@@ -35,7 +35,7 @@ import org.junit.runners.model.Statement
 
 @OptIn(InternalAuthFoundationApi::class)
 class OktaRule(
-    private val idTokenValidator: IdTokenValidator = IdTokenValidator { _, _, _, _ -> },
+    private val idTokenValidator: IdTokenValidator = IdTokenValidator { _, _, _ -> },
     private val accessTokenValidator: AccessTokenValidator = AccessTokenValidator { _, _, _ -> },
     private val deviceSecretValidator: DeviceSecretValidator = DeviceSecretValidator { _, _, _ -> },
 ) : TestRule {

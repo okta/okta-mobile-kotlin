@@ -79,11 +79,16 @@ public final class com/okta/authfoundation/client/DeviceSecretValidator$Error : 
 }
 
 public abstract interface class com/okta/authfoundation/client/IdTokenValidator {
-	public abstract fun validate (Lcom/okta/authfoundation/client/OidcClient;Lcom/okta/authfoundation/jwt/Jwt;Ljava/lang/String;Ljava/lang/Integer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun validate (Lcom/okta/authfoundation/client/OidcClient;Lcom/okta/authfoundation/jwt/Jwt;Lcom/okta/authfoundation/client/IdTokenValidator$Parameters;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class com/okta/authfoundation/client/IdTokenValidator$Error : java/lang/IllegalStateException {
 	public fun <init> (Ljava/lang/String;)V
+}
+
+public final class com/okta/authfoundation/client/IdTokenValidator$Parameters {
+	public final fun getMaxAge ()Ljava/lang/Integer;
+	public final fun getNonce ()Ljava/lang/String;
 }
 
 public final class com/okta/authfoundation/client/OidcClient {
