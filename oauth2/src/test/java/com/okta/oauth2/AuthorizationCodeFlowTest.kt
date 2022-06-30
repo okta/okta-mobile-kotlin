@@ -32,8 +32,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.kotlin.any
-import org.mockito.kotlin.eq
-import org.mockito.kotlin.isNull
+import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.reset
 import org.mockito.kotlin.verify
@@ -167,7 +166,11 @@ class AuthorizationCodeFlowTest {
             flowContext = flowContext,
         )
 
-        verify(idTokenValidator).validate(any(), any(), eq("12345689"), isNull())
+        val captor = argumentCaptor<IdTokenValidator.Parameters>()
+        verify(idTokenValidator).validate(any(), any(), captor.capture())
+        assertThat(captor.allValues).hasSize(1)
+        assertThat(captor.firstValue.nonce).isEqualTo("12345689")
+        assertThat(captor.firstValue.maxAge).isNull()
 
         val token = (result as OidcClientResult.Success<Token>).result
         assertThat(token.tokenType).isEqualTo("Bearer")
@@ -201,7 +204,11 @@ class AuthorizationCodeFlowTest {
             flowContext = flowContext,
         )
 
-        verify(idTokenValidator).validate(any(), any(), eq("12345689"), eq(300))
+        val captor = argumentCaptor<IdTokenValidator.Parameters>()
+        verify(idTokenValidator).validate(any(), any(), captor.capture())
+        assertThat(captor.allValues).hasSize(1)
+        assertThat(captor.firstValue.nonce).isEqualTo("12345689")
+        assertThat(captor.firstValue.maxAge).isEqualTo(300)
 
         val token = (result as OidcClientResult.Success<Token>).result
         assertThat(token.tokenType).isEqualTo("Bearer")

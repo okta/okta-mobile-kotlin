@@ -34,7 +34,7 @@ class DefaultIdTokenValidatorTest {
         val client = oktaRule.createOidcClient(oktaRule.createEndpoints("https://example-test.okta.com".toHttpUrl().newBuilder()))
         val idTokenClaims = IdTokenClaims()
         val idToken = client.createJwtBuilder().createJwt(claims = idTokenClaims)
-        idTokenValidator.validate(client, idToken, null, null)
+        idTokenValidator.validate(client, idToken, IdTokenValidator.Parameters(null, null))
     }
 
     @Test fun testValidIdTokenWithNoPathInIssuer(): Unit = runBlocking {
@@ -46,21 +46,21 @@ class DefaultIdTokenValidatorTest {
         )
         val idTokenClaims = IdTokenClaims(issuer = "https://example-test.okta.com")
         val idToken = client.createJwtBuilder().createJwt(claims = idTokenClaims)
-        idTokenValidator.validate(client, idToken, null, null)
+        idTokenValidator.validate(client, idToken, IdTokenValidator.Parameters(null, null))
     }
 
     @Test fun testValidIdTokenWithNonce(): Unit = runBlocking {
         val client = oktaRule.createOidcClient(oktaRule.createEndpoints("https://example-test.okta.com".toHttpUrl().newBuilder()))
         val idTokenClaims = IdTokenClaims(nonce = "6ccdb66d-ad56-4072-b864-7a8fe73c0ac2")
         val idToken = client.createJwtBuilder().createJwt(claims = idTokenClaims)
-        idTokenValidator.validate(client, idToken, "6ccdb66d-ad56-4072-b864-7a8fe73c0ac2", null)
+        idTokenValidator.validate(client, idToken, IdTokenValidator.Parameters("6ccdb66d-ad56-4072-b864-7a8fe73c0ac2", null))
     }
 
     @Test fun testValidIdTokenWithNonceAndMaxAge(): Unit = runBlocking {
         val client = oktaRule.createOidcClient(oktaRule.createEndpoints("https://example-test.okta.com".toHttpUrl().newBuilder()))
         val idTokenClaims = IdTokenClaims(nonce = "6ccdb66d-ad56-4072-b864-7a8fe73c0ac2")
         val idToken = client.createJwtBuilder().createJwt(claims = idTokenClaims)
-        idTokenValidator.validate(client, idToken, "6ccdb66d-ad56-4072-b864-7a8fe73c0ac2", 300)
+        idTokenValidator.validate(client, idToken, IdTokenValidator.Parameters("6ccdb66d-ad56-4072-b864-7a8fe73c0ac2", 300))
     }
 
     @Test fun testInvalidIssuer() {
@@ -169,8 +169,7 @@ class DefaultIdTokenValidatorTest {
                 idTokenValidator.validate(
                     client,
                     client.createJwtBuilder().createJwt(algorithm = algorithm, claims = idTokenClaims),
-                    nonce,
-                    maxAge,
+                    IdTokenValidator.Parameters(nonce, maxAge),
                 )
             }
             fail()
