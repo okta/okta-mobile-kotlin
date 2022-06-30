@@ -19,7 +19,7 @@ import okio.ByteString.Companion.toByteString
 import java.security.interfaces.RSAPublicKey
 
 fun createJwks(
-    algorithm: String = "RS256",
+    algorithm: String? = "RS256",
     keyId: String = JwtBuilder.KEY_ID,
     keyType: String = "RSA",
     use: String = "sig",
