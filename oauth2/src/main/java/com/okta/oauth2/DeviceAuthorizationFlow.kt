@@ -65,7 +65,7 @@ class DeviceAuthorizationFlow private constructor(
         /**
          * A convenience URI that combines the `verificationUri` and the `userCode`, to make a clickable link.
          */
-        val verificationUriComplete: String,
+        val verificationUriComplete: String?,
         /**
          * The code that should be displayed to the user.
          */
@@ -88,10 +88,10 @@ class DeviceAuthorizationFlow private constructor(
     @Serializable
     internal class SerializableResponse(
         @SerialName("verification_uri") val verificationUri: String,
-        @SerialName("verification_uri_complete") val verificationUriComplete: String,
+        @SerialName("verification_uri_complete") val verificationUriComplete: String? = null,
         @SerialName("device_code") internal val deviceCode: String,
         @SerialName("user_code") val userCode: String,
-        @SerialName("interval") internal val interval: Int,
+        @SerialName("interval") internal val interval: Int = 5,
         @SerialName("expires_in") val expiresIn: Int,
     ) {
         fun asFlowContext(): Context {

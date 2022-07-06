@@ -43,11 +43,40 @@ class DeviceAuthorizationFlowTest {
         "verification_uri": "https://example.okta.com/activate",
         "verification_uri_complete": "https://example.okta.com/activate?user_code=GDLMZQCT",
         "expires_in": 600,
-        "interval": 5
+        "interval": 10
     }
     """.trimIndent()
 
     @get:Rule val oktaRule = OktaRule()
+
+    @Test fun testStartWithMinimalJson(): Unit = runBlocking {
+        val minimalBody = """
+        {
+            "device_code": "1a521d9f-0922-4e6d-8db9-8b654297435a",
+            "user_code": "GDLMZQCT",
+            "verification_uri": "https://example.okta.com/activate",
+            "expires_in": 600
+        }
+        """.trimIndent()
+        oktaRule.enqueue(
+            method("POST"),
+            path("/oauth2/default/v1/device/authorize"),
+            bodyPart("client_id", "unit_test_client_id"),
+            bodyPart("scope", "openid%20email%20profile%20offline_access"),
+        ) { response ->
+            response.setBody(minimalBody)
+        }
+
+        val flow = oktaRule.createOidcClient().createDeviceAuthorizationFlow()
+        val startResult = (flow.start() as OidcClientResult.Success<DeviceAuthorizationFlow.Context>).result
+
+        assertThat(startResult.deviceCode).isEqualTo("1a521d9f-0922-4e6d-8db9-8b654297435a")
+        assertThat(startResult.expiresIn).isEqualTo(600)
+        assertThat(startResult.interval).isEqualTo(5)
+        assertThat(startResult.verificationUri).isEqualTo("https://example.okta.com/activate")
+        assertThat(startResult.verificationUriComplete).isNull()
+        assertThat(startResult.userCode).isEqualTo("GDLMZQCT")
+    }
 
     @Test fun testStartWithNoEndpoints(): Unit = runBlocking {
         oktaRule.enqueue(path("/.well-known/openid-configuration")) { response ->
@@ -87,7 +116,7 @@ class DeviceAuthorizationFlowTest {
 
         assertThat(startResult.deviceCode).isEqualTo("1a521d9f-0922-4e6d-8db9-8b654297435a")
         assertThat(startResult.expiresIn).isEqualTo(600)
-        assertThat(startResult.interval).isEqualTo(5)
+        assertThat(startResult.interval).isEqualTo(10)
         assertThat(startResult.verificationUri).isEqualTo("https://example.okta.com/activate")
         assertThat(startResult.verificationUriComplete).isEqualTo("https://example.okta.com/activate?user_code=GDLMZQCT")
         assertThat(startResult.userCode).isEqualTo("GDLMZQCT")
