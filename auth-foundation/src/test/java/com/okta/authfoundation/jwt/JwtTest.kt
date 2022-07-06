@@ -43,6 +43,12 @@ class JwtTest {
         assertThat(jwt.hasValidSignature(jwks)).isFalse()
     }
 
+    @Test fun testHasValidSignatureWithNullAlgorithm(): Unit = runBlocking {
+        val jwks = createJwks(algorithm = null)
+        val jwt = oktaRule.createOidcClient().createJwtBuilder().createJwt(claims = IdTokenClaims())
+        assertThat(jwt.hasValidSignature(jwks)).isFalse()
+    }
+
     @Test fun testHasValidSignatureWithInvalidUse(): Unit = runBlocking {
         val jwks = createJwks(use = "enc")
         val jwt = oktaRule.createOidcClient().createJwtBuilder().createJwt(claims = IdTokenClaims())

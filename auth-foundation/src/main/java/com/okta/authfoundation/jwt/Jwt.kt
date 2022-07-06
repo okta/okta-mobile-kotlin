@@ -70,9 +70,9 @@ class Jwt internal constructor(
     suspend fun hasValidSignature(jwks: Jwks): Boolean {
         return withContext(computeDispatcher) {
             val key = jwks.keys.firstOrNull { it.keyId == keyId } ?: return@withContext false
-            if (key.algorithm != "RS256") return@withContext false
             if (key.use != "sig") return@withContext false
             if (key.keyType != "RSA") return@withContext false
+            if (key.algorithm != "RS256") return@withContext false
 
             val modulus = BigInteger(1, key.modulus?.decodeBase64()?.toByteArray() ?: return@withContext false)
             val exponent = BigInteger(1, key.exponent?.decodeBase64()?.toByteArray() ?: return@withContext false)

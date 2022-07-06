@@ -28,12 +28,12 @@ class Jwks internal constructor(
     internal val keys: List<Key>
 ) {
     internal class Key(
-        val algorithm: String,
+        val keyId: String,
+        val use: String,
+        val keyType: String,
+        val algorithm: String?,
         val exponent: String?,
         val modulus: String?,
-        val keyId: String,
-        val keyType: String,
-        val use: String,
     ) {
         internal fun toSerializableJwksKey(): SerializableJwks.Key {
             return SerializableJwks.Key(
@@ -56,12 +56,12 @@ class Jwks internal constructor(
 internal class SerializableJwks(@SerialName("keys") val keys: List<Key>) {
     @Serializable
     class Key(
-        @SerialName("alg") val algorithm: String,
+        @SerialName("kid") val keyId: String,
+        @SerialName("use") val use: String,
+        @SerialName("kty") val keyType: String,
+        @SerialName("alg") val algorithm: String? = if (keyType == "RSA") "RS256" else null,
         @SerialName("e") val exponent: String?,
         @SerialName("n") val modulus: String?,
-        @SerialName("kid") val keyId: String,
-        @SerialName("kty") val keyType: String,
-        @SerialName("use") val use: String,
     ) {
         fun toJwksKey(): Jwks.Key {
             return Jwks.Key(

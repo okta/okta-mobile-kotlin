@@ -38,7 +38,7 @@ class Token(
     /**
      * The scopes granted when this token was minted.
      */
-    val scope: String,
+    val scope: String?,
     /**
      * The refresh token, if requested.
      */
@@ -121,7 +121,7 @@ internal class SerializableToken internal constructor(
     @SerialName("token_type") val tokenType: String,
     @SerialName("expires_in") val expiresIn: Int,
     @SerialName("access_token") val accessToken: String,
-    @SerialName("scope") val scope: String,
+    @SerialName("scope") val scope: String? = null,
     @SerialName("refresh_token") val refreshToken: String? = null,
     @SerialName("id_token") val idToken: String? = null,
     @SerialName("device_secret") val deviceSecret: String? = null,

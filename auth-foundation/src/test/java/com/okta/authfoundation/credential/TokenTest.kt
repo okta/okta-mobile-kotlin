@@ -28,15 +28,14 @@ class TokenTest {
         {
           "token_type": "Bearer",
           "expires_in": 3600,
-          "access_token": "exampleAccessToken",
-          "scope": "offline_access profile openid email"
+          "access_token": "exampleAccessToken"
         }
         """.trimIndent()
         val token = oktaRule.configuration.json.decodeFromString(SerializableToken.serializer(), json).asToken()
         assertThat(token.tokenType).isEqualTo("Bearer")
         assertThat(token.expiresIn).isEqualTo(3600)
         assertThat(token.accessToken).isEqualTo("exampleAccessToken")
-        assertThat(token.scope).isEqualTo("offline_access profile openid email")
+        assertThat(token.scope).isNull()
         assertThat(token.refreshToken).isNull()
         assertThat(token.idToken).isNull()
         assertThat(token.deviceSecret).isNull()
