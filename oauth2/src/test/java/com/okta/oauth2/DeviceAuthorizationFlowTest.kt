@@ -244,6 +244,47 @@ class DeviceAuthorizationFlowTest {
         assertThat(delayFunctionExecutedCount.get()).isEqualTo(5)
     }
 
+    @Test fun testResumeWithSlowDown(): Unit = runBlocking {
+        oktaRule.enqueue(
+            method("POST"),
+            path("/oauth2/default/v1/token"),
+            body("client_id=unit_test_client_id&device_code=1a521d9f-0922-4e6d-8db9-8b654297435a&grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Adevice_code")
+        ) { response ->
+            response.testBodyFromFile("$mockPrefix/token.json")
+        }
+
+        repeat(4) {
+            oktaRule.enqueue(
+                method("POST"),
+                path("/oauth2/default/v1/token"),
+                body("client_id=unit_test_client_id&device_code=1a521d9f-0922-4e6d-8db9-8b654297435a&grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Adevice_code")
+            ) { response ->
+                response.setBody("""{"error": "slow_down","error_description": "The device authorization is pending. Please try again later."}""")
+                response.setResponseCode(400)
+            }
+        }
+
+        val flow = oktaRule.createOidcClient().createDeviceAuthorizationFlow()
+        val context = DeviceAuthorizationFlow.Context(
+            deviceCode = "1a521d9f-0922-4e6d-8db9-8b654297435a",
+            interval = 5,
+            expiresIn = 600,
+            verificationUri = "https://example.okta.com/activate",
+            verificationUriComplete = "https://example.okta.com/activate?user_code=GDLMZQCT",
+            userCode = "GDLMZQCT",
+        )
+        val delayFunctionExecutedCount = AtomicInteger(0)
+        val delayAmounts = mutableListOf<Long>()
+        flow.delayFunction = { delay ->
+            delayAmounts += delay
+            delayFunctionExecutedCount.incrementAndGet()
+        }
+        val resumeResult = flow.resume(context) as OidcClientResult.Success<Token>
+        assertThat(resumeResult.result.accessToken).isEqualTo("exampleAccessToken")
+        assertThat(delayFunctionExecutedCount.get()).isEqualTo(5)
+        assertThat(delayAmounts).containsExactly(5000L, 10_000L, 15_000L, 20_000L, 25_000L)
+    }
+
     @Test fun testResumeTimeout(): Unit = runBlocking {
         repeat(4) {
             oktaRule.enqueue(

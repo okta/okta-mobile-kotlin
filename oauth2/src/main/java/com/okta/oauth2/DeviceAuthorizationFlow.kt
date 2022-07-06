@@ -164,13 +164,22 @@ class DeviceAuthorizationFlow private constructor(
 
         var timeLeft = flowContext.expiresIn
 
-        do {
-            timeLeft -= flowContext.interval
-            delayFunction(flowContext.interval.toLong() * 1000L)
+        var interval = flowContext.interval
 
+        do {
+            timeLeft -= interval
+            delayFunction(interval.toLong() * 1000L)
+
+            // https://datatracker.ietf.org/doc/html/rfc8628#section-3.5
             when (val tokenResult = oidcClient.tokenRequest(request)) {
                 is OidcClientResult.Error -> {
-                    if ((tokenResult.exception as? OidcClientResult.Error.HttpResponseException)?.error == "authorization_pending") {
+                    val error = (tokenResult.exception as? OidcClientResult.Error.HttpResponseException)?.error
+                    if (error == "authorization_pending") {
+                        // Do another loop in the while, we're polling waiting for the user to authorize.
+                        continue
+                    } else if (error == "slow_down") {
+                        // Increase the interval for all future requests according to the spec.
+                        interval += 5
                         // Do another loop in the while, we're polling waiting for the user to authorize.
                         continue
                     } else {
