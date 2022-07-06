@@ -21,6 +21,7 @@ public final class com/okta/oauth2/AuthorizationCodeFlow$RedirectSchemeMismatchE
 }
 
 public final class com/okta/oauth2/AuthorizationCodeFlow$ResumeException : java/lang/Exception {
+	public final fun getErrorId ()Ljava/lang/String;
 }
 
 public final class com/okta/oauth2/DeviceAuthorizationFlow {

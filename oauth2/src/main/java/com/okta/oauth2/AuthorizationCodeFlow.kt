@@ -67,7 +67,16 @@ class AuthorizationCodeFlow private constructor(
     /**
      * Used in a [OidcClientResult.Error.exception] from [resume].
      */
-    class ResumeException internal constructor(message: String) : Exception(message)
+    class ResumeException internal constructor(
+        message: String,
+
+        /**
+         * The error returned from the server.
+         *
+         * See [developer.okta.com](https://developer.okta.com/docs/reference/api/oidc/#possible-errors).
+         */
+        val errorId: String,
+    ) : Exception(message)
 
     /**
      * Used in a [OidcClientResult.Error.exception] from [resume].
@@ -154,13 +163,13 @@ class AuthorizationCodeFlow private constructor(
         val errorQueryParameter = uri.getQueryParameter("error")
         if (errorQueryParameter != null) {
             val errorDescription = uri.getQueryParameter("error_description") ?: "An error occurred."
-            return OidcClientResult.Error(ResumeException(errorDescription))
+            return OidcClientResult.Error(ResumeException(errorDescription, errorQueryParameter))
         }
 
         val stateQueryParameter = uri.getQueryParameter("state")
         if (flowContext.state != stateQueryParameter) {
             val error = "Failed due to state mismatch."
-            return OidcClientResult.Error(ResumeException(error))
+            return OidcClientResult.Error(ResumeException(error, "state_mismatch"))
         }
 
         val code = uri.getQueryParameter("code") ?: return OidcClientResult.Error(MissingResultCodeException())
