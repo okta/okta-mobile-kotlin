@@ -48,7 +48,14 @@ suspend fun <Raw, Dto> OidcClient.performRequest(
     shouldAttemptJsonDeserialization: (Response) -> Boolean = { it.isSuccessful },
     responseMapper: (Raw) -> Dto,
 ): OidcClientResult<Dto> {
-    return internalPerformRequest(request, shouldAttemptJsonDeserialization) { responseBody ->
+    val jsonRequest = if (request.header("accept") == null) {
+        request.newBuilder()
+            .addHeader("accept", "application/json")
+            .build()
+    } else {
+        request
+    }
+    return internalPerformRequest(jsonRequest, shouldAttemptJsonDeserialization) { responseBody ->
         val rawResponse = configuration.json.decodeFromStream(deserializationStrategy, responseBody)
         responseMapper(rawResponse)
     }

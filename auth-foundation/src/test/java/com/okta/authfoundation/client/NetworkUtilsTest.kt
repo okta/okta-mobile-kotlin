@@ -20,6 +20,8 @@ import com.okta.authfoundation.client.internal.performRequest
 import com.okta.authfoundation.client.internal.performRequestNonJson
 import com.okta.authfoundation.credential.Credential
 import com.okta.testhelpers.OktaRule
+import com.okta.testhelpers.RequestMatchers.doesNotContainHeaderWithValue
+import com.okta.testhelpers.RequestMatchers.header
 import com.okta.testhelpers.RequestMatchers.path
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -44,6 +46,7 @@ class NetworkingTest {
     @Test fun testPerformRequest(): Unit = runBlocking {
         oktaRule.enqueue(
             path("/test"),
+            header("accept", "application/json")
         ) { response ->
             response.setBody("""{"foo":"bar"}""")
         }
@@ -330,6 +333,26 @@ class NetworkingTest {
         val result = oktaRule.createOidcClient().performRequest(request)
         val message = (result as OidcClientResult.Error<Response>).exception.message
         assertThat(message).contains("Failed to connect to")
+    }
+
+    @Test fun testPerformRequestWithAlternateAcceptHeader(): Unit = runBlocking {
+        oktaRule.enqueue(
+            path("/test"),
+            header("accept", "application/ion+json; okta-version=1.0.0"),
+            doesNotContainHeaderWithValue("accept", "application/json"),
+        ) { response ->
+            response.setBody("""{"foo":"bar"}""")
+        }
+
+        val request = Request.Builder()
+            .url(oktaRule.baseUrl.newBuilder().addPathSegments("test").build())
+            .addHeader("accept", "application/ion+json; okta-version=1.0.0")
+            .build()
+
+        val result = oktaRule.createOidcClient().performRequest(JsonObject.serializer(), request) {
+            it["foo"]!!.jsonPrimitive.content
+        }
+        assertThat((result as OidcClientResult.Success<String>).result).isEqualTo("bar")
     }
 }
 
