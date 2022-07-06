@@ -17,6 +17,7 @@ package com.okta.authfoundation.client
 
 import com.okta.authfoundation.InternalAuthFoundationApi
 import com.okta.authfoundation.claims.DefaultClaimsProvider.Companion.createClaimsDeserializer
+import com.okta.authfoundation.claims.subject
 import com.okta.authfoundation.client.dto.OidcIntrospectInfo
 import com.okta.authfoundation.client.dto.OidcIntrospectInfo.Companion.asOidcIntrospectInfo
 import com.okta.authfoundation.client.dto.OidcUserInfo
@@ -108,7 +109,11 @@ class OidcClient private constructor(
             .build()
 
         return performRequest(JsonObject.serializer(), request) {
-            OidcUserInfo(configuration.createClaimsDeserializer(it))
+            val claimsProvider = configuration.createClaimsDeserializer(it)
+            if (claimsProvider.subject.isNullOrBlank()) {
+                throw IllegalArgumentException("The user info endpoint must return a valid sub claim.")
+            }
+            OidcUserInfo(claimsProvider)
         }
     }
 

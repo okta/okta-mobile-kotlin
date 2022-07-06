@@ -153,6 +153,11 @@ class DefaultIdTokenValidatorTest {
         )
     }
 
+    @Test fun testInvalidSub() {
+        val idTokenClaims = IdTokenClaims(subject = null)
+        assertFailsWithMessage("A valid sub claim is required.", idTokenClaims)
+    }
+
     private fun assertFailsWithMessage(
         message: String,
         idTokenClaims: IdTokenClaims,
