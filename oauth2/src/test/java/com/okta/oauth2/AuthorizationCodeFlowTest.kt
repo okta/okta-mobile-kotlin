@@ -278,6 +278,8 @@ class AuthorizationCodeFlowTest {
         val errorResult = result as OidcClientResult.Error<Token>
         assertThat(errorResult.exception).isInstanceOf(AuthorizationCodeFlow.ResumeException::class.java)
         assertThat(errorResult.exception).hasMessageThat().isEqualTo("Failed due to state mismatch.")
+        val resumeException = errorResult.exception as AuthorizationCodeFlow.ResumeException
+        assertThat(resumeException.errorId).isEqualTo("state_mismatch")
     }
 
     @Test fun testResumeError(): Unit = runBlocking {
@@ -316,5 +318,7 @@ class AuthorizationCodeFlowTest {
         val errorResult = result as OidcClientResult.Error<Token>
         assertThat(errorResult.exception).isInstanceOf(AuthorizationCodeFlow.ResumeException::class.java)
         assertThat(errorResult.exception).hasMessageThat().isEqualTo("Invalid Username")
+        val resumeException = errorResult.exception as AuthorizationCodeFlow.ResumeException
+        assertThat(resumeException.errorId).isEqualTo("foo")
     }
 }
