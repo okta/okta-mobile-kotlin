@@ -58,8 +58,8 @@ def configurePublishing(Project project) {
     }
 }
 
-def configureDokka(Project project) {
-    project.tasks.withType(org.jetbrains.dokka.gradle.DokkaTaskPartial).configureEach {
+def configureDokka(Project p) {
+    p.tasks.withType(org.jetbrains.dokka.gradle.DokkaTaskPartial).configureEach {
         dokkaSourceSets {
             configureEach {
                 jdkVersion.set(8)
@@ -79,6 +79,12 @@ def configureDokka(Project project) {
                     packageListUrl.set(new URL("https://kotlin.github.io/kotlinx.serialization/package-list"))
                 }
             }
+        }
+    }
+
+    p.plugins.withId('org.jetbrains.dokka') {
+        p.dependencies {
+            dokkaPlugin(project(':suppress-internal-dokka-plugin'))
         }
     }
 }
