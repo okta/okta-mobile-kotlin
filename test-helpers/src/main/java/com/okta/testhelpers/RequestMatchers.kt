@@ -24,6 +24,17 @@ object RequestMatchers {
         }
     }
 
+    fun doesNotContainHeaderWithValue(key: String, value: String): RequestMatcher {
+        return matcher@{ request ->
+            for (v in request.headers.values(key)) {
+                if (v == value) {
+                    return@matcher false // Fail the check, since it does contain the header.
+                }
+            }
+            true // Pass the check, since we didn't find the header.
+        }
+    }
+
     fun not(requestMatcher: RequestMatcher): RequestMatcher {
         return { request ->
             !requestMatcher.invoke(request)
