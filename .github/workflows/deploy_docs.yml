@@ -2,15 +2,14 @@ name: Deploy docs with Dokka
 
 on:
   push:
-    branches:
-      - master
-
+    tags:
+      - '*'
 env:
   GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4g -Dorg.gradle.daemon=false -Dkotlin.incremental=false"
 
 jobs:
   deploy:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-18.04
 
     steps:
       - name: Checkout
@@ -27,9 +26,6 @@ jobs:
 
       - name: Build docs
         run: ./gradlew dokkaHtmlMultiModule
-
-      - name: Publish To Maven Local
-        run: ./gradlew publishToMavenLocal
 
       - name: Deploy to Github Pages
         uses: peaceiris/actions-gh-pages@v3

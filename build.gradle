@@ -5,12 +5,17 @@ buildscript {
 
     dependencies {
         classpath deps.android_gradle_plugin
+        classpath deps.dokka_gradle_plugin
+        classpath deps.kotlin.binary_compatibility_plugin
         classpath deps.kotlin.plugin
         classpath deps.navigation.safe_args_plugin
         classpath deps.kotlin.serialization_plugin
         classpath deps.gradle_maven_publish
+        classpath deps.spotless
     }
 }
+
+apply plugin: 'org.jetbrains.dokka'
 
 allprojects {
     group = project.property('GROUP')
@@ -18,11 +23,9 @@ allprojects {
 
     addRepos(repositories)
     forceVersions(configurations)
+    configureSpotless(it)
     configurePublishing(it)
-}
-
-task clean(type: Delete) {
-    delete rootProject.buildDir
+    configureDokka(it)
 }
 
 def configurePublishing(Project project) {
@@ -53,4 +56,32 @@ def configurePublishing(Project project) {
             project.mavenPublishing.configure(new com.vanniktech.maven.publish.AndroidSingleVariantLibrary("release"))
         }
     }
+}
+
+def configureDokka(Project project) {
+    project.tasks.withType(org.jetbrains.dokka.gradle.DokkaTaskPartial).configureEach {
+        dokkaSourceSets {
+            configureEach {
+                jdkVersion.set(8)
+                suppressInheritedMembers.set(true)
+
+                perPackageOption {
+                    matchingRegex.set(".*\\.internal.*")
+                    suppress.set(true)
+                }
+
+                externalDocumentationLink {
+                    url.set(new URL("https://okta.github.io/okta-mobile-kotlin/"))
+                }
+                externalDocumentationLink {
+                    url.set(new URL("https://kotlin.github.io/kotlinx.serialization/"))
+                    packageListUrl.set(new URL("https://kotlin.github.io/kotlinx.serialization/package-list"))
+                }
+            }
+        }
+    }
+}
+
+tasks.dokkaHtmlMultiModule.configure {
+    outputDirectory.set(file("${rootDir}/docs"))
 }
