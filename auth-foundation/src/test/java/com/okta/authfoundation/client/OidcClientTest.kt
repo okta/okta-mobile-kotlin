@@ -99,6 +99,21 @@ class OidcClientTest {
         assertThat(userInfo.deserializeClaims(ExampleUserInfo.serializer()).sub).isEqualTo("00ub41z7mgzNqryMv696")
     }
 
+    @Test fun testGetUserInfoFailsWithNoSub(): Unit = runBlocking {
+        oktaRule.enqueue(
+            method("GET"),
+            path("/oauth2/default/v1/userinfo"),
+            header("authorization", "Bearer ExampleToken!"),
+        ) { response ->
+            response.setBody("""{"name":"Jay Newstrom"}""")
+        }
+        val result = oktaRule.createOidcClient().getUserInfo("ExampleToken!")
+        val exception = (result as OidcClientResult.Error<OidcUserInfo>).exception
+
+        assertThat(exception).isInstanceOf(IllegalArgumentException::class.java)
+        assertThat(exception).hasMessageThat().isEqualTo("The user info endpoint must return a valid sub claim.")
+    }
+
     @Test fun testGetUserInfoFailure(): Unit = runBlocking {
         oktaRule.enqueue(
             path("/oauth2/default/v1/userinfo"),

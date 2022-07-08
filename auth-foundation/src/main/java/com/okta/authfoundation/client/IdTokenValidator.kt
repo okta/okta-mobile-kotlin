@@ -95,6 +95,9 @@ internal class DefaultIdTokenValidator : IdTokenValidator {
                 throw IdTokenValidator.Error("Max age not satisfied.")
             }
         }
+        if (idTokenPayload.sub.isNullOrBlank()) {
+            throw IdTokenValidator.Error("A valid sub claim is required.")
+        }
     }
 }
 
@@ -106,4 +109,5 @@ internal class IdTokenValidationPayload(
     @SerialName("iat") val iat: Int,
     @SerialName("nonce") val nonce: String? = null,
     @SerialName("auth_time") val authTime: Int? = null,
+    @SerialName("sub") val sub: String? = null,
 )
