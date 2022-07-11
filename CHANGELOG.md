@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.0.0] - 2022-07-11
+
+[Commits](https://github.com/okta/okta-mobile-kotlin/compare/0.6.0-BETA...1.0.0)
+
+### Added
+- Added support for amr and acr claims [#175](https://github.com/okta/okta-mobile-kotlin/pull/175)
+- Support for more OpenID Providers
+- Support for Device Authorization Grant slow_down [#186](https://github.com/okta/okta-mobile-kotlin/pull/186)
+- Added `errorId` to `AuthorizationCodeFlow.ResumeException` [#184](https://github.com/okta/okta-mobile-kotlin/pull/184)
+
+### Changed
+- Updated IdTokenValidator to include an object for validation parameters [#181](https://github.com/okta/okta-mobile-kotlin/pull/181)
+
 ## [0.6.0-BETA] - 2022-06-03
 
 [Commits](https://github.com/okta/okta-mobile-kotlin/compare/0.5.0-BETA...0.6.0-BETA)
