@@ -71,7 +71,7 @@ class NetworkRule : TestRule {
         okHttpClientFactory = { okHttpClient() },
         eventCoordinator = EventCoordinator(emptyList()),
         clock = clock,
-        idTokenValidator = { _, _, _, _ -> },
+        idTokenValidator = { _, _, _ -> },
         accessTokenValidator = { _, _, _ -> },
         deviceSecretValidator = { _, _, _ -> },
         ioDispatcher = Dispatchers.Unconfined,

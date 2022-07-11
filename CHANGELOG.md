@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.0.0] - 2022-07-11
+
+### Changed
+- Updated to the latest auth-foundation (1.0.0)
+- Rename IdxFlow to InteractionCodeFlow [#152](https://github.com/okta/okta-idx-android/pull/152)
+
 ## [2.0.0-BETA6] - 2022-06-03
 ### Changed
 - Updated to the latest auth-foundation (0.6.0-BETA)
