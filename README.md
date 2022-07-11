@@ -19,45 +19,11 @@ This SDK consists of several different libraries, each with detailed documentati
 
 The use of this SDK enables you to build or support a myriad of different authentication flows and approaches.
 
-## Development Roadmap
-
-This SDK is being actively developed and is in Beta release status. At this time, we are seeking feedback from the developer community to evaluate:
-
-* The overall SDK and its components
-* The APIs and overall developer experience
-* Use-cases or features that may be missed or do not align with your application’s needs
-* Suggestions for future development
-* Any other comments or feedback on this new direction
-
-### Feature roadmap
-
-| Feature | Status | Milestone |
-| ------- | ------ | --------- |
-| Login and logout via web redirect | ✅ | Beta 2 |
-| Credential management | ✅ | Beta 2 |
-| Secure token storage | ✅ | Beta 2 |
-| Native SSO / Token Exchange Flow | ✅ | Beta 2 |
-| Device Authorization Grant Flow | ✅ | Beta 2 |
-| OkHttp Interceptor for authorizing requests | ✅ | Beta 2 |
-| Support for multiple accounts | ✅ | Beta 2 |
-| Advanced Eventing | ✅ | Beta 4 |
-| Migrating Tokens from okta-oidc-android | ✅ | Beta 4 |
-
 ## Support Policy
 
 ### Legacy okta-oidc-android support
 
 We intend to support okta-oidc-android with critical bug and security fixes for the foreseeable future. Once the Kotlin Mobile SDK is generally available, all new features will be built on top of okta-mobile-kotlin and will replace okta-oidc-android.
-
-### What “Beta” means
-
-While a library version is in beta, the code interface isn't final, and breaking changes could occur without warning. See our [library versioning policy](https://developer.okta.com/code/library-versions/#beta) for more information.
-
-We are actively looking for feedback on our new SDK suite and we will make breaking changes as necessary to ensure an optimal developer experience in the future.
-
-The SDKs are thoroughly tested and free of known bugs.
-
-To submit feedback or questions on this beta, please open a [Github Issue][github-issues], or reach out to [support](https://support.okta.com/).
 
 ## Unlocking use cases
 Okta is busy adding new functionality to its identity platform. We're excited to unlock these new capabilities for Android. These SDKs are built on top of [Kotlin](https://kotlinlang.org/), [Kotlin Coroutines](https://kotlinlang.org/docs/coroutines-overview.html), and [OkHttp](https://github.com/square/okhttp). We are doubling down on our developer experience, providing seamless ways to log in, store, and access OAuth tokens. We are building an initial set of functionality unlocking new OAuth flows that were not possible before, including:
@@ -71,7 +37,7 @@ Add the `Okta Mobile Kotlin` dependencies to your `build.gradle` file:
 
 ```gradle
 // Ensure all dependencies are compatible using the Bill of Materials (BOM).
-implementation(platform('com.okta.kotlin:bom:0.6.0-BETA'))
+implementation(platform('com.okta.kotlin:bom:1.0.0'))
 
 // Add the dependencies to your project.
 implementation('com.okta.kotlin:auth-foundation')
