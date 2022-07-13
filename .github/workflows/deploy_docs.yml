@@ -4,6 +4,8 @@ on:
   push:
     tags:
       - '*'
+  pull_request:
+
 env:
   GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4g -Dorg.gradle.daemon=false -Dkotlin.incremental=false"
 
@@ -27,7 +29,11 @@ jobs:
       - name: Build docs
         run: ./gradlew dokkaHtmlMultiModule
 
+      - name: Publish To Maven Local
+        run: ./gradlew publishToMavenLocal
+
       - name: Deploy to Github Pages
+        if: startsWith(github.push.ref, 'refs/tags/')
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
