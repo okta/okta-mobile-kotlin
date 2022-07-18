@@ -144,7 +144,7 @@ import com.okta.webauthenticationui.WebAuthenticationClient.Companion.createWebA
 val context: Context = TODO("Supplied by the developer.")
 val credential: Credential = TODO("Available from previous steps.")
 val redirectUrl: String = TODO("signInRedirectUri supplied by the developer.")
-val webAuthenticationClient = CredentialBoostrap.oidcClient.createWebAuthenticationClient()
+val webAuthenticationClient = CredentialBootstrap.oidcClient.createWebAuthenticationClient()
 when (val result = webAuthenticationClient.login(context, redirectUrl)) {
     is OidcClientResult.Error -> {
         // Timber.e(result.exception, "Failed to login.")
