@@ -22,6 +22,8 @@ jobs:
           distribution: 'zulu'
           java-version: 18
 
+      - name: Debug
+        uses: hmarr/debug-action@v2
       - name: Setup Properties
         if: ${{ github.event.repository.fork == false && (github.event.pull_request == null || github.event.pull_request.head.repo.fork == false) }}
         env:
