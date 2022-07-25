@@ -23,7 +23,7 @@ jobs:
           java-version: 18
 
       - name: Setup Properties
-        if: github.repository == 'okta/okta-mobile-kotlin'
+        if: ${{ github.event.repository.owner.login == 'okta' }}
         env:
           E2E_CREDENTIALS_BASE64: ${{ secrets.E2E_CREDENTIALS_BASE64 }}
           OKTA_PROPERTIES_BASE64: ${{ secrets.OKTA_PROPERTIES_BASE64 }}
