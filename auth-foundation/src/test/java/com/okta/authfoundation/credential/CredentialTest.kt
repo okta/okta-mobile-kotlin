@@ -180,6 +180,89 @@ class CredentialTest {
         assertThat(errorResult.exception).hasMessageThat().isEqualTo("No device secret.")
     }
 
+    @Test fun testRevokeAllTokensWithNullTokenReturnsError(): Unit = runBlocking {
+        val credential = oktaRule.createCredential()
+        val result = credential.revokeAllTokens()
+        assertThat(result).isInstanceOf(OidcClientResult.Error::class.java)
+        val errorResult = result as OidcClientResult.Error<Unit>
+        assertThat(errorResult.exception).hasMessageThat().isEqualTo("No token.")
+    }
+
+    @Test fun testRevokeAllTokensWithOnlyAccessToken(): Unit = runBlocking {
+        val oidcClient = mock<OidcClient> {
+            onBlocking { revokeToken(any()) } doReturn OidcClientResult.Success(Unit)
+            on { withCredential(any()) } doReturn it
+        }
+        val credential = oktaRule.createCredential(token = createToken(), oidcClient = oidcClient)
+        credential.revokeAllTokens()
+        verify(oidcClient).revokeToken(eq("exampleAccessToken"))
+        verify(oidcClient).revokeToken(any()) // Exactly once.
+    }
+
+    @Test fun testRevokeAllTokensWithRefreshToken(): Unit = runBlocking {
+        val oidcClient = mock<OidcClient> {
+            onBlocking { revokeToken(any()) } doReturn OidcClientResult.Success(Unit)
+            on { withCredential(any()) } doReturn it
+        }
+        val credential = oktaRule.createCredential(token = createToken(refreshToken = "exampleRefreshToken"), oidcClient = oidcClient)
+        credential.revokeAllTokens()
+        verify(oidcClient).revokeToken(eq("exampleAccessToken"))
+        verify(oidcClient).revokeToken(eq("exampleRefreshToken"))
+        verify(oidcClient, times(2)).revokeToken(any()) // Exactly twice.
+    }
+
+    @Test fun testRevokeAllTokensWithDeviceSecret(): Unit = runBlocking {
+        val oidcClient = mock<OidcClient> {
+            onBlocking { revokeToken(any()) } doReturn OidcClientResult.Success(Unit)
+            on { withCredential(any()) } doReturn it
+        }
+        val credential = oktaRule.createCredential(token = createToken(deviceSecret = "exampleDeviceSecret"), oidcClient = oidcClient)
+        credential.revokeAllTokens()
+        verify(oidcClient).revokeToken(eq("exampleAccessToken"))
+        verify(oidcClient).revokeToken(eq("exampleDeviceSecret"))
+        verify(oidcClient, times(2)).revokeToken(any()) // Exactly twice.
+    }
+
+    @Test fun testRevokeAllTokensWithRefreshTokenAndDeviceSecret(): Unit = runBlocking {
+        val oidcClient = mock<OidcClient> {
+            onBlocking { revokeToken(any()) } doReturn OidcClientResult.Success(Unit)
+            on { withCredential(any()) } doReturn it
+        }
+        val credential = oktaRule.createCredential(token = createToken(refreshToken = "exampleRefreshToken", deviceSecret = "exampleDeviceSecret"), oidcClient = oidcClient)
+        credential.revokeAllTokens()
+        verify(oidcClient).revokeToken(eq("exampleAccessToken"))
+        verify(oidcClient).revokeToken(eq("exampleRefreshToken"))
+        verify(oidcClient).revokeToken(eq("exampleDeviceSecret"))
+        verify(oidcClient, times(3)).revokeToken(any()) // Exactly three times.
+    }
+
+    @Test fun testRevokeAllTokensWithFailedRefreshTokenReturnsError(): Unit = runBlocking {
+        val oidcClient = mock<OidcClient> {
+            onBlocking { revokeToken(any()) } doAnswer { invocation ->
+                if (invocation.arguments[0] == "exampleRefreshToken") {
+                    OidcClientResult.Error(Exception("Expected Error."))
+                } else {
+                    OidcClientResult.Success(Unit)
+                }
+            }
+            on { withCredential(any()) } doReturn it
+        }
+        val credential = oktaRule.createCredential(token = createToken(refreshToken = "exampleRefreshToken"), oidcClient = oidcClient)
+
+        val result = credential.revokeAllTokens()
+
+        assertThat(result).isInstanceOf(OidcClientResult.Error::class.java)
+        val errorResult = result as OidcClientResult.Error<Unit>
+        val exception = errorResult.exception as RevokeAllException
+        assertThat(exception).hasMessageThat().isEqualTo("Failed to revoke all tokens.")
+        assertThat(exception.failures).hasSize(1)
+        assertThat(exception.failures[RevokeTokenType.REFRESH_TOKEN]).hasMessageThat().isEqualTo("Expected Error.")
+
+        verify(oidcClient).revokeToken(eq("exampleAccessToken"))
+        verify(oidcClient).revokeToken(eq("exampleRefreshToken"))
+        verify(oidcClient, times(2)).revokeToken(any()) // Exactly twice.
+    }
+
     @Test fun testScopesReturnDefaultScopes() {
         val credential = oktaRule.createCredential()
         assertThat(credential.scope()).isEqualTo("openid email profile offline_access")

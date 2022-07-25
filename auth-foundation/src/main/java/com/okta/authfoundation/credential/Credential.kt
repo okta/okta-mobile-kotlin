@@ -27,6 +27,10 @@ import com.okta.authfoundation.events.EventCoordinator
 import com.okta.authfoundation.jwt.Jwt
 import com.okta.authfoundation.jwt.JwtParser
 import com.okta.authfoundation.util.CoalescingOrchestrator
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import okhttp3.Interceptor
@@ -194,6 +198,37 @@ class Credential internal constructor(
             }
         }
         return oidcClient.revokeToken(token)
+    }
+
+    /**
+     * Attempt to revoke all available tokens.
+     *
+     * > Note: OIDC Logout terminology is nuanced, see [Logout Documentation](https://github.com/okta/okta-mobile-kotlin#logout) for additional details.
+     */
+    suspend fun revokeAllTokens(): OidcClientResult<Unit> {
+        val localToken = token ?: return OidcClientResult.Error(IllegalStateException("No token."))
+        val pairsToRevoke = mutableMapOf<RevokeTokenType, String>()
+
+        pairsToRevoke[RevokeTokenType.ACCESS_TOKEN] = localToken.accessToken
+        localToken.refreshToken?.let { pairsToRevoke[RevokeTokenType.REFRESH_TOKEN] = it }
+        localToken.deviceSecret?.let { pairsToRevoke[RevokeTokenType.DEVICE_SECRET] = it }
+
+        return withContext(Dispatchers.Unconfined) {
+            val exceptionPairs = mutableMapOf<RevokeTokenType, Exception>()
+            pairsToRevoke.map { entry ->
+                async {
+                    (oidcClient.revokeToken(entry.value) as? OidcClientResult.Error<Unit>)?.exception?.let {
+                        exceptionPairs[entry.key] = it
+                    }
+                }
+            }.awaitAll()
+
+            if (exceptionPairs.isEmpty()) {
+                OidcClientResult.Success(Unit)
+            } else {
+                OidcClientResult.Error(RevokeAllException(exceptionPairs))
+            }
+        }
     }
 
     /**
