@@ -23,6 +23,7 @@ jobs:
           java-version: 18
 
       - name: Setup Properties
+        if: ${{ github.event.repository.fork == false && (github.event.pull_request == null || github.event.pull_request.head.repo.fork == false) }}
         env:
           E2E_CREDENTIALS_BASE64: ${{ secrets.E2E_CREDENTIALS_BASE64 }}
           OKTA_PROPERTIES_BASE64: ${{ secrets.OKTA_PROPERTIES_BASE64 }}
@@ -38,14 +39,14 @@ jobs:
         run: ./gradlew assembleDebug testDebugUnitTest assembleAndroidTest
 
       - name: Authenticate Gcloud command line
-        if: github.ref == 'refs/heads/master' || contains(github.event.pull_request.labels.*.name, 'e2e')
+        if: ${{ github.event.repository.fork == false && (github.ref == 'refs/heads/master' || contains(github.event.pull_request.labels.*.name, 'e2e')) }}
         env:
           GOOGLE_PROJECT_ID: ${{ secrets.GOOGLE_PROJECT_ID }}
           GOOGLE_SERVICE_JSON_BASE64: ${{ secrets.GOOGLE_SERVICE_JSON_BASE64 }}
         run: ./signInToGcloud.sh && source $HOME/google-cloud-sdk/path.bash.inc && export CLOUDSDK_CORE_DISABLE_PROMPTS=1
 
       - name: Run End to End Tests
-        if: github.ref == 'refs/heads/master' || contains(github.event.pull_request.labels.*.name, 'e2e')
+        if: ${{ github.event.repository.fork == false && (github.ref == 'refs/heads/master' || contains(github.event.pull_request.labels.*.name, 'e2e')) }}
         run: ./runTestsInFirebaseTestLab.sh
 
       - name: Upload Test Failures
