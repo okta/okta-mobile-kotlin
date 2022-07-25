@@ -23,7 +23,7 @@ jobs:
           java-version: 18
 
       - name: Setup Properties
-        if: ${{ github.event.repository.owner.login == 'okta' }}
+        if: ${{ github.event.pull_request == null || github.event.pull_request.head.repo.fork == false }}
         env:
           E2E_CREDENTIALS_BASE64: ${{ secrets.E2E_CREDENTIALS_BASE64 }}
           OKTA_PROPERTIES_BASE64: ${{ secrets.OKTA_PROPERTIES_BASE64 }}
