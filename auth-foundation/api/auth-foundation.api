@@ -228,6 +228,7 @@ public final class com/okta/authfoundation/credential/Credential {
 	public final fun idToken (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun introspectToken (Lcom/okta/authfoundation/credential/TokenType;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun refreshToken (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun revokeAllTokens (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun revokeToken (Lcom/okta/authfoundation/credential/RevokeTokenType;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun scope ()Ljava/lang/String;
 	public final fun storeToken (Lcom/okta/authfoundation/credential/Token;Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -244,6 +245,10 @@ public final class com/okta/authfoundation/credential/CredentialDataSource {
 public final class com/okta/authfoundation/credential/CredentialDataSource$Companion {
 	public final fun createCredentialDataSource (Lcom/okta/authfoundation/client/OidcClient;Landroid/content/Context;)Lcom/okta/authfoundation/credential/CredentialDataSource;
 	public final fun createCredentialDataSource (Lcom/okta/authfoundation/client/OidcClient;Lcom/okta/authfoundation/credential/TokenStorage;)Lcom/okta/authfoundation/credential/CredentialDataSource;
+}
+
+public final class com/okta/authfoundation/credential/RevokeAllException : java/lang/Exception {
+	public final fun getFailures ()Ljava/util/Map;
 }
 
 public final class com/okta/authfoundation/credential/RevokeTokenType : java/lang/Enum {

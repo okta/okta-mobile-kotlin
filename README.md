@@ -247,12 +247,13 @@ when (val result = tokenExchangeFlow.start(idToken, deviceSecret)) {
 There are multiple terms that might be confused when logging a user out.
 
 - `Credential.delete` - Clears the in memory reference to the `Token` and removes the information from `TokenStorage`, the `Credential` can no longer be used.
+- `Credential.revokeAllTokens` - Revokes all available tokens from the Authorization Server.
 - `Credential.revokeToken`/`OidcClient.revokeToken` - Revokes the specified `RevokeTokenType` from the Authorization Server.
 - `WebAuthenticationClient.logoutOfBrowser` - Removes the Okta session if the user was logged in via the OIDC Browser redirect flow. Also revokes the associated `Token`(s) minted via this flow.
 
 > Notes:
 > - `Credential.delete` does not revoke a token
-> - `Credential.revokeToken`/`OidcClient.revokeToken` does not remove the `Token` from memory, or `TokenStorage`. It also does not invalidate the browser session if the `Token` was minted via the OIDC Browser redirect flow.
+> - `Credential.revokeToken`/`Credential.revokeAllTokens`/`OidcClient.revokeToken` does not remove the `Token` from memory, or `TokenStorage`. It also does not invalidate the browser session if the `Token` was minted via the OIDC Browser redirect flow.
 > - `WebAuthenticationClient.logoutOfBrowser` revokes the `Token`, but does not remove it from memory or `TokenStorage`
 > - Revoking a `RevokeTokenType.ACCESS_TOKEN` does not revoke the associated `Token.refreshToken` or `Token.deviceSecret`
 > - Revoking a `RevokeTokenType.DEVICE_SECRET` does not revoke the associated `Token.accessToken` or `Token.refreshToken`
