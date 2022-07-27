@@ -31,13 +31,14 @@ fun OktaRule.createCredential(
     oidcClient: OidcClient = createOidcClient(),
     tokenStorage: TokenStorage = InMemoryTokenStorage(),
     credentialDataSource: CredentialDataSource = mock(),
+    storageId: String = CredentialFactory.tokenStorageId,
 ): Credential {
     if (token != null) {
         runBlocking {
             tokenStorage.add(CredentialFactory.tokenStorageId)
         }
     }
-    return Credential(oidcClient, tokenStorage, credentialDataSource, CredentialFactory.tokenStorageId, token, tags)
+    return Credential(oidcClient, tokenStorage, credentialDataSource, storageId, token, tags)
 }
 
 fun createToken(

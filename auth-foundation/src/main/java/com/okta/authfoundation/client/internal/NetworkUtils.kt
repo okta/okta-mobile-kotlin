@@ -95,7 +95,7 @@ internal suspend fun <T> OidcClient.internalPerformRequest(
 
 internal suspend fun <T> OidcConfiguration.internalPerformRequest(
     request: Request,
-    shouldAttemptJsonDeserialization: (Response) -> Boolean = { it.isSuccessful },
+    shouldAttemptJsonDeserialization: (Response) -> Boolean,
     responseHandler: (InputStream) -> T,
 ): OidcClientResult<T> {
     currentCoroutineContext().ensureActive()

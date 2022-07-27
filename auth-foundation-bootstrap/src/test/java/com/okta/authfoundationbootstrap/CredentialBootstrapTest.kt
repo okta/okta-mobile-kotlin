@@ -103,4 +103,9 @@ class CredentialBootstrapTest {
         assertThat(credential1.await()).isSameInstanceAs(credential2.await())
         assertThat(CredentialBootstrap.credentialDataSource.listCredentials()).hasSize(1)
     }
+
+    @Test fun testOidcClientIsAvailableAfterInitialization() {
+        initialize()
+        assertThat(CredentialBootstrap.oidcClient).isNotNull()
+    }
 }
