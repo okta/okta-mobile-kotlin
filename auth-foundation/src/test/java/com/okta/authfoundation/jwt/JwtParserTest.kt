@@ -17,17 +17,22 @@ package com.okta.authfoundation.jwt
 
 import com.google.common.truth.Truth.assertThat
 import com.okta.authfoundation.claims.preferredUsername
+import com.okta.authfoundation.jwt.JwtBuilder.Companion.createJwtBuilder
+import com.okta.testhelpers.OktaRule
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import org.junit.Rule
 import org.junit.Test
 import kotlin.test.assertFailsWith
 
 class JwtParserTest {
+    @get:Rule val oktaRule = OktaRule()
+
     @Test fun testJwtParserCreate(): Unit = runBlocking {
-        val input = "eyJraWQiOiJGSkEwSEdOdHN1dWRhX1BsNDVKNDJrdlFxY3N1XzBDNEZnN3BiSkxYVEhZIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiIwMHViNDF6N21nek5xcnlNdjY5NiIsIm5hbWUiOiJKYXkgTmV3c3Ryb20iLCJlbWFpbCI6ImpheW5ld3N0cm9tQGV4YW1wbGUuY29tIiwidmVyIjoxLCJpc3MiOiJodHRwczovL2V4YW1wbGUtdGVzdC5va3RhLmNvbS9vYXV0aDIvZGVmYXVsdCIsImF1ZCI6IjBvYThmdXAwbEFQWUZDNEkyNjk2IiwiaWF0IjoxNjQ0MzQ3MDY5LCJleHAiOjE2NDQzNTA2NjksImp0aSI6IklELjU1Y3hCdGRZbDhsNmFyS0lTUEJ3ZDB5T1QtOVVDVGFYYVFUWHQybGFSTHMiLCJhbXIiOlsicHdkIl0sImlkcCI6IjAwbzhmb3U3c1JhR0d3ZG40Njk2Iiwic2lkIjoiaWR4V3hrbHBfNGtTeHVDX25VMXBYRC1uQSIsInByZWZlcnJlZF91c2VybmFtZSI6ImpheW5ld3N0cm9tQGV4YW1wbGUuY29tIiwiYXV0aF90aW1lIjoxNjQ0MzQ3MDY4LCJhdF9oYXNoIjoiZ01jR1RiaEdUMUdfbGRzSG9Kc1B6USIsImRzX2hhc2giOiJEQWVMT0ZScWlmeXNiZ3NyYk9nYm9nIn0.z7LBgWT2O-DUZiOOUzr90qEgLoMiR5eHZsY1V2XPbhfOrjIv9ax9niHE7lPS5GYq02w4Cuf0DbdWjiNj96n4wTPmNU6N0x-XRluv4kved_wBBIvWNLGu_ZZZAFXaIFqmFGxPB6hIsYKvB3FmQCC0NvSXyDquadW9X7bBA7BO7VfX_jOKCkK_1MC1FZdU9n8rppu190Gk-z5dEWegHHtKy3vb12t4NR9CkA2uQgolnii8fNbie-3Z6zAdMXAZXkIcFu43Wn4TGwuzWK25IThcMNsPbLFFI4r0zo9E20IsH4gcJQiE_vFUzukzCsbppaiSAWBdSgES9K-QskWacZIWOg"
+        val input = oktaRule.createOidcClient().createJwtBuilder().createJwt(claims = IdTokenClaims()).rawValue
 
         val parser = JwtParser.create()
         val jwt = parser.parse(input)
@@ -35,7 +40,7 @@ class JwtParserTest {
     }
 
     @Test fun testJwtParser(): Unit = runBlocking {
-        val input = "eyJraWQiOiJGSkEwSEdOdHN1dWRhX1BsNDVKNDJrdlFxY3N1XzBDNEZnN3BiSkxYVEhZIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiIwMHViNDF6N21nek5xcnlNdjY5NiIsIm5hbWUiOiJKYXkgTmV3c3Ryb20iLCJlbWFpbCI6ImpheW5ld3N0cm9tQGV4YW1wbGUuY29tIiwidmVyIjoxLCJpc3MiOiJodHRwczovL2V4YW1wbGUtdGVzdC5va3RhLmNvbS9vYXV0aDIvZGVmYXVsdCIsImF1ZCI6IjBvYThmdXAwbEFQWUZDNEkyNjk2IiwiaWF0IjoxNjQ0MzQ3MDY5LCJleHAiOjE2NDQzNTA2NjksImp0aSI6IklELjU1Y3hCdGRZbDhsNmFyS0lTUEJ3ZDB5T1QtOVVDVGFYYVFUWHQybGFSTHMiLCJhbXIiOlsicHdkIl0sImlkcCI6IjAwbzhmb3U3c1JhR0d3ZG40Njk2Iiwic2lkIjoiaWR4V3hrbHBfNGtTeHVDX25VMXBYRC1uQSIsInByZWZlcnJlZF91c2VybmFtZSI6ImpheW5ld3N0cm9tQGV4YW1wbGUuY29tIiwiYXV0aF90aW1lIjoxNjQ0MzQ3MDY4LCJhdF9oYXNoIjoiZ01jR1RiaEdUMUdfbGRzSG9Kc1B6USIsImRzX2hhc2giOiJEQWVMT0ZScWlmeXNiZ3NyYk9nYm9nIn0.z7LBgWT2O-DUZiOOUzr90qEgLoMiR5eHZsY1V2XPbhfOrjIv9ax9niHE7lPS5GYq02w4Cuf0DbdWjiNj96n4wTPmNU6N0x-XRluv4kved_wBBIvWNLGu_ZZZAFXaIFqmFGxPB6hIsYKvB3FmQCC0NvSXyDquadW9X7bBA7BO7VfX_jOKCkK_1MC1FZdU9n8rppu190Gk-z5dEWegHHtKy3vb12t4NR9CkA2uQgolnii8fNbie-3Z6zAdMXAZXkIcFu43Wn4TGwuzWK25IThcMNsPbLFFI4r0zo9E20IsH4gcJQiE_vFUzukzCsbppaiSAWBdSgES9K-QskWacZIWOg"
+        val input = oktaRule.createOidcClient().createJwtBuilder().createJwt(claims = IdTokenClaims()).rawValue
 
         val parser = JwtParser(Json { ignoreUnknownKeys = true }, Dispatchers.Unconfined)
         val jwt = parser.parse(input)
@@ -50,14 +55,15 @@ class JwtParserTest {
         )
         assertThat(jwt.deserializeClaims(ExamplePayload.serializer()).sub).isEqualTo("00ub41z7mgzNqryMv696")
 
-        assertThat(jwt.signature).isEqualTo("z7LBgWT2O-DUZiOOUzr90qEgLoMiR5eHZsY1V2XPbhfOrjIv9ax9niHE7lPS5GYq02w4Cuf0DbdWjiNj96n4wTPmNU6N0x-XRluv4kved_wBBIvWNLGu_ZZZAFXaIFqmFGxPB6hIsYKvB3FmQCC0NvSXyDquadW9X7bBA7BO7VfX_jOKCkK_1MC1FZdU9n8rppu190Gk-z5dEWegHHtKy3vb12t4NR9CkA2uQgolnii8fNbie-3Z6zAdMXAZXkIcFu43Wn4TGwuzWK25IThcMNsPbLFFI4r0zo9E20IsH4gcJQiE_vFUzukzCsbppaiSAWBdSgES9K-QskWacZIWOg")
+        assertThat(jwt.signature).isEqualTo("Py4hkTtY4dnBTzlZuS-oMLuPa-08SnBKHqQEB7PPLxtKak6RXRiYcEFSoqLJlflYrloWt5iHbbWVNsUpx9EoCt8hfnbinFjRq99A__Zky1pW6WF6l6hCxGK60tI_kOLFIBc3Wzu4w-Kj6z1B7RXl0R_W739cxkYHrlpqiCuJyZAwX5Qwf1SmZZDmrqWlUdHefaO6L2TlNSgJGLrsyb2vZ8JYdvIANCbkl5gCF5gx6ebd9QkXf2EZdyxbIlBI2weSLtlGwTtLZi3k4Q2pk8pz_zDqyfOtVhOb4OxAiu0YuPikvJ8iddAxM94-f_n8SUZTSlQ2n39UWPrQw0mcUsmWzA")
 
         assertThat(jwt.rawValue).isEqualTo(input)
         assertThat(jwt.toString()).isEqualTo(input)
     }
 
     @Test fun testJwtParserMalformed(): Unit = runBlocking {
-        val input = "eyJraWQiOiJGSkEwSEdOdHN1dWRhX1BsNDVKNDJrdlFxY3N1XzBDNEZnN3BiSkxYVEhZIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiIwMHViNDF6N21nek5xcnlNdjY5NiIsIm5hbWUiOiJKYXkgTmV3c3Ryb20iLCJlbWFpbCI6ImpheW5ld3N0cm9tQGV4YW1wbGUuY29tIiwidmVyIjoxLCJpc3MiOiJodHRwczovL2V4YW1wbGUtdGVzdC5va3RhLmNvbS9vYXV0aDIvZGVmYXVsdCIsImF1ZCI6IjBvYThmdXAwbEFQWUZDNEkyNjk2IiwiaWF0IjoxNjQ0MzQ3MDY5LCJleHAiOjE2NDQzNTA2NjksImp0aSI6IklELjU1Y3hCdGRZbDhsNmFyS0lTUEJ3ZDB5T1QtOVVDVGFYYVFUWHQybGFSTHMiLCJhbXIiOlsicHdkIl0sImlkcCI6IjAwbzhmb3U3c1JhR0d3ZG40Njk2Iiwic2lkIjoiaWR4V3hrbHBfNGtTeHVDX25VMXBYRC1uQSIsInByZWZlcnJlZF91c2VybmFtZSI6ImpheW5ld3N0cm9tQGV4YW1wbGUuY29tIiwiYXV0aF90aW1lIjoxNjQ0MzQ3MDY4LCJhdF9oYXNoIjoiZ01jR1RiaEdUMUdfbGRzSG9Kc1B6USIsImRzX2hhc2giOiJEQWVMT0ZScWlmeXNiZ3NyYk9nYm9nIn0"
+        val validInput = oktaRule.createOidcClient().createJwtBuilder().createJwt(claims = IdTokenClaims()).rawValue
+        val input = validInput.substringAfter(".") // Removes header.
 
         val parser = JwtParser(Json { ignoreUnknownKeys = true }, Dispatchers.Unconfined)
 
@@ -68,7 +74,7 @@ class JwtParserTest {
     }
 
     @Test fun testJwtInstancesAreEqual(): Unit = runBlocking {
-        val input = "eyJraWQiOiJGSkEwSEdOdHN1dWRhX1BsNDVKNDJrdlFxY3N1XzBDNEZnN3BiSkxYVEhZIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiIwMHViNDF6N21nek5xcnlNdjY5NiIsIm5hbWUiOiJKYXkgTmV3c3Ryb20iLCJlbWFpbCI6ImpheW5ld3N0cm9tQGV4YW1wbGUuY29tIiwidmVyIjoxLCJpc3MiOiJodHRwczovL2V4YW1wbGUtdGVzdC5va3RhLmNvbS9vYXV0aDIvZGVmYXVsdCIsImF1ZCI6IjBvYThmdXAwbEFQWUZDNEkyNjk2IiwiaWF0IjoxNjQ0MzQ3MDY5LCJleHAiOjE2NDQzNTA2NjksImp0aSI6IklELjU1Y3hCdGRZbDhsNmFyS0lTUEJ3ZDB5T1QtOVVDVGFYYVFUWHQybGFSTHMiLCJhbXIiOlsicHdkIl0sImlkcCI6IjAwbzhmb3U3c1JhR0d3ZG40Njk2Iiwic2lkIjoiaWR4V3hrbHBfNGtTeHVDX25VMXBYRC1uQSIsInByZWZlcnJlZF91c2VybmFtZSI6ImpheW5ld3N0cm9tQGV4YW1wbGUuY29tIiwiYXV0aF90aW1lIjoxNjQ0MzQ3MDY4LCJhdF9oYXNoIjoiZ01jR1RiaEdUMUdfbGRzSG9Kc1B6USIsImRzX2hhc2giOiJEQWVMT0ZScWlmeXNiZ3NyYk9nYm9nIn0.z7LBgWT2O-DUZiOOUzr90qEgLoMiR5eHZsY1V2XPbhfOrjIv9ax9niHE7lPS5GYq02w4Cuf0DbdWjiNj96n4wTPmNU6N0x-XRluv4kved_wBBIvWNLGu_ZZZAFXaIFqmFGxPB6hIsYKvB3FmQCC0NvSXyDquadW9X7bBA7BO7VfX_jOKCkK_1MC1FZdU9n8rppu190Gk-z5dEWegHHtKy3vb12t4NR9CkA2uQgolnii8fNbie-3Z6zAdMXAZXkIcFu43Wn4TGwuzWK25IThcMNsPbLFFI4r0zo9E20IsH4gcJQiE_vFUzukzCsbppaiSAWBdSgES9K-QskWacZIWOg"
+        val input = oktaRule.createOidcClient().createJwtBuilder().createJwt(claims = IdTokenClaims()).rawValue
 
         val parser = JwtParser(Json { ignoreUnknownKeys = true }, Dispatchers.Unconfined)
         val jwt1 = parser.parse(input)
@@ -76,5 +82,29 @@ class JwtParserTest {
         assertThat(jwt1).isEqualTo(jwt2)
         assertThat(jwt1).isNotSameInstanceAs(jwt2)
         assertThat(jwt1.hashCode()).isEqualTo(jwt2.hashCode())
+    }
+
+    @Test fun testJwtParserNonBase64Header(): Unit = runBlocking {
+        val validInput = oktaRule.createOidcClient().createJwtBuilder().createJwt(claims = IdTokenClaims()).rawValue
+        val input = validInput.replaceBefore(".", "+") // Replaces header with `+`.
+
+        val parser = JwtParser(Json { ignoreUnknownKeys = true }, Dispatchers.Unconfined)
+
+        val exception = assertFailsWith<IllegalArgumentException> {
+            parser.parse(input)
+        }
+        assertThat(exception).hasMessageThat().isEqualTo("Header isn't valid base64.")
+    }
+
+    @Test fun testJwtParserNonBase64Claims(): Unit = runBlocking {
+        val validInput = oktaRule.createOidcClient().createJwtBuilder().createJwt(claims = IdTokenClaims()).rawValue
+        val input = validInput.replaceAfter(".", "+.irrelevantSignature") // Replaces claims with `+`.
+
+        val parser = JwtParser(Json { ignoreUnknownKeys = true }, Dispatchers.Unconfined)
+
+        val exception = assertFailsWith<IllegalArgumentException> {
+            parser.parse(input)
+        }
+        assertThat(exception).hasMessageThat().isEqualTo("Claims aren't valid base64.")
     }
 }

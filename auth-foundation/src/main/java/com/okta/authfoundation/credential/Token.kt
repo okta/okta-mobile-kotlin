@@ -70,8 +70,8 @@ class Token(
     }
 
     internal fun copy(
-        refreshToken: String? = this.refreshToken,
-        deviceSecret: String? = this.deviceSecret,
+        refreshToken: String?,
+        deviceSecret: String?,
     ): Token {
         return Token(
             tokenType = tokenType,

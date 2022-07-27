@@ -68,4 +68,15 @@ class DefaultAccessTokenValidatorTest {
         }
         assertThat(exception).hasMessageThat().isEqualTo("ID Token at_hash didn't match the access token.")
     }
+
+    @Test fun `validate invalid id token algorithm throws`(): Unit = runBlocking {
+        val accessToken = "exampleAccessToken"
+        val idTokenClaims = IdTokenClaims(accessTokenHash = "W10Ltiz7WJ_3pGuNwc1DXg")
+        val idToken = oktaRule.createOidcClient().createJwtBuilder().createJwt(algorithm = "RS512", claims = idTokenClaims)
+        val token = createToken(accessToken = accessToken, idToken = idToken.rawValue)
+        val exception = assertFailsWith<AccessTokenValidator.Error> {
+            validateToken(token)
+        }
+        assertThat(exception).hasMessageThat().isEqualTo("Unsupported algorithm")
+    }
 }

@@ -263,9 +263,10 @@ class Credential internal constructor(
      * See [Credential.introspectToken] for checking if the token is valid with the Authorization Server.
      */
     suspend fun getAccessTokenIfValid(): String? {
-        val accessToken = _token?.accessToken ?: return null
+        val localToken = _token ?: return null
         val idToken = idToken() ?: return null
-        val expiresIn = _token?.expiresIn ?: return null
+        val accessToken = localToken.accessToken
+        val expiresIn = localToken.expiresIn
         try {
             val payload = idToken.deserializeClaims(TokenIssuedAtPayload.serializer())
             if (payload.issueAt + expiresIn > oidcClient.configuration.clock.currentTimeEpochSecond()) {

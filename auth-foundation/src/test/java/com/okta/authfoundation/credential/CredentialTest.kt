@@ -385,6 +385,21 @@ class CredentialTest {
         assertThat(tokenCreatedEvent.credential).isEqualTo(credential)
     }
 
+    @Test fun testRefreshTokenPreservesRefreshToken(): Unit = runBlocking {
+        val oidcClient = mock<OidcClient> {
+            onBlocking { refreshToken(any()) } doReturn OidcClientResult.Success(createToken())
+            on { withCredential(any()) } doReturn it
+            on { configuration } doReturn oktaRule.configuration
+        }
+        val credential = oktaRule.createCredential(
+            token = createToken(refreshToken = "exampleRefreshToken"),
+            oidcClient = oidcClient
+        )
+        credential.refreshToken()
+        verify(oidcClient).refreshToken(eq("exampleRefreshToken"))
+        assertThat(credential.token!!.refreshToken).isEqualTo("exampleRefreshToken")
+    }
+
     @Test fun testRefreshTokenPreservesDeviceSecret(): Unit = runBlocking {
         val oidcClient = mock<OidcClient> {
             onBlocking { refreshToken(any()) } doReturn OidcClientResult.Success(createToken(refreshToken = "newRefreshToken"))
@@ -557,6 +572,22 @@ class CredentialTest {
         val idToken = oktaRule.createOidcClient().createJwtBuilder().createJwt(claims = idTokenClaims).rawValue
         val credential = oktaRule.createCredential(token = createToken(accessToken = accessToken, idToken = idToken))
         assertThat(credential.getAccessTokenIfValid()).isEqualTo(accessToken)
+    }
+
+    @Test fun accessTokenIfValidReturnsNullIfIdTokenIsNull(): Unit = runBlocking {
+        val accessToken = "exampleAccessToken"
+        val credential = oktaRule.createCredential(token = createToken(accessToken = accessToken, idToken = null))
+        assertThat(credential.getAccessTokenIfValid()).isNull()
+    }
+
+    @Test fun accessTokenIfValidReturnsNullIfIdTokenDoesNotContainRequiredPayload(): Unit = runBlocking {
+        @Serializable
+        class EmptyClaims
+
+        val accessToken = "exampleAccessToken"
+        val idToken = oktaRule.createOidcClient().createJwtBuilder().createJwt(claims = EmptyClaims()).rawValue
+        val credential = oktaRule.createCredential(token = createToken(accessToken = accessToken, idToken = idToken))
+        assertThat(credential.getAccessTokenIfValid()).isNull()
     }
 
     @Test fun getValidAccessTokenReturnsAccessToken(): Unit = runBlocking {
@@ -819,5 +850,32 @@ class CredentialTest {
         val exception = (result as OidcClientResult.Error<Token>).exception
         assertThat(exception).isInstanceOf(IllegalStateException::class.java)
         assertThat(exception).hasMessageThat().isEqualTo("Expected From Test!")
+    }
+
+    @Test fun equalsReturnsTrueWhenExactInstance() {
+        val credential = oktaRule.createCredential(token = createToken())
+        assertThat(credential).isEqualTo(credential)
+    }
+
+    @Test fun equalsReturnsTrueWhenSame() {
+        val credential1 = oktaRule.createCredential(token = createToken())
+        val credential2 = oktaRule.createCredential(token = createToken())
+        assertThat(credential1).isEqualTo(credential2)
+    }
+
+    @Test fun equalsReturnsFalseWhenNotSame() {
+        val credential1 = oktaRule.createCredential(token = createToken())
+        val credential2 = oktaRule.createCredential(token = createToken(accessToken = "Different!"))
+        assertThat(credential1).isNotEqualTo(credential2)
+    }
+
+    @Test fun equalsReturnsFalseWhenDifferentType() {
+        val credential = oktaRule.createCredential(token = createToken())
+        assertThat(credential).isNotEqualTo("Nope!")
+    }
+
+    @Test fun testHashCode() {
+        val credential = oktaRule.createCredential()
+        assertThat(credential.hashCode()).isEqualTo(-106031989)
     }
 }
