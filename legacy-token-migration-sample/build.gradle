@@ -77,7 +77,6 @@ dependencies {
     implementation deps.kotlin.stdlib
     implementation deps.core_ktx
     implementation deps.app_compat
-    implementation deps.constraint_layout
     implementation deps.navigation.fragment_ktx
     implementation deps.navigation.ui_ktx
     implementation deps.lifecycle.viewmodel_ktx
