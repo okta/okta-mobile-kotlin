@@ -141,13 +141,13 @@ internal class DynamicAuthViewModel(private val recoveryToken: String) : ViewMod
         // If a response is successful, immediately exchange it for a token and exit.
         if (response.isLoginSuccessful) {
             when (val result = flow?.exchangeInteractionCodeForTokens(response.remediations[IdxRemediation.Type.ISSUE]!!)) {
-                is OidcClientResult.Error -> {
-                    _state.value = DynamicAuthState.Error("Failed to call resume")
-                }
                 is OidcClientResult.Success -> {
                     CredentialBootstrap.defaultCredential().storeToken(result.result)
                     cancelPolling()
                     _state.value = DynamicAuthState.Tokens
+                }
+                else -> {
+                    _state.value = DynamicAuthState.Error("Failed to call resume")
                 }
             }
             return
@@ -405,11 +405,11 @@ internal class DynamicAuthViewModel(private val recoveryToken: String) : ViewMod
         viewModelScope.launch {
             _state.value = DynamicAuthState.Loading
             when (val resumeResult = flow?.proceed(remediation)) {
-                is OidcClientResult.Error -> {
-                    _state.value = DynamicAuthState.Error("Failed to call proceed")
-                }
                 is OidcClientResult.Success -> {
                     handleResponse(resumeResult.result)
+                }
+                else -> {
+                    _state.value = DynamicAuthState.Error("Failed to call proceed")
                 }
             }
         }
