@@ -17,7 +17,9 @@ package com.okta.authfoundation.credential
 
 import android.content.Context
 import android.os.Build
+import android.security.keystore.KeyGenParameterSpec
 import androidx.annotation.RequiresApi
+import androidx.security.crypto.MasterKeys
 import com.okta.authfoundation.InternalAuthFoundationApi
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.credential.events.CredentialCreatedEvent
@@ -51,17 +53,21 @@ class CredentialDataSource internal constructor(
          * Initializes a credential data source using the [OidcClient].
          *
          * @param context the [Context] used to access Android Shared Preferences and crypto primitives to persist [Token]s.
+         * @param keyGenParameterSpec the [KeyGenParameterSpec] used for encryption.
          * @receiver the [OidcClient] used to perform the low level OIDC requests, as well as with which to use the configuration from.
          */
         @RequiresApi(Build.VERSION_CODES.M)
+        @JvmOverloads
         fun OidcClient.createCredentialDataSource(
             context: Context,
+            keyGenParameterSpec: KeyGenParameterSpec = MasterKeys.AES256_GCM_SPEC,
         ): CredentialDataSource {
             val storage = SharedPreferencesTokenStorage(
                 json = configuration.json,
                 dispatcher = configuration.ioDispatcher,
                 eventCoordinator = configuration.eventCoordinator,
-                context = context
+                context = context,
+                keyGenParameterSpec = keyGenParameterSpec,
             )
             return CredentialDataSource(this, storage)
         }

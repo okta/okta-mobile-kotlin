@@ -244,7 +244,9 @@ public final class com/okta/authfoundation/credential/CredentialDataSource {
 
 public final class com/okta/authfoundation/credential/CredentialDataSource$Companion {
 	public final fun createCredentialDataSource (Lcom/okta/authfoundation/client/OidcClient;Landroid/content/Context;)Lcom/okta/authfoundation/credential/CredentialDataSource;
+	public final fun createCredentialDataSource (Lcom/okta/authfoundation/client/OidcClient;Landroid/content/Context;Landroid/security/keystore/KeyGenParameterSpec;)Lcom/okta/authfoundation/credential/CredentialDataSource;
 	public final fun createCredentialDataSource (Lcom/okta/authfoundation/client/OidcClient;Lcom/okta/authfoundation/credential/TokenStorage;)Lcom/okta/authfoundation/credential/CredentialDataSource;
+	public static synthetic fun createCredentialDataSource$default (Lcom/okta/authfoundation/credential/CredentialDataSource$Companion;Lcom/okta/authfoundation/client/OidcClient;Landroid/content/Context;Landroid/security/keystore/KeyGenParameterSpec;ILjava/lang/Object;)Lcom/okta/authfoundation/credential/CredentialDataSource;
 }
 
 public final class com/okta/authfoundation/credential/RevokeAllException : java/lang/Exception {
