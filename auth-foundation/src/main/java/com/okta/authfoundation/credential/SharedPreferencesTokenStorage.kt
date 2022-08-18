@@ -18,6 +18,7 @@ package com.okta.authfoundation.credential
 import android.content.Context
 import android.content.SharedPreferences
 import android.os.Build
+import android.security.keystore.KeyGenParameterSpec
 import androidx.annotation.RequiresApi
 import androidx.annotation.VisibleForTesting
 import androidx.security.crypto.EncryptedSharedPreferences
@@ -36,6 +37,7 @@ internal class SharedPreferencesTokenStorage(
     private val dispatcher: CoroutineContext,
     eventCoordinator: EventCoordinator,
     context: Context,
+    keyGenParameterSpec: KeyGenParameterSpec
 ) : TokenStorage {
     internal companion object {
         @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
@@ -43,8 +45,11 @@ internal class SharedPreferencesTokenStorage(
 
         private const val PREFERENCE_KEY = "com.okta.authfoundation.storage_entries"
 
-        private fun createSharedPreferences(applicationContext: Context): SharedPreferences {
-            val masterKeyAlias = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC)
+        private fun createSharedPreferences(
+            applicationContext: Context,
+            keyGenParameterSpec: KeyGenParameterSpec
+        ): SharedPreferences {
+            val masterKeyAlias = MasterKeys.getOrCreate(keyGenParameterSpec)
 
             return EncryptedSharedPreferences.create(
                 FILE_NAME,
@@ -61,14 +66,14 @@ internal class SharedPreferencesTokenStorage(
 
     private val sharedPreferences: SharedPreferences by lazy {
         try {
-            createSharedPreferences(applicationContext)
+            createSharedPreferences(applicationContext, keyGenParameterSpec)
         } catch (e: Exception) {
             val event = TokenStorageAccessErrorEvent(e, true)
             eventCoordinator.sendEvent(event)
             if (event.shouldClearStorageAndTryAgain) {
                 val sharedPreferences = applicationContext.getSharedPreferences(FILE_NAME, Context.MODE_PRIVATE)
                 sharedPreferences.edit().clear().commit()
-                createSharedPreferences(applicationContext)
+                createSharedPreferences(applicationContext, keyGenParameterSpec)
             } else {
                 throw e
             }

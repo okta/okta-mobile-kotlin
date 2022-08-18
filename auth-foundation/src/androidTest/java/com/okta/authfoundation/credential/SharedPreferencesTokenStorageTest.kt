@@ -18,6 +18,7 @@ package com.okta.authfoundation.credential
 import android.content.Context
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
+import android.security.keystore.UserNotAuthenticatedException
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKeys
 import androidx.test.core.app.ApplicationProvider
@@ -34,6 +35,8 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.security.InvalidAlgorithmParameterException
+import java.security.KeyStoreException
 import kotlin.test.assertFailsWith
 
 @RunWith(AndroidJUnit4::class)
@@ -49,6 +52,7 @@ class SharedPreferencesTokenStorageTest {
             dispatcher = Dispatchers.Unconfined,
             eventCoordinator = eventCoordinator,
             context = ApplicationProvider.getApplicationContext(),
+            keyGenParameterSpec = MasterKeys.AES256_GCM_SPEC,
         )
         cleanup() // Cleanup before and after!
     }
@@ -123,6 +127,7 @@ class SharedPreferencesTokenStorageTest {
             dispatcher = Dispatchers.Unconfined,
             eventCoordinator = eventCoordinator,
             context = ApplicationProvider.getApplicationContext(),
+            keyGenParameterSpec = MasterKeys.AES256_GCM_SPEC,
         )
         assertThat(eventHandler.size).isEqualTo(0) // Access should be lazy!
         assertThat(subject.entries()).hasSize(0)
@@ -148,11 +153,48 @@ class SharedPreferencesTokenStorageTest {
             dispatcher = Dispatchers.Unconfined,
             eventCoordinator = eventCoordinator,
             context = ApplicationProvider.getApplicationContext(),
+            keyGenParameterSpec = MasterKeys.AES256_GCM_SPEC,
         )
         assertFailsWith<Exception> {
             runBlocking {
                 subject.add("another")
             }
+        }
+    }
+
+    @Test fun testKeyGenParameterSpecIsUsed() {
+        val spec = KeyGenParameterSpec.Builder(
+            "com_okta_authfoundation_storage",
+            KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
+        )
+            .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+            .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+            .setUserAuthenticationRequired(true)
+            .setUserAuthenticationParameters(10, KeyProperties.AUTH_BIOMETRIC_STRONG)
+            .setKeySize(256)
+            .build()
+        val eventCoordinator = EventCoordinator(eventHandler)
+        subject = SharedPreferencesTokenStorage(
+            json = Json,
+            dispatcher = Dispatchers.Unconfined,
+            eventCoordinator = eventCoordinator,
+            context = ApplicationProvider.getApplicationContext(),
+            keyGenParameterSpec = spec,
+        )
+        val exception = assertFailsWith<Exception> {
+            runBlocking {
+                subject.add("element")
+            }
+        }
+        if (exception is InvalidAlgorithmParameterException) {
+            // This is the exception we expect if no biometrics are enrolled.
+            assertThat(exception.cause).hasMessageThat().isEqualTo("At least one biometric must be enrolled to create keys requiring user authentication for every use")
+        } else {
+            // This is the exception we expect if biometrics are enrolled.
+            assertThat(exception).isInstanceOf(KeyStoreException::class.java)
+            assertThat(exception).hasMessageThat().isEqualTo("the master key android-keystore://com_okta_authfoundation_storage exists but is unusable")
+            assertThat(exception.cause).isInstanceOf(UserNotAuthenticatedException::class.java)
+            assertThat(exception.cause).hasMessageThat().isEqualTo("User not authenticated")
         }
     }
 
