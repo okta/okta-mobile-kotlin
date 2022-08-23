@@ -31,13 +31,13 @@ import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.decodeFromStream
+import kotlinx.serialization.json.okio.decodeFromBufferedSource
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.Request
 import okhttp3.Response
+import okio.BufferedSource
 import java.io.IOException
-import java.io.InputStream
 import kotlin.coroutines.resumeWithException
 
 @InternalAuthFoundationApi
@@ -56,7 +56,7 @@ suspend fun <Raw, Dto> OidcClient.performRequest(
         request
     }
     return internalPerformRequest(jsonRequest, shouldAttemptJsonDeserialization) { responseBody ->
-        val rawResponse = configuration.json.decodeFromStream(deserializationStrategy, responseBody)
+        val rawResponse = configuration.json.decodeFromBufferedSource(deserializationStrategy, responseBody)
         responseMapper(rawResponse)
     }
 }
@@ -85,7 +85,7 @@ internal suspend fun OidcClient.performRequestNonJson(
 internal suspend fun <T> OidcClient.internalPerformRequest(
     request: Request,
     shouldAttemptJsonDeserialization: (Response) -> Boolean = { it.isSuccessful },
-    responseHandler: OidcConfiguration.(InputStream) -> T,
+    responseHandler: OidcConfiguration.(BufferedSource) -> T,
 ): OidcClientResult<T> {
     val requestWithTag = credential?.let { request.newBuilder().tag(Credential::class.java, it).build() } ?: request
     return configuration.internalPerformRequest(requestWithTag, shouldAttemptJsonDeserialization) {
@@ -96,7 +96,7 @@ internal suspend fun <T> OidcClient.internalPerformRequest(
 internal suspend fun <T> OidcConfiguration.internalPerformRequest(
     request: Request,
     shouldAttemptJsonDeserialization: (Response) -> Boolean,
-    responseHandler: (InputStream) -> T,
+    responseHandler: (BufferedSource) -> T,
 ): OidcClientResult<T> {
     currentCoroutineContext().ensureActive()
     return withContext(ioDispatcher) {
@@ -104,7 +104,7 @@ internal suspend fun <T> OidcConfiguration.internalPerformRequest(
             val okHttpResponse = okHttpClient.newCall(request).await()
             okHttpResponse.use { responseBody ->
                 // Body is always non-null when returned here. See related OkHttp documentation.
-                val body = responseBody.body!!.byteStream()
+                val body = responseBody.body!!.source()
                 if (shouldAttemptJsonDeserialization(okHttpResponse)) {
                     OidcClientResult.Success(responseHandler(body))
                 } else {
@@ -126,10 +126,10 @@ internal class ErrorResponse(
 @OptIn(ExperimentalSerializationApi::class)
 private fun <T> Response.toOidcClientResultError(
     configuration: OidcConfiguration,
-    responseBody: InputStream,
+    responseBody: BufferedSource,
 ): OidcClientResult<T> {
     val errorResponse = try {
-        responseBody.let { configuration.json.decodeFromStream<ErrorResponse>(it) }
+        responseBody.let { configuration.json.decodeFromBufferedSource<ErrorResponse>(it) }
     } catch (e: Exception) {
         null
     }
