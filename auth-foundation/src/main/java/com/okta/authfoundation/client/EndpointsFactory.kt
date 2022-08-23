@@ -19,11 +19,9 @@ import androidx.annotation.VisibleForTesting
 import com.okta.authfoundation.client.internal.internalPerformRequest
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.json.decodeFromStream
+import kotlinx.serialization.json.okio.decodeFromBufferedSource
 import okhttp3.HttpUrl
 import okhttp3.Request
-import okio.buffer
-import okio.source
 
 internal object EndpointsFactory {
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
@@ -49,12 +47,11 @@ internal object EndpointsFactory {
             .url(discoveryUrl)
             .build()
         return configuration.internalPerformRequest(request, { it.isSuccessful }) { responseBody ->
-            val buffer = responseBody.source().buffer()
             @OptIn(ExperimentalSerializationApi::class)
-            val serializableOidcEndpoints = configuration.json.decodeFromStream(
-                SerializableOidcEndpoints.serializer(), buffer.peek().inputStream()
+            val serializableOidcEndpoints = configuration.json.decodeFromBufferedSource(
+                SerializableOidcEndpoints.serializer(), responseBody.peek()
             )
-            configuration.cache.set(cacheKey, buffer.readUtf8())
+            configuration.cache.set(cacheKey, responseBody.readUtf8())
             serializableOidcEndpoints.asOidcEndpoints()
         }
     }
