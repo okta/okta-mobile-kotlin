@@ -20,8 +20,8 @@ import com.okta.authfoundation.client.OidcClient
 import com.okta.idx.kotlin.client.InteractionCodeFlowContext
 import com.okta.idx.kotlin.dto.createField
 import com.okta.idx.kotlin.dto.createRemediation
-import com.okta.idx.kotlin.infrastructure.network.NetworkRule
-import com.okta.idx.kotlin.infrastructure.network.RequestMatchers.path
+import com.okta.testing.network.NetworkRule
+import com.okta.testing.network.RequestMatchers.path
 import kotlinx.coroutines.runBlocking
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.MediaType.Companion.toMediaType

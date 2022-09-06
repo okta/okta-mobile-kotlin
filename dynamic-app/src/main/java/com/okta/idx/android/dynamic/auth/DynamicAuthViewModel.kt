@@ -78,6 +78,7 @@ internal class DynamicAuthViewModel(private val recoveryToken: String) : ViewMod
                 )
             ) {
                 is OidcClientResult.Error -> {
+                    Timber.e(clientResult.exception, "Failed to create client")
                     _state.value = DynamicAuthState.Error("Failed to create client")
                 }
                 is OidcClientResult.Success -> {
@@ -104,6 +105,7 @@ internal class DynamicAuthViewModel(private val recoveryToken: String) : ViewMod
             viewModelScope.launch {
                 when (val resumeResult = localFlow.resume()) {
                     is OidcClientResult.Error -> {
+                        Timber.e(resumeResult.exception, "Failed to call resume")
                         _state.value = DynamicAuthState.Error("Failed to call resume")
                     }
                     is OidcClientResult.Success -> {

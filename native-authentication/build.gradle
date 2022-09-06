@@ -1,0 +1,70 @@
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+apply plugin: 'org.jetbrains.kotlin.plugin.serialization'
+apply plugin: 'binary-compatibility-validator'
+
+android {
+    compileSdkVersion build_versions.compile_sdk
+
+    defaultConfig {
+        minSdkVersion build_versions.min_sdk
+        targetSdkVersion build_versions.target_sdk
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles "consumer-rules.pro"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
+        freeCompilerArgs += ["-Xopt-in=com.okta.authfoundation.InternalAuthFoundationApi"]
+    }
+
+    buildFeatures {
+        buildConfig = false
+    }
+
+    sourceSets {
+        main {
+            kotlin.srcDir("$buildDir/generated/sources/kotlinTemplates")
+        }
+    }
+}
+
+dependencies {
+    api project(':idx-kotlin')
+
+    api deps.kotlin.stdlib
+    api deps.okhttp.core
+    api deps.coroutines.android
+
+    implementation deps.kotlin.serialization_json
+
+    testImplementation deps.coroutines.test
+    testImplementation deps.junit
+    testImplementation deps.okhttp.mock_web_server
+    testImplementation deps.okhttp.tls
+    testImplementation deps.truth
+    testImplementation deps.jackson_databind
+    testImplementation deps.robolectric
+    testImplementation project(':test-utils')
+}
+
+task copyKotlinTemplates(type: Copy) {
+    from("src/main/kotlinTemplates")
+    into("$buildDir/generated/sources/kotlinTemplates")
+    expand(projectVersion: project.version)
+}
+
+tasks.withType(org.jetbrains.kotlin.gradle.dsl.KotlinCompile) {
+    dependsOn(copyKotlinTemplates)
+}

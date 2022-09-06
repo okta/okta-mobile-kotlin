@@ -17,10 +17,10 @@ package com.okta.idx.kotlin.client
 
 import android.net.Uri
 import com.google.common.truth.Truth.assertThat
-import com.okta.idx.kotlin.infrastructure.network.NetworkRule
-import com.okta.idx.kotlin.infrastructure.network.RequestMatchers.body
-import com.okta.idx.kotlin.infrastructure.network.RequestMatchers.path
-import com.okta.idx.kotlin.infrastructure.testBodyFromFile
+import com.okta.testing.network.NetworkRule
+import com.okta.testing.network.RequestMatchers.body
+import com.okta.testing.network.RequestMatchers.path
+import com.okta.testing.testBodyFromFile
 import kotlinx.coroutines.runBlocking
 import okhttp3.mockwebserver.SocketPolicy
 import org.junit.Rule

@@ -56,6 +56,7 @@ dependencies {
     testImplementation deps.truth
     testImplementation deps.jackson_databind
     testImplementation deps.robolectric
+    testImplementation project(':test-utils')
 }
 
 task copyKotlinTemplates(type: Copy) {

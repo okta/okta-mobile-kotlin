@@ -2,3 +2,6 @@ rootProject.name = "okta-idx-android"
 include ':app'
 include ':dynamic-app'
 include ':idx-kotlin'
+include ':native-authentication'
+include ':native-authentication-sample'
+include ':test-utils'

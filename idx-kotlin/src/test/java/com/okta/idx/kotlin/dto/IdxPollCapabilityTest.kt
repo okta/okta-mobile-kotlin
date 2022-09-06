@@ -19,9 +19,9 @@ import com.google.common.truth.Truth.assertThat
 import com.okta.authfoundation.client.OidcClientResult
 import com.okta.idx.kotlin.client.InteractionCodeFlow
 import com.okta.idx.kotlin.client.InteractionCodeFlow.Companion.createInteractionCodeFlow
-import com.okta.idx.kotlin.infrastructure.network.NetworkRule
-import com.okta.idx.kotlin.infrastructure.network.RequestMatchers.path
-import com.okta.idx.kotlin.infrastructure.testBodyFromFile
+import com.okta.testing.network.NetworkRule
+import com.okta.testing.network.RequestMatchers.path
+import com.okta.testing.testBodyFromFile
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test

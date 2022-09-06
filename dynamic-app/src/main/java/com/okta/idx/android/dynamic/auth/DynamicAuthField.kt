@@ -24,7 +24,7 @@ import com.okta.idx.kotlin.dto.IdxRemediation
 
 /**
  * Data model classes representing `IdxRemediation` as a View Model. */
-sealed class DynamicAuthField {
+sealed interface DynamicAuthField {
     /**
      * `DynamicAuthField.Text` are displayed as a `TextInputLayout`, and represents a `IdxRemediation.Form.Field.type` `string` fields.
      */
@@ -34,7 +34,7 @@ sealed class DynamicAuthField {
         val isSecure: Boolean,
         val errorMessage: String?,
         private val valueUpdater: (String) -> Unit
-    ) : DynamicAuthField() {
+    ) : DynamicAuthField {
         private val _errorsLiveData = MutableLiveData(errorMessage ?: "")
         val errorsLiveData: LiveData<String> = _errorsLiveData
 
@@ -59,7 +59,7 @@ sealed class DynamicAuthField {
     data class CheckBox(
         val label: String,
         private val valueUpdater: (Boolean) -> Unit
-    ) : DynamicAuthField() {
+    ) : DynamicAuthField {
         var value: Boolean = false
             set(value) {
                 field = value
@@ -78,7 +78,7 @@ sealed class DynamicAuthField {
         val isRequired: Boolean,
         val errorMessage: String?,
         private val valueUpdater: (IdxRemediation.Form.Field?) -> Unit,
-    ) : DynamicAuthField() {
+    ) : DynamicAuthField {
         data class Option(
             private val field: IdxRemediation.Form.Field,
             val label: String?,
@@ -120,7 +120,7 @@ sealed class DynamicAuthField {
     data class Action(
         val label: String,
         val onClick: (context: Context) -> Unit
-    ) : DynamicAuthField()
+    ) : DynamicAuthField
 
     /**
      * `DynamicAuthField.Image` is displayed as an `ImageView`, and represents an `IdxRemediation.authenticators` capability of `IdxTotpCapability`.
@@ -129,16 +129,16 @@ sealed class DynamicAuthField {
         val label: String,
         val bitmap: Bitmap,
         val sharedSecret: String?,
-    ) : DynamicAuthField()
+    ) : DynamicAuthField
 
     /**
      * `DynamicAuthField.Label` is displayed as a `TextView`, and represents an `IdxRemdiation.authenticators` capability of `IdxNumberChallengeCapability` label.
      */
     data class Label(
         val label: String,
-    ) : DynamicAuthField()
+    ) : DynamicAuthField
 
-    open fun validate(): Boolean {
+    fun validate(): Boolean {
         return true
     }
 }

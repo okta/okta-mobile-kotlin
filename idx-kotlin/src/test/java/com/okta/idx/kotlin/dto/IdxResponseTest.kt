@@ -19,7 +19,7 @@ import com.google.common.truth.Truth.assertThat
 import com.okta.idx.kotlin.dto.v1.Response
 import com.okta.idx.kotlin.dto.v1.toIdxResponse
 import com.okta.idx.kotlin.dto.v1.toJsonContent
-import com.okta.idx.kotlin.infrastructure.stringFromResources
+import com.okta.testing.stringFromResources
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import org.junit.Test
