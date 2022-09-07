@@ -15,24 +15,20 @@
  */
 package com.okta.nativeauthentication.form
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.channels.ProducerScope
 
-internal object RetryFormBuilder {
-    fun create(
-        coroutineScope: CoroutineScope,
-        text: String = "Retry",
-        onClick: suspend () -> Unit
-    ): Form.Builder {
-        val retryElement = Element.Action.Builder(null)
-        retryElement.text = text
-        retryElement.onClick = {
-            coroutineScope.launch {
-                onClick()
+internal class FormFactory(
+    private val producerScope: ProducerScope<Form>,
+    private val formTransformers: List<FormTransformer>,
+) {
+    suspend fun emit(formBuilder: Form.Builder) {
+        formBuilder.apply {
+            for (formFactory in formTransformers) {
+                formFactory.apply {
+                    transform()
+                }
             }
         }
-        val retryFormBuilder = Form.Builder()
-        retryFormBuilder.elements.add(retryElement)
-        return retryFormBuilder
+        producerScope.send(formBuilder.build())
     }
 }

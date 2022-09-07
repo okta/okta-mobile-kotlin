@@ -15,24 +15,6 @@
  */
 package com.okta.nativeauthentication.form
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
-
-internal object RetryFormBuilder {
-    fun create(
-        coroutineScope: CoroutineScope,
-        text: String = "Retry",
-        onClick: suspend () -> Unit
-    ): Form.Builder {
-        val retryElement = Element.Action.Builder(null)
-        retryElement.text = text
-        retryElement.onClick = {
-            coroutineScope.launch {
-                onClick()
-            }
-        }
-        val retryFormBuilder = Form.Builder()
-        retryFormBuilder.elements.add(retryElement)
-        return retryFormBuilder
-    }
+internal interface FormTransformer {
+    fun Form.Builder.transform()
 }

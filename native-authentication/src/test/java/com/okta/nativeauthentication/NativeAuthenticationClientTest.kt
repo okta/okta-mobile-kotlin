@@ -75,17 +75,19 @@ class NativeAuthenticationClientTest {
         val flow = setup()
         val form = flow.take(1).first()
         val elements = form.elements
-        assertThat(elements).hasSize(6)
-        assertThat((elements[0] as Element.TextInput).label).isEqualTo("Username")
-        assertThat((elements[0] as Element.TextInput).value).isEqualTo("")
-        assertThat((elements[0] as Element.TextInput).isSecret).isFalse()
-        assertThat((elements[1] as Element.TextInput).label).isEqualTo("Password")
+        assertThat(elements).hasSize(7)
+        assertThat((elements[0] as Element.Label).text).isEqualTo("Sign In")
+        assertThat((elements[0] as Element.Label).type).isEqualTo(Element.Label.Type.HEADER)
+        assertThat((elements[1] as Element.TextInput).label).isEqualTo("Username")
         assertThat((elements[1] as Element.TextInput).value).isEqualTo("")
-        assertThat((elements[1] as Element.TextInput).isSecret).isTrue()
-        assertThat((elements[2] as Element.Action).text).isEqualTo("Sign In")
-        assertThat((elements[3] as Element.Action).text).isEqualTo("Sign Up")
-        assertThat((elements[4] as Element.Action).text).isEqualTo("Login with Google IdP")
-        assertThat((elements[5] as Element.Action).text).isEqualTo("Restart")
+        assertThat((elements[1] as Element.TextInput).isSecret).isFalse()
+        assertThat((elements[2] as Element.TextInput).label).isEqualTo("Password")
+        assertThat((elements[2] as Element.TextInput).value).isEqualTo("")
+        assertThat((elements[2] as Element.TextInput).isSecret).isTrue()
+        assertThat((elements[3] as Element.Action).text).isEqualTo("Sign In")
+        assertThat((elements[4] as Element.Action).text).isEqualTo("Sign Up")
+        assertThat((elements[5] as Element.Action).text).isEqualTo("Login with Google IdP")
+        assertThat((elements[6] as Element.Action).text).isEqualTo("Restart")
     }
 
     @Test fun testNativeAuthenticationActionSendsRequest(): Unit = runBlocking {
@@ -106,9 +108,9 @@ class NativeAuthenticationClientTest {
         val forms = flow.onEach { form ->
             val elements = form.elements
             if (formCounter.getAndIncrement() == 0) {
-                (elements[0] as Element.TextInput).value = "admin@example.com"
-                (elements[1] as Element.TextInput).value = "SuperS3cret1234"
-                (elements[2] as Element.Action).onClick()
+                (elements[1] as Element.TextInput).value = "admin@example.com"
+                (elements[2] as Element.TextInput).value = "SuperS3cret1234"
+                (elements[3] as Element.Action).onClick()
             }
         }.toList()
         assertThat(forms).hasSize(3)
@@ -132,7 +134,7 @@ class NativeAuthenticationClientTest {
         job.cancel()
 
         // Implicitly ensuring this doesn't throw or cause another request.
-        (formReference.get().elements[2] as Element.Action).onClick()
+        (formReference.get().elements[3] as Element.Action).onClick()
     }
 
     @Test fun testFailedInteractCallRetriesInteract(): Unit = runBlocking {
@@ -149,8 +151,8 @@ class NativeAuthenticationClientTest {
         }.toList()
         assertThat(forms[0].elements).hasSize(1)
         assertThat((forms[0].elements[0] as Element.Action).text).isEqualTo("Retry")
-        assertThat(forms[1].elements).hasSize(6)
-        assertThat((forms[1].elements[0] as Element.TextInput).label).isEqualTo("Username")
+        assertThat(forms[1].elements).hasSize(7)
+        assertThat((forms[1].elements[0] as Element.Label).text).isEqualTo("Sign In")
     }
 
     @Test fun testFailedIntrospectCallRetriesIntrospect(): Unit = runBlocking {
@@ -169,8 +171,8 @@ class NativeAuthenticationClientTest {
         }.toList()
         assertThat(forms[0].elements).hasSize(1)
         assertThat((forms[0].elements[0] as Element.Action).text).isEqualTo("Retry")
-        assertThat(forms[1].elements).hasSize(6)
-        assertThat((forms[1].elements[0] as Element.TextInput).label).isEqualTo("Username")
+        assertThat(forms[1].elements).hasSize(7)
+        assertThat((forms[1].elements[1] as Element.TextInput).label).isEqualTo("Username")
     }
 
     @Test fun testFailedIdentifyCallRetriesIdentify(): Unit = runBlocking {
@@ -190,9 +192,9 @@ class NativeAuthenticationClientTest {
             val elements = form.elements
             when (formCounter.getAndIncrement()) {
                 0 -> {
-                    (elements[0] as Element.TextInput).value = "admin@example.com"
-                    (elements[1] as Element.TextInput).value = "SuperS3cret1234"
-                    (elements[2] as Element.Action).onClick()
+                    (elements[1] as Element.TextInput).value = "admin@example.com"
+                    (elements[2] as Element.TextInput).value = "SuperS3cret1234"
+                    (elements[3] as Element.Action).onClick()
                 }
                 1 -> {
                     networkRule.enqueue(path("/idp/idx/identify")) { response ->
@@ -223,9 +225,9 @@ class NativeAuthenticationClientTest {
             val elements = form.elements
             when (formCounter.getAndIncrement()) {
                 0 -> {
-                    (elements[0] as Element.TextInput).value = "admin@example.com"
-                    (elements[1] as Element.TextInput).value = "SuperS3cret1234"
-                    (elements[2] as Element.Action).onClick()
+                    (elements[1] as Element.TextInput).value = "admin@example.com"
+                    (elements[2] as Element.TextInput).value = "SuperS3cret1234"
+                    (elements[3] as Element.Action).onClick()
                 }
                 2 -> {
                     networkRule.enqueue(path("/oauth2/v1/token")) { response ->

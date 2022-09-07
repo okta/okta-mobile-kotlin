@@ -26,7 +26,7 @@ sealed interface Element {
         val text: String,
         val onClick: () -> Unit,
     ) : Element {
-        internal class Builder : Element.Builder<Action>() {
+        internal class Builder(val remediation: IdxRemediation?) : Element.Builder<Action>() {
             var text: String = ""
             var onClick: () -> Unit = {}
 
@@ -43,7 +43,8 @@ sealed interface Element {
         value: String,
     ) : Element {
         internal class Builder(
-            private val idxField: IdxRemediation.Form.Field,
+            val remediation: IdxRemediation,
+            val idxField: IdxRemediation.Form.Field,
         ) : Element.Builder<TextInput>() {
             var label: String = ""
             var value: String = ""
@@ -63,12 +64,18 @@ sealed interface Element {
 
     class Label private constructor(
         val text: String,
+        val type: Type,
     ) : Element {
-        internal class Builder : Element.Builder<Label>() {
+        enum class Type {
+            DESCRIPTION, HEADER
+        }
+
+        internal class Builder(val remediation: IdxRemediation?) : Element.Builder<Label>() {
             var text: String = ""
+            var type: Type = Type.DESCRIPTION
 
             override fun build(): Label {
-                return Label(text)
+                return Label(text, type)
             }
         }
     }

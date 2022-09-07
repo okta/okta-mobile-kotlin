@@ -44,6 +44,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.google.android.material.composethemeadapter.MdcTheme
 import com.okta.nativeauthentication.form.Element
 import com.okta.nativeauthentication.form.Form
@@ -90,7 +91,11 @@ fun FormUi(form: Form) {
                     }
                 }
                 is Element.Label -> {
-                    Text(text = element.text)
+                    val fontSize = when (element.type) {
+                        Element.Label.Type.DESCRIPTION -> 16
+                        Element.Label.Type.HEADER -> 20
+                    }
+                    Text(text = element.text, fontSize = fontSize.sp)
                 }
                 is Element.TextInput -> {
                     TextInputUi(element)

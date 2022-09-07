@@ -24,8 +24,16 @@ public abstract class com/okta/nativeauthentication/form/Element$Builder {
 }
 
 public final class com/okta/nativeauthentication/form/Element$Label : com/okta/nativeauthentication/form/Element {
-	public synthetic fun <init> (Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;Lcom/okta/nativeauthentication/form/Element$Label$Type;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getText ()Ljava/lang/String;
+	public final fun getType ()Lcom/okta/nativeauthentication/form/Element$Label$Type;
+}
+
+public final class com/okta/nativeauthentication/form/Element$Label$Type : java/lang/Enum {
+	public static final field DESCRIPTION Lcom/okta/nativeauthentication/form/Element$Label$Type;
+	public static final field HEADER Lcom/okta/nativeauthentication/form/Element$Label$Type;
+	public static fun valueOf (Ljava/lang/String;)Lcom/okta/nativeauthentication/form/Element$Label$Type;
+	public static fun values ()[Lcom/okta/nativeauthentication/form/Element$Label$Type;
 }
 
 public final class com/okta/nativeauthentication/form/Element$TextInput : com/okta/nativeauthentication/form/Element {

@@ -15,14 +15,12 @@
  */
 package com.okta.nativeauthentication.form
 
-import kotlinx.coroutines.channels.ProducerScope
-
 internal object LabelFormBuilder {
-    suspend fun emit(producerScope: ProducerScope<Form>, text: String) {
-        val loadingElement = Element.Label.Builder()
+    fun create(text: String): Form.Builder {
+        val loadingElement = Element.Label.Builder(null)
         loadingElement.text = text
         val builder = Form.Builder()
         builder.elements.add(loadingElement)
-        producerScope.send(builder.build())
+        return builder
     }
 }
