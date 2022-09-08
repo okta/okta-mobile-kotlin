@@ -15,53 +15,27 @@
  */
 package com.okta.nativeauthentication
 
-import com.okta.authfoundation.client.OidcClientResult
-import com.okta.idx.kotlin.client.InteractionCodeFlow
 import com.okta.idx.kotlin.dto.IdxIdpCapability
 import com.okta.idx.kotlin.dto.IdxPollRemediationCapability
 import com.okta.idx.kotlin.dto.IdxRemediation
 import com.okta.idx.kotlin.dto.IdxResponse
 import com.okta.nativeauthentication.form.Element
 import com.okta.nativeauthentication.form.Form
-import com.okta.nativeauthentication.form.FormFactory
-import com.okta.nativeauthentication.form.LabelFormBuilder
-import com.okta.nativeauthentication.form.RetryFormBuilder
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 
-internal class IdxResponseTransformer(
-    private val callback: NativeAuthenticationClient.Callback,
-    private val interactionCodeFlow: InteractionCodeFlow,
-    private val coroutineScope: CoroutineScope,
-    private val formFactory: FormFactory,
-) {
-    suspend fun transformAndEmit(
-        resultProducer: suspend () -> OidcClientResult<IdxResponse>,
-    ) {
-        when (val result = resultProducer()) {
-            is OidcClientResult.Error -> {
-                formFactory.emit(
-                    RetryFormBuilder.create(coroutineScope) {
-                        transformAndEmit(resultProducer)
-                    }
-                )
+internal interface IdxResponseTransformer {
+    fun transform(response: IdxResponse, clickHandler: (IdxRemediation) -> Unit): Form.Builder
+}
+
+internal class RealIdxResponseTransformer : IdxResponseTransformer {
+    override fun transform(response: IdxResponse, clickHandler: (IdxRemediation) -> Unit): Form.Builder {
+        val builder = Form.Builder()
+        for (remediation in response.remediations) {
+            for (field in remediation.form.visibleFields) {
+                builder.elements.addAll(field.asDynamicAuthFields(remediation))
             }
-            is OidcClientResult.Success -> {
-                val response = result.result
-                if (response.isLoginSuccessful) {
-                    exchangeInteractionCodeForTokensAndEmit(response)
-                } else {
-                    val builder = Form.Builder()
-                    for (remediation in response.remediations) {
-                        for (field in remediation.form.visibleFields) {
-                            builder.elements.addAll(field.asDynamicAuthFields(remediation))
-                        }
-                        builder.elements.addAll(remediation.asAction())
-                    }
-                    formFactory.emit(builder)
-                }
-            }
+            builder.elements.addAll(remediation.asAction(clickHandler))
         }
+        return builder
     }
 
     private fun IdxRemediation.Form.Field.asDynamicAuthFields(remediation: IdxRemediation): List<Element.Builder<*>> {
@@ -90,7 +64,7 @@ internal class IdxResponseTransformer(
         }
     }
 
-    private fun IdxRemediation.asAction(): List<Element.Builder<*>> {
+    private fun IdxRemediation.asAction(clickHandler: (IdxRemediation) -> Unit): List<Element.Builder<*>> {
         if (form.visibleFields.isEmpty() && capabilities.get<IdxPollRemediationCapability>() != null) {
             return emptyList()
         }
@@ -114,30 +88,8 @@ internal class IdxResponseTransformer(
         val builder = Element.Action.Builder(this)
         builder.text = title
         builder.onClick = {
-            coroutineScope.launch {
-                transformAndEmit { interactionCodeFlow.proceed(this@asAction) }
-            }
+            clickHandler(this)
         }
         return listOf(builder)
-    }
-
-    private suspend fun exchangeInteractionCodeForTokensAndEmit(response: IdxResponse) {
-        formFactory.emit(LabelFormBuilder.create("Loading"))
-
-        val remediation = response.remediations[IdxRemediation.Type.ISSUE]!!
-        when (val result = interactionCodeFlow.exchangeInteractionCodeForTokens(remediation)) {
-            is OidcClientResult.Error -> {
-                formFactory.emit(
-                    RetryFormBuilder.create(coroutineScope) {
-                        exchangeInteractionCodeForTokensAndEmit(response)
-                    }
-                )
-            }
-            is OidcClientResult.Success -> {
-                formFactory.emit(LabelFormBuilder.create("Complete"))
-
-                callback.signInComplete(result.result)
-            }
-        }
     }
 }

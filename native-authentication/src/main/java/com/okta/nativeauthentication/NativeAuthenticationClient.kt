@@ -24,58 +24,76 @@ import com.okta.nativeauthentication.form.FormFactory
 import com.okta.nativeauthentication.form.FormTransformer
 import com.okta.nativeauthentication.form.RetryFormBuilder
 import com.okta.nativeauthentication.form.transformer.SignInTitleTransformer
-import kotlinx.coroutines.channels.ProducerScope
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 
-class NativeAuthenticationClient private constructor() {
+class NativeAuthenticationClient internal constructor(
+    private val formTransformers: List<FormTransformer>,
+    private val idxResponseTransformer: IdxResponseTransformer,
+) {
     companion object {
         init {
             SdkVersionsRegistry.register(SDK_VERSION)
         }
 
-        private var formTransformers: List<FormTransformer> = listOf(SignInTitleTransformer())
-
         fun create(
             callback: Callback,
-            interactionCodeFlowFactory: suspend () -> OidcClientResult<InteractionCodeFlow>,
+            interactionCodeFlowFactory: suspend () -> OidcClientResult<InteractionCodeFlow>
         ): Flow<Form> {
-            suspend fun ProducerScope<Form>.start(formFactory: FormFactory) {
-                when (val result = interactionCodeFlowFactory()) {
-                    is OidcClientResult.Error -> {
-                        formFactory.emit(
-                            RetryFormBuilder.create(this) {
-                                start(formFactory)
-                            }
-                        )
-                    }
-                    is OidcClientResult.Success -> {
-                        val interactionCodeFlow = result.result
-                        val wrapperCallback = object : Callback() {
-                            override fun signInComplete(token: Token) {
-                                super.signInComplete(token)
-                                callback.signInComplete(token)
-                                close()
-                            }
-                        }
-                        IdxResponseTransformer(wrapperCallback, interactionCodeFlow, this, formFactory).transformAndEmit {
-                            interactionCodeFlow.resume()
-                        }
-                    }
-                }
-            }
-
-            return channelFlow {
-                val formFactory = FormFactory(this, formTransformers)
-                start(formFactory)
-                awaitClose()
-            }
+            return NativeAuthenticationClient(
+                formTransformers = listOf(SignInTitleTransformer()),
+                idxResponseTransformer = RealIdxResponseTransformer(),
+            ).create(callback, interactionCodeFlowFactory)
         }
     }
 
     abstract class Callback {
         open fun signInComplete(token: Token) {
+        }
+    }
+
+    internal fun create(
+        callback: Callback,
+        interactionCodeFlowFactory: suspend () -> OidcClientResult<InteractionCodeFlow>,
+    ): Flow<Form> {
+        suspend fun start(formFactory: FormFactory, sendChannel: SendChannel<*>, coroutineScope: CoroutineScope) {
+            when (val result = interactionCodeFlowFactory()) {
+                is OidcClientResult.Error -> {
+                    formFactory.emit(
+                        RetryFormBuilder.create(coroutineScope) {
+                            start(formFactory, sendChannel, coroutineScope)
+                        }
+                    )
+                }
+                is OidcClientResult.Success -> {
+                    val interactionCodeFlow = result.result
+                    val wrapperCallback = object : Callback() {
+                        override fun signInComplete(token: Token) {
+                            super.signInComplete(token)
+                            callback.signInComplete(token)
+                            sendChannel.close()
+                        }
+                    }
+                    OidcClientResultTransformer(
+                        callback = wrapperCallback,
+                        interactionCodeFlow = interactionCodeFlow,
+                        coroutineScope = coroutineScope,
+                        formFactory = formFactory,
+                        responseTransformer = idxResponseTransformer,
+                    ).transformAndEmit {
+                        interactionCodeFlow.resume()
+                    }
+                }
+            }
+        }
+
+        return channelFlow {
+            val formFactory = FormFactory(this, formTransformers)
+            start(formFactory, this, this)
+            awaitClose()
         }
     }
 }

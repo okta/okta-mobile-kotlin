@@ -15,10 +15,10 @@
  */
 package com.okta.nativeauthentication.form
 
-import kotlinx.coroutines.channels.ProducerScope
+import kotlinx.coroutines.channels.SendChannel
 
 internal class FormFactory(
-    private val producerScope: ProducerScope<Form>,
+    private val sendChannel: SendChannel<Form>,
     private val formTransformers: List<FormTransformer>,
 ) {
     suspend fun emit(formBuilder: Form.Builder) {
@@ -29,6 +29,6 @@ internal class FormFactory(
                 }
             }
         }
-        producerScope.send(formBuilder.build())
+        sendChannel.send(formBuilder.build())
     }
 }
