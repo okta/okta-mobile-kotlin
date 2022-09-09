@@ -31,6 +31,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import okhttp3.Interceptor
@@ -73,6 +74,14 @@ class Credential internal constructor(
     val token: Token?
         get() {
             return _token.value
+        }
+
+    /**
+     * A [StateFlow] that contains the current [Token] that's stored and associated with this [Credential].
+     */
+    val tokenStateFlow: StateFlow<Token?>
+        get() {
+            return _token
         }
 
     /**
