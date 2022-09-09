@@ -15,6 +15,7 @@
  */
 package com.okta.authfoundation.credential
 
+import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcClientResult
@@ -55,6 +56,7 @@ import org.mockito.kotlin.verifyNoInteractions
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.test.assertFailsWith
+import kotlinx.coroutines.flow.single
 
 class CredentialTest {
     @get:Rule val oktaRule = OktaRule()
@@ -70,6 +72,22 @@ class CredentialTest {
         val credential = oktaRule.createCredential(tags = map)
         assertFailsWith<UnsupportedOperationException> {
             (credential.tags as MutableMap<String, String>)["secure"] = "true"
+        }
+    }
+
+    @Test fun testGetTokenFlow(): Unit = runBlocking {
+        val storage = mock<TokenStorage>()
+        val credentialDataSource = mock<CredentialDataSource>()
+        val token = createToken()
+        val token2 = createToken(accessToken = "token 2")
+        val credential = oktaRule.createCredential(token = token, tokenStorage = storage, credentialDataSource = credentialDataSource)
+        credential.getTokenFlow().test {
+            assertThat(awaitItem()).isEqualTo(token)
+            credential.storeToken(token2)
+            assertThat(awaitItem()).isEqualTo(token2)
+            credential.delete()
+            assertThat(awaitItem()).isNull()
+            awaitComplete()
         }
     }
 
@@ -124,6 +142,15 @@ class CredentialTest {
         assertThat(event).isInstanceOf(CredentialStoredAfterRemovedEvent::class.java)
         val removedEvent = event as CredentialStoredAfterRemovedEvent
         assertThat(removedEvent.credential).isEqualTo(credential)
+    }
+
+    @Test fun testGetTokenFlowEmitsSingleNullAfterRemove(): Unit = runBlocking {
+        val storage = mock<TokenStorage>()
+        val credentialDataSource = mock<CredentialDataSource>()
+        val token = createToken()
+        val credential = oktaRule.createCredential(token = token, tokenStorage = storage, credentialDataSource = credentialDataSource)
+        credential.delete()
+        assertThat(credential.getTokenFlow().single()).isNull()
     }
 
     @Test fun testRevokeAccessToken(): Unit = runBlocking {

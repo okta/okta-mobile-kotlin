@@ -35,6 +35,7 @@ versions.security_crypto = '1.0.0'
 versions.spotless = '6.7.0'
 versions.timber = '5.0.1'
 versions.truth = '1.1.3'
+versions.turbine = '0.9.0'
 ext.versions = versions
 
 def build_versions = [:]
@@ -148,6 +149,7 @@ deps.spotless = "com.diffplug.spotless:spotless-plugin-gradle:$versions.spotless
 
 deps.timber = "com.jakewharton.timber:timber:$versions.timber"
 deps.truth = "com.google.truth:truth:$versions.truth"
+deps.turbine = "app.cash.turbine:turbine:$versions.turbine"
 
 ext.deps = deps
 
