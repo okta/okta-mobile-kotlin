@@ -32,6 +32,8 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.dropWhile
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.transformWhile
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -94,10 +96,13 @@ class Credential internal constructor(
      * Returns a [Flow] that emits the current [Token] that's stored and associated with this [Credential].
      */
     fun getTokenFlow(): Flow<Token?> {
-        return state.transformWhile {
-            emit(it.token)
-            it !is CredentialState.Deleted
-        }
+        return state
+            .transformWhile {
+                emit(it)
+                it !is CredentialState.Deleted
+            }
+            .dropWhile { it !is CredentialState.Data }
+            .map { it.token }
     }
 
     /**

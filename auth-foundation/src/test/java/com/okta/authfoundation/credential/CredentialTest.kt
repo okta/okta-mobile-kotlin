@@ -56,7 +56,6 @@ import org.mockito.kotlin.verifyNoInteractions
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.test.assertFailsWith
-import kotlinx.coroutines.flow.single
 
 class CredentialTest {
     @get:Rule val oktaRule = OktaRule()
@@ -144,13 +143,15 @@ class CredentialTest {
         assertThat(removedEvent.credential).isEqualTo(credential)
     }
 
-    @Test fun testGetTokenFlowEmitsSingleNullAfterRemove(): Unit = runBlocking {
+    @Test fun testGetTokenFlowReturnsEmptyFlowAfterRemove(): Unit = runBlocking {
         val storage = mock<TokenStorage>()
         val credentialDataSource = mock<CredentialDataSource>()
         val token = createToken()
         val credential = oktaRule.createCredential(token = token, tokenStorage = storage, credentialDataSource = credentialDataSource)
         credential.delete()
-        assertThat(credential.getTokenFlow().single()).isNull()
+        credential.getTokenFlow().test {
+            awaitComplete()
+        }
     }
 
     @Test fun testRevokeAccessToken(): Unit = runBlocking {
