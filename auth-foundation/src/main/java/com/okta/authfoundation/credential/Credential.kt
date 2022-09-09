@@ -81,17 +81,6 @@ class Credential internal constructor(
         }
 
     /**
-     * A [Flow] that emits the current [Token] that's stored and associated with this [Credential].
-     */
-    val tokenFlow: Flow<Token?>
-        get() {
-            return state.transformWhile {
-                emit(it.token)
-                it !is CredentialState.Deleted
-            }
-        }
-
-    /**
      * The tags associated with this [Credential].
      *
      * This can be used when calling [Credential.storeToken] to associate this [Credential] with data relevant to your application.
@@ -100,6 +89,16 @@ class Credential internal constructor(
         get() {
             return Collections.unmodifiableMap(state.value.tags)
         }
+
+    /**
+     * Returns a [Flow] that emits the current [Token] that's stored and associated with this [Credential].
+     */
+    fun getTokenFlow(): Flow<Token?> {
+        return state.transformWhile {
+            emit(it.token)
+            it !is CredentialState.Deleted
+        }
+    }
 
     /**
      * Performs the OIDC User Info call, which returns claims associated with this [Credential].
