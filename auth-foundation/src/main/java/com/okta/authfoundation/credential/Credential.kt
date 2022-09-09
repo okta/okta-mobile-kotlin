@@ -30,6 +30,7 @@ import com.okta.authfoundation.util.CoalescingOrchestrator
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import okhttp3.Interceptor
@@ -48,13 +49,15 @@ class Credential internal constructor(
     private val storage: TokenStorage,
     private val credentialDataSource: CredentialDataSource,
     internal val storageIdentifier: String,
-    @Volatile private var _token: Token? = null,
+    token: Token? = null,
     @Volatile private var _tags: Map<String, String> = emptyMap()
 ) {
     private val refreshCoalescingOrchestrator = CoalescingOrchestrator(
         factory = ::performRealRefresh,
         keepDataInMemory = { false },
     )
+
+    private val _token = MutableStateFlow(token)
 
     @Volatile private var isDeleted: Boolean = false
 
@@ -69,7 +72,7 @@ class Credential internal constructor(
      */
     val token: Token?
         get() {
-            return _token
+            return _token.value
         }
 
     /**
@@ -124,22 +127,22 @@ class Credential internal constructor(
      * @param token the token to update this [Credential] with, defaults to the current [Token].
      * @param tags the map to associate with this [Credential], defaults to the current tags.
      */
-    suspend fun storeToken(token: Token? = _token, tags: Map<String, String> = _tags) {
+    suspend fun storeToken(token: Token? = _token.value, tags: Map<String, String> = _tags) {
         if (isDeleted) {
             oidcClient.configuration.eventCoordinator.sendEvent(CredentialStoredAfterRemovedEvent(this))
             return
         }
         val tokenToStore = token?.copy(
             // Refresh Token isn't ALWAYS returned when refreshing.
-            refreshToken = token.refreshToken ?: _token?.refreshToken,
+            refreshToken = token.refreshToken ?: _token.value?.refreshToken,
             // Device Secret isn't returned when refreshing.
-            deviceSecret = token.deviceSecret ?: _token?.deviceSecret,
+            deviceSecret = token.deviceSecret ?: _token.value?.deviceSecret,
         )
         val tagsCopy = tags.toMap() // Making a defensive copy, so it's not modified outside our control.
         storage.replace(
             updatedEntry = TokenStorage.Entry(storageIdentifier, tokenToStore, tagsCopy),
         )
-        _token = tokenToStore
+        _token.value = tokenToStore
         _tags = tagsCopy
     }
 
@@ -156,7 +159,7 @@ class Credential internal constructor(
         }
         credentialDataSource.remove(this)
         storage.remove(storageIdentifier)
-        _token = null
+        _token.value = null
         isDeleted = true
         oidcClient.configuration.eventCoordinator.sendEvent(CredentialDeletedEvent(this))
     }
@@ -243,7 +246,7 @@ class Credential internal constructor(
      * This will return `null` if the associated [Token] or it's `idToken` field is `null`.
      */
     suspend fun idToken(): Jwt? {
-        val idToken = _token?.idToken ?: return null
+        val idToken = token?.idToken ?: return null
         try {
             val parser = JwtParser(oidcClient.configuration.json, oidcClient.configuration.computeDispatcher)
             return parser.parse(idToken)
@@ -262,7 +265,7 @@ class Credential internal constructor(
      * See [Credential.introspectToken] for checking if the token is valid with the Authorization Server.
      */
     suspend fun getAccessTokenIfValid(): String? {
-        val localToken = _token ?: return null
+        val localToken = token ?: return null
         val idToken = idToken() ?: return null
         val accessToken = localToken.accessToken
         val expiresIn = localToken.expiresIn
@@ -315,14 +318,14 @@ class Credential internal constructor(
             return false
         }
         return storageIdentifier == other.storageIdentifier &&
-            _token == other._token &&
+            _token.value == other._token.value &&
             _tags == other._tags
     }
 
     override fun hashCode(): Int {
         return Objects.hash(
             storageIdentifier,
-            _token,
+            _token.value,
             _tags,
         )
     }
