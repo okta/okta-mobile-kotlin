@@ -61,7 +61,10 @@ class Credential internal constructor(
 
     private val state = MutableStateFlow<CredentialState>(CredentialState.Data(token))
 
-    @Volatile private var isDeleted: Boolean = false
+    private val isDeleted: Boolean
+        get() {
+            return state.value == CredentialState.Deleted
+        }
 
     /**
      * The [OidcClient] associated with this [Credential].
@@ -173,7 +176,6 @@ class Credential internal constructor(
         credentialDataSource.remove(this)
         storage.remove(storageIdentifier)
         state.value = CredentialState.Deleted
-        isDeleted = true
         oidcClient.configuration.eventCoordinator.sendEvent(CredentialDeletedEvent(this))
     }
 
