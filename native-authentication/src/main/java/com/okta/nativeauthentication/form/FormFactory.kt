@@ -22,11 +22,9 @@ internal class FormFactory(
     private val formTransformers: List<FormTransformer>,
 ) {
     suspend fun emit(formBuilder: Form.Builder) {
-        formBuilder.apply {
-            for (formFactory in formTransformers) {
-                formFactory.apply {
-                    transform()
-                }
+        for (formFactory in formTransformers) {
+            formFactory.apply {
+                formBuilder.transform()
             }
         }
         sendChannel.send(formBuilder.build())

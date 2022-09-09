@@ -16,16 +16,10 @@
 package com.okta.nativeauthentication
 
 import com.google.common.truth.Truth.assertThat
-import com.okta.authfoundation.client.OidcClientResult
-import com.okta.idx.kotlin.client.InteractionCodeFlow
-import com.okta.idx.kotlin.client.InteractionCodeFlow.Companion.createInteractionCodeFlow
 import com.okta.idx.kotlin.dto.IdxRemediation
-import com.okta.idx.kotlin.dto.IdxResponse
 import com.okta.nativeauthentication.form.Element
+import com.okta.nativeauthentication.utils.IdxResponseFactory
 import com.okta.testing.network.NetworkRule
-import com.okta.testing.network.RequestMatchers.path
-import com.okta.testing.testBodyFromFile
-import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.atomic.AtomicInteger
@@ -34,18 +28,7 @@ import java.util.concurrent.atomic.AtomicReference
 internal class RealIdxResponseTransformerTest {
     @get:Rule val networkRule = NetworkRule()
 
-    private fun setup(json: String): IdxResponse = runBlocking {
-        networkRule.enqueue(path("/oauth2/default/v1/interact")) { response ->
-            response.testBodyFromFile("SuccessInteractResponse.json")
-        }
-        networkRule.enqueue(path("/idp/idx/introspect")) { response ->
-            response.setBody(json)
-        }
-        val oidcClient = networkRule.createOidcClient()
-        val interactionCodeFlowResult = oidcClient.createInteractionCodeFlow("test.okta.com/login")
-        val interactionCodeFlow = (interactionCodeFlowResult as OidcClientResult.Success<InteractionCodeFlow>).result
-        (interactionCodeFlow.resume() as OidcClientResult.Success<IdxResponse>).result
-    }
+    private val idxResponseFactory = IdxResponseFactory(networkRule)
 
     @Test fun basicFormIsReturned() {
         val json = """
@@ -92,7 +75,7 @@ internal class RealIdxResponseTransformerTest {
           }
         }
         """.trimIndent()
-        val response = setup(json)
+        val response = idxResponseFactory.fromJson(json)
         val clickCounter = AtomicInteger(0)
         val clickReference = AtomicReference<IdxRemediation>()
         val formBuilder = RealIdxResponseTransformer().transform(response) { remediation ->
@@ -172,7 +155,7 @@ internal class RealIdxResponseTransformerTest {
           }
         }
         """.trimIndent()
-        val response = setup(json)
+        val response = idxResponseFactory.fromJson(json)
         val formBuilder = RealIdxResponseTransformer().transform(response) { }
         val elements = formBuilder.elements
         assertThat(elements).hasSize(3)

@@ -20,7 +20,6 @@ import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.client.OidcEndpoints
 import com.okta.authfoundation.events.EventCoordinator
-import kotlinx.coroutines.Dispatchers
 import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.mockwebserver.MockResponse
@@ -29,6 +28,7 @@ import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
 import java.net.Proxy
+import kotlin.coroutines.EmptyCoroutineContext
 
 class NetworkRule : TestRule {
     override fun apply(base: Statement, description: Description): Statement {
@@ -74,8 +74,8 @@ class NetworkRule : TestRule {
         idTokenValidator = { _, _, _ -> },
         accessTokenValidator = { _, _, _ -> },
         deviceSecretValidator = { _, _, _ -> },
-        ioDispatcher = Dispatchers.Unconfined,
-        computeDispatcher = Dispatchers.Unconfined,
+        ioDispatcher = EmptyCoroutineContext,
+        computeDispatcher = EmptyCoroutineContext,
         cache = NoOpCache(),
     )
 
