@@ -20,9 +20,8 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.coroutineScope
 
 @InternalAuthFoundationApi
 class CoalescingOrchestrator<T : Any>(
@@ -42,17 +41,17 @@ class CoalescingOrchestrator<T : Any>(
             return data
         }
 
-        val result = withContext(Dispatchers.Unconfined) {
+        val result = coroutineScope {
             val deferredToAwait: Deferred<T>
             synchronized(lock) {
                 if (dataInitialized) {
-                    return@withContext data
+                    return@coroutineScope data
                 }
                 val localDeferred = deferred
                 if (localDeferred != null && !localDeferred.isCancelled) {
                     deferredToAwait = localDeferred
                 } else {
-                    deferredToAwait = loadDataAsync(this@withContext)
+                    deferredToAwait = loadDataAsync(this@coroutineScope)
                 }
             }
             try {

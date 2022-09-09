@@ -25,13 +25,13 @@ import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.client.OidcEndpoints
 import com.okta.authfoundation.events.EventCoordinator
-import kotlinx.coroutines.Dispatchers
 import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.mockwebserver.MockResponse
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
+import kotlin.coroutines.EmptyCoroutineContext
 
 @OptIn(InternalAuthFoundationApi::class)
 class OktaRule(
@@ -63,8 +63,8 @@ class OktaRule(
         idTokenValidator = idTokenValidator,
         accessTokenValidator = accessTokenValidator,
         deviceSecretValidator = deviceSecretValidator,
-        ioDispatcher = Dispatchers.Unconfined,
-        computeDispatcher = Dispatchers.Unconfined,
+        ioDispatcher = EmptyCoroutineContext,
+        computeDispatcher = EmptyCoroutineContext,
         cache = cache,
     )
 
