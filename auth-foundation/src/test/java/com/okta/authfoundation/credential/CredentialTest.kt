@@ -876,6 +876,6 @@ class CredentialTest {
 
     @Test fun testHashCode() {
         val credential = oktaRule.createCredential()
-        assertThat(credential.hashCode()).isEqualTo(-106031989)
+        assertThat(credential.hashCode()).isEqualTo(-280515051)
     }
 }
