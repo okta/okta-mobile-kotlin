@@ -24,6 +24,7 @@ import com.okta.authfoundation.client.dto.OidcUserInfo
 import com.okta.authfoundation.client.events.TokenCreatedEvent
 import com.okta.authfoundation.credential.events.CredentialDeletedEvent
 import com.okta.authfoundation.credential.events.CredentialStoredAfterRemovedEvent
+import com.okta.authfoundation.credential.events.CredentialStoredEvent
 import com.okta.authfoundation.jwt.IdTokenClaims
 import com.okta.authfoundation.jwt.JwtBuilder.Companion.createJwtBuilder
 import com.okta.testhelpers.InMemoryTokenStorage
@@ -403,14 +404,24 @@ class CredentialTest {
         val result = credential.refreshToken()
         assertThat(result).isInstanceOf(OidcClientResult.Success::class.java)
         val token = (result as OidcClientResult.Success<Token>).result
-        assertThat(oktaRule.eventHandler).hasSize(1)
-        val event = oktaRule.eventHandler[0]
-        assertThat(event).isInstanceOf(TokenCreatedEvent::class.java)
-        val tokenCreatedEvent = event as TokenCreatedEvent
+        assertThat(oktaRule.eventHandler).hasSize(2)
+
+        val event1 = oktaRule.eventHandler[0]
+        assertThat(event1).isInstanceOf(TokenCreatedEvent::class.java)
+        val tokenCreatedEvent = event1 as TokenCreatedEvent
         assertThat(tokenCreatedEvent.token).isNotNull()
         assertThat(tokenCreatedEvent.token).isEqualTo(token)
         assertThat(tokenCreatedEvent.credential).isNotNull()
         assertThat(tokenCreatedEvent.credential).isEqualTo(credential)
+
+        val event2 = oktaRule.eventHandler[1]
+        assertThat(event2).isInstanceOf(CredentialStoredEvent::class.java)
+        val credentialStoredEvent = event2 as CredentialStoredEvent
+        assertThat(credentialStoredEvent.token).isNotNull()
+        assertThat(credentialStoredEvent.token).isEqualTo(token)
+        assertThat(credentialStoredEvent.credential).isNotNull()
+        assertThat(credentialStoredEvent.credential).isEqualTo(credential)
+        assertThat(credentialStoredEvent.tags).isEqualTo(emptyMap<String, String>())
     }
 
     @Test fun testRefreshTokenPreservesRefreshToken(): Unit = runBlocking {
