@@ -52,14 +52,14 @@ class Credential internal constructor(
     private val credentialDataSource: CredentialDataSource,
     internal val storageIdentifier: String,
     token: Token? = null,
-    @Volatile private var _tags: Map<String, String> = emptyMap()
+    tags: Map<String, String> = emptyMap()
 ) {
     private val refreshCoalescingOrchestrator = CoalescingOrchestrator(
         factory = ::performRealRefresh,
         keepDataInMemory = { false },
     )
 
-    private val state = MutableStateFlow<CredentialState>(CredentialState.Data(token))
+    private val state = MutableStateFlow<CredentialState>(CredentialState.Data(token, tags))
 
     private val isDeleted: Boolean
         get() {
@@ -98,7 +98,7 @@ class Credential internal constructor(
      */
     val tags: Map<String, String>
         get() {
-            return Collections.unmodifiableMap(_tags)
+            return Collections.unmodifiableMap(state.value.tags)
         }
 
     /**
@@ -143,7 +143,7 @@ class Credential internal constructor(
      * @param token the token to update this [Credential] with, defaults to the current [Token].
      * @param tags the map to associate with this [Credential], defaults to the current tags.
      */
-    suspend fun storeToken(token: Token? = this.token, tags: Map<String, String> = _tags) {
+    suspend fun storeToken(token: Token? = this.token, tags: Map<String, String> = this.tags) {
         if (isDeleted) {
             oidcClient.configuration.eventCoordinator.sendEvent(CredentialStoredAfterRemovedEvent(this))
             return
@@ -158,8 +158,7 @@ class Credential internal constructor(
         storage.replace(
             updatedEntry = TokenStorage.Entry(storageIdentifier, tokenToStore, tagsCopy),
         )
-        state.value = CredentialState.Data(tokenToStore)
-        _tags = tagsCopy
+        state.value = CredentialState.Data(tokenToStore, tagsCopy)
     }
 
     /**
@@ -333,23 +332,22 @@ class Credential internal constructor(
             return false
         }
         return storageIdentifier == other.storageIdentifier &&
-            state.value == other.state.value &&
-            _tags == other._tags
+            state.value == other.state.value
     }
 
     override fun hashCode(): Int {
         return Objects.hash(
             storageIdentifier,
             state.value,
-            _tags,
         )
     }
 }
 
 private sealed class CredentialState {
     open val token: Token? get() = null
+    open val tags get() = emptyMap<String, String>()
 
-    data class Data(override val token: Token?) : CredentialState()
+    data class Data(override val token: Token?, override val tags: Map<String, String>) : CredentialState()
     object Deleted : CredentialState()
 }
 
