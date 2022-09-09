@@ -27,10 +27,9 @@ import com.okta.authfoundation.events.EventCoordinator
 import com.okta.authfoundation.jwt.Jwt
 import com.okta.authfoundation.jwt.JwtParser
 import com.okta.authfoundation.util.CoalescingOrchestrator
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.coroutineScope
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import okhttp3.Interceptor
@@ -213,7 +212,7 @@ class Credential internal constructor(
         localToken.refreshToken?.let { pairsToRevoke[RevokeTokenType.REFRESH_TOKEN] = it }
         localToken.deviceSecret?.let { pairsToRevoke[RevokeTokenType.DEVICE_SECRET] = it }
 
-        return withContext(Dispatchers.Unconfined) {
+        return coroutineScope {
             val exceptionPairs = mutableMapOf<RevokeTokenType, Exception>()
             pairsToRevoke.map { entry ->
                 async {

@@ -31,9 +31,8 @@ import com.okta.authfoundation.credential.TokenType
 import com.okta.authfoundation.jwt.Jwks
 import com.okta.authfoundation.jwt.SerializableJwks
 import com.okta.authfoundation.util.CoalescingOrchestrator
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.coroutineScope
 import kotlinx.serialization.json.JsonObject
 import okhttp3.FormBody
 import okhttp3.HttpUrl
@@ -264,7 +263,7 @@ class OidcClient private constructor(
         nonce: String? = null,
         maxAge: Int? = null
     ): OidcClientResult<Token> {
-        return withContext(Dispatchers.Unconfined) {
+        return coroutineScope {
             val tokenDeferred = async {
                 performRequest(SerializableToken.serializer(), request) { serializableToken ->
                     serializableToken.asToken()
@@ -283,10 +282,10 @@ class OidcClient private constructor(
                     configuration.eventCoordinator.sendEvent(TokenCreatedEvent(token, credential))
                     credential?.storeToken(token)
                 } catch (e: Exception) {
-                    return@withContext OidcClientResult.Error(e)
+                    return@coroutineScope OidcClientResult.Error(e)
                 }
             }
-            return@withContext tokenResult
+            return@coroutineScope tokenResult
         }
     }
 }

@@ -19,13 +19,13 @@ import com.google.common.truth.Truth.assertThat
 import com.okta.authfoundation.claims.preferredUsername
 import com.okta.authfoundation.jwt.JwtBuilder.Companion.createJwtBuilder
 import com.okta.testhelpers.OktaRule
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.junit.Rule
 import org.junit.Test
+import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.test.assertFailsWith
 
 class JwtParserTest {
@@ -42,7 +42,7 @@ class JwtParserTest {
     @Test fun testJwtParser(): Unit = runBlocking {
         val input = oktaRule.createOidcClient().createJwtBuilder().createJwt(claims = IdTokenClaims()).rawValue
 
-        val parser = JwtParser(Json { ignoreUnknownKeys = true }, Dispatchers.Unconfined)
+        val parser = JwtParser(Json { ignoreUnknownKeys = true }, EmptyCoroutineContext)
         val jwt = parser.parse(input)
         assertThat(jwt).isNotNull()
 
@@ -65,7 +65,7 @@ class JwtParserTest {
         val validInput = oktaRule.createOidcClient().createJwtBuilder().createJwt(claims = IdTokenClaims()).rawValue
         val input = validInput.substringAfter(".") // Removes header.
 
-        val parser = JwtParser(Json { ignoreUnknownKeys = true }, Dispatchers.Unconfined)
+        val parser = JwtParser(Json { ignoreUnknownKeys = true }, EmptyCoroutineContext)
 
         val exception = assertFailsWith<IllegalArgumentException> {
             parser.parse(input)
@@ -76,7 +76,7 @@ class JwtParserTest {
     @Test fun testJwtInstancesAreEqual(): Unit = runBlocking {
         val input = oktaRule.createOidcClient().createJwtBuilder().createJwt(claims = IdTokenClaims()).rawValue
 
-        val parser = JwtParser(Json { ignoreUnknownKeys = true }, Dispatchers.Unconfined)
+        val parser = JwtParser(Json { ignoreUnknownKeys = true }, EmptyCoroutineContext)
         val jwt1 = parser.parse(input)
         val jwt2 = parser.parse(input)
         assertThat(jwt1).isEqualTo(jwt2)
@@ -88,7 +88,7 @@ class JwtParserTest {
         val validInput = oktaRule.createOidcClient().createJwtBuilder().createJwt(claims = IdTokenClaims()).rawValue
         val input = validInput.replaceBefore(".", "+") // Replaces header with `+`.
 
-        val parser = JwtParser(Json { ignoreUnknownKeys = true }, Dispatchers.Unconfined)
+        val parser = JwtParser(Json { ignoreUnknownKeys = true }, EmptyCoroutineContext)
 
         val exception = assertFailsWith<IllegalArgumentException> {
             parser.parse(input)
@@ -100,7 +100,7 @@ class JwtParserTest {
         val validInput = oktaRule.createOidcClient().createJwtBuilder().createJwt(claims = IdTokenClaims()).rawValue
         val input = validInput.replaceAfter(".", "+.irrelevantSignature") // Replaces claims with `+`.
 
-        val parser = JwtParser(Json { ignoreUnknownKeys = true }, Dispatchers.Unconfined)
+        val parser = JwtParser(Json { ignoreUnknownKeys = true }, EmptyCoroutineContext)
 
         val exception = assertFailsWith<IllegalArgumentException> {
             parser.parse(input)

@@ -28,7 +28,6 @@ import com.okta.authfoundation.credential.events.TokenStorageAccessErrorEvent
 import com.okta.authfoundation.events.EventCoordinator
 import com.okta.authfoundation.events.EventHandler
 import com.okta.testhelpers.RecordingEventHandler
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import org.junit.After
@@ -37,6 +36,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import java.security.InvalidAlgorithmParameterException
 import java.security.KeyStoreException
+import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.test.assertFailsWith
 
 @RunWith(AndroidJUnit4::class)
@@ -49,7 +49,7 @@ class SharedPreferencesTokenStorageTest {
         val eventCoordinator = EventCoordinator(eventHandler)
         subject = SharedPreferencesTokenStorage(
             json = Json,
-            dispatcher = Dispatchers.Unconfined,
+            dispatcher = EmptyCoroutineContext,
             eventCoordinator = eventCoordinator,
             context = ApplicationProvider.getApplicationContext(),
             keyGenParameterSpec = MasterKeys.AES256_GCM_SPEC,
@@ -124,7 +124,7 @@ class SharedPreferencesTokenStorageTest {
         val eventCoordinator = EventCoordinator(eventHandler)
         subject = SharedPreferencesTokenStorage(
             json = Json,
-            dispatcher = Dispatchers.Unconfined,
+            dispatcher = EmptyCoroutineContext,
             eventCoordinator = eventCoordinator,
             context = ApplicationProvider.getApplicationContext(),
             keyGenParameterSpec = MasterKeys.AES256_GCM_SPEC,
@@ -150,7 +150,7 @@ class SharedPreferencesTokenStorageTest {
         })
         subject = SharedPreferencesTokenStorage(
             json = Json,
-            dispatcher = Dispatchers.Unconfined,
+            dispatcher = EmptyCoroutineContext,
             eventCoordinator = eventCoordinator,
             context = ApplicationProvider.getApplicationContext(),
             keyGenParameterSpec = MasterKeys.AES256_GCM_SPEC,
@@ -176,7 +176,7 @@ class SharedPreferencesTokenStorageTest {
         val eventCoordinator = EventCoordinator(eventHandler)
         subject = SharedPreferencesTokenStorage(
             json = Json,
-            dispatcher = Dispatchers.Unconfined,
+            dispatcher = EmptyCoroutineContext,
             eventCoordinator = eventCoordinator,
             context = ApplicationProvider.getApplicationContext(),
             keyGenParameterSpec = spec,
