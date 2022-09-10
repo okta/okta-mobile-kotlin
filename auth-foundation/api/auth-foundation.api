@@ -111,6 +111,7 @@ public final class com/okta/authfoundation/client/OidcClient$Companion {
 }
 
 public abstract class com/okta/authfoundation/client/OidcClientResult {
+	public final fun getOrThrow ()Ljava/lang/Object;
 }
 
 public final class com/okta/authfoundation/client/OidcClientResult$Error : com/okta/authfoundation/client/OidcClientResult {
