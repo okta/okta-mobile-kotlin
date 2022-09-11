@@ -30,6 +30,11 @@ import com.okta.authfoundation.util.CoalescingOrchestrator
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.dropWhile
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.transformWhile
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import okhttp3.Interceptor
@@ -48,15 +53,20 @@ class Credential internal constructor(
     private val storage: TokenStorage,
     private val credentialDataSource: CredentialDataSource,
     internal val storageIdentifier: String,
-    @Volatile private var _token: Token? = null,
-    @Volatile private var _tags: Map<String, String> = emptyMap()
+    token: Token? = null,
+    tags: Map<String, String> = emptyMap()
 ) {
     private val refreshCoalescingOrchestrator = CoalescingOrchestrator(
         factory = ::performRealRefresh,
         keepDataInMemory = { false },
     )
 
-    @Volatile private var isDeleted: Boolean = false
+    private val state = MutableStateFlow<CredentialState>(CredentialState.Data(token, tags))
+
+    private val isDeleted: Boolean
+        get() {
+            return state.value == CredentialState.Deleted
+        }
 
     /**
      * The [OidcClient] associated with this [Credential].
@@ -69,7 +79,7 @@ class Credential internal constructor(
      */
     val token: Token?
         get() {
-            return _token
+            return state.value.token
         }
 
     /**
@@ -79,8 +89,21 @@ class Credential internal constructor(
      */
     val tags: Map<String, String>
         get() {
-            return Collections.unmodifiableMap(_tags)
+            return Collections.unmodifiableMap(state.value.tags)
         }
+
+    /**
+     * Returns a [Flow] that emits the current [Token] that's stored and associated with this [Credential].
+     */
+    fun getTokenFlow(): Flow<Token?> {
+        return state
+            .transformWhile {
+                emit(it)
+                it !is CredentialState.Deleted
+            }
+            .dropWhile { it !is CredentialState.Data }
+            .map { it.token }
+    }
 
     /**
      * Performs the OIDC User Info call, which returns claims associated with this [Credential].
@@ -124,23 +147,22 @@ class Credential internal constructor(
      * @param token the token to update this [Credential] with, defaults to the current [Token].
      * @param tags the map to associate with this [Credential], defaults to the current tags.
      */
-    suspend fun storeToken(token: Token? = _token, tags: Map<String, String> = _tags) {
+    suspend fun storeToken(token: Token? = this.token, tags: Map<String, String> = this.tags) {
         if (isDeleted) {
             oidcClient.configuration.eventCoordinator.sendEvent(CredentialStoredAfterRemovedEvent(this))
             return
         }
         val tokenToStore = token?.copy(
             // Refresh Token isn't ALWAYS returned when refreshing.
-            refreshToken = token.refreshToken ?: _token?.refreshToken,
+            refreshToken = token.refreshToken ?: this.token?.refreshToken,
             // Device Secret isn't returned when refreshing.
-            deviceSecret = token.deviceSecret ?: _token?.deviceSecret,
+            deviceSecret = token.deviceSecret ?: this.token?.deviceSecret,
         )
         val tagsCopy = tags.toMap() // Making a defensive copy, so it's not modified outside our control.
         storage.replace(
             updatedEntry = TokenStorage.Entry(storageIdentifier, tokenToStore, tagsCopy),
         )
-        _token = tokenToStore
-        _tags = tagsCopy
+        state.value = CredentialState.Data(tokenToStore, tagsCopy)
     }
 
     /**
@@ -156,8 +178,7 @@ class Credential internal constructor(
         }
         credentialDataSource.remove(this)
         storage.remove(storageIdentifier)
-        _token = null
-        isDeleted = true
+        state.value = CredentialState.Deleted
         oidcClient.configuration.eventCoordinator.sendEvent(CredentialDeletedEvent(this))
     }
 
@@ -243,7 +264,7 @@ class Credential internal constructor(
      * This will return `null` if the associated [Token] or it's `idToken` field is `null`.
      */
     suspend fun idToken(): Jwt? {
-        val idToken = _token?.idToken ?: return null
+        val idToken = token?.idToken ?: return null
         try {
             val parser = JwtParser(oidcClient.configuration.json, oidcClient.configuration.computeDispatcher)
             return parser.parse(idToken)
@@ -262,7 +283,7 @@ class Credential internal constructor(
      * See [Credential.introspectToken] for checking if the token is valid with the Authorization Server.
      */
     suspend fun getAccessTokenIfValid(): String? {
-        val localToken = _token ?: return null
+        val localToken = token ?: return null
         val idToken = idToken() ?: return null
         val accessToken = localToken.accessToken
         val expiresIn = localToken.expiresIn
@@ -315,17 +336,23 @@ class Credential internal constructor(
             return false
         }
         return storageIdentifier == other.storageIdentifier &&
-            _token == other._token &&
-            _tags == other._tags
+            state.value == other.state.value
     }
 
     override fun hashCode(): Int {
         return Objects.hash(
             storageIdentifier,
-            _token,
-            _tags,
+            state.value,
         )
     }
+}
+
+private sealed class CredentialState {
+    open val token: Token? get() = null
+    open val tags get() = emptyMap<String, String>()
+
+    data class Data(override val token: Token?, override val tags: Map<String, String>) : CredentialState()
+    object Deleted : CredentialState()
 }
 
 @Serializable

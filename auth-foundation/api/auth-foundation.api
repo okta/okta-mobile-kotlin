@@ -222,6 +222,7 @@ public final class com/okta/authfoundation/credential/Credential {
 	public final fun getAccessTokenIfValid (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun getTags ()Ljava/util/Map;
 	public final fun getToken ()Lcom/okta/authfoundation/credential/Token;
+	public final fun getTokenFlow ()Lkotlinx/coroutines/flow/Flow;
 	public final fun getUserInfo (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun getValidAccessToken (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun hashCode ()I

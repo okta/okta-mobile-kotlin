@@ -15,6 +15,7 @@
  */
 package com.okta.authfoundation.credential
 
+import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcClientResult
@@ -73,6 +74,22 @@ class CredentialTest {
         }
     }
 
+    @Test fun testGetTokenFlow(): Unit = runBlocking {
+        val storage = mock<TokenStorage>()
+        val credentialDataSource = mock<CredentialDataSource>()
+        val token = createToken()
+        val token2 = createToken(accessToken = "token 2")
+        val credential = oktaRule.createCredential(token = token, tokenStorage = storage, credentialDataSource = credentialDataSource)
+        credential.getTokenFlow().test {
+            assertThat(awaitItem()).isEqualTo(token)
+            credential.storeToken(token2)
+            assertThat(awaitItem()).isEqualTo(token2)
+            credential.delete()
+            assertThat(awaitItem()).isNull()
+            awaitComplete()
+        }
+    }
+
     @Test fun testDelete(): Unit = runBlocking {
         val storage = mock<TokenStorage>()
         val credentialDataSource = mock<CredentialDataSource>()
@@ -124,6 +141,17 @@ class CredentialTest {
         assertThat(event).isInstanceOf(CredentialStoredAfterRemovedEvent::class.java)
         val removedEvent = event as CredentialStoredAfterRemovedEvent
         assertThat(removedEvent.credential).isEqualTo(credential)
+    }
+
+    @Test fun testGetTokenFlowReturnsEmptyFlowAfterRemove(): Unit = runBlocking {
+        val storage = mock<TokenStorage>()
+        val credentialDataSource = mock<CredentialDataSource>()
+        val token = createToken()
+        val credential = oktaRule.createCredential(token = token, tokenStorage = storage, credentialDataSource = credentialDataSource)
+        credential.delete()
+        credential.getTokenFlow().test {
+            awaitComplete()
+        }
     }
 
     @Test fun testRevokeAccessToken(): Unit = runBlocking {
@@ -876,6 +904,6 @@ class CredentialTest {
 
     @Test fun testHashCode() {
         val credential = oktaRule.createCredential()
-        assertThat(credential.hashCode()).isEqualTo(-106031989)
+        assertThat(credential.hashCode()).isEqualTo(-280515051)
     }
 }
