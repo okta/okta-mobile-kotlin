@@ -83,7 +83,24 @@ public abstract interface class com/okta/authfoundation/client/IdTokenValidator 
 }
 
 public final class com/okta/authfoundation/client/IdTokenValidator$Error : java/lang/IllegalStateException {
+	public static final field Companion Lcom/okta/authfoundation/client/IdTokenValidator$Error$Companion;
+	public static final field EXPIRED Ljava/lang/String;
+	public static final field INVALID_AUDIENCE Ljava/lang/String;
+	public static final field INVALID_ISSUER Ljava/lang/String;
+	public static final field INVALID_JWT_ALGORITHM Ljava/lang/String;
+	public static final field INVALID_JWT_SIGNATURE Ljava/lang/String;
+	public static final field INVALID_SUBJECT Ljava/lang/String;
+	public static final field ISSUED_AT_THRESHOLD_NOT_SATISFIED Ljava/lang/String;
+	public static final field ISSUER_NOT_HTTPS Ljava/lang/String;
+	public static final field MAX_AGE_NOT_SATISFIED Ljava/lang/String;
+	public static final field NONCE_MISMATCH Ljava/lang/String;
 	public fun <init> (Ljava/lang/String;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getIdentifier ()Ljava/lang/String;
+}
+
+public final class com/okta/authfoundation/client/IdTokenValidator$Error$Companion {
 }
 
 public final class com/okta/authfoundation/client/IdTokenValidator$Parameters {

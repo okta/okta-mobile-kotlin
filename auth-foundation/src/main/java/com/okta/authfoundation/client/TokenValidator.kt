@@ -45,7 +45,7 @@ internal class TokenValidator(
                 when (jwksResult) {
                     is OidcClientResult.Success -> {
                         if (!idToken.hasValidSignature(jwksResult.result)) {
-                            throw IdTokenValidator.Error("Invalid id_token signature")
+                            throw IdTokenValidator.Error("Invalid id_token signature", IdTokenValidator.Error.INVALID_JWT_SIGNATURE)
                         }
                     }
                     is OidcClientResult.Error -> {
