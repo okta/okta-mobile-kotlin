@@ -51,4 +51,18 @@ sealed class OidcClientResult<T> {
         /** The result of the success result. */
         val result: T,
     ) : OidcClientResult<T>()
+
+    /**
+     * Returns the encapsulated value if this instance represents [Success] or throws the encapsulated [Exception] if it is [Error].
+     */
+    fun getOrThrow(): T {
+        when (this) {
+            is Error -> {
+                throw exception
+            }
+            is Success -> {
+                return result
+            }
+        }
+    }
 }
