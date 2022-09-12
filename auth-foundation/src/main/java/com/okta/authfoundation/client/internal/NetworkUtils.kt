@@ -19,11 +19,13 @@ import com.okta.authfoundation.InternalAuthFoundationApi
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundation.client.OidcConfiguration
+import com.okta.authfoundation.client.events.RateLimitExceededEvent
 import com.okta.authfoundation.credential.Credential
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.CompletionHandler
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
@@ -39,6 +41,9 @@ import okhttp3.Response
 import okio.BufferedSource
 import java.io.IOException
 import kotlin.coroutines.resumeWithException
+import kotlin.math.max
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 @InternalAuthFoundationApi
 @OptIn(ExperimentalSerializationApi::class)
@@ -68,7 +73,7 @@ suspend fun OidcClient.performRequest(
     currentCoroutineContext().ensureActive()
     return withContext(configuration.ioDispatcher) {
         try {
-            val response = configuration.okHttpClient.newCall(request).await()
+            val response = configuration.executeRequest(request)
             OidcClientResult.Success(response)
         } catch (e: Exception) {
             OidcClientResult.Error(e)
@@ -101,7 +106,7 @@ internal suspend fun <T> OidcConfiguration.internalPerformRequest(
     currentCoroutineContext().ensureActive()
     return withContext(ioDispatcher) {
         try {
-            val okHttpResponse = okHttpClient.newCall(request).await()
+            val okHttpResponse = executeRequest(request)
             okHttpResponse.use { responseBody ->
                 // Body is always non-null when returned here. See related OkHttp documentation.
                 val body = responseBody.body!!.source()
@@ -115,6 +120,45 @@ internal suspend fun <T> OidcConfiguration.internalPerformRequest(
             OidcClientResult.Error(e)
         }
     }
+}
+
+private suspend fun OidcConfiguration.executeRequest(
+    request: Request
+): Response {
+    currentCoroutineContext().ensureActive()
+    val rateLimitErrorCode = 429
+
+    var response = okHttpClient.newCall(request).await()
+
+    if (response.code == rateLimitErrorCode) {
+        val event = RateLimitExceededEvent(request, response)
+        eventCoordinator.sendEvent(event)
+
+        for (i in 1..event.maxRetries) {
+            val timeToResetSeconds: Long
+            val requestId: String?
+            response.use {
+                val responseTimeSeconds = response.headers.getDate("Date")?.time?.milliseconds?.inWholeSeconds
+                val retryTimeSeconds = response.header("X-Rate-Limit-Reset")?.toLongOrNull()
+                requestId = response.header("X-Okta-Request-Id")
+                timeToResetSeconds = if (responseTimeSeconds != null && retryTimeSeconds != null) {
+                    retryTimeSeconds - responseTimeSeconds
+                } else 0L
+            }
+
+            val delaySeconds = max(timeToResetSeconds, event.minDelaySeconds)
+            delay(delaySeconds.seconds)
+
+            val newRequest = request.newBuilder().apply {
+                requestId?.let { addHeader("X-Okta-Retry-For", requestId) }
+                addHeader("X-Okta-Retry-Count", i.toString())
+            }.build()
+            response = okHttpClient.newCall(newRequest).await()
+            if (response.code != rateLimitErrorCode) break
+        }
+    }
+
+    return response
 }
 
 @Serializable

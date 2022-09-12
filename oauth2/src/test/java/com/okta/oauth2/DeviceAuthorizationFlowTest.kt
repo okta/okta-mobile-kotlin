@@ -206,14 +206,6 @@ class DeviceAuthorizationFlowTest {
     }
 
     @Test fun testResumeWithPolling(): Unit = runBlocking {
-        oktaRule.enqueue(
-            method("POST"),
-            path("/oauth2/default/v1/token"),
-            body("client_id=unit_test_client_id&device_code=1a521d9f-0922-4e6d-8db9-8b654297435a&grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Adevice_code")
-        ) { response ->
-            response.testBodyFromFile("$mockPrefix/token.json")
-        }
-
         repeat(4) {
             oktaRule.enqueue(
                 method("POST"),
@@ -223,6 +215,14 @@ class DeviceAuthorizationFlowTest {
                 response.setBody("""{"error": "authorization_pending","error_description": "The device authorization is pending. Please try again later."}""")
                 response.setResponseCode(400)
             }
+        }
+
+        oktaRule.enqueue(
+            method("POST"),
+            path("/oauth2/default/v1/token"),
+            body("client_id=unit_test_client_id&device_code=1a521d9f-0922-4e6d-8db9-8b654297435a&grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Adevice_code")
+        ) { response ->
+            response.testBodyFromFile("$mockPrefix/token.json")
         }
 
         val flow = oktaRule.createOidcClient().createDeviceAuthorizationFlow()
@@ -245,14 +245,6 @@ class DeviceAuthorizationFlowTest {
     }
 
     @Test fun testResumeWithSlowDown(): Unit = runBlocking {
-        oktaRule.enqueue(
-            method("POST"),
-            path("/oauth2/default/v1/token"),
-            body("client_id=unit_test_client_id&device_code=1a521d9f-0922-4e6d-8db9-8b654297435a&grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Adevice_code")
-        ) { response ->
-            response.testBodyFromFile("$mockPrefix/token.json")
-        }
-
         repeat(4) {
             oktaRule.enqueue(
                 method("POST"),
@@ -262,6 +254,14 @@ class DeviceAuthorizationFlowTest {
                 response.setBody("""{"error": "slow_down","error_description": "The device authorization is pending. Please try again later."}""")
                 response.setResponseCode(400)
             }
+        }
+
+        oktaRule.enqueue(
+            method("POST"),
+            path("/oauth2/default/v1/token"),
+            body("client_id=unit_test_client_id&device_code=1a521d9f-0922-4e6d-8db9-8b654297435a&grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Adevice_code")
+        ) { response ->
+            response.testBodyFromFile("$mockPrefix/token.json")
         }
 
         val flow = oktaRule.createOidcClient().createDeviceAuthorizationFlow()

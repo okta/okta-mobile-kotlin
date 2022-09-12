@@ -60,13 +60,9 @@ class NetworkDispatcher : Dispatcher() {
     }
 
     override fun dispatch(request: RecordedRequest): MockResponse {
-        var matchedEntry: Entry? = null
         val oktaRequest = OktaRecordedRequest(request)
-        enqueuedResponses.forEach { entry ->
-            if (entry.requestMatcher(oktaRequest)) {
-                matchedEntry = entry
-                return@forEach
-            }
+        val matchedEntry = enqueuedResponses.first { entry ->
+            entry.requestMatcher(oktaRequest)
         }
 
         matchedEntry?.let { capturedEntry ->

@@ -54,6 +54,7 @@ dependencies {
     implementation deps.kotlin.serialization_okio
     implementation deps.security_crypto
 
+    testImplementation deps.coroutines.test
     testImplementation deps.androidx_test.core
     testImplementation deps.junit
     testImplementation deps.truth

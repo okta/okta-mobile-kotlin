@@ -345,12 +345,12 @@ class OidcClientTest {
         oktaRule.enqueue(
             path("/oauth2/default/v1/keys"),
         ) { response ->
-            response.testBodyFromFile("$mockPrefix/jwks.json")
+            response.setResponseCode(503)
         }
         oktaRule.enqueue(
             path("/oauth2/default/v1/keys"),
         ) { response ->
-            response.setResponseCode(503)
+            response.testBodyFromFile("$mockPrefix/jwks.json")
         }
         val client = oktaRule.createOidcClient(oktaRule.createEndpoints(includeJwks = true))
         val result = client.jwks()
