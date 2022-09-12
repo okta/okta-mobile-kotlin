@@ -16,30 +16,40 @@
 package com.okta.authfoundation.client
 
 import com.google.common.truth.Truth.assertThat
+import com.okta.authfoundation.client.events.RateLimitExceededEvent
 import com.okta.authfoundation.client.internal.performRequest
 import com.okta.authfoundation.client.internal.performRequestNonJson
 import com.okta.authfoundation.credential.Credential
+import com.okta.authfoundation.events.EventHandler
 import com.okta.testhelpers.OktaRule
+import com.okta.testhelpers.RequestMatchers.doesNotContainHeader
 import com.okta.testhelpers.RequestMatchers.doesNotContainHeaderWithValue
 import com.okta.testhelpers.RequestMatchers.header
 import com.okta.testhelpers.RequestMatchers.path
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.currentTime
+import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import okhttp3.Interceptor
 import okhttp3.Request
 import okhttp3.Response
+import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.SocketPolicy
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.mock
-import java.lang.IllegalStateException
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import kotlin.time.Duration.Companion.seconds
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class NetworkingTest {
     @get:Rule val oktaRule = OktaRule()
 
@@ -353,6 +363,428 @@ class NetworkingTest {
             it["foo"]!!.jsonPrimitive.content
         }
         assertThat((result as OidcClientResult.Success<String>).result).isEqualTo("bar")
+    }
+
+    @Test fun testPerformRequestWithNon429ErrorHasNoRetry(): Unit = runTest {
+        oktaRule.enqueue(path("/test")) { response ->
+            response.setResponseCode(401)
+            response.setBody("""{"foo":"bar"}""")
+        }
+        oktaRule.enqueue(path("/test")) { _ ->
+            throw IllegalStateException("Retried request after getting non-429 response.")
+        }
+        val request = Request.Builder()
+            .url(oktaRule.baseUrl.newBuilder().addPathSegments("test").build())
+            .build()
+
+        val result = oktaRule.createOidcClient().performRequest(JsonObject.serializer(), request) {
+            it["foo"]!!.jsonPrimitive.content
+        }
+
+        val exception = (result as OidcClientResult.Error<String>).exception
+        assertThat(exception).isInstanceOf(OidcClientResult.Error.HttpResponseException::class.java)
+        val httpResponseException = exception as OidcClientResult.Error.HttpResponseException
+        assertThat(httpResponseException.responseCode).isEqualTo(401)
+
+        assertThat(oktaRule.mockWebServerDispatcher.numberRemainingInQueue()).isEqualTo(1)
+        oktaRule.mockWebServerDispatcher.clear()
+    }
+
+    @Test fun testPerformRequestWithNon429ErrorAndRateLimitHeadersDoesNotRetry() = runTest {
+        oktaRule.enqueue(path("/test")) { response ->
+            response.setResponseCode(401)
+            setRateLimitHeaders(response)
+            response.setBody("""{"foo":"bar"}""")
+        }
+        oktaRule.enqueue(path("/test")) { _ ->
+            throw IllegalStateException("Retried request after getting non-429 response.")
+        }
+        val request = Request.Builder()
+            .url(oktaRule.baseUrl.newBuilder().addPathSegments("test").build())
+            .build()
+
+        val result = oktaRule.createOidcClient().performRequest(JsonObject.serializer(), request) {
+            it["foo"]!!.jsonPrimitive.content
+        }
+
+        val exception = (result as OidcClientResult.Error<String>).exception
+        assertThat(exception).isInstanceOf(OidcClientResult.Error.HttpResponseException::class.java)
+        val httpResponseException = exception as OidcClientResult.Error.HttpResponseException
+        assertThat(httpResponseException.responseCode).isEqualTo(401)
+
+        assertThat(oktaRule.mockWebServerDispatcher.numberRemainingInQueue()).isEqualTo(1)
+        oktaRule.mockWebServerDispatcher.clear()
+    }
+
+    @Test fun testPerformRequestDoesNotRetryOnNetworkFailure(): Unit = runTest {
+        oktaRule.enqueue(path("/test")) { response ->
+            response.socketPolicy = SocketPolicy.DISCONNECT_AT_START
+        }
+        oktaRule.enqueue(path("/test")) { _ ->
+            throw IllegalStateException("Retried request after network failure.")
+        }
+
+        val request = Request.Builder()
+            .url(oktaRule.baseUrl.newBuilder().addPathSegments("test").build())
+            .build()
+
+        val result = oktaRule.createOidcClient().performRequest(JsonObject.serializer(), request, { true }) {
+            it["foo"]!!.jsonPrimitive.content
+        }
+        val message = (result as OidcClientResult.Error<String>).exception.message
+        assertThat(message).contains("EOF")
+
+        assertThat(oktaRule.mockWebServerDispatcher.numberRemainingInQueue()).isEqualTo(1)
+        oktaRule.mockWebServerDispatcher.clear()
+    }
+
+    @Test fun testPerformRequestRetryOn429ErrorAndStopOnSuccess(): Unit = runTest {
+        oktaRule.enqueue(path("/test")) { response ->
+            response.setResponseCode(429)
+            setRateLimitHeaders(response)
+            response.setBody("""{"foo":"bar"}""")
+        }
+        oktaRule.enqueue(path("/test")) { response ->
+            setRateLimitHeaders(response)
+            response.setBody("""{"foo":"bar"}""")
+        }
+        val request = Request.Builder()
+            .url(oktaRule.baseUrl.newBuilder().addPathSegments("test").build())
+            .build()
+
+        val result = oktaRule.createOidcClient().performRequest(JsonObject.serializer(), request) {
+            it["foo"]!!.jsonPrimitive.content
+        }
+
+        assertThat((result as OidcClientResult.Success<String>).result).isEqualTo("bar")
+    }
+
+    @Test fun testPerformRequestRetryOn429FollowedByDifferentError(): Unit = runTest {
+        oktaRule.enqueue(path("/test")) { response ->
+            response.setResponseCode(429)
+            setRateLimitHeaders(response)
+            response.setBody("""{"foo":"bar"}""")
+        }
+        oktaRule.enqueue(path("/test")) { response ->
+            response.setResponseCode(404)
+            setRateLimitHeaders(response)
+            response.setBody("""{"foo":"bar"}""")
+        }
+        val request = Request.Builder()
+            .url(oktaRule.baseUrl.newBuilder().addPathSegments("test").build())
+            .build()
+
+        val result = oktaRule.createOidcClient().performRequest(JsonObject.serializer(), request) {
+            it["foo"]!!.jsonPrimitive.content
+        }
+
+        val exception = (result as OidcClientResult.Error<String>).exception
+        assertThat(exception).isInstanceOf(OidcClientResult.Error.HttpResponseException::class.java)
+        val httpResponseException = exception as OidcClientResult.Error.HttpResponseException
+        assertThat(httpResponseException.responseCode).isEqualTo(404)
+    }
+
+    @Test fun testPerformRequestRetryContainsRetryForHeader(): Unit = runTest {
+        val requestId = "requestId1234"
+        oktaRule.enqueue(path("/test")) { response ->
+            response.setResponseCode(429)
+            setRateLimitHeaders(response, requestId = requestId)
+            response.setBody("""{"foo":"bar"}""")
+        }
+        oktaRule.enqueue(
+            path("/test"),
+            header("x-okta-retry-for", requestId)
+        ) { response ->
+            setRateLimitHeaders(response)
+            response.setBody("""{"foo":"bar"}""")
+        }
+        val request = Request.Builder()
+            .url(oktaRule.baseUrl.newBuilder().addPathSegments("test").build())
+            .build()
+
+        val result = oktaRule.createOidcClient().performRequest(JsonObject.serializer(), request) {
+            it["foo"]!!.jsonPrimitive.content
+        }
+
+        assertThat((result as OidcClientResult.Success<String>).result).isEqualTo("bar")
+    }
+
+    @Test fun testPerformRequestRetryDoesNotContainRetryForHeaderIfRequestIdMissing(): Unit = runTest {
+        oktaRule.enqueue(
+            path("/test"),
+            doesNotContainHeader("x-okta-retry-for")
+        ) { response ->
+            response.setResponseCode(429)
+            setRateLimitHeaders(response, requestId = null)
+            response.setBody("""{"foo":"bar"}""")
+        }
+        oktaRule.enqueue(
+            path("/test"),
+            doesNotContainHeader("x-okta-retry-for")
+        ) { response ->
+            setRateLimitHeaders(response)
+            response.setBody("""{"foo":"bar"}""")
+        }
+        val request = Request.Builder()
+            .url(oktaRule.baseUrl.newBuilder().addPathSegments("test").build())
+            .build()
+
+        val result = oktaRule.createOidcClient().performRequest(JsonObject.serializer(), request) {
+            it["foo"]!!.jsonPrimitive.content
+        }
+
+        assertThat((result as OidcClientResult.Success<String>).result).isEqualTo("bar")
+    }
+
+    @Test fun testPerformRequestRetryContainsRetryCountHeader(): Unit = runTest {
+        val retries = 3
+        oktaRule.enqueue(
+            path("/test"),
+            doesNotContainHeader("x-okta-retry-count")
+        ) { response ->
+            response.setResponseCode(429)
+            setRateLimitHeaders(response)
+            response.setBody("""{"foo":"bar"}""")
+        }
+
+        for (i in 1 until retries) {
+            oktaRule.enqueue(
+                path("/test"),
+                header("x-okta-retry-count", i.toString())
+            ) { response ->
+                response.setResponseCode(429)
+                setRateLimitHeaders(response)
+                response.setBody("""{"foo":"bar"}""")
+            }
+        }
+
+        oktaRule.enqueue(
+            path("/test"),
+            header("x-okta-retry-count", retries.toString())
+        ) { response ->
+            setRateLimitHeaders(response)
+            response.setBody("""{"foo":"bar"}""")
+        }
+        val request = Request.Builder()
+            .url(oktaRule.baseUrl.newBuilder().addPathSegments("test").build())
+            .build()
+
+        val result = oktaRule.createOidcClient().performRequest(JsonObject.serializer(), request) {
+            it["foo"]!!.jsonPrimitive.content
+        }
+
+        assertThat((result as OidcClientResult.Success<String>).result).isEqualTo("bar")
+    }
+
+    @Test fun testPerformRequestRetryAfterMinimumDelay(): Unit = runTest {
+        val minDelaySeconds = 20L
+        val rateLimitEventHandler = getRateLimitExceededEventHandler(minDelaySeconds = minDelaySeconds)
+        oktaRule.eventHandler.registerEventHandler(rateLimitEventHandler)
+
+        oktaRule.enqueue(path("/test")) { response ->
+            response.setResponseCode(429)
+            setRateLimitHeaders(
+                response,
+                rateLimitResetEpochTime = TIME_EPOCH_SECS - 500
+            )
+            response.setBody("""{"foo":"bar"}""")
+        }
+        oktaRule.enqueue(path("/test")) { response ->
+            setRateLimitHeaders(response)
+            response.setBody("""{"foo":"bar"}""")
+        }
+        val request = Request.Builder()
+            .url(oktaRule.baseUrl.newBuilder().addPathSegments("test").build())
+            .build()
+
+        val startTime = currentTime
+        val result = oktaRule.createOidcClient().performRequest(JsonObject.serializer(), request) {
+            it["foo"]!!.jsonPrimitive.content
+        }
+        val elapsedTime = currentTime - startTime
+
+        assertThat((result as OidcClientResult.Success<String>).result).isEqualTo("bar")
+        assertThat(elapsedTime).isEqualTo(minDelaySeconds.seconds.inWholeMilliseconds)
+    }
+
+    @Test fun testPerformRequestRetryAtResetTime(): Unit = runTest {
+        val rateLimitResetAfterSeconds = 500L
+
+        oktaRule.enqueue(path("/test")) { response ->
+            response.setResponseCode(429)
+            setRateLimitHeaders(
+                response,
+                rateLimitResetEpochTime = TIME_EPOCH_SECS + rateLimitResetAfterSeconds,
+            )
+            response.setBody("""{"foo":"bar"}""")
+        }
+        oktaRule.enqueue(path("/test")) { response ->
+            setRateLimitHeaders(response)
+            response.setBody("""{"foo":"bar"}""")
+        }
+        val request = Request.Builder()
+            .url(oktaRule.baseUrl.newBuilder().addPathSegments("test").build())
+            .build()
+
+        val startTime = currentTime
+        val result = oktaRule.createOidcClient().performRequest(JsonObject.serializer(), request) {
+            it["foo"]!!.jsonPrimitive.content
+        }
+        val elapsedTime = currentTime - startTime
+
+        assertThat((result as OidcClientResult.Success<String>).result).isEqualTo("bar")
+        assertThat(elapsedTime).isEqualTo(rateLimitResetAfterSeconds.seconds.inWholeMilliseconds)
+    }
+
+    @Test fun testPerformRequestRetryUpToMaxRetriesOn429ErrorResponse(): Unit = runTest {
+        val maxRetries = 5
+        val rateLimitEventHandler = getRateLimitExceededEventHandler(maxRetries = maxRetries)
+        oktaRule.eventHandler.registerEventHandler(rateLimitEventHandler)
+
+        for (i in 0 until maxRetries + 1) { // One try + maxRetries retries
+            oktaRule.enqueue(path("/test")) { response ->
+                response.setResponseCode(429)
+                setRateLimitHeaders(response)
+                response.setBody("""{"foo":"bar"}""")
+            }
+        }
+
+        val request = Request.Builder()
+            .url(oktaRule.baseUrl.newBuilder().addPathSegments("test").build())
+            .build()
+
+        val result = oktaRule.createOidcClient().performRequest(JsonObject.serializer(), request) {
+            it["foo"]!!.jsonPrimitive.content
+        }
+
+        val exception = (result as OidcClientResult.Error<String>).exception
+        assertThat(exception).isInstanceOf(OidcClientResult.Error.HttpResponseException::class.java)
+        val httpResponseException = exception as OidcClientResult.Error.HttpResponseException
+        assertThat(httpResponseException.responseCode).isEqualTo(429)
+    }
+
+    @Test fun testPerformRequestRetryCancelsOnCoroutineCancellation(): Unit = runBlocking {
+        val fetchedFirstRequestCountDownLatch = CountDownLatch(1)
+
+        oktaRule.enqueue(path("/test")) { response ->
+            response.setResponseCode(429)
+            setRateLimitHeaders(
+                response,
+                rateLimitResetEpochTime = TIME_EPOCH_SECS - 500
+            )
+            response.setBody("""{"foo":"bar"}""")
+            fetchedFirstRequestCountDownLatch.countDown()
+        }
+        oktaRule.enqueue(path("/test")) { _ ->
+            throw IllegalStateException("Retried the request after coroutine cancellation")
+        }
+
+        val request = Request.Builder()
+            .url(oktaRule.baseUrl.newBuilder().addPathSegments("test").build())
+            .build()
+
+        val job = launch(Dispatchers.IO) {
+            oktaRule.createOidcClient().performRequest(JsonObject.serializer(), request) {
+                throw IllegalStateException("We got a response.")
+            }
+        }
+        assertThat(fetchedFirstRequestCountDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
+        job.cancelAndJoin()
+        assertThat(oktaRule.mockWebServerDispatcher.numberRemainingInQueue()).isEqualTo(1)
+        oktaRule.mockWebServerDispatcher.clear()
+    }
+
+    @Test fun testPerformRequestRetryWithInvalidDateHeaderShouldWaitMinDelay(): Unit = runTest {
+        val minDelaySeconds = 20L
+        val rateLimitEventHandler = getRateLimitExceededEventHandler(minDelaySeconds = minDelaySeconds)
+        oktaRule.eventHandler.registerEventHandler(rateLimitEventHandler)
+
+        oktaRule.enqueue(path("/test")) { response ->
+            response.setResponseCode(429)
+            setRateLimitHeaders(response, responseHumanReadableDate = "abcde")
+            response.setBody("""{"foo":"bar"}""")
+        }
+        oktaRule.enqueue(path("/test")) { response ->
+            setRateLimitHeaders(response)
+            response.setBody("""{"foo":"bar"}""")
+        }
+        val request = Request.Builder()
+            .url(oktaRule.baseUrl.newBuilder().addPathSegments("test").build())
+            .build()
+
+        val startTime = currentTime
+        val result = oktaRule.createOidcClient().performRequest(JsonObject.serializer(), request) {
+            it["foo"]!!.jsonPrimitive.content
+        }
+        val elapsedTime = currentTime - startTime
+
+        assertThat((result as OidcClientResult.Success<String>).result).isEqualTo("bar")
+        assertThat(elapsedTime).isEqualTo(minDelaySeconds.seconds.inWholeMilliseconds)
+    }
+
+    @Test fun testPerformRequestRetryWithInvalidRateLimitResetHeaderShouldWaitMinDelay(): Unit = runTest {
+        val minDelaySeconds = 20L
+        val rateLimitEventHandler = getRateLimitExceededEventHandler(minDelaySeconds = minDelaySeconds)
+        oktaRule.eventHandler.registerEventHandler(rateLimitEventHandler)
+
+        oktaRule.enqueue(path("/test")) { response ->
+            response.setResponseCode(429)
+            setRateLimitHeaders(response)
+            response.setHeader("x-rate-limit-reset", "abcde")
+            response.setBody("""{"foo":"bar"}""")
+        }
+        oktaRule.enqueue(path("/test")) { response ->
+            setRateLimitHeaders(response)
+            response.setBody("""{"foo":"bar"}""")
+        }
+        val request = Request.Builder()
+            .url(oktaRule.baseUrl.newBuilder().addPathSegments("test").build())
+            .build()
+
+        val startTime = currentTime
+        val result = oktaRule.createOidcClient().performRequest(JsonObject.serializer(), request) {
+            it["foo"]!!.jsonPrimitive.content
+        }
+        val elapsedTime = currentTime - startTime
+
+        assertThat((result as OidcClientResult.Success<String>).result).isEqualTo("bar")
+        assertThat(elapsedTime).isEqualTo(minDelaySeconds.seconds.inWholeMilliseconds)
+    }
+
+    private fun setRateLimitHeaders(
+        response: MockResponse,
+        rateLimitRemaining: Int = 0,
+        rateLimitLimit: Int = 300,
+        rateLimitResetEpochTime: Long = TIME_EPOCH_SECS + 50,
+        responseHumanReadableDate: String = TIME_HTTP_DATE,
+        requestId: String? = REQUEST_ID,
+    ) {
+        response.setHeader("x-rate-limit-remaining", rateLimitRemaining)
+        response.setHeader("x-rate-limit-limit", rateLimitLimit)
+        response.setHeader("x-rate-limit-reset", rateLimitResetEpochTime)
+        response.setHeader("date", responseHumanReadableDate)
+        requestId?.let {
+            response.setHeader("x-okta-request-id", requestId)
+        }
+    }
+
+    private fun getRateLimitExceededEventHandler(
+        maxRetries: Int = 3,
+        minDelaySeconds: Long = 5L,
+    ): EventHandler {
+        return object : EventHandler {
+            override fun onEvent(event: Any) {
+                val errorEvent = event as RateLimitExceededEvent
+                errorEvent.maxRetries = maxRetries
+                errorEvent.minDelaySeconds = minDelaySeconds
+            }
+        }
+    }
+
+    companion object {
+        private const val TIME_HTTP_DATE = "Fri, 09 Sep 2022 00:00:00 GMT"
+        private const val TIME_EPOCH_SECS = 1662681600L // TIME_HTTP_DATE in epoch time
+        private const val REQUEST_ID = "requestId"
     }
 }
 

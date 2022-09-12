@@ -194,6 +194,15 @@ public final class com/okta/authfoundation/client/dto/OidcUserInfo : com/okta/au
 	public fun deserializeClaims (Lkotlinx/serialization/DeserializationStrategy;)Ljava/lang/Object;
 }
 
+public final class com/okta/authfoundation/client/events/RateLimitExceededEvent {
+	public final fun getMaxRetries ()I
+	public final fun getMinDelaySeconds ()J
+	public final fun getRequest ()Lokhttp3/Request;
+	public final fun getResponse ()Lokhttp3/Response;
+	public final fun setMaxRetries (I)V
+	public final fun setMinDelaySeconds (J)V
+}
+
 public final class com/okta/authfoundation/client/events/TokenCreatedEvent {
 	public final fun getCredential ()Lcom/okta/authfoundation/credential/Credential;
 	public final fun getToken ()Lcom/okta/authfoundation/credential/Token;
