@@ -65,43 +65,61 @@ class DefaultIdTokenValidatorTest {
 
     @Test fun testInvalidIssuer() {
         val idTokenClaims = IdTokenClaims(issuer = "https://invalid-test.okta.com/oauth2/default")
-        assertFailsWithMessage("Invalid issuer.", idTokenClaims)
+        assertFailsWithMessage("Invalid issuer.", IdTokenValidator.Error.INVALID_ISSUER, idTokenClaims)
     }
 
     @Test fun testInvalidAudience() {
         val idTokenClaims = IdTokenClaims(audience = "mismatch")
-        assertFailsWithMessage("Invalid audience.", idTokenClaims)
+        assertFailsWithMessage("Invalid audience.", IdTokenValidator.Error.INVALID_AUDIENCE, idTokenClaims)
     }
 
     @Test fun testInvalidHttps() {
         val idTokenClaims = IdTokenClaims(issuer = "http://example-test.okta.com/oauth2/default")
-        assertFailsWithMessage("Issuer must use HTTPS.", idTokenClaims, "http")
+        assertFailsWithMessage("Issuer must use HTTPS.", IdTokenValidator.Error.ISSUER_NOT_HTTPS, idTokenClaims, "http")
     }
 
     @Test fun testInvalidAlgorithm() {
         val idTokenClaims = IdTokenClaims()
-        assertFailsWithMessage("Invalid JWT algorithm.", idTokenClaims, algorithm = "RS328")
+        assertFailsWithMessage(
+            "Invalid JWT algorithm.",
+            IdTokenValidator.Error.INVALID_JWT_ALGORITHM,
+            idTokenClaims,
+            algorithm = "RS328"
+        )
     }
 
     @Test fun testCurrentTimeAfterExpires() {
         val idTokenClaims = IdTokenClaims(expiresAt = oktaRule.clock.currentTime - 1)
-        assertFailsWithMessage("The current time MUST be before the time represented by the exp Claim.", idTokenClaims)
+        assertFailsWithMessage(
+            "The current time MUST be before the time represented by the exp Claim.",
+            IdTokenValidator.Error.EXPIRED,
+            idTokenClaims
+        )
     }
 
     @Test fun testIssuedAtTooFarBeforeNow() {
         val idTokenClaims = IdTokenClaims(issuedAt = oktaRule.clock.currentTime - 601)
-        assertFailsWithMessage("Issued at time is not within the allowed threshold of now.", idTokenClaims)
+        assertFailsWithMessage(
+            "Issued at time is not within the allowed threshold of now.",
+            IdTokenValidator.Error.ISSUED_AT_THRESHOLD_NOT_SATISFIED,
+            idTokenClaims
+        )
     }
 
     @Test fun testIssuedAtTooFarAfterNow() {
         val idTokenClaims = IdTokenClaims(issuedAt = oktaRule.clock.currentTime + 601)
-        assertFailsWithMessage("Issued at time is not within the allowed threshold of now.", idTokenClaims)
+        assertFailsWithMessage(
+            "Issued at time is not within the allowed threshold of now.",
+            IdTokenValidator.Error.ISSUED_AT_THRESHOLD_NOT_SATISFIED,
+            idTokenClaims
+        )
     }
 
     @Test fun testMalformedPayload() {
         val idTokenClaims = IdTokenClaims(issuer = null)
         assertFailsWithMessage(
             "Unexpected 'null' when string was expected",
+            "",
             idTokenClaims
         )
     }
@@ -110,6 +128,7 @@ class DefaultIdTokenValidatorTest {
         val idTokenClaims = IdTokenClaims(nonce = "6ccdb66d-ad56-4072-b864-7a8fe73c0ac2")
         assertFailsWithMessage(
             "Nonce mismatch.",
+            IdTokenValidator.Error.NONCE_MISMATCH,
             idTokenClaims,
             nonce = "mismatch!"
         )
@@ -119,6 +138,7 @@ class DefaultIdTokenValidatorTest {
         val idTokenClaims = IdTokenClaims(nonce = "6ccdb66d-ad56-4072-b864-7a8fe73c0ac2")
         assertFailsWithMessage(
             "Nonce mismatch.",
+            IdTokenValidator.Error.NONCE_MISMATCH,
             idTokenClaims,
             nonce = null
         )
@@ -128,6 +148,7 @@ class DefaultIdTokenValidatorTest {
         val idTokenClaims = IdTokenClaims(authTime = null)
         assertFailsWithMessage(
             "Auth time not available.",
+            IdTokenValidator.Error.MAX_AGE_NOT_SATISFIED,
             idTokenClaims,
             maxAge = 300,
         )
@@ -138,6 +159,7 @@ class DefaultIdTokenValidatorTest {
         val idTokenClaims = IdTokenClaims(issuedAt = issuedAt, authTime = issuedAt + 1)
         assertFailsWithMessage(
             "Max age not satisfied.",
+            IdTokenValidator.Error.MAX_AGE_NOT_SATISFIED,
             idTokenClaims,
             maxAge = 300,
         )
@@ -148,6 +170,7 @@ class DefaultIdTokenValidatorTest {
         val idTokenClaims = IdTokenClaims(issuedAt = issuedAt, authTime = issuedAt - 301)
         assertFailsWithMessage(
             "Max age not satisfied.",
+            IdTokenValidator.Error.MAX_AGE_NOT_SATISFIED,
             idTokenClaims,
             maxAge = 300,
         )
@@ -155,11 +178,12 @@ class DefaultIdTokenValidatorTest {
 
     @Test fun testInvalidSub() {
         val idTokenClaims = IdTokenClaims(subject = null)
-        assertFailsWithMessage("A valid sub claim is required.", idTokenClaims)
+        assertFailsWithMessage("A valid sub claim is required.", IdTokenValidator.Error.INVALID_SUBJECT, idTokenClaims)
     }
 
     private fun assertFailsWithMessage(
         message: String,
+        errorIdentifier: String,
         idTokenClaims: IdTokenClaims,
         issuerPrefix: String = "https",
         nonce: String? = null,
@@ -180,6 +204,7 @@ class DefaultIdTokenValidatorTest {
             fail()
         } catch (e: IdTokenValidator.Error) {
             assertThat(e).hasMessageThat().isEqualTo(message)
+            assertThat(e.identifier).isEqualTo(errorIdentifier)
         } catch (e: SerializationException) {
             assertThat(e).hasMessageThat().isEqualTo(message)
         }

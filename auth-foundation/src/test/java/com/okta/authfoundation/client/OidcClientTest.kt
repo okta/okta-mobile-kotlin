@@ -426,6 +426,8 @@ class OidcClientTest {
         val exception = (result as OidcClientResult.Error<Token>).exception
         assertThat(exception).hasMessageThat().isEqualTo("Invalid id_token signature")
         assertThat(exception).isInstanceOf(IdTokenValidator.Error::class.java)
+        val idTokenValidatorError = exception as IdTokenValidator.Error
+        assertThat(idTokenValidatorError.identifier).isEqualTo(IdTokenValidator.Error.INVALID_JWT_SIGNATURE)
     }
 }
 
