@@ -22,6 +22,7 @@ import com.okta.authfoundation.client.dto.OidcIntrospectInfo
 import com.okta.authfoundation.client.dto.OidcUserInfo
 import com.okta.authfoundation.credential.events.CredentialDeletedEvent
 import com.okta.authfoundation.credential.events.CredentialStoredAfterRemovedEvent
+import com.okta.authfoundation.credential.events.CredentialStoredEvent
 import com.okta.authfoundation.credential.events.NoAccessTokenAvailableEvent
 import com.okta.authfoundation.events.EventCoordinator
 import com.okta.authfoundation.jwt.Jwt
@@ -163,6 +164,7 @@ class Credential internal constructor(
             updatedEntry = TokenStorage.Entry(storageIdentifier, tokenToStore, tagsCopy),
         )
         state.value = CredentialState.Data(tokenToStore, tagsCopy)
+        oidcClient.configuration.eventCoordinator.sendEvent(CredentialStoredEvent(this, this.token, this.tags))
     }
 
     /**

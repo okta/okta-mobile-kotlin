@@ -331,6 +331,12 @@ public final class com/okta/authfoundation/credential/events/CredentialStoredAft
 	public final fun getCredential ()Lcom/okta/authfoundation/credential/Credential;
 }
 
+public final class com/okta/authfoundation/credential/events/CredentialStoredEvent {
+	public final fun getCredential ()Lcom/okta/authfoundation/credential/Credential;
+	public final fun getTags ()Ljava/util/Map;
+	public final fun getToken ()Lcom/okta/authfoundation/credential/Token;
+}
+
 public final class com/okta/authfoundation/credential/events/NoAccessTokenAvailableEvent {
 	public final fun getCredential ()Lcom/okta/authfoundation/credential/Credential;
 }
