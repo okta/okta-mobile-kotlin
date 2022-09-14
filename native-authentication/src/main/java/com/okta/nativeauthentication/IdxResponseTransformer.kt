@@ -31,32 +31,50 @@ internal class RealIdxResponseTransformer : IdxResponseTransformer {
         val builder = Form.Builder()
         for (remediation in response.remediations) {
             for (field in remediation.form.visibleFields) {
-                builder.elements.addAll(field.asDynamicAuthFields(remediation))
+                builder.elements.addAll(field.asElementBuilders(remediation))
             }
-            builder.elements.addAll(remediation.asAction(clickHandler))
+            builder.elements.addAll(remediation.actionAsElementBuilders(clickHandler))
         }
         return builder
     }
 
-    private fun IdxRemediation.Form.Field.asDynamicAuthFields(remediation: IdxRemediation): List<Element.Builder<*>> {
+    private fun IdxRemediation.Form.Field.asElementBuilders(remediation: IdxRemediation): List<Element.Builder<*>> {
         return when {
             // Nested form inside a field.
             !form?.visibleFields.isNullOrEmpty() -> {
                 val result = mutableListOf<Element.Builder<*>>()
                 form?.visibleFields?.forEach {
-                    result += it.asDynamicAuthFields(remediation)
+                    result += it.asElementBuilders(remediation)
                 }
                 result
             }
+            // Options represent multiple choice items like authenticators or security questions and can be nested.
+            !options.isNullOrEmpty() -> {
+                options?.let { options ->
+                    val transformed = options.map {
+                        val nestedElements = it.form?.visibleFields?.flatMap { field ->
+                            field.asElementBuilders(remediation)
+                        } ?: emptyList()
+                        val element = Element.Options.Option.Builder(it, nestedElements.toMutableList())
+                        element.label = it.label ?: ""
+                        element
+                    }
+                    listOf(
+                        Element.Options.Builder(transformed.toMutableList()) {
+                            selectedOption = it
+                        }
+                    )
+                } ?: emptyList()
+            }
             // Simple text field.
             (type == "string") -> {
-                val field = Element.TextInput.Builder(remediation, this)
-                field.label = label ?: ""
-                field.isSecret = isSecret
+                val elementBuilder = Element.TextInput.Builder(remediation, this)
+                elementBuilder.label = label ?: ""
+                elementBuilder.isSecret = isSecret
                 (value as? String?)?.let {
-                    field.value = it
+                    elementBuilder.value = it
                 }
-                listOf(field)
+                listOf(elementBuilder)
             }
             else -> {
                 emptyList()
@@ -64,7 +82,7 @@ internal class RealIdxResponseTransformer : IdxResponseTransformer {
         }
     }
 
-    private fun IdxRemediation.asAction(clickHandler: (IdxRemediation) -> Unit): List<Element.Builder<*>> {
+    private fun IdxRemediation.actionAsElementBuilders(clickHandler: (IdxRemediation) -> Unit): List<Element.Builder<*>> {
         if (form.visibleFields.isEmpty() && capabilities.get<IdxPollRemediationCapability>() != null) {
             return emptyList()
         }

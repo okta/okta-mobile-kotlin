@@ -20,6 +20,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -28,6 +29,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Button
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
+import androidx.compose.material.RadioButton
 import androidx.compose.material.Text
 import androidx.compose.material.TextField
 import androidx.compose.material.icons.Icons
@@ -37,8 +39,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -84,30 +88,38 @@ fun FormUi(form: Form) {
             .fillMaxHeight()
     ) {
         for (element in form.elements) {
-            when (element) {
-                is Element.Action -> {
-                    Button(onClick = element.onClick) {
-                        Text(text = element.text)
-                    }
-                }
-                is Element.Label -> {
-                    val fontSize = when (element.type) {
-                        Element.Label.Type.DESCRIPTION -> 16
-                        Element.Label.Type.HEADER -> 20
-                    }
-                    Text(text = element.text, fontSize = fontSize.sp)
-                }
-                is Element.TextInput -> {
-                    TextInputUi(element)
-                }
+            ElementUi(element)
+        }
+    }
+}
+
+@Composable
+fun ElementUi(element: Element) {
+    when (element) {
+        is Element.Action -> {
+            Button(onClick = element.onClick) {
+                Text(text = element.text)
             }
+        }
+        is Element.Label -> {
+            val fontSize = when (element.type) {
+                Element.Label.Type.DESCRIPTION -> 16
+                Element.Label.Type.HEADER -> 20
+            }
+            Text(text = element.text, fontSize = fontSize.sp)
+        }
+        is Element.TextInput -> {
+            TextInputUi(element)
+        }
+        is Element.Options -> {
+            OptionsUi(element)
         }
     }
 }
 
 @Composable
 fun TextInputUi(element: Element.TextInput) {
-    var text by rememberSaveable { mutableStateOf(element.value) }
+    var text by remember { mutableStateOf(element.value) }
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
 
     TextField(
@@ -132,4 +144,26 @@ fun TextInputUi(element: Element.TextInput) {
             }
         }
     )
+}
+
+@Composable
+fun OptionsUi(element: Element.Options) {
+    var selectedOption by remember { mutableStateOf(element.option) }
+
+    for (option in element.options) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            RadioButton(selected = selectedOption == option, onClick = {
+                selectedOption = option
+                element.option = option
+            })
+            Text(text = option.label)
+        }
+        if (selectedOption == option) {
+            Column(modifier = Modifier.padding(start = 10.dp)) {
+                for (nestedElement in option.elements) {
+                    ElementUi(element = nestedElement)
+                }
+            }
+        }
+    }
 }

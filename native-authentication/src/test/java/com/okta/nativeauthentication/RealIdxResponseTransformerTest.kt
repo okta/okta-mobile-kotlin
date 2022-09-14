@@ -164,4 +164,157 @@ internal class RealIdxResponseTransformerTest {
         assertThat((elements[1] as Element.TextInput.Builder).isSecret).isTrue()
         assertThat((elements[2] as Element.Action.Builder).text).isEqualTo("Sign In")
     }
+
+    @Test fun nestedFormAddsOptionsElement() {
+        val json = """
+        {
+          "version": "1.0.0",
+          "stateHandle": "029ZAB",
+          "expiresAt": "2021-05-21T16:41:22.000Z",
+          "intent": "LOGIN",
+          "remediation": {
+            "type": "array",
+            "value": [
+              {
+                "rel": [
+                  "create-form"
+                ],
+                "name": "select-authenticator-authenticate",
+                "href": "https://foo.okta.com/idp/idx/challenge",
+                "method": "POST",
+                "produces": "application/ion+json; okta-version=1.0.0",
+                "value": [
+                  {
+                    "name": "authenticator",
+                    "type": "object",
+                    "options": [
+                      {
+                        "label": "Email",
+                        "value": {
+                          "form": {
+                            "value": [
+                              {
+                                "name": "id",
+                                "required": true,
+                                "value": "auttbu5xxmIlrSqER5d6",
+                                "mutable": false
+                              },
+                              {
+                                "name": "methodType",
+                                "required": false,
+                                "value": "email",
+                                "mutable": false
+                              }
+                            ]
+                          }
+                        },
+                        "relatesTo": "${'$'}.authenticatorEnrollments.value[0]"
+                      },
+                      {
+                        "label": "Phone",
+                        "value": {
+                          "form": {
+                            "value": [
+                              {
+                                "name": "id",
+                                "required": true,
+                                "value": "auttbu5xyM4W2p68j5d6",
+                                "mutable": false
+                              },
+                              {
+                                "name": "methodType",
+                                "type": "string",
+                                "required": false,
+                                "options": [
+                                  {
+                                    "label": "SMS",
+                                    "value": "sms"
+                                  }
+                                ]
+                              },
+                              {
+                                "name": "enrollmentId",
+                                "required": true,
+                                "value": "paewtuilfHp0NRhpW5d6",
+                                "mutable": false
+                              }
+                            ]
+                          }
+                        },
+                        "relatesTo": "${'$'}.authenticatorEnrollments.value[1]"
+                      }
+                    ]
+                  },
+                  {
+                    "name": "stateHandle",
+                    "required": true,
+                    "value": "02jbM3ltYruI-MEq8h8RCpHfnjPy-kJxpVq2HlfO2l",
+                    "visible": false,
+                    "mutable": false
+                  }
+                ],
+                "accepts": "application/json; okta-version=1.0.0"
+              }
+            ]
+          },
+          "authenticatorEnrollments": {
+            "type": "array",
+            "value": [
+              {
+                "profile": {
+                  "email": "j***8@gmail.com"
+                },
+                "type": "email",
+                "key": "okta_email",
+                "id": "eaewtv2kvtxDll3Js5d6",
+                "displayName": "Email",
+                "methods": [
+                  {
+                    "type": "email"
+                  }
+                ]
+              },
+              {
+                "profile": {
+                  "phoneNumber": "+1 XXX-XXX-0364"
+                },
+                "type": "phone",
+                "key": "phone_number",
+                "id": "paewtuilfHp0NRhpW5d6",
+                "displayName": "Phone",
+                "methods": [
+                  {
+                    "type": "sms"
+                  }
+                ]
+              }
+            ]
+          },
+          "app": {
+            "type": "object",
+            "value": {
+              "name": "oidc_client",
+              "label": "OIE Android Sample",
+              "id": "0oal2s4yhspmifyt65d6"
+            }
+          }
+        }
+        """.trimIndent()
+        val response = idxResponseFactory.fromJson(json)
+        val formBuilder = RealIdxResponseTransformer().transform(response) { }
+        val elements = formBuilder.build().elements
+        assertThat(elements).hasSize(2)
+        val optionsElement = elements[0] as Element.Options
+        assertThat(optionsElement.option).isNull()
+        assertThat(optionsElement.options).hasSize(2)
+        assertThat(optionsElement.options[0].label).isEqualTo("Email")
+        assertThat(optionsElement.options[0].elements).hasSize(0)
+        assertThat(optionsElement.options[1].label).isEqualTo("Phone")
+        assertThat(optionsElement.options[1].elements).hasSize(1)
+        val nestedPhoneElement = optionsElement.options[1].elements[0] as Element.Options
+        assertThat(nestedPhoneElement.option).isNull()
+        assertThat(nestedPhoneElement.options).hasSize(1)
+        assertThat(nestedPhoneElement.options[0].label).isEqualTo("SMS")
+        assertThat((elements[1] as Element.Action).text).isEqualTo("Choose")
+    }
 }

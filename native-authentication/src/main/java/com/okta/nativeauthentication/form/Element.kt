@@ -79,4 +79,45 @@ sealed interface Element {
             }
         }
     }
+
+    class Options private constructor(
+        private val valueUpdater: (IdxRemediation.Form.Field?) -> Unit,
+        val options: List<Option>,
+    ) : Element {
+        internal class Builder(
+            val options: MutableList<Option.Builder> = mutableListOf(),
+            private val valueUpdater: (IdxRemediation.Form.Field?) -> Unit,
+        ) : Element.Builder<Options>() {
+            override fun build(): Options {
+                return Options(valueUpdater, options.map { it.build() })
+            }
+        }
+
+        class Option private constructor(
+            private val field: IdxRemediation.Form.Field,
+            val label: String,
+            val elements: List<Element>,
+        ) {
+            internal class Builder(
+                private val field: IdxRemediation.Form.Field,
+                val elements: MutableList<Element.Builder<*>>,
+            ) {
+                var label: String = ""
+
+                fun build(): Option {
+                    return Option(field, label, elements.map { it.build() })
+                }
+            }
+
+            internal fun update(valueUpdater: (IdxRemediation.Form.Field?) -> Unit) {
+                valueUpdater(field)
+            }
+        }
+
+        @Volatile var option: Option? = null
+            set(value) {
+                field = value
+                value?.update(valueUpdater) ?: valueUpdater(null)
+            }
+    }
 }

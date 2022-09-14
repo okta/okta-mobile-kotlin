@@ -36,6 +36,19 @@ public final class com/okta/nativeauthentication/form/Element$Label$Type : java/
 	public static fun values ()[Lcom/okta/nativeauthentication/form/Element$Label$Type;
 }
 
+public final class com/okta/nativeauthentication/form/Element$Options : com/okta/nativeauthentication/form/Element {
+	public synthetic fun <init> (Lkotlin/jvm/functions/Function1;Ljava/util/List;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getOption ()Lcom/okta/nativeauthentication/form/Element$Options$Option;
+	public final fun getOptions ()Ljava/util/List;
+	public final fun setOption (Lcom/okta/nativeauthentication/form/Element$Options$Option;)V
+}
+
+public final class com/okta/nativeauthentication/form/Element$Options$Option {
+	public synthetic fun <init> (Lcom/okta/idx/kotlin/dto/IdxRemediation$Form$Field;Ljava/lang/String;Ljava/util/List;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getElements ()Ljava/util/List;
+	public final fun getLabel ()Ljava/lang/String;
+}
+
 public final class com/okta/nativeauthentication/form/Element$TextInput : com/okta/nativeauthentication/form/Element {
 	public synthetic fun <init> (Lcom/okta/idx/kotlin/dto/IdxRemediation$Form$Field;Ljava/lang/String;ZLjava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getLabel ()Ljava/lang/String;
