@@ -114,6 +114,32 @@
             />
 
         <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Acr:"
+            android:textStyle="bold"
+            />
+
+        <TextView
+            android:id="@+id/acr"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Amr:"
+            android:textStyle="bold"
+            />
+
+        <TextView
+            android:id="@+id/amr"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            />
+
+        <TextView
             android:id="@+id/claims_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

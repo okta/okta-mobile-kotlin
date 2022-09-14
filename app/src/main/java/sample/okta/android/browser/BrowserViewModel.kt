@@ -47,7 +47,7 @@ class BrowserViewModel : ViewModel() {
                 val result = webAuthenticationClient.login(
                     context = context,
                     redirectUrl = BuildConfig.SIGN_IN_REDIRECT_URI,
-                    extraRequestParameters = emptyMap(),
+                    extraRequestParameters = mapOf("acr_values" to "phrh"),
                     scope = scope,
                 )
             ) {

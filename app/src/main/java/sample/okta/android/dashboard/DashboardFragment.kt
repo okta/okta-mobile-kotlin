@@ -24,6 +24,8 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import com.okta.authfoundation.claims.authContextClassReference
+import com.okta.authfoundation.claims.authMethodsReference
 import com.okta.authfoundation.credential.RevokeTokenType
 import com.okta.authfoundation.credential.TokenType
 import com.okta.authfoundationbootstrap.CredentialBootstrap
@@ -72,6 +74,12 @@ internal class DashboardFragment : BaseFragment<FragmentDashboardBinding>(
             binding.refreshToken.text = token.refreshToken
             binding.idToken.text = token.idToken
             binding.scope.text = token.scope
+
+            lifecycleScope.launch {
+                val idToken = credential.idToken()
+                binding.acr.text = idToken?.authContextClassReference
+                binding.amr.text = idToken?.authMethodsReference?.joinToString()
+            }
 
             if (token.refreshToken == null) {
                 binding.refreshAccessTokenButton.visibility = View.GONE
