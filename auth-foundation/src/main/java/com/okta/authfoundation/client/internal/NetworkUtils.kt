@@ -127,36 +127,37 @@ private suspend fun OidcConfiguration.executeRequest(
 ): Response {
     currentCoroutineContext().ensureActive()
     val rateLimitErrorCode = 429
+    var retryCount = 0
+    var response: Response
+    var requestToExecute = request
+    var delaySeconds = 0L
 
-    var response = okHttpClient.newCall(request).await()
+    do {
+        delay(delaySeconds.seconds)
+        response = okHttpClient.newCall(requestToExecute).await()
 
-    if (response.code == rateLimitErrorCode) {
-        val event = RateLimitExceededEvent(request, response)
-        eventCoordinator.sendEvent(event)
+        if (response.code != rateLimitErrorCode) return response
 
-        for (i in 1..event.maxRetries) {
-            val timeToResetSeconds: Long
-            val requestId: String?
-            response.use {
-                val responseTimeSeconds = response.headers.getDate("Date")?.time?.milliseconds?.inWholeSeconds
-                val retryTimeSeconds = response.header("X-Rate-Limit-Reset")?.toLongOrNull()
-                requestId = response.header("X-Okta-Request-Id")
-                timeToResetSeconds = if (responseTimeSeconds != null && retryTimeSeconds != null) {
-                    retryTimeSeconds - responseTimeSeconds
-                } else 0L
-            }
-
-            val delaySeconds = max(timeToResetSeconds, event.minDelaySeconds)
-            delay(delaySeconds.seconds)
-
-            val newRequest = request.newBuilder().apply {
-                requestId?.let { addHeader("X-Okta-Retry-For", requestId) }
-                addHeader("X-Okta-Retry-Count", i.toString())
-            }.build()
-            response = okHttpClient.newCall(newRequest).await()
-            if (response.code != rateLimitErrorCode) break
+        val requestId = response.header("X-Okta-Request-Id")
+        val responseTimeSeconds = response.headers.getDate("Date")?.time?.milliseconds?.inWholeSeconds
+        val retryTimeSeconds = response.header("X-Rate-Limit-Reset")?.toLongOrNull()
+        if (responseTimeSeconds == null || retryTimeSeconds == null) {
+            return response
         }
-    }
+        response.close()
+        val timeToResetSeconds = retryTimeSeconds - responseTimeSeconds
+
+        val event = RateLimitExceededEvent(requestToExecute, response, retryCount)
+        eventCoordinator.sendEvent(event)
+        retryCount++
+
+        requestToExecute = request.newBuilder().apply {
+            requestId?.let { addHeader("X-Okta-Retry-For", requestId) }
+            addHeader("X-Okta-Retry-Count", retryCount.toString())
+        }.build()
+
+        delaySeconds = max(timeToResetSeconds, event.minDelaySeconds)
+    } while (retryCount <= event.maxRetries)
 
     return response
 }
