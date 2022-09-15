@@ -300,6 +300,54 @@ before they are processed by the SDK.
 Providing a custom call factory is an advanced use case, and is not recommended. The possibilities are endless, including the ability to
 replace the engine that executes the HTTP requests.
 
+### Rate Limit Handling
+
+The Okta API will return 429 responses if too many requests are made within a given time. Please see [Rate Limiting at Okta] for a complete
+list of which endpoints are rate limited. This SDK automatically retries requests on 429 errors. The default configuration is as follows:
+
+| Configuration Option | Description |
+| ---------------------- | -------------- |
+| maxRetries         | The number of times to retry. The default value is `3`. |
+| minDelaySeconds    | The minimum amount of time to wait between each retry. The default value is `1` second. |
+
+#### Configuring retry parameters
+
+To configure retry parameters, an `EventHandler` must be registered before creating an `OidcConfiguration`. In the `EventHandler`,
+`RateLimitExceededEvent` events will be emitted any time a request receives a response with 429 status code. `minDelaySeconds` and
+`maxRetries` can be adjusted based on details provided by the event.
+
+```kotlin
+import com.okta.authfoundation.AuthFoundationDefaults
+import com.okta.authfoundation.client.OidcConfiguration
+import com.okta.authfoundation.client.events.RateLimitExceededEvent
+import com.okta.authfoundation.events.EventCoordinator
+import com.okta.authfoundation.events.EventHandler
+
+AuthFoundationDefaults.eventCoordinator = EventCoordinator(
+  object : EventHandler {
+    override fun onEvent(event: Any) {
+      when (event) {
+        is RateLimitExceededEvent -> {
+          // Event info
+          val retriedRequest = event.request // Request that triggered the event
+          val responseWith429Code = event.response// 429 response to the request. Note: Only access the response body using response.peekBody
+          val retryCount = event.retryCount // Number of retries for this request so far
+
+          // User configurable flags
+          event.minDelaySeconds = 1L // User configurable delay, in seconds, for retrying the request again
+          event.maxRetries = 3 // User configurable max retries for this request
+        }
+      }
+    }
+  }
+)
+
+val oidcConfiguration = OidcConfiguration(
+  clientId = "{clientId}",
+  defaultScope = "openid email profile offline_access",
+)
+```
+
 ## Troubleshooting
 
 - java.lang.NoClassDefFoundError: Failed resolution of: Ljava/time/Instant;
@@ -344,3 +392,4 @@ We are happy to accept contributions and PRs! Please see the [contribution guide
 [github-releases]: https://github.com/okta/okta-mobile-kotlin/releases
 [Rate Limiting at Okta]: https://developer.okta.com/docs/api/getting_started/rate-limits
 [okta-library-versioning]: https://developer.okta.com/code/library-versions
+[Rate Limiting at Okta]: https://developer.okta.com/docs/api/getting_started/rate-limits
