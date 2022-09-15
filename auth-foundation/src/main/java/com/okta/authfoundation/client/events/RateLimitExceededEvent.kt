@@ -23,7 +23,7 @@ import okhttp3.Response
  * Emitted via [EventHandler.onEvent] when a network request receives 429 HTTP status code (rate limit exceeded).
  * See [Rate Limits Overview](https://developer.okta.com/docs/reference/rate-limits/) for additional details.
  *
- * The default implementation retries the request 3 times, with a minimum delay of 5 seconds between each request.
+ * The default implementation retries the request 3 times, with a minimum delay of 1 seconds between each request.
  * See [maxRetries] and [minDelaySeconds]
  */
 class RateLimitExceededEvent internal constructor(
@@ -36,6 +36,10 @@ class RateLimitExceededEvent internal constructor(
      */
     val response: Response,
     /**
+     * Number of retry attempts for [request] so far.
+     */
+    val retryCount: Int,
+    /**
      * Allows the app developer to change how many times, at most, [request] should be retried
      * when a 429 status code is received.
      */
@@ -44,5 +48,5 @@ class RateLimitExceededEvent internal constructor(
      * Allows the app developer to change the minimum amount of time, in seconds, to wait before
      * retrying [request] when a 429 status code is received.
      */
-    var minDelaySeconds: Long = 5L,
+    var minDelaySeconds: Long = 1L,
 )
