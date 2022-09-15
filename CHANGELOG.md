@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.1.0] - 2022-09-13
+
+[Commits](https://github.com/okta/okta-mobile-kotlin/compare/1.0.0...1.1.0)
+
+### Added
+- Add revokeAllTokens to Credential. [#201](https://github.com/okta/okta-mobile-kotlin/pull/201)
+- Add support for biometric backed storage. [#207](https://github.com/okta/okta-mobile-kotlin/pull/207)
+- Add Credential.tokenStateFlow. [#211](https://github.com/okta/okta-mobile-kotlin/pull/211)
+- Introduce CredentialStoredEvent. [#212](https://github.com/okta/okta-mobile-kotlin/pull/212)
+- Add getOrThrow method to OidcClientResult. [#213](https://github.com/okta/okta-mobile-kotlin/pull/213)
+- Expose an errorIdentifier for IdTokenValidator. [#214](https://github.com/okta/okta-mobile-kotlin/pull/214)
+- Add rate limit handling for network requests. [#215](https://github.com/okta/okta-mobile-kotlin/pull/215)
+
 ## [1.0.0] - 2022-07-11
 
 [Commits](https://github.com/okta/okta-mobile-kotlin/compare/0.6.0-BETA...1.0.0)
