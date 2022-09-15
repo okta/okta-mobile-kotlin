@@ -48,6 +48,7 @@ import org.mockito.kotlin.mock
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.math.pow
+import kotlin.test.assertFailsWith
 import kotlin.time.Duration.Companion.seconds
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -849,6 +850,45 @@ class NetworkingTest {
 
         assertThat(events.size).isEqualTo(11)
         assertThat(events.last().retryCount).isEqualTo(10)
+    }
+
+    @Test fun testPerformRequestRetryClosesUnusedResponsesAfterEmittingEvent(): Unit = runBlocking {
+        val events = mutableListOf<RateLimitExceededEvent>()
+        val rateLimitEventHandler = object : EventHandler {
+            override fun onEvent(event: Any) {
+                val errorEvent = event as RateLimitExceededEvent
+                errorEvent.minDelaySeconds = 0L
+                events.add(errorEvent)
+                assertThat(event.response.peekBody(Long.MAX_VALUE).string()).isEqualTo("")
+            }
+        }
+        oktaRule.eventHandler.registerEventHandler(rateLimitEventHandler)
+
+        for (i in 0 until 4) { // One try + 3 retries
+            oktaRule.enqueue(path("/test")) { response ->
+                response.setResponseCode(429)
+                setRateLimitHeaders(response, rateLimitResetEpochTime = TIME_EPOCH_SECS - 500)
+            }
+        }
+
+        val request = Request.Builder()
+            .url(oktaRule.baseUrl.newBuilder().addPathSegments("test").build())
+            .build()
+
+        val response = oktaRule.createOidcClient().performRequest(request)
+
+        assertThat(events.size).isEqualTo(4)
+        val lastRetryEvent = events.removeLast()
+        events.forEach { event ->
+            val exception = assertFailsWith<IllegalStateException> {
+                event.response.peekBody(Long.MAX_VALUE).string()
+            }
+            assertThat(exception.message).isEqualTo("closed")
+        }
+        // We already have retried up to maxRetries, and response is the same as last unsuccessful retry.
+        // So, don't close it
+        assertThat(response.getOrThrow().peekBody(Long.MAX_VALUE).string()).isEqualTo("")
+        assertThat(lastRetryEvent.response.peekBody(Long.MAX_VALUE).string()).isEqualTo("")
     }
 
     private fun setRateLimitHeaders(
