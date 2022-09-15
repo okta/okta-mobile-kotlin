@@ -144,12 +144,13 @@ private suspend fun OidcConfiguration.executeRequest(
         if (responseTimeSeconds == null || retryTimeSeconds == null) {
             return response
         }
-        response.close()
         val timeToResetSeconds = retryTimeSeconds - responseTimeSeconds
 
         val event = RateLimitExceededEvent(requestToExecute, response, retryCount)
         eventCoordinator.sendEvent(event)
         retryCount++
+
+        if (retryCount <= event.maxRetries) response.close()
 
         requestToExecute = request.newBuilder().apply {
             requestId?.let { addHeader("X-Okta-Retry-For", requestId) }
