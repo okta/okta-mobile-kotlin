@@ -51,12 +51,12 @@ dependencies {
     implementation project(':auth-foundation-bootstrap')
     implementation project(':oauth2')
 
-    implementation 'com.okta.authn.sdk:okta-authn-sdk-api:2.0.7'
-    runtimeOnly('com.okta.authn.sdk:okta-authn-sdk-impl:2.0.7') {
+    implementation deps.okta.authn_api
+    runtimeOnly(deps.okta.authn_impl) {
         exclude group: 'com.okta.sdk', module: 'okta-sdk-httpclient'
         exclude group: 'org.bouncycastle'
     }
-    implementation 'com.okta.sdk:okta-sdk-okhttp:8.0.0'
+    implementation deps.okta.management_okhttp
 
     implementation deps.kotlin.stdlib
     implementation deps.core_ktx
