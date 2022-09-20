@@ -236,14 +236,17 @@ class Credential internal constructor(
         localToken.deviceSecret?.let { pairsToRevoke[RevokeTokenType.DEVICE_SECRET] = it }
 
         return coroutineScope {
-            val exceptionPairs = mutableMapOf<RevokeTokenType, Exception>()
-            pairsToRevoke.map { entry ->
-                async {
-                    (oidcClient.revokeToken(entry.value) as? OidcClientResult.Error<Unit>)?.exception?.let {
-                        exceptionPairs[entry.key] = it
+            val exceptionPairs = pairsToRevoke
+                .map { entry ->
+                    async {
+                        (oidcClient.revokeToken(entry.value) as? OidcClientResult.Error<Unit>)?.exception?.let {
+                            entry.key to it
+                        }
                     }
                 }
-            }.awaitAll()
+                .awaitAll()
+                .filterNotNull()
+                .toMap()
 
             if (exceptionPairs.isEmpty()) {
                 OidcClientResult.Success(Unit)
