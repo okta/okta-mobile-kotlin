@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.1.0] - 2022-09-21
+
+### Changed
+- Updated to the latest auth-foundation (1.1.0)
+
 ## [2.0.0] - 2022-07-11
 
 ### Changed
