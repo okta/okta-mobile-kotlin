@@ -10,7 +10,7 @@
 
 ## Local Publishing
 If the bacon task above isn't available, you can publish locally via:
-1. `./gradlew publish --rerun-tasks --no-daemon --no-parallel -PsignWithGpgCommand`
+1. `./gradlew publish --rerun-tasks -PsignWithGpgCommand`
 2. `./gradlew closeAndReleaseRepository`
 
 ## Generating GPG Keys
