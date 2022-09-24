@@ -15,9 +15,13 @@
  */
 package com.okta.nativeauthentication
 
+import com.okta.idx.kotlin.dto.IdxAuthenticator
+import com.okta.idx.kotlin.dto.IdxAuthenticatorCollection
 import com.okta.idx.kotlin.dto.IdxIdpCapability
 import com.okta.idx.kotlin.dto.IdxPollRemediationCapability
+import com.okta.idx.kotlin.dto.IdxRecoverCapability
 import com.okta.idx.kotlin.dto.IdxRemediation
+import com.okta.idx.kotlin.dto.IdxResendCapability
 import com.okta.idx.kotlin.dto.IdxResponse
 import com.okta.nativeauthentication.form.Element
 import com.okta.nativeauthentication.form.Form
@@ -34,7 +38,9 @@ internal class RealIdxResponseTransformer : IdxResponseTransformer {
                 builder.elements.addAll(field.asElementBuilders(remediation))
             }
             builder.elements.addAll(remediation.actionAsElementBuilders(clickHandler))
+            builder.elements.addAll(remediation.resendCodeElement(clickHandler))
         }
+        builder.elements.addAll(response.recoverElement(clickHandler))
         return builder
     }
 
@@ -109,5 +115,33 @@ internal class RealIdxResponseTransformer : IdxResponseTransformer {
             clickHandler(this)
         }
         return listOf(builder)
+    }
+
+    private fun IdxRemediation.resendCodeElement(clickHandler: (IdxRemediation) -> Unit): List<Element.Builder<*>> {
+        val capability = authenticators.capability<IdxResendCapability>() ?: return emptyList()
+        if (form.visibleFields.find { it.type != "string" } == null) {
+            return emptyList() // There is no way to type in the code yet.
+        }
+        val builder = Element.Action.Builder(capability.remediation)
+        builder.text = "Resend Code"
+        builder.onClick = {
+            clickHandler(capability.remediation)
+        }
+        return listOf(builder)
+    }
+
+    private fun IdxResponse.recoverElement(clickHandler: (IdxRemediation) -> Unit): List<Element.Builder<*>> {
+        val capability = authenticators.current?.capabilities?.get<IdxRecoverCapability>() ?: return emptyList()
+        val builder = Element.Action.Builder(capability.remediation)
+        builder.text = "Recover"
+        builder.onClick = {
+            clickHandler(capability.remediation)
+        }
+        return listOf(builder)
+    }
+
+    private inline fun <reified Capability : IdxAuthenticator.Capability> IdxAuthenticatorCollection.capability(): Capability? {
+        val authenticator = firstOrNull { it.capabilities.get<Capability>() != null } ?: return null
+        return authenticator.capabilities.get()
     }
 }

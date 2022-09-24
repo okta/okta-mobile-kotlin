@@ -317,4 +317,299 @@ internal class RealIdxResponseTransformerTest {
         assertThat(nestedPhoneElement.options[0].label).isEqualTo("SMS")
         assertThat((elements[1] as Element.Action).text).isEqualTo("Choose")
     }
+
+    @Test fun recoverElement() {
+        val json = """
+        {
+          "version": "1.0.0",
+          "stateHandle": "029ZAB",
+          "expiresAt": "2021-05-21T16:41:22.000Z",
+          "intent": "LOGIN",
+          "remediation": {
+            "type": "array",
+            "value": [
+              {
+                "rel": [
+                  "create-form"
+                ],
+                "name": "challenge-authenticator",
+                "relatesTo": [
+                  "${'$'}.currentAuthenticatorEnrollment"
+                ],
+                "href": "https://foo.oktapreview.com/idp/idx/challenge/answer",
+                "method": "POST",
+                "value": [
+                  {
+                    "name": "credentials",
+                    "type": "object",
+                    "form": {
+                      "value": [
+                        {
+                          "name": "passcode",
+                          "label": "Password",
+                          "secret": true
+                        }
+                      ]
+                    },
+                    "required": true
+                  },
+                  {
+                    "name": "stateHandle",
+                    "required": true,
+                    "value": "029ZAB",
+                    "visible": false,
+                    "mutable": false
+                  }
+                ],
+                "accepts": "application/ion+json; okta-version=1.0.0"
+              }
+            ]
+          },
+          "currentAuthenticatorEnrollment": {
+            "type": "object",
+            "value": {
+              "recover": {
+                "rel": [
+                  "create-form"
+                ],
+                "name": "recover",
+                "href": "https://foo.oktapreview.com/idp/idx/recover",
+                "method": "POST",
+                "value": [
+                  {
+                    "name": "stateHandle",
+                    "required": true,
+                    "value": "029ZAB",
+                    "visible": false,
+                    "mutable": false
+                  }
+                ],
+                "accepts": "application/ion+json; okta-version=1.0.0"
+              },
+              "type": "password",
+              "id": "lae609uDthwWF3VvV2o4",
+              "displayName": "Password",
+              "methods": [
+                {
+                  "type": "password"
+                }
+              ]
+            }
+          },
+          "app": {
+            "type": "object",
+            "value": {
+              "name": "oidc_client",
+              "label": "OIE Android Sample",
+              "id": "0oal2s4yhspmifyt65d6"
+            }
+          }
+        }
+        """.trimIndent()
+        val response = idxResponseFactory.fromJson(json)
+        val clickCounter = AtomicInteger(0)
+        val clickReference = AtomicReference<IdxRemediation>()
+        val formBuilder = RealIdxResponseTransformer().transform(response) { remediation ->
+            clickReference.set(remediation)
+            clickCounter.incrementAndGet()
+        }
+        val elements = formBuilder.elements
+        assertThat(elements).hasSize(3)
+        assertThat((elements[0] as Element.TextInput.Builder).remediation.name).isEqualTo("challenge-authenticator")
+        assertThat((elements[0] as Element.TextInput.Builder).idxField.name).isEqualTo("passcode")
+        assertThat((elements[0] as Element.TextInput.Builder).label).isEqualTo("Password")
+        assertThat((elements[0] as Element.TextInput.Builder).value).isEqualTo("")
+        assertThat((elements[0] as Element.TextInput.Builder).isSecret).isTrue()
+        assertThat((elements[1] as Element.Action.Builder).text).isEqualTo("Continue")
+        assertThat((elements[1] as Element.Action.Builder).remediation?.name).isEqualTo("challenge-authenticator")
+        (elements[1] as Element.Action.Builder).onClick()
+        assertThat(clickCounter.get()).isEqualTo(1)
+        assertThat(clickReference.get().name).isEqualTo("challenge-authenticator")
+        assertThat((elements[2] as Element.Action.Builder).text).isEqualTo("Recover")
+        assertThat((elements[2] as Element.Action.Builder).remediation?.name).isEqualTo("recover")
+        (elements[2] as Element.Action.Builder).onClick()
+        assertThat(clickCounter.get()).isEqualTo(2)
+        assertThat(clickReference.get().name).isEqualTo("recover")
+    }
+
+    @Test fun resendCodeElement() {
+        val json = """
+        {
+          "version": "1.0.0",
+          "stateHandle": "02ifdLyhqQ9Il4OtUU50jCdhFeCH-bzojwfpOci9EO",
+          "expiresAt": "2021-10-01T17:40:25.000Z",
+          "intent": "LOGIN",
+          "remediation": {
+            "type": "array",
+            "value": [
+              {
+                "rel": [
+                  "create-form"
+                ],
+                "name": "challenge-authenticator",
+                "relatesTo": [
+                  "${'$'}.currentAuthenticatorEnrollment"
+                ],
+                "href": "https://foo.okta.com/idp/idx/challenge/answer",
+                "method": "POST",
+                "produces": "application/ion+json; okta-version=1.0.0",
+                "value": [
+                  {
+                    "name": "credentials",
+                    "type": "object",
+                    "form": {
+                      "value": [
+                        {
+                          "name": "passcode",
+                          "label": "Enter code"
+                        }
+                      ]
+                    },
+                    "required": true
+                  },
+                  {
+                    "name": "stateHandle",
+                    "required": true,
+                    "value": "02ifdLyhqQ9Il4OtUU50jCdhFeCH-bzojwfpOci9EO",
+                    "visible": false,
+                    "mutable": false
+                  }
+                ],
+                "accepts": "application/json; okta-version=1.0.0"
+              }
+            ]
+          },
+          "currentAuthenticatorEnrollment": {
+            "type": "object",
+            "value": {
+              "profile": {
+                "email": "j***a@gmail.com"
+              },
+              "resend": {
+                "rel": [
+                  "create-form"
+                ],
+                "name": "resend",
+                "href": "https://foo.okta.com/idp/idx/challenge/resend",
+                "method": "POST",
+                "produces": "application/ion+json; okta-version=1.0.0",
+                "value": [
+                  {
+                    "name": "stateHandle",
+                    "required": true,
+                    "value": "02ifdLyhqQ9Il4OtUU50jCdhFeCH-bzojwfpOci9EO",
+                    "visible": false,
+                    "mutable": false
+                  }
+                ],
+                "accepts": "application/json; okta-version=1.0.0"
+              },
+              "poll": {
+                "rel": [
+                  "create-form"
+                ],
+                "name": "poll",
+                "href": "https://foo.okta.com/idp/idx/challenge/poll",
+                "method": "POST",
+                "produces": "application/ion+json; okta-version=1.0.0",
+                "refresh": 4000,
+                "value": [
+                  {
+                    "name": "stateHandle",
+                    "required": true,
+                    "value": "02ifdLyhqQ9Il4OtUU50jCdhFeCH-bzojwfpOci9EO",
+                    "visible": false,
+                    "mutable": false
+                  }
+                ],
+                "accepts": "application/json; okta-version=1.0.0"
+              },
+              "type": "email",
+              "key": "okta_email",
+              "id": "eaewrvclbBPr2PAxl5d6",
+              "displayName": "Email",
+              "methods": [
+                {
+                  "type": "email"
+                }
+              ]
+            }
+          },
+          "authenticators": {
+            "type": "array",
+            "value": [
+              {
+                "type": "email",
+                "key": "okta_email",
+                "id": "auttbu5xxmIlrSqER5d6",
+                "displayName": "Email",
+                "methods": [
+                  {
+                    "type": "email"
+                  }
+                ]
+              }
+            ]
+          },
+          "authenticatorEnrollments": {
+            "type": "array",
+            "value": [
+              {
+                "profile": {
+                  "email": "j***a@gmail.com"
+                },
+                "type": "email",
+                "key": "okta_email",
+                "id": "eaewrvclbBPr2PAxl5d6",
+                "displayName": "Email",
+                "methods": [
+                  {
+                    "type": "email"
+                  }
+                ]
+              }
+            ]
+          },
+          "user": {
+            "type": "object",
+            "value": {
+              "id": "00uwrvclaP8RzBSq45d6",
+              "identifier": "jaynewstromokta@gmail.com"
+            }
+          },
+          "app": {
+            "type": "object",
+            "value": {
+              "name": "oidc_client",
+              "label": "IdxSample",
+              "id": "0oauaifdh0dynIvL85d6"
+            }
+          }
+        }
+        """.trimIndent()
+        val response = idxResponseFactory.fromJson(json)
+        val clickCounter = AtomicInteger(0)
+        val clickReference = AtomicReference<IdxRemediation>()
+        val formBuilder = RealIdxResponseTransformer().transform(response) { remediation ->
+            clickReference.set(remediation)
+            clickCounter.incrementAndGet()
+        }
+        val elements = formBuilder.elements
+        assertThat(elements).hasSize(3)
+        assertThat((elements[0] as Element.TextInput.Builder).remediation.name).isEqualTo("challenge-authenticator")
+        assertThat((elements[0] as Element.TextInput.Builder).idxField.name).isEqualTo("passcode")
+        assertThat((elements[0] as Element.TextInput.Builder).label).isEqualTo("Enter code")
+        assertThat((elements[0] as Element.TextInput.Builder).value).isEqualTo("")
+        assertThat((elements[0] as Element.TextInput.Builder).isSecret).isFalse()
+        assertThat((elements[1] as Element.Action.Builder).text).isEqualTo("Continue")
+        assertThat((elements[1] as Element.Action.Builder).remediation?.name).isEqualTo("challenge-authenticator")
+        (elements[1] as Element.Action.Builder).onClick()
+        assertThat(clickCounter.get()).isEqualTo(1)
+        assertThat(clickReference.get().name).isEqualTo("challenge-authenticator")
+        assertThat((elements[2] as Element.Action.Builder).text).isEqualTo("Resend Code")
+        assertThat((elements[2] as Element.Action.Builder).remediation?.name).isEqualTo("resend")
+        (elements[2] as Element.Action.Builder).onClick()
+        assertThat(clickCounter.get()).isEqualTo(2)
+        assertThat(clickReference.get().name).isEqualTo("resend")
+    }
 }
