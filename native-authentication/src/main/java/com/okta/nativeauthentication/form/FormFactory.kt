@@ -15,18 +15,42 @@
  */
 package com.okta.nativeauthentication.form
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.SendChannel
+import kotlinx.coroutines.launch
+import java.util.concurrent.atomic.AtomicReference
 
 internal class FormFactory(
+    private val coroutineScope: CoroutineScope,
     private val sendChannel: SendChannel<Form>,
     private val formTransformers: List<FormTransformer>,
 ) {
+    private val jobReference = AtomicReference<Job?>()
+
     suspend fun emit(formBuilder: Form.Builder) {
         for (formFactory in formTransformers) {
             formFactory.apply {
                 formBuilder.transform()
             }
         }
-        sendChannel.send(formBuilder.build())
+
+        val form = formBuilder.build()
+
+        jobReference.getAndSet(null)?.cancel()
+        if (formBuilder.launchActions.isNotEmpty()) {
+            val job = coroutineScope.launch {
+                for (launchAction in formBuilder.launchActions) {
+                    // Launch each action individually so they can run in parallel.
+                    // These will be added as "children" to they'll all be cancelled with the parent job.
+                    launch {
+                        launchAction()
+                    }
+                }
+            }
+            jobReference.set(job)
+        }
+
+        sendChannel.send(form)
     }
 }

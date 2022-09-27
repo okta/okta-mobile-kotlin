@@ -16,10 +16,14 @@
 package com.okta.nativeauthentication
 
 import com.google.common.truth.Truth.assertThat
+import com.okta.authfoundation.client.OidcClientResult
+import com.okta.idx.kotlin.client.InteractionCodeFlow
 import com.okta.idx.kotlin.dto.IdxRemediation
+import com.okta.idx.kotlin.dto.IdxResponse
 import com.okta.nativeauthentication.form.Element
 import com.okta.nativeauthentication.utils.IdxResponseFactory
 import com.okta.testing.network.NetworkRule
+import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.atomic.AtomicInteger
@@ -29,6 +33,12 @@ internal class RealIdxResponseTransformerTest {
     @get:Rule val networkRule = NetworkRule()
 
     private val idxResponseFactory = IdxResponseFactory(networkRule)
+
+    private val noInteractionsResponseTransformer: suspend (
+        resultProducer: suspend (InteractionCodeFlow) -> OidcClientResult<IdxResponse>
+    ) -> Unit = {
+        throw AssertionError("Not expected")
+    }
 
     @Test fun basicFormIsReturned() {
         val json = """
@@ -78,10 +88,11 @@ internal class RealIdxResponseTransformerTest {
         val response = idxResponseFactory.fromJson(json)
         val clickCounter = AtomicInteger(0)
         val clickReference = AtomicReference<IdxRemediation>()
-        val formBuilder = RealIdxResponseTransformer().transform(response) { remediation ->
+        val formBuilder = RealIdxResponseTransformer().transform(noInteractionsResponseTransformer, response) { remediation ->
             clickReference.set(remediation)
             clickCounter.incrementAndGet()
         }
+        assertThat(formBuilder.launchActions).isEmpty()
         val elements = formBuilder.elements
         assertThat(elements).hasSize(2)
         assertThat((elements[0] as Element.TextInput.Builder).remediation.name).isEqualTo("identify")
@@ -156,7 +167,8 @@ internal class RealIdxResponseTransformerTest {
         }
         """.trimIndent()
         val response = idxResponseFactory.fromJson(json)
-        val formBuilder = RealIdxResponseTransformer().transform(response) { }
+        val formBuilder = RealIdxResponseTransformer().transform(noInteractionsResponseTransformer, response) { }
+        assertThat(formBuilder.launchActions).isEmpty()
         val elements = formBuilder.elements
         assertThat(elements).hasSize(3)
         assertThat((elements[0] as Element.TextInput.Builder).label).isEqualTo("Username")
@@ -165,7 +177,7 @@ internal class RealIdxResponseTransformerTest {
         assertThat((elements[2] as Element.Action.Builder).text).isEqualTo("Sign In")
     }
 
-    @Test fun nestedFormAddsOptionsElement() {
+    @Test fun nestedFormAddsOptionsElement(): Unit = runBlocking {
         val json = """
         {
           "version": "1.0.0",
@@ -301,7 +313,8 @@ internal class RealIdxResponseTransformerTest {
         }
         """.trimIndent()
         val response = idxResponseFactory.fromJson(json)
-        val formBuilder = RealIdxResponseTransformer().transform(response) { }
+        val formBuilder = RealIdxResponseTransformer().transform(noInteractionsResponseTransformer, response) { }
+        assertThat(formBuilder.launchActions).isEmpty()
         val elements = formBuilder.build().elements
         assertThat(elements).hasSize(2)
         val optionsElement = elements[0] as Element.Options
@@ -409,10 +422,11 @@ internal class RealIdxResponseTransformerTest {
         val response = idxResponseFactory.fromJson(json)
         val clickCounter = AtomicInteger(0)
         val clickReference = AtomicReference<IdxRemediation>()
-        val formBuilder = RealIdxResponseTransformer().transform(response) { remediation ->
+        val formBuilder = RealIdxResponseTransformer().transform(noInteractionsResponseTransformer, response) { remediation ->
             clickReference.set(remediation)
             clickCounter.incrementAndGet()
         }
+        assertThat(formBuilder.launchActions).isEmpty()
         val elements = formBuilder.elements
         assertThat(elements).hasSize(3)
         assertThat((elements[0] as Element.TextInput.Builder).remediation.name).isEqualTo("challenge-authenticator")
@@ -590,10 +604,11 @@ internal class RealIdxResponseTransformerTest {
         val response = idxResponseFactory.fromJson(json)
         val clickCounter = AtomicInteger(0)
         val clickReference = AtomicReference<IdxRemediation>()
-        val formBuilder = RealIdxResponseTransformer().transform(response) { remediation ->
+        val formBuilder = RealIdxResponseTransformer().transform(noInteractionsResponseTransformer, response) { remediation ->
             clickReference.set(remediation)
             clickCounter.incrementAndGet()
         }
+        assertThat(formBuilder.launchActions).hasSize(1)
         val elements = formBuilder.elements
         assertThat(elements).hasSize(3)
         assertThat((elements[0] as Element.TextInput.Builder).remediation.name).isEqualTo("challenge-authenticator")

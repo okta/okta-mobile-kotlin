@@ -33,9 +33,9 @@ internal class OidcClientResultTransformer(
     private val responseTransformer: IdxResponseTransformer,
 ) {
     suspend fun transformAndEmit(
-        resultProducer: suspend () -> OidcClientResult<IdxResponse>,
+        resultProducer: suspend (InteractionCodeFlow) -> OidcClientResult<IdxResponse>,
     ) {
-        when (val result = resultProducer()) {
+        when (val result = resultProducer(interactionCodeFlow)) {
             is OidcClientResult.Error -> {
                 formFactory.emit(
                     RetryFormBuilder.create(coroutineScope) {
@@ -46,10 +46,12 @@ internal class OidcClientResultTransformer(
             is OidcClientResult.Success -> {
                 val response = result.result
                 if (response.isLoginSuccessful) {
-                    exchangeInteractionCodeForTokensAndEmit(response)
+                    coroutineScope.launch {
+                        exchangeInteractionCodeForTokensAndEmit(response)
+                    }
                 } else {
                     formFactory.emit(
-                        responseTransformer.transform(response) { remediation ->
+                        responseTransformer.transform(::transformAndEmit, response) { remediation ->
                             coroutineScope.launch {
                                 transformAndEmit {
                                     interactionCodeFlow.proceed(remediation)

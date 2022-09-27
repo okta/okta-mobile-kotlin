@@ -69,7 +69,6 @@ class NativeAuthenticationClient internal constructor(
                     )
                 }
                 is OidcClientResult.Success -> {
-                    val interactionCodeFlow = result.result
                     val wrapperCallback = object : Callback() {
                         override fun signInComplete(token: Token) {
                             super.signInComplete(token)
@@ -79,11 +78,11 @@ class NativeAuthenticationClient internal constructor(
                     }
                     OidcClientResultTransformer(
                         callback = wrapperCallback,
-                        interactionCodeFlow = interactionCodeFlow,
+                        interactionCodeFlow = result.result,
                         coroutineScope = coroutineScope,
                         formFactory = formFactory,
                         responseTransformer = idxResponseTransformer,
-                    ).transformAndEmit {
+                    ).transformAndEmit { interactionCodeFlow ->
                         interactionCodeFlow.resume()
                     }
                 }
@@ -91,7 +90,11 @@ class NativeAuthenticationClient internal constructor(
         }
 
         return channelFlow {
-            val formFactory = FormFactory(this, formTransformers)
+            val formFactory = FormFactory(
+                coroutineScope = this,
+                sendChannel = this,
+                formTransformers = formTransformers,
+            )
             start(formFactory, this, this)
             awaitClose()
         }

@@ -16,11 +16,15 @@
 package com.okta.nativeauthentication.form.transformer
 
 import com.google.common.truth.Truth.assertThat
+import com.okta.authfoundation.client.OidcClientResult
+import com.okta.idx.kotlin.client.InteractionCodeFlow
+import com.okta.idx.kotlin.dto.IdxResponse
 import com.okta.nativeauthentication.RealIdxResponseTransformer
 import com.okta.nativeauthentication.form.Element
 import com.okta.nativeauthentication.form.Form
 import com.okta.nativeauthentication.utils.IdxResponseFactory
 import com.okta.testing.network.NetworkRule
+import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 
@@ -29,12 +33,15 @@ internal class SignInTitleTransformerTest {
 
     private val idxResponseFactory = IdxResponseFactory(networkRule)
 
-    private fun getFormFromJson(json: String): Form {
-        val formBuilder = RealIdxResponseTransformer().transform(idxResponseFactory.fromJson(json)) {}
+    private fun getFormFromJson(json: String): Form = runBlocking {
+        val responseTransformer: suspend (resultProducer: suspend (InteractionCodeFlow) -> OidcClientResult<IdxResponse>) -> Unit = {
+            throw AssertionError("Not expected")
+        }
+        val formBuilder = RealIdxResponseTransformer().transform(responseTransformer, idxResponseFactory.fromJson(json)) {}
         SignInTitleTransformer().apply {
             formBuilder.transform()
         }
-        return formBuilder.build()
+        formBuilder.build()
     }
 
     @Test fun testSignInTitleTransformerAddsTitleToIdentifyRemediation() {

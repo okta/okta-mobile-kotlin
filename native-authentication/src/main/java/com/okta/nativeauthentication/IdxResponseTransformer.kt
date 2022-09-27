@@ -15,9 +15,12 @@
  */
 package com.okta.nativeauthentication
 
+import com.okta.authfoundation.client.OidcClientResult
+import com.okta.idx.kotlin.client.InteractionCodeFlow
 import com.okta.idx.kotlin.dto.IdxAuthenticator
 import com.okta.idx.kotlin.dto.IdxAuthenticatorCollection
 import com.okta.idx.kotlin.dto.IdxIdpCapability
+import com.okta.idx.kotlin.dto.IdxPollAuthenticatorCapability
 import com.okta.idx.kotlin.dto.IdxPollRemediationCapability
 import com.okta.idx.kotlin.dto.IdxRecoverCapability
 import com.okta.idx.kotlin.dto.IdxRemediation
@@ -27,11 +30,19 @@ import com.okta.nativeauthentication.form.Element
 import com.okta.nativeauthentication.form.Form
 
 internal interface IdxResponseTransformer {
-    fun transform(response: IdxResponse, clickHandler: (IdxRemediation) -> Unit): Form.Builder
+    fun transform(
+        resultHandler: suspend (resultProducer: suspend (InteractionCodeFlow) -> OidcClientResult<IdxResponse>) -> Unit,
+        response: IdxResponse,
+        clickHandler: (IdxRemediation) -> Unit,
+    ): Form.Builder
 }
 
 internal class RealIdxResponseTransformer : IdxResponseTransformer {
-    override fun transform(response: IdxResponse, clickHandler: (IdxRemediation) -> Unit): Form.Builder {
+    override fun transform(
+        resultHandler: suspend (resultProducer: suspend (InteractionCodeFlow) -> OidcClientResult<IdxResponse>) -> Unit,
+        response: IdxResponse,
+        clickHandler: (IdxRemediation) -> Unit,
+    ): Form.Builder {
         val builder = Form.Builder()
         for (remediation in response.remediations) {
             for (field in remediation.form.visibleFields) {
@@ -39,6 +50,7 @@ internal class RealIdxResponseTransformer : IdxResponseTransformer {
             }
             builder.elements.addAll(remediation.actionAsElementBuilders(clickHandler))
             builder.elements.addAll(remediation.resendCodeElement(clickHandler))
+            remediation.pollingAction(resultHandler)?.let { action -> builder.launchActions += { action() } }
         }
         builder.elements.addAll(response.recoverElement(clickHandler))
         return builder
@@ -143,5 +155,25 @@ internal class RealIdxResponseTransformer : IdxResponseTransformer {
     private inline fun <reified Capability : IdxAuthenticator.Capability> IdxAuthenticatorCollection.capability(): Capability? {
         val authenticator = firstOrNull { it.capabilities.get<Capability>() != null } ?: return null
         return authenticator.capabilities.get()
+    }
+
+    private fun IdxRemediation.pollingAction(
+        resultHandler: suspend (resultProducer: suspend (InteractionCodeFlow) -> OidcClientResult<IdxResponse>) -> Unit,
+    ): (suspend () -> Unit)? {
+        val remediationCapability = capabilities.get<IdxPollRemediationCapability>()
+        val authenticatorCapability = authenticators.capability<IdxPollAuthenticatorCapability>()
+
+        // Create a poll function for the available capability.
+        val pollFunction = when {
+            remediationCapability != null -> remediationCapability::poll
+            authenticatorCapability != null -> authenticatorCapability::poll
+            else -> return null
+        }
+
+        return suspend {
+            resultHandler { interactionCodeFlow ->
+                pollFunction(interactionCodeFlow)
+            }
+        }
     }
 }

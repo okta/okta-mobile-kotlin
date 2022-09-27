@@ -16,7 +16,9 @@
 package com.okta.nativeauthentication
 
 import com.google.common.truth.Truth.assertThat
+import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundation.credential.Token
+import com.okta.idx.kotlin.client.InteractionCodeFlow
 import com.okta.idx.kotlin.client.InteractionCodeFlow.Companion.createInteractionCodeFlow
 import com.okta.idx.kotlin.dto.IdxRemediation
 import com.okta.idx.kotlin.dto.IdxResponse
@@ -250,7 +252,11 @@ private class FakeCallback : NativeAuthenticationClient.Callback() {
 }
 
 private class FakeIdxResponseTransformer : IdxResponseTransformer {
-    override fun transform(response: IdxResponse, clickHandler: (IdxRemediation) -> Unit): Form.Builder {
+    override fun transform(
+        resultHandler: suspend (resultProducer: suspend (InteractionCodeFlow) -> OidcClientResult<IdxResponse>) -> Unit,
+        response: IdxResponse,
+        clickHandler: (IdxRemediation) -> Unit
+    ): Form.Builder {
         val formBuilder = Form.Builder()
 
         val labelBuilder = Element.Label.Builder(null)

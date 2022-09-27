@@ -15,11 +15,14 @@
  */
 package com.okta.nativeauthentication.form
 
+import kotlinx.coroutines.CoroutineScope
+
 class Form private constructor(
     val elements: List<Element>,
 ) {
     internal class Builder {
         val elements: MutableList<Element.Builder<*>> = mutableListOf()
+        val launchActions: MutableList<suspend CoroutineScope.() -> Unit> = mutableListOf()
 
         fun build(): Form {
             return Form(elements.map { it.build() })

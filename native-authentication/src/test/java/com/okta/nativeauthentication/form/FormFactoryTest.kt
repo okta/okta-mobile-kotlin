@@ -16,14 +16,24 @@
 package com.okta.nativeauthentication.form
 
 import com.google.common.truth.Truth.assertThat
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.junit.Test
+import java.util.Collections
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
+@OptIn(ExperimentalCoroutinesApi::class)
 internal class FormFactoryTest {
     @Test fun testFormFactoryEmitsForm() = runBlocking {
         val channel = Channel<Form>(capacity = Channel.BUFFERED)
-        val formFactory = FormFactory(channel, emptyList())
+        val formFactory = FormFactory(this, channel, emptyList())
         val formBuilder = Form.Builder()
         val labelBuilder = Element.Label.Builder(null)
         labelBuilder.text = "Fake Label"
@@ -36,7 +46,7 @@ internal class FormFactoryTest {
 
     @Test fun testFormFactoryEmitsMultipleForms() = runBlocking {
         val channel = Channel<Form>(capacity = Channel.BUFFERED)
-        val formFactory = FormFactory(channel, emptyList())
+        val formFactory = FormFactory(this, channel, emptyList())
 
         for (i in 1..2) {
             val formBuilder = Form.Builder()
@@ -58,6 +68,7 @@ internal class FormFactoryTest {
     @Test fun testFormFactoryEmitsTransformedForm() = runBlocking {
         val channel = Channel<Form>(capacity = Channel.BUFFERED)
         val formFactory = FormFactory(
+            this,
             channel,
             listOf(
                 ExtraLabelFormTransformer(addToBeginning = true, addToEnd = false),
@@ -80,6 +91,72 @@ internal class FormFactoryTest {
         assertThat((form1.elements[2] as Element.Label).text).isEqualTo("Fake Label 2")
         assertThat((form1.elements[3] as Element.Label).text).isEqualTo("Fake Label 3")
         assertThat((form1.elements[4] as Element.Label).text).isEqualTo("Extra End!")
+    }
+
+    @Test fun testFormFactoryLaunchesActions(): Unit = runBlocking {
+        val channel = Channel<Form>(capacity = Channel.BUFFERED)
+
+        val actionList = Collections.synchronizedList(mutableListOf<String>())
+
+        val formBuilder = Form.Builder()
+
+        formBuilder.launchActions += {
+            actionList += "first"
+        }
+        formBuilder.launchActions += {
+            actionList += "second"
+        }
+
+        withContext(Dispatchers.IO) {
+            val formFactory = FormFactory(this, channel, emptyList())
+            formFactory.emit(formBuilder)
+        }
+
+        val form = channel.receive()
+        assertThat(form.elements).hasSize(0)
+        assertThat(actionList).containsExactly("first", "second")
+    }
+
+    @Test fun testFormFactoryCancelsPreviouslyLaunchedActions(): Unit = runBlocking {
+        val channel = Channel<Form>(capacity = Channel.BUFFERED)
+
+        val actionList = Collections.synchronizedList(mutableListOf<String>())
+
+        lateinit var delayJob: Job
+        val formBuilder1 = Form.Builder()
+        val firstActionTriggered = CountDownLatch(1)
+        formBuilder1.launchActions += {
+            actionList += "first"
+            delayJob = launch {
+                awaitCancellation()
+            }
+            firstActionTriggered.countDown()
+        }
+
+        val secondActionTriggered = CountDownLatch(1)
+        val formBuilder2 = Form.Builder()
+        formBuilder2.launchActions += {
+            actionList += "second"
+            secondActionTriggered.countDown()
+        }
+
+        withContext(Dispatchers.IO) {
+            val formFactory = FormFactory(this, channel, emptyList())
+            formFactory.emit(formBuilder1)
+
+            val form1 = channel.receive()
+            assertThat(form1.elements).hasSize(0)
+            assertThat(firstActionTriggered.await(1, TimeUnit.SECONDS)).isTrue()
+            assertThat(delayJob.isCancelled).isFalse()
+            assertThat(actionList).containsExactly("first")
+
+            formFactory.emit(formBuilder2)
+            val form2 = channel.receive()
+            assertThat(form2.elements).hasSize(0)
+            assertThat(secondActionTriggered.await(1, TimeUnit.SECONDS)).isTrue()
+            assertThat(delayJob.isCancelled).isTrue()
+            assertThat(actionList).containsExactly("first", "second")
+        }
     }
 }
 
