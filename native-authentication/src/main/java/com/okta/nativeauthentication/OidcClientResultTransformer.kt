@@ -21,6 +21,7 @@ import com.okta.idx.kotlin.dto.IdxRemediation
 import com.okta.idx.kotlin.dto.IdxResponse
 import com.okta.nativeauthentication.form.FormFactory
 import com.okta.nativeauthentication.form.LabelFormBuilder
+import com.okta.nativeauthentication.form.LoadingFormBuilder
 import com.okta.nativeauthentication.form.RetryFormBuilder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -35,6 +36,8 @@ internal class OidcClientResultTransformer(
     suspend fun transformAndEmit(
         resultProducer: suspend (InteractionCodeFlow) -> OidcClientResult<IdxResponse>,
     ) {
+        formFactory.emit(LoadingFormBuilder.create())
+
         when (val result = resultProducer(interactionCodeFlow)) {
             is OidcClientResult.Error -> {
                 formFactory.emit(
@@ -65,7 +68,7 @@ internal class OidcClientResultTransformer(
     }
 
     private suspend fun exchangeInteractionCodeForTokensAndEmit(response: IdxResponse) {
-        formFactory.emit(LabelFormBuilder.create("Loading"))
+        formFactory.emit(LoadingFormBuilder.create())
 
         val remediation = response.remediations[IdxRemediation.Type.ISSUE]!!
         when (val result = interactionCodeFlow.exchangeInteractionCodeForTokens(remediation)) {

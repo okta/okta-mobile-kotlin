@@ -27,6 +27,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Button
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.RadioButton
@@ -113,6 +114,9 @@ fun ElementUi(element: Element) {
         }
         is Element.Options -> {
             OptionsUi(element)
+        }
+        is Element.Loading -> {
+            CircularProgressIndicator()
         }
     }
 }

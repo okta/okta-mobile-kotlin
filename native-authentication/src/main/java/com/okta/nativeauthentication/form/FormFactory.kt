@@ -27,6 +27,7 @@ internal class FormFactory(
     private val formTransformers: List<FormTransformer>,
 ) {
     private val jobReference = AtomicReference<Job?>()
+    private val previousEmission = AtomicReference<Form.Builder?>()
 
     suspend fun emit(formBuilder: Form.Builder) {
         for (formFactory in formTransformers) {
@@ -34,6 +35,11 @@ internal class FormFactory(
                 formBuilder.transform()
             }
         }
+
+        if (previousEmission.get() == formBuilder) {
+            return
+        }
+        previousEmission.set(formBuilder)
 
         val form = formBuilder.build()
 

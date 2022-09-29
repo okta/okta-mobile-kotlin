@@ -22,6 +22,7 @@ import com.okta.idx.kotlin.client.InteractionCodeFlow
 import com.okta.nativeauthentication.form.Form
 import com.okta.nativeauthentication.form.FormFactory
 import com.okta.nativeauthentication.form.FormTransformer
+import com.okta.nativeauthentication.form.LoadingFormBuilder
 import com.okta.nativeauthentication.form.RetryFormBuilder
 import com.okta.nativeauthentication.form.transformer.SignInTitleTransformer
 import kotlinx.coroutines.CoroutineScope
@@ -60,6 +61,8 @@ class NativeAuthenticationClient internal constructor(
         interactionCodeFlowFactory: suspend () -> OidcClientResult<InteractionCodeFlow>,
     ): Flow<Form> {
         suspend fun start(formFactory: FormFactory, sendChannel: SendChannel<*>, coroutineScope: CoroutineScope) {
+            formFactory.emit(LoadingFormBuilder.create())
+
             when (val result = interactionCodeFlowFactory()) {
                 is OidcClientResult.Error -> {
                     formFactory.emit(

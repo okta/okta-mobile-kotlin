@@ -32,7 +32,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
@@ -78,7 +77,11 @@ class NativeAuthenticationClientTest {
             response.testBodyFromFile("IdentifyRemediationResponse.json")
         }
         val flow = setup()
-        val form = flow.take(1).first()
+        val forms = flow.take(2).toList()
+        val loadingForm = forms[0]
+        assertThat(loadingForm.elements).hasSize(1)
+        assertThat(loadingForm.elements[0]).isInstanceOf(Element.Loading::class.java)
+        val form = forms[1]
         val elements = form.elements
         assertThat(elements).hasSize(3)
         assertThat((elements[0] as Element.Label).text).isEqualTo("Fake Label")
@@ -103,13 +106,13 @@ class NativeAuthenticationClientTest {
         val formCounter = AtomicInteger()
         val forms = flow.onEach { form ->
             val elements = form.elements
-            if (formCounter.getAndIncrement() == 0) {
+            if (formCounter.getAndIncrement() == 1) {
                 assertThat((elements[0] as Element.Label).text).isEqualTo("Fake Label")
                 (elements[1] as Element.TextInput).value = "admin@example.com"
                 (elements[2] as Element.Action).onClick()
             }
         }.toList()
-        assertThat(forms).hasSize(3)
+        assertThat(forms).hasSize(4)
         assertThat(fakeCallback.tokens).hasSize(1)
     }
 
@@ -123,7 +126,9 @@ class NativeAuthenticationClientTest {
             val flow = setup()
             flow.onEach { form ->
                 formReference.set(form)
-                cancelCountDownLatch.countDown()
+                if (form.elements[0] !is Element.Loading) {
+                    cancelCountDownLatch.countDown()
+                }
             }.collect()
         }
         assertThat(cancelCountDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
@@ -140,18 +145,22 @@ class NativeAuthenticationClientTest {
         }
         val flow = setup(::enqueueInteractFailure)
         val formCounter = AtomicInteger()
-        val forms = flow.take(2).onEach { form ->
-            if (formCounter.getAndIncrement() == 0) {
+        val forms = flow.take(4).onEach { form ->
+            if (formCounter.getAndIncrement() == 1) {
                 enqueueInteractSuccess()
                 (form.elements[0] as Element.Action).onClick()
             }
         }.toList()
         assertThat(forms[0].elements).hasSize(1)
-        assertThat((forms[0].elements[0] as Element.Action).text).isEqualTo("Retry")
-        assertThat(forms[1].elements).hasSize(3)
-        assertThat((forms[1].elements[0] as Element.Label).text).isEqualTo("Fake Label")
-        assertThat((forms[1].elements[1] as Element.TextInput).label).isEqualTo("Fake Text Input")
-        assertThat((forms[1].elements[2] as Element.Action).text).isEqualTo("Fake Button")
+        assertThat((forms[0].elements[0])).isInstanceOf(Element.Loading::class.java)
+        assertThat(forms[1].elements).hasSize(1)
+        assertThat((forms[1].elements[0] as Element.Action).text).isEqualTo("Retry")
+        assertThat(forms[2].elements).hasSize(1)
+        assertThat((forms[2].elements[0])).isInstanceOf(Element.Loading::class.java)
+        assertThat(forms[3].elements).hasSize(3)
+        assertThat((forms[3].elements[0] as Element.Label).text).isEqualTo("Fake Label")
+        assertThat((forms[3].elements[1] as Element.TextInput).label).isEqualTo("Fake Text Input")
+        assertThat((forms[3].elements[2] as Element.Action).text).isEqualTo("Fake Button")
     }
 
     @Test fun testFailedIntrospectCallRetriesIntrospect(): Unit = runBlocking {
@@ -160,8 +169,8 @@ class NativeAuthenticationClientTest {
         }
         val flow = setup()
         val formCounter = AtomicInteger()
-        val forms = flow.take(2).onEach { form ->
-            if (formCounter.getAndIncrement() == 0) {
+        val forms = flow.take(4).onEach { form ->
+            if (formCounter.getAndIncrement() == 1) {
                 networkRule.enqueue(path("/idp/idx/introspect")) { response ->
                     response.testBodyFromFile("IdentifyRemediationResponse.json")
                 }
@@ -169,11 +178,15 @@ class NativeAuthenticationClientTest {
             }
         }.toList()
         assertThat(forms[0].elements).hasSize(1)
-        assertThat((forms[0].elements[0] as Element.Action).text).isEqualTo("Retry")
-        assertThat(forms[1].elements).hasSize(3)
-        assertThat((forms[1].elements[0] as Element.Label).text).isEqualTo("Fake Label")
-        assertThat((forms[1].elements[1] as Element.TextInput).label).isEqualTo("Fake Text Input")
-        assertThat((forms[1].elements[2] as Element.Action).text).isEqualTo("Fake Button")
+        assertThat(forms[0].elements[0]).isInstanceOf(Element.Loading::class.java)
+        assertThat(forms[1].elements).hasSize(1)
+        assertThat((forms[1].elements[0] as Element.Action).text).isEqualTo("Retry")
+        assertThat(forms[2].elements).hasSize(1)
+        assertThat(forms[2].elements[0]).isInstanceOf(Element.Loading::class.java)
+        assertThat(forms[3].elements).hasSize(3)
+        assertThat((forms[3].elements[0] as Element.Label).text).isEqualTo("Fake Label")
+        assertThat((forms[3].elements[1] as Element.TextInput).label).isEqualTo("Fake Text Input")
+        assertThat((forms[3].elements[2] as Element.Action).text).isEqualTo("Fake Button")
     }
 
     @Test fun testFailedIdentifyCallRetriesIdentify(): Unit = runBlocking {
@@ -192,11 +205,11 @@ class NativeAuthenticationClientTest {
         val forms = flow.onEach { form ->
             val elements = form.elements
             when (formCounter.getAndIncrement()) {
-                0 -> {
+                1 -> {
                     assertThat((elements[0] as Element.Label).text).isEqualTo("Fake Label")
                     (elements[2] as Element.Action).onClick()
                 }
-                1 -> {
+                3 -> {
                     networkRule.enqueue(path("/idp/idx/identify")) { response ->
                         response.testBodyFromFile("SuccessWithInteractionCodeResponse.json")
                     }
@@ -205,7 +218,7 @@ class NativeAuthenticationClientTest {
                 }
             }
         }.toList()
-        assertThat(forms).hasSize(4)
+        assertThat(forms).hasSize(6)
     }
 
     @Test fun testFailedTokenCallRetriesToken(): Unit = runBlocking {
@@ -224,11 +237,11 @@ class NativeAuthenticationClientTest {
         val forms = flow.onEach { form ->
             val elements = form.elements
             when (formCounter.getAndIncrement()) {
-                0 -> {
+                1 -> {
                     assertThat((elements[0] as Element.Label).text).isEqualTo("Fake Label")
                     (elements[2] as Element.Action).onClick()
                 }
-                2 -> {
+                3 -> {
                     networkRule.enqueue(path("/oauth2/v1/token")) { response ->
                         response.testBodyFromFile("TokenResponse.json")
                     }
@@ -237,7 +250,7 @@ class NativeAuthenticationClientTest {
                 }
             }
         }.toList()
-        assertThat(forms).hasSize(5)
+        assertThat(forms).hasSize(6)
     }
 }
 

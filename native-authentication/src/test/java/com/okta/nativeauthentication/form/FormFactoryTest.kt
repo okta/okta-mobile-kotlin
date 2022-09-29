@@ -158,6 +158,17 @@ internal class FormFactoryTest {
             assertThat(actionList).containsExactly("first", "second")
         }
     }
+
+    @Test fun testEmitDoesNotEmitSameFormTwice(): Unit = runBlocking {
+        val channel = Channel<Form>(capacity = Channel.BUFFERED)
+        val formFactory = FormFactory(this, channel, emptyList())
+        formFactory.emit(LoadingFormBuilder.create())
+        formFactory.emit(LoadingFormBuilder.create())
+        val form = channel.receive()
+        assertThat(form.elements).hasSize(1)
+        assertThat(form.elements[0]).isInstanceOf(Element.Loading::class.java)
+        assertThat(channel.tryReceive().isFailure).isTrue()
+    }
 }
 
 private class ExtraLabelFormTransformer(

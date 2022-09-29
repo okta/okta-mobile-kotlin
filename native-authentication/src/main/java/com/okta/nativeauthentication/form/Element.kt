@@ -22,6 +22,22 @@ sealed interface Element {
         internal abstract fun build(): E
     }
 
+    class Loading private constructor() : Element {
+        internal object Builder : Element.Builder<Loading>() {
+            override fun build(): Loading {
+                return Loading()
+            }
+        }
+
+        override fun equals(other: Any?): Boolean {
+            return other is Loading
+        }
+
+        override fun hashCode(): Int {
+            return Loading::class.java.hashCode()
+        }
+    }
+
     class Action private constructor(
         val text: String,
         val onClick: () -> Unit,

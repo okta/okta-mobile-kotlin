@@ -15,17 +15,11 @@
  */
 package com.okta.nativeauthentication.form
 
-import kotlinx.coroutines.CoroutineScope
-
-class Form private constructor(
-    val elements: List<Element>,
-) {
-    internal data class Builder(
-        val elements: MutableList<Element.Builder<*>> = mutableListOf(),
-        val launchActions: MutableList<suspend CoroutineScope.() -> Unit> = mutableListOf(),
-    ) {
-        fun build(): Form {
-            return Form(elements.map { it.build() })
-        }
+internal object LoadingFormBuilder {
+    fun create(): Form.Builder {
+        val retryElement = Element.Loading.Builder
+        val retryFormBuilder = Form.Builder()
+        retryFormBuilder.elements.add(retryElement)
+        return retryFormBuilder
     }
 }
