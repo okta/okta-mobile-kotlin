@@ -27,34 +27,30 @@ internal class FormFactory(
     private val formTransformers: List<FormTransformer>,
 ) {
     private val jobReference = AtomicReference<Job?>()
-    private val previousEmission = AtomicReference<Form.Builder?>()
+    private val previousEmission = AtomicReference<Form?>()
 
-    suspend fun emit(formBuilder: Form.Builder) {
-        for (formFactory in formTransformers) {
-            formFactory.apply {
-                formBuilder.transform()
-            }
-        }
+    suspend fun emit(formBuilder: Form.Builder, executeLaunchActions: Boolean = true) {
+        val form = formBuilder.build(formTransformers)
 
-        if (previousEmission.get() == formBuilder) {
+        if (previousEmission.get() == form) {
             return
         }
-        previousEmission.set(formBuilder)
+        previousEmission.set(form)
 
-        val form = formBuilder.build()
-
-        jobReference.getAndSet(null)?.cancel()
-        if (formBuilder.launchActions.isNotEmpty()) {
-            val job = coroutineScope.launch {
-                for (launchAction in formBuilder.launchActions) {
-                    // Launch each action individually so they can run in parallel.
-                    // These will be added as "children" to they'll all be cancelled with the parent job.
-                    launch {
-                        launchAction()
+        if (executeLaunchActions) {
+            jobReference.getAndSet(null)?.cancel()
+            if (formBuilder.launchActions.isNotEmpty()) {
+                val job = coroutineScope.launch {
+                    for (launchAction in formBuilder.launchActions) {
+                        // Launch each action individually so they can run in parallel.
+                        // These will be added as "children" to they'll all be cancelled with the parent job.
+                        launch {
+                            launchAction()
+                        }
                     }
                 }
+                jobReference.set(job)
             }
-            jobReference.set(job)
         }
 
         sendChannel.send(form)

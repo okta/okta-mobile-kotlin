@@ -54,10 +54,15 @@ internal class OidcClientResultTransformer(
                     }
                 } else {
                     formFactory.emit(
-                        responseTransformer.transform(::transformAndEmit, response) { remediation ->
+                        responseTransformer.transform(::transformAndEmit, response) { remediation, form ->
                             coroutineScope.launch {
-                                transformAndEmit {
-                                    interactionCodeFlow.proceed(remediation)
+                                val (formIsValid, updatedForm) = form.validate(remediation)
+                                if (formIsValid) {
+                                    transformAndEmit {
+                                        interactionCodeFlow.proceed(remediation)
+                                    }
+                                } else {
+                                    formFactory.emit(updatedForm, executeLaunchActions = false)
                                 }
                             }
                         }

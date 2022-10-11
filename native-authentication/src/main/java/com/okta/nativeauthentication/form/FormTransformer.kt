@@ -15,6 +15,6 @@
  */
 package com.okta.nativeauthentication.form
 
-internal interface FormTransformer {
+internal fun interface FormTransformer {
     fun Form.Builder.transform()
 }

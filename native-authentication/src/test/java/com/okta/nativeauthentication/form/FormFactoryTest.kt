@@ -35,8 +35,10 @@ internal class FormFactoryTest {
         val channel = Channel<Form>(capacity = Channel.BUFFERED)
         val formFactory = FormFactory(this, channel, emptyList())
         val formBuilder = Form.Builder()
-        val labelBuilder = Element.Label.Builder(null)
-        labelBuilder.text = "Fake Label"
+        val labelBuilder = Element.Label.Builder(
+            remediation = null,
+            text = "Fake Label",
+        )
         formBuilder.elements += labelBuilder
         formFactory.emit(formBuilder)
         val form = channel.receive()
@@ -50,8 +52,7 @@ internal class FormFactoryTest {
 
         for (i in 1..2) {
             val formBuilder = Form.Builder()
-            val labelBuilder = Element.Label.Builder(null)
-            labelBuilder.text = "Fake Label $i"
+            val labelBuilder = Element.Label.Builder(remediation = null, text = "Fake Label $i")
             formBuilder.elements += labelBuilder
             formFactory.emit(formBuilder)
         }
@@ -78,8 +79,7 @@ internal class FormFactoryTest {
 
         val formBuilder = Form.Builder()
         for (i in 1..3) {
-            val labelBuilder = Element.Label.Builder(null)
-            labelBuilder.text = "Fake Label $i"
+            val labelBuilder = Element.Label.Builder(remediation = null, text = "Fake Label $i")
             formBuilder.elements += labelBuilder
         }
         formFactory.emit(formBuilder)
@@ -169,6 +169,30 @@ internal class FormFactoryTest {
         assertThat(form.elements[0]).isInstanceOf(Element.Loading::class.java)
         assertThat(channel.tryReceive().isFailure).isTrue()
     }
+
+    @Test fun testFormFactorySkipsLaunchesActions(): Unit = runBlocking {
+        val channel = Channel<Form>(capacity = Channel.BUFFERED)
+
+        val actionList = Collections.synchronizedList(mutableListOf<String>())
+
+        val formBuilder = Form.Builder()
+
+        formBuilder.launchActions += {
+            actionList += "first"
+        }
+        formBuilder.launchActions += {
+            actionList += "second"
+        }
+
+        withContext(Dispatchers.IO) {
+            val formFactory = FormFactory(this, channel, emptyList())
+            formFactory.emit(formBuilder, executeLaunchActions = false)
+        }
+
+        val form = channel.receive()
+        assertThat(form.elements).hasSize(0)
+        assertThat(actionList).isEmpty()
+    }
 }
 
 private class ExtraLabelFormTransformer(
@@ -177,14 +201,12 @@ private class ExtraLabelFormTransformer(
 ) : FormTransformer {
     override fun Form.Builder.transform() {
         if (addToBeginning) {
-            val beginLabelBuilder = Element.Label.Builder(null)
-            beginLabelBuilder.text = "Extra Beginning!"
+            val beginLabelBuilder = Element.Label.Builder(remediation = null, text = "Extra Beginning!")
             elements.add(0, beginLabelBuilder)
         }
 
         if (addToEnd) {
-            val endLabelBuilder = Element.Label.Builder(null)
-            endLabelBuilder.text = "Extra End!"
+            val endLabelBuilder = Element.Label.Builder(remediation = null, text = "Extra End!")
             elements += endLabelBuilder
         }
     }

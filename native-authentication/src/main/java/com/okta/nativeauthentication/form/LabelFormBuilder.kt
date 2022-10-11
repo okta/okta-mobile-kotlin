@@ -17,8 +17,10 @@ package com.okta.nativeauthentication.form
 
 internal object LabelFormBuilder {
     fun create(text: String): Form.Builder {
-        val loadingElement = Element.Label.Builder(null)
-        loadingElement.text = text
+        val loadingElement = Element.Label.Builder(
+            remediation = null,
+            text = text,
+        )
         val builder = Form.Builder()
         builder.elements.add(loadingElement)
         return builder

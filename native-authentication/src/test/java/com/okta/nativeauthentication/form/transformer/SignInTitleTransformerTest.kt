@@ -37,11 +37,8 @@ internal class SignInTitleTransformerTest {
         val responseTransformer: suspend (resultProducer: suspend (InteractionCodeFlow) -> OidcClientResult<IdxResponse>) -> Unit = {
             throw AssertionError("Not expected")
         }
-        val formBuilder = RealIdxResponseTransformer().transform(responseTransformer, idxResponseFactory.fromJson(json)) {}
-        SignInTitleTransformer().apply {
-            formBuilder.transform()
-        }
-        formBuilder.build()
+        val formBuilder = RealIdxResponseTransformer().transform(responseTransformer, idxResponseFactory.fromJson(json)) { _, _ -> }
+        formBuilder.build(listOf(SignInTitleTransformer()))
     }
 
     @Test fun testSignInTitleTransformerAddsTitleToIdentifyRemediation() {

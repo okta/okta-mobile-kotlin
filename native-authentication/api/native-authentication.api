@@ -11,12 +11,12 @@ public final class com/okta/nativeauthentication/NativeAuthenticationClient$Comp
 	public final fun create (Lcom/okta/nativeauthentication/NativeAuthenticationClient$Callback;Lkotlin/jvm/functions/Function1;)Lkotlinx/coroutines/flow/Flow;
 }
 
-public abstract interface class com/okta/nativeauthentication/form/Element {
+public abstract class com/okta/nativeauthentication/form/Element {
 }
 
 public final class com/okta/nativeauthentication/form/Element$Action : com/okta/nativeauthentication/form/Element {
-	public synthetic fun <init> (Ljava/lang/String;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun getOnClick ()Lkotlin/jvm/functions/Function0;
+	public synthetic fun <init> (Lcom/okta/idx/kotlin/dto/IdxRemediation;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getOnClick ()Lkotlin/jvm/functions/Function1;
 	public final fun getText ()Ljava/lang/String;
 }
 
@@ -24,13 +24,14 @@ public abstract class com/okta/nativeauthentication/form/Element$Builder {
 }
 
 public final class com/okta/nativeauthentication/form/Element$Label : com/okta/nativeauthentication/form/Element {
-	public synthetic fun <init> (Ljava/lang/String;Lcom/okta/nativeauthentication/form/Element$Label$Type;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Lcom/okta/idx/kotlin/dto/IdxRemediation;Ljava/lang/String;Lcom/okta/nativeauthentication/form/Element$Label$Type;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getText ()Ljava/lang/String;
 	public final fun getType ()Lcom/okta/nativeauthentication/form/Element$Label$Type;
 }
 
 public final class com/okta/nativeauthentication/form/Element$Label$Type : java/lang/Enum {
 	public static final field DESCRIPTION Lcom/okta/nativeauthentication/form/Element$Label$Type;
+	public static final field ERROR Lcom/okta/nativeauthentication/form/Element$Label$Type;
 	public static final field HEADER Lcom/okta/nativeauthentication/form/Element$Label$Type;
 	public static fun valueOf (Ljava/lang/String;)Lcom/okta/nativeauthentication/form/Element$Label$Type;
 	public static fun values ()[Lcom/okta/nativeauthentication/form/Element$Label$Type;
@@ -42,9 +43,12 @@ public final class com/okta/nativeauthentication/form/Element$Loading : com/okta
 }
 
 public final class com/okta/nativeauthentication/form/Element$Options : com/okta/nativeauthentication/form/Element {
-	public synthetic fun <init> (Lkotlin/jvm/functions/Function1;Ljava/util/List;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Lcom/okta/idx/kotlin/dto/IdxRemediation;Lkotlin/jvm/functions/Function1;Ljava/util/List;ZLjava/lang/String;Lcom/okta/nativeauthentication/form/Element$Options$Option;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getErrorMessage ()Ljava/lang/String;
 	public final fun getOption ()Lcom/okta/nativeauthentication/form/Element$Options$Option;
 	public final fun getOptions ()Ljava/util/List;
+	public final fun getRemediation ()Lcom/okta/idx/kotlin/dto/IdxRemediation;
+	public final fun isRequired ()Z
 	public final fun setOption (Lcom/okta/nativeauthentication/form/Element$Options$Option;)V
 }
 
@@ -55,15 +59,19 @@ public final class com/okta/nativeauthentication/form/Element$Options$Option {
 }
 
 public final class com/okta/nativeauthentication/form/Element$TextInput : com/okta/nativeauthentication/form/Element {
-	public synthetic fun <init> (Lcom/okta/idx/kotlin/dto/IdxRemediation$Form$Field;Ljava/lang/String;ZLjava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Lcom/okta/idx/kotlin/dto/IdxRemediation;Lcom/okta/idx/kotlin/dto/IdxRemediation$Form$Field;Ljava/lang/String;ZZLjava/lang/String;Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getErrorMessage ()Ljava/lang/String;
 	public final fun getLabel ()Ljava/lang/String;
 	public final fun getValue ()Ljava/lang/String;
+	public final fun isRequired ()Z
 	public final fun isSecret ()Z
 	public final fun setValue (Ljava/lang/String;)V
 }
 
 public final class com/okta/nativeauthentication/form/Form {
-	public synthetic fun <init> (Ljava/util/List;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/util/List;Lcom/okta/nativeauthentication/form/Form$Builder;Ljava/util/Map;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun equals (Ljava/lang/Object;)Z
 	public final fun getElements ()Ljava/util/List;
+	public fun hashCode ()I
 }
 

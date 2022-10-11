@@ -20,6 +20,7 @@ import com.okta.idx.kotlin.client.InteractionCodeFlow
 import com.okta.idx.kotlin.dto.IdxAuthenticator
 import com.okta.idx.kotlin.dto.IdxAuthenticatorCollection
 import com.okta.idx.kotlin.dto.IdxIdpCapability
+import com.okta.idx.kotlin.dto.IdxMessageCollection
 import com.okta.idx.kotlin.dto.IdxPollAuthenticatorCapability
 import com.okta.idx.kotlin.dto.IdxPollRemediationCapability
 import com.okta.idx.kotlin.dto.IdxRecoverCapability
@@ -33,7 +34,7 @@ internal interface IdxResponseTransformer {
     fun transform(
         resultHandler: suspend (resultProducer: suspend (InteractionCodeFlow) -> OidcClientResult<IdxResponse>) -> Unit,
         response: IdxResponse,
-        clickHandler: (IdxRemediation) -> Unit,
+        clickHandler: (IdxRemediation, Form) -> Unit,
     ): Form.Builder
 }
 
@@ -41,9 +42,10 @@ internal class RealIdxResponseTransformer : IdxResponseTransformer {
     override fun transform(
         resultHandler: suspend (resultProducer: suspend (InteractionCodeFlow) -> OidcClientResult<IdxResponse>) -> Unit,
         response: IdxResponse,
-        clickHandler: (IdxRemediation) -> Unit,
+        clickHandler: (IdxRemediation, Form) -> Unit,
     ): Form.Builder {
         val builder = Form.Builder()
+        builder.elements.addAll(response.messages.asElementBuilders())
         for (remediation in response.remediations) {
             for (field in remediation.form.visibleFields) {
                 builder.elements.addAll(field.asElementBuilders(remediation))
@@ -56,13 +58,28 @@ internal class RealIdxResponseTransformer : IdxResponseTransformer {
         return builder
     }
 
-    private fun IdxRemediation.Form.Field.asElementBuilders(remediation: IdxRemediation): List<Element.Builder<*>> {
+    private fun IdxMessageCollection.asElementBuilders(): List<Element.Builder<*>> {
+        val elements = mutableListOf<Element.Builder<*>>()
+        for (message in messages) {
+            elements += Element.Label.Builder(
+                remediation = null,
+                text = message.message,
+                type = Element.Label.Type.ERROR,
+            )
+        }
+        return elements
+    }
+
+    private fun IdxRemediation.Form.Field.asElementBuilders(
+        remediation: IdxRemediation,
+        forceRequired: Boolean = false,
+    ): List<Element.Builder<*>> {
         return when {
             // Nested form inside a field.
             !form?.visibleFields.isNullOrEmpty() -> {
                 val result = mutableListOf<Element.Builder<*>>()
                 form?.visibleFields?.forEach {
-                    result += it.asElementBuilders(remediation)
+                    result += it.asElementBuilders(remediation, isRequired)
                 }
                 result
             }
@@ -73,25 +90,35 @@ internal class RealIdxResponseTransformer : IdxResponseTransformer {
                         val nestedElements = it.form?.visibleFields?.flatMap { field ->
                             field.asElementBuilders(remediation)
                         } ?: emptyList()
-                        val element = Element.Options.Option.Builder(it, nestedElements.toMutableList())
-                        element.label = it.label ?: ""
-                        element
+                        Element.Options.Option.Builder(
+                            field = it,
+                            elements = nestedElements.toMutableList(),
+                            label = it.label ?: "",
+                        )
                     }
-                    listOf(
-                        Element.Options.Builder(transformed.toMutableList()) {
+                    val elementBuilder = Element.Options.Builder(
+                        remediation = remediation,
+                        options = transformed.toMutableList(),
+                        isRequired = isRequired,
+                        errorMessage = messages.joinToString(separator = "\n") { it.message },
+                        valueUpdater = {
                             selectedOption = it
-                        }
+                        },
                     )
+                    listOf(elementBuilder)
                 } ?: emptyList()
             }
             // Simple text field.
             (type == "string") -> {
-                val elementBuilder = Element.TextInput.Builder(remediation, this)
-                elementBuilder.label = label ?: ""
-                elementBuilder.isSecret = isSecret
-                (value as? String?)?.let {
-                    elementBuilder.value = it
-                }
+                val elementBuilder = Element.TextInput.Builder(
+                    remediation = remediation,
+                    idxField = this,
+                    label = label ?: "",
+                    isSecret = isSecret,
+                    value = (value as? String?) ?: "",
+                    isRequired = isRequired || forceRequired,
+                    errorMessage = messages.joinToString(separator = "\n") { it.message },
+                )
                 listOf(elementBuilder)
             }
             else -> {
@@ -100,7 +127,7 @@ internal class RealIdxResponseTransformer : IdxResponseTransformer {
         }
     }
 
-    private fun IdxRemediation.actionAsElementBuilders(clickHandler: (IdxRemediation) -> Unit): List<Element.Builder<*>> {
+    private fun IdxRemediation.actionAsElementBuilders(clickHandler: (IdxRemediation, Form) -> Unit): List<Element.Builder<*>> {
         if (form.visibleFields.isEmpty() && capabilities.get<IdxPollRemediationCapability>() != null) {
             return emptyList()
         }
@@ -121,34 +148,40 @@ internal class RealIdxResponseTransformer : IdxResponseTransformer {
             else -> "Continue"
         }
 
-        val builder = Element.Action.Builder(this)
-        builder.text = title
-        builder.onClick = {
-            clickHandler(this)
-        }
+        val builder = Element.Action.Builder(
+            remediation = this,
+            text = title,
+            onClick = { form ->
+                clickHandler(this, form)
+            },
+        )
         return listOf(builder)
     }
 
-    private fun IdxRemediation.resendCodeElement(clickHandler: (IdxRemediation) -> Unit): List<Element.Builder<*>> {
+    private fun IdxRemediation.resendCodeElement(clickHandler: (IdxRemediation, Form) -> Unit): List<Element.Builder<*>> {
         val capability = authenticators.capability<IdxResendCapability>() ?: return emptyList()
         if (form.visibleFields.find { it.type != "string" } == null) {
             return emptyList() // There is no way to type in the code yet.
         }
-        val builder = Element.Action.Builder(capability.remediation)
-        builder.text = "Resend Code"
-        builder.onClick = {
-            clickHandler(capability.remediation)
-        }
+        val builder = Element.Action.Builder(
+            remediation = capability.remediation,
+            text = "Resend Code",
+            onClick = { form ->
+                clickHandler(capability.remediation, form)
+            },
+        )
         return listOf(builder)
     }
 
-    private fun IdxResponse.recoverElement(clickHandler: (IdxRemediation) -> Unit): List<Element.Builder<*>> {
+    private fun IdxResponse.recoverElement(clickHandler: (IdxRemediation, Form) -> Unit): List<Element.Builder<*>> {
         val capability = authenticators.current?.capabilities?.get<IdxRecoverCapability>() ?: return emptyList()
-        val builder = Element.Action.Builder(capability.remediation)
-        builder.text = "Recover"
-        builder.onClick = {
-            clickHandler(capability.remediation)
-        }
+        val builder = Element.Action.Builder(
+            remediation = capability.remediation,
+            text = "Recover",
+            onClick = { form ->
+                clickHandler(capability.remediation, form)
+            },
+        )
         return listOf(builder)
     }
 

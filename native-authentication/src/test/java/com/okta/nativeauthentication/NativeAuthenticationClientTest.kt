@@ -47,6 +47,7 @@ class NativeAuthenticationClientTest {
     @get:Rule val networkRule = NetworkRule()
 
     private lateinit var fakeCallback: FakeCallback
+    private lateinit var fakeIdxResponseTransformer: FakeIdxResponseTransformer
 
     private fun enqueueInteractSuccess() {
         networkRule.enqueue(path("/oauth2/default/v1/interact")) { response ->
@@ -66,7 +67,7 @@ class NativeAuthenticationClientTest {
         interactResponseFactory()
         fakeCallback = FakeCallback()
         val oidcClient = networkRule.createOidcClient()
-        val fakeIdxResponseTransformer = FakeIdxResponseTransformer()
+        fakeIdxResponseTransformer = FakeIdxResponseTransformer()
         return NativeAuthenticationClient(emptyList(), fakeIdxResponseTransformer).create(fakeCallback) {
             oidcClient.createInteractionCodeFlow("test.okta.com/login")
         }
@@ -109,7 +110,7 @@ class NativeAuthenticationClientTest {
             if (formCounter.getAndIncrement() == 1) {
                 assertThat((elements[0] as Element.Label).text).isEqualTo("Fake Label")
                 (elements[1] as Element.TextInput).value = "admin@example.com"
-                (elements[2] as Element.Action).onClick()
+                (elements[2] as Element.Action).onClick(form)
             }
         }.toList()
         assertThat(forms).hasSize(4)
@@ -136,7 +137,7 @@ class NativeAuthenticationClientTest {
 
         // Implicitly ensuring this doesn't throw or cause another request.
         assertThat((formReference.get().elements[0] as Element.Label).text).isEqualTo("Fake Label")
-        (formReference.get().elements[2] as Element.Action).onClick()
+        (formReference.get().elements[2] as Element.Action).onClick(formReference.get())
     }
 
     @Test fun testFailedInteractCallRetriesInteract(): Unit = runBlocking {
@@ -148,7 +149,7 @@ class NativeAuthenticationClientTest {
         val forms = flow.take(4).onEach { form ->
             if (formCounter.getAndIncrement() == 1) {
                 enqueueInteractSuccess()
-                (form.elements[0] as Element.Action).onClick()
+                (form.elements[0] as Element.Action).onClick(form)
             }
         }.toList()
         assertThat(forms[0].elements).hasSize(1)
@@ -174,7 +175,7 @@ class NativeAuthenticationClientTest {
                 networkRule.enqueue(path("/idp/idx/introspect")) { response ->
                     response.testBodyFromFile("IdentifyRemediationResponse.json")
                 }
-                (form.elements[0] as Element.Action).onClick()
+                (form.elements[0] as Element.Action).onClick(form)
             }
         }.toList()
         assertThat(forms[0].elements).hasSize(1)
@@ -207,14 +208,14 @@ class NativeAuthenticationClientTest {
             when (formCounter.getAndIncrement()) {
                 1 -> {
                     assertThat((elements[0] as Element.Label).text).isEqualTo("Fake Label")
-                    (elements[2] as Element.Action).onClick()
+                    (elements[2] as Element.Action).onClick(form)
                 }
                 3 -> {
                     networkRule.enqueue(path("/idp/idx/identify")) { response ->
                         response.testBodyFromFile("SuccessWithInteractionCodeResponse.json")
                     }
                     assertThat((elements[0] as Element.Action).text).isEqualTo("Retry")
-                    (elements[0] as Element.Action).onClick()
+                    (elements[0] as Element.Action).onClick(form)
                 }
             }
         }.toList()
@@ -239,18 +240,36 @@ class NativeAuthenticationClientTest {
             when (formCounter.getAndIncrement()) {
                 1 -> {
                     assertThat((elements[0] as Element.Label).text).isEqualTo("Fake Label")
-                    (elements[2] as Element.Action).onClick()
+                    (elements[2] as Element.Action).onClick(form)
                 }
                 3 -> {
                     networkRule.enqueue(path("/oauth2/v1/token")) { response ->
                         response.testBodyFromFile("TokenResponse.json")
                     }
                     assertThat((elements[0] as Element.Action).text).isEqualTo("Retry")
-                    (elements[0] as Element.Action).onClick()
+                    (elements[0] as Element.Action).onClick(form)
                 }
             }
         }.toList()
         assertThat(forms).hasSize(6)
+    }
+
+    @Test fun testNativeAuthenticationActionEmitsFormWithError(): Unit = runBlocking {
+        networkRule.enqueue(path("/idp/idx/introspect")) { response ->
+            response.testBodyFromFile("IdentifyRemediationResponse.json")
+        }
+        val flow = setup()
+        fakeIdxResponseTransformer.makeTextInputRequired = true
+        val formCounter = AtomicInteger()
+        val forms = flow.onEach { form ->
+            val elements = form.elements
+            if (formCounter.getAndIncrement() == 1) {
+                assertThat((elements[0] as Element.Label).text).isEqualTo("Fake Label")
+                (elements[2] as Element.Action).onClick(form)
+            }
+        }.take(3).toList()
+        val errorForm = forms[2]
+        assertThat((errorForm.elements[1] as Element.TextInput).errorMessage).isEqualTo("Field is required.")
     }
 }
 
@@ -265,29 +284,39 @@ private class FakeCallback : NativeAuthenticationClient.Callback() {
 }
 
 private class FakeIdxResponseTransformer : IdxResponseTransformer {
+    var makeTextInputRequired = false
+
     override fun transform(
         resultHandler: suspend (resultProducer: suspend (InteractionCodeFlow) -> OidcClientResult<IdxResponse>) -> Unit,
         response: IdxResponse,
-        clickHandler: (IdxRemediation) -> Unit
+        clickHandler: (IdxRemediation, Form) -> Unit
     ): Form.Builder {
         val formBuilder = Form.Builder()
 
-        val labelBuilder = Element.Label.Builder(null)
-        labelBuilder.text = "Fake Label"
+        val labelBuilder = Element.Label.Builder(remediation = null, text = "Fake Label")
         formBuilder.elements += labelBuilder
 
         response.remediations.firstOrNull()?.let { remediation ->
             remediation.form.visibleFields.firstOrNull()?.let { field ->
-                val textInputBuilder = Element.TextInput.Builder(remediation, field)
-                textInputBuilder.label = "Fake Text Input"
+                val textInputBuilder = Element.TextInput.Builder(
+                    remediation = remediation,
+                    idxField = field,
+                    label = "Fake Text Input",
+                    value = "",
+                    isSecret = false,
+                    isRequired = makeTextInputRequired,
+                    errorMessage = "",
+                )
                 formBuilder.elements += textInputBuilder
             }
 
-            val actionBuilder = Element.Action.Builder(remediation)
-            actionBuilder.text = "Fake Button"
-            actionBuilder.onClick = {
-                clickHandler(remediation)
-            }
+            val actionBuilder = Element.Action.Builder(
+                remediation = remediation,
+                text = "Fake Button",
+                onClick = { form ->
+                    clickHandler(remediation, form)
+                },
+            )
             formBuilder.elements += actionBuilder
         }
 

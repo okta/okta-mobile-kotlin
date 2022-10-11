@@ -26,9 +26,11 @@ internal class SignInTitleTransformer : FormTransformer {
             textInputElementBuilder.idxField.name == "identifier" && textInputElementBuilder.remediation.name == "identify"
         }
         if (usernameIndex >= 0) {
-            val elementBuilder = Element.Label.Builder(null)
-            elementBuilder.text = "Sign In"
-            elementBuilder.type = Element.Label.Type.HEADER
+            val elementBuilder = Element.Label.Builder(
+                remediation = null,
+                text = "Sign In",
+                type = Element.Label.Type.HEADER,
+            )
             elements.add(usernameIndex, elementBuilder)
         }
     }

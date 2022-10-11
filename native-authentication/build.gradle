@@ -51,6 +51,8 @@ dependencies {
 
     testImplementation deps.coroutines.test
     testImplementation deps.junit
+    testImplementation deps.mockito.core
+    testImplementation deps.mockito.kotlin
     testImplementation deps.okhttp.mock_web_server
     testImplementation deps.okhttp.tls
     testImplementation deps.truth

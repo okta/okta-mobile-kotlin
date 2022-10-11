@@ -45,6 +45,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -89,16 +90,16 @@ fun FormUi(form: Form) {
             .fillMaxHeight()
     ) {
         for (element in form.elements) {
-            ElementUi(element)
+            ElementUi(element, form)
         }
     }
 }
 
 @Composable
-fun ElementUi(element: Element) {
+fun ElementUi(element: Element, form: Form) {
     when (element) {
         is Element.Action -> {
-            Button(onClick = element.onClick) {
+            Button(onClick = { element.onClick(form) }) {
                 Text(text = element.text)
             }
         }
@@ -106,14 +107,19 @@ fun ElementUi(element: Element) {
             val fontSize = when (element.type) {
                 Element.Label.Type.DESCRIPTION -> 16
                 Element.Label.Type.HEADER -> 20
+                Element.Label.Type.ERROR -> 16
             }
-            Text(text = element.text, fontSize = fontSize.sp)
+            val textColor = when (element.type) {
+                Element.Label.Type.ERROR -> Color.Red
+                else -> Color.Black
+            }
+            Text(text = element.text, fontSize = fontSize.sp, color = textColor)
         }
         is Element.TextInput -> {
             TextInputUi(element)
         }
         is Element.Options -> {
-            OptionsUi(element)
+            OptionsUi(element, form)
         }
         is Element.Loading -> {
             CircularProgressIndicator()
@@ -146,12 +152,16 @@ fun TextInputUi(element: Element.TextInput) {
                     Icon(imageVector = image, contentDescription = description)
                 }
             }
-        }
+        },
+        isError = element.errorMessage.isNotEmpty(),
     )
+    if (element.errorMessage.isNotEmpty()) {
+        Text(text = element.errorMessage, fontSize = 14.sp, color = Color.Red)
+    }
 }
 
 @Composable
-fun OptionsUi(element: Element.Options) {
+fun OptionsUi(element: Element.Options, form: Form) {
     var selectedOption by remember { mutableStateOf(element.option) }
 
     for (option in element.options) {
@@ -165,9 +175,13 @@ fun OptionsUi(element: Element.Options) {
         if (selectedOption == option) {
             Column(modifier = Modifier.padding(start = 10.dp)) {
                 for (nestedElement in option.elements) {
-                    ElementUi(element = nestedElement)
+                    ElementUi(element = nestedElement, form = form)
                 }
             }
         }
+    }
+
+    if (element.errorMessage.isNotEmpty()) {
+        Text(text = element.errorMessage, fontSize = 14.sp, color = Color.Red)
     }
 }
