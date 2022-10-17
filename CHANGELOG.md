@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1] - 2022-10-17
+
+[Commits](https://github.com/okta/okta-mobile-kotlin/compare/1.1.0...1.1.1)
+
+### Fixed
+- Fix a potential race when writing exceptionPairs. [#222](https://github.com/okta/okta-mobile-kotlin/pull/222)
+
 ## [1.1.0] - 2022-09-13
 
 [Commits](https://github.com/okta/okta-mobile-kotlin/compare/1.0.0...1.1.0)
