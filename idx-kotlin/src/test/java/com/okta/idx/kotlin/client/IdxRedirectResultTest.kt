@@ -32,8 +32,15 @@ import org.robolectric.RobolectricTestRunner
 class IdxRedirectResultTest {
     @get:Rule val networkRule = NetworkRule()
 
-    private fun createClient(): InteractionCodeFlow {
-        val flowContext = InteractionCodeFlowContext("abcd", "bcde", "cdef", "test.okta.com/login")
+    private fun createClient(maxAge: Int? = null): InteractionCodeFlow {
+        val flowContext = InteractionCodeFlowContext(
+            codeVerifier = "abcd",
+            interactionHandle = "bcde",
+            state = "cdef",
+            redirectUrl = "test.okta.com/login",
+            nonce = "defg",
+            maxAge = maxAge
+        )
         return InteractionCodeFlow(networkRule.createOidcClient(), flowContext)
     }
 
@@ -94,6 +101,22 @@ class IdxRedirectResultTest {
         val client = createClient()
         val tokenResult = client.evaluateRedirectUri(uri) as IdxRedirectResult.Tokens
         assertThat(tokenResult.response.accessToken).isEqualTo("eyJraWQiOiJBaE1qU3VMQWdBTDJ1dHVVY2lFRWJ2R1JUbi1GRkt1Y2tVTDJibVZMVmp3IiwiYWxnIjoiUlMyNTYifQ.eyJ2ZXIiOjEsImp0aSI6IkFULm01N1NsVUpMRUQyT1RtLXVrUFBEVGxFY0tialFvYy1wVGxVdm5ha0k3T1Eub2FyNjFvOHVVOVlGVnBYcjYybzQiLCJpc3MiOiJodHRwczovL2Zvby5wcmV2aWV3LmNvbS9vYXV0aDIvZGVmYXVsdCIsImF1ZCI6ImFwaTovL2RlZmF1bHQiLCJpYXQiOjE2MDg1NjcwMTgsImV4cCI6MTYwODU3MDYxOCwiY2lkIjoiMG9henNtcHhacFZFZzRjaFMybzQiLCJ1aWQiOiIwMHUxMGt2dkZDMDZHT21odTJvNSIsInNjcCI6WyJvcGVuaWQiLCJwcm9maWxlIiwib2ZmbGluZV9hY2Nlc3MiXSwic3ViIjoiZm9vQG9rdGEuY29tIn0.lg2T8dKVfic_JU6qzNBqDuw3RFUq7Da5UO37eY3W-cOOb9UqijxGYj7d-z8qK1UJjRRcDg-rTMzYQbKCLVxjBw")
+        assertThat(networkRule.idTokenValidator.lastIdTokenParameters.nonce).isEqualTo("defg")
+        assertThat(networkRule.idTokenValidator.lastIdTokenParameters.maxAge).isNull()
+    }
+
+    @Test fun testRedirectResultInteractionCodeWithMaxAge(): Unit = runBlocking {
+        val body = "grant_type=interaction_code&client_id=test&interaction_code=exampleInteractionCode&code_verifier=abcd"
+        networkRule.enqueue(path("/oauth2/default/v1/token"), body(body)) { response ->
+            response.testBodyFromFile("client/tokenResponse.json")
+        }
+
+        val uri = Uri.parse("test.okta.com/login?interaction_code=exampleInteractionCode&state=cdef")
+        val client = createClient(maxAge = 60)
+        val tokenResult = client.evaluateRedirectUri(uri) as IdxRedirectResult.Tokens
+        assertThat(tokenResult.response.accessToken).isEqualTo("eyJraWQiOiJBaE1qU3VMQWdBTDJ1dHVVY2lFRWJ2R1JUbi1GRkt1Y2tVTDJibVZMVmp3IiwiYWxnIjoiUlMyNTYifQ.eyJ2ZXIiOjEsImp0aSI6IkFULm01N1NsVUpMRUQyT1RtLXVrUFBEVGxFY0tialFvYy1wVGxVdm5ha0k3T1Eub2FyNjFvOHVVOVlGVnBYcjYybzQiLCJpc3MiOiJodHRwczovL2Zvby5wcmV2aWV3LmNvbS9vYXV0aDIvZGVmYXVsdCIsImF1ZCI6ImFwaTovL2RlZmF1bHQiLCJpYXQiOjE2MDg1NjcwMTgsImV4cCI6MTYwODU3MDYxOCwiY2lkIjoiMG9henNtcHhacFZFZzRjaFMybzQiLCJ1aWQiOiIwMHUxMGt2dkZDMDZHT21odTJvNSIsInNjcCI6WyJvcGVuaWQiLCJwcm9maWxlIiwib2ZmbGluZV9hY2Nlc3MiXSwic3ViIjoiZm9vQG9rdGEuY29tIn0.lg2T8dKVfic_JU6qzNBqDuw3RFUq7Da5UO37eY3W-cOOb9UqijxGYj7d-z8qK1UJjRRcDg-rTMzYQbKCLVxjBw")
+        assertThat(networkRule.idTokenValidator.lastIdTokenParameters.nonce).isEqualTo("defg")
+        assertThat(networkRule.idTokenValidator.lastIdTokenParameters.maxAge).isEqualTo(60)
     }
 
     @Test fun testRedirectResultInteractionCodeErrorParamShowsErrorDescription(): Unit = runBlocking {

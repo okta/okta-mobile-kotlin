@@ -177,6 +177,48 @@ class InteractionCodeFlowTest {
 
         val tokenResult = client.exchangeInteractionCodeForTokens(issueRemediation) as OidcClientResult.Success<Token>
         assertThat(tokenResult.result.accessToken).isEqualTo("eyJraWQiOiJBaE1qU3VMQWdBTDJ1dHVVY2lFRWJ2R1JUbi1GRkt1Y2tVTDJibVZMVmp3IiwiYWxnIjoiUlMyNTYifQ.eyJ2ZXIiOjEsImp0aSI6IkFULm01N1NsVUpMRUQyT1RtLXVrUFBEVGxFY0tialFvYy1wVGxVdm5ha0k3T1Eub2FyNjFvOHVVOVlGVnBYcjYybzQiLCJpc3MiOiJodHRwczovL2Zvby5wcmV2aWV3LmNvbS9vYXV0aDIvZGVmYXVsdCIsImF1ZCI6ImFwaTovL2RlZmF1bHQiLCJpYXQiOjE2MDg1NjcwMTgsImV4cCI6MTYwODU3MDYxOCwiY2lkIjoiMG9henNtcHhacFZFZzRjaFMybzQiLCJ1aWQiOiIwMHUxMGt2dkZDMDZHT21odTJvNSIsInNjcCI6WyJvcGVuaWQiLCJwcm9maWxlIiwib2ZmbGluZV9hY2Nlc3MiXSwic3ViIjoiZm9vQG9rdGEuY29tIn0.lg2T8dKVfic_JU6qzNBqDuw3RFUq7Da5UO37eY3W-cOOb9UqijxGYj7d-z8qK1UJjRRcDg-rTMzYQbKCLVxjBw")
+        assertThat(networkRule.idTokenValidator.lastIdTokenParameters.nonce).isEqualTo(client.flowContext.nonce)
+        assertThat(networkRule.idTokenValidator.lastIdTokenParameters.maxAge).isNull()
+    }
+
+    @Test fun testExchangeCodesWithMaxAge(): Unit = runBlocking {
+        networkRule.enqueue(path("/oauth2/default/v1/interact")) { response ->
+            response.testBodyFromFile("client/interactResponse.json")
+        }
+        networkRule.enqueue(path("/idp/idx/introspect")) { response ->
+            response.testBodyFromFile("client/identifyRemediationResponse.json")
+        }
+        networkRule.enqueue(path("/idp/idx/identify")) { response ->
+            response.testBodyFromFile("client/successWithInteractionCodeResponse.json")
+        }
+        networkRule.enqueue(path("/oauth2/v1/token")) { response ->
+            response.testBodyFromFile("client/tokenResponse.json")
+        }
+
+        val extraParameters = mapOf("max_age" to "65")
+        val clientResult = networkRule.createOidcClient().createInteractionCodeFlow(
+            redirectUrl = "test.okta.com/login",
+            extraStartRequestParameters = extraParameters,
+        ) as OidcClientResult.Success<InteractionCodeFlow>
+        val client = clientResult.result
+        assertThat(client.flowContext.interactionHandle).isEqualTo("029ZAB")
+
+        val resumeResult = client.resume() as OidcClientResult.Success<IdxResponse>
+        val resumeResponse = resumeResult.result
+        assertThat(resumeResponse.remediations).hasSize(4)
+
+        val identifyRemediation = resumeResponse.remediations[0]
+        identifyRemediation["identifier"]?.value = "test@okta.com"
+        identifyRemediation["credentials.passcode"]?.value = "example"
+        val proceedResult = client.proceed(identifyRemediation) as OidcClientResult.Success<IdxResponse>
+        val proceedResponse = proceedResult.result
+        val issueRemediation = proceedResponse.remediations[1]
+        assertThat(issueRemediation.type).isEqualTo(IdxRemediation.Type.ISSUE)
+
+        val tokenResult = client.exchangeInteractionCodeForTokens(issueRemediation) as OidcClientResult.Success<Token>
+        assertThat(tokenResult.result.accessToken).isEqualTo("eyJraWQiOiJBaE1qU3VMQWdBTDJ1dHVVY2lFRWJ2R1JUbi1GRkt1Y2tVTDJibVZMVmp3IiwiYWxnIjoiUlMyNTYifQ.eyJ2ZXIiOjEsImp0aSI6IkFULm01N1NsVUpMRUQyT1RtLXVrUFBEVGxFY0tialFvYy1wVGxVdm5ha0k3T1Eub2FyNjFvOHVVOVlGVnBYcjYybzQiLCJpc3MiOiJodHRwczovL2Zvby5wcmV2aWV3LmNvbS9vYXV0aDIvZGVmYXVsdCIsImF1ZCI6ImFwaTovL2RlZmF1bHQiLCJpYXQiOjE2MDg1NjcwMTgsImV4cCI6MTYwODU3MDYxOCwiY2lkIjoiMG9henNtcHhacFZFZzRjaFMybzQiLCJ1aWQiOiIwMHUxMGt2dkZDMDZHT21odTJvNSIsInNjcCI6WyJvcGVuaWQiLCJwcm9maWxlIiwib2ZmbGluZV9hY2Nlc3MiXSwic3ViIjoiZm9vQG9rdGEuY29tIn0.lg2T8dKVfic_JU6qzNBqDuw3RFUq7Da5UO37eY3W-cOOb9UqijxGYj7d-z8qK1UJjRRcDg-rTMzYQbKCLVxjBw")
+        assertThat(networkRule.idTokenValidator.lastIdTokenParameters.nonce).isEqualTo(client.flowContext.nonce)
+        assertThat(networkRule.idTokenValidator.lastIdTokenParameters.maxAge).isEqualTo(65)
     }
 
     @Test fun testExchangeCodeWithWrongRemediationType(): Unit = runBlocking {

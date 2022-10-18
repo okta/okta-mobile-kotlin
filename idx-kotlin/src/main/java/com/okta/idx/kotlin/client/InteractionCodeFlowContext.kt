@@ -33,4 +33,8 @@ class InteractionCodeFlowContext internal constructor(
     internal val state: String,
 
     internal val redirectUrl: String,
+
+    internal val nonce: String,
+
+    internal val maxAge: Int?
 )

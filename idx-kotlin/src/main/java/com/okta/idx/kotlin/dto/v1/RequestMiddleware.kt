@@ -135,6 +135,8 @@ internal class InteractContext private constructor(
     val codeVerifier: String,
     val state: String,
     val request: Request,
+    val nonce: String,
+    val maxAge: Int?
 ) {
     companion object {
         suspend fun create(
@@ -143,6 +145,7 @@ internal class InteractContext private constructor(
             extraParameters: Map<String, String> = emptyMap(),
             codeVerifier: String = PkceGenerator.codeVerifier(),
             state: String = UUID.randomUUID().toString(),
+            nonce: String = UUID.randomUUID().toString(),
         ): InteractContext? {
             val codeChallenge = PkceGenerator.codeChallenge(codeVerifier)
             val endpoints = oidcClient.endpointsOrNull() ?: return null
@@ -156,17 +159,20 @@ internal class InteractContext private constructor(
                 .add("code_challenge_method", PkceGenerator.CODE_CHALLENGE_METHOD)
                 .add("redirect_uri", redirectUrl)
                 .add("state", state)
+                .add("nonce", nonce)
 
             for (extraParameter in extraParameters) {
                 formBody.add(extraParameter.key, extraParameter.value)
             }
+
+            val maxAge = extraParameters["max_age"]?.toIntOrNull()
 
             val request = Request.Builder()
                 .url(urlBuilder.build())
                 .post(formBody.build())
                 .build()
 
-            return InteractContext(codeVerifier, state, request)
+            return InteractContext(codeVerifier, state, request, nonce, maxAge)
         }
     }
 }

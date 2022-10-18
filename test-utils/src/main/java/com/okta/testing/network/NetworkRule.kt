@@ -63,6 +63,8 @@ class NetworkRule : TestRule {
         return clientBuilder.build()
     }
 
+    val idTokenValidator = TestIdTokenValidator()
+
     val clock: TestClock = TestClock()
 
     val configuration: OidcConfiguration = OidcConfiguration(
@@ -71,7 +73,7 @@ class NetworkRule : TestRule {
         okHttpClientFactory = { okHttpClient() },
         eventCoordinator = EventCoordinator(emptyList()),
         clock = clock,
-        idTokenValidator = { _, _, _ -> },
+        idTokenValidator = idTokenValidator,
         accessTokenValidator = { _, _, _ -> },
         deviceSecretValidator = { _, _, _ -> },
         ioDispatcher = EmptyCoroutineContext,

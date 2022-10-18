@@ -71,6 +71,8 @@ class InteractionCodeFlow internal constructor(
                     interactionHandle = it.interactionHandle,
                     state = interactContext.state,
                     redirectUrl = redirectUrl,
+                    nonce = interactContext.nonce,
+                    maxAge = interactContext.maxAge,
                 )
                 InteractionCodeFlow(
                     oidcClient = this,
@@ -136,7 +138,7 @@ class InteractionCodeFlow internal constructor(
             remediation.asFormRequest()
         }
 
-        return oidcClient.tokenRequest(request)
+        return oidcClient.tokenRequest(request, flowContext.nonce, flowContext.maxAge)
     }
 
     /**
@@ -195,7 +197,7 @@ class InteractionCodeFlow internal constructor(
             tokenRequestFromInteractionCode(oidcClient, flowContext, interactionCode)
         }
 
-        return oidcClient.tokenRequest(request)
+        return oidcClient.tokenRequest(request, flowContext.nonce, flowContext.maxAge)
     }
 
     /** IdxResponse can come back in both HTTP 200 as well as others such as 400s. */
