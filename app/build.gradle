@@ -9,7 +9,7 @@ android {
     compileSdkVersion build_versions.compile_sdk
 
     defaultConfig {
-        applicationId "sample.okta.oidc.android"
+        applicationId "sample.okta.android"
         minSdkVersion 23
         targetSdkVersion build_versions.target_sdk
         versionCode 1
