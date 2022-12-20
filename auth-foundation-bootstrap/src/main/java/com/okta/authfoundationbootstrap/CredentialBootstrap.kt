@@ -44,7 +44,7 @@ object CredentialBootstrap {
     val credentialDataSource: CredentialDataSource
         get() {
             return privateCredentialDataSource
-                ?: throw IllegalStateException("CredentialBoostrap not initialized. Please call initialize before attempting to access properties and methods.")
+                ?: throw IllegalStateException("CredentialBoostrap not initialized")
         }
 
     /**
