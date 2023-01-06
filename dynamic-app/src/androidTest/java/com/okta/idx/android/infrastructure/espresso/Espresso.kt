@@ -93,15 +93,21 @@ fun fillInEditText(resourceId: String, text: String) {
     assertThat(uiDevice.findObject(selector).setText(text)).isTrue()
 }
 
-fun clickButtonWithText(text: String) {
+fun clickButtonWithText(text: String, timeout: Long? = null) {
     val uiDevice = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
     val selector = UiSelector().text(text)
+    timeout?.let {
+        assertThat(uiDevice.findObject(selector).waitForExists(timeout)).isTrue()
+    }
     assertThat(uiDevice.findObject(selector).click()).isTrue()
 }
 
-fun clickButtonWithTextMatching(text: String) {
+fun clickButtonWithTextMatching(text: String, timeout: Long? = null) {
     val uiDevice = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
     val selector = UiSelector().textMatches(text)
+    timeout?.let {
+        assertThat(uiDevice.findObject(selector).waitForExists(timeout)).isTrue()
+    }
     assertThat(uiDevice.findObject(selector).click()).isTrue()
 }
 

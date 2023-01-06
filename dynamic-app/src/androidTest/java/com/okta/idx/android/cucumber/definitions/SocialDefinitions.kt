@@ -30,34 +30,41 @@ import io.cucumber.java.Before
 import io.cucumber.java.en.And
 import io.cucumber.java.en.Then
 import timber.log.Timber
+import kotlin.time.Duration.Companion.seconds
 
 internal class SocialDefinitions {
     @Before("@logOutOfSocialIdP", order = 0)
     fun logOutOfSocialIdP() {
         execShellCommand("pm clear com.android.chrome")
-
-        Thread.sleep(2000)
+        Thread.sleep(2.seconds.inWholeMilliseconds)
 
         val application = ApplicationProvider.getApplicationContext<Application>()
         val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://okta.com"))
+        val buttonTimeout = 1.seconds.inWholeMilliseconds
         browserIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
         application.startActivity(browserIntent)
 
         try {
-            clickButtonWithText("Accept & continue")
+            clickButtonWithText("Use without an account", buttonTimeout)
+        } catch (e: Throwable) {
+            Timber.e(e, "Error calling Use without an account")
+        }
+
+        try {
+            clickButtonWithText("Accept & continue", buttonTimeout)
         } catch (e: Throwable) {
             Timber.e(e, "Error Calling accept and continue")
         }
 
         try {
-            clickButtonWithTextMatching("No [t|T]hanks")
+            clickButtonWithTextMatching("No [t|T]hanks", buttonTimeout)
         } catch (e: Throwable) {
             Timber.e(e, "Error Calling No thanks")
         }
 
-        Thread.sleep(2000)
+        Thread.sleep(1.seconds.inWholeMilliseconds)
         execShellCommand("am force-stop com.android.chrome")
-        Thread.sleep(2000)
+        Thread.sleep(1.seconds.inWholeMilliseconds)
     }
 
     @And("^logs in to Okta OIDC$") fun logs_in_to_okta_oidc() {
