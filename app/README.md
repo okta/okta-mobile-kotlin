@@ -72,13 +72,13 @@ the contents created from the [okta admin dashboard](#Okta-Admin-Dashboard):
 ```
 issuer=https://YOUR_ORG.okta.com/oauth2/default
 clientId=test-client-id
-redirectUri=com.okta.sample.android:/login
+signInRedirectUri=com.okta.sample.android:/login
 ```
 
 Notes:
 - `issuer` - is your authorization server, usually `https://your_okta_domain.okta.com/oauth2/default`, but custom authorization servers are supported. See `https://your_okta_domain.okta.com/admin/oauth2/as` for available authorization servers.
 - `clientId` - is your applications client id, created in your okta admin dashboard
-- `redirectUri` - is used for external [identity providers](https://developer.okta.com/docs/reference/api/idps/), and should follow the format of [reverse domain name notation](https://en.wikipedia.org/wiki/Reverse_domain_name_notation) + `:/login`, ie: `com.okta.sample.android:/login`
+- `signInRedirectUri` - is used for external [identity providers](https://developer.okta.com/docs/reference/api/idps/), and should follow the format of [reverse domain name notation](https://en.wikipedia.org/wiki/Reverse_domain_name_notation) + `:/login`, ie: `com.okta.sample.android:/login`
 
 ### Dependencies
 

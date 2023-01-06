@@ -16,10 +16,10 @@ android {
 
         buildConfigField "String", 'ISSUER', "\"${oktaProperties.getProperty('issuer')}\""
         buildConfigField "String", 'CLIENT_ID', "\"${oktaProperties.getProperty('clientId')}\""
-        buildConfigField "String", 'REDIRECT_URI', "\"${oktaProperties.getProperty('redirectUri')}\""
+        buildConfigField "String", 'REDIRECT_URI', "\"${oktaProperties.getProperty('signInRedirectUri')}\""
 
         manifestPlaceholders = [
-                "oktaIdxRedirectScheme": parseScheme(oktaProperties.getProperty('redirectUri'))
+                "oktaIdxRedirectScheme": parseScheme(oktaProperties.getProperty('signInRedirectUri'))
         ]
     }
 

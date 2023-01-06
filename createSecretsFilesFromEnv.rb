@@ -35,5 +35,5 @@ File.write('dynamic-app/src/androidTest/resources/e2eCredentials.yaml', yaml_pro
 okta_properties = ''
 okta_properties += "issuer=#{ENV['OKTA_IDX_ISSUER']}\n"
 okta_properties += "clientId=#{ENV['OKTA_IDX_CLIENT_ID']}\n"
-okta_properties += "redirectUri=#{ENV['OKTA_IDX_REDIRECT_URI']}\n"
+okta_properties += "signInRedirectUri=#{ENV['OKTA_IDX_REDIRECT_URI']}\n"
 File.write('okta.properties', okta_properties)
