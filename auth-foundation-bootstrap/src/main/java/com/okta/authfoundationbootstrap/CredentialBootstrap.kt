@@ -30,7 +30,6 @@ import com.okta.authfoundation.util.CoalescingOrchestrator
 object CredentialBootstrap {
     private const val CREDENTIAL_NAME_TAG_KEY: String = "com.okta.kotlin.credential.name"
     private const val DEFAULT_CREDENTIAL_NAME_TAG_VALUE: String = "Default"
-
     @Volatile private var privateCredentialDataSource: CredentialDataSource? = null
 
     private val credentialCoalescingOrchestrator = CoalescingOrchestrator(
