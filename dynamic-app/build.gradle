@@ -20,7 +20,9 @@ android {
         buildConfigField "String", 'REDIRECT_URI', "\"${oktaProperties.getProperty('signInRedirectUri')}\""
 
         manifestPlaceholders = [
-                "oktaIdxRedirectScheme": parseScheme(oktaProperties.getProperty('signInRedirectUri'))
+                "oktaIdxRedirectScheme": parseScheme(oktaProperties.getProperty('signInRedirectUri')),
+                "oktaIdxEmailHost": oktaProperties.getProperty('emailRedirectHost'),
+                "oktaIdxEmailPrefix": oktaProperties.getProperty('emailRedirectPrefix')
         ]
 
         testInstrumentationRunner 'io.cucumber.android.runner.CucumberAndroidJUnitRunner'

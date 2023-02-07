@@ -18,10 +18,12 @@ package com.okta.idx.android.dynamic
 import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import timber.log.Timber
 
 class MainActivity : AppCompatActivity() {
     companion object {
         const val SOCIAL_REDIRECT_ACTION = "SocialRedirect"
+        const val EMAIL_REDIRECT_ACTION = "EmailRedirect"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -33,6 +35,22 @@ class MainActivity : AppCompatActivity() {
     public override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
 
+        when (intent?.action) {
+            SOCIAL_REDIRECT_ACTION -> {
+                intent.data?.let {
+                    SocialRedirectCoordinator.listener?.invoke(it)
+                } ?: run {
+                    Timber.d("SocialRedirect intent data missing")
+                }
+            }
+            EMAIL_REDIRECT_ACTION -> {
+                intent.data?.let {
+                    EmailRedirectCoordinator.listener?.invoke(it, this)
+                } ?: run {
+                    Timber.d("EmailRedirect intent data missing")
+                }
+            }
+        }
         if (intent?.action == SOCIAL_REDIRECT_ACTION) {
             intent.data?.let {
                 SocialRedirectCoordinator.listener?.invoke(it)

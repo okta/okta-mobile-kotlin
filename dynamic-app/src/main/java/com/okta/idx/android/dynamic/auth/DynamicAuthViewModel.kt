@@ -26,6 +26,7 @@ import androidx.lifecycle.viewModelScope
 import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundationbootstrap.CredentialBootstrap
 import com.okta.idx.android.dynamic.BuildConfig
+import com.okta.idx.android.dynamic.EmailRedirectCoordinator
 import com.okta.idx.android.dynamic.SocialRedirectCoordinator
 import com.okta.idx.kotlin.client.IdxRedirectResult
 import com.okta.idx.kotlin.client.InteractionCodeFlow
@@ -56,11 +57,13 @@ internal class DynamicAuthViewModel(private val recoveryToken: String) : ViewMod
 
     init {
         createClient()
-        SocialRedirectCoordinator.listener = ::handleRedirect
+        SocialRedirectCoordinator.listener = ::handleSocialRedirect
+        EmailRedirectCoordinator.listener = ::handleEmailRedirect
     }
 
     override fun onCleared() {
         SocialRedirectCoordinator.listener = null
+        EmailRedirectCoordinator.listener = null
     }
 
     private fun createClient() {
@@ -118,7 +121,7 @@ internal class DynamicAuthViewModel(private val recoveryToken: String) : ViewMod
         }
     }
 
-    private fun handleRedirect(uri: Uri) {
+    private fun handleSocialRedirect(uri: Uri) {
         viewModelScope.launch {
             when (val redirectResult = flow?.evaluateRedirectUri(uri)) {
                 is IdxRedirectResult.Error -> {
@@ -134,6 +137,23 @@ internal class DynamicAuthViewModel(private val recoveryToken: String) : ViewMod
                 }
                 null -> {
                     Timber.d("No client for handleRedirect.")
+                }
+            }
+        }
+    }
+
+    private fun handleEmailRedirect(uri: Uri, context: Context) {
+        viewModelScope.launch {
+            val idxForm = _state.value as DynamicAuthState.Form
+            idxForm.idxResponse.remediations.firstOrNull {
+                it.type == IdxRemediation.Type.CHALLENGE_AUTHENTICATOR
+            }?.let {
+                val otpCode = uri.getQueryParameter("otp")
+                if (otpCode != null) {
+                    it.form["credentials.passcode"]?.apply {
+                        value = otpCode
+                        proceed(it, context)
+                    }
                 }
             }
         }
@@ -224,9 +244,9 @@ internal class DynamicAuthViewModel(private val recoveryToken: String) : ViewMod
      * Get text fields, checkboxes, radio buttons and radio button groups from `IdxRemediation.form.visibleFields`.
      */
     private fun IdxRemediation.Form.Field.asDynamicAuthFields(): List<DynamicAuthField> {
-        return when (true) {
+        return when {
             // Nested form inside a field.
-            form?.visibleFields?.isNullOrEmpty() == false -> {
+            !form?.visibleFields.isNullOrEmpty() -> {
                 val result = mutableListOf<DynamicAuthField>()
                 form?.visibleFields?.forEach {
                     result += it.asDynamicAuthFields()
@@ -234,7 +254,7 @@ internal class DynamicAuthViewModel(private val recoveryToken: String) : ViewMod
                 result
             }
             // Options represent multiple choice items like authenticators and can be nested.
-            options?.isNullOrEmpty() == false -> {
+            !options.isNullOrEmpty() -> {
                 options?.let { options ->
                     val transformed = options.map {
                         val fields =

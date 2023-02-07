@@ -38,5 +38,22 @@
                 <data android:scheme="${oktaIdxRedirectScheme}" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".EmailMagicLinkRedirectActivity"
+            android:autoRemoveFromRecents="true"
+            android:exported="true"
+            android:launchMode="singleInstance">
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="https" />
+                <data android:host="${oktaIdxEmailHost}" />
+                <data android:pathPrefix="${oktaIdxEmailPrefix}" />
+            </intent-filter>
+        </activity>
     </application>
 </manifest>
