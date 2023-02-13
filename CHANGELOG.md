@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.2] - 2023-02-13
+
+[Commits](https://github.com/okta/okta-mobile-kotlin/compare/1.1.1...1.1.2)
+
+### Fixed
+- Fix a race condition caused by activity lifecycle when multiple login/logout are called too quickly. [#238](https://github.com/okta/okta-mobile-kotlin/pull/238)
+
 ## [1.1.1] - 2022-10-17
 
 [Commits](https://github.com/okta/okta-mobile-kotlin/compare/1.1.0...1.1.1)
