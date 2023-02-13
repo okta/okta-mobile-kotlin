@@ -63,6 +63,9 @@ internal class ForegroundActivity : AppCompatActivity() {
         // Removing the observer because we want the result delivered in onResume (where we observer), rather than onStart in the case
         // where the activity was backgrounded.
         viewModel.stateLiveData.removeObserver(stateObserver)
+        if (isFinishing) {
+            viewModel.flowCancelled()
+        }
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -80,13 +83,6 @@ internal class ForegroundActivity : AppCompatActivity() {
     override fun onBackPressed() {
         super.onBackPressed()
         viewModel.flowCancelled()
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        if (isFinishing) {
-            viewModel.flowCancelled()
-        }
     }
 
     private val stateObserver = Observer<ForegroundViewModel.State> { state ->
