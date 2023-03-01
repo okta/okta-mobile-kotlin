@@ -21,6 +21,7 @@ import com.okta.authfoundation.client.internal.SdkVersionsRegistry
 import com.okta.authfoundation.events.EventCoordinator
 import kotlinx.serialization.json.Json
 import okhttp3.Call
+import okhttp3.CookieJar
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.Response
@@ -65,7 +66,11 @@ class OidcConfiguration @InternalAuthFoundationApi constructor(
 
     /** The Cache used to optimize network calls by the SDK. */
     @property:InternalAuthFoundationApi
-    val cache: Cache
+    val cache: Cache,
+
+    /** The CookieJar used for the network calls used by the SDK. */
+    @property:InternalAuthFoundationApi
+    val cookieJar: CookieJar
 ) {
     /**
      * Used to create an OidcConfiguration.
@@ -89,26 +94,26 @@ class OidcConfiguration @InternalAuthFoundationApi constructor(
         accessTokenValidator = AuthFoundationDefaults.accessTokenValidator,
         deviceSecretValidator = AuthFoundationDefaults.deviceSecretValidator,
         cache = AuthFoundationDefaults.cache,
+        cookieJar = AuthFoundationDefaults.cookieJar,
     )
 
     /** The Call.Factory which makes calls to the okta server. */
     @property:InternalAuthFoundationApi val okHttpClient: Call.Factory by lazy {
-        addInterceptor(okHttpClientFactory())
+        val callFactory = okHttpClientFactory()
+        if (callFactory is OkHttpClient) {
+            callFactory.newBuilder()
+                .addInterceptor(OidcUserAgentInterceptor)
+                .cookieJar(cookieJar)
+                .build()
+        } else {
+            callFactory
+        }
     }
 
     /** The Json object to do the decoding from the okta server responses. */
     @InternalAuthFoundationApi val json: Json = defaultJson()
 
     internal companion object {
-        private fun addInterceptor(callFactory: Call.Factory): Call.Factory {
-            if (callFactory is OkHttpClient) {
-                return callFactory.newBuilder()
-                    .addInterceptor(OidcUserAgentInterceptor)
-                    .build()
-            }
-            return callFactory
-        }
-
         internal fun defaultJson(): Json = Json { ignoreUnknownKeys = true }
     }
 }

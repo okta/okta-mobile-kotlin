@@ -21,12 +21,14 @@ import com.okta.authfoundation.client.DefaultAccessTokenValidator
 import com.okta.authfoundation.client.DefaultDeviceSecretValidator
 import com.okta.authfoundation.client.DefaultIdTokenValidator
 import com.okta.authfoundation.client.DeviceSecretValidator
+import com.okta.authfoundation.client.DeviceTokenCookieJar
 import com.okta.authfoundation.client.IdTokenValidator
 import com.okta.authfoundation.client.NoOpCache
 import com.okta.authfoundation.client.OidcClock
 import com.okta.authfoundation.events.EventCoordinator
 import kotlinx.coroutines.Dispatchers
 import okhttp3.Call
+import okhttp3.CookieJar
 import okhttp3.OkHttpClient
 import java.time.Instant
 import kotlin.coroutines.CoroutineContext
@@ -65,4 +67,8 @@ object AuthFoundationDefaults {
 
     /** The default [Cache]. No caching is enabled by default. */
     var cache: Cache by NoSetAfterGetWithLazyDefaultFactory { NoOpCache() }
+
+    /** The default [CookieJar]. By default, it adds a DT cookie for identifying the device.
+     * To use the default [CookieJar] in OkHttp, set this to [CookieJar.NO_COOKIES] */
+    var cookieJar: CookieJar by NoSetAfterGetWithLazyDefaultFactory { DeviceTokenCookieJar() }
 }

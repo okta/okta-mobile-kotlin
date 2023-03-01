@@ -25,6 +25,7 @@ import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.client.OidcEndpoints
 import com.okta.authfoundation.events.EventCoordinator
+import okhttp3.CookieJar
 import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.mockwebserver.MockResponse
@@ -66,6 +67,7 @@ class OktaRule(
         ioDispatcher = EmptyCoroutineContext,
         computeDispatcher = EmptyCoroutineContext,
         cache = cache,
+        cookieJar = CookieJar.NO_COOKIES,
     )
 
     fun createEndpoints(

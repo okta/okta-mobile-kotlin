@@ -4,6 +4,7 @@ public final class com/okta/authfoundation/AuthFoundationDefaults {
 	public final fun getCache ()Lcom/okta/authfoundation/client/Cache;
 	public final fun getClock ()Lcom/okta/authfoundation/client/OidcClock;
 	public final fun getComputeDispatcher ()Lkotlin/coroutines/CoroutineContext;
+	public final fun getCookieJar ()Lokhttp3/CookieJar;
 	public final fun getDeviceSecretValidator ()Lcom/okta/authfoundation/client/DeviceSecretValidator;
 	public final fun getEventCoordinator ()Lcom/okta/authfoundation/events/EventCoordinator;
 	public final fun getIdTokenValidator ()Lcom/okta/authfoundation/client/IdTokenValidator;
@@ -13,6 +14,7 @@ public final class com/okta/authfoundation/AuthFoundationDefaults {
 	public final fun setCache (Lcom/okta/authfoundation/client/Cache;)V
 	public final fun setClock (Lcom/okta/authfoundation/client/OidcClock;)V
 	public final fun setComputeDispatcher (Lkotlin/coroutines/CoroutineContext;)V
+	public final fun setCookieJar (Lokhttp3/CookieJar;)V
 	public final fun setDeviceSecretValidator (Lcom/okta/authfoundation/client/DeviceSecretValidator;)V
 	public final fun setEventCoordinator (Lcom/okta/authfoundation/events/EventCoordinator;)V
 	public final fun setIdTokenValidator (Lcom/okta/authfoundation/client/IdTokenValidator;)V
@@ -76,6 +78,23 @@ public abstract interface class com/okta/authfoundation/client/DeviceSecretValid
 
 public final class com/okta/authfoundation/client/DeviceSecretValidator$Error : java/lang/IllegalStateException {
 	public fun <init> (Ljava/lang/String;)V
+}
+
+public final class com/okta/authfoundation/client/DeviceTokenCookieJar : okhttp3/CookieJar {
+	public fun <init> ()V
+	public fun loadForRequest (Lokhttp3/HttpUrl;)Ljava/util/List;
+	public fun saveFromResponse (Lokhttp3/HttpUrl;Ljava/util/List;)V
+}
+
+public final class com/okta/authfoundation/client/DeviceTokenInitializer : androidx/startup/Initializer {
+	public fun <init> ()V
+	public fun create (Landroid/content/Context;)Lcom/okta/authfoundation/client/DeviceTokenProvider;
+	public synthetic fun create (Landroid/content/Context;)Ljava/lang/Object;
+	public fun dependencies ()Ljava/util/List;
+}
+
+public final class com/okta/authfoundation/client/DeviceTokenProvider {
+	public synthetic fun <init> (Landroid/content/Context;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 }
 
 public abstract interface class com/okta/authfoundation/client/IdTokenValidator {
@@ -156,12 +175,13 @@ public abstract interface class com/okta/authfoundation/client/OidcClock {
 
 public final class com/okta/authfoundation/client/OidcConfiguration {
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
-	public fun <init> (Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function0;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;Lcom/okta/authfoundation/client/OidcClock;Lcom/okta/authfoundation/events/EventCoordinator;Lcom/okta/authfoundation/client/IdTokenValidator;Lcom/okta/authfoundation/client/AccessTokenValidator;Lcom/okta/authfoundation/client/DeviceSecretValidator;Lcom/okta/authfoundation/client/Cache;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function0;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;Lcom/okta/authfoundation/client/OidcClock;Lcom/okta/authfoundation/events/EventCoordinator;Lcom/okta/authfoundation/client/IdTokenValidator;Lcom/okta/authfoundation/client/AccessTokenValidator;Lcom/okta/authfoundation/client/DeviceSecretValidator;Lcom/okta/authfoundation/client/Cache;Lokhttp3/CookieJar;)V
 	public final fun getAccessTokenValidator ()Lcom/okta/authfoundation/client/AccessTokenValidator;
 	public final fun getCache ()Lcom/okta/authfoundation/client/Cache;
 	public final fun getClientId ()Ljava/lang/String;
 	public final fun getClock ()Lcom/okta/authfoundation/client/OidcClock;
 	public final fun getComputeDispatcher ()Lkotlin/coroutines/CoroutineContext;
+	public final fun getCookieJar ()Lokhttp3/CookieJar;
 	public final fun getDefaultScope ()Ljava/lang/String;
 	public final fun getDeviceSecretValidator ()Lcom/okta/authfoundation/client/DeviceSecretValidator;
 	public final fun getEventCoordinator ()Lcom/okta/authfoundation/events/EventCoordinator;
