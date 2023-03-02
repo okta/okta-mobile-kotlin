@@ -15,10 +15,26 @@
  */
 package com.okta.idx.kotlin.dto
 
+import java.util.Locale
+import java.util.TimeZone
+
 /**
  * Provides information about the user being authenticated.
  */
 class IdxUser internal constructor(
     /** Unique identifier for this user. */
     val id: String,
-)
+
+    /** Username for this user, if available. */
+    val username: String?,
+
+    /** Profile information for this user, if available. */
+    val profile: Profile?,
+) {
+    class Profile internal constructor(
+        val firstName: String?,
+        val lastName: String?,
+        val timeZone: TimeZone?,
+        val locale: Locale?,
+    )
+}

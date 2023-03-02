@@ -23,6 +23,8 @@ import com.okta.testing.stringFromResources
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import org.junit.Test
+import java.util.Locale
+import java.util.TimeZone
 
 class IdxResponseTest {
     private val json = Json {
@@ -250,5 +252,18 @@ class IdxResponseTest {
 
         val requestJson = remediation.toJsonContent().toString()
         assertThat(requestJson).isEqualTo("""{"stateHandle":"029ZAB"}""")
+    }
+
+    @Test fun testIdxUser() {
+        val idxResponse = getIdxResponse("okta_verify_number_challenge.json")
+        val idxUser = idxResponse.user!!
+        val idxUserProfile = idxResponse.user!!.profile!!
+
+        assertThat(idxUser.id).isEqualTo("00u8yv3dueDfCUpRR696")
+        assertThat(idxUser.username).isEqualTo("jaynewstrom+ov@gmail.com")
+        assertThat(idxUserProfile.firstName).isEqualTo("jay")
+        assertThat(idxUserProfile.lastName).isEqualTo("newstrom")
+        assertThat(idxUserProfile.timeZone).isEqualTo(TimeZone.getTimeZone("America/Los_Angeles"))
+        assertThat(idxUserProfile.locale).isEqualTo(Locale("en_US"))
     }
 }

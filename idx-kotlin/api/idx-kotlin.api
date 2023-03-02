@@ -409,5 +409,14 @@ public final class com/okta/idx/kotlin/dto/IdxTotpCapability : com/okta/idx/kotl
 
 public final class com/okta/idx/kotlin/dto/IdxUser {
 	public final fun getId ()Ljava/lang/String;
+	public final fun getProfile ()Lcom/okta/idx/kotlin/dto/IdxUser$Profile;
+	public final fun getUsername ()Ljava/lang/String;
+}
+
+public final class com/okta/idx/kotlin/dto/IdxUser$Profile {
+	public final fun getFirstName ()Ljava/lang/String;
+	public final fun getLastName ()Ljava/lang/String;
+	public final fun getLocale ()Ljava/util/Locale;
+	public final fun getTimeZone ()Ljava/util/TimeZone;
 }
 

@@ -20,6 +20,8 @@ import com.okta.idx.kotlin.dto.IdxMessageCollection
 import com.okta.idx.kotlin.dto.IdxResponse
 import com.okta.idx.kotlin.dto.IdxUser
 import kotlinx.serialization.json.Json
+import java.util.Locale
+import java.util.TimeZone
 
 internal fun Response.toIdxResponse(json: Json): IdxResponse {
     val parsingContext = ParsingContext.create(json, this)
@@ -50,7 +52,16 @@ private fun User.toIdxUser(): IdxUser? {
     if (id == null) {
         return null
     }
-    return IdxUser(id)
+    return IdxUser(id, identifier, profile?.toIdxUserProfile())
+}
+
+private fun User.Profile.toIdxUserProfile(): IdxUser.Profile {
+    return IdxUser.Profile(
+        firstName,
+        lastName,
+        timeZone?.let { TimeZone.getTimeZone(it) },
+        locale?.let { Locale(it) },
+    )
 }
 
 private fun String?.toIdxResponseIntent(): IdxResponse.Intent {

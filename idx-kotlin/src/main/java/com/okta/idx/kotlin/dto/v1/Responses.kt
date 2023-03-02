@@ -93,7 +93,17 @@ internal data class IonCollection<T>(
 @Serializable
 internal data class User(
     val id: String? = null,
-)
+    val profile: Profile? = null,
+    val identifier: String? = null,
+) {
+    @Serializable
+    internal data class Profile(
+        val firstName: String? = null,
+        val lastName: String? = null,
+        val timeZone: String? = null,
+        val locale: String? = null,
+    )
+}
 
 @Serializable
 internal data class App(
