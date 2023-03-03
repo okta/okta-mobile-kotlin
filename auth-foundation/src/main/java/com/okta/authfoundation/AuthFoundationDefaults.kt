@@ -70,5 +70,5 @@ object AuthFoundationDefaults {
 
     /** The default [CookieJar]. By default, it adds a DT cookie for identifying the device.
      * To use the default [CookieJar] in OkHttp, set this to [CookieJar.NO_COOKIES] */
-    var cookieJar: CookieJar by NoSetAfterGetWithLazyDefaultFactory { DeviceTokenCookieJar() }
+    var cookieJar: CookieJar by NoSetAfterGetWithLazyDefaultFactory { DeviceTokenCookieJar(clock) }
 }

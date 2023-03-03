@@ -18,8 +18,9 @@ package com.okta.authfoundation.client
 import okhttp3.Cookie
 import okhttp3.CookieJar
 import okhttp3.HttpUrl
+import kotlin.time.Duration.Companion.seconds
 
-class DeviceTokenCookieJar : CookieJar {
+class DeviceTokenCookieJar(private val oidcClock: OidcClock) : CookieJar {
     private val savedCookiesCache = mutableMapOf<String, List<Cookie>>()
 
     private val deviceTokenCookieBuilder = Cookie.Builder()
@@ -30,7 +31,7 @@ class DeviceTokenCookieJar : CookieJar {
     override fun loadForRequest(url: HttpUrl): List<Cookie> {
         val deviceTokenCookie = deviceTokenCookieBuilder.domain(url.host).build()
         val savedCookiesForDomain = savedCookiesCache[url.host]?.filter {
-            it.expiresAt > System.currentTimeMillis()
+            it.expiresAt > oidcClock.currentTimeEpochSecond().seconds.inWholeMilliseconds
         } ?: emptyList()
         return savedCookiesForDomain + listOf(deviceTokenCookie)
     }

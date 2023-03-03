@@ -81,7 +81,7 @@ public final class com/okta/authfoundation/client/DeviceSecretValidator$Error : 
 }
 
 public final class com/okta/authfoundation/client/DeviceTokenCookieJar : okhttp3/CookieJar {
-	public fun <init> ()V
+	public fun <init> (Lcom/okta/authfoundation/client/OidcClock;)V
 	public fun loadForRequest (Lokhttp3/HttpUrl;)Ljava/util/List;
 	public fun saveFromResponse (Lokhttp3/HttpUrl;Ljava/util/List;)V
 }
@@ -170,7 +170,7 @@ public final class com/okta/authfoundation/client/OidcClientResult$Success : com
 }
 
 public abstract interface class com/okta/authfoundation/client/OidcClock {
-	public abstract fun currentTimeEpochSecond (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun currentTimeEpochSecond ()J
 }
 
 public final class com/okta/authfoundation/client/OidcConfiguration {
