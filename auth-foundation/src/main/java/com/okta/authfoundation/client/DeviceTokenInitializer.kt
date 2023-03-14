@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-Present Okta, Inc.
+ * Copyright 2023-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.okta.testhelpers
+package com.okta.authfoundation.client
 
-import com.okta.authfoundation.client.OidcClock
+import android.content.Context
+import androidx.startup.Initializer
 
-class TestClock : OidcClock {
-    @Volatile var currentTime: Long = 1644347069L
-
-    override fun currentTimeEpochSecond(): Long {
-        return currentTime
+class DeviceTokenInitializer : Initializer<DeviceTokenProvider> {
+    override fun create(context: Context): DeviceTokenProvider {
+        return DeviceTokenProvider.initialize(context)
     }
+
+    override fun dependencies(): List<Class<out Initializer<*>>> = emptyList()
 }

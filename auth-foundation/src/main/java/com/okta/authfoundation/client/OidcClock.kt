@@ -29,5 +29,5 @@ fun interface OidcClock {
     /**
      *  Returns the current time in seconds since January 1, 1970 UTC, adjusting the system clock to correct for clock skew.
      */
-    suspend fun currentTimeEpochSecond(): Long
+    fun currentTimeEpochSecond(): Long
 }
