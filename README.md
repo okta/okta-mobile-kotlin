@@ -225,7 +225,7 @@ import com.okta.authfoundationbootstrap.CredentialBootstrap
 import com.okta.oauth2.TokenExchangeFlow
 import com.okta.oauth2.TokenExchangeFlow.Companion.createTokenExchangeFlow
 
-val credentialDataSource: CredentialDataSource = CredentialBootstrap.defaultCredentialDataSource()
+val credentialDataSource: CredentialDataSource = CredentialBootstrap.credentialDataSource
 val tokenExchangeCredential: Credential = credentialDataSource.createCredential()
 val tokenExchangeFlow: TokenExchangeFlow = CredentialBootstrap.oidcClient.createTokenExchangeFlow()
 when (val result = tokenExchangeFlow.start(idToken, deviceSecret)) {
