@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.3] - 2023-04-12
+
+[Commits](https://github.com/okta/okta-mobile-kotlin/compare/1.1.2...1.1.3)
+
+### Added
+- Added DT (device token) cookie to okHttpClient for supporting "remember device" functionality in downstream SDKs. [#240](https://github.com/okta/okta-mobile-kotlin/pull/240)
+
 ## [1.1.2] - 2023-02-13
 
 [Commits](https://github.com/okta/okta-mobile-kotlin/compare/1.1.1...1.1.2)
