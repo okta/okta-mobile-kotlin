@@ -20,7 +20,7 @@ import com.okta.authfoundation.client.OidcClock
 class TestClock : OidcClock {
     @Volatile var currentTime: Long = 1644347069L
 
-    override suspend fun currentTimeEpochSecond(): Long {
+    override fun currentTimeEpochSecond(): Long {
         return currentTime
     }
 }
