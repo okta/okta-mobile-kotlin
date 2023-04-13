@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.2.0] - 2023-04-13
+
+## Changed
+- Updated to latest auth-foundation (1.1.3). This adds support for DT (device token) cookie. DT cookie is used for "remember device" functionality.
+- Add user profile information to IdxResponse [#181](https://github.com/okta/okta-idx-android/pull/181)
+- Add nonce and max_age support [#172](https://github.com/okta/okta-idx-android/pull/172)
+- Add form validation support [#171](https://github.com/okta/okta-idx-android/pull/171)
+- Add polling support [#169](https://github.com/okta/okta-idx-android/pull/169)
+
 ## [2.1.0] - 2022-09-21
 
 ### Changed
