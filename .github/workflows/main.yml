@@ -2,8 +2,11 @@ name: main
 
 on:
   push:
+    branches:
+      - master
   pull_request:
-    types: [opened, labeled, unlabeled, synchronize]
+    branches:
+      - master
 
 env:
   GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4g -Dorg.gradle.daemon=false -Dkotlin.incremental=false"
@@ -38,15 +41,31 @@ jobs:
       - name: Run Tests
         run: ./gradlew assembleDebug testDebugUnitTest assembleAndroidTest
 
-      - name: Authenticate Gcloud command line
-        if: ${{ github.event.repository.fork == false && (github.ref == 'refs/heads/master' || contains(github.event.pull_request.labels.*.name, 'e2e')) }}
+      - name: Setup Gcloud credentials
+        if: ${{ github.event.repository.fork == false }}
         env:
-          GOOGLE_PROJECT_ID: ${{ secrets.GOOGLE_PROJECT_ID }}
           GOOGLE_SERVICE_JSON_BASE64: ${{ secrets.GOOGLE_SERVICE_JSON_BASE64 }}
-        run: ./signInToGcloud.sh && source $HOME/google-cloud-sdk/path.bash.inc && export CLOUDSDK_CORE_DISABLE_PROMPTS=1
+        run: |
+          echo "::add-mask::$(echo $GOOGLE_SERVICE_JSON_BASE64 | base64 --decode | jq -r tostring)"
+          echo "GOOGLE_SERVICE_JSON=$(echo $GOOGLE_SERVICE_JSON_BASE64 | base64 --decode | jq -r tostring)" >> $GITHUB_ENV
+
+      - name: Authenticate Gcloud command line
+        if: ${{ github.event.repository.fork == false }}
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ env.GOOGLE_SERVICE_JSON }}
+          project_id: ${{ secrets.GOOGLE_PROJECT_ID }}
+
+      - name: Set up Cloud SDK
+        if: ${{ github.event.repository.fork == false }}
+        uses: google-github-actions/setup-gcloud@v1
+
+      - name: Use gcloud CLI
+        if: ${{ github.event.repository.fork == false }}
+        run: gcloud auth list &> /dev/null
 
       - name: Run End to End Tests
-        if: ${{ github.event.repository.fork == false && (github.ref == 'refs/heads/master' || contains(github.event.pull_request.labels.*.name, 'e2e')) }}
+        if: ${{ github.event.repository.fork == false }}
         run: ./runTestsInFirebaseTestLab.sh
 
       - name: Upload Test Failures
