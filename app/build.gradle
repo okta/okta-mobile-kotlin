@@ -97,6 +97,7 @@ dependencies {
         exclude group: 'org.checkerframework', module: 'checker'
     }
     androidTestImplementation deps.espresso.intents
+    androidTestImplementation deps.jsoup
     androidTestImplementation deps.truth
 
     androidTestImplementation(deps.okta.management_sdk) {

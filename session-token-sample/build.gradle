@@ -56,6 +56,9 @@ dependencies {
         exclude group: 'com.okta.sdk', module: 'okta-sdk-httpclient'
         exclude group: 'org.bouncycastle'
     }
+    runtimeOnly(deps.jackson_databind)
+    runtimeOnly(deps.snakeyaml)
+
     implementation deps.okta.management_okhttp
 
     implementation deps.kotlin.stdlib
