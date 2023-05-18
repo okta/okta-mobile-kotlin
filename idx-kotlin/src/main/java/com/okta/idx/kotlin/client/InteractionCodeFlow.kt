@@ -201,7 +201,7 @@ class InteractionCodeFlow internal constructor(
     }
 
     /** IdxResponse can come back in both HTTP 200 as well as others such as 400s. */
-    private fun idxShouldAttemptJsonDeserialization(@Suppress("UNUSED_PARAMETER") response: Response): Boolean {
-        return true
+    private fun idxShouldAttemptJsonDeserialization(response: Response): Boolean {
+        return response.code < 500
     }
 }

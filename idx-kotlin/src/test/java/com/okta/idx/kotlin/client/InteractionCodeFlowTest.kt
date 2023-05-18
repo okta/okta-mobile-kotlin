@@ -233,4 +233,40 @@ class InteractionCodeFlowTest {
         val exchangeCodesResult = client.exchangeInteractionCodeForTokens(createRemediation(emptyList())) as OidcClientResult.Error<Token>
         assertThat(exchangeCodesResult.exception.message).isEqualTo("Invalid remediation.")
     }
+
+    @Test fun testResumeWithValidNon200HttpCode(): Unit = runBlocking {
+        networkRule.enqueue(path("/oauth2/default/v1/interact")) { response ->
+            response.testBodyFromFile("client/interactResponse.json")
+        }
+        val introspectBody = """{"interactionHandle":"029ZAB"}"""
+        networkRule.enqueue(path("/idp/idx/introspect"), body(introspectBody)) { response ->
+            // IDX has valid body up to 499 status code
+            response.testBodyFromFile("client/identifyRemediationResponse.json").setResponseCode(499)
+        }
+
+        val clientResult = networkRule.createOidcClient().createInteractionCodeFlow("test.okta.com/login") as OidcClientResult.Success<InteractionCodeFlow>
+        val client = clientResult.result
+        assertThat(client.flowContext.interactionHandle).isEqualTo("029ZAB")
+
+        val resumeResult = client.resume() as OidcClientResult.Success<IdxResponse>
+        assertThat(resumeResult.result.remediations).hasSize(4)
+    }
+
+    @Test fun testResumeWithInvalidHttpCode(): Unit = runBlocking {
+        networkRule.enqueue(path("/oauth2/default/v1/interact")) { response ->
+            response.testBodyFromFile("client/interactResponse.json")
+        }
+        val introspectBody = """{"interactionHandle":"029ZAB"}"""
+        networkRule.enqueue(path("/idp/idx/introspect"), body(introspectBody)) { response ->
+            // IDX has valid body up to 499 status code
+            response.testBodyFromFile("client/identifyRemediationResponse.json").setResponseCode(500)
+        }
+
+        val clientResult = networkRule.createOidcClient().createInteractionCodeFlow("test.okta.com/login") as OidcClientResult.Success<InteractionCodeFlow>
+        val client = clientResult.result
+        assertThat(client.flowContext.interactionHandle).isEqualTo("029ZAB")
+
+        val resumeResult = client.resume() as OidcClientResult.Error<IdxResponse>
+        assertThat(resumeResult.exception.message).isEqualTo("HTTP Error: status code - 500")
+    }
 }

@@ -109,7 +109,7 @@ internal class DynamicAuthViewModel(private val recoveryToken: String) : ViewMod
                 when (val resumeResult = localFlow.resume()) {
                     is OidcClientResult.Error -> {
                         Timber.e(resumeResult.exception, "Failed to call resume")
-                        _state.value = DynamicAuthState.Error("Failed to call resume")
+                        _state.value = DynamicAuthState.Error("Failed to call resume with exception: ${resumeResult.exception}")
                     }
                     is OidcClientResult.Success -> {
                         handleResponse(resumeResult.result)
