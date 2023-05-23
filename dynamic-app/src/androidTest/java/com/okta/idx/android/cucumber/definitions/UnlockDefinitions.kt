@@ -63,6 +63,6 @@ class UnlockDefinitions {
 
     @Then("^she should see a terminal page that says \"Your account is now unlocked!\"$")
     fun she_should_see_a_terminal_page_that_says_account_successfully_unlocked() {
-        waitForElementWithText("Your account is now unlocked!")
+        waitForElementWithText("Account successfully unlocked!<br>Verify your account with a security method to continue.")
     }
 }

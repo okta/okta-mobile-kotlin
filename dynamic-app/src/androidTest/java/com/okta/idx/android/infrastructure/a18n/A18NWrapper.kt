@@ -144,7 +144,7 @@ object A18NWrapper {
     }
 
     private fun fetchCodeFromRegistrationEmail(emailContent: String): String? {
-        val pattern = Pattern.compile("To verify manually, enter this code: (\\d{6})")
+        val pattern = Pattern.compile("Or enter the verification code: (\\d{6})")
         val matcher = pattern.matcher(emailContent)
         return if (matcher.find()) matcher.group(1) else null
     }
