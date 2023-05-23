@@ -3,7 +3,7 @@
 # Okta IDX Android
 
 This repository contains an SDK written in Kotlin for the Okta Identity Engine, as well as a sample Android application which can be used a reference for using
-idx-kotlin on Android.
+okta-idx-kotlin on Android.
 
 * [Introduction](#introduction)
 * [Installation](#installation)
@@ -54,9 +54,9 @@ graph TD
 ```
 
 Gather User Input Notes:
-- Use [IdxResponse](idx-kotlin/src/main/java/com/okta/idx/kotlin/dto/IdxResponse.kt) properties such as `remediations` and `authenticators` to continue satisfying remediations until the user is logged in
-- Set `value` property in [IdxRemediation.Form.Field](idx-kotlin/src/main/java/com/okta/idx/kotlin/dto/IdxRemediation.kt)
-- Set `selectedOption` property in [IdxRemediation.Form.Field](idx-kotlin/src/main/java/com/okta/idx/kotlin/dto/IdxRemediation.kt)
+- Use [IdxResponse](okta-idx-kotlin/src/main/java/com/okta/idx/kotlin/dto/IdxResponse.kt) properties such as `remediations` and `authenticators` to continue satisfying remediations until the user is logged in
+- Set `value` property in [IdxRemediation.Form.Field](okta-idx-kotlin/src/main/java/com/okta/idx/kotlin/dto/IdxRemediation.kt)
+- Set `selectedOption` property in [IdxRemediation.Form.Field](okta-idx-kotlin/src/main/java/com/okta/idx/kotlin/dto/IdxRemediation.kt)
 
 Notice the cyclical call-and-response pattern. A user is presented with a series of choices in how they can iteratively step through the authentication process, with each step giving way to additional choices until they can either successfully authenticate or receive actionable error messages.
 

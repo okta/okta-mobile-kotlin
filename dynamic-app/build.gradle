@@ -72,8 +72,8 @@ android {
 
 dependencies {
     coreLibraryDesugaring deps.desugar_libs
+    implementation project(':okta-idx-kotlin')
 
-    implementation project(':idx-kotlin')
 
     implementation deps.okta.auth_foundation_bootstrap
     implementation deps.kotlin.stdlib

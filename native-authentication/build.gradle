@@ -41,8 +41,7 @@ android {
 }
 
 dependencies {
-    api project(':idx-kotlin')
-
+    api project(':okta-idx-kotlin')
     api deps.kotlin.stdlib
     api deps.okhttp.core
     api deps.coroutines.android
