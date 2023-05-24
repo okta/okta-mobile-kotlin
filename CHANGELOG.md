@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.3.0] - 2023-05-24
+
+## Changed
+- Treat responses with http code >500 as errors. [#186]
+- Change module name from idx-kotlin to okta-idx-kotlin to align with the docs. [#187]
+
 ## [2.2.0] - 2023-04-13
 
 ## Changed
