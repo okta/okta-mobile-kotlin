@@ -7,20 +7,20 @@ versions.androidx_test_runner = '1.5.2'
 versions.androidx_test_ext = '1.1.5'
 versions.androidx_test_orchestrator = '1.4.2'
 versions.androidx_text_uiautomator = '2.2.0'
-versions.android_gradle_plugin = '7.2.2'
+versions.android_gradle_plugin = '7.4.2'
 versions.appcompat = '1.4.2'
 versions.bouncy_castle = '1.65'
-versions.core_library_desugaring = '1.1.6'
+versions.core_library_desugaring = '2.0.3'
 versions.core_ktx = '1.8.0'
 versions.coroutines = '1.6.4'
 versions.dokka = '1.8.20'
 versions.espresso = '3.5.1'
 versions.fragment = '1.5.1'
-versions.gradle_maven_publish = '0.22.0'
+versions.gradle_maven_publish = '0.25.2'
 versions.jackson = '2.15.2'
 versions.jsoup = '1.16.1'
 versions.junit = '4.13.2'
-versions.kotlin = '1.7.10'
+versions.kotlin = '1.7.20'
 versions.kotlin_binary_compatibility = '0.11.0'
 versions.kotlin_serialization = '1.4.0'
 versions.leakcanary = '2.9.1'
@@ -178,7 +178,7 @@ static def addRepos(RepositoryHandler handler) {
 def forceVersions(ConfigurationContainer configurations) {
     configurations.configureEach { configuration ->
         configuration.resolutionStrategy {
-            force deps.bouncy_castle // Vulnerability Fix. OKTA-376968
+            force deps.jackson_databind // Vulnerability fix: OKTA-609904
         }
     }
 }
