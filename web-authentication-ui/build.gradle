@@ -53,6 +53,7 @@ android {
             kotlin.srcDir("$buildDir/generated/sources/kotlinTemplates")
         }
     }
+    namespace 'com.okta.webauthenticationui'
 }
 
 dependencies {

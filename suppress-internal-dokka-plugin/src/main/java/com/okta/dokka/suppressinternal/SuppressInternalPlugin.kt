@@ -17,6 +17,8 @@ package com.okta.dokka.suppressinternal
 
 import org.jetbrains.dokka.base.DokkaBase
 import org.jetbrains.dokka.plugability.DokkaPlugin
+import org.jetbrains.dokka.plugability.DokkaPluginApiPreview
+import org.jetbrains.dokka.plugability.PluginApiPreviewAcknowledgement
 
 class SuppressInternalPlugin : DokkaPlugin() {
     private val dokkaBase by lazy { plugin<DokkaBase>() }
@@ -24,4 +26,7 @@ class SuppressInternalPlugin : DokkaPlugin() {
     val suppressInternalApiTransformer by extending {
         dokkaBase.preMergeDocumentableTransformer providing ::SuppressInternalApiTransformer
     }
+
+    @DokkaPluginApiPreview
+    override fun pluginApiPreviewAcknowledgement() = PluginApiPreviewAcknowledgement
 }

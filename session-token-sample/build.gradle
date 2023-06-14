@@ -37,12 +37,14 @@ android {
     buildFeatures {
         viewBinding true
     }
-
     packagingOptions {
-        exclude 'META-INF/AL2.0'
-        exclude 'META-INF/LGPL2.1'
-        pickFirst 'META-INF/okta/version.properties'
+        resources {
+            excludes += ['META-INF/AL2.0', 'META-INF/LGPL2.1']
+            pickFirsts += ['META-INF/okta/version.properties']
+        }
     }
+
+    namespace 'sample.okta.android.sessiontoken'
 }
 
 dependencies {
@@ -56,6 +58,9 @@ dependencies {
         exclude group: 'com.okta.sdk', module: 'okta-sdk-httpclient'
         exclude group: 'org.bouncycastle'
     }
+    runtimeOnly(deps.jackson_databind)
+    runtimeOnly(deps.snakeyaml)
+
     implementation deps.okta.management_okhttp
 
     implementation deps.kotlin.stdlib
