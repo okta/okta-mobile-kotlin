@@ -89,6 +89,7 @@ dependencies {
     implementation deps.junit // Mock Web Server depends on junit :(
     implementation deps.timber
     implementation deps.okta.idx
+    implementation deps.snakeyaml
 
     implementation deps.jackson_databind
 
@@ -112,6 +113,7 @@ dependencies {
     androidTestImplementation deps.espresso.core
     androidTestImplementation deps.espresso.contrib
     androidTestImplementation deps.espresso.intents
+    androidTestImplementation deps.jsoup
     androidTestImplementation deps.truth
 
     androidTestImplementation deps.cucumber.android

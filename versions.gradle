@@ -1,26 +1,28 @@
 def versions = [:]
 versions.activity = '1.5.1'
-versions.androidx_test = '1.4.0'
-versions.androidx_test_ext = '1.1.3'
+versions.androidx_test = '1.5.0'
+versions.androidx_test_runner = '1.5.2'
+versions.androidx_test_ext = '1.1.5'
+versions.androidx_test_orchestrator = '1.4.2'
 versions.androidx_text_uiautomator = '2.2.0'
 versions.android_gradle_plugin = '7.2.2'
 versions.appcompat = '1.4.2'
 versions.auth_foundation = '1.1.3'
-versions.bouncy_castle = '1.65'
 versions.compose = '1.2.1'
 versions.constraint_layout = '2.1.4'
 versions.core_ktx = '1.8.0'
 versions.coroutines = '1.6.4'
 versions.cucumber_android = '4.9.0'
 versions.cucumber_pico_container = '4.8.1'
-versions.desugar_libs = '1.1.6'
-versions.dokka = '1.5.31'
-versions.espresso = '3.3.0'
+versions.desugar_libs = '2.0.3'
+versions.dokka = '1.8.20'
+versions.espresso = '3.5.1'
 versions.fragment = '1.5.1'
-versions.gradle_maven_publish = '0.22.0'
-versions.jackson = '2.13.3'
+versions.gradle_maven_publish = '0.25.2'
+versions.jackson = '2.15.2'
+versions.jsoup = '1.16.1'
 versions.junit = '4.13.2'
-versions.kotlin = '1.7.10'
+versions.kotlin = '1.7.20'
 versions.kotlin_binary_compatibility = '0.11.0'
 versions.kotlin_serialization = '1.3.3'
 versions.leakcanary = '2.9.1'
@@ -34,7 +36,8 @@ versions.okhttp = '4.10.0'
 versions.okta_idx = '1.0.0'
 versions.okta_management = '8.2.2'
 versions.okta_http_okhttp = '1.3.1'
-versions.robolectric = '4.8.1'
+versions.robolectric = '4.10.3'
+versions.snakeyaml = '2.0'
 versions.spotless = '6.7.0'
 versions.timber = '5.0.1'
 versions.truth = '1.1.3'
@@ -53,8 +56,8 @@ androidx_test.core = "androidx.test:core:$versions.androidx_test"
 androidx_test.ext_junit = "androidx.test.ext:junit:$versions.androidx_test_ext"
 androidx_test.fragment = "androidx.fragment:fragment-testing:$versions.fragment"
 androidx_test.navigation = "androidx.navigation:navigation-testing:$versions.navigation"
-androidx_test.orchestrator = "androidx.test:orchestrator:$versions.androidx_test"
-androidx_test.runner = "androidx.test:runner:$versions.androidx_test"
+androidx_test.orchestrator = "androidx.test:orchestrator:$versions.androidx_test_orchestrator"
+androidx_test.runner = "androidx.test:runner:$versions.androidx_test_runner"
 androidx_test.rules = "androidx.test:rules:$versions.androidx_test"
 androidx_test.uiautomator = "androidx.test.uiautomator:uiautomator:$versions.androidx_text_uiautomator"
 deps.androidx_test = androidx_test
@@ -101,6 +104,8 @@ deps.gradle_maven_publish = "com.vanniktech:gradle-maven-publish-plugin:$version
 
 deps.jackson_databind = "com.fasterxml.jackson.core:jackson-databind:$versions.jackson"
 deps.jackson_yaml = "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:$versions.jackson"
+
+deps.jsoup = "org.jsoup:jsoup:$versions.jsoup"
 
 deps.junit = "junit:junit:$versions.junit"
 
@@ -155,6 +160,8 @@ deps.okta = okta
 
 deps.robolectric = "org.robolectric:robolectric:$versions.robolectric"
 
+deps.snakeyaml = "org.yaml:snakeyaml:$versions.snakeyaml"
+
 deps.spotless = "com.diffplug.spotless:spotless-plugin-gradle:$versions.spotless"
 
 deps.timber = "com.jakewharton.timber:timber:$versions.timber"
@@ -172,7 +179,7 @@ static def addRepos(RepositoryHandler handler) {
 def forceVersions(ConfigurationContainer configurations) {
     configurations.all {
         resolutionStrategy {
-            force deps.bouncy_castle // Vulnerability Fix. OKTA-376968
+            force deps.jackson_databind // Vulnerability fix: OKTA-614751
         }
     }
 }
