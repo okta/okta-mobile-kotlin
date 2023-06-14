@@ -27,6 +27,7 @@ android {
     buildFeatures {
         buildConfig = false
     }
+    namespace 'com.okta.testing'
 }
 
 dependencies {

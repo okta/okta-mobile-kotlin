@@ -57,17 +57,19 @@ android {
     buildFeatures {
         viewBinding true
     }
-
     packagingOptions {
-        exclude 'META-INF/AL2.0'
-        exclude 'META-INF/LGPL2.1'
+        resources {
+            excludes += ['META-INF/AL2.0', 'META-INF/LGPL2.1']
+        }
     }
+
 
     testOptions {
         animationsDisabled true
 
         execution = "ANDROIDX_TEST_ORCHESTRATOR"
     }
+    namespace 'com.okta.idx.android.dynamic'
 }
 
 dependencies {

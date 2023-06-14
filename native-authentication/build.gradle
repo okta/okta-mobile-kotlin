@@ -38,6 +38,7 @@ android {
             kotlin.srcDir("$buildDir/generated/sources/kotlinTemplates")
         }
     }
+    namespace 'com.okta.nativeauthentication'
 }
 
 dependencies {
