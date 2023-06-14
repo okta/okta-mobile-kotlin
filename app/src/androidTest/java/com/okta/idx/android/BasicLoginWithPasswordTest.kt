@@ -28,7 +28,7 @@ import com.okta.idx.android.infrastructure.ID_TOKEN_TYPE_TEXT_VIEW
 import com.okta.idx.android.infrastructure.SIGN_OUT_BUTTON
 import com.okta.idx.android.infrastructure.espresso.waitForElement
 import com.okta.idx.android.infrastructure.network.testBodyFromFile
-import com.okta.idx.android.network.mock.RequestMatchers.path
+import com.okta.testing.network.RequestMatchers.path
 import org.junit.Test
 import org.junit.runner.RunWith
 

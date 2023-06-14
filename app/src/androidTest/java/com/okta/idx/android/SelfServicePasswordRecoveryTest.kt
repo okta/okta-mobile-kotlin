@@ -31,8 +31,8 @@ import com.okta.idx.android.infrastructure.SELECT_BUTTON
 import com.okta.idx.android.infrastructure.espresso.selectAuthenticator
 import com.okta.idx.android.infrastructure.espresso.waitForElement
 import com.okta.idx.android.infrastructure.network.testBodyFromFile
-import com.okta.idx.android.network.mock.RequestMatchers.bodyWithJsonPath
-import com.okta.idx.android.network.mock.RequestMatchers.path
+import com.okta.testing.network.RequestMatchers.bodyWithJsonPath
+import com.okta.testing.network.RequestMatchers.path
 import org.junit.Test
 import org.junit.runner.RunWith
 

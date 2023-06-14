@@ -92,8 +92,6 @@ dependencies {
     implementation deps.coroutines.android
     implementation deps.okhttp.core
     implementation deps.okhttp.tls
-    implementation deps.okhttp.mock_web_server
-    implementation deps.junit // Mock Web Server depends on junit :(
     implementation deps.timber
 
     implementation deps.jackson_databind
@@ -102,6 +100,7 @@ dependencies {
     testImplementation deps.okhttp.mock_web_server
     testImplementation deps.okhttp.tls
     testImplementation deps.truth
+    testImplementation project(':test-utils')
 
     androidTestUtil deps.androidx_test.orchestrator
 
@@ -120,9 +119,9 @@ dependencies {
     androidTestImplementation deps.espresso.intents
     androidTestImplementation deps.jsoup
     androidTestImplementation deps.truth
+    androidTestImplementation project(':test-utils')
 
     androidTestImplementation deps.cucumber.android
-    androidTestImplementation deps.cucumber.pico_container
     androidTestImplementation(deps.okta.management_sdk) {
         exclude group: 'org.bouncycastle'
     }
