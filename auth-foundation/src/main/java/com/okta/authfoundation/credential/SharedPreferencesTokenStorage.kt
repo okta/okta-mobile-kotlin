@@ -98,16 +98,22 @@ internal class SharedPreferencesTokenStorage(
 
     override suspend fun remove(id: String) {
         accessStorage { existingEntries ->
-            val index = existingEntries.indexOfFirst { it.identifier == id }
-            existingEntries.removeAt(index)
+            existingEntries.indexOfFirst {
+                it.identifier == id
+            }.takeIf { it >= 0 }?.let { index ->
+                existingEntries.removeAt(index)
+            }
             existingEntries
         }
     }
 
     override suspend fun replace(updatedEntry: TokenStorage.Entry) {
         accessStorage { existingEntries ->
-            val index = existingEntries.indexOfFirst { it.identifier == updatedEntry.identifier }
-            existingEntries[index] = updatedEntry
+            existingEntries.indexOfFirst {
+                it.identifier == updatedEntry.identifier
+            }.takeIf { it >= 0 }?.let { index ->
+                existingEntries[index] = updatedEntry
+            }
             existingEntries
         }
     }

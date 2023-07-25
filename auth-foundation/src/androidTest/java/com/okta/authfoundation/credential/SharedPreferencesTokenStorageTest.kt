@@ -84,6 +84,12 @@ class SharedPreferencesTokenStorageTest {
         assertThat(subject.entries()).hasSize(0)
     }
 
+    @Test fun testRemoveNonExistingEntries(): Unit = runBlocking {
+        assertThat(subject.entries()).hasSize(0)
+        subject.remove("one")
+        assertThat(subject.entries()).hasSize(0)
+    }
+
     @Test fun testReplace(): Unit = runBlocking {
         subject.add("one")
         assertThat(subject.entries()).hasSize(1)
@@ -92,6 +98,16 @@ class SharedPreferencesTokenStorageTest {
         assertThat(entry.identifier).isEqualTo("one")
         assertThat(entry.token).isNull()
         assertThat(entry.tags).containsEntry("foo", "bar")
+    }
+
+    @Test fun testReplaceNonExistingEntries(): Unit = runBlocking {
+        subject.add("one")
+        assertThat(subject.entries()).hasSize(1)
+        subject.replace(TokenStorage.Entry("two", null, mapOf("foo" to "bar")))
+        val entry = subject.entries().first()
+        assertThat(entry.identifier).isEqualTo("one")
+        assertThat(entry.token).isNull()
+        assertThat(entry.tags).doesNotContainEntry("foo", "bar")
     }
 
     @Test fun testTokenStorageAndRestoration(): Unit = runBlocking {
