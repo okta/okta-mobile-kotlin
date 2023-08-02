@@ -15,6 +15,7 @@
  */
 package com.okta.authfoundationbootstrap
 
+import com.okta.authfoundation.InternalAuthFoundationApi
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.credential.Credential
 import com.okta.authfoundation.credential.CredentialDataSource
@@ -95,7 +96,8 @@ object CredentialBootstrap {
         return credential
     }
 
-    internal fun reset() {
+    @InternalAuthFoundationApi
+    fun reset() {
         privateCredentialDataSource = null
     }
 }
