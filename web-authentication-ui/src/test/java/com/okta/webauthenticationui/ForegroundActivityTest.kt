@@ -19,6 +19,8 @@ import android.app.Activity
 import android.net.Uri
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.CompletableDeferred
+import okhttp3.HttpUrl
+import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.kotlin.any
@@ -31,10 +33,19 @@ import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
-import java.lang.IllegalStateException
 
 @RunWith(RobolectricTestRunner::class)
 class ForegroundActivityTest {
+    private lateinit var mockUrl: HttpUrl
+    private val testUrlString = "http://testing"
+
+    @Before
+    fun setup() {
+        mockUrl = mock() {
+            on { toString() } doReturn testUrlString
+        }
+    }
+
     @Test fun testResumeLaunchesWebAuthenticationProvider() {
         val launchedFromActivity = Robolectric.buildActivity(Activity::class.java).create().get()
         val intent = ForegroundActivity.createIntent(launchedFromActivity)
@@ -43,7 +54,7 @@ class ForegroundActivityTest {
         val redirectCoordinator = mock<RedirectCoordinator> {
             on { launchWebAuthenticationProvider(any(), any()) } doReturn true
             onBlocking { runInitializationFunction() } doAnswer {
-                RedirectInitializationResult.Success(mock(), Any())
+                RedirectInitializationResult.Success(mockUrl, Any())
             }
         }
         ForegroundViewModel.redirectCoordinator = redirectCoordinator
@@ -70,7 +81,7 @@ class ForegroundActivityTest {
         ForegroundViewModel.redirectCoordinator = redirectCoordinator
         controller.create().resume().pause()
         verify(redirectCoordinator, never()).launchWebAuthenticationProvider(any(), any())
-        deferred.complete(RedirectInitializationResult.Success(mock(), Any()))
+        deferred.complete(RedirectInitializationResult.Success(mockUrl, Any()))
         controller.resume()
 
         verify(redirectCoordinator).launchWebAuthenticationProvider(any(), any())
@@ -87,7 +98,7 @@ class ForegroundActivityTest {
         val redirectCoordinator = mock<RedirectCoordinator> {
             on { launchWebAuthenticationProvider(any(), any()) } doReturn false
             onBlocking { runInitializationFunction() } doAnswer {
-                RedirectInitializationResult.Success(mock(), Any())
+                RedirectInitializationResult.Success(mockUrl, Any())
             }
         }
         ForegroundViewModel.redirectCoordinator = redirectCoordinator
@@ -105,7 +116,7 @@ class ForegroundActivityTest {
         val redirectCoordinator = mock<RedirectCoordinator> {
             on { launchWebAuthenticationProvider(any(), any()) } doReturn true
             onBlocking { runInitializationFunction() } doAnswer {
-                RedirectInitializationResult.Success(mock(), Any())
+                RedirectInitializationResult.Success(mockUrl, Any())
             }
         }
         ForegroundViewModel.redirectCoordinator = redirectCoordinator
@@ -125,7 +136,7 @@ class ForegroundActivityTest {
         val redirectCoordinator = mock<RedirectCoordinator> {
             on { launchWebAuthenticationProvider(any(), any()) } doReturn true
             onBlocking { runInitializationFunction() } doAnswer {
-                RedirectInitializationResult.Success(mock(), Any())
+                RedirectInitializationResult.Success(mockUrl, Any())
             }
         }
         ForegroundViewModel.redirectCoordinator = redirectCoordinator
