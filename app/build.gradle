@@ -1,6 +1,9 @@
-apply plugin: 'com.android.application'
-apply plugin: 'kotlin-android'
-apply plugin: 'androidx.navigation.safeargs.kotlin'
+plugins {
+    id("com.android.application")
+    id("kotlin-android")
+    id("kotlin-parcelize")
+    id("androidx.navigation.safeargs.kotlin")
+}
 
 def oktaProperties = new Properties()
 rootProject.file("okta.properties").withInputStream { oktaProperties.load(it) }

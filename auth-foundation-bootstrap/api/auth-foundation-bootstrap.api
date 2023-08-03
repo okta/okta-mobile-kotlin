@@ -4,5 +4,6 @@ public final class com/okta/authfoundationbootstrap/CredentialBootstrap {
 	public final fun getCredentialDataSource ()Lcom/okta/authfoundation/credential/CredentialDataSource;
 	public final fun getOidcClient ()Lcom/okta/authfoundation/client/OidcClient;
 	public final fun initialize (Lcom/okta/authfoundation/credential/CredentialDataSource;)V
+	public final fun reset ()V
 }
 

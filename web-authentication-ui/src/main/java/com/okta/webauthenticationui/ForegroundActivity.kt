@@ -91,7 +91,7 @@ internal class ForegroundActivity : AppCompatActivity() {
                 finish()
             }
             is ForegroundViewModel.State.LaunchBrowser -> {
-                viewModel.launchBrowser(this, state.url)
+                viewModel.launchBrowser(this, state.urlString)
             }
             ForegroundViewModel.State.AwaitingInitialization -> {
                 // Idle, nothing to do.
