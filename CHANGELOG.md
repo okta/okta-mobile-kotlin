@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.1.4] - 2023-08-03
+
+[Commits](https://github.com/okta/okta-mobile-kotlin/compare/1.1.3...1.1.4)
+
+### Added
+- CredentialBootstrap.reset() is now publicly visible for easier testing. [#258](https://github.com/okta/okta-mobile-kotlin/pull/258)
+
+### Fixed
+- Fix issues with activity lifecycle destroying browser login state. [#258](https://github.com/okta/okta-mobile-kotlin/pull/258)
+- Handle possible concurrent access to SharedTokenStorage. [#256](https://github.com/okta/okta-mobile-kotlin/pull/256)
+
 ## [1.1.3] - 2023-04-12
 
 [Commits](https://github.com/okta/okta-mobile-kotlin/compare/1.1.2...1.1.3)
