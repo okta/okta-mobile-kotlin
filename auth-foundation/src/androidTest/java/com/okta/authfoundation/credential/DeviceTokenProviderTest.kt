@@ -23,7 +23,6 @@ import com.okta.authfoundation.client.DeviceTokenProvider
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.util.UUID
 
 @RunWith(AndroidJUnit4::class)
 class DeviceTokenProviderTest {
@@ -37,17 +36,24 @@ class DeviceTokenProviderTest {
     @Test
     fun testDeviceTokenProviderInitializesCorrectly() {
         val deviceTokenProvider = DeviceTokenProvider.initialize(context)
-        val expectedUUID = UUID.fromString(deviceTokenProvider.sharedPrefs.getString(DeviceTokenProvider.PREFERENCE_KEY, null))
-        val actualUUID = UUID.fromString(DeviceTokenProvider.deviceToken)
-        assertThat(actualUUID).isEqualTo(expectedUUID)
+        val expectedDeviceToken = deviceTokenProvider.sharedPrefs.getString(DeviceTokenProvider.PREFERENCE_KEY, null)!!.filter { it.isLetterOrDigit() }
+        val actualDeviceToken = DeviceTokenProvider.deviceToken
+        assertThat(actualDeviceToken).isEqualTo(expectedDeviceToken)
     }
 
     @Test
     fun testDeviceTokenProviderOnlyInitializesOnce() {
         val deviceTokenProvider = DeviceTokenProvider.initialize(context)
-        val expectedUUID = UUID.fromString(deviceTokenProvider.sharedPrefs.getString(DeviceTokenProvider.PREFERENCE_KEY, null))
+        val expectedDeviceToken = deviceTokenProvider.sharedPrefs.getString(DeviceTokenProvider.PREFERENCE_KEY, null)!!.filter { it.isLetterOrDigit() }
         DeviceTokenProvider.initialize(context)
-        val actualUUID = UUID.fromString(DeviceTokenProvider.deviceToken)
-        assertThat(actualUUID).isEqualTo(expectedUUID)
+        val actualDeviceToken = DeviceTokenProvider.deviceToken
+        assertThat(actualDeviceToken).isEqualTo(expectedDeviceToken)
+    }
+
+    @Test
+    fun testDeviceTokenIsAtMost32Characters() {
+        DeviceTokenProvider.initialize(context)
+        val actualDeviceToken = DeviceTokenProvider.deviceToken
+        assertThat(actualDeviceToken.length).isAtMost(32)
     }
 }

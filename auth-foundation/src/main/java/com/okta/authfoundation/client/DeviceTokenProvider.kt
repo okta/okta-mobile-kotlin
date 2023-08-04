@@ -30,7 +30,7 @@ class DeviceTokenProvider private constructor(appContext: Context) {
         private val lock = Any()
         private lateinit var instance: DeviceTokenProvider
         internal val deviceToken: String
-            get() = instance.deviceToken
+            get() = instance.deviceToken.filter { it.isLetterOrDigit() }
 
         internal fun initialize(context: Context): DeviceTokenProvider {
             synchronized(lock) {
