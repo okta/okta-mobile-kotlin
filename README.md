@@ -22,7 +22,7 @@ do not have an account manager, please reach out to oie@okta.com for more inform
 Add the `Okta IDX Kotlin` dependency to your `build.gradle` file:
 
 ```gradle
-implementation 'com.okta.android:okta-idx-kotlin:2.3.0'
+implementation 'com.okta.android:okta-idx-kotlin:2.4.0'
 ```
 
 See the [CHANGELOG](CHANGELOG.md) for the most recent changes.

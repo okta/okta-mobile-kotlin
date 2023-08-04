@@ -1,5 +1,8 @@
 # Changelog
 
+## [2.4.0] - 2023-08-04
+- Update AuthFoundation to 1.1.5. This fixes device token for "Keep me signed in" functionality.
+
 ## [2.3.0] - 2023-05-24
 
 ## Changed
