@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.5] - 2023-08-04
+
+[Commits](https://github.com/okta/okta-mobile-kotlin/compare/1.1.4...1.1.5)
+
+### Fixed
+- Fix DT (device token) cookie formatting to fix "remember device" functionality in downstream SDKs. [#260](https://github.com/okta/okta-mobile-kotlin/pull/260)
+
 ## [1.1.4] - 2023-08-03
 
 [Commits](https://github.com/okta/okta-mobile-kotlin/compare/1.1.3...1.1.4)
