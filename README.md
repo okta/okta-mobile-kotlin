@@ -353,6 +353,13 @@ val oidcConfiguration = OidcConfiguration(
 - java.lang.NoClassDefFoundError: Failed resolution of: Ljava/time/Instant;
   - Fix: configure [Core Library Desugaring](https://developer.android.com/studio/write/java8-support#library-desugaring)
 
+### FlowCancelledException
+
+FlowCancelledException is supposed to be thrown in cases where the user has decided to cancel the login flow, usually by quitting the browser login window. It can sometimes be incorrectly thrown in the following cases:
+- Using the Android system webview while logging out. The webview doesn't store the session after a successful login, so logging out never redirects, and the user is forced to cancel logout process
+- Deleting the browser cache after logging in, then attempting to log out. Similar to the above, it is important for browser to store the login state to logout successfully, otherwise the browser can not provide the logout redirect.
+- Browser providing empty redirect results, followed by well-defined results. This has been observed in some older devices and browsers. This problem can be worked around by setting AuthFoundationDefaults.loginCancellationDebounceTime
+
 ## Running the sample
 
 The sample is designed to show what is possible when using the SDK.

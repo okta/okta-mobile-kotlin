@@ -134,6 +134,9 @@ internal class DefaultRedirectCoordinator(
             reset()
             localContinuation?.resume(RedirectResult.Redirect(uri))
         } else {
+            // Return a redirect error after the debounce time. In some cases, the browser can return a null redirect
+            // quickly followed by a non-null redirect. In this case, we wait for loginCancellationDebounceTime before
+            // accepting the error.
             emitErrorJob = coroutineScope.launch {
                 delay(AuthFoundationDefaults.loginCancellationDebounceTime)
                 val exception = WebAuthenticationClient.FlowCancelledException()
