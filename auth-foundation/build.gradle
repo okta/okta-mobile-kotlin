@@ -52,6 +52,7 @@ dependencies {
     api deps.coroutines.core
     api deps.kotlin.serialization_json
 
+    implementation deps.okio
     implementation deps.kotlin.serialization_okio
     implementation deps.security_crypto
     implementation deps.startup_runtime

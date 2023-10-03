@@ -63,6 +63,7 @@ android {
 dependencies {
     api deps.kotlin.stdlib
     api deps.okhttp.core
+    implementation deps.okio
     api deps.coroutines.android
     api deps.kotlin.serialization_json
     api project(':auth-foundation')

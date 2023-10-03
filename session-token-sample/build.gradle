@@ -76,6 +76,7 @@ dependencies {
     implementation deps.coroutines.android
     implementation deps.okhttp.core
     implementation deps.okhttp.tls
+    implementation deps.okio
     implementation deps.timber
 
     debugImplementation deps.leakcanary.android
