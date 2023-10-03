@@ -26,6 +26,11 @@ import com.okta.testhelpers.RequestMatchers.doesNotContainHeader
 import com.okta.testhelpers.RequestMatchers.doesNotContainHeaderWithValue
 import com.okta.testhelpers.RequestMatchers.header
 import com.okta.testhelpers.RequestMatchers.path
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.mockkObject
+import io.mockk.slot
+import io.mockk.unmockkAll
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
@@ -35,6 +40,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.currentTime
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.SerializationException
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import okhttp3.Interceptor
@@ -42,6 +48,7 @@ import okhttp3.Request
 import okhttp3.Response
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.SocketPolicy
+import org.junit.After
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.mock
@@ -54,6 +61,11 @@ import kotlin.time.Duration.Companion.seconds
 @OptIn(ExperimentalCoroutinesApi::class)
 class NetworkingTest {
     @get:Rule val oktaRule = OktaRule()
+
+    @After
+    fun tearDown() {
+        unmockkAll()
+    }
 
     @Test fun testPerformRequest(): Unit = runBlocking {
         oktaRule.enqueue(
@@ -889,6 +901,45 @@ class NetworkingTest {
         // So, don't close it
         assertThat(response.getOrThrow().peekBody(Long.MAX_VALUE).string()).isEqualTo("")
         assertThat(lastRetryEvent.response.peekBody(Long.MAX_VALUE).string()).isEqualTo("")
+    }
+
+    @Test fun `prioritize custom okhttp interceptors when making requests`() = runBlocking {
+        var lastCalledInterceptor: String? = null
+
+        val customInterceptor = Interceptor {
+            lastCalledInterceptor = "customInterceptor"
+            it.proceed(it.request())
+        }
+
+        val okHttpClient = oktaRule.okHttpClient.newBuilder()
+            .addInterceptor(customInterceptor)
+            .build()
+
+        mockkObject(OidcUserAgentInterceptor)
+        val oidcRequestSlot = slot<Interceptor.Chain>()
+        every { OidcUserAgentInterceptor.intercept(capture(oidcRequestSlot)) } answers {
+            lastCalledInterceptor = "oidcInterceptor"
+            with(oidcRequestSlot.captured) {
+                proceed(request())
+            }
+        }
+
+        val oidcConfiguration = oktaRule.createConfiguration(okHttpClient)
+        oktaRule.enqueue(
+            path("/test"),
+        ) { response ->
+            response.setBody("response")
+        }
+        val request = Request.Builder()
+            .url(oktaRule.baseUrl.newBuilder().addPathSegments("test").build())
+            .build()
+
+        val credential = mockk<Credential>()
+        val oidcClient = OidcClient.create(oidcConfiguration, oktaRule.createEndpoints())
+            .withCredential(credential)
+
+        oidcClient.performRequest(String.serializer(), request) { /** Ignore response */ }
+        assertThat(lastCalledInterceptor).isEqualTo("customInterceptor")
     }
 
     private fun setRateLimitHeaders(

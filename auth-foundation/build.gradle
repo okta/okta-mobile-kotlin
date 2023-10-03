@@ -63,6 +63,8 @@ dependencies {
     testImplementation deps.kotlin.test
     testImplementation deps.mockito.core
     testImplementation deps.mockito.kotlin
+    testImplementation deps.mockk.android
+    testImplementation deps.mockk.agent
     testImplementation deps.robolectric
     testImplementation deps.turbine
     testImplementation project(':test-helpers')
