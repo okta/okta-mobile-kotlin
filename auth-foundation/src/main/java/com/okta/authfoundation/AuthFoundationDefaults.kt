@@ -32,6 +32,8 @@ import okhttp3.CookieJar
 import okhttp3.OkHttpClient
 import java.time.Instant
 import kotlin.coroutines.CoroutineContext
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 /**
  *  The defaults used in various classes throughout the rest of the SDK.
@@ -71,4 +73,9 @@ object AuthFoundationDefaults {
     /** The default [CookieJar]. By default, it adds a DT cookie for identifying the device.
      * To use the default [CookieJar] in OkHttp, set this to [CookieJar.NO_COOKIES] */
     var cookieJar: CookieJar by NoSetAfterGetWithLazyDefaultFactory { DeviceTokenCookieJar(clock) }
+
+    /** The default wait time until the web login flow is cancelled after receiving empty redirect response from the web browser.
+     * This can resolve some issues caused by older devices when invalid redirect results are returned from the older browser. When this is set to a non-zero value, it introduces a
+     * delay to all redirects when an error is received. */
+    var loginCancellationDebounceTime: Duration by NoSetAfterGetWithLazyDefaultFactory { 0.seconds }
 }

@@ -9,6 +9,7 @@ public final class com/okta/authfoundation/AuthFoundationDefaults {
 	public final fun getEventCoordinator ()Lcom/okta/authfoundation/events/EventCoordinator;
 	public final fun getIdTokenValidator ()Lcom/okta/authfoundation/client/IdTokenValidator;
 	public final fun getIoDispatcher ()Lkotlin/coroutines/CoroutineContext;
+	public final fun getLoginCancellationDebounceTime-UwyO8pc ()J
 	public final fun getOkHttpClientFactory ()Lkotlin/jvm/functions/Function0;
 	public final fun setAccessTokenValidator (Lcom/okta/authfoundation/client/AccessTokenValidator;)V
 	public final fun setCache (Lcom/okta/authfoundation/client/Cache;)V
@@ -19,6 +20,7 @@ public final class com/okta/authfoundation/AuthFoundationDefaults {
 	public final fun setEventCoordinator (Lcom/okta/authfoundation/events/EventCoordinator;)V
 	public final fun setIdTokenValidator (Lcom/okta/authfoundation/client/IdTokenValidator;)V
 	public final fun setIoDispatcher (Lkotlin/coroutines/CoroutineContext;)V
+	public final fun setLoginCancellationDebounceTime-LRDsOJo (J)V
 	public final fun setOkHttpClientFactory (Lkotlin/jvm/functions/Function0;)V
 }
 

@@ -20,17 +20,25 @@ import android.net.Uri
 import androidx.activity.ComponentActivity
 import androidx.annotation.VisibleForTesting
 import androidx.lifecycle.Lifecycle
+import com.okta.authfoundation.AuthFoundationDefaults
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import okhttp3.HttpUrl
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 
-internal object SingletonRedirectCoordinator : RedirectCoordinator by DefaultRedirectCoordinator()
+internal object SingletonRedirectCoordinator : RedirectCoordinator by DefaultRedirectCoordinator(CoroutineScope(Dispatchers.Main))
 
-internal class DefaultRedirectCoordinator : RedirectCoordinator {
+internal class DefaultRedirectCoordinator(
+    private val coroutineScope: CoroutineScope,
+) : RedirectCoordinator {
     @Volatile private var initializationContinuation: Continuation<RedirectInitializationResult<*>>? = null
     @VisibleForTesting var initializerContinuationListeningCallback: (() -> Unit)? = null
     @Volatile private var initializer: (suspend () -> RedirectInitializationResult<*>)? = null
@@ -39,6 +47,8 @@ internal class DefaultRedirectCoordinator : RedirectCoordinator {
     @VisibleForTesting var redirectContinuationListeningCallback: (() -> Unit)? = null
 
     @Volatile private var webAuthenticationProvider: WebAuthenticationProvider? = null
+
+    private var emitErrorJob: Job? = null
 
     @Suppress("UNCHECKED_CAST")
     override suspend fun <T> initialize(
@@ -117,16 +127,25 @@ internal class DefaultRedirectCoordinator : RedirectCoordinator {
     }
 
     override fun emit(uri: Uri?) {
-        val result = if (uri != null) {
-            RedirectResult.Redirect(uri)
+        emitErrorJob?.cancel()
+        emitErrorJob = null
+        if (uri != null) {
+            val localContinuation = redirectContinuation
+            reset()
+            localContinuation?.resume(RedirectResult.Redirect(uri))
         } else {
-            val exception = WebAuthenticationClient.FlowCancelledException()
-            initializationContinuation?.resume(RedirectInitializationResult.Error<Any>(exception))
-            RedirectResult.Error(exception)
+            // Return a redirect error after the debounce time. In some cases, the browser can return a null redirect
+            // quickly followed by a non-null redirect. In this case, we wait for loginCancellationDebounceTime before
+            // accepting the error.
+            emitErrorJob = coroutineScope.launch {
+                delay(AuthFoundationDefaults.loginCancellationDebounceTime)
+                val exception = WebAuthenticationClient.FlowCancelledException()
+                initializationContinuation?.resume(RedirectInitializationResult.Error<Any>(exception))
+                val localContinuation = redirectContinuation
+                reset()
+                localContinuation?.resume(RedirectResult.Error(exception))
+            }
         }
-        val localContinuation = redirectContinuation
-        reset()
-        localContinuation?.resume(result)
     }
 
     // Nulls all instance variables.

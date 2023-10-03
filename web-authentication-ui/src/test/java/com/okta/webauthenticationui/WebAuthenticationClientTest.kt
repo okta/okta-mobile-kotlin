@@ -28,7 +28,7 @@ import com.okta.testhelpers.testBodyFromFile
 import com.okta.webauthenticationui.WebAuthenticationClient.Companion.createWebAuthenticationClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -43,7 +43,7 @@ class WebAuthenticationClientTest {
 
     @get:Rule val oktaRule = OktaRule()
 
-    @Test fun testLogin(): Unit = runBlocking {
+    @Test fun testLogin(): Unit = runTest {
         oktaRule.enqueue(
             method("POST"),
             path("/oauth2/default/v1/token"),
@@ -55,7 +55,7 @@ class WebAuthenticationClientTest {
         val webAuthenticationClient = oktaRule.createOidcClient().createWebAuthenticationClient(webAuthenticationProvider)
         val context = mock<Context>()
 
-        val redirectCoordinator = DefaultRedirectCoordinator()
+        val redirectCoordinator = DefaultRedirectCoordinator(this)
         webAuthenticationClient.redirectCoordinator = redirectCoordinator
 
         val initializeCountDownLatch = CountDownLatch(1)
@@ -88,12 +88,12 @@ class WebAuthenticationClientTest {
         )
     }
 
-    @Test fun testLoginInitializationCancellation(): Unit = runBlocking {
+    @Test fun testLoginInitializationCancellation(): Unit = runTest {
         val webAuthenticationProvider = mock<WebAuthenticationProvider>()
         val webAuthenticationClient = oktaRule.createOidcClient().createWebAuthenticationClient(webAuthenticationProvider)
         val context = mock<Context>()
 
-        val redirectCoordinator = DefaultRedirectCoordinator()
+        val redirectCoordinator = DefaultRedirectCoordinator(this)
         webAuthenticationClient.redirectCoordinator = redirectCoordinator
 
         val initializeCountDownLatch = CountDownLatch(1)
@@ -110,12 +110,12 @@ class WebAuthenticationClientTest {
         assertThat(exception).isInstanceOf(WebAuthenticationClient.FlowCancelledException::class.java)
     }
 
-    @Test fun testLoginRedirectCancellation(): Unit = runBlocking {
+    @Test fun testLoginRedirectCancellation(): Unit = runTest {
         val webAuthenticationProvider = mock<WebAuthenticationProvider>()
         val webAuthenticationClient = oktaRule.createOidcClient().createWebAuthenticationClient(webAuthenticationProvider)
         val context = mock<Context>()
 
-        val redirectCoordinator = DefaultRedirectCoordinator()
+        val redirectCoordinator = DefaultRedirectCoordinator(this)
         webAuthenticationClient.redirectCoordinator = redirectCoordinator
 
         val initializeCountDownLatch = CountDownLatch(1)
@@ -139,7 +139,7 @@ class WebAuthenticationClientTest {
         assertThat(exception).isInstanceOf(WebAuthenticationClient.FlowCancelledException::class.java)
     }
 
-    @Test fun testLoginAuthorizationCodeFlowError(): Unit = runBlocking {
+    @Test fun testLoginAuthorizationCodeFlowError(): Unit = runTest {
         oktaRule.enqueue(path("/.well-known/openid-configuration")) { response ->
             response.setResponseCode(503)
         }
@@ -151,7 +151,7 @@ class WebAuthenticationClientTest {
         val webAuthenticationClient = client.createWebAuthenticationClient(webAuthenticationProvider)
         val context = mock<Context>()
 
-        val redirectCoordinator = DefaultRedirectCoordinator()
+        val redirectCoordinator = DefaultRedirectCoordinator(this)
         webAuthenticationClient.redirectCoordinator = redirectCoordinator
 
         val initializeCountDownLatch = CountDownLatch(1)
@@ -168,12 +168,12 @@ class WebAuthenticationClientTest {
         assertThat(exception).isInstanceOf(OidcClientResult.Error.OidcEndpointsNotAvailableException::class.java)
     }
 
-    @Test fun testLogout(): Unit = runBlocking {
+    @Test fun testLogout(): Unit = runTest {
         val webAuthenticationProvider = mock<WebAuthenticationProvider>()
         val webAuthenticationClient = oktaRule.createOidcClient().createWebAuthenticationClient(webAuthenticationProvider)
         val context = mock<Context>()
 
-        val redirectCoordinator = DefaultRedirectCoordinator()
+        val redirectCoordinator = DefaultRedirectCoordinator(this)
         webAuthenticationClient.redirectCoordinator = redirectCoordinator
 
         val initializeCountDownLatch = CountDownLatch(1)
@@ -198,12 +198,12 @@ class WebAuthenticationClientTest {
         assertThat(logoutResultDeferred.await()).isInstanceOf(OidcClientResult.Success::class.java)
     }
 
-    @Test fun testLogoutInitializerCancellation(): Unit = runBlocking {
+    @Test fun testLogoutInitializerCancellation(): Unit = runTest {
         val webAuthenticationProvider = mock<WebAuthenticationProvider>()
         val webAuthenticationClient = oktaRule.createOidcClient().createWebAuthenticationClient(webAuthenticationProvider)
         val context = mock<Context>()
 
-        val redirectCoordinator = DefaultRedirectCoordinator()
+        val redirectCoordinator = DefaultRedirectCoordinator(this)
         webAuthenticationClient.redirectCoordinator = redirectCoordinator
 
         val initializeCountDownLatch = CountDownLatch(1)
@@ -220,12 +220,12 @@ class WebAuthenticationClientTest {
         assertThat(exception).isInstanceOf(WebAuthenticationClient.FlowCancelledException::class.java)
     }
 
-    @Test fun testLogoutRedirectCancellation(): Unit = runBlocking {
+    @Test fun testLogoutRedirectCancellation(): Unit = runTest {
         val webAuthenticationProvider = mock<WebAuthenticationProvider>()
         val webAuthenticationClient = oktaRule.createOidcClient().createWebAuthenticationClient(webAuthenticationProvider)
         val context = mock<Context>()
 
-        val redirectCoordinator = DefaultRedirectCoordinator()
+        val redirectCoordinator = DefaultRedirectCoordinator(this)
         webAuthenticationClient.redirectCoordinator = redirectCoordinator
 
         val initializeCountDownLatch = CountDownLatch(1)
@@ -249,7 +249,7 @@ class WebAuthenticationClientTest {
         assertThat(exception).isInstanceOf(WebAuthenticationClient.FlowCancelledException::class.java)
     }
 
-    @Test fun testLogoutEndSessionRedirectFlowError(): Unit = runBlocking {
+    @Test fun testLogoutEndSessionRedirectFlowError(): Unit = runTest {
         oktaRule.enqueue(path("/.well-known/openid-configuration")) { response ->
             response.setResponseCode(503)
         }
@@ -261,7 +261,7 @@ class WebAuthenticationClientTest {
         val webAuthenticationClient = client.createWebAuthenticationClient(webAuthenticationProvider)
         val context = mock<Context>()
 
-        val redirectCoordinator = DefaultRedirectCoordinator()
+        val redirectCoordinator = DefaultRedirectCoordinator(this)
         webAuthenticationClient.redirectCoordinator = redirectCoordinator
 
         val initializeCountDownLatch = CountDownLatch(1)
