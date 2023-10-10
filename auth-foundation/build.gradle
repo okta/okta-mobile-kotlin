@@ -51,8 +51,9 @@ dependencies {
     api deps.okhttp.core
     api deps.coroutines.core
     api deps.kotlin.serialization_json
+    api deps.okio.core
 
-    implementation deps.okio
+    implementation deps.okio.jvm
     implementation deps.kotlin.serialization_okio
     implementation deps.security_crypto
     implementation deps.startup_runtime

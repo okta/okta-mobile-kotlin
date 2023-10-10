@@ -15,9 +15,10 @@
  */
 package sample.okta.android.test
 
-import com.okta.sdk.client.Client
 import com.okta.sdk.client.Clients
-import com.okta.sdk.resource.user.User
+import com.okta.sdk.resource.api.UserApi
+import com.okta.sdk.resource.client.ApiClient
+import com.okta.sdk.resource.model.User
 import com.okta.sdk.resource.user.UserBuilder
 import org.junit.Assert
 import org.junit.rules.TestRule
@@ -26,7 +27,7 @@ import org.junit.runners.model.Statement
 import java.util.UUID
 
 internal class UserRule : TestRule {
-    private val client: Client = Clients.builder()
+    private val client = Clients.builder()
         .setClientId(EndToEndCredentials["/managementSdk/clientId"])
         .setOrgUrl(EndToEndCredentials["/managementSdk/orgUrl"])
         .setClientCredentials { EndToEndCredentials["/managementSdk/token"] }
@@ -34,6 +35,8 @@ internal class UserRule : TestRule {
 
     lateinit var email: String
     lateinit var password: String
+    val firstName = "Test"
+    val lastName = "User"
 
     override fun apply(base: Statement, description: Description): Statement {
         return UserStatement(this, base, client)
@@ -43,8 +46,9 @@ internal class UserRule : TestRule {
 private class UserStatement(
     private val rule: UserRule,
     private val base: Statement,
-    private val client: Client,
+    client: ApiClient
 ) : Statement() {
+    private val userApi: UserApi = UserApi(client)
     override fun evaluate() {
         val user = createUser()
         try {
@@ -59,17 +63,17 @@ private class UserStatement(
         rule.password = UUID.randomUUID().toString()
         val user: User = UserBuilder.instance()
             .setEmail(rule.email)
-            .setFirstName("Test")
-            .setLastName("User")
+            .setFirstName(rule.firstName)
+            .setLastName(rule.lastName)
             .setPassword(rule.password.toCharArray())
             .setActive(true)
-            .buildAndCreate(client)
+            .buildAndCreate(userApi)
         Assert.assertNotNull(user.id)
         return user
     }
 
     private fun deleteUser(user: User) {
-        user.deactivate()
-        user.delete()
+        userApi.deactivateUser(user.id, false)
+        userApi.deleteUser(user.id, false)
     }
 }
