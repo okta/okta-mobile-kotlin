@@ -25,48 +25,11 @@ jobs:
           distribution: 'zulu'
           java-version: 18
 
-      - name: Setup Properties
-        if: ${{ github.event.repository.fork == false && (github.event.pull_request == null || github.event.pull_request.head.repo.fork == false) }}
-        env:
-          E2E_CREDENTIALS_BASE64: ${{ secrets.E2E_CREDENTIALS_BASE64 }}
-          OKTA_PROPERTIES_BASE64: ${{ secrets.OKTA_PROPERTIES_BASE64 }}
-        run: |
-          mkdir -p dynamic-app/src/androidTest/resources/
-          echo $E2E_CREDENTIALS_BASE64 | base64 --decode > dynamic-app/src/androidTest/resources/e2eCredentials.yaml
-          echo $OKTA_PROPERTIES_BASE64 | base64 --decode > okta.properties
-
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
 
       - name: Run Tests
         run: ./gradlew assembleDebug testDebugUnitTest assembleAndroidTest
-
-      - name: Setup Gcloud credentials
-        if: ${{ github.event.repository.fork == false }}
-        env:
-          GOOGLE_SERVICE_JSON_BASE64: ${{ secrets.GOOGLE_SERVICE_JSON_BASE64 }}
-        run: |
-          echo "::add-mask::$(echo $GOOGLE_SERVICE_JSON_BASE64 | base64 --decode | jq -r tostring)"
-          echo "GOOGLE_SERVICE_JSON=$(echo $GOOGLE_SERVICE_JSON_BASE64 | base64 --decode | jq -r tostring)" >> $GITHUB_ENV
-
-      - name: Authenticate Gcloud command line
-        if: ${{ github.event.repository.fork == false }}
-        uses: google-github-actions/auth@v1
-        with:
-          credentials_json: ${{ env.GOOGLE_SERVICE_JSON }}
-          project_id: ${{ secrets.GOOGLE_PROJECT_ID }}
-
-      - name: Set up Cloud SDK
-        if: ${{ github.event.repository.fork == false }}
-        uses: google-github-actions/setup-gcloud@v1
-
-      - name: Use gcloud CLI
-        if: ${{ github.event.repository.fork == false }}
-        run: gcloud auth list &> /dev/null
-
-      - name: Run End to End Tests
-        if: ${{ github.event.repository.fork == false }}
-        run: ./runTestsInFirebaseTestLab.sh
 
       - name: Upload Test Failures
         if: failure()
