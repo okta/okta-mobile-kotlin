@@ -15,6 +15,7 @@
  */
 package com.okta.authfoundation.client
 
+import androidx.annotation.VisibleForTesting
 import com.okta.authfoundation.AuthFoundationDefaults
 import com.okta.authfoundation.InternalAuthFoundationApi
 import com.okta.authfoundation.client.internal.SdkVersionsRegistry
@@ -101,8 +102,14 @@ class OidcConfiguration @InternalAuthFoundationApi constructor(
     @property:InternalAuthFoundationApi val okHttpClient: Call.Factory by lazy {
         val callFactory = okHttpClientFactory()
         if (callFactory is OkHttpClient) {
+            val userInterceptors = callFactory.interceptors
             callFactory.newBuilder()
+                .apply { interceptors().clear() }
                 .addInterceptor(OidcUserAgentInterceptor)
+                .apply {
+                    // Add user interceptors last to prioritize user defined behavior over SDK
+                    interceptors().addAll(userInterceptors)
+                }
                 .cookieJar(cookieJar)
                 .build()
         } else {
@@ -118,7 +125,8 @@ class OidcConfiguration @InternalAuthFoundationApi constructor(
     }
 }
 
-private object OidcUserAgentInterceptor : Interceptor {
+@VisibleForTesting
+internal object OidcUserAgentInterceptor : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
         val request = chain.request().newBuilder()
             .header("user-agent", SdkVersionsRegistry.userAgent)
