@@ -35,6 +35,7 @@ dependencies {
     api deps.junit
     api deps.okhttp.mock_web_server
     api deps.okhttp.tls
+    api deps.okio.core
     api deps.truth
     api deps.jackson_databind
 }

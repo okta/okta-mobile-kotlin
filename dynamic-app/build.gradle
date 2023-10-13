@@ -59,7 +59,7 @@ android {
     }
     packagingOptions {
         resources {
-            excludes += ['META-INF/AL2.0', 'META-INF/LGPL2.1']
+            excludes += 'META-INF/*'
         }
     }
 
@@ -92,6 +92,8 @@ dependencies {
     implementation deps.coroutines.android
     implementation deps.okhttp.core
     implementation deps.okhttp.tls
+    implementation deps.okio.core
+    implementation deps.okio.jvm
     implementation deps.timber
 
     implementation deps.jackson_databind
@@ -99,6 +101,8 @@ dependencies {
     testImplementation deps.junit
     testImplementation deps.okhttp.mock_web_server
     testImplementation deps.okhttp.tls
+    testImplementation deps.okio.core
+    testImplementation deps.okio.jvm
     testImplementation deps.truth
     testImplementation project(':test-utils')
 
@@ -106,6 +110,8 @@ dependencies {
 
     androidTestImplementation deps.jackson_yaml
     androidTestImplementation deps.okhttp.tls
+    androidTestImplementation deps.okio.core
+    androidTestImplementation deps.okio.jvm
     androidTestImplementation deps.junit
     androidTestImplementation deps.androidx_test.core
     androidTestImplementation deps.androidx_test.ext_junit
@@ -125,7 +131,6 @@ dependencies {
     androidTestImplementation(deps.okta.management_sdk) {
         exclude group: 'org.bouncycastle'
     }
-    androidTestImplementation deps.okta.http_okhttp
 }
 
 static def parseScheme(String uri) {

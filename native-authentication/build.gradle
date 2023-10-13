@@ -45,9 +45,11 @@ dependencies {
     api project(':okta-idx-kotlin')
     api deps.kotlin.stdlib
     api deps.okhttp.core
+    api deps.okio.core
     api deps.coroutines.android
 
     implementation deps.kotlin.serialization_json
+    implementation deps.okio.jvm
 
     testImplementation deps.coroutines.test
     testImplementation deps.junit
@@ -55,6 +57,8 @@ dependencies {
     testImplementation deps.mockito.kotlin
     testImplementation deps.okhttp.mock_web_server
     testImplementation deps.okhttp.tls
+    testImplementation deps.okio.core
+    testImplementation deps.okio.jvm
     testImplementation deps.truth
     testImplementation deps.jackson_databind
     testImplementation deps.robolectric
