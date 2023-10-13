@@ -34,8 +34,10 @@ dependencies {
     api project(':auth-foundation')
     api deps.kotlin.stdlib
     api deps.okhttp.core
+    api deps.okio.core
     api deps.junit
     api deps.okhttp.mock_web_server
 
+    implementation deps.okio.jvm
     implementation deps.okhttp.tls
 }

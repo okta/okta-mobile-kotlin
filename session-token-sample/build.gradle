@@ -39,7 +39,7 @@ android {
     }
     packagingOptions {
         resources {
-            excludes += ['META-INF/AL2.0', 'META-INF/LGPL2.1']
+            excludes += 'META-INF/*'
             pickFirsts += ['META-INF/okta/version.properties']
         }
     }
@@ -61,8 +61,6 @@ dependencies {
     runtimeOnly(deps.jackson_databind)
     runtimeOnly(deps.snakeyaml)
 
-    implementation deps.okta.management_okhttp
-
     implementation deps.kotlin.stdlib
     implementation deps.core_ktx
     implementation deps.app_compat
@@ -76,6 +74,8 @@ dependencies {
     implementation deps.coroutines.android
     implementation deps.okhttp.core
     implementation deps.okhttp.tls
+    implementation deps.okio.core
+    implementation deps.okio.jvm
     implementation deps.timber
 
     debugImplementation deps.leakcanary.android
