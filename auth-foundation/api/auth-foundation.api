@@ -308,6 +308,7 @@ public final class com/okta/authfoundation/credential/RevokeTokenType : java/lan
 	public static final field ACCESS_TOKEN Lcom/okta/authfoundation/credential/RevokeTokenType;
 	public static final field DEVICE_SECRET Lcom/okta/authfoundation/credential/RevokeTokenType;
 	public static final field REFRESH_TOKEN Lcom/okta/authfoundation/credential/RevokeTokenType;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public static fun valueOf (Ljava/lang/String;)Lcom/okta/authfoundation/credential/RevokeTokenType;
 	public static fun values ()[Lcom/okta/authfoundation/credential/RevokeTokenType;
 }
@@ -347,6 +348,7 @@ public final class com/okta/authfoundation/credential/TokenType : java/lang/Enum
 	public static final field DEVICE_SECRET Lcom/okta/authfoundation/credential/TokenType;
 	public static final field ID_TOKEN Lcom/okta/authfoundation/credential/TokenType;
 	public static final field REFRESH_TOKEN Lcom/okta/authfoundation/credential/TokenType;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public static fun valueOf (Ljava/lang/String;)Lcom/okta/authfoundation/credential/TokenType;
 	public static fun values ()[Lcom/okta/authfoundation/credential/TokenType;
 }
