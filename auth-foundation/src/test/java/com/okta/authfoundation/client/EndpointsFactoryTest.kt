@@ -94,7 +94,7 @@ internal class EndpointsFactoryTest {
             oktaRule.createConfiguration(cache = InMemoryCache()),
             oktaRule.baseUrl.newBuilder().encodedPath("/.well-known/openid-configuration").build()
         ) as OidcClientResult.Error<OidcEndpoints>
-        assertThat(result.exception).hasMessageThat().startsWith("Unexpected JSON token at offset 9")
+        assertThat(result.exception).hasMessageThat().startsWith("Unexpected JSON token at offset 10")
     }
 
     @Test fun testNetworkFailureFollowedByNetworkCallResultsInValidEndpoints(): Unit = runBlocking {

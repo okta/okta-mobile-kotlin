@@ -118,7 +118,7 @@ class DefaultIdTokenValidatorTest {
     @Test fun testMalformedPayload() {
         val idTokenClaims = IdTokenClaims(issuer = null)
         assertFailsWithMessage(
-            "Unexpected 'null' when string was expected",
+            "Unexpected 'null' literal when non-nullable string was expected",
             "",
             idTokenClaims
         )
