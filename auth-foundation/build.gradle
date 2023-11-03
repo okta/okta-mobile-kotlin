@@ -5,6 +5,12 @@ apply plugin: 'org.jetbrains.dokka'
 apply plugin: 'com.vanniktech.maven.publish.base'
 apply plugin: 'binary-compatibility-validator'
 
+def copyKotlinTemplates = tasks.register('copyKotlinTemplates', Copy) {
+    from("src/main/kotlinTemplates")
+    into("$buildDir/generated/sources/kotlinTemplates")
+    expand(projectVersion: project.version)
+}
+
 android {
     compileSdkVersion build_versions.compile_sdk
 
@@ -38,7 +44,7 @@ android {
 
     sourceSets {
         main {
-            kotlin.srcDir("$buildDir/generated/sources/kotlinTemplates")
+            kotlin.srcDir(copyKotlinTemplates.get().outputs)
         }
     }
     namespace 'com.okta.authfoundation'
@@ -81,12 +87,4 @@ dependencies {
     androidTestImplementation project(':test-helpers')
 }
 
-task copyKotlinTemplates(type: Copy) {
-    from("src/main/kotlinTemplates")
-    into("$buildDir/generated/sources/kotlinTemplates")
-    expand(projectVersion: project.version)
-}
-
-tasks.withType(org.jetbrains.kotlin.gradle.dsl.KotlinCompile) {
-    dependsOn(copyKotlinTemplates)
-}
+preBuild.dependsOn(copyKotlinTemplates)
