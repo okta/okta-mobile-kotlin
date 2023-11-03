@@ -106,7 +106,7 @@ internal suspend fun <T> OidcConfiguration.internalPerformRequest(
     currentCoroutineContext().ensureActive()
     return withContext(ioDispatcher) {
         try {
-            val okHttpResponse = executeRequest(request)
+            val okHttpResponse = executeRequest(request, ignoreRateLimit = shouldAttemptJsonDeserialization)
             okHttpResponse.use { responseBody ->
                 // Body is always non-null when returned here. See related OkHttp documentation.
                 val body = responseBody.body!!.source()
@@ -123,7 +123,8 @@ internal suspend fun <T> OidcConfiguration.internalPerformRequest(
 }
 
 private suspend fun OidcConfiguration.executeRequest(
-    request: Request
+    request: Request,
+    ignoreRateLimit: (Response) -> Boolean = { false },
 ): Response {
     currentCoroutineContext().ensureActive()
     val rateLimitErrorCode = 429
@@ -136,7 +137,7 @@ private suspend fun OidcConfiguration.executeRequest(
         delay(delaySeconds.seconds)
         response = okHttpClient.newCall(requestToExecute).await()
 
-        if (response.code != rateLimitErrorCode) return response
+        if (response.code != rateLimitErrorCode || ignoreRateLimit(response)) return response
 
         val requestId = response.header("X-Okta-Request-Id")
         val responseTimeSeconds = response.headers.getDate("Date")?.time?.milliseconds?.inWholeSeconds

@@ -36,7 +36,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.currentTime
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.SerializationException
@@ -67,7 +66,7 @@ class NetworkingTest {
         unmockkAll()
     }
 
-    @Test fun testPerformRequest(): Unit = runBlocking {
+    @Test fun testPerformRequest(): Unit = runTest {
         oktaRule.enqueue(
             path("/test"),
             header("accept", "application/json")
@@ -85,7 +84,7 @@ class NetworkingTest {
         assertThat((result as OidcClientResult.Success<String>).result).isEqualTo("bar")
     }
 
-    @Test fun testPerformRequestErrorStatusCodesCallMapper(): Unit = runBlocking {
+    @Test fun testPerformRequestErrorStatusCodesCallMapper(): Unit = runTest {
         oktaRule.enqueue(
             path("/test"),
         ) { response ->
@@ -103,7 +102,7 @@ class NetworkingTest {
         assertThat((result as OidcClientResult.Success<String>).result).isEqualTo("bar")
     }
 
-    @Test fun testPerformRequestExceptionInMapper(): Unit = runBlocking {
+    @Test fun testPerformRequestExceptionInMapper(): Unit = runTest {
         oktaRule.enqueue(
             path("/test"),
         ) { response ->
@@ -121,7 +120,7 @@ class NetworkingTest {
         assertThat(message).isEqualTo("Test Exception From Mapper")
     }
 
-    @Test fun testPerformRequestNetworkFailure(): Unit = runBlocking {
+    @Test fun testPerformRequestNetworkFailure(): Unit = runTest {
         oktaRule.enqueue(path("/test")) { response ->
             response.socketPolicy = SocketPolicy.DISCONNECT_AT_START
         }
@@ -137,7 +136,7 @@ class NetworkingTest {
         assertThat(message).contains("EOF")
     }
 
-    @Test fun testPerformRequestErrorStatusReturnsError(): Unit = runBlocking {
+    @Test fun testPerformRequestErrorStatusReturnsError(): Unit = runTest {
         oktaRule.enqueue(
             path("/test"),
         ) { response ->
@@ -160,7 +159,7 @@ class NetworkingTest {
         assertThat(httpResponseException.errorDescription).isNull()
     }
 
-    @Test fun testPerformRequestErrorStatusReturnsErrorDeserialized(): Unit = runBlocking {
+    @Test fun testPerformRequestErrorStatusReturnsErrorDeserialized(): Unit = runTest {
         oktaRule.enqueue(
             path("/test"),
         ) { response ->
@@ -183,7 +182,7 @@ class NetworkingTest {
         assertThat(httpResponseException.errorDescription).isEqualTo("baz")
     }
 
-    @Test fun testPerformRequestNonJson(): Unit = runBlocking {
+    @Test fun testPerformRequestNonJson(): Unit = runTest {
         oktaRule.enqueue(
             path("/test"),
         ) { response ->
@@ -199,7 +198,7 @@ class NetworkingTest {
         assertThat(result2).isEqualTo(Unit)
     }
 
-    @Test fun testPerformRequestFailsWhileReadingResponse(): Unit = runBlocking {
+    @Test fun testPerformRequestFailsWhileReadingResponse(): Unit = runTest {
         oktaRule.enqueue(
             path("/test"),
         ) { response ->
@@ -217,7 +216,7 @@ class NetworkingTest {
         assertThat(exception).isInstanceOf(SerializationException::class.java)
     }
 
-    @Test fun testPerformRequestFailsWhileReadingErrorResponse(): Unit = runBlocking {
+    @Test fun testPerformRequestFailsWhileReadingErrorResponse(): Unit = runTest {
         oktaRule.enqueue(
             path("/test"),
         ) { response ->
@@ -238,7 +237,7 @@ class NetworkingTest {
         assertThat(exception).hasMessageThat().isEqualTo("HTTP Error: status code - 401")
     }
 
-    @Test fun testPerformRequestHasNoTagWithNoCredential(): Unit = runBlocking {
+    @Test fun testPerformRequestHasNoTagWithNoCredential(): Unit = runTest {
         val interceptor = RecordingInterceptor()
         val builder = oktaRule.okHttpClient.newBuilder()
         builder.addInterceptor(interceptor)
@@ -261,7 +260,7 @@ class NetworkingTest {
         assertThat(interceptor.request?.tag(Credential::class.java)).isNull()
     }
 
-    @Test fun testPerformRequestHasTagWhenCredentialIsAttachedToOidcClient(): Unit = runBlocking {
+    @Test fun testPerformRequestHasTagWhenCredentialIsAttachedToOidcClient(): Unit = runTest {
         val interceptor = RecordingInterceptor()
         val builder = oktaRule.okHttpClient.newBuilder()
         builder.addInterceptor(interceptor)
@@ -287,7 +286,7 @@ class NetworkingTest {
         assertThat(interceptor.request?.tag(Credential::class.java)).isEqualTo(credential)
     }
 
-    @Test fun testPerformRequestEnsuresTheCoroutineIsActiveBeforeMakingNetworkRequest(): Unit = runBlocking {
+    @Test fun testPerformRequestEnsuresTheCoroutineIsActiveBeforeMakingNetworkRequest(): Unit = runTest {
         val request = Request.Builder()
             .url(oktaRule.baseUrl.newBuilder().addPathSegments("test").build())
             .build()
@@ -307,7 +306,7 @@ class NetworkingTest {
         assertThat(oktaRule.mockWebServerDispatcher.numberRemainingInQueue()).isEqualTo(0)
     }
 
-    @Test fun testPerformRequestRawResponseEnsuresTheCoroutineIsActiveBeforeMakingNetworkRequest(): Unit = runBlocking {
+    @Test fun testPerformRequestRawResponseEnsuresTheCoroutineIsActiveBeforeMakingNetworkRequest(): Unit = runTest {
         val request = Request.Builder()
             .url(oktaRule.baseUrl.newBuilder().addPathSegments("test").build())
             .build()
@@ -326,7 +325,7 @@ class NetworkingTest {
         assertThat(oktaRule.mockWebServerDispatcher.numberRemainingInQueue()).isEqualTo(0)
     }
 
-    @Test fun testPerformRequestRawResponse(): Unit = runBlocking {
+    @Test fun testPerformRequestRawResponse(): Unit = runTest {
         oktaRule.enqueue(
             path("/test"),
         ) { response ->
@@ -345,7 +344,7 @@ class NetworkingTest {
         assertThat(successResponse.result.header("location")).isEqualTo("example:/callback")
     }
 
-    @Test fun testPerformRequestRawResponseNetworkFailure(): Unit = runBlocking {
+    @Test fun testPerformRequestRawResponseNetworkFailure(): Unit = runTest {
         oktaRule.enqueue(path("/test")) { response ->
             response.socketPolicy = SocketPolicy.DISCONNECT_AFTER_REQUEST
         }
@@ -359,7 +358,7 @@ class NetworkingTest {
         assertThat(message).contains("Failed to connect to")
     }
 
-    @Test fun testPerformRequestWithAlternateAcceptHeader(): Unit = runBlocking {
+    @Test fun testPerformRequestWithAlternateAcceptHeader(): Unit = runTest {
         oktaRule.enqueue(
             path("/test"),
             header("accept", "application/ion+json; okta-version=1.0.0"),
@@ -402,6 +401,22 @@ class NetworkingTest {
 
         assertThat(oktaRule.mockWebServerDispatcher.numberRemainingInQueue()).isEqualTo(1)
         oktaRule.mockWebServerDispatcher.clear()
+    }
+
+    @Test fun `do not retry request when verbatim response is expected`() = runTest {
+        oktaRule.enqueue(path("/test")) { response ->
+            response.setResponseCode(429)
+            response.setBody("""{"foo":"bar"}""")
+        }
+
+        val request = Request.Builder()
+            .url(oktaRule.baseUrl.newBuilder().addPathSegments("test").build())
+            .build()
+
+        val result = oktaRule.createOidcClient().performRequest(JsonObject.serializer(), request, shouldAttemptJsonDeserialization = { true }) {
+            it["foo"]!!.jsonPrimitive.content
+        }
+        assertThat((result as OidcClientResult.Success<String>).result).isEqualTo("bar")
     }
 
     @Test fun testPerformRequestWithNon429ErrorAndRateLimitHeadersDoesNotRetry() = runTest {
@@ -677,7 +692,7 @@ class NetworkingTest {
         assertThat(httpResponseException.responseCode).isEqualTo(429)
     }
 
-    @Test fun testPerformRequestRetryCancelsOnCoroutineCancellation(): Unit = runBlocking {
+    @Test fun testPerformRequestRetryCancelsOnCoroutineCancellation(): Unit = runTest {
         val fetchedFirstRequestCountDownLatch = CountDownLatch(1)
 
         oktaRule.enqueue(path("/test")) { response ->
@@ -864,7 +879,7 @@ class NetworkingTest {
         assertThat(events.last().retryCount).isEqualTo(10)
     }
 
-    @Test fun testPerformRequestRetryClosesUnusedResponsesAfterEmittingEvent(): Unit = runBlocking {
+    @Test fun testPerformRequestRetryClosesUnusedResponsesAfterEmittingEvent(): Unit = runTest {
         val events = mutableListOf<RateLimitExceededEvent>()
         val rateLimitEventHandler = object : EventHandler {
             override fun onEvent(event: Any) {
@@ -903,7 +918,7 @@ class NetworkingTest {
         assertThat(lastRetryEvent.response.peekBody(Long.MAX_VALUE).string()).isEqualTo("")
     }
 
-    @Test fun `prioritize custom okhttp interceptors when making requests`() = runBlocking {
+    @Test fun `prioritize custom okhttp interceptors when making requests`() = runTest {
         var lastCalledInterceptor: String? = null
 
         val customInterceptor = Interceptor {
