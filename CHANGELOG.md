@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.2.0] - 2023-11-06
+
+[Commits](https://github.com/okta/okta-mobile-kotlin/compare/1.1.5...1.2.0)
+
+### Added
+- Updated libraries across several commits: [#269](https://github.com/okta/okta-mobile-kotlin/pull/269) [#264](https://github.com/okta/okta-mobile-kotlin/pull/264)
+- Add optional debounce functionality to browser redirect cancellation: [#263](https://github.com/okta/okta-mobile-kotlin/pull/263)
+
+### Fixed
+- Reorder okhttp interceptors to prioritize user-defined interceptors [#265](https://github.com/okta/okta-mobile-kotlin/pull/265)
+
 ## [1.1.5] - 2023-08-04
 
 [Commits](https://github.com/okta/okta-mobile-kotlin/compare/1.1.4...1.1.5)
