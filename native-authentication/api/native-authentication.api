@@ -33,6 +33,7 @@ public final class com/okta/nativeauthentication/form/Element$Label$Type : java/
 	public static final field DESCRIPTION Lcom/okta/nativeauthentication/form/Element$Label$Type;
 	public static final field ERROR Lcom/okta/nativeauthentication/form/Element$Label$Type;
 	public static final field HEADER Lcom/okta/nativeauthentication/form/Element$Label$Type;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public static fun valueOf (Ljava/lang/String;)Lcom/okta/nativeauthentication/form/Element$Label$Type;
 	public static fun values ()[Lcom/okta/nativeauthentication/form/Element$Label$Type;
 }

@@ -1,18 +1,18 @@
 def versions = [:]
-versions.activity = '1.5.1'
+versions.activity = '1.7.2'
 versions.androidx_test = '1.5.0'
 versions.androidx_test_runner = '1.5.2'
 versions.androidx_test_ext = '1.1.5'
 versions.androidx_test_orchestrator = '1.4.2'
 versions.androidx_text_uiautomator = '2.2.0'
-versions.android_gradle_plugin = '7.4.2'
+versions.android_gradle_plugin = '8.1.2'
 versions.appcompat = '1.4.2'
-versions.auth_foundation = '1.1.5'
-versions.compose = '1.2.1'
+versions.auth_foundation = '1.2.0'
+versions.compose = '1.5.4'
 versions.constraint_layout = '2.1.4'
 versions.core_ktx = '1.8.0'
-versions.coroutines = '1.6.4'
-versions.cucumber_android = '4.10.0'
+versions.coroutines = '1.7.3'
+versions.cucumber_android = '7.14.0'
 versions.desugar_libs = '2.0.3'
 versions.dokka = '1.8.20'
 versions.espresso = '3.5.1'
@@ -21,9 +21,9 @@ versions.gradle_maven_publish = '0.25.2'
 versions.jackson = '2.15.2'
 versions.jsoup = '1.16.1'
 versions.junit = '4.13.2'
-versions.kotlin = '1.7.20'
-versions.kotlin_binary_compatibility = '0.11.0'
-versions.kotlin_serialization = '1.4.0'
+versions.kotlin = '1.9.10'
+versions.kotlin_binary_compatibility = '0.13.2'
+versions.kotlin_serialization = '1.6.0'
 versions.leakcanary = '2.12'
 versions.lifecycle = '2.5.1'
 versions.material = '1.6.1'
@@ -32,9 +32,9 @@ versions.mockito_core = '4.6.1'
 versions.mockito_kotlin = '4.0.0'
 versions.navigation = '2.5.1'
 versions.okhttp = '4.11.0'
-versions.okio = '3.4.0'
-versions.okta_management = '8.2.2'
-versions.robolectric = '4.10.3'
+versions.okio = '3.5.0'
+versions.okta_management = '14.0.0'
+versions.robolectric = '4.11'
 versions.snakeyaml = '2.0'
 versions.spotless = '6.7.0'
 versions.timber = '5.0.1'
@@ -43,8 +43,8 @@ ext.versions = versions
 
 def build_versions = [:]
 build_versions.min_sdk = 21
-build_versions.compile_sdk = 33
-build_versions.target_sdk = 33
+build_versions.compile_sdk = 34
+build_versions.target_sdk = 34
 ext.build_versions = build_versions
 
 def deps = [:]
@@ -175,7 +175,7 @@ static def addRepos(RepositoryHandler handler) {
 }
 
 def forceVersions(ConfigurationContainer configurations) {
-    configurations.all {
+    configurations.configureEach {
         resolutionStrategy {
             force deps.jackson_databind // Vulnerability fix: OKTA-614751
         }
