@@ -16,7 +16,10 @@
 package com.okta.idx.android.cucumber.hooks
 
 import com.okta.idx.android.infrastructure.management.OktaManagementSdk
-import com.okta.sdk.resource.user.factor.SmsUserFactor
+import com.okta.sdk.resource.api.UserFactorApi
+import com.okta.sdk.resource.model.FactorType
+import com.okta.sdk.resource.model.SmsUserFactor
+import com.okta.sdk.resource.model.SmsUserFactorProfile
 import io.cucumber.java.Before
 import org.junit.Assert
 
@@ -24,9 +27,14 @@ class RequireEnrolledPhone {
     @Before("@requireEnrolledPhone") fun enrollSmsUserFactor() {
         Assert.assertNotNull(SharedState.a18NProfile)
         Assert.assertNotNull(SharedState.user)
-        val smsUserFactor: SmsUserFactor =
-            OktaManagementSdk.client.instantiate(SmsUserFactor::class.java)
-        smsUserFactor.profile.phoneNumber = SharedState.a18NProfile!!.phoneNumber
-        SharedState.user!!.enrollFactor(smsUserFactor, false, null, null, true)
+        val userFactorApi = UserFactorApi(OktaManagementSdk.client)
+        val smsUserFactor: SmsUserFactor = SmsUserFactor().apply {
+            setProfile(
+                SmsUserFactorProfile()
+                    .phoneNumber(SharedState.a18NProfile!!.phoneNumber)
+            )
+            factorType(FactorType.SMS)
+        }
+        userFactorApi.enrollFactor(SharedState.user!!.id, smsUserFactor, false, null, null, true)
     }
 }

@@ -17,7 +17,8 @@ package com.okta.idx.android.cucumber.hooks
 
 import com.okta.idx.android.infrastructure.EndToEndCredentials
 import com.okta.idx.android.infrastructure.management.OktaManagementSdk
-import com.okta.sdk.resource.user.User
+import com.okta.sdk.resource.api.UserApi
+import com.okta.sdk.resource.model.User
 import com.okta.sdk.resource.user.UserBuilder
 import io.cucumber.java.After
 import io.cucumber.java.Before
@@ -25,6 +26,8 @@ import org.junit.Assert
 import timber.log.Timber
 
 class RequireExistingUser {
+    private val userApi = UserApi(OktaManagementSdk.client)
+
     @Before("@requireExistingUser", order = 100) fun createUserBeforeScenario() {
         Assert.assertNotNull(SharedState.a18NProfile)
         val user: User = UserBuilder.instance()
@@ -34,18 +37,18 @@ class RequireExistingUser {
             .setPassword(EndToEndCredentials["/cucumber/password"].toCharArray())
             .setMobilePhone(SharedState.a18NProfile!!.phoneNumber)
             .setActive(true)
-            .buildAndCreate(OktaManagementSdk.client)
+            .buildAndCreate(userApi)
         Assert.assertNotNull(user.id)
-        Timber.i("User created: %s", user.profile.email)
+        Timber.i("User created: %s", user.profile?.email)
         SharedState.user = user
     }
 
     @After("@requireExistingUser") fun deleteUserAfterScenario() {
         val user = SharedState.user
         if (user != null) {
-            val userEmail: String = user.profile.email
-            user.deactivate()
-            user.delete()
+            val userEmail = user.profile?.email
+            userApi.deactivateUser(user.id, false)
+            userApi.deleteUser(user.id, false)
             SharedState.user = null
             Timber.i("User deleted: %s", userEmail)
         } else {

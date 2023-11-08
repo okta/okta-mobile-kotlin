@@ -16,7 +16,10 @@
 package com.okta.idx.android.cucumber.hooks
 
 import com.okta.idx.android.infrastructure.management.OktaManagementSdk
-import com.okta.sdk.resource.user.factor.SecurityQuestionUserFactor
+import com.okta.sdk.resource.api.UserFactorApi
+import com.okta.sdk.resource.model.FactorType
+import com.okta.sdk.resource.model.SecurityQuestionUserFactor
+import com.okta.sdk.resource.model.SecurityQuestionUserFactorProfile
 import io.cucumber.java.Before
 import org.junit.Assert
 import java.util.UUID
@@ -28,11 +31,16 @@ class EnrollSecurityQuestion {
 
     @Before("@enrollSecurityQuestion") fun requireEnrolledSecurityQuestion() {
         Assert.assertNotNull(SharedState.user)
-        val factor: SecurityQuestionUserFactor =
-            OktaManagementSdk.client.instantiate(SecurityQuestionUserFactor::class.java)
-        factor.profile.question = "disliked_food"
-        factor.profile.questionText = "What is the food you least liked as a child?"
-        factor.profile.answer = ANSWER
-        SharedState.user!!.enrollFactor(factor, false, null, null, true)
+        val userFactorApi = UserFactorApi(OktaManagementSdk.client)
+        val factor = SecurityQuestionUserFactor().apply {
+            setProfile(
+                SecurityQuestionUserFactorProfile()
+                    .question("disliked_food")
+                    .questionText("What is the food you least liked as a child?")
+                    .answer(ANSWER)
+            )
+            factorType(FactorType.QUESTION)
+        }
+        userFactorApi.enrollFactor(SharedState.user!!.id, factor, false, null, null, true)
     }
 }

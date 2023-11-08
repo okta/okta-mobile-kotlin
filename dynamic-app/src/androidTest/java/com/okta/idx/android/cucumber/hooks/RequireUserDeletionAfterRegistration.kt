@@ -16,26 +16,27 @@
 package com.okta.idx.android.cucumber.hooks
 
 import com.okta.idx.android.infrastructure.management.OktaManagementSdk
-import com.okta.sdk.resource.user.User
+import com.okta.sdk.resource.api.UserApi
+import com.okta.sdk.resource.model.User
 import io.cucumber.java.After
 import timber.log.Timber
-import java.util.Optional
 
 class RequireUserDeletionAfterRegistration {
     @After("@requireUserDeletionAfterRegistration") fun deleteUserAfterRegistration() {
         val a18nProfile = SharedState.a18NProfile ?: return
         Timber.i("Searching for a user to be deleted: %s", a18nProfile.emailAddress)
-        val userToDelete: Optional<User> =
-            OktaManagementSdk.client.listUsers(a18nProfile.emailAddress, null, null, null, null)
-                .stream().filter { x ->
-                    x.profile.email.equals(a18nProfile.emailAddress)
-                }.findFirst()
-        if (userToDelete.isPresent) {
-            val userEmail: String = userToDelete.get().profile.email
-            userToDelete.get().deactivate()
-            userToDelete.get().delete()
+        val userApi = UserApi(OktaManagementSdk.client)
+        val userToDelete: User? =
+            userApi.listUsers(a18nProfile.emailAddress, null, 20, null, null, null, null)
+                .firstOrNull { x ->
+                    x.profile?.email == a18nProfile.emailAddress
+                }
+        userToDelete?.let {
+            val userEmail = userToDelete.profile?.email
+            userApi.deactivateUser(userToDelete.id, false)
+            userApi.deleteUser(userToDelete.id, false)
             Timber.i("User deleted: %s", userEmail)
-        } else {
+        } ?: run {
             Timber.w("Fail to find a user to delete: %s", a18nProfile.emailAddress)
         }
     }

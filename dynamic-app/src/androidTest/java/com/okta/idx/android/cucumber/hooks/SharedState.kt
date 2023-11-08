@@ -17,7 +17,7 @@ package com.okta.idx.android.cucumber.hooks
 
 import android.app.Activity
 import com.okta.idx.android.infrastructure.a18n.A18NProfile
-import com.okta.sdk.resource.user.User
+import com.okta.sdk.resource.model.User
 import io.cucumber.java.After
 
 class SharedState {

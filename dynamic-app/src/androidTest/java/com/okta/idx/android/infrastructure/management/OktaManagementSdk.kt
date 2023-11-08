@@ -16,11 +16,11 @@
 package com.okta.idx.android.infrastructure.management
 
 import com.okta.idx.android.infrastructure.EndToEndCredentials
-import com.okta.sdk.client.Client
 import com.okta.sdk.client.Clients
+import com.okta.sdk.resource.client.ApiClient
 
 object OktaManagementSdk {
-    val client: Client = Clients.builder()
+    val client: ApiClient = Clients.builder()
         .setClientId(EndToEndCredentials["/managementSdk/clientId"])
         .setOrgUrl(EndToEndCredentials["/managementSdk/orgUrl"])
         .setClientCredentials { EndToEndCredentials["/managementSdk/token"] }

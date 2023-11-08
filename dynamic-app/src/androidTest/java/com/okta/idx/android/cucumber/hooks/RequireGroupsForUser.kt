@@ -16,11 +16,10 @@
 package com.okta.idx.android.cucumber.hooks
 
 import com.okta.idx.android.infrastructure.management.OktaManagementSdk
-import com.okta.sdk.resource.group.Group
+import com.okta.sdk.resource.api.GroupApi
+import com.okta.sdk.resource.model.Group
 import io.cucumber.java.Before
 import org.junit.Assert
-import java.util.function.Consumer
-import java.util.stream.Collectors
 
 class RequireGroupsForUser {
     @Before("@requireMFAGroupsForUser") fun assignMFAGroupBeforeScenario() {
@@ -37,17 +36,12 @@ class RequireGroupsForUser {
 
     private fun assignGroupForUser(groupName: String) {
         Assert.assertNotNull(SharedState.user)
-        val groups: MutableList<String> = ArrayList()
-        groups.add(groupName)
-        val groupList: List<Group> = OktaManagementSdk.client.listGroups()
-            .stream()
-            .filter { group -> groups.contains(group.profile.name) }
-            .collect(Collectors.toList())
+        val groupApi = GroupApi(OktaManagementSdk.client)
+        val groupList = groupApi.listGroups(null, null, null, 20, null, null, null, null)
+            .filter { it.profile?.name == groupName }
         Assert.assertFalse(groupList.isEmpty())
-        groupList.forEach(
-            Consumer { group: Group ->
-                SharedState.user!!.addToGroup(group.id)
-            }
-        )
+        groupList.forEach { group: Group ->
+            groupApi.assignUserToGroup(group.id, SharedState.user!!.id)
+        }
     }
 }

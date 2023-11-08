@@ -34,6 +34,8 @@ import com.okta.idx.android.infrastructure.LAUNCH_TITLE_TEXT_VIEW
 import com.okta.idx.android.infrastructure.PROGRESS_BAR_VIEW
 import com.okta.idx.android.infrastructure.espresso.waitForElement
 import com.okta.idx.android.infrastructure.espresso.waitForElementToBeGone
+import com.okta.idx.android.infrastructure.management.OktaManagementSdk
+import com.okta.sdk.resource.api.UserApi
 import io.cucumber.java.en.And
 import io.cucumber.java.en.Given
 import io.cucumber.java.en.Then
@@ -53,8 +55,9 @@ class LaunchDefinitions {
     @Given("^Mary bootstraps the application with a recovery token$")
     fun mary_bootstraps_the_application_with_a_recovery_token() {
         waitForElement(LAUNCH_TITLE_TEXT_VIEW)
-        val response = SharedState.user!!.forgotPasswordGenerateOneTimeToken(false)
-        val recoveryToken = response.resetPasswordUrl.substringAfterLast("/")
+        val userApi = UserApi(OktaManagementSdk.client)
+        val response = userApi.generateResetPasswordToken(SharedState.user!!.id, false, false)
+        val recoveryToken = response.resetPasswordUrl!!.substringAfterLast("/")
         onView(withHint(R.string.recovery_token)).perform(replaceText(recoveryToken))
         onView(withId(R.id.login_button)).perform(click())
     }
