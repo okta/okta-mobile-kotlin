@@ -1,3 +1,7 @@
+plugins {
+    id 'com.google.devtools.ksp'
+}
+
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'org.jetbrains.kotlin.plugin.serialization'
@@ -63,6 +67,9 @@ dependencies {
     implementation deps.kotlin.serialization_okio
     implementation deps.security_crypto
     implementation deps.startup_runtime
+    implementation deps.room.runtime
+    annotationProcessor deps.room.compiler
+    ksp deps.room.compiler
 
     testImplementation deps.coroutines.test
     testImplementation deps.androidx_test.core
@@ -74,6 +81,7 @@ dependencies {
     testImplementation deps.mockk.android
     testImplementation deps.mockk.agent
     testImplementation deps.robolectric
+    testImplementation deps.room.testing
     testImplementation deps.turbine
     testImplementation project(':test-helpers')
 
