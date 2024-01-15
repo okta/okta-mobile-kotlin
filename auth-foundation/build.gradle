@@ -24,6 +24,11 @@ android {
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
+
+        ksp {
+            arg("room.generateKotlin", "true")
+            arg("room.schemaLocation", "$projectDir/schemas")
+        }
     }
 
     buildTypes {
@@ -68,11 +73,13 @@ dependencies {
     implementation deps.security_crypto
     implementation deps.startup_runtime
     implementation deps.room.runtime
+    implementation deps.room.ktx
     annotationProcessor deps.room.compiler
     ksp deps.room.compiler
 
     testImplementation deps.coroutines.test
     testImplementation deps.androidx_test.core
+    testImplementation deps.androidx_test.ext_junit
     testImplementation deps.junit
     testImplementation deps.truth
     testImplementation deps.kotlin.test
