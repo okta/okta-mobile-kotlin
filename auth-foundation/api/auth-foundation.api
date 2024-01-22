@@ -24,6 +24,14 @@ public final class com/okta/authfoundation/AuthFoundationDefaults {
 	public final fun setOkHttpClientFactory (Lkotlin/jvm/functions/Function0;)V
 }
 
+public final class com/okta/authfoundation/AuthFoundationDefaults$Encryption {
+	public static final field INSTANCE Lcom/okta/authfoundation/AuthFoundationDefaults$Encryption;
+	public final fun getAlgorithm ()Ljava/lang/String;
+	public final fun getKeyAlias ()Ljava/lang/String;
+	public final fun setAlgorithm (Ljava/lang/String;)V
+	public final fun setKeyAlias (Ljava/lang/String;)V
+}
+
 public abstract interface annotation class com/okta/authfoundation/InternalAuthFoundationApi : java/lang/annotation/Annotation {
 }
 
@@ -313,7 +321,68 @@ public final class com/okta/authfoundation/credential/RevokeTokenType : java/lan
 	public static fun values ()[Lcom/okta/authfoundation/credential/RevokeTokenType;
 }
 
+public abstract interface class com/okta/authfoundation/credential/SecurityOptions {
+	public static final field Companion Lcom/okta/authfoundation/credential/SecurityOptions$Companion;
+	public abstract fun getEncryptionAlgorithm ()Ljava/lang/String;
+	public abstract fun getKeyAlias ()Ljava/lang/String;
+	public abstract fun getUserAuthenticationRequired ()Z
+}
+
+public final class com/okta/authfoundation/credential/SecurityOptions$BiometricStrong : com/okta/authfoundation/credential/SecurityOptions {
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;)Lcom/okta/authfoundation/credential/SecurityOptions$BiometricStrong;
+	public static synthetic fun copy$default (Lcom/okta/authfoundation/credential/SecurityOptions$BiometricStrong;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/okta/authfoundation/credential/SecurityOptions$BiometricStrong;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getEncryptionAlgorithm ()Ljava/lang/String;
+	public fun getKeyAlias ()Ljava/lang/String;
+	public fun getUserAuthenticationRequired ()Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/okta/authfoundation/credential/SecurityOptions$BiometricsStrongOrDeviceCredential : com/okta/authfoundation/credential/SecurityOptions {
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;)Lcom/okta/authfoundation/credential/SecurityOptions$BiometricsStrongOrDeviceCredential;
+	public static synthetic fun copy$default (Lcom/okta/authfoundation/credential/SecurityOptions$BiometricsStrongOrDeviceCredential;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/okta/authfoundation/credential/SecurityOptions$BiometricsStrongOrDeviceCredential;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getEncryptionAlgorithm ()Ljava/lang/String;
+	public fun getKeyAlias ()Ljava/lang/String;
+	public fun getUserAuthenticationRequired ()Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/okta/authfoundation/credential/SecurityOptions$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class com/okta/authfoundation/credential/SecurityOptions$Default : com/okta/authfoundation/credential/SecurityOptions {
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;)Lcom/okta/authfoundation/credential/SecurityOptions$Default;
+	public static synthetic fun copy$default (Lcom/okta/authfoundation/credential/SecurityOptions$Default;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/okta/authfoundation/credential/SecurityOptions$Default;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getEncryptionAlgorithm ()Ljava/lang/String;
+	public fun getKeyAlias ()Ljava/lang/String;
+	public fun getUserAuthenticationRequired ()Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
 public final class com/okta/authfoundation/credential/Token {
+	public static final field Companion Lcom/okta/authfoundation/credential/Token$Companion;
+	public synthetic fun <init> (ILjava/lang/String;ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlinx/serialization/internal/SerializationConstructorMarker;)V
 	public fun <init> (Ljava/lang/String;ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getAccessToken ()Ljava/lang/String;
@@ -325,6 +394,37 @@ public final class com/okta/authfoundation/credential/Token {
 	public final fun getScope ()Ljava/lang/String;
 	public final fun getTokenType ()Ljava/lang/String;
 	public fun hashCode ()I
+	public static final synthetic fun write$Self (Lcom/okta/authfoundation/credential/Token;Lkotlinx/serialization/encoding/CompositeEncoder;Lkotlinx/serialization/descriptors/SerialDescriptor;)V
+}
+
+public final class com/okta/authfoundation/credential/Token$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lcom/okta/authfoundation/credential/Token$$serializer;
+	public fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lcom/okta/authfoundation/credential/Token;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lcom/okta/authfoundation/credential/Token;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class com/okta/authfoundation/credential/Token$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class com/okta/authfoundation/credential/Token$Metadata {
+	public fun <init> (Ljava/lang/String;Ljava/util/Map;Lkotlinx/serialization/json/JsonObject;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/util/Map;
+	public final fun component3 ()Lkotlinx/serialization/json/JsonObject;
+	public final fun copy (Ljava/lang/String;Ljava/util/Map;Lkotlinx/serialization/json/JsonObject;)Lcom/okta/authfoundation/credential/Token$Metadata;
+	public static synthetic fun copy$default (Lcom/okta/authfoundation/credential/Token$Metadata;Ljava/lang/String;Ljava/util/Map;Lkotlinx/serialization/json/JsonObject;ILjava/lang/Object;)Lcom/okta/authfoundation/credential/Token$Metadata;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getId ()Ljava/lang/String;
+	public final fun getPayloadData ()Lkotlinx/serialization/json/JsonObject;
+	public final fun getTags ()Ljava/util/Map;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
 }
 
 public abstract interface class com/okta/authfoundation/credential/TokenStorage {

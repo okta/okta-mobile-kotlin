@@ -17,11 +17,13 @@ package com.okta.authfoundation.credential
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonObject
 import java.util.Objects
 
 /**
  * Token information representing a user's access to a resource server, including access token, refresh token, and other related information.
  */
+@Serializable
 class Token(
     /**
      * The string type of the token (e.g. `Bearer`).
@@ -114,6 +116,12 @@ class Token(
             issuedTokenType,
         )
     }
+
+    data class Metadata(
+        val id: String,
+        val tags: Map<String, String>,
+        val payloadData: JsonObject
+    )
 }
 
 @Serializable
