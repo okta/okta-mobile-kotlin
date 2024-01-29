@@ -107,11 +107,12 @@ class AuthorizationCodeFlow private constructor(
         redirectUrl: String,
         extraRequestParameters: Map<String, String> = emptyMap(),
         scope: String = oidcClient.configuration.defaultScope,
+        state: String = UUID.randomUUID().toString()
     ): OidcClientResult<Context> {
         return start(
             redirectUrl = redirectUrl,
             codeVerifier = PkceGenerator.codeVerifier(),
-            state = UUID.randomUUID().toString(),
+            state = state,
             nonce = UUID.randomUUID().toString(),
             extraRequestParameters = extraRequestParameters,
             scope = scope
