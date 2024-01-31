@@ -16,12 +16,13 @@
 package com.okta.authfoundation.client
 
 import android.content.Context
+import android.content.SharedPreferences
 import androidx.annotation.VisibleForTesting
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKeys
 import java.util.UUID
 
-class DeviceTokenProvider private constructor(appContext: Context) {
+class DeviceTokenProvider private constructor(private val appContext: Context) {
     internal companion object {
         private const val FILE_NAME = "com.okta.authfoundation.device_token_storage"
         @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
@@ -43,14 +44,26 @@ class DeviceTokenProvider private constructor(appContext: Context) {
 
     private val masterKeyAlias = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC)
 
+    private fun createSharedPreferences(): SharedPreferences {
+        return EncryptedSharedPreferences.create(
+            FILE_NAME,
+            masterKeyAlias,
+            appContext,
+            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+        )
+    }
+
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
-    internal val sharedPrefs = EncryptedSharedPreferences.create(
-        FILE_NAME,
-        masterKeyAlias,
-        appContext,
-        EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-        EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-    )
+    internal val sharedPrefs: SharedPreferences by lazy {
+        try {
+            createSharedPreferences()
+        } catch (e: Exception) {
+            val sharedPreferences = appContext.getSharedPreferences(FILE_NAME, Context.MODE_PRIVATE)
+            sharedPreferences.edit().clear().commit()
+            createSharedPreferences()
+        }
+    }
 
     private val sharedPrefsEditor = sharedPrefs.edit()
 
