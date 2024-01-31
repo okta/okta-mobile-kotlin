@@ -23,10 +23,12 @@ import kotlin.time.Duration.Companion.seconds
 class DeviceTokenCookieJar(private val oidcClock: OidcClock) : CookieJar {
     private val savedCookiesCache = mutableMapOf<String, List<Cookie>>()
 
-    private val deviceTokenCookieBuilder = Cookie.Builder()
-        .name("DT")
-        .value(DeviceTokenProvider.deviceToken)
-        .secure()
+    private val deviceTokenCookieBuilder by lazy {
+        Cookie.Builder()
+            .name("DT")
+            .value(DeviceTokenProvider.deviceToken)
+            .secure()
+    }
 
     override fun loadForRequest(url: HttpUrl): List<Cookie> {
         val deviceTokenCookie = deviceTokenCookieBuilder.domain(url.host).build()
