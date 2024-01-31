@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.2.1] - 2024-01-31
+
+[Commits](https://github.com/okta/okta-mobile-kotlin/compare/1.2.0...1.2.1)
+
+### Added
+- Added state value customization to AuthorizationCodeFlow.start [#278](https://github.com/okta/okta-mobile-kotlin/pull/278)
+
+### Fixed
+- DeviceTokenProvider initialization issues have been mostly fixed. A possible crash can still be encountered in case of corrupt key in keystore [#278](https://github.com/okta/okta-mobile-kotlin/pull/278)
+
 ## [1.2.0] - 2023-11-06
 
 [Commits](https://github.com/okta/okta-mobile-kotlin/compare/1.1.5...1.2.0)
