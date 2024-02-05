@@ -16,14 +16,14 @@
 package com.okta.authfoundation.credential
 
 import android.content.Context
-import android.os.Build
-import android.security.keystore.KeyGenParameterSpec
-import androidx.annotation.RequiresApi
-import androidx.security.crypto.MasterKeys
+import androidx.biometric.BiometricPrompt
+import androidx.room.Room
 import com.okta.authfoundation.InternalAuthFoundationApi
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.credential.events.CredentialCreatedEvent
-import com.okta.authfoundation.util.CoalescingOrchestrator
+import com.okta.authfoundation.credential.storage.TokenDatabase
+import com.okta.authfoundation.jwt.JwtParser
+import kotlinx.serialization.json.JsonObject
 import java.util.Collections
 import java.util.UUID
 
@@ -53,60 +53,118 @@ class CredentialDataSource internal constructor(
          * Initializes a credential data source using the [OidcClient].
          *
          * @param context the [Context] used to access Android Shared Preferences and crypto primitives to persist [Token]s.
-         * @param keyGenParameterSpec the [KeyGenParameterSpec] used for encryption.
          * @receiver the [OidcClient] used to perform the low level OIDC requests, as well as with which to use the configuration from.
          */
-        @RequiresApi(Build.VERSION_CODES.M)
-        @JvmOverloads
-        fun OidcClient.createCredentialDataSource(
-            context: Context,
-            keyGenParameterSpec: KeyGenParameterSpec = MasterKeys.AES256_GCM_SPEC,
-        ): CredentialDataSource {
-            val storage = SharedPreferencesTokenStorage(
-                json = configuration.json,
-                dispatcher = configuration.ioDispatcher,
-                eventCoordinator = configuration.eventCoordinator,
-                context = context,
-                keyGenParameterSpec = keyGenParameterSpec,
-            )
+        fun OidcClient.createCredentialDataSource(context: Context): CredentialDataSource {
+            val tokenDatabase =
+                Room.databaseBuilder(context, TokenDatabase::class.java, TokenDatabase.DB_NAME)
+                    .build()
+            val storage = RoomTokenStorage(tokenDatabase, TokenEncryptionHandler())
             return CredentialDataSource(this, storage)
         }
     }
 
-    private val credentials = CoalescingOrchestrator(
-        factory = ::fetchCredentialsFromStorage,
-        keepDataInMemory = { true },
-    )
+    private val jwtParser = JwtParser.create()
 
-    private suspend fun fetchCredentialsFromStorage(): MutableList<Credential> {
-        return Collections.synchronizedList(
-            storage.entries().map {
-                val tagsCopy = it.tags.toMap() // Making a defensive copy, so it's not modified outside our control.
-                Credential(oidcClient, storage, this, it.identifier, it.token, tagsCopy)
-            }.toMutableList()
-        )
-    }
+    private val credentialsCache = Collections.synchronizedMap(mutableMapOf<String, Credential>())
 
-    /**
-     * Creates a [Credential], and stores it in the associated [TokenStorage].
-     */
-    suspend fun createCredential(): Credential {
+    suspend fun allIds() = storage.allIds()
+
+    suspend fun metadata(id: String) = storage.metadata(id)
+
+    suspend fun createCredential(
+        token: Token,
+        tags: Map<String, String> = emptyMap(),
+        security: Credential.Security = Credential.Security.standard,
+        isDefault: Boolean = false,
+    ): Credential {
         val storageIdentifier = UUID.randomUUID().toString()
-        val credential = Credential(oidcClient, storage, this, storageIdentifier)
-        credentials.get().add(credential)
-        storage.add(storageIdentifier)
+        val idToken = token.idToken?.let { jwtParser.parse(it) }
+        val credential =
+            Credential(oidcClient, this, storageIdentifier, token, tags)
+        credentialsCache[storageIdentifier] = credential
+        storage.add(
+            token,
+            Token.Metadata(
+                storageIdentifier,
+                tags,
+                idToken?.deserializeClaims(JsonObject.serializer()),
+                isDefault
+            ),
+            security
+        )
         oidcClient.configuration.eventCoordinator.sendEvent(CredentialCreatedEvent(credential))
         return credential
     }
 
-    /**
-     * Returns all of the [Credential]s stored in the associated [TokenStorage].
-     */
-    suspend fun listCredentials(): List<Credential> {
-        return credentials.get().toMutableList() // Making a defensive copy, so it's not modified outside our control.
+    suspend fun replaceToken(
+        id: String,
+        token: Token,
+        tags: Map<String, String> = emptyMap(),
+        security: Credential.Security? = null,
+        isDefault: Boolean? = null
+    ): Credential {
+        if (id !in allIds()) {
+            throw IllegalArgumentException("Can't replace non-existing token with id: $id")
+        }
+        val credential = credentialsCache[id] ?: Credential(oidcClient, this, id, token, tags)
+        credential.storeToken(token, security, tags, isDefault)
+        credentialsCache[id] = credential
+        return credential
+    }
+
+    internal suspend fun internalReplaceToken(
+        id: String,
+        token: Token,
+        tags: Map<String, String>,
+        securityOptions: Credential.Security? = null,
+        isDefault: Boolean? = null
+    ) {
+        val idToken = token.idToken?.let { jwtParser.parse(it) }
+        val payloadData = idToken?.deserializeClaims(JsonObject.serializer())
+        val previousMetadata = metadata(id) ?: throw IllegalStateException("Token metadata for $id not found")
+        val newMetadata = previousMetadata.copy(
+            tags = tags,
+            payloadData = payloadData,
+            isDefault = isDefault ?: previousMetadata.isDefault
+        )
+        storage.replace(id, token, newMetadata, securityOptions)
+    }
+
+    suspend fun getCredential(id: String, promptInfo: BiometricPrompt.PromptInfo? = null): Credential? {
+        return if (id in credentialsCache) credentialsCache[id]
+        else {
+            val metadata = metadata(id) ?: return null
+            val token = storage.getToken(id, promptInfo)
+            credentialsCache[id] = Credential(
+                oidcClient,
+                this,
+                metadata.id,
+                token,
+                metadata.tags
+            )
+            return credentialsCache[id]
+        }
+    }
+
+    suspend fun findCredential(
+        promptInfo: BiometricPrompt.PromptInfo? = null,
+        where: (Token.Metadata) -> Boolean
+    ): List<Credential> {
+        return allIds()
+            .mapNotNull { metadata(it) }
+            .filter { where(it) }
+            .mapNotNull { metadata ->
+                getCredential(metadata.id, promptInfo)
+            }
+    }
+
+    suspend fun containsDefaultCredential(): Boolean {
+        return allIds().any { metadata(it)?.isDefault == true }
     }
 
     internal suspend fun remove(credential: Credential) {
-        credentials.get().remove(credential)
+        credentialsCache.remove(credential.storageIdentifier)
+        storage.remove(credential.storageIdentifier)
     }
 }

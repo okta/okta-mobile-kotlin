@@ -1,9 +1,12 @@
 public final class com/okta/authfoundationbootstrap/CredentialBootstrap {
 	public static final field INSTANCE Lcom/okta/authfoundationbootstrap/CredentialBootstrap;
-	public final fun defaultCredential (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun defaultCredential (Landroidx/biometric/BiometricPrompt$PromptInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun defaultCredential$default (Lcom/okta/authfoundationbootstrap/CredentialBootstrap;Landroidx/biometric/BiometricPrompt$PromptInfo;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public final fun getCredentialDataSource ()Lcom/okta/authfoundation/credential/CredentialDataSource;
 	public final fun getOidcClient ()Lcom/okta/authfoundation/client/OidcClient;
 	public final fun initialize (Lcom/okta/authfoundation/credential/CredentialDataSource;)V
 	public final fun reset ()V
+	public final fun setDefaultCredential (Lcom/okta/authfoundation/credential/Token;Ljava/util/Map;Lcom/okta/authfoundation/credential/Credential$Security;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun setDefaultCredential$default (Lcom/okta/authfoundationbootstrap/CredentialBootstrap;Lcom/okta/authfoundation/credential/Token;Ljava/util/Map;Lcom/okta/authfoundation/credential/Credential$Security;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 

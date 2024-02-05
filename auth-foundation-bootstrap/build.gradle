@@ -46,12 +46,20 @@ dependencies {
     api deps.okhttp.core
     api deps.okio.core
     implementation deps.okio.jvm
+    api deps.androidx_biometric
     api deps.coroutines.core
 
+    testImplementation deps.coroutines.test
+    testImplementation deps.androidx_test.core
+    testImplementation deps.androidx_test.ext_junit
+    testImplementation deps.robolectric
     testImplementation deps.junit
     testImplementation deps.truth
     testImplementation deps.kotlin.test
     testImplementation deps.mockito.core
     testImplementation deps.mockito.kotlin
+    testImplementation deps.room.runtime
+    testImplementation deps.room.ktx
+    testImplementation deps.room.testing
     testImplementation project(':test-helpers')
 }

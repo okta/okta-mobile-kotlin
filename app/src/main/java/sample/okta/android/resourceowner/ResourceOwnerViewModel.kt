@@ -40,7 +40,7 @@ internal class ResourceOwnerViewModel : ViewModel() {
                     _state.value = ResourceOwnerState.Error("An error occurred.")
                 }
                 is OidcClientResult.Success -> {
-                    CredentialBootstrap.defaultCredential().storeToken(token = result.result)
+                    CredentialBootstrap.setDefaultCredential(token = result.result)
                     _state.value = ResourceOwnerState.Token
                 }
             }

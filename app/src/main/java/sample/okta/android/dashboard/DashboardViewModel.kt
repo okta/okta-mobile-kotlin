@@ -53,11 +53,10 @@ internal class DashboardViewModel(private val credentialTagNameValue: String?) :
     init {
         viewModelScope.launch {
             credential = if (credentialTagNameValue == null) {
-                CredentialBootstrap.defaultCredential()
+                CredentialBootstrap.defaultCredential()!!
             } else {
-                CredentialBootstrap.credentialDataSource.listCredentials().firstOrNull { credential ->
-                    credential.tags[SampleHelper.CREDENTIAL_NAME_TAG_KEY] == credentialTagNameValue
-                } ?: CredentialBootstrap.defaultCredential()
+                CredentialBootstrap.credentialDataSource.findCredential { it.tags[SampleHelper.CREDENTIAL_NAME_TAG_KEY] == credentialTagNameValue }.firstOrNull()
+                    ?: CredentialBootstrap.defaultCredential()!!
             }
             setCredential(credential)
         }
