@@ -13,43 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.okta.authfoundation.credential
+package com.okta.testhelpers
 
 import androidx.biometric.BiometricPrompt
-import com.okta.authfoundation.InternalAuthFoundationApi
-import com.okta.authfoundation.client.OidcConfiguration
+import com.okta.authfoundation.credential.Token
+import com.okta.authfoundation.credential.TokenEncryptionHandler
+import kotlinx.serialization.json.Json
 
-interface TokenEncryptionHandler {
-    fun encrypt(
-        token: Token,
-        keyAlias: String,
-        encryptionAlgorithm: String
-    ): EncryptionResult
-
-    fun decrypt(
-        encryptedToken: ByteArray,
-        encryptionAlgorithm: String,
-        encryptionExtras: Map<String, String>,
-        keyAlias: String,
-        userAuthenticationRequired: Boolean,
-        promptInfo: BiometricPrompt.PromptInfo? = null
-    ): Token
-
-    class EncryptionResult(
-        val encryptedToken: ByteArray,
-        val encryptionExtras: Map<String, String>
-    )
-}
-
-@InternalAuthFoundationApi
-class DefaultTokenEncryptionHandler : TokenEncryptionHandler {
+class TestTokenEncryptionHandler : TokenEncryptionHandler {
     override fun encrypt(
         token: Token,
         keyAlias: String,
         encryptionAlgorithm: String
     ): TokenEncryptionHandler.EncryptionResult {
-        // TODO("Add android keystore encryption")
-        val serializedToken = OidcConfiguration.defaultJson().encodeToString(Token.serializer(), token)
+        val serializedToken = Json.encodeToString(Token.serializer(), token)
         return TokenEncryptionHandler.EncryptionResult(serializedToken.toByteArray(), emptyMap())
     }
 
@@ -61,9 +38,8 @@ class DefaultTokenEncryptionHandler : TokenEncryptionHandler {
         userAuthenticationRequired: Boolean,
         promptInfo: BiometricPrompt.PromptInfo?
     ): Token {
-        // TODO("Add android keystore encryption")
         val serializedToken = encryptedToken.decodeToString()
-        val token = OidcConfiguration.defaultJson().decodeFromString(Token.serializer(), serializedToken)
+        val token = Json.decodeFromString(Token.serializer(), serializedToken)
         return token
     }
 }

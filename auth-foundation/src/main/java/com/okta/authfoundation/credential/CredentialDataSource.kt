@@ -55,11 +55,15 @@ class CredentialDataSource internal constructor(
          * @param context the [Context] used to access Android Shared Preferences and crypto primitives to persist [Token]s.
          * @receiver the [OidcClient] used to perform the low level OIDC requests, as well as with which to use the configuration from.
          */
-        fun OidcClient.createCredentialDataSource(context: Context): CredentialDataSource {
+        @JvmOverloads
+        fun OidcClient.createCredentialDataSource(
+            context: Context,
+            tokenEncryptionHandler: TokenEncryptionHandler = DefaultTokenEncryptionHandler()
+        ): CredentialDataSource {
             val tokenDatabase =
                 Room.databaseBuilder(context, TokenDatabase::class.java, TokenDatabase.DB_NAME)
                     .build()
-            val storage = RoomTokenStorage(tokenDatabase, TokenEncryptionHandler())
+            val storage = RoomTokenStorage(tokenDatabase, tokenEncryptionHandler)
             return CredentialDataSource(this, storage)
         }
     }

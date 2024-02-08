@@ -21,6 +21,7 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
 import com.okta.authfoundation.credential.storage.TokenDatabase
+import com.okta.testhelpers.TestTokenEncryptionHandler
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
@@ -49,7 +50,7 @@ class RoomTokenStorageTest {
             ApplicationProvider.getApplicationContext(),
             TokenDatabase::class.java
         ).allowMainThreadQueries().build()
-        roomTokenStorage = RoomTokenStorage(database, TokenEncryptionHandler())
+        roomTokenStorage = RoomTokenStorage(database, TestTokenEncryptionHandler())
     }
 
     @Test
