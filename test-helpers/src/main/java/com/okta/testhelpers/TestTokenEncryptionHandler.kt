@@ -16,26 +16,28 @@
 package com.okta.testhelpers
 
 import androidx.biometric.BiometricPrompt
+import com.okta.authfoundation.credential.Credential
 import com.okta.authfoundation.credential.Token
 import com.okta.authfoundation.credential.TokenEncryptionHandler
 import kotlinx.serialization.json.Json
 
 class TestTokenEncryptionHandler : TokenEncryptionHandler {
-    override fun encrypt(
+    override fun generateKey(security: Credential.Security) {
+        // Do nothing
+    }
+
+    override suspend fun encrypt(
         token: Token,
-        keyAlias: String,
-        encryptionAlgorithm: String
+        security: Credential.Security
     ): TokenEncryptionHandler.EncryptionResult {
         val serializedToken = Json.encodeToString(Token.serializer(), token)
         return TokenEncryptionHandler.EncryptionResult(serializedToken.toByteArray(), emptyMap())
     }
 
-    override fun decrypt(
+    override suspend fun decrypt(
         encryptedToken: ByteArray,
-        encryptionAlgorithm: String,
         encryptionExtras: Map<String, String>,
-        keyAlias: String,
-        userAuthenticationRequired: Boolean,
+        security: Credential.Security,
         promptInfo: BiometricPrompt.PromptInfo?
     ): Token {
         val serializedToken = encryptedToken.decodeToString()

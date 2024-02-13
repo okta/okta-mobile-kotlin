@@ -16,10 +16,12 @@
 package com.okta.authfoundation.credential
 
 import androidx.biometric.BiometricPrompt.PromptInfo
+import com.okta.authfoundation.InternalAuthFoundationApi
 import com.okta.authfoundation.credential.storage.TokenDatabase
 import com.okta.authfoundation.credential.storage.TokenEntity
 
-internal class RoomTokenStorage(
+@InternalAuthFoundationApi
+class RoomTokenStorage(
     tokenDatabase: TokenDatabase,
     private val tokenEncryptionHandler: TokenEncryptionHandler
 ) : TokenStorage {
@@ -50,7 +52,8 @@ internal class RoomTokenStorage(
         metadata: Token.Metadata,
         security: Credential.Security
     ) {
-        val (encryptedToken, encryptionExtras) = tokenEncryptionHandler.encrypt(token, security)
+        tokenEncryptionHandler.generateKey(security)
+        val encryptionResult = tokenEncryptionHandler.encrypt(token, security)
 
         if (metadata.isDefault) {
             tokenDao.allEntries().firstOrNull { it.isDefault }?.let {
@@ -63,13 +66,13 @@ internal class RoomTokenStorage(
         tokenDao.insertTokenEntity(
             TokenEntity(
                 id = metadata.id,
-                encryptedToken,
+                encryptionResult.encryptedToken,
                 tags = metadata.tags,
                 payloadData = metadata.payloadData,
                 keyAlias = security.keyAlias,
                 tokenEncryptionType = TokenEntity.EncryptionType.fromSecurity(security),
                 isDefault = metadata.isDefault,
-                encryptionExtras = encryptionExtras
+                encryptionExtras = encryptionResult.encryptionExtras
             )
         )
     }
@@ -91,12 +94,13 @@ internal class RoomTokenStorage(
         val previousDefault = tokenDao.allEntries()
             .firstOrNull { (it.id != id) and it.isDefault }
 
-        val (encryptedToken, encryptionExtras) = tokenEncryptionHandler.encrypt(
+        security?.let { tokenEncryptionHandler.generateKey(it) }
+        val encryptionResult = tokenEncryptionHandler.encrypt(
             token, security ?: tokenEntity.security
         )
 
         val updatedTokenEntity = tokenEntity.copy(
-            encryptedToken = encryptedToken,
+            encryptedToken = encryptionResult.encryptedToken,
             tags = metadata?.tags ?: tokenEntity.tags,
             payloadData = metadata?.payloadData ?: tokenEntity.payloadData,
             keyAlias = security?.keyAlias ?: tokenEntity.keyAlias,
@@ -104,7 +108,7 @@ internal class RoomTokenStorage(
                 TokenEntity.EncryptionType.fromSecurity(it)
             } ?: tokenEntity.tokenEncryptionType,
             isDefault = metadata?.isDefault ?: tokenEntity.isDefault,
-            encryptionExtras = encryptionExtras
+            encryptionExtras = encryptionResult.encryptionExtras
         )
 
         if (metadata?.isDefault == true && previousDefault != null) {
@@ -125,7 +129,7 @@ internal class RoomTokenStorage(
         }
     }
 
-    private fun getTokenFromEntity(tokenEntity: TokenEntity, promptInfo: PromptInfo?): Token {
+    private suspend fun getTokenFromEntity(tokenEntity: TokenEntity, promptInfo: PromptInfo?): Token {
         return tokenEncryptionHandler.decrypt(
             tokenEntity.encryptedToken,
             tokenEntity.encryptionExtras,

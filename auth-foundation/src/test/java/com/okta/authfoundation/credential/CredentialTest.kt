@@ -485,7 +485,7 @@ class CredentialTest {
         tags["from_test"] = "It works"
         val newToken = createToken(refreshToken = "stored!")
         credential.storeToken(token = newToken, tags = tags)
-        verify(credentialDataSource).internalReplaceToken(CredentialFactory.tokenStorageId, newToken, tags = tags)
+        verify(credentialDataSource).internalReplaceToken(CredentialFactory.tokenStorageId, newToken, tags = tags, null, null)
         assertThat(credential.token).isEqualTo(newToken)
         assertThat(credential.tags).isEqualTo(tags)
     }
@@ -503,7 +503,7 @@ class CredentialTest {
         val newToken = createToken(refreshToken = "stored!")
         credential.storeToken(token = newToken)
         val expectedToken = createToken(refreshToken = "stored!", deviceSecret = "originalDeviceSecret")
-        verify(credentialDataSource).internalReplaceToken(CredentialFactory.tokenStorageId, expectedToken, tags = emptyMap())
+        verify(credentialDataSource).internalReplaceToken(CredentialFactory.tokenStorageId, expectedToken, tags = emptyMap(), null, null)
         assertThat(credential.token).isEqualTo(expectedToken)
         assertThat(credential.token?.refreshToken).isEqualTo("stored!")
         assertThat(credential.token?.deviceSecret).isEqualTo("originalDeviceSecret")
@@ -522,7 +522,7 @@ class CredentialTest {
         )
         val newToken = createToken(refreshToken = "stored!", deviceSecret = "updatedDeviceSecret")
         credential.storeToken(token = newToken)
-        verify(credentialDataSource).internalReplaceToken(CredentialFactory.tokenStorageId, newToken, tags = emptyMap())
+        verify(credentialDataSource).internalReplaceToken(CredentialFactory.tokenStorageId, newToken, tags = emptyMap(), null, null)
         assertThat(credential.token).isEqualTo(newToken)
         assertThat(credential.token?.refreshToken).isEqualTo("stored!")
         assertThat(credential.token?.deviceSecret).isEqualTo("updatedDeviceSecret")

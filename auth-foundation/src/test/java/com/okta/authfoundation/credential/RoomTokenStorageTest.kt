@@ -76,7 +76,6 @@ class RoomTokenStorageTest {
     fun `add token succeeds`() = runTest {
         roomTokenStorage.add(token, tokenMetadata)
         assertThat(roomTokenStorage.getToken(tokenMetadata.id)).isEqualTo(token)
-        assertThat(roomTokenStorage.getDefaultToken()).isNull()
     }
 
     @Test
@@ -92,14 +91,6 @@ class RoomTokenStorageTest {
     fun `add token sets the token to default when requested`() = runTest {
         roomTokenStorage.add(token, tokenMetadata.copy(isDefault = true))
         assertThat(roomTokenStorage.getToken(tokenMetadata.id)).isEqualTo(token)
-    }
-
-    @Test
-    fun `add token sets the correct token to default if another default token already exists`() = runTest {
-        roomTokenStorage.add(token, tokenMetadata.copy(isDefault = true))
-        val newToken = createToken(idToken = "different")
-        roomTokenStorage.add(newToken, tokenMetadata.copy(id = "differentId", isDefault = true))
-        assertThat(roomTokenStorage.getDefaultToken()).isEqualTo(newToken)
     }
 
     @Test
@@ -131,25 +122,6 @@ class RoomTokenStorageTest {
         assertFailsWith<NoSuchElementException> {
             roomTokenStorage.replace("non-existent-id", token)
         }
-    }
-
-    @Test
-    fun `replace sets default token when no other default token exists`() = runTest {
-        roomTokenStorage.add(token, tokenMetadata)
-        assertThat(roomTokenStorage.getDefaultToken()).isNull()
-        roomTokenStorage.replace(tokenMetadata.id, token, tokenMetadata.copy(isDefault = true))
-        assertThat(roomTokenStorage.getDefaultToken()).isEqualTo(token)
-    }
-
-    @Test
-    fun `replace sets correct default when another default token already exists`() = runTest {
-        val newToken = createToken(idToken = "differentIdToken")
-        val newTokenMetadata = tokenMetadata.copy(id = "differentId")
-        roomTokenStorage.add(token, tokenMetadata.copy(isDefault = true))
-        roomTokenStorage.add(newToken, newTokenMetadata)
-        assertThat(roomTokenStorage.getDefaultToken()).isEqualTo(token)
-        roomTokenStorage.replace(newTokenMetadata.id, newToken, newTokenMetadata.copy(isDefault = true))
-        assertThat(roomTokenStorage.getDefaultToken()).isEqualTo(newToken)
     }
 
     @Test

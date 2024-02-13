@@ -19,11 +19,14 @@ import android.content.Context
 import androidx.biometric.BiometricPrompt
 import androidx.room.Room
 import com.okta.authfoundation.InternalAuthFoundationApi
+import com.okta.authfoundation.client.ApplicationContextHolder
+import com.okta.authfoundation.client.DeviceTokenProvider
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.credential.events.CredentialCreatedEvent
 import com.okta.authfoundation.credential.storage.TokenDatabase
 import com.okta.authfoundation.jwt.JwtParser
 import kotlinx.serialization.json.JsonObject
+import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
 import java.util.Collections
 import java.util.UUID
 
@@ -60,8 +63,13 @@ class CredentialDataSource internal constructor(
             context: Context,
             tokenEncryptionHandler: TokenEncryptionHandler = DefaultTokenEncryptionHandler()
         ): CredentialDataSource {
+            ApplicationContextHolder.appContext = context.applicationContext
+            DeviceTokenProvider.initialize(context.applicationContext)
+            val sqlCipherPassword = DeviceTokenProvider.deviceToken
+            System.loadLibrary("sqlcipher")
             val tokenDatabase =
                 Room.databaseBuilder(context, TokenDatabase::class.java, TokenDatabase.DB_NAME)
+                    .openHelperFactory(SupportOpenHelperFactory(sqlCipherPassword.toByteArray()))
                     .build()
             val storage = RoomTokenStorage(tokenDatabase, tokenEncryptionHandler)
             return CredentialDataSource(this, storage)
@@ -104,14 +112,14 @@ class CredentialDataSource internal constructor(
     suspend fun replaceToken(
         id: String,
         token: Token,
-        tags: Map<String, String> = emptyMap(),
+        tags: Map<String, String>? = null,
         security: Credential.Security? = null,
         isDefault: Boolean? = null
     ): Credential {
         if (id !in allIds()) {
             throw IllegalArgumentException("Can't replace non-existing token with id: $id")
         }
-        val credential = credentialsCache[id] ?: Credential(oidcClient, this, id, token, tags)
+        val credential = credentialsCache[id] ?: Credential(oidcClient, this, id, token, tags ?: emptyMap())
         credential.storeToken(token, security, tags, isDefault)
         credentialsCache[id] = credential
         return credential
@@ -121,8 +129,8 @@ class CredentialDataSource internal constructor(
         id: String,
         token: Token,
         tags: Map<String, String>,
-        securityOptions: Credential.Security? = null,
-        isDefault: Boolean? = null
+        security: Credential.Security?,
+        isDefault: Boolean?
     ) {
         val idToken = token.idToken?.let { jwtParser.parse(it) }
         val payloadData = idToken?.deserializeClaims(JsonObject.serializer())
@@ -132,7 +140,7 @@ class CredentialDataSource internal constructor(
             payloadData = payloadData,
             isDefault = isDefault ?: previousMetadata.isDefault
         )
-        storage.replace(id, token, newMetadata, securityOptions)
+        storage.replace(id, token, newMetadata, security)
     }
 
     suspend fun getCredential(id: String, promptInfo: BiometricPrompt.PromptInfo? = null): Credential? {

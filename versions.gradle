@@ -3,6 +3,8 @@ versions.androidx_activity = '1.5.1'
 versions.androidx_annotation = '1.4.0'
 versions.androidx_biometric = '1.1.0'
 versions.androidx_browser = '1.5.0'
+versions.androidx_constraintlayout = '2.1.4'
+versions.androidx_sqlite = '2.2.0'
 versions.androidx_test = '1.5.0'
 versions.androidx_test_runner = '1.5.2'
 versions.androidx_test_ext = '1.1.5'
@@ -40,6 +42,7 @@ versions.room = '2.6.1'
 versions.security_crypto = '1.0.0'
 versions.snakeyaml = '2.0'
 versions.spotless = '6.7.0'
+versions.sqlcipher_android = '4.5.6'
 versions.startup_runtime = '1.1.1'
 versions.timber = '5.0.1'
 versions.truth = '1.1.5'
@@ -47,7 +50,7 @@ versions.turbine = '0.9.0'
 ext.versions = versions
 
 def build_versions = [:]
-build_versions.min_sdk = 21
+build_versions.min_sdk = 23
 build_versions.compile_sdk = 34
 build_versions.target_sdk = 34
 ext.build_versions = build_versions
@@ -60,6 +63,10 @@ deps.androidx_annotation = "androidx.annotation:annotation:$versions.androidx_an
 deps.androidx_biometric = "androidx.biometric:biometric:$versions.androidx_biometric"
 
 deps.androidx_browser = "androidx.browser:browser:$versions.androidx_browser"
+
+deps.androidx_constraintlayout = "androidx.constraintlayout:constraintlayout:$versions.androidx_constraintlayout"
+
+deps.androidx_sqlite = "androidx.sqlite:sqlite:$versions.androidx_sqlite"
 
 def androidx_test = [:]
 androidx_test.core = "androidx.test:core:$versions.androidx_test"
@@ -175,6 +182,8 @@ deps.room = room
 
 deps.security_crypto = "androidx.security:security-crypto:$versions.security_crypto"
 deps.spotless = "com.diffplug.spotless:spotless-plugin-gradle:$versions.spotless"
+
+deps.sqlcipher_android = "net.zetetic:sqlcipher-android:$versions.sqlcipher_android@aar"
 
 deps.startup_runtime = "androidx.startup:startup-runtime:$versions.startup_runtime"
 

@@ -249,6 +249,7 @@ class Credential internal constructor(
                     storageIdentifier,
                     tokenState.token,
                     tags,
+                    security = null, // Keep same security
                     isDefault = true
                 )
             }
