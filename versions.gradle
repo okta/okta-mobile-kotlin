@@ -166,6 +166,7 @@ deps.robolectric = "org.robolectric:robolectric:$versions.robolectric"
 def room = [:]
 room.runtime = "androidx.room:room-runtime:$versions.room"
 room.compiler = "androidx.room:room-compiler:$versions.room"
+room.ktx = "androidx.room:room-ktx:$versions.room"
 room.testing = "androidx.room:room-testing:$versions.room"
 deps.room = room
 

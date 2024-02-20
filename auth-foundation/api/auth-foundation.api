@@ -381,6 +381,18 @@ public final class com/okta/authfoundation/credential/events/TokenStorageAccessE
 	public final fun setShouldClearStorageAndTryAgain (Z)V
 }
 
+public final class com/okta/authfoundation/credential/storage/typeconverters/JsonObjectTypeConverter {
+	public fun <init> ()V
+	public final fun convertToJsonString (Lkotlinx/serialization/json/JsonObject;)Ljava/lang/String;
+	public final fun convertToObject (Ljava/lang/String;)Lkotlinx/serialization/json/JsonObject;
+}
+
+public final class com/okta/authfoundation/credential/storage/typeconverters/StringStringMapTypeConverter {
+	public fun <init> ()V
+	public final fun convertToJsonString (Ljava/util/Map;)Ljava/lang/String;
+	public final fun convertToObject (Ljava/lang/String;)Ljava/util/Map;
+}
+
 public final class com/okta/authfoundation/events/EventCoordinator {
 	public fun <init> (Lcom/okta/authfoundation/events/EventHandler;)V
 	public fun <init> (Ljava/util/List;)V
