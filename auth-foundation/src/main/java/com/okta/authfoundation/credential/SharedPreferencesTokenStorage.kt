@@ -38,7 +38,7 @@ internal class SharedPreferencesTokenStorage(
     eventCoordinator: EventCoordinator,
     context: Context,
     keyGenParameterSpec: KeyGenParameterSpec
-) : TokenStorage {
+) {
     internal companion object {
         @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
         internal const val FILE_NAME = "com.okta.authfoundation.storage"
@@ -80,7 +80,7 @@ internal class SharedPreferencesTokenStorage(
         }
     }
 
-    override suspend fun entries(): List<TokenStorage.Entry> {
+    suspend fun entries(): List<TokenStorage.Entry> {
         var entries: List<TokenStorage.Entry> = emptyList()
         accessStorage { existingEntries ->
             entries = existingEntries
@@ -89,14 +89,14 @@ internal class SharedPreferencesTokenStorage(
         return entries
     }
 
-    override suspend fun add(id: String) {
+    suspend fun add(id: String) {
         accessStorage { existingEntries ->
             existingEntries += TokenStorage.Entry(id, null, emptyMap())
             existingEntries
         }
     }
 
-    override suspend fun remove(id: String) {
+    suspend fun remove(id: String) {
         accessStorage { existingEntries ->
             existingEntries.indexOfFirst {
                 it.identifier == id
@@ -107,7 +107,7 @@ internal class SharedPreferencesTokenStorage(
         }
     }
 
-    override suspend fun replace(updatedEntry: TokenStorage.Entry) {
+    suspend fun replace(updatedEntry: TokenStorage.Entry) {
         accessStorage { existingEntries ->
             existingEntries.indexOfFirst {
                 it.identifier == updatedEntry.identifier

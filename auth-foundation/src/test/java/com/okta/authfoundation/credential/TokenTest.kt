@@ -155,7 +155,7 @@ class TokenTest {
                 put("claim", "claimValue")
             }
         )
-        assertThat(tokenMetadata.claimsProvider.availableClaims()).isEqualTo(setOf("claim"))
-        assertThat(tokenMetadata.claimsProvider.deserializeClaim("claim", String.serializer())).isEqualTo("claimValue")
+        assertThat(tokenMetadata.claimsProvider?.availableClaims()).isEqualTo(setOf("claim"))
+        assertThat(tokenMetadata.claimsProvider?.deserializeClaim("claim", String.serializer())).isEqualTo("claimValue")
     }
 }

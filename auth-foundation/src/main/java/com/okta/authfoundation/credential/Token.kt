@@ -123,9 +123,12 @@ class Token(
     data class Metadata(
         val id: String,
         val tags: Map<String, String>,
-        val payloadData: JsonObject
+        val payloadData: JsonObject?,
+        val isDefault: Boolean = false
     ) {
-        val claimsProvider: ClaimsProvider = DefaultClaimsProvider(payloadData, OidcConfiguration.defaultJson())
+        val claimsProvider: ClaimsProvider? = payloadData?.let {
+            DefaultClaimsProvider(payloadData, OidcConfiguration.defaultJson())
+        }
     }
 }
 

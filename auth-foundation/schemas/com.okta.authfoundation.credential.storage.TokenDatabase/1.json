@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "80e1abffca66c29c27232553ec643603",
+    "identityHash": "9a51180fcf94ff7fba9aa4876fd77b64",
     "entities": [
       {
         "tableName": "TokenEntity",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `encryptedToken` BLOB NOT NULL, `tags` TEXT NOT NULL, `payloadData` TEXT NOT NULL, `keyAlias` TEXT NOT NULL, `tokenEncryptionType` TEXT NOT NULL, `isDefault` INTEGER NOT NULL, `encryptionExtras` TEXT NOT NULL, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `encryptedToken` BLOB NOT NULL, `tags` TEXT NOT NULL, `payloadData` TEXT, `keyAlias` TEXT NOT NULL, `tokenEncryptionType` TEXT NOT NULL, `isDefault` INTEGER NOT NULL, `encryptionExtras` TEXT NOT NULL, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -30,7 +30,7 @@
             "fieldPath": "payloadData",
             "columnName": "payloadData",
             "affinity": "TEXT",
-            "notNull": true
+            "notNull": false
           },
           {
             "fieldPath": "keyAlias",
@@ -70,7 +70,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '80e1abffca66c29c27232553ec643603')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '9a51180fcf94ff7fba9aa4876fd77b64')"
     ]
   }
 }

@@ -17,17 +17,20 @@ package com.okta.authfoundation.credential.storage
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
+import com.okta.authfoundation.InternalAuthFoundationApi
 
+@InternalAuthFoundationApi
 @Database(
     entities = [
         TokenEntity::class
     ],
     version = TokenDatabase.VERSION
 )
-internal abstract class TokenDatabase : RoomDatabase() {
+abstract class TokenDatabase : RoomDatabase() {
     internal abstract fun tokenDao(): TokenDao
 
     companion object {
         internal const val VERSION = 1
+        internal const val DB_NAME = "token_database"
     }
 }

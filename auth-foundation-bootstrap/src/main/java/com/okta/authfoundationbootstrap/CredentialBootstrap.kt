@@ -15,11 +15,12 @@
  */
 package com.okta.authfoundationbootstrap
 
+import androidx.biometric.BiometricPrompt
 import com.okta.authfoundation.InternalAuthFoundationApi
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.credential.Credential
 import com.okta.authfoundation.credential.CredentialDataSource
-import com.okta.authfoundation.util.CoalescingOrchestrator
+import com.okta.authfoundation.credential.Token
 
 /**
  * [CredentialBootstrap] implements best practices for single [Credential] use cases.
@@ -29,15 +30,7 @@ import com.okta.authfoundation.util.CoalescingOrchestrator
  * [CredentialBootstrap] must be initialized via [CredentialBootstrap.initialize] before accessing any properties or methods.
  */
 object CredentialBootstrap {
-    private const val CREDENTIAL_NAME_TAG_KEY: String = "com.okta.kotlin.credential.name"
-    private const val DEFAULT_CREDENTIAL_NAME_TAG_VALUE: String = "Default"
-
     @Volatile private var privateCredentialDataSource: CredentialDataSource? = null
-
-    private val credentialCoalescingOrchestrator = CoalescingOrchestrator(
-        factory = ::realFetchCredential,
-        keepDataInMemory = { false },
-    )
 
     /**
      * The singleton [CredentialDataSource].
@@ -73,27 +66,27 @@ object CredentialBootstrap {
      *
      * This will get the default [Credential] if one exists, or create the default [Credential] is there is not an existing one.
      */
-    suspend fun defaultCredential(): Credential {
-        return credentialCoalescingOrchestrator.get()
+    suspend fun defaultCredential(promptInfo: BiometricPrompt.PromptInfo? = null): Credential? {
+        return credentialDataSource.findCredential(promptInfo) { it.isDefault }.firstOrNull()
     }
 
-    private suspend fun realFetchCredential(): Credential {
-        return credentialDataSource.listCredentials().firstOrNull { credential ->
-            credential.tags[CREDENTIAL_NAME_TAG_KEY] == DEFAULT_CREDENTIAL_NAME_TAG_VALUE
-        } ?: createDefaultCredential()
-    }
-
-    private suspend fun createDefaultCredential(): Credential {
-        val credential = credentialDataSource.createCredential()
-        credential.storeToken(
-            tags = mapOf(
-                Pair(
-                    CREDENTIAL_NAME_TAG_KEY,
-                    DEFAULT_CREDENTIAL_NAME_TAG_VALUE
-                )
+    suspend fun setDefaultCredential(
+        token: Token,
+        tags: Map<String, String>? = null,
+        security: Credential.Security = Credential.Security.standard
+    ): Credential {
+        return if (credentialDataSource.containsDefaultCredential()) {
+            val defaultTokenId = credentialDataSource.allIds().first { credentialDataSource.metadata(it)?.isDefault == true }
+            val metadata = credentialDataSource.metadata(defaultTokenId)!!
+            credentialDataSource.replaceToken(defaultTokenId, token, tags ?: metadata.tags, security, isDefault = true)
+        } else {
+            credentialDataSource.createCredential(
+                token,
+                tags = tags ?: emptyMap(),
+                security = security,
+                isDefault = true
             )
-        )
-        return credential
+        }
     }
 
     @InternalAuthFoundationApi

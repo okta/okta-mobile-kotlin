@@ -16,9 +16,11 @@
 package com.okta.authfoundation.credential
 
 import androidx.biometric.BiometricPrompt
+import com.okta.authfoundation.InternalAuthFoundationApi
 import com.okta.authfoundation.client.OidcConfiguration
 
-internal class TokenEncryptionHandler {
+@InternalAuthFoundationApi
+class TokenEncryptionHandler {
     fun encrypt(
         token: Token,
         security: Credential.Security,
