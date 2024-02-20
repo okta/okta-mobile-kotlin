@@ -47,12 +47,10 @@ internal class RoomTokenStorage(
     suspend fun add(
         token: Token,
         metadata: Token.Metadata,
-        securityOptions: SecurityOptions = SecurityOptions.Default(),
+        security: Credential.Security = Credential.Security.standard,
         isDefault: Boolean = false
     ) {
-        val (encryptedToken, encryptionExtras) = tokenEncryptionHandler.encrypt(
-            token, securityOptions.keyAlias, securityOptions.encryptionAlgorithm
-        )
+        val (encryptedToken, encryptionExtras) = tokenEncryptionHandler.encrypt(token, security)
 
         if (isDefault) {
             tokenDao.allEntries().firstOrNull { it.isDefault }?.let {
@@ -68,9 +66,8 @@ internal class RoomTokenStorage(
                 encryptedToken,
                 tags = metadata.tags,
                 payloadData = metadata.payloadData,
-                keyAlias = securityOptions.keyAlias,
-                userAuthenticationRequired = securityOptions.userAuthenticationRequired,
-                encryptionAlgorithm = securityOptions.encryptionAlgorithm,
+                keyAlias = security.keyAlias,
+                tokenEncryptionType = TokenEntity.EncryptionType.fromSecurity(security),
                 isDefault = isDefault,
                 encryptionExtras = encryptionExtras
             )
@@ -87,7 +84,7 @@ internal class RoomTokenStorage(
         id: String,
         token: Token,
         metadata: Token.Metadata? = null,
-        securityOptions: SecurityOptions? = null,
+        security: Credential.Security? = null,
         isDefault: Boolean? = null,
     ) {
         val tokenEntity = tokenDao.getById(id) ?: throw NoSuchElementException()
@@ -96,20 +93,17 @@ internal class RoomTokenStorage(
             .firstOrNull { (it.id != id) and it.isDefault }
 
         val (encryptedToken, encryptionExtras) = tokenEncryptionHandler.encrypt(
-            token,
-            securityOptions?.keyAlias ?: tokenEntity.keyAlias,
-            securityOptions?.encryptionAlgorithm ?: tokenEntity.encryptionAlgorithm
+            token, security ?: tokenEntity.security
         )
 
         val updatedTokenEntity = tokenEntity.copy(
             encryptedToken = encryptedToken,
             tags = metadata?.tags ?: tokenEntity.tags,
             payloadData = metadata?.payloadData ?: tokenEntity.payloadData,
-            keyAlias = securityOptions?.keyAlias ?: tokenEntity.keyAlias,
-            encryptionAlgorithm = securityOptions?.encryptionAlgorithm
-                ?: tokenEntity.encryptionAlgorithm,
-            userAuthenticationRequired = securityOptions?.userAuthenticationRequired
-                ?: tokenEntity.userAuthenticationRequired,
+            keyAlias = security?.keyAlias ?: tokenEntity.keyAlias,
+            tokenEncryptionType = security?.let {
+                TokenEntity.EncryptionType.fromSecurity(it)
+            } ?: tokenEntity.tokenEncryptionType,
             isDefault = isDefault ?: tokenEntity.isDefault,
             encryptionExtras = encryptionExtras
         )
@@ -121,12 +115,12 @@ internal class RoomTokenStorage(
         }
     }
 
-    suspend fun getToken(id: String, promptInfo: PromptInfo? = null): Token {
+    suspend fun getToken(id: String, promptInfo: PromptInfo? = Credential.Security.promptInfo): Token {
         val tokenEntity = tokenDao.getById(id) ?: throw NoSuchElementException()
         return getTokenFromEntity(tokenEntity, promptInfo)
     }
 
-    suspend fun getDefaultToken(promptInfo: PromptInfo? = null): Token? {
+    suspend fun getDefaultToken(promptInfo: PromptInfo? = Credential.Security.promptInfo): Token? {
         return tokenDao.allEntries().firstOrNull { it.isDefault }?.let {
             getTokenFromEntity(it, promptInfo)
         }
@@ -135,10 +129,8 @@ internal class RoomTokenStorage(
     private fun getTokenFromEntity(tokenEntity: TokenEntity, promptInfo: PromptInfo?): Token {
         return tokenEncryptionHandler.decrypt(
             tokenEntity.encryptedToken,
-            tokenEntity.encryptionAlgorithm,
             tokenEntity.encryptionExtras,
-            tokenEntity.keyAlias,
-            tokenEntity.userAuthenticationRequired,
+            tokenEntity.security,
             promptInfo
         )
     }

@@ -82,8 +82,5 @@ object AuthFoundationDefaults {
     object Encryption {
         /** The default keyAlias for the encryption key that will be used for encrypting the stored Token objects */
         var keyAlias: String by NoSetAfterGetWithLazyDefaultFactory { "com.okta.authfoundation.rsakey" }
-
-        /** The default algorithm for encrypting stored Token objects */
-        var algorithm: String by NoSetAfterGetWithLazyDefaultFactory { "AES/GCM/NoPadding" }
     }
 }

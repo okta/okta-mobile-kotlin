@@ -15,6 +15,9 @@
  */
 package com.okta.authfoundation.credential
 
+import com.okta.authfoundation.claims.ClaimsProvider
+import com.okta.authfoundation.claims.DefaultClaimsProvider
+import com.okta.authfoundation.client.OidcConfiguration
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
@@ -121,7 +124,9 @@ class Token(
         val id: String,
         val tags: Map<String, String>,
         val payloadData: JsonObject
-    )
+    ) {
+        val claimsProvider: ClaimsProvider = DefaultClaimsProvider(payloadData, OidcConfiguration.defaultJson())
+    }
 }
 
 @Serializable

@@ -16,6 +16,8 @@
 package com.okta.authfoundation.credential
 
 import androidx.annotation.VisibleForTesting
+import androidx.biometric.BiometricPrompt
+import com.okta.authfoundation.AuthFoundationDefaults
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundation.client.dto.OidcIntrospectInfo
@@ -57,6 +59,34 @@ class Credential internal constructor(
     token: Token? = null,
     tags: Map<String, String> = emptyMap()
 ) {
+    internal interface BiometricSecurity
+
+    sealed interface Security {
+        val keyAlias: String
+
+        data class Default(
+            override val keyAlias: String = AuthFoundationDefaults.Encryption.keyAlias
+        ) : Security
+
+        data class BiometricStrong(
+            override val keyAlias: String = AuthFoundationDefaults.Encryption.keyAlias + ".biometricStrong"
+        ) : Security, BiometricSecurity
+
+        data class BiometricStrongOrDeviceCredential(
+            override val keyAlias: String = AuthFoundationDefaults.Encryption.keyAlias + ".biometricStrongOrDeviceCredential"
+        ) : Security, BiometricSecurity
+
+        companion object {
+            private var _standard: Security? = null
+
+            var standard: Security
+                get() = _standard ?: Default()
+                set(value) { _standard = value }
+
+            var promptInfo: BiometricPrompt.PromptInfo? = null
+        }
+    }
+
     private val refreshCoalescingOrchestrator = CoalescingOrchestrator(
         factory = ::performRealRefresh,
         keepDataInMemory = { false },

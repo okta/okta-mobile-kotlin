@@ -21,8 +21,7 @@ import com.okta.authfoundation.client.OidcConfiguration
 internal class TokenEncryptionHandler {
     fun encrypt(
         token: Token,
-        keyAlias: String,
-        encryptionAlgorithm: String
+        security: Credential.Security,
     ): Pair<ByteArray, Map<String, String>> {
         // TODO("Add android keystore encryption")
         val serializedToken = OidcConfiguration.defaultJson().encodeToString(Token.serializer(), token)
@@ -31,10 +30,8 @@ internal class TokenEncryptionHandler {
 
     fun decrypt(
         encryptedToken: ByteArray,
-        encryptionAlgorithm: String,
         encryptionExtras: Map<String, String>,
-        keyAlias: String,
-        userAuthenticationRequired: Boolean,
+        security: Credential.Security,
         promptInfo: BiometricPrompt.PromptInfo? = null
     ): Token {
         // TODO("Add android keystore encryption")
