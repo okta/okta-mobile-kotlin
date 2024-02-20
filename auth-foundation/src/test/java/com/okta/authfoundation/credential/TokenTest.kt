@@ -17,6 +17,9 @@ package com.okta.authfoundation.credential
 
 import com.google.common.truth.Truth.assertThat
 import com.okta.testhelpers.OktaRule
+import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 import org.junit.Rule
 import org.junit.Test
 
@@ -142,5 +145,17 @@ class TokenTest {
             {"token_type":"Bearer","expires_in":3600,"access_token":"a","scope":"b","refresh_token":"c","id_token":"d","device_secret":"e","issued_token_type":"f"}
             """.trimIndent()
         )
+    }
+
+    @Test fun `test fetching claims from Token Metadata`() {
+        val tokenMetadata = Token.Metadata(
+            "id",
+            tags = emptyMap(),
+            payloadData = buildJsonObject {
+                put("claim", "claimValue")
+            }
+        )
+        assertThat(tokenMetadata.claimsProvider.availableClaims()).isEqualTo(setOf("claim"))
+        assertThat(tokenMetadata.claimsProvider.deserializeClaim("claim", String.serializer())).isEqualTo("claimValue")
     }
 }

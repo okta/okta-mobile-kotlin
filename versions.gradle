@@ -1,6 +1,7 @@
 def versions = [:]
 versions.androidx_activity = '1.5.1'
 versions.androidx_annotation = '1.4.0'
+versions.androidx_biometric = '1.1.0'
 versions.androidx_browser = '1.5.0'
 versions.androidx_test = '1.5.0'
 versions.androidx_test_runner = '1.5.2'
@@ -55,6 +56,8 @@ def deps = [:]
 
 deps.androidx_activity_ktx = "androidx.activity:activity-ktx:$versions.androidx_activity"
 deps.androidx_annotation = "androidx.annotation:annotation:$versions.androidx_annotation"
+
+deps.androidx_biometric = "androidx.biometric:biometric:$versions.androidx_biometric"
 
 deps.androidx_browser = "androidx.browser:browser:$versions.androidx_browser"
 

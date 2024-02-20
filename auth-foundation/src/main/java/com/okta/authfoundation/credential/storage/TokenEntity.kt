@@ -18,6 +18,7 @@ package com.okta.authfoundation.credential.storage
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.TypeConverters
+import com.okta.authfoundation.credential.Credential
 import com.okta.authfoundation.credential.storage.typeconverters.JsonObjectTypeConverter
 import com.okta.authfoundation.credential.storage.typeconverters.StringStringMapTypeConverter
 import kotlinx.serialization.json.JsonObject
@@ -41,8 +42,29 @@ internal data class TokenEntity(
     internal enum class EncryptionType {
         NON_BIO,
         BIO_ONLY,
-        BIO_AND_PIN
+        BIO_AND_PIN;
+
+        internal fun toSecurity(keyAlias: String): Credential.Security {
+            return when (this) {
+                NON_BIO -> Credential.Security.Default(keyAlias)
+                BIO_ONLY -> Credential.Security.BiometricStrong(keyAlias)
+                BIO_AND_PIN -> Credential.Security.BiometricStrongOrDeviceCredential(keyAlias)
+            }
+        }
+
+        internal companion object {
+            internal fun fromSecurity(security: Credential.Security): EncryptionType {
+                return when (security) {
+                    is Credential.Security.Default -> NON_BIO
+                    is Credential.Security.BiometricStrong -> BIO_ONLY
+                    is Credential.Security.BiometricStrongOrDeviceCredential -> BIO_AND_PIN
+                }
+            }
+        }
     }
+
+    val security: Credential.Security
+        get() = tokenEncryptionType.toSecurity(keyAlias)
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

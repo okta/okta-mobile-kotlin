@@ -26,6 +26,9 @@ internal interface TokenDao {
     @Query("SELECT * FROM TokenEntity")
     suspend fun allEntries(): List<TokenEntity>
 
+    @Query("SELECT * FROM TokenEntity WHERE id = :id")
+    suspend fun getById(id: String): TokenEntity?
+
     @Insert
     suspend fun insertTokenEntity(tokenEntity: TokenEntity)
 
