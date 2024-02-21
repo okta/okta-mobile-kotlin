@@ -67,7 +67,6 @@ class TransparentBiometricActivity : AppCompatActivity() {
                     errorCode: Int,
                     errString: CharSequence
                 ) {
-                    super.onAuthenticationError(errorCode, errString)
                     DefaultTokenEncryptionHandler.biometricDecryptionContinuation
                         ?.resumeWithException(
                             BiometricAuthenticationException("Failed biometric authentication with errorCode: $errorCode, and errString: $errString")
@@ -79,7 +78,6 @@ class TransparentBiometricActivity : AppCompatActivity() {
                 override fun onAuthenticationSucceeded(
                     result: BiometricPrompt.AuthenticationResult
                 ) {
-                    super.onAuthenticationSucceeded(result)
                     result.cryptoObject?.cipher?.let { rsaCipher ->
                         val token = DefaultTokenEncryptionHandler.internalDecrypt(
                             activityParameters.encryptedToken,
@@ -97,7 +95,6 @@ class TransparentBiometricActivity : AppCompatActivity() {
                 }
 
                 override fun onAuthenticationFailed() {
-                    super.onAuthenticationFailed()
                     DefaultTokenEncryptionHandler.biometricDecryptionContinuation
                         ?.resumeWithException(BiometricAuthenticationException())
                     DefaultTokenEncryptionHandler.biometricDecryptionContinuation = null

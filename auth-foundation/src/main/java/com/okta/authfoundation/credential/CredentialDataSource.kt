@@ -143,7 +143,7 @@ class CredentialDataSource internal constructor(
         storage.replace(id, token, newMetadata, security)
     }
 
-    suspend fun getCredential(id: String, promptInfo: BiometricPrompt.PromptInfo? = null): Credential? {
+    suspend fun getCredential(id: String, promptInfo: BiometricPrompt.PromptInfo? = Credential.Security.promptInfo): Credential? {
         return if (id in credentialsCache) credentialsCache[id]
         else {
             val metadata = metadata(id) ?: return null
@@ -160,7 +160,7 @@ class CredentialDataSource internal constructor(
     }
 
     suspend fun findCredential(
-        promptInfo: BiometricPrompt.PromptInfo? = null,
+        promptInfo: BiometricPrompt.PromptInfo? = Credential.Security.promptInfo,
         where: (Token.Metadata) -> Boolean
     ): List<Credential> {
         return allIds()

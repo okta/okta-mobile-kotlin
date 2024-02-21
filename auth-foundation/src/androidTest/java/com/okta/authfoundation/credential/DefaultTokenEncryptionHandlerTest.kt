@@ -17,7 +17,6 @@ package com.okta.authfoundation.credential
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
-import com.okta.authfoundation.AuthFoundationDefaults
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Test
@@ -26,7 +25,7 @@ import kotlin.test.assertFailsWith
 
 @RunWith(AndroidJUnit4::class)
 internal class DefaultTokenEncryptionHandlerTest {
-    private val defaultSecurityOption = SecurityOptions.Default("keyAlias")
+    private val defaultSecurity = Credential.Security.Default("keyAlias")
     private val token = Token(
         tokenType = "Bearer",
         expiresIn = 1000,
@@ -42,44 +41,40 @@ internal class DefaultTokenEncryptionHandlerTest {
 
     @Before fun setup() {
         tokenEncryptionHandler = DefaultTokenEncryptionHandler()
-        tokenEncryptionHandler.keyStore.deleteEntry(defaultSecurityOption.keyAlias)
+        tokenEncryptionHandler.keyStore.deleteEntry(defaultSecurity.keyAlias)
     }
 
     @Test fun generateKeyShouldCreateKeyInKeyStore() {
-        assertThat(tokenEncryptionHandler.keyStore.containsAlias(defaultSecurityOption.keyAlias)).isFalse()
-        tokenEncryptionHandler.generateKey(defaultSecurityOption)
-        assertThat(tokenEncryptionHandler.keyStore.containsAlias(defaultSecurityOption.keyAlias)).isTrue()
+        assertThat(tokenEncryptionHandler.keyStore.containsAlias(defaultSecurity.keyAlias)).isFalse()
+        tokenEncryptionHandler.generateKey(defaultSecurity)
+        assertThat(tokenEncryptionHandler.keyStore.containsAlias(defaultSecurity.keyAlias)).isTrue()
     }
 
     @Test fun encryptSucceeds() = runTest {
-        tokenEncryptionHandler.generateKey(defaultSecurityOption)
-        tokenEncryptionHandler.encrypt(token, defaultSecurityOption.keyAlias, AuthFoundationDefaults.Encryption.algorithm)
+        tokenEncryptionHandler.generateKey(defaultSecurity)
+        tokenEncryptionHandler.encrypt(token, defaultSecurity)
     }
 
     @Test fun encryptThenDecryptSucceeds() = runTest {
-        tokenEncryptionHandler.generateKey(defaultSecurityOption)
-        val encryptionResult = tokenEncryptionHandler.encrypt(token, defaultSecurityOption.keyAlias, AuthFoundationDefaults.Encryption.algorithm)
+        tokenEncryptionHandler.generateKey(defaultSecurity)
+        val encryptionResult = tokenEncryptionHandler.encrypt(token, defaultSecurity)
         val decryptionResult = tokenEncryptionHandler.decrypt(
             encryptionResult.encryptedToken,
-            AuthFoundationDefaults.Encryption.algorithm,
             encryptionResult.encryptionExtras,
-            defaultSecurityOption.keyAlias,
-            userAuthenticationRequired = false
+            defaultSecurity
         )
         assertThat(decryptionResult).isEqualTo(token)
     }
 
     @Test fun decryptingBioTokenWithNoPromptFails() = runTest {
-        tokenEncryptionHandler.generateKey(defaultSecurityOption)
-        val encryptionResult = tokenEncryptionHandler.encrypt(token, defaultSecurityOption.keyAlias, AuthFoundationDefaults.Encryption.algorithm)
+        val bioSecurity = Credential.Security.BiometricStrong("bioKeyAlias")
+        tokenEncryptionHandler.generateKey(bioSecurity)
+        val encryptionResult = tokenEncryptionHandler.encrypt(token, bioSecurity)
         val exception = assertFailsWith<IllegalArgumentException> {
             tokenEncryptionHandler.decrypt(
                 encryptionResult.encryptedToken,
-                AuthFoundationDefaults.Encryption.algorithm,
                 encryptionResult.encryptionExtras,
-                defaultSecurityOption.keyAlias,
-                userAuthenticationRequired = true,
-                promptInfo = null
+                bioSecurity
             )
         }
         assertThat(exception.message).isEqualTo(DefaultTokenEncryptionHandler.BIO_TOKEN_NO_PROMPT_INFO_ERROR)
