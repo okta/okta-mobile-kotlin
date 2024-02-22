@@ -80,10 +80,26 @@ class CredentialDataSource internal constructor(
 
     private val credentialsCache = Collections.synchronizedMap(mutableMapOf<String, Credential>())
 
+    /**
+     * Returns IDs of all available [Credential] objects in storage.
+     */
     suspend fun allIds() = storage.allIds()
 
+    /**
+     * Returns [Token.Metadata] of [Credential] with specified [id].
+     *
+     * @param id The identifier of the [Credential].
+     */
     suspend fun metadata(id: String) = storage.metadata(id)
 
+    /**
+     * Creates a new [Credential] with specified options and returns it.
+     *
+     * @param token The [Token] to store in the newly created [Credential].
+     * @param tags A map of additional values to store in [Credential].
+     * @param security The [Credential.Security] level to encrypt the stored [token] with.
+     * @param isDefault Specify whether the newly created [Credential] should be set as the default [Credential].
+     */
     suspend fun createCredential(
         token: Token,
         tags: Map<String, String> = emptyMap(),
@@ -109,7 +125,16 @@ class CredentialDataSource internal constructor(
         return credential
     }
 
-    suspend fun replaceToken(
+    /**
+     * Replaces the stored values of [Credential] associated with [id], and returns the [Credential] with updated values.
+     *
+     * @param id The id of the stored [Credential].
+     * @param token The token object to store.
+     * @param tags The new tags for replacing the stored tags of this [Credential]. If null, keep the previous stored tags.
+     * @param security The new [Credential.Security] level for this token. If null, keep the previous stored [Credential.Security] level.
+     * @param isDefault Specify whether the [Credential] with [id] should be set as default. If null, the default [Credential] is unchanged.
+     */
+    suspend fun replaceCredential(
         id: String,
         token: Token,
         tags: Map<String, String>? = null,
@@ -125,7 +150,7 @@ class CredentialDataSource internal constructor(
         return credential
     }
 
-    internal suspend fun internalReplaceToken(
+    internal suspend fun internalReplaceCredential(
         id: String,
         token: Token,
         tags: Map<String, String>,
@@ -143,6 +168,12 @@ class CredentialDataSource internal constructor(
         storage.replace(id, token, newMetadata, security)
     }
 
+    /**
+     * Return the [Credential] associated with the given [id].
+     *
+     * @param id The id of the [Credential] to fetch.
+     * @param promptInfo The [BiometricPrompt.PromptInfo] for displaying biometric prompt. A non-null value is required if the [Credential] with [id] is stored using a biometric [Credential.Security].
+     */
     suspend fun getCredential(id: String, promptInfo: BiometricPrompt.PromptInfo? = Credential.Security.promptInfo): Credential? {
         return if (id in credentialsCache) credentialsCache[id]
         else {
@@ -159,6 +190,12 @@ class CredentialDataSource internal constructor(
         }
     }
 
+    /**
+     * Return all [Credential] objects matching the given [where] expression. The [where] expression is supplied with [Token.Metadata] and should return true for cases where the user wants to fetch [Credential] with given [Token.Metadata].
+     *
+     * @param promptInfo The [BiometricPrompt.PromptInfo] for displaying biometric prompt. A non-null value is required if a fetched [Credential] is stored using a biometric [Credential.Security].
+     * @param where A function specifying whether a [Credential] with [Token.Metadata] should be fetched. This function should return true for [Credential] with [Token.Metadata] that should be retrieved from storage.
+     */
     suspend fun findCredential(
         promptInfo: BiometricPrompt.PromptInfo? = Credential.Security.promptInfo,
         where: (Token.Metadata) -> Boolean
@@ -171,6 +208,9 @@ class CredentialDataSource internal constructor(
             }
     }
 
+    /**
+     * Return true if this [CredentialDataSource] contains a default [Credential], otherwise return false.
+     */
     suspend fun containsDefaultCredential(): Boolean {
         return allIds().any { metadata(it)?.isDefault == true }
     }
