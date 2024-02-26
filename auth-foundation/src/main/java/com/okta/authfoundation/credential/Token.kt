@@ -15,13 +15,18 @@
  */
 package com.okta.authfoundation.credential
 
+import com.okta.authfoundation.claims.ClaimsProvider
+import com.okta.authfoundation.claims.DefaultClaimsProvider
+import com.okta.authfoundation.client.OidcConfiguration
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonObject
 import java.util.Objects
 
 /**
  * Token information representing a user's access to a resource server, including access token, refresh token, and other related information.
  */
+@Serializable
 class Token(
     /**
      * The string type of the token (e.g. `Bearer`).
@@ -113,6 +118,35 @@ class Token(
             deviceSecret,
             issuedTokenType,
         )
+    }
+
+    /**
+     * Non-sensitive information about the [Token] to be used in storage.
+     */
+    data class Metadata(
+        /**
+         * Storage id of the [Token].
+         */
+        val id: String,
+        /**
+         * A user-specified map of values when storing the [Token].
+         */
+        val tags: Map<String, String>,
+        /**
+         * The object holding claim values. Use [claimsProvider] for a more convenient way of accessing claims.
+         */
+        val payloadData: JsonObject?,
+        /**
+         * true if [Token] is the default [Token], false otherwise
+         */
+        val isDefault: Boolean = false
+    ) {
+        /**
+         * Convenience object for accessing claims of this [Token]
+         */
+        val claimsProvider: ClaimsProvider? = payloadData?.let {
+            DefaultClaimsProvider(payloadData, OidcConfiguration.defaultJson())
+        }
     }
 }
 

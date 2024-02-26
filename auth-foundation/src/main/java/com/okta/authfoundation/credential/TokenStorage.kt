@@ -15,6 +15,8 @@
  */
 package com.okta.authfoundation.credential
 
+import androidx.biometric.BiometricPrompt
+import com.okta.authfoundation.credential.CredentialDataSource.Companion.createCredentialDataSource
 import java.util.Objects
 
 /**
@@ -26,35 +28,81 @@ import java.util.Objects
  */
 interface TokenStorage {
     /**
-     * Used to access all [Entry]s in storage.
-     *
-     *  @return all [Entry] in storage.
+     * @return All token IDs.
      */
-    suspend fun entries(): List<Entry>
+    suspend fun allIds(): List<String>
 
     /**
-     *  Add a new entry to storage.
+     * @return [Token.Metadata] for token with specified [id], null if no token with given [id] exists.
      *
-     *  @param id the unique identifier related to a [TokenStorage.Entry].
+     * @param id id of stored token to retrieve [Token.Metadata] for.
      */
-    suspend fun add(id: String)
+    suspend fun metadata(id: String): Token.Metadata?
 
     /**
-     *  Remove an existing entry from storage.
+     * Set [Token.Metadata] for the token with [Token.Metadata.id]
+     */
+    suspend fun setMetadata(metadata: Token.Metadata)
+
+    /**
+     * Add [Token] and its [Token.Metadata] to storage. Encrypt [Token] with specified [security].
      *
-     *  @param id the unique identifier related to a [TokenStorage.Entry].
+     * @param token [Token] to add to storage.
+     * @param metadata [Token.Metadata] for the [token] to add to storage.
+     * @param security [Credential.Security] for specifying how to encrypt the [token] before adding to storage.
+     */
+    suspend fun add(
+        token: Token,
+        metadata: Token.Metadata,
+        security: Credential.Security = Credential.Security.standard
+    )
+
+    /**
+     * Remove [Token] with given [id] from the storage. Does nothing if the provided [id] does not exist in storage.
+     *
+     * @param id id of the [Token] to remove from storage.
      */
     suspend fun remove(id: String)
 
     /**
-     *  Replace an existing [Entry] in storage with an updated [Entry].
+     * Replace [Token] with [id] with the given [token]. If no such [Token] with the given [id] exists, [NoSuchElementException] is thrown.
      *
-     *  @param updatedEntry the new [Entry] to store.
+     * @param id id of the [Token] to be replaced.
+     * @param token set the storage entry with [id] to this [Token].
+     * @param metadata set the storage entry with [id] to have this [Token.Metadata]. If null, the metadata is left unchanged.
+     * @param security store the [token] in storage with this [Credential.Security] level. If null, the [Credential.Security] level is unchanged.
+     *
+     * @throws [NoSuchElementException] if no such storage entry with [id] exists.
      */
-    suspend fun replace(updatedEntry: Entry)
+    suspend fun replace(
+        id: String,
+        token: Token,
+        metadata: Token.Metadata? = null,
+        security: Credential.Security? = null
+    )
 
     /**
-     *  Represents the data to store in [TokenStorage].
+     * Get [Token] from storage with associated [id].
+     *
+     * @param id id of the [Token] to be retrieved.
+     * @param promptInfo [BiometricPrompt.PromptInfo] to be displayed if the stored [Token] is using biometric [Credential.Security].
+     *
+     * @return [Token] with the specified [id].
+     * @throws [NoSuchElementException] if no storage entry with [id] exists.
+     */
+    suspend fun getToken(id: String, promptInfo: BiometricPrompt.PromptInfo? = Credential.Security.promptInfo): Token
+
+    /**
+     * Get the default [Token]. The storage must have at most one default [Token] at any time.
+     *
+     * @param promptInfo [BiometricPrompt.PromptInfo] to be displayed if the stored [Token] is using biometric [Credential.Security].
+     *
+     * @return The default [Token], null if no default [Token] exists.
+     */
+    suspend fun getDefaultToken(promptInfo: BiometricPrompt.PromptInfo? = Credential.Security.promptInfo): Token?
+
+    /**
+     *  Represents the data to store in legacy [TokenStorage].
      */
     class Entry(
         /**

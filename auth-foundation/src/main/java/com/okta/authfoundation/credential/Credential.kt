@@ -15,7 +15,11 @@
  */
 package com.okta.authfoundation.credential
 
+import android.security.keystore.KeyProperties
 import androidx.annotation.VisibleForTesting
+import androidx.biometric.BiometricPrompt
+import com.okta.authfoundation.AuthFoundationDefaults
+import com.okta.authfoundation.InternalAuthFoundationApi
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundation.client.dto.OidcIntrospectInfo
@@ -33,7 +37,7 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.dropWhile
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.transformWhile
 import kotlinx.serialization.SerialName
@@ -51,12 +55,57 @@ import java.util.Objects
  */
 class Credential internal constructor(
     oidcClient: OidcClient,
-    private val storage: TokenStorage,
     private val credentialDataSource: CredentialDataSource,
-    internal val storageIdentifier: String,
-    token: Token? = null,
+    @property:InternalAuthFoundationApi val storageIdentifier: String,
+    token: Token,
     tags: Map<String, String> = emptyMap()
 ) {
+    internal interface BiometricSecurity
+
+    /**
+     * Convenience object for specifying security level for storing [Token] objects
+     */
+    sealed interface Security {
+        val keyAlias: String
+
+        /**
+         * Default security level. The stored [Token] is encrypted with a non-biometric key in keychain
+         */
+        data class Default(
+            override val keyAlias: String = AuthFoundationDefaults.Encryption.keyAlias
+        ) : Security
+
+        /**
+         * The stored [Token] is encrypted using a key generated with [KeyProperties.AUTH_BIOMETRIC_STRONG]
+         */
+        data class BiometricStrong(
+            override val keyAlias: String = AuthFoundationDefaults.Encryption.keyAlias + ".biometricStrong"
+        ) : Security, BiometricSecurity
+
+        /**
+         * The stored [Token] is encrypted using a key generated with [KeyProperties.AUTH_BIOMETRIC_STRONG] or [KeyProperties.AUTH_DEVICE_CREDENTIAL]
+         */
+        data class BiometricStrongOrDeviceCredential(
+            override val keyAlias: String = AuthFoundationDefaults.Encryption.keyAlias + ".biometricStrongOrDeviceCredential"
+        ) : Security, BiometricSecurity
+
+        companion object {
+            private var _standard: Security? = null
+
+            /**
+             * Standard [Credential.Security] level to use when unspecified in method arguments
+             */
+            var standard: Security
+                get() = _standard ?: Default()
+                set(value) { _standard = value }
+
+            /**
+             * [BiometricPrompt.PromptInfo] for specifying how to display biometric prompts. This is used whenever [promptInfo] is omitted in method arguments
+             */
+            var promptInfo: BiometricPrompt.PromptInfo? = null
+        }
+    }
+
     private val refreshCoalescingOrchestrator = CoalescingOrchestrator(
         factory = ::performRealRefresh,
         keepDataInMemory = { false },
@@ -80,7 +129,10 @@ class Credential internal constructor(
      */
     val token: Token?
         get() {
-            return state.value.token
+            return when (val value = state.value) {
+                is CredentialState.Deleted -> null
+                is CredentialState.Data -> value.token
+            }
         }
 
     /**
@@ -96,13 +148,13 @@ class Credential internal constructor(
     /**
      * Returns a [Flow] that emits the current [Token] that's stored and associated with this [Credential].
      */
-    fun getTokenFlow(): Flow<Token?> {
+    fun getTokenFlow(): Flow<Token> {
         return state
             .transformWhile {
                 emit(it)
                 it !is CredentialState.Deleted
             }
-            .dropWhile { it !is CredentialState.Data }
+            .filterIsInstance(CredentialState.Data::class)
             .map { it.token }
     }
 
@@ -112,7 +164,9 @@ class Credential internal constructor(
      * Internally, this uses [Credential.getValidAccessToken] to automatically refresh the access token if it's expired.
      */
     suspend fun getUserInfo(): OidcClientResult<OidcUserInfo> {
-        val accessToken = getValidAccessToken() ?: return OidcClientResult.Error(IllegalStateException("No Access Token."))
+        val accessToken = getValidAccessToken() ?: return OidcClientResult.Error(
+            IllegalStateException("No Access Token.")
+        )
         return oidcClient.getUserInfo(accessToken)
     }
 
@@ -125,16 +179,22 @@ class Credential internal constructor(
         val localToken = token ?: return OidcClientResult.Error(IllegalStateException("No token."))
         val token = when (tokenType) {
             TokenType.REFRESH_TOKEN -> {
-                localToken.refreshToken ?: return OidcClientResult.Error(IllegalStateException("No refresh token."))
+                localToken.refreshToken
+                    ?: return OidcClientResult.Error(IllegalStateException("No refresh token."))
             }
+
             TokenType.ACCESS_TOKEN -> {
                 localToken.accessToken
             }
+
             TokenType.ID_TOKEN -> {
-                localToken.idToken ?: return OidcClientResult.Error(IllegalStateException("No id token."))
+                localToken.idToken
+                    ?: return OidcClientResult.Error(IllegalStateException("No id token."))
             }
+
             TokenType.DEVICE_SECRET -> {
-                localToken.deviceSecret ?: return OidcClientResult.Error(IllegalStateException("No device secret."))
+                localToken.deviceSecret
+                    ?: return OidcClientResult.Error(IllegalStateException("No device secret."))
             }
         }
 
@@ -145,26 +205,87 @@ class Credential internal constructor(
      * Store a token, or update the existing token.
      * This can also be used to store custom tags.
      *
-     * @param token the token to update this [Credential] with, defaults to the current [Token].
+     * @param token the token to update this [Credential] with.
+     * @param security the [Credential.Security] level to store the [token], defaults to the current security.
      * @param tags the map to associate with this [Credential], defaults to the current tags.
+     * @param isDefault specify whether this [Credential] should be set as default, defaults to unchanged default [Credential]
      */
-    suspend fun storeToken(token: Token? = this.token, tags: Map<String, String> = this.tags) {
+    suspend fun storeToken(
+        token: Token,
+        security: Security? = null,
+        tags: Map<String, String>? = null,
+        isDefault: Boolean? = null
+    ) {
         if (isDeleted) {
-            oidcClient.configuration.eventCoordinator.sendEvent(CredentialStoredAfterRemovedEvent(this))
+            oidcClient.configuration.eventCoordinator.sendEvent(
+                CredentialStoredAfterRemovedEvent(
+                    this
+                )
+            )
             return
         }
-        val tokenToStore = token?.copy(
+        val tokenToStore = token.copy(
             // Refresh Token isn't ALWAYS returned when refreshing.
             refreshToken = token.refreshToken ?: this.token?.refreshToken,
             // Device Secret isn't returned when refreshing.
             deviceSecret = token.deviceSecret ?: this.token?.deviceSecret,
         )
-        val tagsCopy = tags.toMap() // Making a defensive copy, so it's not modified outside our control.
-        storage.replace(
-            updatedEntry = TokenStorage.Entry(storageIdentifier, tokenToStore, tagsCopy),
+        val tagsCopy = tags?.toMap() // Making a defensive copy, so it's not modified outside our control.
+        credentialDataSource.internalReplaceCredential(storageIdentifier, tokenToStore, tagsCopy ?: this.tags, security, isDefault)
+        state.value = CredentialState.Data(tokenToStore, tags ?: this.tags)
+        oidcClient.configuration.eventCoordinator.sendEvent(
+            CredentialStoredEvent(
+                this,
+                this.token,
+                this.tags
+            )
         )
-        state.value = CredentialState.Data(tokenToStore, tagsCopy)
-        oidcClient.configuration.eventCoordinator.sendEvent(CredentialStoredEvent(this, this.token, this.tags))
+    }
+
+    /**
+     * Store a token, or update the existing token.
+     * This can also be used to store custom tags.
+     *
+     * @param security the [Credential.Security] level to store the [token], defaults to the current security.
+     * @param tags the map to associate with this [Credential], defaults to the current tags.
+     * @param isDefault specify whether this [Credential] should be set as default, defaults to unchanged default [Credential]
+     */
+    suspend fun storeToken(
+        security: Security? = null,
+        tags: Map<String, String>? = null,
+        isDefault: Boolean? = null
+    ) {
+        token?.let { storeToken(it, security, tags, isDefault) } ?: {
+            oidcClient.configuration.eventCoordinator.sendEvent(
+                CredentialStoredAfterRemovedEvent(
+                    this
+                )
+            )
+        }
+    }
+
+    /**
+     * Set this [Credential] as default. All other [Credential]s are set as non-default.
+     */
+    suspend fun setDefault() {
+        when (val tokenState = state.value) {
+            is CredentialState.Deleted -> {
+                oidcClient.configuration.eventCoordinator.sendEvent(
+                    CredentialStoredAfterRemovedEvent(this)
+                )
+                return
+            }
+
+            is CredentialState.Data -> {
+                credentialDataSource.internalReplaceCredential(
+                    storageIdentifier,
+                    tokenState.token,
+                    tags,
+                    security = null, // Keep same security
+                    isDefault = true
+                )
+            }
+        }
     }
 
     /**
@@ -179,7 +300,6 @@ class Credential internal constructor(
             return
         }
         credentialDataSource.remove(this)
-        storage.remove(storageIdentifier)
         state.value = CredentialState.Deleted
         oidcClient.configuration.eventCoordinator.sendEvent(CredentialDeletedEvent(this))
     }
@@ -193,7 +313,8 @@ class Credential internal constructor(
 
     private suspend fun performRealRefresh(): OidcClientResult<Token> {
         val localToken = token ?: return OidcClientResult.Error(IllegalStateException("No Token."))
-        val refresh = localToken.refreshToken ?: return OidcClientResult.Error(IllegalStateException("No Refresh Token."))
+        val refresh = localToken.refreshToken
+            ?: return OidcClientResult.Error(IllegalStateException("No Refresh Token."))
         return oidcClient.refreshToken(refresh)
     }
 
@@ -210,13 +331,17 @@ class Credential internal constructor(
         val localToken = token ?: return OidcClientResult.Error(IllegalStateException("No token."))
         val token = when (tokenType) {
             RevokeTokenType.REFRESH_TOKEN -> {
-                localToken.refreshToken ?: return OidcClientResult.Error(IllegalStateException("No refresh token."))
+                localToken.refreshToken
+                    ?: return OidcClientResult.Error(IllegalStateException("No refresh token."))
             }
+
             RevokeTokenType.ACCESS_TOKEN -> {
                 localToken.accessToken
             }
+
             RevokeTokenType.DEVICE_SECRET -> {
-                localToken.deviceSecret ?: return OidcClientResult.Error(IllegalStateException("No device secret."))
+                localToken.deviceSecret
+                    ?: return OidcClientResult.Error(IllegalStateException("No device secret."))
             }
         }
         return oidcClient.revokeToken(token)
@@ -270,12 +395,13 @@ class Credential internal constructor(
      */
     suspend fun idToken(): Jwt? {
         val idToken = token?.idToken ?: return null
-        try {
-            val parser = JwtParser(oidcClient.configuration.json, oidcClient.configuration.computeDispatcher)
-            return parser.parse(idToken)
+        return try {
+            val parser =
+                JwtParser(oidcClient.configuration.json, oidcClient.configuration.computeDispatcher)
+            parser.parse(idToken)
         } catch (e: Exception) {
             // The token was malformed.
-            return null
+            null
         }
     }
 
@@ -313,10 +439,10 @@ class Credential internal constructor(
     suspend fun getValidAccessToken(): String? {
         getAccessTokenIfValid()?.let { return it }
 
-        if (refreshToken() is OidcClientResult.Success) {
-            return getAccessTokenIfValid()
+        return if (refreshToken() is OidcClientResult.Success) {
+            getAccessTokenIfValid()
         } else {
-            return null
+            null
         }
     }
 
@@ -330,7 +456,11 @@ class Credential internal constructor(
      * be emitted to the associated [EventCoordinator].
      */
     fun accessTokenInterceptor(): Interceptor {
-        return AccessTokenInterceptor(::getValidAccessToken, oidcClient.configuration.eventCoordinator, this)
+        return AccessTokenInterceptor(
+            ::getValidAccessToken,
+            oidcClient.configuration.eventCoordinator,
+            this
+        )
     }
 
     override fun equals(other: Any?): Boolean {
@@ -353,10 +483,13 @@ class Credential internal constructor(
 }
 
 private sealed class CredentialState {
-    open val token: Token? get() = null
     open val tags get() = emptyMap<String, String>()
 
-    data class Data(override val token: Token?, override val tags: Map<String, String>) : CredentialState()
+    data class Data(
+        val token: Token,
+        override val tags: Map<String, String>
+    ) : CredentialState()
+
     object Deleted : CredentialState()
 }
 

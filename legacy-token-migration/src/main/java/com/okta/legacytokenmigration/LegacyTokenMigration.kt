@@ -19,7 +19,9 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.annotation.VisibleForTesting
 import com.okta.authfoundation.credential.Credential
+import com.okta.authfoundation.credential.CredentialDataSource
 import com.okta.authfoundation.credential.Token
+import com.okta.authfoundationbootstrap.CredentialBootstrap
 import com.okta.oidc.clients.sessions.SessionClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -33,22 +35,28 @@ import kotlinx.coroutines.withContext
 object LegacyTokenMigration {
     private const val SHARED_PREFERENCE_FILE = "com.okta.legacytokenmigration.status"
     private const val SHARED_PREFERENCE_HAS_MIGRATED_KEY = "com.okta.legacytokenmigration.has_migrated"
+    private const val SHARED_PREFERENCE_MIGRATED_TOKEN_ID_KEY = "com.okta.legacytokenmigration.token.id"
 
     /**
-     * Attempts to migrate a token from a [SessionClient] to a [Credential].
+     * Attempts to migrate a token from a [SessionClient] to a [Token]. The resulting [Token] can be stored using [CredentialBootstrap.setDefaultCredential]
      *
      * @param context used for storing the status of previous migrations in Shared Preferences.
      * @param sessionClient a configured session client with the stored tokens from a previous authentication where the token will be
      *  migrated from.
-     * @param credential the credential where the token should be migrated to.
+     * @param isDefault whether the migrated token should be set as the default credential.
      *
      * @return a [Result] with the outcome of the migration.
      */
-    suspend fun migrate(context: Context, sessionClient: SessionClient, credential: Credential): Result {
+    suspend fun migrate(
+        context: Context,
+        sessionClient: SessionClient,
+        isDefault: Boolean = true
+    ): Result {
         return withContext(Dispatchers.IO) {
             val sharedPreferences = context.sharedPreferences()
             if (sharedPreferences.hasMarkedTokensAsMigrated()) {
-                return@withContext Result.PreviouslyMigrated
+                val tokenId = sharedPreferences.getString(SHARED_PREFERENCE_MIGRATED_TOKEN_ID_KEY, "")!!
+                return@withContext Result.PreviouslyMigrated(tokenId)
             }
             try {
                 val legacyToken = sessionClient.tokens ?: return@withContext Result.MissingLegacyToken
@@ -62,10 +70,10 @@ object LegacyTokenMigration {
                     deviceSecret = null,
                     issuedTokenType = null,
                 )
-                credential.storeToken(token)
-                sharedPreferences.markTokensAsMigrated()
+                val credential = CredentialBootstrap.credentialDataSource.createCredential(token, isDefault = isDefault)
+                sharedPreferences.markTokensAsMigrated(credential.storageIdentifier)
                 sessionClient.clear()
-                Result.SuccessfullyMigrated
+                Result.SuccessfullyMigrated(credential.storageIdentifier)
             } catch (t: Exception) {
                 Result.Error(t)
             }
@@ -76,8 +84,9 @@ object LegacyTokenMigration {
         return getSharedPreferences(SHARED_PREFERENCE_FILE, Context.MODE_PRIVATE)
     }
 
-    @VisibleForTesting internal fun SharedPreferences.markTokensAsMigrated(): Unit = with(edit()) {
+    @VisibleForTesting internal fun SharedPreferences.markTokensAsMigrated(tokenId: String): Unit = with(edit()) {
         putBoolean(SHARED_PREFERENCE_HAS_MIGRATED_KEY, true)
+        putString(SHARED_PREFERENCE_MIGRATED_TOKEN_ID_KEY, tokenId)
         apply()
     }
 
@@ -90,9 +99,10 @@ object LegacyTokenMigration {
      */
     sealed class Result {
         /**
-         * The token was previously migrated. No changes were made as a result of the [LegacyTokenMigration.migrate] call.
+         * The token was previously migrated. No changes were made as a result of the [LegacyTokenMigration.migrate] call. The migrated token was
+         * stored in [CredentialDataSource] with the returned [tokenId].
          */
-        object PreviouslyMigrated : Result()
+        data class PreviouslyMigrated(val tokenId: String) : Result()
 
         /**
          * An error occurred when migrating the token.
@@ -109,8 +119,9 @@ object LegacyTokenMigration {
          * The token migrated successfully.
          * The [Credential] supplied to the [LegacyTokenMigration.migrate] call now stores the token.
          * The [SessionClient] supplied to the [LegacyTokenMigration.migrate] call has been cleared, and should no longer be used.
+         * The migrated token is stored in [CredentialDataSource] with the returned [tokenId]
          */
-        object SuccessfullyMigrated : Result()
+        data class SuccessfullyMigrated(val tokenId: String) : Result()
 
         /**
          * The [SessionClient] supplied to the [LegacyTokenMigration.migrate] call did not contain a token, migration is not possible.

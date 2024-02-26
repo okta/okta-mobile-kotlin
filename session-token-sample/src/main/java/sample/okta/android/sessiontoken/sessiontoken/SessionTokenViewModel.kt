@@ -74,7 +74,7 @@ class SessionTokenViewModel : ViewModel() {
                     _state.value = SessionTokenState.Error("Failed to login.")
                 }
                 is OidcClientResult.Success -> {
-                    CredentialBootstrap.defaultCredential().storeToken(token = result.result)
+                    CredentialBootstrap.setDefaultCredential(token = result.result)
                     _state.value = SessionTokenState.Token
                 }
             }

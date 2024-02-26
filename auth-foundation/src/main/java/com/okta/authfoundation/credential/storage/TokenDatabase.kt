@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-Present Okta, Inc.
+ * Copyright 2024-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.okta.authfoundation.client
+package com.okta.authfoundation.credential.storage
 
-import android.content.Context
-import androidx.startup.Initializer
+import androidx.room.Database
+import androidx.room.RoomDatabase
+import com.okta.authfoundation.InternalAuthFoundationApi
 
-class DeviceTokenInitializer : Initializer<DeviceTokenProvider> {
-    override fun create(context: Context): DeviceTokenProvider {
-        ApplicationContextHolder.appContext = context.applicationContext
-        return DeviceTokenProvider.initialize(context)
+@InternalAuthFoundationApi
+@Database(
+    entities = [
+        TokenEntity::class
+    ],
+    version = TokenDatabase.VERSION
+)
+abstract class TokenDatabase : RoomDatabase() {
+    internal abstract fun tokenDao(): TokenDao
+
+    companion object {
+        internal const val VERSION = 1
+        internal const val DB_NAME = "token_database"
     }
-
-    override fun dependencies(): List<Class<out Initializer<*>>> = emptyList()
 }
