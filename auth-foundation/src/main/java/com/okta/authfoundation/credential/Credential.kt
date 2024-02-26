@@ -15,6 +15,7 @@
  */
 package com.okta.authfoundation.credential
 
+import android.security.keystore.KeyProperties
 import androidx.annotation.VisibleForTesting
 import androidx.biometric.BiometricPrompt
 import com.okta.authfoundation.AuthFoundationDefaults
@@ -61,17 +62,29 @@ class Credential internal constructor(
 ) {
     internal interface BiometricSecurity
 
+    /**
+     * Convenience object for specifying security level for storing [Token] objects
+     */
     sealed interface Security {
         val keyAlias: String
 
+        /**
+         * Default security level. The stored [Token] is encrypted with a non-biometric key in keychain
+         */
         data class Default(
             override val keyAlias: String = AuthFoundationDefaults.Encryption.keyAlias
         ) : Security
 
+        /**
+         * The stored [Token] is encrypted using a key generated with [KeyProperties.AUTH_BIOMETRIC_STRONG]
+         */
         data class BiometricStrong(
             override val keyAlias: String = AuthFoundationDefaults.Encryption.keyAlias + ".biometricStrong"
         ) : Security, BiometricSecurity
 
+        /**
+         * The stored [Token] is encrypted using a key generated with [KeyProperties.AUTH_BIOMETRIC_STRONG] or [KeyProperties.AUTH_DEVICE_CREDENTIAL]
+         */
         data class BiometricStrongOrDeviceCredential(
             override val keyAlias: String = AuthFoundationDefaults.Encryption.keyAlias + ".biometricStrongOrDeviceCredential"
         ) : Security, BiometricSecurity
@@ -79,10 +92,16 @@ class Credential internal constructor(
         companion object {
             private var _standard: Security? = null
 
+            /**
+             * Standard [Credential.Security] level to use when unspecified in method arguments
+             */
             var standard: Security
                 get() = _standard ?: Default()
                 set(value) { _standard = value }
 
+            /**
+             * [BiometricPrompt.PromptInfo] for specifying how to display biometric prompts. This is used whenever [promptInfo] is omitted in method arguments
+             */
             var promptInfo: BiometricPrompt.PromptInfo? = null
         }
     }
@@ -186,8 +205,10 @@ class Credential internal constructor(
      * Store a token, or update the existing token.
      * This can also be used to store custom tags.
      *
-     * @param token the token to update this [Credential] with, defaults to the current [Token].
+     * @param token the token to update this [Credential] with.
+     * @param security the [Credential.Security] level to store the [token], defaults to the current security.
      * @param tags the map to associate with this [Credential], defaults to the current tags.
+     * @param isDefault specify whether this [Credential] should be set as default, defaults to unchanged default [Credential]
      */
     suspend fun storeToken(
         token: Token,
@@ -210,7 +231,7 @@ class Credential internal constructor(
             deviceSecret = token.deviceSecret ?: this.token?.deviceSecret,
         )
         val tagsCopy = tags?.toMap() // Making a defensive copy, so it's not modified outside our control.
-        credentialDataSource.internalReplaceToken(storageIdentifier, tokenToStore, tagsCopy ?: this.tags, security, isDefault)
+        credentialDataSource.internalReplaceCredential(storageIdentifier, tokenToStore, tagsCopy ?: this.tags, security, isDefault)
         state.value = CredentialState.Data(tokenToStore, tags ?: this.tags)
         oidcClient.configuration.eventCoordinator.sendEvent(
             CredentialStoredEvent(
@@ -221,12 +242,20 @@ class Credential internal constructor(
         )
     }
 
+    /**
+     * Store a token, or update the existing token.
+     * This can also be used to store custom tags.
+     *
+     * @param security the [Credential.Security] level to store the [token], defaults to the current security.
+     * @param tags the map to associate with this [Credential], defaults to the current tags.
+     * @param isDefault specify whether this [Credential] should be set as default, defaults to unchanged default [Credential]
+     */
     suspend fun storeToken(
-        securityOptions: Security? = null,
+        security: Security? = null,
         tags: Map<String, String>? = null,
         isDefault: Boolean? = null
     ) {
-        token?.let { storeToken(it, securityOptions, tags, isDefault) } ?: {
+        token?.let { storeToken(it, security, tags, isDefault) } ?: {
             oidcClient.configuration.eventCoordinator.sendEvent(
                 CredentialStoredAfterRemovedEvent(
                     this
@@ -235,6 +264,9 @@ class Credential internal constructor(
         }
     }
 
+    /**
+     * Set this [Credential] as default. All other [Credential]s are set as non-default.
+     */
     suspend fun setDefault() {
         when (val tokenState = state.value) {
             is CredentialState.Deleted -> {
@@ -245,7 +277,7 @@ class Credential internal constructor(
             }
 
             is CredentialState.Data -> {
-                credentialDataSource.internalReplaceToken(
+                credentialDataSource.internalReplaceCredential(
                     storageIdentifier,
                     tokenState.token,
                     tags,

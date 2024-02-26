@@ -24,6 +24,7 @@ import com.okta.authfoundation.InternalAuthFoundationApi
 import com.okta.authfoundation.TransparentBiometricActivity
 import com.okta.authfoundation.client.ApplicationContextHolder
 import com.okta.authfoundation.client.OidcConfiguration
+import com.okta.authfoundation.credential.CredentialDataSource.Companion.createCredentialDataSource
 import kotlinx.coroutines.suspendCancellableCoroutine
 import java.security.KeyFactory
 import java.security.KeyPairGenerator
@@ -36,14 +37,44 @@ import javax.crypto.spec.GCMParameterSpec
 import javax.crypto.spec.SecretKeySpec
 import kotlin.coroutines.Continuation
 
+/**
+ * Interface for defining how [Token]s are encrypted before storing in [RoomTokenStorage], the default implementation of [TokenStorage].
+ *
+ * The default implementation is provided, and handles all [Credential.Security] options.
+ * A custom implementation may be useful for more advanced use-cases, and for more fine-grained control in handling biometrics.
+ * Custom implementations of [TokenEncryptionHandler] can be passed to [CredentialDataSource.createCredentialDataSource].
+ */
 interface TokenEncryptionHandler {
+    /**
+     * Generate the key with the specified [Credential.Security]. If a key with [Credential.Security.keyAlias] already exists, do nothing.
+     *
+     * @param security the [Credential.Security] for creating the key. A key with [Credential.Security.keyAlias] must already exist or be created.
+     */
     fun generateKey(security: Credential.Security)
 
+    /**
+     * Encrypt the provided [token] with [security], and return the [EncryptionResult].
+     *
+     * @param token the [Token] to be encrypted.
+     * @param security the [Credential.Security] to encrypt the [token] with.
+     *
+     * @return [EncryptionResult] containing the [EncryptionResult.encryptedToken], and [EncryptionResult.encryptionExtras] containing encryption primitives for decryption (such as IV).
+     */
     suspend fun encrypt(
         token: Token,
         security: Credential.Security
     ): EncryptionResult
 
+    /**
+     * Decrypt the provided [encryptedToken], and return the [Token].
+     *
+     * @param encryptedToken the encrypted [Token] that was previously encrypted using [TokenEncryptionHandler.encrypt].
+     * @param encryptionExtras the encryption extras previously returned by [TokenEncryptionHandler.encrypt].
+     * @param security the [Credential.Security] object holding the required [Credential.Security.keyAlias] for decrypting [encryptedToken].
+     * @param promptInfo the [BiometricPrompt.PromptInfo] to be displayed if the stored [Token] is using biometric [Credential.Security].
+     *
+     * @return [Token] object from decrypting [encryptedToken].
+     */
     suspend fun decrypt(
         encryptedToken: ByteArray,
         encryptionExtras: Map<String, String>,
@@ -51,8 +82,17 @@ interface TokenEncryptionHandler {
         promptInfo: BiometricPrompt.PromptInfo? = Credential.Security.promptInfo
     ): Token
 
+    /**
+     * The encryption result when calling [TokenEncryptionHandler.encrypt].
+     */
     class EncryptionResult(
+        /**
+         * Encrypted token as a result of [TokenEncryptionHandler.encrypt].
+         */
         val encryptedToken: ByteArray,
+        /**
+         * Encryption primitives as a result of [TokenEncryptionHandler.encrypt].
+         */
         val encryptionExtras: Map<String, String>
     )
 }
@@ -145,15 +185,15 @@ class DefaultTokenEncryptionHandler(
         val encryptedToken = aesCipher.doFinal(serializedToken.toByteArray())
 
         val rsaCipher = getRsaCipher().apply { init(Cipher.ENCRYPT_MODE, publicRsaKey) }
-        val aesKeyAndIv = (
+        val aesKeyMaterial = (
             Base64.encodeToString(
                 aesKey.encoded,
                 Base64.NO_WRAP
             ) + BASE64_SEPARATOR + Base64.encodeToString(aesCipher.iv, Base64.NO_WRAP)
             ).toByteArray()
-        val encryptedAesKeyAndIv = rsaCipher.doFinal(aesKeyAndIv)
-        encryptionExtras[ENCRYPTED_AES_KEY_AND_IV] =
-            Base64.encodeToString(encryptedAesKeyAndIv, Base64.NO_WRAP)
+        val encryptedAesKeyMaterial = rsaCipher.doFinal(aesKeyMaterial)
+        encryptionExtras[ENCRYPTED_AES_KEY_MATERIAL] =
+            Base64.encodeToString(encryptedAesKeyMaterial, Base64.NO_WRAP)
 
         return TokenEncryptionHandler.EncryptionResult(encryptedToken, encryptionExtras.toMap())
     }
@@ -190,7 +230,7 @@ class DefaultTokenEncryptionHandler(
     }
 
     internal companion object {
-        internal const val ENCRYPTED_AES_KEY_AND_IV = "ENCRYPTED_AES_KEY_AND_IV"
+        internal const val ENCRYPTED_AES_KEY_MATERIAL = "ENCRYPTED_AES_KEY_MATERIAL"
         internal const val BASE64_SEPARATOR = ","
         internal const val BIO_TOKEN_NO_PROMPT_INFO_ERROR =
             "promptInfo is required for decrypting biometric tokens"
@@ -202,12 +242,12 @@ class DefaultTokenEncryptionHandler(
             rsaCipher: Cipher,
             encryptionExtras: Map<String, String>,
         ): Token {
-            val encryptedAesKeyAndIv = Base64.decode(encryptionExtras[ENCRYPTED_AES_KEY_AND_IV], Base64.NO_WRAP)
-            val aesKeyAndIv = rsaCipher.doFinal(encryptedAesKeyAndIv).decodeToString().split(
+            val encryptedAesKeyMaterial = Base64.decode(encryptionExtras[ENCRYPTED_AES_KEY_MATERIAL], Base64.NO_WRAP)
+            val aesKeyMaterial = rsaCipher.doFinal(encryptedAesKeyMaterial).decodeToString().split(
                 BASE64_SEPARATOR, limit = 2
             )
-            val encodedAesKey = Base64.decode(aesKeyAndIv[0], Base64.NO_WRAP)
-            val aesIv = Base64.decode(aesKeyAndIv[1], Base64.NO_WRAP)
+            val encodedAesKey = Base64.decode(aesKeyMaterial[0], Base64.NO_WRAP)
+            val aesIv = Base64.decode(aesKeyMaterial[1], Base64.NO_WRAP)
             val aesKey = SecretKeySpec(encodedAesKey, "AES") as SecretKey
 
             val aesCipher =

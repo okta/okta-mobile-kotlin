@@ -120,12 +120,30 @@ class Token(
         )
     }
 
+    /**
+     * Non-sensitive information about the [Token] to be used in storage.
+     */
     data class Metadata(
+        /**
+         * Storage id of the [Token].
+         */
         val id: String,
+        /**
+         * A user-specified map of values when storing the [Token].
+         */
         val tags: Map<String, String>,
+        /**
+         * The object holding claim values. Use [claimsProvider] for a more convenient way of accessing claims.
+         */
         val payloadData: JsonObject?,
+        /**
+         * true if [Token] is the default [Token], false otherwise
+         */
         val isDefault: Boolean = false
     ) {
+        /**
+         * Convenience object for accessing claims of this [Token]
+         */
         val claimsProvider: ClaimsProvider? = payloadData?.let {
             DefaultClaimsProvider(payloadData, OidcConfiguration.defaultJson())
         }

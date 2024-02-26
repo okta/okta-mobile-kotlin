@@ -92,7 +92,7 @@ class CredentialDataSourceTest {
 
     @Test fun `replaceToken fails when trying to replace a non-existent token`() = runTest {
         val exception = assertFailsWith<IllegalArgumentException> {
-            credentialDataSource.replaceToken("non-existent-id", token)
+            credentialDataSource.replaceCredential("non-existent-id", token)
         }
         assertThat(exception.message).isEqualTo("Can't replace non-existing token with id: non-existent-id")
     }
@@ -100,7 +100,7 @@ class CredentialDataSourceTest {
     @Test fun `replaceToken successfully replaces token in tokenStorage`() = runTest {
         roomTokenStorage.add(token, Token.Metadata("id", emptyMap(), null))
         val newToken = createToken(accessToken = "newToken")
-        val credential = credentialDataSource.replaceToken("id", newToken)
+        val credential = credentialDataSource.replaceCredential("id", newToken)
 
         assertThat(roomTokenStorage.getToken("id")).isEqualTo(newToken)
         assertThat(credential.token).isEqualTo(newToken)
@@ -109,7 +109,7 @@ class CredentialDataSourceTest {
     @Test fun `replaceToken successfully replaces token in cached credential objects`() = runTest {
         val credential = credentialDataSource.createCredential(token)
         val newToken = createToken(accessToken = "newToken")
-        val credential2 = credentialDataSource.replaceToken(credential.storageIdentifier, newToken)
+        val credential2 = credentialDataSource.replaceCredential(credential.storageIdentifier, newToken)
         assertThat(credential).isEqualTo(credential2)
         assertThat(credential.token).isEqualTo(newToken)
         assertThat(roomTokenStorage.getToken(credential.storageIdentifier)).isEqualTo(newToken)

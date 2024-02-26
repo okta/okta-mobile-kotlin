@@ -64,12 +64,16 @@ object CredentialBootstrap {
     /**
      * The default [Credential] associated with the associated [CredentialDataSource].
      *
-     * This will get the default [Credential] if one exists, or create the default [Credential] is there is not an existing one.
+     * This will get the default [Credential] if one exists, or return null if there is no existing default [Credential].
      */
     suspend fun defaultCredential(promptInfo: BiometricPrompt.PromptInfo? = Credential.Security.promptInfo): Credential? {
         return credentialDataSource.findCredential(promptInfo) { it.isDefault }.firstOrNull()
     }
 
+    /**
+     * Sets the default [Credential] to the provided [Token]. If no default [Credential] exists, this will create a new
+     * default [Credential] with the provided [Token].
+     */
     suspend fun setDefaultCredential(
         token: Token,
         tags: Map<String, String>? = null,
@@ -78,7 +82,7 @@ object CredentialBootstrap {
         return if (credentialDataSource.containsDefaultCredential()) {
             val defaultTokenId = credentialDataSource.allIds().first { credentialDataSource.metadata(it)?.isDefault == true }
             val metadata = credentialDataSource.metadata(defaultTokenId)!!
-            credentialDataSource.replaceToken(defaultTokenId, token, tags ?: metadata.tags, security, isDefault = true)
+            credentialDataSource.replaceCredential(defaultTokenId, token, tags ?: metadata.tags, security, isDefault = true)
         } else {
             credentialDataSource.createCredential(
                 token,

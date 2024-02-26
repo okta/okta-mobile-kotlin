@@ -120,7 +120,7 @@ class CredentialTest {
         val credential = oktaRule.createCredential(token = token, credentialDataSource = credentialDataSource)
         credential.delete()
         credential.storeToken(token = createToken())
-        verify(credentialDataSource, never()).internalReplaceToken(any(), any(), any(), any(), any())
+        verify(credentialDataSource, never()).internalReplaceCredential(any(), any(), any(), any(), any())
     }
 
     @Test fun testStoreTokenEmitsEventAfterRemove(): Unit = runBlocking {
@@ -286,7 +286,7 @@ class CredentialTest {
         val exception = (result as OidcClientResult.Error<Token>).exception
         assertThat(exception).isInstanceOf(IllegalStateException::class.java)
         assertThat(exception).hasMessageThat().isEqualTo("No Refresh Token.")
-        verify(credentialDataSource, never()).internalReplaceToken(any(), any(), any(), any(), any())
+        verify(credentialDataSource, never()).internalReplaceCredential(any(), any(), any(), any(), any())
     }
 
     @Test fun testRefreshTokenForwardsError(): Unit = runBlocking {
@@ -306,7 +306,7 @@ class CredentialTest {
         assertThat(result).isInstanceOf(OidcClientResult.Error::class.java)
         val exception = (result as OidcClientResult.Error<Token>).exception
         assertThat(exception).hasMessageThat().isEqualTo("From Test")
-        verify(credentialDataSource, never()).internalReplaceToken(any(), any(), any(), any(), any())
+        verify(credentialDataSource, never()).internalReplaceCredential(any(), any(), any(), any(), any())
     }
 
     @Test fun testRefreshToken(): Unit = runBlocking {
@@ -485,7 +485,7 @@ class CredentialTest {
         tags["from_test"] = "It works"
         val newToken = createToken(refreshToken = "stored!")
         credential.storeToken(token = newToken, tags = tags)
-        verify(credentialDataSource).internalReplaceToken(CredentialFactory.tokenStorageId, newToken, tags = tags, null, null)
+        verify(credentialDataSource).internalReplaceCredential(CredentialFactory.tokenStorageId, newToken, tags = tags, null, null)
         assertThat(credential.token).isEqualTo(newToken)
         assertThat(credential.tags).isEqualTo(tags)
     }
@@ -503,7 +503,7 @@ class CredentialTest {
         val newToken = createToken(refreshToken = "stored!")
         credential.storeToken(token = newToken)
         val expectedToken = createToken(refreshToken = "stored!", deviceSecret = "originalDeviceSecret")
-        verify(credentialDataSource).internalReplaceToken(CredentialFactory.tokenStorageId, expectedToken, tags = emptyMap(), null, null)
+        verify(credentialDataSource).internalReplaceCredential(CredentialFactory.tokenStorageId, expectedToken, tags = emptyMap(), null, null)
         assertThat(credential.token).isEqualTo(expectedToken)
         assertThat(credential.token?.refreshToken).isEqualTo("stored!")
         assertThat(credential.token?.deviceSecret).isEqualTo("originalDeviceSecret")
@@ -522,7 +522,7 @@ class CredentialTest {
         )
         val newToken = createToken(refreshToken = "stored!", deviceSecret = "updatedDeviceSecret")
         credential.storeToken(token = newToken)
-        verify(credentialDataSource).internalReplaceToken(CredentialFactory.tokenStorageId, newToken, tags = emptyMap(), null, null)
+        verify(credentialDataSource).internalReplaceCredential(CredentialFactory.tokenStorageId, newToken, tags = emptyMap(), null, null)
         assertThat(credential.token).isEqualTo(newToken)
         assertThat(credential.token?.refreshToken).isEqualTo("stored!")
         assertThat(credential.token?.deviceSecret).isEqualTo("updatedDeviceSecret")
@@ -803,7 +803,7 @@ class CredentialTest {
     @Test fun testStoreTokenExceptionCausesErrorResponse(): Unit = runBlocking {
         val credentialDataSource = mockk<CredentialDataSource>()
         coEvery {
-            credentialDataSource.internalReplaceToken(any(), any(), any(), any(), any())
+            credentialDataSource.internalReplaceCredential(any(), any(), any(), any(), any())
         } throws IllegalStateException("Expected From Test!")
 
         val credential = oktaRule.createCredential(
