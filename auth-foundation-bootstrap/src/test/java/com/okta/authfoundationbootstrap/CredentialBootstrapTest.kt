@@ -23,9 +23,9 @@ import com.okta.authfoundation.credential.CredentialDataSource
 import com.okta.authfoundation.credential.CredentialDataSource.Companion.createCredentialDataSource
 import com.okta.authfoundation.credential.RoomTokenStorage
 import com.okta.authfoundation.credential.Token
-import com.okta.authfoundation.credential.TokenEncryptionHandler
 import com.okta.authfoundation.credential.storage.TokenDatabase
 import com.okta.testhelpers.OktaRule
+import com.okta.testhelpers.TestTokenEncryptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.test.runTest
@@ -54,7 +54,7 @@ class CredentialBootstrapTest {
             ApplicationProvider.getApplicationContext(),
             TokenDatabase::class.java
         ).allowMainThreadQueries().build()
-        roomTokenStorage = RoomTokenStorage(database, TokenEncryptionHandler())
+        roomTokenStorage = RoomTokenStorage(database, TestTokenEncryptionHandler())
         token = createToken(accessToken = "mainToken")
         credentialDataSource = oktaRule.createOidcClient().createCredentialDataSource(roomTokenStorage)
         CredentialBootstrap.reset()

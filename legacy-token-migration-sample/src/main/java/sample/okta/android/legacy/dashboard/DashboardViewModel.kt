@@ -49,7 +49,7 @@ internal class DashboardViewModel : ViewModel() {
 
     init {
         viewModelScope.launch {
-            credential = CredentialBootstrap.defaultCredential()
+            credential = CredentialBootstrap.defaultCredential()!!
             _credentialLiveData.value = credential
             getUserInfo()
         }

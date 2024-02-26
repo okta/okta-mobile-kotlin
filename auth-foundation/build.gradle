@@ -1,9 +1,10 @@
 plugins {
     id 'com.google.devtools.ksp'
+    id 'com.android.library'
+    id 'kotlin-android'
+    id 'kotlin-parcelize'
 }
 
-apply plugin: 'com.android.library'
-apply plugin: 'kotlin-android'
 apply plugin: 'org.jetbrains.kotlin.plugin.serialization'
 apply plugin: 'org.jetbrains.dokka'
 apply plugin: 'com.vanniktech.maven.publish.base'
@@ -69,12 +70,18 @@ dependencies {
     api deps.okio.core
     api deps.androidx_biometric
 
+    implementation deps.lifecycle.viewmodel_ktx
+    implementation deps.androidx_activity_ktx
+    implementation deps.androidx_constraintlayout
+    implementation deps.androidx_sqlite
+    implementation deps.app_compat
     implementation deps.okio.jvm
     implementation deps.kotlin.serialization_okio
     implementation deps.security_crypto
     implementation deps.startup_runtime
     implementation deps.room.runtime
     implementation deps.room.ktx
+    implementation deps.sqlcipher_android
     annotationProcessor deps.room.compiler
     ksp deps.room.compiler
 
@@ -100,6 +107,7 @@ dependencies {
     androidTestImplementation deps.androidx_test.ext_junit
     androidTestImplementation deps.androidx_test.runner
     androidTestImplementation deps.androidx_test.rules
+    androidTestImplementation deps.coroutines.test
     androidTestImplementation project(':test-helpers')
 }
 

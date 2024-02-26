@@ -30,7 +30,25 @@ public final class com/okta/authfoundation/AuthFoundationDefaults$Encryption {
 	public final fun setKeyAlias (Ljava/lang/String;)V
 }
 
+public final class com/okta/authfoundation/BiometricAuthenticationException : java/lang/IllegalAccessException {
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;)V
+}
+
 public abstract interface annotation class com/okta/authfoundation/InternalAuthFoundationApi : java/lang/annotation/Annotation {
+}
+
+public final class com/okta/authfoundation/TransparentBiometricActivity : androidx/appcompat/app/AppCompatActivity {
+	public fun <init> ()V
+	public fun finish ()V
+}
+
+public final class com/okta/authfoundation/TransparentBiometricActivity$ActivityParameters$Creator : android/os/Parcelable$Creator {
+	public fun <init> ()V
+	public final fun createFromParcel (Landroid/os/Parcel;)Lcom/okta/authfoundation/TransparentBiometricActivity$ActivityParameters;
+	public synthetic fun createFromParcel (Landroid/os/Parcel;)Ljava/lang/Object;
+	public final fun newArray (I)[Lcom/okta/authfoundation/TransparentBiometricActivity$ActivityParameters;
+	public synthetic fun newArray (I)[Ljava/lang/Object;
 }
 
 public abstract interface class com/okta/authfoundation/claims/ClaimsProvider {
@@ -365,7 +383,18 @@ public final class com/okta/authfoundation/credential/CredentialDataSource {
 
 public final class com/okta/authfoundation/credential/CredentialDataSource$Companion {
 	public final fun createCredentialDataSource (Lcom/okta/authfoundation/client/OidcClient;Landroid/content/Context;)Lcom/okta/authfoundation/credential/CredentialDataSource;
+	public final fun createCredentialDataSource (Lcom/okta/authfoundation/client/OidcClient;Landroid/content/Context;Lcom/okta/authfoundation/credential/TokenEncryptionHandler;)Lcom/okta/authfoundation/credential/CredentialDataSource;
 	public final fun createCredentialDataSource (Lcom/okta/authfoundation/client/OidcClient;Lcom/okta/authfoundation/credential/TokenStorage;)Lcom/okta/authfoundation/credential/CredentialDataSource;
+	public static synthetic fun createCredentialDataSource$default (Lcom/okta/authfoundation/credential/CredentialDataSource$Companion;Lcom/okta/authfoundation/client/OidcClient;Landroid/content/Context;Lcom/okta/authfoundation/credential/TokenEncryptionHandler;ILjava/lang/Object;)Lcom/okta/authfoundation/credential/CredentialDataSource;
+}
+
+public final class com/okta/authfoundation/credential/DefaultTokenEncryptionHandler : com/okta/authfoundation/credential/TokenEncryptionHandler {
+	public fun <init> ()V
+	public fun <init> (Ljava/security/KeyStore;Ljava/security/KeyPairGenerator;)V
+	public synthetic fun <init> (Ljava/security/KeyStore;Ljava/security/KeyPairGenerator;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun decrypt ([BLjava/util/Map;Lcom/okta/authfoundation/credential/Credential$Security;Landroidx/biometric/BiometricPrompt$PromptInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun encrypt (Lcom/okta/authfoundation/credential/Token;Lcom/okta/authfoundation/credential/Credential$Security;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun generateKey (Lcom/okta/authfoundation/credential/Credential$Security;)V
 }
 
 public final class com/okta/authfoundation/credential/RevokeAllException : java/lang/Exception {
@@ -379,6 +408,18 @@ public final class com/okta/authfoundation/credential/RevokeTokenType : java/lan
 	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public static fun valueOf (Ljava/lang/String;)Lcom/okta/authfoundation/credential/RevokeTokenType;
 	public static fun values ()[Lcom/okta/authfoundation/credential/RevokeTokenType;
+}
+
+public final class com/okta/authfoundation/credential/RoomTokenStorage : com/okta/authfoundation/credential/TokenStorage {
+	public fun <init> (Lcom/okta/authfoundation/credential/storage/TokenDatabase;Lcom/okta/authfoundation/credential/TokenEncryptionHandler;)V
+	public fun add (Lcom/okta/authfoundation/credential/Token;Lcom/okta/authfoundation/credential/Token$Metadata;Lcom/okta/authfoundation/credential/Credential$Security;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun allIds (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getDefaultToken (Landroidx/biometric/BiometricPrompt$PromptInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getToken (Ljava/lang/String;Landroidx/biometric/BiometricPrompt$PromptInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun metadata (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun remove (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun replace (Ljava/lang/String;Lcom/okta/authfoundation/credential/Token;Lcom/okta/authfoundation/credential/Token$Metadata;Lcom/okta/authfoundation/credential/Credential$Security;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun setMetadata (Lcom/okta/authfoundation/credential/Token$Metadata;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class com/okta/authfoundation/credential/Token {
@@ -432,11 +473,20 @@ public final class com/okta/authfoundation/credential/Token$Metadata {
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class com/okta/authfoundation/credential/TokenEncryptionHandler {
-	public fun <init> ()V
-	public final fun decrypt ([BLjava/util/Map;Lcom/okta/authfoundation/credential/Credential$Security;Landroidx/biometric/BiometricPrompt$PromptInfo;)Lcom/okta/authfoundation/credential/Token;
-	public static synthetic fun decrypt$default (Lcom/okta/authfoundation/credential/TokenEncryptionHandler;[BLjava/util/Map;Lcom/okta/authfoundation/credential/Credential$Security;Landroidx/biometric/BiometricPrompt$PromptInfo;ILjava/lang/Object;)Lcom/okta/authfoundation/credential/Token;
-	public final fun encrypt (Lcom/okta/authfoundation/credential/Token;Lcom/okta/authfoundation/credential/Credential$Security;)Lkotlin/Pair;
+public abstract interface class com/okta/authfoundation/credential/TokenEncryptionHandler {
+	public abstract fun decrypt ([BLjava/util/Map;Lcom/okta/authfoundation/credential/Credential$Security;Landroidx/biometric/BiometricPrompt$PromptInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun encrypt (Lcom/okta/authfoundation/credential/Token;Lcom/okta/authfoundation/credential/Credential$Security;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun generateKey (Lcom/okta/authfoundation/credential/Credential$Security;)V
+}
+
+public final class com/okta/authfoundation/credential/TokenEncryptionHandler$DefaultImpls {
+	public static synthetic fun decrypt$default (Lcom/okta/authfoundation/credential/TokenEncryptionHandler;[BLjava/util/Map;Lcom/okta/authfoundation/credential/Credential$Security;Landroidx/biometric/BiometricPrompt$PromptInfo;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class com/okta/authfoundation/credential/TokenEncryptionHandler$EncryptionResult {
+	public fun <init> ([BLjava/util/Map;)V
+	public final fun getEncryptedToken ()[B
+	public final fun getEncryptionExtras ()Ljava/util/Map;
 }
 
 public abstract interface class com/okta/authfoundation/credential/TokenStorage {

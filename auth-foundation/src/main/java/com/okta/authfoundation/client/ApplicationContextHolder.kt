@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-Present Okta, Inc.
+ * Copyright 2024-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,19 @@
  */
 package com.okta.authfoundation.client
 
+import android.app.Application
 import android.content.Context
-import androidx.startup.Initializer
 
-class DeviceTokenInitializer : Initializer<DeviceTokenProvider> {
-    override fun create(context: Context): DeviceTokenProvider {
-        ApplicationContextHolder.appContext = context.applicationContext
-        return DeviceTokenProvider.initialize(context)
-    }
+internal object ApplicationContextHolder {
+    private var _appContext: Context? = null
 
-    override fun dependencies(): List<Class<out Initializer<*>>> = emptyList()
+    internal var appContext: Context
+        get() = _appContext!!
+        set(context) {
+            _appContext = if (context is Application) {
+                context
+            } else {
+                context.applicationContext
+            }
+        }
 }
