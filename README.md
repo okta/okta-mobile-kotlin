@@ -117,19 +117,9 @@ val client = OidcClient.createFromDiscoveryUrl(
 CredentialBootstrap.initialize(client.createCredentialDataSource(context))
 ```
 
-#### Create a Credential
-
-The Credential type handles storage, OAuth conveniences and authorizing requests to your Resource Server after login occurs. Before authenticating, we'll create the credential.
-
-```kotlin
-import com.okta.authfoundationbootstrap.CredentialBootstrap
-
-val credential: Credential = CredentialBootstrap.defaultCredential()
-```
-
 #### Create a Web Authentication Client
 
-Once you've created your `Credential`, we'll use it to create our `WebAuthenticationClient` and authenticate.
+We will create a `WebAuthenticationClient` and use it to perform authentication.
 
 This launches a [Chrome Custom Tab](https://developer.chrome.com/docs/android/custom-tabs/) to display the login form, and once complete, redirects back to the application.
 
@@ -142,7 +132,7 @@ import com.okta.webauthenticationui.WebAuthenticationClient
 import com.okta.webauthenticationui.WebAuthenticationClient.Companion.createWebAuthenticationClient
 
 val context: Context = TODO("Supplied by the developer.")
-val credential: Credential = TODO("Available from previous steps.")
+val credential: Credential
 val redirectUrl: String = TODO("signInRedirectUri supplied by the developer.")
 val webAuthenticationClient = CredentialBootstrap.oidcClient.createWebAuthenticationClient()
 when (val result = webAuthenticationClient.login(context, redirectUrl)) {
@@ -151,8 +141,8 @@ when (val result = webAuthenticationClient.login(context, redirectUrl)) {
         // TODO: Display an error to the user.
     }
     is OidcClientResult.Success -> {
-      credential.storeToken(token = result.result)
-      // The credential instance now has a token! You can use the `Credential` to make calls to OAuth endpoints, or to sign requests!
+      credential = CredentialBootstrap.setDefaultCredential(token = result.result)
+      // The credential instance is now initialized! You can use the `Credential` to make calls to OAuth endpoints, or to sign requests!
     }
 }
 ```
@@ -184,7 +174,7 @@ import com.okta.authfoundationbootstrap.CredentialBootstrap
 import com.okta.oauth2.DeviceAuthorizationFlow
 import com.okta.oauth2.DeviceAuthorizationFlow.Companion.createDeviceAuthorizationFlow
 
-val credential: Credential = CredentialBootstrap.defaultCredential()
+val credential: Credential
 val deviceAuthorizationFlow: DeviceAuthorizationFlow = CredentialBootstrap.oidcClient.createDeviceAuthorizationFlow()
 
 when (val result = deviceAuthorizationFlow.start()) {
@@ -203,8 +193,8 @@ when (val result = deviceAuthorizationFlow.start()) {
         // TODO: Display an error to the user.
       }
       is OidcClientResult.Success -> {
-        credential.storeToken(token = result.result)
-        // The credential instance now has a token! You can use the `Credential` to make calls to OAuth endpoints, or to sign requests!
+        credential = CredentialBootstrap.setDefaultCredential(token = result.result)
+        // The credential instance is now initialized! You can use the `Credential` to make calls to OAuth endpoints, or to sign requests!
       }
     }
   }
@@ -226,7 +216,6 @@ import com.okta.oauth2.TokenExchangeFlow
 import com.okta.oauth2.TokenExchangeFlow.Companion.createTokenExchangeFlow
 
 val credentialDataSource: CredentialDataSource = CredentialBootstrap.credentialDataSource
-val tokenExchangeCredential: Credential = credentialDataSource.createCredential()
 val tokenExchangeFlow: TokenExchangeFlow = CredentialBootstrap.oidcClient.createTokenExchangeFlow()
 when (val result = tokenExchangeFlow.start(idToken, deviceSecret)) {
   is OidcClientResult.Error -> {
@@ -234,8 +223,8 @@ when (val result = tokenExchangeFlow.start(idToken, deviceSecret)) {
       // TODO: Display an error to the user.
   }
   is OidcClientResult.Success -> {
-    tokenExchangeCredential.storeToken(token = result.result)
-    // The credential instance now has a token! You can use the `Credential` to make calls to OAuth endpoints, or to sign requests!
+    val tokenExchangeCredential = credentialDataSource.createCredential(result.result)
+    // The credential instance is now initialized! You can use the `Credential` to make calls to OAuth endpoints, or to sign requests!
   }
 }
 ```
@@ -262,20 +251,43 @@ There are multiple terms that might be confused when logging a user out.
 ### Using a Credential to determine user authentication status
 There are a few options to determine the status of a user authentication. Each option has unique pros and cons and should be chosen based on the needs of your use case.
 
-- Non null token: `CredentialBootstrap.defaultCredential().token != null`
-- getValidAccessToken: `CredentialBootstrap.defaultCredential().getValidAccessToken() != null`
-- Custom implementation: `CredentialBootstrap.defaultCredential().token`, `CredentialBootstrap.defaultCredential().refresh()`, and `CredentialBootstrap.defaultCredential().getAccessTokenIfValid()`
+- Non null default credential: `CredentialBootstrap.defaultCredential() != null`
+- getValidAccessToken: `CredentialBootstrap.defaultCredential()?.getValidAccessToken() != null`
+- Custom implementation: `CredentialBootstrap.defaultCredential()?.token`, `CredentialBootstrap.defaultCredential()?.refresh()`, and `CredentialBootstrap.defaultCredential()?.getAccessTokenIfValid()`
 
 Details on each approach are below.
 
-#### Determine authentication status via non null token
-`Credential`s do not require a `Token`. If `credential.token == null` then it is not possible for a user to be authenticated. The benefit to using this approach is that the `token` property is available in memory, and can be accessed immediately in a non blocking way.
+#### Determine authentication status via non null Credential
+`Credential`s require a `Token`. If there are no `Credential`s present, then no `Token` has been stored. Note that `Credential.defaultCredential()` can be a blocking call if the `Credential` was stored using `Credential.Security.Biometric<Strong/StrongOrDeviceCredential>`.
 
 #### Determine authentication status via getValidAccessToken
 `Credential` has a method called `getValidAccessToken` which checks to see if the credential has a token, and has a valid access token. If the access token is expired, and a refresh token exists, a `refresh` is implicitly called on the `Credential`. If the implicit `refresh` is successful, `getValidAccessToken` returns the new access token. There are two main down sides to this approach. First, it's a `suspend fun` and could make network calls. Second, the failure is not returned, an error could occur due to a network error, a missing token, a missing refresh token, or a configuration error.
 
 #### Determine authentication status via custom implementation
 If your use case requires insight into errors and the current state of the `Credential`, you can use implement it to your needs with the primitives `Credential` provides. See the documentation for the associated properties and methods: `Credential.token`, `Credential.refresh()`, `Credential.getAccessTokenIfValid()`.
+
+### Biometric Credentials
+The SDK has built-in support for handling Biometric encryption. To set the default token encryption as Biometric, `Credential.Security.standard` can be set to `Credential.Security.BiometricStrong` or `Credential.Security.BiometricStrongOrDeviceCredential`. Biometric encryption also requires setting `Credential.Security.promptInfo`.
+
+#### Setting Biometric security for new Credentials
+
+```kotlin
+Credential.Security.standard = Credential.Security.BiometricStrong
+Credential.Security.promptInfo = BiometricPrompt.PromptInfo.Builder()
+  .setTitle("Title")
+  .setNegativeButtonText("Cancel Button")
+  .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG)
+  .build()
+```
+
+#### Changing security level of existing Credential
+
+After setting the `Credential.Security.standard`, any newly created `Credential` will be stored using Biometric encryption. Note that this does not change the security level of previously stored `Credential`s in storage. The security level of a stored `Credential` can be changed as follows:
+
+```kotlin
+val credential = CredentialBootstrap.defaultCredential() // Or any Credential object
+credential.storeToken(security = Credential.Security.BiometricStrong)
+```
 
 ### Networking customization
 
@@ -347,6 +359,33 @@ val oidcConfiguration = OidcConfiguration(
   defaultScope = "openid email profile offline_access",
 )
 ```
+
+## Migrating from okta-mobile-kotlin 1.x to 2.x
+
+### Token migration
+
+Token migration is handled automatically by the SDK, unless a custom TokenStorage implementation is used. In case the app uses a custom TokenStorage implementation, Tokens can be migrated as follows:
+
+```kotlin
+val tokenEntry: Token.Entry = TODO("Token.Entry supplied by developer from their custom TokenStorage")
+if (tokenEntry.token != null) {
+    CredentialBootstrap.credentialDataSource.createCredential(
+      tokenEntry.token,
+      tokenEntry.tags,
+      security = TODO("Optional parameter for specifying security"),
+      isDefault = TODO("Optional parameter for setting this Token as default")
+    )
+} else {
+    // New TokenStorage does not have entries without a Token object
+}
+```
+
+### API migration
+
+`CredentialBootstrap`, `CredentialDataSource`, and `Credential` contain several changes over 1.x. `Credential`s can no longer contain a null `Token`. Because of this change from 1.x, the flow for creating `Credential` without `Token`, followed by calling `Credential.storeToken` can no longer be used.
+When creating a new `Credential`, either with `CredentialBootstrap.credentialDataSource.createCredential` or `CredentialBootstrap.setDefaultCredential`, a `Token` must be provided.
+
+1.x would create a new `Credential` with null `Token` if no default `Credential` existed when calling `CredentialBootstrap.defaultCredential()`. In 2.x, `CredentialBootstrap.defaultCredential()` now returns `Credential?` instead of `Credential` if no default `Credential` exists.
 
 ## Troubleshooting
 
