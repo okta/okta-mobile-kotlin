@@ -40,4 +40,6 @@ dependencies {
 
     implementation deps.okio.jvm
     implementation deps.okhttp.tls
+    implementation deps.mockk.android
+    implementation deps.mockk.agent
 }

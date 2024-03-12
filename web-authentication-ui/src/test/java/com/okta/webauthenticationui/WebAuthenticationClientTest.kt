@@ -143,10 +143,7 @@ class WebAuthenticationClientTest {
         oktaRule.enqueue(path("/.well-known/openid-configuration")) { response ->
             response.setResponseCode(503)
         }
-        val client = OidcClient.createFromDiscoveryUrl(
-            oktaRule.configuration,
-            oktaRule.baseUrl.newBuilder().encodedPath("/.well-known/openid-configuration").build()
-        )
+        val client = OidcClient.createFromConfiguration(oktaRule.configuration)
         val webAuthenticationProvider = mock<WebAuthenticationProvider>()
         val webAuthenticationClient = client.createWebAuthenticationClient(webAuthenticationProvider)
         val context = mock<Context>()
@@ -253,10 +250,7 @@ class WebAuthenticationClientTest {
         oktaRule.enqueue(path("/.well-known/openid-configuration")) { response ->
             response.setResponseCode(503)
         }
-        val client = OidcClient.createFromDiscoveryUrl(
-            oktaRule.configuration,
-            oktaRule.baseUrl.newBuilder().encodedPath("/.well-known/openid-configuration").build()
-        )
+        val client = OidcClient.createFromConfiguration(oktaRule.configuration)
         val webAuthenticationProvider = mock<WebAuthenticationProvider>()
         val webAuthenticationClient = client.createWebAuthenticationClient(webAuthenticationProvider)
         val context = mock<Context>()

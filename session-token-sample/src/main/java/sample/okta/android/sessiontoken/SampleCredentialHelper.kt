@@ -30,11 +30,9 @@ internal object SampleCredentialHelper {
         val oidcConfiguration = OidcConfiguration(
             clientId = BuildConfig.CLIENT_ID,
             defaultScope = "openid email profile offline_access",
+            discoveryUrl = "${BuildConfig.ISSUER}/.well-known/openid-configuration"
         )
-        val oidcClient = OidcClient.createFromDiscoveryUrl(
-            oidcConfiguration,
-            "${BuildConfig.ISSUER}/.well-known/openid-configuration".toHttpUrl(),
-        )
+        val oidcClient = OidcClient.createFromConfiguration(oidcConfiguration)
         CredentialBootstrap.initialize(oidcClient.createCredentialDataSource(context))
     }
 }

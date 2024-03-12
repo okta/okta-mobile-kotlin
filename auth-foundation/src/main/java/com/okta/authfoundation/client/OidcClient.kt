@@ -35,7 +35,6 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.serialization.json.JsonObject
 import okhttp3.FormBody
-import okhttp3.HttpUrl
 import okhttp3.Request
 
 /**
@@ -57,18 +56,15 @@ class OidcClient private constructor(
          *
          * @param configuration the [OidcConfiguration] detailing the settings to be used when communicating with the Authorization
          *  server, as well as with the rest of the SDK.
-         * @param discoveryUrl the `.well-known/openid-configuration` endpoint associated with the Authorization Server. This is
-         *  used to fetch the [OidcEndpoints].
          */
-        fun createFromDiscoveryUrl(
-            configuration: OidcConfiguration,
-            discoveryUrl: HttpUrl
+        fun createFromConfiguration(
+            configuration: OidcConfiguration
         ): OidcClient {
             return OidcClient(
                 configuration = configuration,
                 endpoints = CoalescingOrchestrator(
                     factory = {
-                        EndpointsFactory.get(configuration, discoveryUrl)
+                        EndpointsFactory.get(configuration)
                     },
                     keepDataInMemory = { result ->
                         result is OidcClientResult.Success

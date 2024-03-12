@@ -25,6 +25,8 @@ import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.client.OidcEndpoints
 import com.okta.authfoundation.events.EventCoordinator
+import io.mockk.every
+import io.mockk.mockkObject
 import okhttp3.CookieJar
 import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
@@ -55,20 +57,25 @@ class OktaRule(
     fun createConfiguration(
         okHttpClient: OkHttpClient = this.okHttpClient,
         cache: Cache = AuthFoundationDefaults.cache,
-    ) = OidcConfiguration(
-        clientId = "unit_test_client_id",
-        defaultScope = "openid email profile offline_access",
-        okHttpClientFactory = { okHttpClient },
-        eventCoordinator = EventCoordinator(eventHandler),
-        clock = clock,
-        idTokenValidator = idTokenValidator,
-        accessTokenValidator = accessTokenValidator,
-        deviceSecretValidator = deviceSecretValidator,
-        ioDispatcher = EmptyCoroutineContext,
-        computeDispatcher = EmptyCoroutineContext,
-        cache = cache,
-        cookieJar = CookieJar.NO_COOKIES,
-    )
+    ): OidcConfiguration {
+        mockkObject(AuthFoundationDefaults)
+        every { AuthFoundationDefaults.okHttpClientFactory } returns { okHttpClient }
+        every { AuthFoundationDefaults.eventCoordinator } returns EventCoordinator(eventHandler)
+        every { AuthFoundationDefaults.clock } returns clock
+        every { AuthFoundationDefaults.idTokenValidator } returns idTokenValidator
+        every { AuthFoundationDefaults.accessTokenValidator } returns accessTokenValidator
+        every { AuthFoundationDefaults.deviceSecretValidator } returns deviceSecretValidator
+        every { AuthFoundationDefaults.ioDispatcher } returns EmptyCoroutineContext
+        every { AuthFoundationDefaults.computeDispatcher } returns EmptyCoroutineContext
+        every { AuthFoundationDefaults.cache } returns cache
+        every { AuthFoundationDefaults.cookieJar } returns CookieJar.NO_COOKIES
+
+        return OidcConfiguration(
+            clientId = "unit_test_client_id",
+            defaultScope = "openid email profile offline_access",
+            discoveryUrl = baseUrl.newBuilder().encodedPath("/.well-known/openid-configuration").build().toString()
+        )
+    }
 
     fun createEndpoints(
         urlBuilder: HttpUrl.Builder = baseUrl.newBuilder(),

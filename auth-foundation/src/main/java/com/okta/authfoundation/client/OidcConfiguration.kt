@@ -20,6 +20,8 @@ import com.okta.authfoundation.AuthFoundationDefaults
 import com.okta.authfoundation.InternalAuthFoundationApi
 import com.okta.authfoundation.client.internal.SdkVersionsRegistry
 import com.okta.authfoundation.events.EventCoordinator
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import kotlinx.serialization.json.Json
 import okhttp3.Call
 import okhttp3.CookieJar
@@ -33,45 +35,49 @@ import kotlin.coroutines.CoroutineContext
  *
  * This class is used to define the configuration, as defined in your Okta application settings, that will be used to interact with the OIDC Authorization Server.
  */
-class OidcConfiguration @InternalAuthFoundationApi constructor(
+@Serializable
+class OidcConfiguration private constructor(
     /** The application's client ID. */
     @property:InternalAuthFoundationApi val clientId: String,
 
     /** The default access scopes required by the client, can be overridden when logging in. */
     @property:InternalAuthFoundationApi val defaultScope: String,
 
+    /** The `.well-known/openid-configuration` endpoint associated with the Authorization Server. This is used to fetch the [OidcEndpoints]. */
+    @property:InternalAuthFoundationApi val discoveryUrl: String,
+
     /** The Call.Factory which makes calls to the okta server. */
-    okHttpClientFactory: () -> Call.Factory,
+    @property:InternalAuthFoundationApi val okHttpClientFactory: () -> Call.Factory = AuthFoundationDefaults.okHttpClientFactory,
 
     /** The CoroutineDispatcher which should be used for IO bound tasks. */
-    @property:InternalAuthFoundationApi val ioDispatcher: CoroutineContext,
+    @property:InternalAuthFoundationApi val ioDispatcher: CoroutineContext = AuthFoundationDefaults.ioDispatcher,
 
     /** The CoroutineDispatcher which should be used for compute bound tasks. */
-    @property:InternalAuthFoundationApi val computeDispatcher: CoroutineContext,
+    @property:InternalAuthFoundationApi val computeDispatcher: CoroutineContext = AuthFoundationDefaults.computeDispatcher,
 
     /** The OidcClock which is used for all time related functions in the SDK. */
-    @property:InternalAuthFoundationApi val clock: OidcClock,
+    @property:InternalAuthFoundationApi val clock: OidcClock = AuthFoundationDefaults.clock,
 
     /** The EventCoordinator which the OidcClient should emit events to. */
-    @property:InternalAuthFoundationApi val eventCoordinator: EventCoordinator,
+    @Transient @property:InternalAuthFoundationApi val eventCoordinator: EventCoordinator = AuthFoundationDefaults.eventCoordinator,
 
     /** The IdTokenValidator used to validate the Id Token Jwt when tokens are minted. */
-    @property:InternalAuthFoundationApi val idTokenValidator: IdTokenValidator,
+    @property:InternalAuthFoundationApi val idTokenValidator: IdTokenValidator = AuthFoundationDefaults.idTokenValidator,
 
     /** The AccessTokenValidator used to validate the Access Token when tokens are minted. */
-    @property:InternalAuthFoundationApi val accessTokenValidator: AccessTokenValidator,
+    @property:InternalAuthFoundationApi val accessTokenValidator: AccessTokenValidator = AuthFoundationDefaults.accessTokenValidator,
 
     /** The DeviceSecretValidator used to validate the device secret when tokens are minted. */
     @property:InternalAuthFoundationApi
-    val deviceSecretValidator: DeviceSecretValidator,
+    val deviceSecretValidator: DeviceSecretValidator = AuthFoundationDefaults.deviceSecretValidator,
 
     /** The Cache used to optimize network calls by the SDK. */
     @property:InternalAuthFoundationApi
-    val cache: Cache,
+    val cache: Cache = AuthFoundationDefaults.cache,
 
     /** The CookieJar used for the network calls used by the SDK. */
     @property:InternalAuthFoundationApi
-    val cookieJar: CookieJar
+    val cookieJar: CookieJar = AuthFoundationDefaults.cookieJar
 ) {
     /**
      * Used to create an OidcConfiguration.
@@ -83,9 +89,13 @@ class OidcConfiguration @InternalAuthFoundationApi constructor(
         clientId: String,
         /** The default access scopes required by the client, can be overridden when logging in. */
         defaultScope: String,
+        /** The `.well-known/openid-configuration` endpoint associated with the Authorization Server. This is
+         * used to fetch the [OidcEndpoints]. */
+        discoveryUrl: String,
     ) : this(
         clientId = clientId,
         defaultScope = defaultScope,
+        discoveryUrl = discoveryUrl,
         okHttpClientFactory = AuthFoundationDefaults.okHttpClientFactory,
         ioDispatcher = AuthFoundationDefaults.ioDispatcher,
         computeDispatcher = AuthFoundationDefaults.computeDispatcher,
@@ -118,7 +128,7 @@ class OidcConfiguration @InternalAuthFoundationApi constructor(
     }
 
     /** The Json object to do the decoding from the okta server responses. */
-    @InternalAuthFoundationApi val json: Json = defaultJson()
+    @Transient @InternalAuthFoundationApi val json: Json = defaultJson()
 
     internal companion object {
         internal fun defaultJson(): Json = Json { ignoreUnknownKeys = true }
