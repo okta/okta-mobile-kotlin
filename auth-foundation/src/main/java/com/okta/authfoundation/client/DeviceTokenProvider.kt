@@ -20,26 +20,23 @@ import android.content.SharedPreferences
 import androidx.annotation.VisibleForTesting
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKeys
+import kotlinx.coroutines.runBlocking
 import java.util.UUID
 
-class DeviceTokenProvider private constructor(private val appContext: Context) {
+internal class DeviceTokenProvider(private val appContext: Context) {
     internal companion object {
-        private const val FILE_NAME = "com.okta.authfoundation.device_token_storage"
+        @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+        internal const val FILE_NAME = "com.okta.authfoundation.device_token_storage"
         @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
         internal const val PREFERENCE_KEY = "com.okta.authfoundation.device_token_key"
 
-        private val lock = Any()
-        private lateinit var instance: DeviceTokenProvider
+        internal val instance: DeviceTokenProvider by lazy {
+            val appContext = runBlocking { ApplicationContextHolder.getApplicationContext() }
+            DeviceTokenProvider(appContext)
+        }
+
         internal val deviceToken: String
             get() = instance.deviceToken.filter { it.isLetterOrDigit() }
-
-        internal fun initialize(context: Context): DeviceTokenProvider {
-            synchronized(lock) {
-                if (::instance.isInitialized) return instance
-                instance = DeviceTokenProvider(context.applicationContext)
-                return instance
-            }
-        }
     }
 
     private val masterKeyAlias = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC)
@@ -67,10 +64,14 @@ class DeviceTokenProvider private constructor(private val appContext: Context) {
 
     private val sharedPrefsEditor = sharedPrefs.edit()
 
-    private val deviceToken = sharedPrefs.getString(PREFERENCE_KEY, null) ?: run {
-        val newDeviceToken = UUID.randomUUID().toString()
-        sharedPrefsEditor.putString(PREFERENCE_KEY, newDeviceToken)
-        sharedPrefsEditor.commit()
-        newDeviceToken
-    }
+    internal val deviceToken: String
+        get() {
+            val tokenUUID = sharedPrefs.getString(PREFERENCE_KEY, null) ?: run {
+                val newDeviceToken = UUID.randomUUID().toString()
+                sharedPrefsEditor.putString(PREFERENCE_KEY, newDeviceToken)
+                sharedPrefsEditor.commit()
+                newDeviceToken
+            }
+            return tokenUUID.filter { it.isLetterOrDigit() }
+        }
 }

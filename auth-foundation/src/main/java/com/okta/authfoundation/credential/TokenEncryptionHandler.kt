@@ -206,13 +206,14 @@ class DefaultTokenEncryptionHandler(
     ): Token {
         val userAuthenticationRequired = security is Credential.BiometricSecurity
         return if (userAuthenticationRequired) {
+            val appContext = ApplicationContextHolder.getApplicationContext()
             if (promptInfo == null) {
                 throw IllegalArgumentException(BIO_TOKEN_NO_PROMPT_INFO_ERROR)
             }
             suspendCancellableCoroutine { continuation ->
                 biometricDecryptionContinuation = continuation
                 TransparentBiometricActivity.navigate(
-                    ApplicationContextHolder.appContext,
+                    appContext,
                     TransparentBiometricActivity.ActivityParameters(
                         keyStore.provider.name,
                         encryptedToken,

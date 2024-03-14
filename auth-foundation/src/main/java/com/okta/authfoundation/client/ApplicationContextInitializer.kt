@@ -17,11 +17,12 @@ package com.okta.authfoundation.client
 
 import android.content.Context
 import androidx.startup.Initializer
+import kotlinx.coroutines.runBlocking
 
-class DeviceTokenInitializer : Initializer<DeviceTokenProvider> {
-    override fun create(context: Context): DeviceTokenProvider {
-        ApplicationContextHolder.appContext = context.applicationContext
-        return DeviceTokenProvider.initialize(context)
+class ApplicationContextInitializer : Initializer<Unit> {
+    override fun create(context: Context) {
+        // This is on a worker thread during app initialization
+        runBlocking { ApplicationContextHolder.setApplicationContext(context.applicationContext) }
     }
 
     override fun dependencies(): List<Class<out Initializer<*>>> = emptyList()

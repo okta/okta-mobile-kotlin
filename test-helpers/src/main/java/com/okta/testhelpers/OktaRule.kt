@@ -21,6 +21,7 @@ import com.okta.authfoundation.client.AccessTokenValidator
 import com.okta.authfoundation.client.Cache
 import com.okta.authfoundation.client.DeviceSecretValidator
 import com.okta.authfoundation.client.IdTokenValidator
+import com.okta.authfoundation.client.NoOpCache
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.client.OidcEndpoints
@@ -56,7 +57,7 @@ class OktaRule(
 
     fun createConfiguration(
         okHttpClient: OkHttpClient = this.okHttpClient,
-        cache: Cache = AuthFoundationDefaults.cache,
+        cache: Cache = NoOpCache(),
     ): OidcConfiguration {
         mockkObject(AuthFoundationDefaults)
         every { AuthFoundationDefaults.okHttpClientFactory } returns { okHttpClient }

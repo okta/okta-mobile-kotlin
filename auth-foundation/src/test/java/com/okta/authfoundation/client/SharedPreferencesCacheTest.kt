@@ -17,25 +17,39 @@ package com.okta.authfoundation.client
 
 import androidx.test.core.app.ApplicationProvider
 import com.google.common.truth.Truth.assertThat
+import io.mockk.coEvery
+import io.mockk.mockkObject
+import io.mockk.unmockkAll
+import org.junit.After
+import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 
 @RunWith(RobolectricTestRunner::class)
 internal class SharedPreferencesCacheTest {
+    @Before fun setup() {
+        mockkObject(ApplicationContextHolder)
+        coEvery { ApplicationContextHolder.getApplicationContext() } returns ApplicationProvider.getApplicationContext()
+    }
+
+    @After fun tearDown() {
+        unmockkAll()
+    }
+
     @Test fun testGetWithoutSet() {
-        val subject = SharedPreferencesCache.create(ApplicationProvider.getApplicationContext())
+        val subject = SharedPreferencesCache.instance
         assertThat(subject.get("foo")).isNull()
     }
 
     @Test fun testGetWithSet() {
-        val subject = SharedPreferencesCache.create(ApplicationProvider.getApplicationContext())
+        val subject = SharedPreferencesCache.instance
         subject.set("foo", "bar")
         assertThat(subject.get("foo")).isEqualTo("bar")
     }
 
     @Test fun testCacheEntriesAreNotShared() {
-        val subject = SharedPreferencesCache.create(ApplicationProvider.getApplicationContext())
+        val subject = SharedPreferencesCache.instance
         subject.set("foo", "bar")
         subject.set("food", "chocolate")
         assertThat(subject.get("foo")).isEqualTo("bar")

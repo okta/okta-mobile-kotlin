@@ -26,33 +26,29 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class DeviceTokenProviderTest {
-    lateinit var context: Context
+    private lateinit var context: Context
 
     @Before
     fun setup() {
         context = ApplicationProvider.getApplicationContext()
+        clearSharedPreferences()
+    }
+
+    private fun clearSharedPreferences() {
+        context.getSharedPreferences(DeviceTokenProvider.FILE_NAME, Context.MODE_PRIVATE).edit().clear().commit()
     }
 
     @Test
     fun testDeviceTokenProviderInitializesCorrectly() {
-        val deviceTokenProvider = DeviceTokenProvider.initialize(context)
-        val expectedDeviceToken = deviceTokenProvider.sharedPrefs.getString(DeviceTokenProvider.PREFERENCE_KEY, null)!!.filter { it.isLetterOrDigit() }
         val actualDeviceToken = DeviceTokenProvider.deviceToken
-        assertThat(actualDeviceToken).isEqualTo(expectedDeviceToken)
-    }
-
-    @Test
-    fun testDeviceTokenProviderOnlyInitializesOnce() {
-        val deviceTokenProvider = DeviceTokenProvider.initialize(context)
-        val expectedDeviceToken = deviceTokenProvider.sharedPrefs.getString(DeviceTokenProvider.PREFERENCE_KEY, null)!!.filter { it.isLetterOrDigit() }
-        DeviceTokenProvider.initialize(context)
-        val actualDeviceToken = DeviceTokenProvider.deviceToken
+        val expectedDeviceToken = DeviceTokenProvider.instance.sharedPrefs.getString(
+            DeviceTokenProvider.PREFERENCE_KEY, null
+        )!!.filter { it.isLetterOrDigit() }
         assertThat(actualDeviceToken).isEqualTo(expectedDeviceToken)
     }
 
     @Test
     fun testDeviceTokenIsAtMost32Characters() {
-        DeviceTokenProvider.initialize(context)
         val actualDeviceToken = DeviceTokenProvider.deviceToken
         assertThat(actualDeviceToken.length).isAtMost(32)
     }

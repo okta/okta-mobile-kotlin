@@ -19,6 +19,8 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
 import com.okta.authfoundation.AuthFoundationDefaults
+import com.okta.authfoundation.InternalAuthFoundationApi
+import kotlinx.coroutines.runBlocking
 
 /**
  * A general purpose key value cache used internally by the SDK to optimize network calls.
@@ -47,17 +49,12 @@ interface Cache {
 /**
  * An implementation of [Cache] which stores key value pairs in Android [SharedPreferences].
  */
-class SharedPreferencesCache private constructor(context: Context) : Cache {
-    companion object {
-        /**
-         * Initializes an instance of [Cache] backed by Android [SharedPreferences].
-         *
-         * @param context the [Context] used to create the [SharedPreferences] instance.
-         */
-        fun create(context: Context): Cache {
-            return SharedPreferencesCache(context.applicationContext)
+internal class SharedPreferencesCache private constructor(context: Context) : Cache {
+    internal companion object {
+        internal val instance: SharedPreferencesCache by lazy {
+            val appContext = runBlocking { ApplicationContextHolder.getApplicationContext() }
+            SharedPreferencesCache(appContext)
         }
-
         private const val FILE_NAME = "com.okta.authfoundation.cache"
     }
 
@@ -75,7 +72,8 @@ class SharedPreferencesCache private constructor(context: Context) : Cache {
     }
 }
 
-internal class NoOpCache : Cache {
+@InternalAuthFoundationApi
+class NoOpCache : Cache {
     override fun set(key: String, value: String) {
     }
 
