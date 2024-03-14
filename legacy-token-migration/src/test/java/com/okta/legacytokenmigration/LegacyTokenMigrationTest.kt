@@ -19,6 +19,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.test.core.app.ApplicationProvider
 import com.google.common.truth.Truth.assertThat
+import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.credential.CredentialDataSource
 import com.okta.authfoundation.credential.Token
 import com.okta.authfoundationbootstrap.CredentialBootstrap
@@ -34,9 +35,12 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
+import io.mockk.mockkObject
 import io.mockk.runs
+import io.mockk.unmockkAll
 import io.mockk.verify
 import kotlinx.coroutines.runBlocking
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -52,6 +56,16 @@ class LegacyTokenMigrationTest {
     @Before fun reset() {
         sharedPreferences = ApplicationProvider.getApplicationContext<Context>().sharedPreferences()
         sharedPreferences.edit().clear().apply()
+        mockkObject(OidcConfiguration)
+        every { OidcConfiguration.default } returns OidcConfiguration(
+            "clientId",
+            "defaultScope",
+            "discoveryUrl"
+        )
+    }
+
+    @After fun tearDown() {
+        unmockkAll()
     }
 
     private fun mockSessionClient(token: Tokens?): SessionClient {
@@ -95,6 +109,7 @@ class LegacyTokenMigrationTest {
             idToken = "ExampleIdToken",
             deviceSecret = null,
             issuedTokenType = null,
+            oidcConfiguration = mockk()
         )
         coVerify { credentialDataSource.createCredential(token, isDefault = true) }
     }

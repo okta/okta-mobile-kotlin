@@ -262,7 +262,7 @@ class OidcClient private constructor(
         return coroutineScope {
             val tokenDeferred = async {
                 performRequest(SerializableToken.serializer(), request) { serializableToken ->
-                    serializableToken.asToken()
+                    serializableToken.asToken(oidcConfiguration = configuration)
                 }
             }
             val jwksDeferred = async {

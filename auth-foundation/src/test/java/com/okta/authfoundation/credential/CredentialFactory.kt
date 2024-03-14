@@ -16,6 +16,7 @@
 package com.okta.authfoundation.credential
 
 import com.okta.authfoundation.client.OidcClient
+import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.testhelpers.OktaRule
 import org.mockito.kotlin.mock
 
@@ -39,6 +40,7 @@ fun createToken(
     idToken: String? = null,
     refreshToken: String? = null,
     deviceSecret: String? = null,
+    oidcConfiguration: OidcConfiguration = OidcConfiguration("clientId", "defaultScope", "discoveryUrl"),
 ): Token {
     return Token(
         tokenType = "Bearer",
@@ -49,6 +51,7 @@ fun createToken(
         deviceSecret = deviceSecret,
         idToken = idToken,
         issuedTokenType = null,
+        oidcConfiguration = oidcConfiguration
     )
 }
 

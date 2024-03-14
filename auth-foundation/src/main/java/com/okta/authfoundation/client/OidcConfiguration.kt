@@ -130,8 +130,10 @@ class OidcConfiguration private constructor(
     /** The Json object to do the decoding from the okta server responses. */
     @Transient @InternalAuthFoundationApi val json: Json = defaultJson()
 
-    internal companion object {
+    companion object {
         internal fun defaultJson(): Json = Json { ignoreUnknownKeys = true }
+
+        lateinit var default: OidcConfiguration
     }
 }
 
