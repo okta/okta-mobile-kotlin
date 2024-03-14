@@ -35,15 +35,6 @@ class RedirectEndSessionFlow(
         init {
             SdkVersionsRegistry.register(SDK_VERSION)
         }
-
-        /**
-         * Initializes an end session redirect flow using the [OidcClient].
-         *
-         * @receiver the [OidcClient] used to perform the low level OIDC requests, as well as with which to use the configuration from.
-         */
-        fun OidcClient.createRedirectEndSessionFlow(): RedirectEndSessionFlow {
-            return RedirectEndSessionFlow(this)
-        }
     }
 
     /**

@@ -22,7 +22,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundationbootstrap.CredentialBootstrap
-import com.okta.webauthenticationui.WebAuthenticationClient.Companion.createWebAuthenticationClient
+import com.okta.webauthenticationui.WebAuthenticationClient
 import kotlinx.coroutines.launch
 import sample.okta.android.BuildConfig
 import sample.okta.android.SampleHelper
@@ -36,7 +36,7 @@ class BrowserViewModel : ViewModel() {
         viewModelScope.launch {
             _state.value = BrowserState.Loading
 
-            val webAuthenticationClient = CredentialBootstrap.oidcClient.createWebAuthenticationClient()
+            val webAuthenticationClient = WebAuthenticationClient()
             var scope = SampleHelper.DEFAULT_SCOPE
             if (addDeviceSsoScope) {
                 scope += " device_sso"
