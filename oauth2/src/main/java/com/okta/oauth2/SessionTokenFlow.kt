@@ -28,7 +28,7 @@ import okhttp3.Request
  * [SessionTokenFlow] encapsulates the behavior required to authentication using a session token obtained from the Okta Legacy Authn
  * APIs.
  */
-class SessionTokenFlow private constructor(
+class SessionTokenFlow(
     private val oidcClient: OidcClient,
 ) {
     companion object {
@@ -41,6 +41,18 @@ class SessionTokenFlow private constructor(
             return SessionTokenFlow(this)
         }
     }
+
+    /**
+     * Initializes a session token flow.
+     */
+    constructor() : this(OidcClient.default)
+
+    /**
+     * Initializes a session token flow using the [OidcConfiguration].
+     *
+     * @param oidcConfiguration the [OidcConfiguration] specifying the authorization servers.
+     */
+    constructor(oidcConfiguration: OidcConfiguration) : this(OidcClient.createFromConfiguration(oidcConfiguration))
 
     /**
      * Initiates the Session Token Flow.

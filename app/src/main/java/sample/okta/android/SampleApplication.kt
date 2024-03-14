@@ -37,12 +37,11 @@ class SampleApplication : Application() {
 
         Timber.plant(Timber.DebugTree())
 
-        val oidcConfiguration = OidcConfiguration(
+        OidcConfiguration.default = OidcConfiguration(
             clientId = BuildConfig.CLIENT_ID,
             defaultScope = SampleHelper.DEFAULT_SCOPE,
             issuer = BuildConfig.ISSUER
         )
-        val oidcClient = OidcClient.createFromConfiguration(oidcConfiguration)
-        CredentialBootstrap.initialize(oidcClient.createCredentialDataSource(this))
+        CredentialBootstrap.initialize(OidcClient.default.createCredentialDataSource(this))
     }
 }
