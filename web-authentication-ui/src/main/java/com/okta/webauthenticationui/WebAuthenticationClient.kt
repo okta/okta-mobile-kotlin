@@ -40,9 +40,9 @@ import com.okta.webauthenticationui.events.CustomizeCustomTabsEvent
  * To further customize the authentication flow, please read more about the underlying flows: [AuthorizationCodeFlow],
  * [RedirectEndSessionFlow].
  */
-class WebAuthenticationClient private constructor(
+class WebAuthenticationClient(
     private val oidcClient: OidcClient,
-    private val webAuthenticationProvider: WebAuthenticationProvider,
+    private val webAuthenticationProvider: WebAuthenticationProvider = DefaultWebAuthenticationProvider(oidcClient.configuration.eventCoordinator),
 ) {
     companion object {
         init {
@@ -62,6 +62,28 @@ class WebAuthenticationClient private constructor(
             return WebAuthenticationClient(this, webAuthenticationProvider)
         }
     }
+
+    /**
+     * Initializes a web authentication client.
+     *
+     * @param webAuthenticationProvider the [WebAuthenticationProvider] which will be used to show the UI when performing the
+     * redirect flows.
+     */
+    constructor(
+        webAuthenticationProvider: WebAuthenticationProvider = DefaultWebAuthenticationProvider(OidcConfiguration.default.eventCoordinator)
+    ) : this(OidcClient.default, webAuthenticationProvider)
+
+    /**
+     * Initializes a web authentication client.
+     *
+     * @param oidcConfiguration the [OidcConfiguration] specifying the authorization servers.
+     * @param webAuthenticationProvider the [WebAuthenticationProvider] which will be used to show the UI when performing the
+     * redirect flows.
+     */
+    constructor(
+        oidcConfiguration: OidcConfiguration,
+        webAuthenticationProvider: WebAuthenticationProvider = DefaultWebAuthenticationProvider(oidcConfiguration.eventCoordinator)
+    ) : this(OidcClient.createFromConfiguration(oidcConfiguration), webAuthenticationProvider)
 
     private val authorizationCodeFlow: AuthorizationCodeFlow = oidcClient.createAuthorizationCodeFlow()
     private val redirectEndSessionFlow: RedirectEndSessionFlow = oidcClient.createRedirectEndSessionFlow()

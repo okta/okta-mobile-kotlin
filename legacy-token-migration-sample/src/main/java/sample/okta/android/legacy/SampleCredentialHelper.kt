@@ -25,12 +25,11 @@ import com.okta.authfoundationbootstrap.CredentialBootstrap
 internal object SampleCredentialHelper {
     fun initialize(context: Context) {
         AuthFoundation.initializeAndroidContext(context)
-        val oidcConfiguration = OidcConfiguration(
+        OidcConfiguration.default = OidcConfiguration(
             clientId = BuildConfig.CLIENT_ID,
             defaultScope = "openid email profile offline_access",
             issuer = BuildConfig.ISSUER
         )
-        val oidcClient = OidcClient.createFromConfiguration(oidcConfiguration)
-        CredentialBootstrap.initialize(oidcClient.createCredentialDataSource(context))
+        CredentialBootstrap.initialize(OidcClient.default.createCredentialDataSource(context))
     }
 }

@@ -53,7 +53,26 @@ class OktaRule(
     val eventHandler: RecordingEventHandler = RecordingEventHandler()
     val clock: TestClock = TestClock()
 
-    val configuration: OidcConfiguration = createConfiguration()
+    var configuration: OidcConfiguration = createConfiguration()
+        set(value) {
+            mockkObject(OidcConfiguration)
+            every { OidcConfiguration.default } returns value
+            field = value
+        }
+
+    var oidcClient: OidcClient = createOidcClient()
+        set(value) {
+            mockkObject(OidcClient)
+            every { OidcClient.default } returns value
+            field = value
+        }
+
+    init {
+        mockkObject(OidcConfiguration)
+        mockkObject(OidcClient)
+        every { OidcConfiguration.default } returns configuration
+        every { OidcClient.default } returns oidcClient
+    }
 
     fun createConfiguration(
         okHttpClient: OkHttpClient = this.okHttpClient,
