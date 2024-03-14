@@ -24,7 +24,7 @@ import com.okta.authfoundationbootstrap.CredentialBootstrap
 import com.okta.authn.sdk.AuthenticationStateHandlerAdapter
 import com.okta.authn.sdk.client.AuthenticationClients
 import com.okta.authn.sdk.resource.AuthenticationResponse
-import com.okta.oauth2.SessionTokenFlow.Companion.createSessionTokenFlow
+import com.okta.oauth2.SessionTokenFlow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import okhttp3.HttpUrl.Companion.toHttpUrl
@@ -67,7 +67,7 @@ class SessionTokenViewModel : ViewModel() {
 
     private fun completeLoginWithSessionToken(sessionToken: String) {
         viewModelScope.launch(Dispatchers.Main) {
-            val sessionTokenFlow = CredentialBootstrap.oidcClient.createSessionTokenFlow()
+            val sessionTokenFlow = SessionTokenFlow()
             when (val result = sessionTokenFlow.start(sessionToken, BuildConfig.SIGN_IN_REDIRECT_URI)) {
                 is OidcClientResult.Error -> {
                     Timber.e(result.exception, "Failed to login.")

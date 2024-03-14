@@ -37,15 +37,6 @@ class ResourceOwnerFlow(
         init {
             SdkVersionsRegistry.register(SDK_VERSION)
         }
-
-        /**
-         * Initializes a resource owner flow using the [OidcClient].
-         *
-         * @receiver the [OidcClient] used to perform the low level OIDC requests, as well as with which to use the configuration from.
-         */
-        fun OidcClient.createResourceOwnerFlow(): ResourceOwnerFlow {
-            return ResourceOwnerFlow(this)
-        }
     }
 
     /**

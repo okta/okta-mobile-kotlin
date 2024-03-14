@@ -18,14 +18,12 @@ package com.okta.webauthenticationui
 import android.content.Context
 import android.net.Uri
 import com.google.common.truth.Truth.assertThat
-import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundation.credential.Token
 import com.okta.testhelpers.OktaRule
 import com.okta.testhelpers.RequestMatchers.method
 import com.okta.testhelpers.RequestMatchers.path
 import com.okta.testhelpers.testBodyFromFile
-import com.okta.webauthenticationui.WebAuthenticationClient.Companion.createWebAuthenticationClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.test.runTest
@@ -52,7 +50,7 @@ class WebAuthenticationClientTest {
         }
 
         val webAuthenticationProvider = mock<WebAuthenticationProvider>()
-        val webAuthenticationClient = oktaRule.createOidcClient().createWebAuthenticationClient(webAuthenticationProvider)
+        val webAuthenticationClient = WebAuthenticationClient(webAuthenticationProvider)
         val context = mock<Context>()
 
         val redirectCoordinator = DefaultRedirectCoordinator(this)
@@ -90,7 +88,7 @@ class WebAuthenticationClientTest {
 
     @Test fun testLoginInitializationCancellation(): Unit = runTest {
         val webAuthenticationProvider = mock<WebAuthenticationProvider>()
-        val webAuthenticationClient = oktaRule.createOidcClient().createWebAuthenticationClient(webAuthenticationProvider)
+        val webAuthenticationClient = WebAuthenticationClient(webAuthenticationProvider)
         val context = mock<Context>()
 
         val redirectCoordinator = DefaultRedirectCoordinator(this)
@@ -112,7 +110,7 @@ class WebAuthenticationClientTest {
 
     @Test fun testLoginRedirectCancellation(): Unit = runTest {
         val webAuthenticationProvider = mock<WebAuthenticationProvider>()
-        val webAuthenticationClient = oktaRule.createOidcClient().createWebAuthenticationClient(webAuthenticationProvider)
+        val webAuthenticationClient = WebAuthenticationClient(webAuthenticationProvider)
         val context = mock<Context>()
 
         val redirectCoordinator = DefaultRedirectCoordinator(this)
@@ -143,9 +141,8 @@ class WebAuthenticationClientTest {
         oktaRule.enqueue(path("/.well-known/openid-configuration")) { response ->
             response.setResponseCode(503)
         }
-        val client = OidcClient.createFromConfiguration(oktaRule.configuration)
         val webAuthenticationProvider = mock<WebAuthenticationProvider>()
-        val webAuthenticationClient = client.createWebAuthenticationClient(webAuthenticationProvider)
+        val webAuthenticationClient = WebAuthenticationClient(oktaRule.configuration, webAuthenticationProvider)
         val context = mock<Context>()
 
         val redirectCoordinator = DefaultRedirectCoordinator(this)
@@ -167,7 +164,7 @@ class WebAuthenticationClientTest {
 
     @Test fun testLogout(): Unit = runTest {
         val webAuthenticationProvider = mock<WebAuthenticationProvider>()
-        val webAuthenticationClient = oktaRule.createOidcClient().createWebAuthenticationClient(webAuthenticationProvider)
+        val webAuthenticationClient = WebAuthenticationClient(webAuthenticationProvider)
         val context = mock<Context>()
 
         val redirectCoordinator = DefaultRedirectCoordinator(this)
@@ -197,7 +194,7 @@ class WebAuthenticationClientTest {
 
     @Test fun testLogoutInitializerCancellation(): Unit = runTest {
         val webAuthenticationProvider = mock<WebAuthenticationProvider>()
-        val webAuthenticationClient = oktaRule.createOidcClient().createWebAuthenticationClient(webAuthenticationProvider)
+        val webAuthenticationClient = WebAuthenticationClient(webAuthenticationProvider)
         val context = mock<Context>()
 
         val redirectCoordinator = DefaultRedirectCoordinator(this)
@@ -219,7 +216,7 @@ class WebAuthenticationClientTest {
 
     @Test fun testLogoutRedirectCancellation(): Unit = runTest {
         val webAuthenticationProvider = mock<WebAuthenticationProvider>()
-        val webAuthenticationClient = oktaRule.createOidcClient().createWebAuthenticationClient(webAuthenticationProvider)
+        val webAuthenticationClient = WebAuthenticationClient(webAuthenticationProvider)
         val context = mock<Context>()
 
         val redirectCoordinator = DefaultRedirectCoordinator(this)
@@ -250,9 +247,8 @@ class WebAuthenticationClientTest {
         oktaRule.enqueue(path("/.well-known/openid-configuration")) { response ->
             response.setResponseCode(503)
         }
-        val client = OidcClient.createFromConfiguration(oktaRule.configuration)
         val webAuthenticationProvider = mock<WebAuthenticationProvider>()
-        val webAuthenticationClient = client.createWebAuthenticationClient(webAuthenticationProvider)
+        val webAuthenticationClient = WebAuthenticationClient(oktaRule.configuration, webAuthenticationProvider)
         val context = mock<Context>()
 
         val redirectCoordinator = DefaultRedirectCoordinator(this)

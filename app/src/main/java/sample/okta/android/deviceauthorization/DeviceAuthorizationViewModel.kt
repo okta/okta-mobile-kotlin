@@ -22,7 +22,6 @@ import androidx.lifecycle.viewModelScope
 import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundationbootstrap.CredentialBootstrap
 import com.okta.oauth2.DeviceAuthorizationFlow
-import com.okta.oauth2.DeviceAuthorizationFlow.Companion.createDeviceAuthorizationFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -38,7 +37,7 @@ internal class DeviceAuthorizationViewModel : ViewModel() {
         _state.value = DeviceAuthorizationState.Loading
 
         viewModelScope.launch {
-            val deviceAuthorizationFlow = CredentialBootstrap.oidcClient.createDeviceAuthorizationFlow()
+            val deviceAuthorizationFlow = DeviceAuthorizationFlow()
             when (val result = deviceAuthorizationFlow.start()) {
                 is OidcClientResult.Error -> {
                     Timber.e(result.exception, "Failed to start device authorization flow.")

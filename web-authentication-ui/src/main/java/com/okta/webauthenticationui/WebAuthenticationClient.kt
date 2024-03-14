@@ -24,9 +24,7 @@ import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.client.internal.SdkVersionsRegistry
 import com.okta.authfoundation.credential.Token
 import com.okta.oauth2.AuthorizationCodeFlow
-import com.okta.oauth2.AuthorizationCodeFlow.Companion.createAuthorizationCodeFlow
 import com.okta.oauth2.RedirectEndSessionFlow
-import com.okta.oauth2.RedirectEndSessionFlow.Companion.createRedirectEndSessionFlow
 import com.okta.webauthenticationui.events.CustomizeBrowserEvent
 import com.okta.webauthenticationui.events.CustomizeCustomTabsEvent
 
@@ -47,19 +45,6 @@ class WebAuthenticationClient(
     companion object {
         init {
             SdkVersionsRegistry.register(SDK_VERSION)
-        }
-
-        /**
-         * Initializes a web authentication client using the [OidcClient].
-         *
-         * @receiver the [OidcClient] used to perform the low level OIDC requests, as well as with which to use the configuration from.
-         * @param webAuthenticationProvider the [WebAuthenticationProvider] which will be used to show the UI when performing the
-         * redirect flows.
-         */
-        fun OidcClient.createWebAuthenticationClient(
-            webAuthenticationProvider: WebAuthenticationProvider = DefaultWebAuthenticationProvider(configuration.eventCoordinator)
-        ): WebAuthenticationClient {
-            return WebAuthenticationClient(this, webAuthenticationProvider)
         }
     }
 
@@ -85,8 +70,8 @@ class WebAuthenticationClient(
         webAuthenticationProvider: WebAuthenticationProvider = DefaultWebAuthenticationProvider(oidcConfiguration.eventCoordinator)
     ) : this(OidcClient.createFromConfiguration(oidcConfiguration), webAuthenticationProvider)
 
-    private val authorizationCodeFlow: AuthorizationCodeFlow = oidcClient.createAuthorizationCodeFlow()
-    private val redirectEndSessionFlow: RedirectEndSessionFlow = oidcClient.createRedirectEndSessionFlow()
+    private val authorizationCodeFlow: AuthorizationCodeFlow = AuthorizationCodeFlow(oidcClient)
+    private val redirectEndSessionFlow: RedirectEndSessionFlow = RedirectEndSessionFlow(oidcClient)
 
     @VisibleForTesting internal var redirectCoordinator: RedirectCoordinator = SingletonRedirectCoordinator
 

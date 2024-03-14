@@ -21,7 +21,6 @@ import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.client.internal.performRequest
 import com.okta.authfoundation.credential.Token
-import com.okta.oauth2.AuthorizationCodeFlow.Companion.createAuthorizationCodeFlow
 import okhttp3.Request
 
 /**
@@ -31,16 +30,6 @@ import okhttp3.Request
 class SessionTokenFlow(
     private val oidcClient: OidcClient,
 ) {
-    companion object {
-        /**
-         * Initializes a session token flow using the [OidcClient].
-         *
-         * @receiver the [OidcClient] used to perform the low level OIDC requests, as well as with which to use the configuration from.
-         */
-        fun OidcClient.createSessionTokenFlow(): SessionTokenFlow {
-            return SessionTokenFlow(this)
-        }
-    }
 
     /**
      * Initializes a session token flow.
@@ -69,7 +58,7 @@ class SessionTokenFlow(
         extraRequestParameters: Map<String, String> = emptyMap(),
         scope: String = oidcClient.configuration.defaultScope,
     ): OidcClientResult<Token> {
-        val authorizationCodeFlow = oidcClient.createAuthorizationCodeFlow()
+        val authorizationCodeFlow = AuthorizationCodeFlow(oidcClient)
         val mutableParameters = extraRequestParameters.toMutableMap()
         mutableParameters["sessionToken"] = sessionToken
         val flowContext = when (val startResult = authorizationCodeFlow.start(redirectUrl, mutableParameters, scope)) {

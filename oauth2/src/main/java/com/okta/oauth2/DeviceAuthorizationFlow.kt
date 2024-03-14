@@ -43,15 +43,6 @@ class DeviceAuthorizationFlow(
         init {
             SdkVersionsRegistry.register(SDK_VERSION)
         }
-
-        /**
-         * Initializes a device authorization grant flow using the [OidcClient].
-         *
-         * @receiver the [OidcClient] used to perform the low level OIDC requests, as well as with which to use the configuration from.
-         */
-        fun OidcClient.createDeviceAuthorizationFlow(): DeviceAuthorizationFlow {
-            return DeviceAuthorizationFlow(this)
-        }
     }
 
     /**

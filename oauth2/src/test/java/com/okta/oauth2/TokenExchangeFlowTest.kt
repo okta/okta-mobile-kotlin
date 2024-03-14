@@ -16,7 +16,6 @@
 package com.okta.oauth2
 
 import com.google.common.truth.Truth.assertThat
-import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundation.credential.Token
 import com.okta.testhelpers.OktaRule
@@ -34,8 +33,7 @@ class TokenExchangeFlowTest {
         oktaRule.enqueue(path("/.well-known/openid-configuration")) { response ->
             response.setResponseCode(503)
         }
-        oktaRule.oidcClient = OidcClient.createFromConfiguration(oktaRule.configuration)
-        val flow = TokenExchangeFlow()
+        val flow = TokenExchangeFlow(oktaRule.configuration)
         val result = flow.start("foo", "bar")
         assertThat(result).isInstanceOf(OidcClientResult.Error::class.java)
         val errorResult = result as OidcClientResult.Error<Token>
