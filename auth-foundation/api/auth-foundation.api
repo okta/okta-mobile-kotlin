@@ -93,6 +93,13 @@ public final class com/okta/authfoundation/client/AccessTokenValidator$Error : j
 	public fun <init> (Ljava/lang/String;)V
 }
 
+public final class com/okta/authfoundation/client/ApplicationContextInitializer : androidx/startup/Initializer {
+	public fun <init> ()V
+	public synthetic fun create (Landroid/content/Context;)Ljava/lang/Object;
+	public fun create (Landroid/content/Context;)V
+	public fun dependencies ()Ljava/util/List;
+}
+
 public abstract interface class com/okta/authfoundation/client/Cache {
 	public abstract fun get (Ljava/lang/String;)Ljava/lang/String;
 	public abstract fun set (Ljava/lang/String;Ljava/lang/String;)V
@@ -110,17 +117,6 @@ public final class com/okta/authfoundation/client/DeviceTokenCookieJar : okhttp3
 	public fun <init> (Lcom/okta/authfoundation/client/OidcClock;)V
 	public fun loadForRequest (Lokhttp3/HttpUrl;)Ljava/util/List;
 	public fun saveFromResponse (Lokhttp3/HttpUrl;Ljava/util/List;)V
-}
-
-public final class com/okta/authfoundation/client/DeviceTokenInitializer : androidx/startup/Initializer {
-	public fun <init> ()V
-	public fun create (Landroid/content/Context;)Lcom/okta/authfoundation/client/DeviceTokenProvider;
-	public synthetic fun create (Landroid/content/Context;)Ljava/lang/Object;
-	public fun dependencies ()Ljava/util/List;
-}
-
-public final class com/okta/authfoundation/client/DeviceTokenProvider {
-	public synthetic fun <init> (Landroid/content/Context;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 }
 
 public abstract interface class com/okta/authfoundation/client/IdTokenValidator {
@@ -151,6 +147,12 @@ public final class com/okta/authfoundation/client/IdTokenValidator$Error$Compani
 public final class com/okta/authfoundation/client/IdTokenValidator$Parameters {
 	public final fun getMaxAge ()Ljava/lang/Integer;
 	public final fun getNonce ()Ljava/lang/String;
+}
+
+public final class com/okta/authfoundation/client/NoOpCache : com/okta/authfoundation/client/Cache {
+	public fun <init> ()V
+	public fun get (Ljava/lang/String;)Ljava/lang/String;
+	public fun set (Ljava/lang/String;Ljava/lang/String;)V
 }
 
 public final class com/okta/authfoundation/client/OidcClient {
@@ -250,17 +252,6 @@ public final class com/okta/authfoundation/client/OidcEndpoints {
 	public final fun getRevocationEndpoint ()Lokhttp3/HttpUrl;
 	public final fun getTokenEndpoint ()Lokhttp3/HttpUrl;
 	public final fun getUserInfoEndpoint ()Lokhttp3/HttpUrl;
-}
-
-public final class com/okta/authfoundation/client/SharedPreferencesCache : com/okta/authfoundation/client/Cache {
-	public static final field Companion Lcom/okta/authfoundation/client/SharedPreferencesCache$Companion;
-	public synthetic fun <init> (Landroid/content/Context;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public fun get (Ljava/lang/String;)Ljava/lang/String;
-	public fun set (Ljava/lang/String;Ljava/lang/String;)V
-}
-
-public final class com/okta/authfoundation/client/SharedPreferencesCache$Companion {
-	public final fun create (Landroid/content/Context;)Lcom/okta/authfoundation/client/Cache;
 }
 
 public abstract class com/okta/authfoundation/client/dto/OidcIntrospectInfo {
