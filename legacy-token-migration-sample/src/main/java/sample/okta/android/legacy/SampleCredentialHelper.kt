@@ -22,7 +22,6 @@ import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.client.SharedPreferencesCache
 import com.okta.authfoundation.credential.CredentialDataSource.Companion.createCredentialDataSource
 import com.okta.authfoundationbootstrap.CredentialBootstrap
-import okhttp3.HttpUrl.Companion.toHttpUrl
 
 internal object SampleCredentialHelper {
     fun initialize(context: Context) {
