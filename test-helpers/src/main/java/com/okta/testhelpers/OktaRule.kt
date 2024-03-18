@@ -73,7 +73,7 @@ class OktaRule(
         return OidcConfiguration(
             clientId = "unit_test_client_id",
             defaultScope = "openid email profile offline_access",
-            discoveryUrl = baseUrl.newBuilder().encodedPath("/.well-known/openid-configuration").build().toString()
+            issuer = baseUrl.toString().removeSuffix("/")
         )
     }
 

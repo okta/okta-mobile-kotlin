@@ -40,7 +40,7 @@ fun createToken(
     idToken: String? = null,
     refreshToken: String? = null,
     deviceSecret: String? = null,
-    oidcConfiguration: OidcConfiguration = OidcConfiguration("clientId", "defaultScope", "discoveryUrl"),
+    oidcConfiguration: OidcConfiguration = OidcConfiguration("clientId", "defaultScope", "issuer"),
 ): Token {
     return Token(
         tokenType = "Bearer",

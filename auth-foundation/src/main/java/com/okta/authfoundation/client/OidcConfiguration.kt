@@ -89,13 +89,12 @@ class OidcConfiguration private constructor(
         clientId: String,
         /** The default access scopes required by the client, can be overridden when logging in. */
         defaultScope: String,
-        /** The `.well-known/openid-configuration` endpoint associated with the Authorization Server. This is
-         * used to fetch the [OidcEndpoints]. */
-        discoveryUrl: String,
+        /** The Authorization Server URL, usually https://your_okta_domain.okta.com/oauth2/default */
+        issuer: String
     ) : this(
         clientId = clientId,
         defaultScope = defaultScope,
-        discoveryUrl = discoveryUrl,
+        discoveryUrl = "$issuer/.well-known/openid-configuration",
         okHttpClientFactory = AuthFoundationDefaults.okHttpClientFactory,
         ioDispatcher = AuthFoundationDefaults.ioDispatcher,
         computeDispatcher = AuthFoundationDefaults.computeDispatcher,

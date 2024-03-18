@@ -60,7 +60,7 @@ class LegacyTokenMigrationTest {
         every { OidcConfiguration.default } returns OidcConfiguration(
             "clientId",
             "defaultScope",
-            "discoveryUrl"
+            "issuer"
         )
     }
 

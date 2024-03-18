@@ -28,7 +28,7 @@ import org.junit.Test
 class TokenTest {
     @get:Rule val oktaRule = OktaRule()
 
-    private val oidcConfiguration = OidcConfiguration("clientId", "defaultScope", "discoveryUrl")
+    private val oidcConfiguration = OidcConfiguration("clientId", "defaultScope", "issuer")
 
     @Test fun testDeserializingMinimal() {
         val json = """

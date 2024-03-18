@@ -43,7 +43,7 @@ class SampleApplication : Application() {
         val oidcConfiguration = OidcConfiguration(
             clientId = BuildConfig.CLIENT_ID,
             defaultScope = SampleHelper.DEFAULT_SCOPE,
-            discoveryUrl = "${BuildConfig.ISSUER}/.well-known/openid-configuration"
+            issuer = BuildConfig.ISSUER
         )
         val oidcClient = OidcClient.createFromConfiguration(oidcConfiguration)
         CredentialBootstrap.initialize(oidcClient.createCredentialDataSource(this))
