@@ -1,13 +1,14 @@
 public final class com/okta/oauth2/AuthorizationCodeFlow {
 	public static final field Companion Lcom/okta/oauth2/AuthorizationCodeFlow$Companion;
-	public synthetic fun <init> (Lcom/okta/authfoundation/client/OidcClient;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> ()V
+	public fun <init> (Lcom/okta/authfoundation/client/OidcClient;)V
+	public fun <init> (Lcom/okta/authfoundation/client/OidcConfiguration;)V
 	public final fun resume (Landroid/net/Uri;Lcom/okta/oauth2/AuthorizationCodeFlow$Context;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun start (Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun start$default (Lcom/okta/oauth2/AuthorizationCodeFlow;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public final class com/okta/oauth2/AuthorizationCodeFlow$Companion {
-	public final fun createAuthorizationCodeFlow (Lcom/okta/authfoundation/client/OidcClient;)Lcom/okta/oauth2/AuthorizationCodeFlow;
 }
 
 public final class com/okta/oauth2/AuthorizationCodeFlow$Context {
@@ -26,14 +27,15 @@ public final class com/okta/oauth2/AuthorizationCodeFlow$ResumeException : java/
 
 public final class com/okta/oauth2/DeviceAuthorizationFlow {
 	public static final field Companion Lcom/okta/oauth2/DeviceAuthorizationFlow$Companion;
-	public synthetic fun <init> (Lcom/okta/authfoundation/client/OidcClient;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> ()V
+	public fun <init> (Lcom/okta/authfoundation/client/OidcClient;)V
+	public fun <init> (Lcom/okta/authfoundation/client/OidcConfiguration;)V
 	public final fun resume (Lcom/okta/oauth2/DeviceAuthorizationFlow$Context;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun start (Ljava/util/Map;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun start$default (Lcom/okta/oauth2/DeviceAuthorizationFlow;Ljava/util/Map;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public final class com/okta/oauth2/DeviceAuthorizationFlow$Companion {
-	public final fun createDeviceAuthorizationFlow (Lcom/okta/authfoundation/client/OidcClient;)Lcom/okta/oauth2/DeviceAuthorizationFlow;
 }
 
 public final class com/okta/oauth2/DeviceAuthorizationFlow$Context {
@@ -49,13 +51,14 @@ public final class com/okta/oauth2/DeviceAuthorizationFlow$TimeoutException : ja
 
 public final class com/okta/oauth2/RedirectEndSessionFlow {
 	public static final field Companion Lcom/okta/oauth2/RedirectEndSessionFlow$Companion;
-	public synthetic fun <init> (Lcom/okta/authfoundation/client/OidcClient;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> ()V
+	public fun <init> (Lcom/okta/authfoundation/client/OidcClient;)V
+	public fun <init> (Lcom/okta/authfoundation/client/OidcConfiguration;)V
 	public final fun resume (Landroid/net/Uri;Lcom/okta/oauth2/RedirectEndSessionFlow$Context;)Lcom/okta/authfoundation/client/OidcClientResult;
 	public final fun start (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class com/okta/oauth2/RedirectEndSessionFlow$Companion {
-	public final fun createRedirectEndSessionFlow (Lcom/okta/authfoundation/client/OidcClient;)Lcom/okta/oauth2/RedirectEndSessionFlow;
 }
 
 public final class com/okta/oauth2/RedirectEndSessionFlow$Context {
@@ -70,34 +73,33 @@ public final class com/okta/oauth2/RedirectEndSessionFlow$ResumeException : java
 
 public final class com/okta/oauth2/ResourceOwnerFlow {
 	public static final field Companion Lcom/okta/oauth2/ResourceOwnerFlow$Companion;
-	public synthetic fun <init> (Lcom/okta/authfoundation/client/OidcClient;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> ()V
+	public fun <init> (Lcom/okta/authfoundation/client/OidcClient;)V
+	public fun <init> (Lcom/okta/authfoundation/client/OidcConfiguration;)V
 	public final fun start (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun start$default (Lcom/okta/oauth2/ResourceOwnerFlow;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public final class com/okta/oauth2/ResourceOwnerFlow$Companion {
-	public final fun createResourceOwnerFlow (Lcom/okta/authfoundation/client/OidcClient;)Lcom/okta/oauth2/ResourceOwnerFlow;
 }
 
 public final class com/okta/oauth2/SessionTokenFlow {
-	public static final field Companion Lcom/okta/oauth2/SessionTokenFlow$Companion;
-	public synthetic fun <init> (Lcom/okta/authfoundation/client/OidcClient;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> ()V
+	public fun <init> (Lcom/okta/authfoundation/client/OidcClient;)V
+	public fun <init> (Lcom/okta/authfoundation/client/OidcConfiguration;)V
 	public final fun start (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun start$default (Lcom/okta/oauth2/SessionTokenFlow;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
-public final class com/okta/oauth2/SessionTokenFlow$Companion {
-	public final fun createSessionTokenFlow (Lcom/okta/authfoundation/client/OidcClient;)Lcom/okta/oauth2/SessionTokenFlow;
-}
-
 public final class com/okta/oauth2/TokenExchangeFlow {
 	public static final field Companion Lcom/okta/oauth2/TokenExchangeFlow$Companion;
-	public synthetic fun <init> (Lcom/okta/authfoundation/client/OidcClient;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> ()V
+	public fun <init> (Lcom/okta/authfoundation/client/OidcClient;)V
+	public fun <init> (Lcom/okta/authfoundation/client/OidcConfiguration;)V
 	public final fun start (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun start$default (Lcom/okta/oauth2/TokenExchangeFlow;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public final class com/okta/oauth2/TokenExchangeFlow$Companion {
-	public final fun createTokenExchangeFlow (Lcom/okta/authfoundation/client/OidcClient;)Lcom/okta/oauth2/TokenExchangeFlow;
 }
 

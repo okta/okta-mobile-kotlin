@@ -170,6 +170,7 @@ public final class com/okta/authfoundation/client/OidcClient {
 public final class com/okta/authfoundation/client/OidcClient$Companion {
 	public final fun create (Lcom/okta/authfoundation/client/OidcConfiguration;Lcom/okta/authfoundation/client/OidcEndpoints;)Lcom/okta/authfoundation/client/OidcClient;
 	public final fun createFromConfiguration (Lcom/okta/authfoundation/client/OidcConfiguration;)Lcom/okta/authfoundation/client/OidcClient;
+	public final fun getDefault ()Lcom/okta/authfoundation/client/OidcClient;
 }
 
 public abstract class com/okta/authfoundation/client/OidcClientResult {
@@ -201,7 +202,6 @@ public abstract interface class com/okta/authfoundation/client/OidcClock {
 
 public final class com/okta/authfoundation/client/OidcConfiguration {
 	public static final field Companion Lcom/okta/authfoundation/client/OidcConfiguration$Companion;
-	public static field default Lcom/okta/authfoundation/client/OidcConfiguration;
 	public synthetic fun <init> (ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function0;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;Lcom/okta/authfoundation/client/OidcClock;Lcom/okta/authfoundation/client/IdTokenValidator;Lcom/okta/authfoundation/client/AccessTokenValidator;Lcom/okta/authfoundation/client/DeviceSecretValidator;Lkotlin/jvm/functions/Function1;Lokhttp3/CookieJar;Lkotlinx/serialization/internal/SerializationConstructorMarker;)V
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
 	public final fun getAccessTokenValidator ()Lcom/okta/authfoundation/client/AccessTokenValidator;
