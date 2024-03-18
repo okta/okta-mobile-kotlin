@@ -116,7 +116,7 @@ class RedirectCoordinatorTest {
         val elapsedTime = currentTime - startTime
         assertThat(result).isInstanceOf(RedirectResult.Error::class.java)
         val error = result as RedirectResult.Error
-        assertThat(error.exception).isInstanceOf(WebAuthenticationClient.FlowCancelledException::class.java)
+        assertThat(error.exception).isInstanceOf(WebAuthentication.FlowCancelledException::class.java)
         assertThat(elapsedTime).isEqualTo(testDebounceTime.inWholeMilliseconds)
     }
 
@@ -146,7 +146,7 @@ class RedirectCoordinatorTest {
         val elapsedTime = currentTime - startTime
         assertThat(result).isInstanceOf(RedirectResult.Error::class.java)
         val error = result as RedirectResult.Error
-        assertThat(error.exception).isInstanceOf(WebAuthenticationClient.FlowCancelledException::class.java)
+        assertThat(error.exception).isInstanceOf(WebAuthentication.FlowCancelledException::class.java)
         assertThat(elapsedTime).isEqualTo(testDebounceTime.inWholeMilliseconds)
     }
 
@@ -165,7 +165,7 @@ class RedirectCoordinatorTest {
         val result = resultDeferred.await()
         assertThat(result).isInstanceOf(RedirectInitializationResult.Error::class.java)
         val error = result as RedirectInitializationResult.Error
-        assertThat(error.exception).isInstanceOf(WebAuthenticationClient.FlowCancelledException::class.java)
+        assertThat(error.exception).isInstanceOf(WebAuthentication.FlowCancelledException::class.java)
     }
 
     @Test fun testEmitWithoutListening(): Unit = testScope.runTest {

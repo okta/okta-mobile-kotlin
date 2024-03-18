@@ -24,7 +24,7 @@ import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundation.credential.Credential
 import com.okta.authfoundation.credential.RevokeTokenType
 import com.okta.authfoundationbootstrap.CredentialBootstrap
-import com.okta.webauthenticationui.WebAuthenticationClient
+import com.okta.webauthenticationui.WebAuthentication
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
@@ -86,7 +86,7 @@ internal class DashboardViewModel : ViewModel() {
         viewModelScope.launch {
             val idToken = credential.token?.idToken ?: return@launch
             when (
-                val result = WebAuthenticationClient().logoutOfBrowser(
+                val result = WebAuthentication().logoutOfBrowser(
                     context = context,
                     redirectUrl = BuildConfig.SIGN_OUT_REDIRECT_URI,
                     idToken = idToken,

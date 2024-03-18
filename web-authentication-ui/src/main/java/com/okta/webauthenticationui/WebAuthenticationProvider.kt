@@ -32,11 +32,11 @@ import com.okta.webauthenticationui.events.CustomizeCustomTabsEvent
 import okhttp3.HttpUrl
 
 /**
- * Used to launch the OIDC redirect flow associated with a [WebAuthenticationClient].
+ * Used to launch the OIDC redirect flow associated with a [WebAuthentication].
  */
 interface WebAuthenticationProvider {
     /**
-     * Launches the OIDC redirect flow associated with a [WebAuthenticationClient].
+     * Launches the OIDC redirect flow associated with a [WebAuthentication].
      *
      * @param context the Android [Activity] [Context] which is used to display the flow.
      * @param url the url the instance should display.

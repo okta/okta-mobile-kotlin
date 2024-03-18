@@ -38,7 +38,7 @@ import com.okta.webauthenticationui.events.CustomizeCustomTabsEvent
  * To further customize the authentication flow, please read more about the underlying flows: [AuthorizationCodeFlow],
  * [RedirectEndSessionFlow].
  */
-class WebAuthenticationClient(
+class WebAuthentication(
     private val oidcClient: OidcClient,
     private val webAuthenticationProvider: WebAuthenticationProvider = DefaultWebAuthenticationProvider(oidcClient.configuration.eventCoordinator),
 ) {
@@ -70,8 +70,8 @@ class WebAuthenticationClient(
         webAuthenticationProvider: WebAuthenticationProvider = DefaultWebAuthenticationProvider(oidcConfiguration.eventCoordinator)
     ) : this(OidcClient.createFromConfiguration(oidcConfiguration), webAuthenticationProvider)
 
-    private val authorizationCodeFlow: AuthorizationCodeFlow = AuthorizationCodeFlow(oidcClient)
-    private val redirectEndSessionFlow: RedirectEndSessionFlow = RedirectEndSessionFlow(oidcClient)
+    var authorizationCodeFlow: AuthorizationCodeFlow = AuthorizationCodeFlow(oidcClient)
+    var redirectEndSessionFlow: RedirectEndSessionFlow = RedirectEndSessionFlow(oidcClient)
 
     @VisibleForTesting internal var redirectCoordinator: RedirectCoordinator = SingletonRedirectCoordinator
 
