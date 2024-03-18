@@ -67,8 +67,8 @@ object AuthFoundationDefaults {
     /** The default DeviceSecretValidator. */
     var deviceSecretValidator: DeviceSecretValidator by NoSetAfterGetWithLazyDefaultFactory { DefaultDeviceSecretValidator() }
 
-    /** The default [Cache]. No caching is enabled by default. */
-    var cache: Cache by NoSetAfterGetWithLazyDefaultFactory { SharedPreferencesCache.instance }
+    /** The default function for creating a new instance of [Cache]. */
+    var cacheFactory: suspend () -> Cache by NoSetAfterGetWithLazyDefaultFactory { { SharedPreferencesCache.getInstance() } }
 
     /** The default [CookieJar]. By default, it adds a DT cookie for identifying the device.
      * To use the default [CookieJar] in OkHttp, set this to [CookieJar.NO_COOKIES] */

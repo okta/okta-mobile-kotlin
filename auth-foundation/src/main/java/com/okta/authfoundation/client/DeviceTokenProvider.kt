@@ -20,7 +20,6 @@ import android.content.SharedPreferences
 import androidx.annotation.VisibleForTesting
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKeys
-import kotlinx.coroutines.runBlocking
 import java.util.UUID
 
 internal class DeviceTokenProvider(private val appContext: Context) {
@@ -30,13 +29,7 @@ internal class DeviceTokenProvider(private val appContext: Context) {
         @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
         internal const val PREFERENCE_KEY = "com.okta.authfoundation.device_token_key"
 
-        internal val instance: DeviceTokenProvider by lazy {
-            val appContext = runBlocking { ApplicationContextHolder.getApplicationContext() }
-            DeviceTokenProvider(appContext)
-        }
-
-        internal val deviceToken: String
-            get() = instance.deviceToken.filter { it.isLetterOrDigit() }
+        internal var shared: DeviceTokenProvider? = null
     }
 
     private val masterKeyAlias = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC)
@@ -64,14 +57,16 @@ internal class DeviceTokenProvider(private val appContext: Context) {
 
     private val sharedPrefsEditor = sharedPrefs.edit()
 
-    internal val deviceToken: String
+    internal val deviceTokenUUID: String
         get() {
-            val tokenUUID = sharedPrefs.getString(PREFERENCE_KEY, null) ?: run {
+            return sharedPrefs.getString(PREFERENCE_KEY, null) ?: run {
                 val newDeviceToken = UUID.randomUUID().toString()
                 sharedPrefsEditor.putString(PREFERENCE_KEY, newDeviceToken)
                 sharedPrefsEditor.commit()
                 newDeviceToken
             }
-            return tokenUUID.filter { it.isLetterOrDigit() }
         }
+
+    internal val deviceToken: String
+        get() = deviceTokenUUID.filter { it.isLetterOrDigit() }
 }

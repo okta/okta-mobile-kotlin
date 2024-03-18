@@ -15,11 +15,15 @@
  */
 package com.okta.authfoundation.client
 
+import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import com.google.common.truth.Truth.assertThat
-import io.mockk.coEvery
+import io.mockk.every
 import io.mockk.mockkObject
 import io.mockk.unmockkAll
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -28,28 +32,31 @@ import org.robolectric.RobolectricTestRunner
 
 @RunWith(RobolectricTestRunner::class)
 internal class SharedPreferencesCacheTest {
-    @Before fun setup() {
+    @Before fun setup() = runTest {
         mockkObject(ApplicationContextHolder)
-        coEvery { ApplicationContextHolder.getApplicationContext() } returns ApplicationProvider.getApplicationContext()
+        val contextFlow = MutableSharedFlow<Context>(replay = 1).apply {
+            emit(ApplicationProvider.getApplicationContext())
+        }.asSharedFlow()
+        every { ApplicationContextHolder.appContextFlow } returns contextFlow
     }
 
     @After fun tearDown() {
         unmockkAll()
     }
 
-    @Test fun testGetWithoutSet() {
-        val subject = SharedPreferencesCache.instance
+    @Test fun testGetWithoutSet() = runTest {
+        val subject = SharedPreferencesCache.getInstance()
         assertThat(subject.get("foo")).isNull()
     }
 
-    @Test fun testGetWithSet() {
-        val subject = SharedPreferencesCache.instance
+    @Test fun testGetWithSet() = runTest {
+        val subject = SharedPreferencesCache.getInstance()
         subject.set("foo", "bar")
         assertThat(subject.get("foo")).isEqualTo("bar")
     }
 
-    @Test fun testCacheEntriesAreNotShared() {
-        val subject = SharedPreferencesCache.instance
+    @Test fun testCacheEntriesAreNotShared() = runTest {
+        val subject = SharedPreferencesCache.getInstance()
         subject.set("foo", "bar")
         subject.set("food", "chocolate")
         assertThat(subject.get("foo")).isEqualTo("bar")

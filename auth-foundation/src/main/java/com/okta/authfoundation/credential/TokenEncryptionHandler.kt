@@ -25,6 +25,7 @@ import com.okta.authfoundation.TransparentBiometricActivity
 import com.okta.authfoundation.client.ApplicationContextHolder
 import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.credential.CredentialDataSource.Companion.createCredentialDataSource
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.suspendCancellableCoroutine
 import java.security.KeyFactory
 import java.security.KeyPairGenerator
@@ -206,7 +207,7 @@ class DefaultTokenEncryptionHandler(
     ): Token {
         val userAuthenticationRequired = security is Credential.BiometricSecurity
         return if (userAuthenticationRequired) {
-            val appContext = ApplicationContextHolder.getApplicationContext()
+            val appContext = ApplicationContextHolder.appContextFlow.first()
             if (promptInfo == null) {
                 throw IllegalArgumentException(BIO_TOKEN_NO_PROMPT_INFO_ERROR)
             }

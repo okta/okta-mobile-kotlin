@@ -62,7 +62,12 @@ class CredentialDataSource internal constructor(
             context: Context,
             tokenEncryptionHandler: TokenEncryptionHandler = DefaultTokenEncryptionHandler()
         ): CredentialDataSource {
-            val sqlCipherPassword = DeviceTokenProvider.deviceToken
+            val deviceTokenProvider = DeviceTokenProvider.shared ?: run {
+                val _deviceTokenProvider = DeviceTokenProvider(context)
+                DeviceTokenProvider.shared = _deviceTokenProvider
+                _deviceTokenProvider
+            }
+            val sqlCipherPassword = deviceTokenProvider.deviceToken
             System.loadLibrary("sqlcipher")
             val tokenDatabase =
                 Room.databaseBuilder(context, TokenDatabase::class.java, TokenDatabase.DB_NAME)

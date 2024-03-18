@@ -27,10 +27,12 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class DeviceTokenProviderTest {
     private lateinit var context: Context
+    private lateinit var deviceTokenProvider: DeviceTokenProvider
 
     @Before
     fun setup() {
         context = ApplicationProvider.getApplicationContext()
+        deviceTokenProvider = DeviceTokenProvider(context)
         clearSharedPreferences()
     }
 
@@ -40,8 +42,8 @@ class DeviceTokenProviderTest {
 
     @Test
     fun testDeviceTokenProviderInitializesCorrectly() {
-        val actualDeviceToken = DeviceTokenProvider.deviceToken
-        val expectedDeviceToken = DeviceTokenProvider.instance.sharedPrefs.getString(
+        val actualDeviceToken = deviceTokenProvider.deviceToken
+        val expectedDeviceToken = deviceTokenProvider.sharedPrefs.getString(
             DeviceTokenProvider.PREFERENCE_KEY, null
         )!!.filter { it.isLetterOrDigit() }
         assertThat(actualDeviceToken).isEqualTo(expectedDeviceToken)
@@ -49,7 +51,7 @@ class DeviceTokenProviderTest {
 
     @Test
     fun testDeviceTokenIsAtMost32Characters() {
-        val actualDeviceToken = DeviceTokenProvider.deviceToken
+        val actualDeviceToken = deviceTokenProvider.deviceToken
         assertThat(actualDeviceToken.length).isAtMost(32)
     }
 }

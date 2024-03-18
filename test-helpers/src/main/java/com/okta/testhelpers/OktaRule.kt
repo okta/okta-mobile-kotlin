@@ -68,7 +68,7 @@ class OktaRule(
         every { AuthFoundationDefaults.deviceSecretValidator } returns deviceSecretValidator
         every { AuthFoundationDefaults.ioDispatcher } returns EmptyCoroutineContext
         every { AuthFoundationDefaults.computeDispatcher } returns EmptyCoroutineContext
-        every { AuthFoundationDefaults.cache } returns cache
+        every { AuthFoundationDefaults.cacheFactory } returns { cache }
         every { AuthFoundationDefaults.cookieJar } returns CookieJar.NO_COOKIES
 
         return OidcConfiguration(

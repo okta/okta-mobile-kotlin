@@ -23,7 +23,6 @@ import kotlinx.coroutines.runBlocking
 @InternalAuthFoundationApi
 class ApplicationContextInitializer : Initializer<Unit> {
     override fun create(context: Context) {
-        // This is on a worker thread during app initialization
         runBlocking { ApplicationContextHolder.setApplicationContext(context.applicationContext) }
     }
 
