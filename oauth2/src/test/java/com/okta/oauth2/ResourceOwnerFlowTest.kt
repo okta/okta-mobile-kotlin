@@ -71,10 +71,7 @@ class ResourceOwnerFlowTest {
         oktaRule.enqueue(path("/.well-known/openid-configuration")) { response ->
             response.setResponseCode(503)
         }
-        val client = OidcClient.createFromDiscoveryUrl(
-            oktaRule.configuration,
-            oktaRule.baseUrl.newBuilder().encodedPath("/.well-known/openid-configuration").build()
-        )
+        val client = OidcClient.createFromConfiguration(oktaRule.configuration)
         val resourceOwnerFlow = client.createResourceOwnerFlow()
         val result = resourceOwnerFlow.start("foo", "bar")
         assertThat(result).isInstanceOf(OidcClientResult.Error::class.java)

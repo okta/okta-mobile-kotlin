@@ -82,10 +82,7 @@ class DeviceAuthorizationFlowTest {
         oktaRule.enqueue(path("/.well-known/openid-configuration")) { response ->
             response.setResponseCode(503)
         }
-        val client = OidcClient.createFromDiscoveryUrl(
-            oktaRule.configuration,
-            oktaRule.baseUrl.newBuilder().encodedPath("/.well-known/openid-configuration").build()
-        )
+        val client = OidcClient.createFromConfiguration(oktaRule.configuration)
 
         val flow = client.createDeviceAuthorizationFlow()
         val startResult = flow.start() as OidcClientResult.Error<DeviceAuthorizationFlow.Context>
@@ -164,10 +161,7 @@ class DeviceAuthorizationFlowTest {
         oktaRule.enqueue(path("/.well-known/openid-configuration")) { response ->
             response.setResponseCode(503)
         }
-        val client = OidcClient.createFromDiscoveryUrl(
-            oktaRule.configuration,
-            oktaRule.baseUrl.newBuilder().encodedPath("/.well-known/openid-configuration").build()
-        )
+        val client = OidcClient.createFromConfiguration(oktaRule.configuration)
 
         val flow = client.createDeviceAuthorizationFlow()
         val context = mock<DeviceAuthorizationFlow.Context>()
