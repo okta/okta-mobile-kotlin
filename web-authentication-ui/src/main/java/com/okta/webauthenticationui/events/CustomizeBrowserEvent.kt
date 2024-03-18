@@ -17,10 +17,10 @@ package com.okta.webauthenticationui.events
 
 import android.content.pm.PackageManager
 import com.okta.authfoundation.events.EventHandler
-import com.okta.webauthenticationui.WebAuthenticationClient
+import com.okta.webauthenticationui.WebAuthentication
 
 /**
- * Emitted via [EventHandler.onEvent] when [WebAuthenticationClient.login] or [WebAuthenticationClient.logoutOfBrowser] is invoked.
+ * Emitted via [EventHandler.onEvent] when [WebAuthentication.login] or [WebAuthentication.logoutOfBrowser] is invoked.
  *
  * This can be used to customize the browsers used for displaying the Chrome Custom Tabs to the user.
  */

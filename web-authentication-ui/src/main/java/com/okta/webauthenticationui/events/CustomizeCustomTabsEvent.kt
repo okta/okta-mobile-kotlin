@@ -18,10 +18,10 @@ package com.okta.webauthenticationui.events
 import android.content.Context
 import androidx.browser.customtabs.CustomTabsIntent
 import com.okta.authfoundation.events.EventHandler
-import com.okta.webauthenticationui.WebAuthenticationClient
+import com.okta.webauthenticationui.WebAuthentication
 
 /**
- * Emitted via [EventHandler.onEvent] when [WebAuthenticationClient.login] or [WebAuthenticationClient.logoutOfBrowser] is invoked.
+ * Emitted via [EventHandler.onEvent] when [WebAuthentication.login] or [WebAuthentication.logoutOfBrowser] is invoked.
  *
  * This can be used to customize the [CustomTabsIntent.Builder] before being displayed to the user.
  */
