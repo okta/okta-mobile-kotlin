@@ -21,26 +21,27 @@ import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.client.internal.performRequest
 import com.okta.authfoundation.credential.Token
-import com.okta.oauth2.AuthorizationCodeFlow.Companion.createAuthorizationCodeFlow
 import okhttp3.Request
 
 /**
  * [SessionTokenFlow] encapsulates the behavior required to authentication using a session token obtained from the Okta Legacy Authn
  * APIs.
  */
-class SessionTokenFlow private constructor(
+class SessionTokenFlow(
     private val oidcClient: OidcClient,
 ) {
-    companion object {
-        /**
-         * Initializes a session token flow using the [OidcClient].
-         *
-         * @receiver the [OidcClient] used to perform the low level OIDC requests, as well as with which to use the configuration from.
-         */
-        fun OidcClient.createSessionTokenFlow(): SessionTokenFlow {
-            return SessionTokenFlow(this)
-        }
-    }
+
+    /**
+     * Initializes a session token flow.
+     */
+    constructor() : this(OidcClient.default)
+
+    /**
+     * Initializes a session token flow using the [OidcConfiguration].
+     *
+     * @param oidcConfiguration the [OidcConfiguration] specifying the authorization servers.
+     */
+    constructor(oidcConfiguration: OidcConfiguration) : this(OidcClient.createFromConfiguration(oidcConfiguration))
 
     /**
      * Initiates the Session Token Flow.
@@ -57,7 +58,7 @@ class SessionTokenFlow private constructor(
         extraRequestParameters: Map<String, String> = emptyMap(),
         scope: String = oidcClient.configuration.defaultScope,
     ): OidcClientResult<Token> {
-        val authorizationCodeFlow = oidcClient.createAuthorizationCodeFlow()
+        val authorizationCodeFlow = AuthorizationCodeFlow(oidcClient)
         val mutableParameters = extraRequestParameters.toMutableMap()
         mutableParameters["sessionToken"] = sessionToken
         val flowContext = when (val startResult = authorizationCodeFlow.start(redirectUrl, mutableParameters, scope)) {

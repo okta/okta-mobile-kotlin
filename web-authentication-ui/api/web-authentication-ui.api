@@ -30,20 +30,27 @@ public final class com/okta/webauthenticationui/ForegroundViewModel$State$Launch
 	public synthetic fun newArray (I)[Ljava/lang/Object;
 }
 
-public final class com/okta/webauthenticationui/WebAuthenticationClient {
-	public static final field Companion Lcom/okta/webauthenticationui/WebAuthenticationClient$Companion;
-	public synthetic fun <init> (Lcom/okta/authfoundation/client/OidcClient;Lcom/okta/webauthenticationui/WebAuthenticationProvider;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+public final class com/okta/webauthenticationui/WebAuthentication {
+	public static final field Companion Lcom/okta/webauthenticationui/WebAuthentication$Companion;
+	public fun <init> (Lcom/okta/authfoundation/client/OidcClient;Lcom/okta/webauthenticationui/WebAuthenticationProvider;)V
+	public synthetic fun <init> (Lcom/okta/authfoundation/client/OidcClient;Lcom/okta/webauthenticationui/WebAuthenticationProvider;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lcom/okta/authfoundation/client/OidcConfiguration;Lcom/okta/webauthenticationui/WebAuthenticationProvider;)V
+	public synthetic fun <init> (Lcom/okta/authfoundation/client/OidcConfiguration;Lcom/okta/webauthenticationui/WebAuthenticationProvider;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lcom/okta/webauthenticationui/WebAuthenticationProvider;)V
+	public synthetic fun <init> (Lcom/okta/webauthenticationui/WebAuthenticationProvider;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getAuthorizationCodeFlow ()Lcom/okta/oauth2/AuthorizationCodeFlow;
+	public final fun getRedirectEndSessionFlow ()Lcom/okta/oauth2/RedirectEndSessionFlow;
 	public final fun login (Landroid/content/Context;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun login$default (Lcom/okta/webauthenticationui/WebAuthenticationClient;Landroid/content/Context;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun login$default (Lcom/okta/webauthenticationui/WebAuthentication;Landroid/content/Context;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public final fun logoutOfBrowser (Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun setAuthorizationCodeFlow (Lcom/okta/oauth2/AuthorizationCodeFlow;)V
+	public final fun setRedirectEndSessionFlow (Lcom/okta/oauth2/RedirectEndSessionFlow;)V
 }
 
-public final class com/okta/webauthenticationui/WebAuthenticationClient$Companion {
-	public final fun createWebAuthenticationClient (Lcom/okta/authfoundation/client/OidcClient;Lcom/okta/webauthenticationui/WebAuthenticationProvider;)Lcom/okta/webauthenticationui/WebAuthenticationClient;
-	public static synthetic fun createWebAuthenticationClient$default (Lcom/okta/webauthenticationui/WebAuthenticationClient$Companion;Lcom/okta/authfoundation/client/OidcClient;Lcom/okta/webauthenticationui/WebAuthenticationProvider;ILjava/lang/Object;)Lcom/okta/webauthenticationui/WebAuthenticationClient;
+public final class com/okta/webauthenticationui/WebAuthentication$Companion {
 }
 
-public final class com/okta/webauthenticationui/WebAuthenticationClient$FlowCancelledException : java/lang/Exception {
+public final class com/okta/webauthenticationui/WebAuthentication$FlowCancelledException : java/lang/Exception {
 }
 
 public abstract interface class com/okta/webauthenticationui/WebAuthenticationProvider {

@@ -131,8 +131,18 @@ class OidcConfiguration private constructor(
 
     companion object {
         internal fun defaultJson(): Json = Json { ignoreUnknownKeys = true }
+        private var _default: OidcConfiguration? = null
 
-        lateinit var default: OidcConfiguration
+        /**
+         * The default OidcConfiguration. This must be set before calling any OAuth flows. Note that this variable
+         * can only be set once in the lifetime of the app.
+         */
+        var default: OidcConfiguration
+            get() = _default ?: throw IllegalStateException("Attempted to use OidcConfiguration.default without setting it")
+            set(value) {
+                if (_default == null) _default = value
+                else throw IllegalStateException("Attempted setting OidcConfiguration.default after initialization")
+            }
     }
 }
 

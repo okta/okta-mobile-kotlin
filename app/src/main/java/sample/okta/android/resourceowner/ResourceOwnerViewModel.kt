@@ -21,7 +21,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundationbootstrap.CredentialBootstrap
-import com.okta.oauth2.ResourceOwnerFlow.Companion.createResourceOwnerFlow
+import com.okta.oauth2.ResourceOwnerFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -33,7 +33,7 @@ internal class ResourceOwnerViewModel : ViewModel() {
         _state.value = ResourceOwnerState.Loading
 
         viewModelScope.launch {
-            val resourceOwnerFlow = CredentialBootstrap.oidcClient.createResourceOwnerFlow()
+            val resourceOwnerFlow = ResourceOwnerFlow()
             when (val result = resourceOwnerFlow.start(username, password)) {
                 is OidcClientResult.Error -> {
                     Timber.e(result.exception, "Failed to start resource owner flow.")

@@ -16,10 +16,8 @@
 package com.okta.oauth2
 
 import com.google.common.truth.Truth.assertThat
-import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundation.credential.Token
-import com.okta.oauth2.SessionTokenFlow.Companion.createSessionTokenFlow
 import com.okta.testhelpers.OktaRule
 import com.okta.testhelpers.RequestMatchers.bodyPart
 import com.okta.testhelpers.RequestMatchers.method
@@ -66,7 +64,7 @@ internal class SessionTokenFlowTest {
         ) { response ->
             response.testBodyFromFile("$mockPrefix/token.json")
         }
-        val sessionTokenFlow = oktaRule.createOidcClient().createSessionTokenFlow()
+        val sessionTokenFlow = SessionTokenFlow()
         val result = sessionTokenFlow.start("exampleSessionToken", "exampleRedirect:/callback")
         val token = (result as OidcClientResult.Success<Token>).result
         assertThat(token.tokenType).isEqualTo("Bearer")
@@ -83,8 +81,7 @@ internal class SessionTokenFlowTest {
         oktaRule.enqueue(path("/.well-known/openid-configuration")) { response ->
             response.setResponseCode(503)
         }
-        val client = OidcClient.createFromConfiguration(oktaRule.configuration)
-        val sessionTokenFlow = client.createSessionTokenFlow()
+        val sessionTokenFlow = SessionTokenFlow(oktaRule.configuration)
         val result = sessionTokenFlow.start("exampleSessionToken", "exampleRedirect:/callback")
         assertThat(result).isInstanceOf(OidcClientResult.Error::class.java)
         val errorResult = result as OidcClientResult.Error<Token>
@@ -99,7 +96,7 @@ internal class SessionTokenFlowTest {
         ) { response ->
             response.socketPolicy = SocketPolicy.DISCONNECT_AFTER_REQUEST
         }
-        val sessionTokenFlow = oktaRule.createOidcClient().createSessionTokenFlow()
+        val sessionTokenFlow = SessionTokenFlow()
         val result = sessionTokenFlow.start("exampleSessionToken", "exampleRedirect:/callback")
         val exception = (result as OidcClientResult.Error<Token>).exception
         assertThat(exception).isInstanceOf(ConnectException::class.java)
@@ -123,7 +120,7 @@ internal class SessionTokenFlowTest {
         ) { response ->
             response.setResponseCode(403)
         }
-        val sessionTokenFlow = oktaRule.createOidcClient().createSessionTokenFlow()
+        val sessionTokenFlow = SessionTokenFlow()
         val result = sessionTokenFlow.start("exampleSessionToken", "exampleRedirect:/callback")
         val exception = (result as OidcClientResult.Error<Token>).exception
         assertThat(exception).isInstanceOf(OidcClientResult.Error.HttpResponseException::class.java)
@@ -152,7 +149,7 @@ internal class SessionTokenFlowTest {
         ) { response ->
             response.testBodyFromFile("$mockPrefix/token.json")
         }
-        val sessionTokenFlow = oktaRule.createOidcClient().createSessionTokenFlow()
+        val sessionTokenFlow = SessionTokenFlow()
         val result = sessionTokenFlow.start(
             sessionToken = "exampleSessionToken",
             redirectUrl = "exampleRedirect:/callback",

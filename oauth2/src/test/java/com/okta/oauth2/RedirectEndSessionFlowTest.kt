@@ -18,8 +18,8 @@ package com.okta.oauth2
 import android.net.Uri
 import com.google.common.truth.Truth.assertThat
 import com.okta.authfoundation.client.OidcClientResult
-import com.okta.oauth2.RedirectEndSessionFlow.Companion.createRedirectEndSessionFlow
 import com.okta.testhelpers.OktaRule
+import com.okta.testhelpers.RequestMatchers
 import kotlinx.coroutines.runBlocking
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.junit.Rule
@@ -32,7 +32,7 @@ class RedirectEndSessionFlowTest {
     @get:Rule val oktaRule = OktaRule()
 
     @Test fun testStart(): Unit = runBlocking {
-        val redirectEndSessionFlow = oktaRule.createOidcClient().createRedirectEndSessionFlow()
+        val redirectEndSessionFlow = RedirectEndSessionFlow()
         assertThat(oktaRule.eventHandler).isEmpty()
         val result = redirectEndSessionFlow.start(
             idToken = "exampleIdToken",
@@ -47,8 +47,25 @@ class RedirectEndSessionFlowTest {
         assertThat(context.url.toString()).endsWith(expectedUrlEnding)
     }
 
+    @Test fun testStartWithNoEndpoints() = runBlocking {
+        oktaRule.enqueue(RequestMatchers.path("/.well-known/openid-configuration")) { response ->
+            response.setResponseCode(503)
+        }
+        val redirectEndSessionFlow = RedirectEndSessionFlow(oktaRule.configuration)
+        assertThat(oktaRule.eventHandler).isEmpty()
+        val result = redirectEndSessionFlow.start(
+            idToken = "exampleIdToken",
+            state = "25c1d684-8d30-42e3-acc0-b74b35fd47b4",
+            redirectUrl = "unitTest:/logout",
+        )
+
+        val context = (result as OidcClientResult.Error<RedirectEndSessionFlow.Context>)
+        assertThat(context.exception).isInstanceOf(OidcClientResult.Error.OidcEndpointsNotAvailableException::class.java)
+        assertThat(context.exception).hasMessageThat().isEqualTo("OIDC Endpoints not available.")
+    }
+
     @Test fun testResume() {
-        val redirectEndSessionFlow = oktaRule.createOidcClient().createRedirectEndSessionFlow()
+        val redirectEndSessionFlow = RedirectEndSessionFlow()
         val flowContext = RedirectEndSessionFlow.Context(
             state = "25c1d684-8d30-42e3-acc0-b74b35fd47b4",
             url = "https://example.okta.com/not_used".toHttpUrl(),
@@ -62,7 +79,7 @@ class RedirectEndSessionFlowTest {
     }
 
     @Test fun testResumeSchemeMismatch() {
-        val redirectEndSessionFlow = oktaRule.createOidcClient().createRedirectEndSessionFlow()
+        val redirectEndSessionFlow = RedirectEndSessionFlow()
         val flowContext = RedirectEndSessionFlow.Context(
             state = "25c1d684-8d30-42e3-acc0-b74b35fd47b4",
             url = "https://example.okta.com/not_used".toHttpUrl(),
@@ -77,7 +94,7 @@ class RedirectEndSessionFlowTest {
     }
 
     @Test fun testResumeStateMismatch() {
-        val redirectEndSessionFlow = oktaRule.createOidcClient().createRedirectEndSessionFlow()
+        val redirectEndSessionFlow = RedirectEndSessionFlow()
         val flowContext = RedirectEndSessionFlow.Context(
             state = "25c1d684-8d30-42e3-acc0-b74b35fd47b4",
             url = "https://example.okta.com/not_used".toHttpUrl(),
@@ -94,7 +111,7 @@ class RedirectEndSessionFlowTest {
     }
 
     @Test fun testResumeError() {
-        val redirectEndSessionFlow = oktaRule.createOidcClient().createRedirectEndSessionFlow()
+        val redirectEndSessionFlow = RedirectEndSessionFlow()
         val flowContext = RedirectEndSessionFlow.Context(
             state = "25c1d684-8d30-42e3-acc0-b74b35fd47b4",
             url = "https://example.okta.com/not_used".toHttpUrl(),
@@ -111,7 +128,7 @@ class RedirectEndSessionFlowTest {
     }
 
     @Test fun testResumeErrorDescription() {
-        val redirectEndSessionFlow = oktaRule.createOidcClient().createRedirectEndSessionFlow()
+        val redirectEndSessionFlow = RedirectEndSessionFlow()
         val flowContext = RedirectEndSessionFlow.Context(
             state = "25c1d684-8d30-42e3-acc0-b74b35fd47b4",
             url = "https://example.okta.com/not_used".toHttpUrl(),

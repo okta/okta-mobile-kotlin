@@ -36,23 +36,26 @@ import okhttp3.Request
  *
  * Upon visiting that URL and entering in the code, the user is prompted to sign in using their standard credentials. Upon completing authentication, the device automatically signs the user in, without any direct interaction on the user's part.
  */
-class DeviceAuthorizationFlow private constructor(
+class DeviceAuthorizationFlow(
     private val oidcClient: OidcClient,
 ) {
     companion object {
         init {
             SdkVersionsRegistry.register(SDK_VERSION)
         }
-
-        /**
-         * Initializes a device authorization grant flow using the [OidcClient].
-         *
-         * @receiver the [OidcClient] used to perform the low level OIDC requests, as well as with which to use the configuration from.
-         */
-        fun OidcClient.createDeviceAuthorizationFlow(): DeviceAuthorizationFlow {
-            return DeviceAuthorizationFlow(this)
-        }
     }
+
+    /**
+     * Initializes a device authorization grant flow.
+     */
+    constructor() : this(OidcClient.default)
+
+    /**
+     * Initializes a device authorization grant flow using the [OidcConfiguration].
+     *
+     * @param oidcConfiguration the [OidcConfiguration] specifying the authorization servers.
+     */
+    constructor(oidcConfiguration: OidcConfiguration) : this(OidcClient.createFromConfiguration(oidcConfiguration))
 
     /**
      * A model representing the context and current state for an authorization session.

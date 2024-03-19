@@ -30,23 +30,26 @@ import okhttp3.Request
  *
  * > Important: Resource Owner authentication does not support MFA or other more secure authentication models, and is not recommended for production applications.
  */
-class ResourceOwnerFlow private constructor(
+class ResourceOwnerFlow(
     private val oidcClient: OidcClient,
 ) {
     companion object {
         init {
             SdkVersionsRegistry.register(SDK_VERSION)
         }
-
-        /**
-         * Initializes a resource owner flow using the [OidcClient].
-         *
-         * @receiver the [OidcClient] used to perform the low level OIDC requests, as well as with which to use the configuration from.
-         */
-        fun OidcClient.createResourceOwnerFlow(): ResourceOwnerFlow {
-            return ResourceOwnerFlow(this)
-        }
     }
+
+    /**
+     * Initializes a resource owner flow.
+     */
+    constructor() : this(OidcClient.default)
+
+    /**
+     * Initializes a resource owner flow using the [OidcConfiguration].
+     *
+     * @param oidcConfiguration the [OidcConfiguration] specifying the authorization servers.
+     */
+    constructor(oidcConfiguration: OidcConfiguration) : this(OidcClient.createFromConfiguration(oidcConfiguration))
 
     /**
      * Initiates the Resource Owner flow.

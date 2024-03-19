@@ -18,6 +18,7 @@ package com.okta.oauth2
 import android.net.Uri
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcClientResult
+import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.client.internal.SdkVersionsRegistry
 import okhttp3.HttpUrl
 import java.util.UUID
@@ -27,23 +28,26 @@ import java.util.UUID
  *
  * > Note: OIDC Logout terminology is nuanced, see [Logout Documentation](https://github.com/okta/okta-mobile-kotlin#logout) for additional details.
  */
-class RedirectEndSessionFlow private constructor(
+class RedirectEndSessionFlow(
     private val oidcClient: OidcClient,
 ) {
     companion object {
         init {
             SdkVersionsRegistry.register(SDK_VERSION)
         }
-
-        /**
-         * Initializes an end session redirect flow using the [OidcClient].
-         *
-         * @receiver the [OidcClient] used to perform the low level OIDC requests, as well as with which to use the configuration from.
-         */
-        fun OidcClient.createRedirectEndSessionFlow(): RedirectEndSessionFlow {
-            return RedirectEndSessionFlow(this)
-        }
     }
+
+    /**
+     * Initializes an end session redirect flow.
+     */
+    constructor() : this(OidcClient.default)
+
+    /**
+     * Initializes an end session redirect flow using [OidcConfiguration].
+     *
+     * @param oidcConfiguration the [OidcConfiguration] specifying the authorization servers.
+     */
+    constructor(oidcConfiguration: OidcConfiguration) : this(OidcClient.createFromConfiguration(oidcConfiguration))
 
     /**
      * A model representing the context and current state for a logout flow.
