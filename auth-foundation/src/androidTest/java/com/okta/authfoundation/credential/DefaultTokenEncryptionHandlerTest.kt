@@ -17,6 +17,7 @@ package com.okta.authfoundation.credential
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
+import com.okta.authfoundation.client.OidcConfiguration
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Test
@@ -34,7 +35,8 @@ internal class DefaultTokenEncryptionHandlerTest {
         refreshToken = "refreshToken",
         idToken = "idToken",
         deviceSecret = "deviceSecret",
-        issuedTokenType = "issuedTokenType"
+        issuedTokenType = "issuedTokenType",
+        oidcConfiguration = OidcConfiguration("clientId", "defaultScope", "discoveryUrl")
     )
 
     private lateinit var tokenEncryptionHandler: DefaultTokenEncryptionHandler

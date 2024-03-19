@@ -15,19 +15,13 @@
  */
 package com.okta.authfoundation.client
 
-import android.app.Application
 import android.content.Context
 
 internal object ApplicationContextHolder {
-    private var _appContext: Context? = null
+    lateinit var appContext: Context
+        private set
 
-    internal var appContext: Context
-        get() = _appContext!!
-        set(context) {
-            _appContext = if (context is Application) {
-                context
-            } else {
-                context.applicationContext
-            }
-        }
+    fun setApplicationContext(context: Context) {
+        appContext = context.applicationContext
+    }
 }

@@ -108,7 +108,9 @@ dependencies {
     androidTestImplementation deps.androidx_test.runner
     androidTestImplementation deps.androidx_test.rules
     androidTestImplementation deps.coroutines.test
-    androidTestImplementation project(':test-helpers')
+    androidTestImplementation(project(':test-helpers')) {
+        exclude group: "io.mockk"
+    }
 }
 
 preBuild.dependsOn(copyKotlinTemplates)

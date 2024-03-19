@@ -23,8 +23,8 @@ import com.okta.authfoundation.client.DefaultIdTokenValidator
 import com.okta.authfoundation.client.DeviceSecretValidator
 import com.okta.authfoundation.client.DeviceTokenCookieJar
 import com.okta.authfoundation.client.IdTokenValidator
-import com.okta.authfoundation.client.NoOpCache
 import com.okta.authfoundation.client.OidcClock
+import com.okta.authfoundation.client.SharedPreferencesCache
 import com.okta.authfoundation.events.EventCoordinator
 import kotlinx.coroutines.Dispatchers
 import okhttp3.Call
@@ -67,8 +67,8 @@ object AuthFoundationDefaults {
     /** The default DeviceSecretValidator. */
     var deviceSecretValidator: DeviceSecretValidator by NoSetAfterGetWithLazyDefaultFactory { DefaultDeviceSecretValidator() }
 
-    /** The default [Cache]. No caching is enabled by default. */
-    var cache: Cache by NoSetAfterGetWithLazyDefaultFactory { NoOpCache() }
+    /** The default function for creating a new instance of [Cache]. */
+    var cacheFactory: suspend () -> Cache by NoSetAfterGetWithLazyDefaultFactory { { SharedPreferencesCache.getInstance() } }
 
     /** The default [CookieJar]. By default, it adds a DT cookie for identifying the device.
      * To use the default [CookieJar] in OkHttp, set this to [CookieJar.NO_COOKIES] */

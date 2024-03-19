@@ -17,6 +17,8 @@ package com.okta.authfoundation.client
 
 import androidx.annotation.VisibleForTesting
 import com.okta.authfoundation.client.internal.internalPerformRequest
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.okio.decodeFromBufferedSource
@@ -27,10 +29,14 @@ internal object EndpointsFactory {
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
     const val prefix: String = "endpoints:"
 
+    private val cacheMutex = Mutex()
+    private var cacheInstance: Cache? = null
+
     suspend fun get(configuration: OidcConfiguration): OidcClientResult<OidcEndpoints> {
+        val cache = getOrCreateCache(configuration.cacheFactory)
         val cacheKey = prefix + configuration.discoveryUrl
         val endpoints = withContext(configuration.computeDispatcher) {
-            val result = configuration.cache.get(cacheKey) ?: return@withContext null
+            val result = cache.get(cacheKey) ?: return@withContext null
             return@withContext try {
                 val serializableOidcEndpoints = configuration.json.decodeFromString(
                     SerializableOidcEndpoints.serializer(), result
@@ -51,8 +57,22 @@ internal object EndpointsFactory {
             val serializableOidcEndpoints = configuration.json.decodeFromBufferedSource(
                 SerializableOidcEndpoints.serializer(), responseBody.peek()
             )
-            configuration.cache.set(cacheKey, responseBody.readUtf8())
+            cache.set(cacheKey, responseBody.readUtf8())
             serializableOidcEndpoints.asOidcEndpoints()
         }
+    }
+
+    private suspend fun getOrCreateCache(cacheFactory: suspend () -> Cache): Cache {
+        cacheMutex.withLock {
+            return cacheInstance ?: run {
+                val cache = cacheFactory()
+                cacheInstance = cache
+                cache
+            }
+        }
+    }
+
+    internal fun reset() {
+        cacheInstance = null
     }
 }

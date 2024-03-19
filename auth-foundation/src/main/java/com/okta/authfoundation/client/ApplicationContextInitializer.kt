@@ -17,11 +17,12 @@ package com.okta.authfoundation.client
 
 import android.content.Context
 import androidx.startup.Initializer
+import com.okta.authfoundation.InternalAuthFoundationApi
 
-class DeviceTokenInitializer : Initializer<DeviceTokenProvider> {
-    override fun create(context: Context): DeviceTokenProvider {
-        ApplicationContextHolder.appContext = context.applicationContext
-        return DeviceTokenProvider.initialize(context)
+@InternalAuthFoundationApi
+class ApplicationContextInitializer : Initializer<Unit> {
+    override fun create(context: Context) {
+        ApplicationContextHolder.setApplicationContext(context.applicationContext)
     }
 
     override fun dependencies(): List<Class<out Initializer<*>>> = emptyList()
