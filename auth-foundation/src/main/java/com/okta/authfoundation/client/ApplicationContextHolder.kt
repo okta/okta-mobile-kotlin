@@ -16,19 +16,12 @@
 package com.okta.authfoundation.client
 
 import android.content.Context
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
 
 internal object ApplicationContextHolder {
-    private val _appContextFlow = MutableSharedFlow<Context>(replay = 1)
-    val appContextFlow = _appContextFlow.asSharedFlow()
-    var appContext: Context? = null
-        private set(value) {
-            field = value
-        }
+    lateinit var appContext: Context
+        private set
 
-    suspend fun setApplicationContext(context: Context) {
-        _appContextFlow.emit(context.applicationContext)
+    fun setApplicationContext(context: Context) {
         appContext = context.applicationContext
     }
 }

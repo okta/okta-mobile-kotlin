@@ -19,6 +19,7 @@ import android.content.Context
 import androidx.biometric.BiometricPrompt
 import androidx.room.Room
 import com.okta.authfoundation.InternalAuthFoundationApi
+import com.okta.authfoundation.client.ApplicationContextHolder
 import com.okta.authfoundation.client.DeviceTokenProvider
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.credential.events.CredentialCreatedEvent
@@ -62,6 +63,7 @@ class CredentialDataSource internal constructor(
             context: Context,
             tokenEncryptionHandler: TokenEncryptionHandler = DefaultTokenEncryptionHandler()
         ): CredentialDataSource {
+            ApplicationContextHolder.setApplicationContext(context.applicationContext)
             val deviceTokenProvider = DeviceTokenProvider.shared ?: run {
                 val _deviceTokenProvider = DeviceTokenProvider(context)
                 DeviceTokenProvider.shared = _deviceTokenProvider

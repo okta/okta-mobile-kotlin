@@ -18,12 +18,11 @@ package com.okta.authfoundation.client
 import android.content.Context
 import androidx.startup.Initializer
 import com.okta.authfoundation.InternalAuthFoundationApi
-import kotlinx.coroutines.runBlocking
 
 @InternalAuthFoundationApi
 class ApplicationContextInitializer : Initializer<Unit> {
     override fun create(context: Context) {
-        runBlocking { ApplicationContextHolder.setApplicationContext(context.applicationContext) }
+        ApplicationContextHolder.setApplicationContext(context.applicationContext)
     }
 
     override fun dependencies(): List<Class<out Initializer<*>>> = emptyList()

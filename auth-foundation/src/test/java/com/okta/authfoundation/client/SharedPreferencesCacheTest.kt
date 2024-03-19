@@ -15,14 +15,11 @@
  */
 package com.okta.authfoundation.client
 
-import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import com.google.common.truth.Truth.assertThat
 import io.mockk.every
 import io.mockk.mockkObject
 import io.mockk.unmockkAll
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Before
@@ -34,10 +31,7 @@ import org.robolectric.RobolectricTestRunner
 internal class SharedPreferencesCacheTest {
     @Before fun setup() = runTest {
         mockkObject(ApplicationContextHolder)
-        val contextFlow = MutableSharedFlow<Context>(replay = 1).apply {
-            emit(ApplicationProvider.getApplicationContext())
-        }.asSharedFlow()
-        every { ApplicationContextHolder.appContextFlow } returns contextFlow
+        every { ApplicationContextHolder.appContext } returns ApplicationProvider.getApplicationContext()
     }
 
     @After fun tearDown() {

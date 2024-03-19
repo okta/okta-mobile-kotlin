@@ -20,7 +20,6 @@ import android.content.Context
 import android.content.SharedPreferences
 import com.okta.authfoundation.AuthFoundationDefaults
 import com.okta.authfoundation.InternalAuthFoundationApi
-import kotlinx.coroutines.flow.first
 
 /**
  * A general purpose key value cache used internally by the SDK to optimize network calls.
@@ -51,7 +50,7 @@ interface Cache {
  */
 internal class SharedPreferencesCache private constructor(context: Context) : Cache {
     internal companion object {
-        internal suspend fun getInstance() = SharedPreferencesCache(ApplicationContextHolder.appContextFlow.first())
+        internal fun getInstance() = SharedPreferencesCache(ApplicationContextHolder.appContext)
         private const val FILE_NAME = "com.okta.authfoundation.cache"
     }
 
