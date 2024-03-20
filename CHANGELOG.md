@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.4.1] 2024-03-20
+
+### Changed
+- Update AuthFoundation to 1.2.1
+
+### Fixed
+- Make PasswordSettings.Age field nullable. This should fix crashes when parsing IDX enrollment responses in passwordless settings.
+
 ## [2.4.0] - 2023-08-04
 - Update AuthFoundation to 1.1.5. This fixes device token for "Keep me signed in" functionality.
 
