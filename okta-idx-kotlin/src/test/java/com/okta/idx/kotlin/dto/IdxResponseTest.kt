@@ -20,7 +20,6 @@ import com.okta.idx.kotlin.dto.v1.Response
 import com.okta.idx.kotlin.dto.v1.toIdxResponse
 import com.okta.idx.kotlin.dto.v1.toJsonContent
 import com.okta.testing.stringFromResources
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import org.junit.Test
 import java.util.Locale
@@ -238,8 +237,25 @@ class IdxResponseTest {
         assertThat(capability.complexity.excludeUsername).isEqualTo(true)
         assertThat(capability.complexity.excludeAttributes).isEqualTo(listOf("firstName", "lastName"))
 
-        assertThat(capability.age.minAgeMinutes).isEqualTo(120)
-        assertThat(capability.age.historyCount).isEqualTo(4)
+        assertThat(capability.age!!.minAgeMinutes).isEqualTo(120)
+        assertThat(capability.age!!.historyCount).isEqualTo(4)
+    }
+
+    @Test fun `test password settings without age`() {
+        val idxResponse = getIdxResponse("enroll_password_no_age.json")
+
+        val authenticator = idxResponse.authenticators.current!!
+        val capability = authenticator.capabilities.get<IdxPasswordSettingsCapability>()!!
+
+        assertThat(capability.complexity.minLength).isEqualTo(8)
+        assertThat(capability.complexity.minLowerCase).isEqualTo(1)
+        assertThat(capability.complexity.minUpperCase).isEqualTo(1)
+        assertThat(capability.complexity.minNumber).isEqualTo(1)
+        assertThat(capability.complexity.minSymbol).isEqualTo(1)
+        assertThat(capability.complexity.excludeUsername).isEqualTo(true)
+        assertThat(capability.complexity.excludeAttributes).isEqualTo(listOf("firstName", "lastName"))
+
+        assertThat(capability.age).isNull()
     }
 
     @Test fun testUnlockAccount() {

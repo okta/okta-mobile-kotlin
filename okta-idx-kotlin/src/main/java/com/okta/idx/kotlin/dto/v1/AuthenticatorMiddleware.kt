@@ -151,7 +151,7 @@ private fun Map<String, JsonElement>.toNumberChallengeCapability(): IdxAuthentic
     return IdxNumberChallengeCapability(correctAnswer = correctAnswer.content)
 }
 
-private fun Authenticator.Settings.toIdxPasswordSettings(): IdxAuthenticator.Capability? {
+private fun Authenticator.Settings.toIdxPasswordSettings(): IdxAuthenticator.Capability {
     return IdxPasswordSettingsCapability(
         complexity = IdxPasswordSettingsCapability.Complexity(
             minLength = complexity.minLength,
@@ -162,10 +162,12 @@ private fun Authenticator.Settings.toIdxPasswordSettings(): IdxAuthenticator.Cap
             excludeUsername = complexity.excludeUsername,
             excludeAttributes = complexity.excludeAttributes,
         ),
-        age = IdxPasswordSettingsCapability.Age(
-            minAgeMinutes = age.minAgeMinutes,
-            historyCount = age.historyCount,
-        ),
+        age = age?.let {
+            IdxPasswordSettingsCapability.Age(
+                minAgeMinutes = it.minAgeMinutes,
+                historyCount = it.historyCount,
+            )
+        },
     )
 }
 

@@ -192,7 +192,7 @@ class IdxPasswordSettingsCapability internal constructor(
     /** The associated [IdxPasswordSettingsCapability.Complexity] requirements. */
     val complexity: Complexity,
     /** The associated [IdxPasswordSettingsCapability.Age] requirements. */
-    val age: Age,
+    val age: Age? = null,
 ) : IdxAuthenticator.Capability {
     /** The associated password complexity requirements. */
     class Complexity internal constructor(

@@ -130,7 +130,7 @@ internal data class Authenticator(
     @Serializable
     internal data class Settings(
         val complexity: Complexity,
-        val age: Age,
+        val age: Age? = null,
     ) {
         @Serializable
         internal data class Complexity(
