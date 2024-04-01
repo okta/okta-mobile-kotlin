@@ -31,7 +31,7 @@ fun OktaRule.createCredential(
     credentialDataSource: CredentialDataSource = mock(),
     storageId: String = CredentialFactory.tokenStorageId,
 ): Credential {
-    return Credential(oidcClient, credentialDataSource, storageId, token, tags)
+    return Credential(credentialDataSource, storageId, token, oidcClient, tags)
 }
 
 fun createToken(

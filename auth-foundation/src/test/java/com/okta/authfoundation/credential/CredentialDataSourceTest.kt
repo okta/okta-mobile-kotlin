@@ -19,7 +19,6 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
-import com.okta.authfoundation.credential.CredentialDataSource.Companion.createCredentialDataSource
 import com.okta.authfoundation.credential.events.CredentialCreatedEvent
 import com.okta.authfoundation.credential.storage.TokenDatabase
 import com.okta.testhelpers.OktaRule
@@ -50,7 +49,7 @@ class CredentialDataSourceTest {
         ).allowMainThreadQueries().build()
         roomTokenStorage = RoomTokenStorage(database, TestTokenEncryptionHandler())
         token = createToken(accessToken = "mainToken")
-        credentialDataSource = oktaRule.createOidcClient().createCredentialDataSource(roomTokenStorage)
+        credentialDataSource = CredentialDataSource(roomTokenStorage)
     }
 
     @Test fun `test allIds returns all token IDs from token storage`() = runTest {
@@ -71,13 +70,11 @@ class CredentialDataSourceTest {
 
     @Test fun testCreate(): Unit = runTest {
         val tokenStorage = spyk(roomTokenStorage)
-        val oidcClient = oktaRule.createOidcClient()
-        val dataSource = oidcClient.createCredentialDataSource(tokenStorage)
+        val dataSource = CredentialDataSource(tokenStorage)
         val credential = dataSource.createCredential(token)
         assertThat(credential.token).isEqualTo(token)
         assertThat(credential.tags).isEmpty()
         assertThat(credential.oidcClient.credential).isSameInstanceAs(credential)
-        assertThat(credential.oidcClient.endpoints).isSameInstanceAs(oidcClient.endpoints)
         coVerify { tokenStorage.add(any(), any(), any()) }
     }
 
@@ -129,7 +126,7 @@ class CredentialDataSourceTest {
 
     @Test fun `getCredential fetches from cache when possible`() = runTest {
         val tokenStorage = spyk(roomTokenStorage)
-        val dataSource = oktaRule.createOidcClient().createCredentialDataSource(tokenStorage)
+        val dataSource = CredentialDataSource(tokenStorage)
         tokenStorage.add(token, Token.Metadata("id", emptyMap(), null))
 
         val credential1 = dataSource.getCredential("id")
@@ -157,7 +154,7 @@ class CredentialDataSourceTest {
     }
 
     @Test fun testRemove(): Unit = runTest {
-        val dataSource = oktaRule.createOidcClient().createCredentialDataSource(roomTokenStorage)
+        val dataSource = CredentialDataSource(roomTokenStorage)
         val credential1 = dataSource.createCredential(createToken())
         dataSource.createCredential(createToken())
         assertThat(dataSource.allIds()).hasSize(2)

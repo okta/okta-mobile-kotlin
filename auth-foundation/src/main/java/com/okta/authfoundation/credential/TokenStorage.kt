@@ -16,13 +16,13 @@
 package com.okta.authfoundation.credential
 
 import androidx.biometric.BiometricPrompt
-import com.okta.authfoundation.credential.CredentialDataSource.Companion.createCredentialDataSource
+import com.okta.authfoundation.AuthFoundationDefaults
 import java.util.Objects
 
 /**
  * Interface used to customize the way tokens are stored, updated, and removed throughout the lifecycle of an application.
  *
- * A default implementation is provided, but for advanced use-cases, you may implement this protocol yourself and pass an instance to [CredentialDataSource.createCredentialDataSource].
+ * A default implementation is provided, but for advanced use-cases, you may implement this protocol yourself and pass an instance to [AuthFoundationDefaults.tokenStorageFactory].
  *
  * Warning: When implementing a custom [TokenStorage] class, it's vitally important that you do not directly invoke any of these methods yourself. These methods are intended to be called on-demand by the other AuthFoundation classes, and the behavior is undefined if these methods are called directly by the developer.
  */

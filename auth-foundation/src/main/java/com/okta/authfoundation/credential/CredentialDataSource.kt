@@ -15,19 +15,14 @@
  */
 package com.okta.authfoundation.credential
 
-import android.content.Context
 import androidx.biometric.BiometricPrompt
-import androidx.room.Room
+import com.okta.authfoundation.AuthFoundationDefaults
 import com.okta.authfoundation.InternalAuthFoundationApi
-import com.okta.authfoundation.client.ApplicationContextHolder
-import com.okta.authfoundation.client.DeviceTokenProvider
-import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.credential.events.CredentialCreatedEvent
-import com.okta.authfoundation.credential.storage.TokenDatabase
 import com.okta.authfoundation.jwt.JwtParser
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.JsonObject
-import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
 import java.util.Collections
 import java.util.UUID
 
@@ -36,43 +31,23 @@ import java.util.UUID
  *
  * This is intended to be held as a singleton, and used throughout the lifecycle of the application.
  */
-class CredentialDataSource internal constructor(
-    @property:InternalAuthFoundationApi val oidcClient: OidcClient,
+@InternalAuthFoundationApi
+class CredentialDataSource(
     private val storage: TokenStorage,
 ) {
     companion object {
-        /**
-         * Initializes a credential data source using the [OidcClient].
-         *
-         * @param storage the [TokenStorage] used to persist [Token]s.
-         * @receiver the [OidcClient] used to perform the low level OIDC requests, as well as with which to use the configuration from.
-         */
-        fun OidcClient.createCredentialDataSource(
-            storage: TokenStorage,
-        ): CredentialDataSource {
-            return CredentialDataSource(this, storage)
-        }
+        private var instance: CredentialDataSource? = null
+        private val instanceMutex = Mutex()
 
-        /**
-         * Initializes a credential data source using the [OidcClient].
-         *
-         * @param context the [Context] used to access Android Shared Preferences and crypto primitives to persist [Token]s.
-         * @receiver the [OidcClient] used to perform the low level OIDC requests, as well as with which to use the configuration from.
-         */
-        @JvmOverloads
-        fun OidcClient.createCredentialDataSource(
-            context: Context,
-            tokenEncryptionHandler: TokenEncryptionHandler = DefaultTokenEncryptionHandler()
-        ): CredentialDataSource {
-            ApplicationContextHolder.setApplicationContext(context.applicationContext)
-            val sqlCipherPassword = runBlocking { DeviceTokenProvider.instance.getDeviceToken() }
-            System.loadLibrary("sqlcipher")
-            val tokenDatabase =
-                Room.databaseBuilder(context, TokenDatabase::class.java, TokenDatabase.DB_NAME)
-                    .openHelperFactory(SupportOpenHelperFactory(sqlCipherPassword.toByteArray()))
-                    .build()
-            val storage = RoomTokenStorage(tokenDatabase, tokenEncryptionHandler)
-            return CredentialDataSource(this, storage)
+        suspend fun getInstance(): CredentialDataSource {
+            instanceMutex.withLock {
+                return instance ?: run {
+                    val tokenStorage = AuthFoundationDefaults.tokenStorageFactory()
+                    val credentialDataSource = CredentialDataSource(tokenStorage)
+                    instance = credentialDataSource
+                    credentialDataSource
+                }
+            }
         }
     }
 
@@ -109,7 +84,7 @@ class CredentialDataSource internal constructor(
         val storageIdentifier = UUID.randomUUID().toString()
         val idToken = token.idToken?.let { jwtParser.parse(it) }
         val credential =
-            Credential(oidcClient, this, storageIdentifier, token, tags)
+            Credential(this, storageIdentifier, token, tags = tags)
         credentialsCache[storageIdentifier] = credential
         storage.add(
             token,
@@ -121,7 +96,7 @@ class CredentialDataSource internal constructor(
             ),
             security
         )
-        oidcClient.configuration.eventCoordinator.sendEvent(CredentialCreatedEvent(credential))
+        AuthFoundationDefaults.eventCoordinator.sendEvent(CredentialCreatedEvent(credential))
         return credential
     }
 
@@ -144,7 +119,7 @@ class CredentialDataSource internal constructor(
         if (id !in allIds()) {
             throw IllegalArgumentException("Can't replace non-existing token with id: $id")
         }
-        val credential = credentialsCache[id] ?: Credential(oidcClient, this, id, token, tags ?: emptyMap())
+        val credential = credentialsCache[id] ?: Credential(this, id, token, tags = tags ?: emptyMap())
         credential.storeToken(token, security, tags, isDefault)
         credentialsCache[id] = credential
         return credential
@@ -180,11 +155,10 @@ class CredentialDataSource internal constructor(
             val metadata = metadata(id) ?: return null
             val token = storage.getToken(id, promptInfo)
             credentialsCache[id] = Credential(
-                oidcClient,
                 this,
                 metadata.id,
                 token,
-                metadata.tags
+                tags = metadata.tags
             )
             return credentialsCache[id]
         }

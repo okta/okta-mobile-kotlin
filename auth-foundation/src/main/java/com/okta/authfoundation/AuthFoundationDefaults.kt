@@ -25,6 +25,11 @@ import com.okta.authfoundation.client.DeviceTokenCookieJar
 import com.okta.authfoundation.client.IdTokenValidator
 import com.okta.authfoundation.client.OidcClock
 import com.okta.authfoundation.client.SharedPreferencesCache
+import com.okta.authfoundation.credential.DefaultTokenEncryptionHandler
+import com.okta.authfoundation.credential.RoomTokenStorage
+import com.okta.authfoundation.credential.Token
+import com.okta.authfoundation.credential.TokenEncryptionHandler
+import com.okta.authfoundation.credential.TokenStorage
 import com.okta.authfoundation.events.EventCoordinator
 import kotlinx.coroutines.Dispatchers
 import okhttp3.Call
@@ -69,6 +74,12 @@ object AuthFoundationDefaults {
 
     /** The default function for creating a new instance of [Cache]. */
     var cacheFactory: suspend () -> Cache by NoSetAfterGetWithLazyDefaultFactory { { SharedPreferencesCache.getInstance() } }
+
+    /** The default function for creating a new instance of [TokenStorage]. */
+    var tokenStorageFactory: suspend () -> TokenStorage by NoSetAfterGetWithLazyDefaultFactory { { RoomTokenStorage.getInstance() } }
+
+    /** The default [TokenEncryptionHandler] for encrypting and decrypting stored [Token]s.*/
+    var tokenEncryptionHandler: TokenEncryptionHandler by NoSetAfterGetWithLazyDefaultFactory { DefaultTokenEncryptionHandler() }
 
     /** The default [CookieJar]. By default, it adds a DT cookie for identifying the device.
      * To use the default [CookieJar] in OkHttp, set this to [CookieJar.NO_COOKIES] */

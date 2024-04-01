@@ -54,10 +54,10 @@ import java.util.Objects
  * their credentials, and interacting with resources scoped to the credential.
  */
 class Credential internal constructor(
-    oidcClient: OidcClient,
     private val credentialDataSource: CredentialDataSource,
     @property:InternalAuthFoundationApi val storageIdentifier: String,
     token: Token,
+    oidcClient: OidcClient = OidcClient.createFromConfiguration(token.oidcConfiguration),
     tags: Map<String, String> = emptyMap()
 ) {
     internal interface BiometricSecurity

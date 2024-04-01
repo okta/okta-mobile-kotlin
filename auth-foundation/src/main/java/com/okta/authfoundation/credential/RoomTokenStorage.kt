@@ -16,15 +16,52 @@
 package com.okta.authfoundation.credential
 
 import androidx.biometric.BiometricPrompt.PromptInfo
+import androidx.room.Room
+import com.okta.authfoundation.AuthFoundationDefaults
 import com.okta.authfoundation.InternalAuthFoundationApi
+import com.okta.authfoundation.client.ApplicationContextHolder
+import com.okta.authfoundation.client.DeviceTokenProvider
 import com.okta.authfoundation.credential.storage.TokenDatabase
 import com.okta.authfoundation.credential.storage.TokenEntity
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
 
 @InternalAuthFoundationApi
 class RoomTokenStorage(
     tokenDatabase: TokenDatabase,
     private val tokenEncryptionHandler: TokenEncryptionHandler
 ) : TokenStorage {
+    companion object {
+        private var instance: RoomTokenStorage? = null
+        private val instanceMutex = Mutex()
+
+        suspend fun getInstance(): RoomTokenStorage {
+            instanceMutex.withLock {
+                return instance ?: run {
+                    val tokenStorage = createInstance()
+                    instance = tokenStorage
+                    tokenStorage
+                }
+            }
+        }
+
+        private suspend fun createInstance(): RoomTokenStorage {
+            val context = ApplicationContextHolder.appContext
+            val sqlCipherPassword = DeviceTokenProvider.instance.getDeviceToken()
+            System.loadLibrary("sqlcipher")
+            val tokenDatabase =
+                Room.databaseBuilder(
+                    context,
+                    TokenDatabase::class.java,
+                    TokenDatabase.DB_NAME
+                )
+                    .openHelperFactory(SupportOpenHelperFactory(sqlCipherPassword.toByteArray()))
+                    .build()
+            return RoomTokenStorage(tokenDatabase, AuthFoundationDefaults.tokenEncryptionHandler)
+        }
+    }
+
     private val tokenDao = tokenDatabase.tokenDao()
 
     override suspend fun allIds(): List<String> = tokenDao.allEntries().map { it.id }
