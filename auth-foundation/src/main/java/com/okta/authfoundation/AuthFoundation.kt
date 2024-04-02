@@ -18,8 +18,8 @@ package com.okta.authfoundation
 import android.content.Context
 import com.okta.authfoundation.client.ApplicationContextHolder
 
-object OktaOidc {
-    fun init(context: Context) {
+object AuthFoundation {
+    fun initializeAndroidContext(context: Context) {
         ApplicationContextHolder.setApplicationContext(context)
     }
 }

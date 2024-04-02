@@ -16,7 +16,7 @@
 package sample.okta.android.legacy
 
 import android.content.Context
-import com.okta.authfoundation.OktaOidc
+import com.okta.authfoundation.AuthFoundation
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.credential.CredentialDataSource.Companion.createCredentialDataSource
@@ -24,7 +24,7 @@ import com.okta.authfoundationbootstrap.CredentialBootstrap
 
 internal object SampleCredentialHelper {
     fun initialize(context: Context) {
-        OktaOidc.init(context)
+        AuthFoundation.initializeAndroidContext(context)
         val oidcConfiguration = OidcConfiguration(
             clientId = BuildConfig.CLIENT_ID,
             defaultScope = "openid email profile offline_access",

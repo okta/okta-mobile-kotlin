@@ -18,7 +18,7 @@ package sample.okta.android
 import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
-import com.okta.authfoundation.OktaOidc
+import com.okta.authfoundation.AuthFoundation
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.credential.CredentialDataSource.Companion.createCredentialDataSource
@@ -38,7 +38,7 @@ class SampleApplication : Application() {
 
         Timber.plant(Timber.DebugTree())
 
-        OktaOidc.init(this)
+        AuthFoundation.initializeAndroidContext(this)
         val oidcConfiguration = OidcConfiguration(
             clientId = BuildConfig.CLIENT_ID,
             defaultScope = SampleHelper.DEFAULT_SCOPE,
