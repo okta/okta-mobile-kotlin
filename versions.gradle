@@ -4,6 +4,7 @@ versions.androidx_annotation = '1.4.0'
 versions.androidx_biometric = '1.1.0'
 versions.androidx_browser = '1.5.0'
 versions.androidx_constraintlayout = '2.1.4'
+versions.androidx_datastore_preferences = '1.0.0'
 versions.androidx_sqlite = '2.2.0'
 versions.androidx_test = '1.5.0'
 versions.androidx_test_runner = '1.5.2'
@@ -65,6 +66,8 @@ deps.androidx_biometric = "androidx.biometric:biometric:$versions.androidx_biome
 deps.androidx_browser = "androidx.browser:browser:$versions.androidx_browser"
 
 deps.androidx_constraintlayout = "androidx.constraintlayout:constraintlayout:$versions.androidx_constraintlayout"
+
+deps.androidx_datastore_preferences = "androidx.datastore:datastore-preferences:$versions.androidx_datastore_preferences"
 
 deps.androidx_sqlite = "androidx.sqlite:sqlite:$versions.androidx_sqlite"
 

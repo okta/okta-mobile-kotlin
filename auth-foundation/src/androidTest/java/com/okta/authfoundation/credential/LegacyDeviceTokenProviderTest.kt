@@ -19,39 +19,39 @@ import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
-import com.okta.authfoundation.client.DeviceTokenProvider
+import com.okta.authfoundation.client.LegacyDeviceTokenProvider
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
-class DeviceTokenProviderTest {
+class LegacyDeviceTokenProviderTest {
     private lateinit var context: Context
-    private lateinit var deviceTokenProvider: DeviceTokenProvider
+    private lateinit var legacyDeviceTokenProvider: LegacyDeviceTokenProvider
 
     @Before
     fun setup() {
         context = ApplicationProvider.getApplicationContext()
-        deviceTokenProvider = DeviceTokenProvider(context)
+        legacyDeviceTokenProvider = LegacyDeviceTokenProvider(context)
         clearSharedPreferences()
     }
 
     private fun clearSharedPreferences() {
-        context.getSharedPreferences(DeviceTokenProvider.FILE_NAME, Context.MODE_PRIVATE).edit().clear().commit()
+        context.getSharedPreferences(LegacyDeviceTokenProvider.FILE_NAME, Context.MODE_PRIVATE).edit().clear().commit()
     }
 
     @Test
     fun testDeviceTokenProviderInitializesCorrectly() {
-        val actualDeviceToken = deviceTokenProvider.deviceToken
-        val expectedDeviceToken = deviceTokenProvider.sharedPrefs.getString(
-            DeviceTokenProvider.PREFERENCE_KEY, null
+        val actualDeviceToken = legacyDeviceTokenProvider.deviceToken
+        val expectedDeviceToken = legacyDeviceTokenProvider.sharedPrefs.getString(
+            LegacyDeviceTokenProvider.PREFERENCE_KEY, null
         )!!.filter { it.isLetterOrDigit() }
         assertThat(actualDeviceToken).isEqualTo(expectedDeviceToken)
     }
 
     @Test
     fun testDeviceTokenIsAtMost32Characters() {
-        val actualDeviceToken = deviceTokenProvider.deviceToken
+        val actualDeviceToken = legacyDeviceTokenProvider.deviceToken
         assertThat(actualDeviceToken.length).isAtMost(32)
     }
 }

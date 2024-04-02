@@ -15,6 +15,7 @@
  */
 package com.okta.authfoundation.client
 
+import kotlinx.coroutines.runBlocking
 import okhttp3.Cookie
 import okhttp3.CookieJar
 import okhttp3.HttpUrl
@@ -23,17 +24,10 @@ import kotlin.time.Duration.Companion.seconds
 class DeviceTokenCookieJar(private val oidcClock: OidcClock) : CookieJar {
     private val savedCookiesCache = mutableMapOf<String, List<Cookie>>()
 
-    private val deviceTokenCookieBuilder: Cookie.Builder?
+    private val deviceTokenCookieBuilder: Cookie.Builder
         get() {
-            return DeviceTokenProvider.shared?.let {
-                getDtCookieBuilderWith(it.deviceToken)
-            } ?: run {
-                ApplicationContextHolder.appContext?.let { context ->
-                    val deviceTokenProvider = DeviceTokenProvider(context)
-                    DeviceTokenProvider.shared = deviceTokenProvider
-                    getDtCookieBuilderWith(deviceTokenProvider.deviceToken)
-                }
-            }
+            val deviceToken = runBlocking { DeviceTokenProvider.instance.getDeviceToken() }
+            return getDtCookieBuilderWith(deviceToken)
         }
 
     private fun getDtCookieBuilderWith(deviceToken: String): Cookie.Builder {
@@ -44,11 +38,11 @@ class DeviceTokenCookieJar(private val oidcClock: OidcClock) : CookieJar {
     }
 
     override fun loadForRequest(url: HttpUrl): List<Cookie> {
-        val deviceTokenCookie = deviceTokenCookieBuilder?.domain(url.host)?.build()
+        val deviceTokenCookie = deviceTokenCookieBuilder.domain(url.host).build()
         val savedCookiesForDomain = savedCookiesCache[url.host]?.filter {
             it.expiresAt > oidcClock.currentTimeEpochSecond().seconds.inWholeMilliseconds
         } ?: emptyList()
-        val deviceTokenCookieList = deviceTokenCookie?.let { listOf(it) } ?: emptyList()
+        val deviceTokenCookieList = listOf(deviceTokenCookie)
         return savedCookiesForDomain + deviceTokenCookieList
     }
 

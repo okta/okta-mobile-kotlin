@@ -24,7 +24,7 @@ import com.okta.authfoundation.InternalAuthFoundationApi
 import com.okta.authfoundation.TransparentBiometricActivity
 import com.okta.authfoundation.client.ApplicationContextHolder
 import com.okta.authfoundation.client.OidcConfiguration
-import com.okta.authfoundation.credential.CredentialDataSource.Companion.createCredentialDataSource
+import com.okta.authfoundation.util.AndroidKeystoreUtil
 import kotlinx.coroutines.suspendCancellableCoroutine
 import java.security.KeyFactory
 import java.security.KeyPairGenerator
@@ -99,10 +99,8 @@ interface TokenEncryptionHandler {
 
 @InternalAuthFoundationApi
 class DefaultTokenEncryptionHandler(
-    internal val keyStore: KeyStore = KeyStore.getInstance("AndroidKeyStore"),
-    private val keyPairGenerator: KeyPairGenerator = KeyPairGenerator.getInstance(
-        KeyProperties.KEY_ALGORITHM_RSA, "AndroidKeyStore"
-    )
+    internal val keyStore: KeyStore = AndroidKeystoreUtil.keyStore,
+    private val keyPairGenerator: KeyPairGenerator = AndroidKeystoreUtil.getRsaKeyPairGenerator()
 ) : TokenEncryptionHandler {
     private val aesKeyGenerator = KeyGenerator.getInstance("AES").apply {
         // Generate 256-bit AES keys for encryption
