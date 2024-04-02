@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-Present Okta, Inc.
+ * Copyright 2024-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.okta.authfoundation.client
+package com.okta.authfoundation
 
 import android.content.Context
-import androidx.startup.Initializer
-import com.okta.authfoundation.InternalAuthFoundationApi
+import com.okta.authfoundation.client.ApplicationContextHolder
 
-@InternalAuthFoundationApi
-class ApplicationContextInitializer : Initializer<Unit> {
-    override fun create(context: Context) {
-        ApplicationContextHolder.setApplicationContext(context.applicationContext)
+object OktaOidc {
+    fun init(context: Context) {
+        ApplicationContextHolder.setApplicationContext(context)
     }
-
-    override fun dependencies(): List<Class<out Initializer<*>>> = emptyList()
 }

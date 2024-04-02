@@ -38,6 +38,11 @@ public final class com/okta/authfoundation/BiometricAuthenticationException : ja
 public abstract interface annotation class com/okta/authfoundation/InternalAuthFoundationApi : java/lang/annotation/Annotation {
 }
 
+public final class com/okta/authfoundation/OktaOidc {
+	public static final field INSTANCE Lcom/okta/authfoundation/OktaOidc;
+	public final fun init (Landroid/content/Context;)V
+}
+
 public final class com/okta/authfoundation/TransparentBiometricActivity : androidx/appcompat/app/AppCompatActivity {
 	public fun <init> ()V
 	public fun finish ()V
@@ -91,13 +96,6 @@ public abstract interface class com/okta/authfoundation/client/AccessTokenValida
 
 public final class com/okta/authfoundation/client/AccessTokenValidator$Error : java/lang/IllegalStateException {
 	public fun <init> (Ljava/lang/String;)V
-}
-
-public final class com/okta/authfoundation/client/ApplicationContextInitializer : androidx/startup/Initializer {
-	public fun <init> ()V
-	public synthetic fun create (Landroid/content/Context;)Ljava/lang/Object;
-	public fun create (Landroid/content/Context;)V
-	public fun dependencies ()Ljava/util/List;
 }
 
 public abstract interface class com/okta/authfoundation/client/Cache {
