@@ -1,7 +1,6 @@
 rootProject.name = "okta-mobile-kotlin"
 include ':app'
 include ':auth-foundation'
-include ':auth-foundation-bootstrap'
 include ':bom'
 include ':legacy-token-migration'
 include ':legacy-token-migration-sample'
