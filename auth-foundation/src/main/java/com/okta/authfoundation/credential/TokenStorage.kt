@@ -93,15 +93,6 @@ interface TokenStorage {
     suspend fun getToken(id: String, promptInfo: BiometricPrompt.PromptInfo? = Credential.Security.promptInfo): Token
 
     /**
-     * Get the default [Token]. The storage must have at most one default [Token] at any time.
-     *
-     * @param promptInfo [BiometricPrompt.PromptInfo] to be displayed if the stored [Token] is using biometric [Credential.Security].
-     *
-     * @return The default [Token], null if no default [Token] exists.
-     */
-    suspend fun getDefaultToken(promptInfo: BiometricPrompt.PromptInfo? = Credential.Security.promptInfo): Token?
-
-    /**
      *  Represents the data to store in legacy [TokenStorage].
      */
     class Entry(

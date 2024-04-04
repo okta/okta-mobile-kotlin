@@ -36,17 +36,16 @@ internal data class TokenEntity(
     val payloadData: JsonObject?,
     val keyAlias: String,
     val tokenEncryptionType: EncryptionType,
-    val isDefault: Boolean,
     val encryptionExtras: Map<String, String>
 ) {
     internal enum class EncryptionType {
-        NON_BIO,
+        DEFAULT,
         BIO_ONLY,
         BIO_AND_PIN;
 
         internal fun toSecurity(keyAlias: String): Credential.Security {
             return when (this) {
-                NON_BIO -> Credential.Security.Default(keyAlias)
+                DEFAULT -> Credential.Security.Default(keyAlias)
                 BIO_ONLY -> Credential.Security.BiometricStrong(keyAlias)
                 BIO_AND_PIN -> Credential.Security.BiometricStrongOrDeviceCredential(keyAlias)
             }
@@ -55,7 +54,7 @@ internal data class TokenEntity(
         internal companion object {
             internal fun fromSecurity(security: Credential.Security): EncryptionType {
                 return when (security) {
-                    is Credential.Security.Default -> NON_BIO
+                    is Credential.Security.Default -> DEFAULT
                     is Credential.Security.BiometricStrong -> BIO_ONLY
                     is Credential.Security.BiometricStrongOrDeviceCredential -> BIO_AND_PIN
                 }
@@ -78,8 +77,9 @@ internal data class TokenEntity(
         if (payloadData != other.payloadData) return false
         if (keyAlias != other.keyAlias) return false
         if (tokenEncryptionType != other.tokenEncryptionType) return false
-        if (isDefault != other.isDefault) return false
-        return encryptionExtras == other.encryptionExtras
+        if (encryptionExtras != other.encryptionExtras) return false
+
+        return true
     }
 
     override fun hashCode(): Int {
@@ -89,7 +89,6 @@ internal data class TokenEntity(
         result = 31 * result + (payloadData?.hashCode() ?: 0)
         result = 31 * result + keyAlias.hashCode()
         result = 31 * result + tokenEncryptionType.hashCode()
-        result = 31 * result + isDefault.hashCode()
         result = 31 * result + encryptionExtras.hashCode()
         return result
     }

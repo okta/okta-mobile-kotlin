@@ -18,6 +18,7 @@ package com.okta.authfoundation.credential
 import com.okta.authfoundation.claims.ClaimsProvider
 import com.okta.authfoundation.claims.DefaultClaimsProvider
 import com.okta.authfoundation.client.OidcConfiguration
+import com.okta.authfoundation.jwt.Jwt
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
@@ -140,12 +141,14 @@ class Token(
         /**
          * The object holding claim values. Use [claimsProvider] for a more convenient way of accessing claims.
          */
-        val payloadData: JsonObject?,
-        /**
-         * true if [Token] is the default [Token], false otherwise
-         */
-        val isDefault: Boolean = false
+        val payloadData: JsonObject?
     ) {
+        constructor(
+            id: String,
+            tags: Map<String, String>,
+            idToken: Jwt?
+        ) : this(id, tags, idToken?.deserializeClaims(JsonObject.serializer()))
+
         /**
          * Convenience object for accessing claims of this [Token]
          */

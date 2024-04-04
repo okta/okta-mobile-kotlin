@@ -37,8 +37,7 @@ class RoomTokenStorageTest {
     private val tokenMetadata = Token.Metadata(
         id = "id",
         tags = mapOf("key" to "value"),
-        payloadData = buildJsonObject { put("claim", "claimValue") },
-        isDefault = false
+        payloadData = buildJsonObject { put("claim", "claimValue") }
     )
 
     private lateinit var database: TokenDatabase
@@ -85,12 +84,6 @@ class RoomTokenStorageTest {
         assertFailsWith<SQLiteConstraintException> {
             roomTokenStorage.add(newToken, tokenMetadata)
         }
-    }
-
-    @Test
-    fun `add token sets the token to default when requested`() = runTest {
-        roomTokenStorage.add(token, tokenMetadata.copy(isDefault = true))
-        assertThat(roomTokenStorage.getToken(tokenMetadata.id)).isEqualTo(token)
     }
 
     @Test

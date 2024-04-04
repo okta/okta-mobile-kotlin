@@ -71,8 +71,7 @@ class RoomTokenStorage(
             Token.Metadata(
                 it.id,
                 it.tags,
-                it.payloadData,
-                it.isDefault
+                it.payloadData
             )
         }
     }
@@ -92,13 +91,6 @@ class RoomTokenStorage(
         tokenEncryptionHandler.generateKey(security)
         val encryptionResult = tokenEncryptionHandler.encrypt(token, security)
 
-        if (metadata.isDefault) {
-            tokenDao.allEntries().firstOrNull { it.isDefault }?.let {
-                tokenDao.updateTokenEntity(
-                    it.copy(isDefault = false)
-                )
-            }
-        }
 
         tokenDao.insertTokenEntity(
             TokenEntity(
@@ -108,7 +100,6 @@ class RoomTokenStorage(
                 payloadData = metadata.payloadData,
                 keyAlias = security.keyAlias,
                 tokenEncryptionType = TokenEntity.EncryptionType.fromSecurity(security),
-                isDefault = metadata.isDefault,
                 encryptionExtras = encryptionResult.encryptionExtras
             )
         )
@@ -128,9 +119,6 @@ class RoomTokenStorage(
     ) {
         val tokenEntity = tokenDao.getById(id) ?: throw NoSuchElementException()
 
-        val previousDefault = tokenDao.allEntries()
-            .firstOrNull { (it.id != id) and it.isDefault }
-
         security?.let { tokenEncryptionHandler.generateKey(it) }
         val encryptionResult = tokenEncryptionHandler.encrypt(
             token, security ?: tokenEntity.security
@@ -144,26 +132,15 @@ class RoomTokenStorage(
             tokenEncryptionType = security?.let {
                 TokenEntity.EncryptionType.fromSecurity(it)
             } ?: tokenEntity.tokenEncryptionType,
-            isDefault = metadata?.isDefault ?: tokenEntity.isDefault,
             encryptionExtras = encryptionResult.encryptionExtras
         )
 
-        if (metadata?.isDefault == true && previousDefault != null) {
-            tokenDao.updateTokenEntity(updatedTokenEntity, previousDefault.copy(isDefault = false))
-        } else {
-            tokenDao.updateTokenEntity(updatedTokenEntity)
-        }
+        tokenDao.updateTokenEntity(updatedTokenEntity)
     }
 
     override suspend fun getToken(id: String, promptInfo: PromptInfo?): Token {
         val tokenEntity = tokenDao.getById(id) ?: throw NoSuchElementException()
         return getTokenFromEntity(tokenEntity, promptInfo)
-    }
-
-    override suspend fun getDefaultToken(promptInfo: PromptInfo?): Token? {
-        return tokenDao.allEntries().firstOrNull { it.isDefault }?.let {
-            getTokenFromEntity(it, promptInfo)
-        }
     }
 
     private suspend fun getTokenFromEntity(tokenEntity: TokenEntity, promptInfo: PromptInfo?): Token {

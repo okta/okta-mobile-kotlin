@@ -22,7 +22,6 @@ import com.okta.authfoundation.credential.events.CredentialCreatedEvent
 import com.okta.authfoundation.jwt.JwtParser
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlinx.serialization.json.JsonObject
 import java.util.Collections
 import java.util.UUID
 
@@ -73,13 +72,11 @@ class CredentialDataSource(
      * @param token The [Token] to store in the newly created [Credential].
      * @param tags A map of additional values to store in [Credential].
      * @param security The [Credential.Security] level to encrypt the stored [token] with.
-     * @param isDefault Specify whether the newly created [Credential] should be set as the default [Credential].
      */
     suspend fun createCredential(
         token: Token,
         tags: Map<String, String> = emptyMap(),
-        security: Credential.Security = Credential.Security.standard,
-        isDefault: Boolean = false,
+        security: Credential.Security = Credential.Security.standard
     ): Credential {
         val storageIdentifier = UUID.randomUUID().toString()
         val idToken = token.idToken?.let { jwtParser.parse(it) }
@@ -91,8 +88,7 @@ class CredentialDataSource(
             Token.Metadata(
                 storageIdentifier,
                 tags,
-                idToken?.deserializeClaims(JsonObject.serializer()),
-                isDefault
+                idToken
             ),
             security
         )
@@ -107,20 +103,18 @@ class CredentialDataSource(
      * @param token The token object to store.
      * @param tags The new tags for replacing the stored tags of this [Credential]. If null, keep the previous stored tags.
      * @param security The new [Credential.Security] level for this token. If null, keep the previous stored [Credential.Security] level.
-     * @param isDefault Specify whether the [Credential] with [id] should be set as default. If null, the default [Credential] is unchanged.
      */
     suspend fun replaceCredential(
         id: String,
         token: Token,
         tags: Map<String, String>? = null,
-        security: Credential.Security? = null,
-        isDefault: Boolean? = null
+        security: Credential.Security? = null
     ): Credential {
         if (id !in allIds()) {
             throw IllegalArgumentException("Can't replace non-existing token with id: $id")
         }
         val credential = credentialsCache[id] ?: Credential(this, id, token, tags = tags ?: emptyMap())
-        credential.storeToken(token, security, tags, isDefault)
+        credential.storeToken(token, security, tags)
         credentialsCache[id] = credential
         return credential
     }
@@ -129,17 +123,10 @@ class CredentialDataSource(
         id: String,
         token: Token,
         tags: Map<String, String>,
-        security: Credential.Security?,
-        isDefault: Boolean?
+        security: Credential.Security?
     ) {
         val idToken = token.idToken?.let { jwtParser.parse(it) }
-        val payloadData = idToken?.deserializeClaims(JsonObject.serializer())
-        val previousMetadata = metadata(id) ?: throw IllegalStateException("Token metadata for $id not found")
-        val newMetadata = previousMetadata.copy(
-            tags = tags,
-            payloadData = payloadData,
-            isDefault = isDefault ?: previousMetadata.isDefault
-        )
+        val newMetadata = Token.Metadata(id, tags, idToken)
         storage.replace(id, token, newMetadata, security)
     }
 
@@ -180,13 +167,6 @@ class CredentialDataSource(
             .mapNotNull { metadata ->
                 getCredential(metadata.id, promptInfo)
             }
-    }
-
-    /**
-     * Return true if this [CredentialDataSource] contains a default [Credential], otherwise return false.
-     */
-    suspend fun containsDefaultCredential(): Boolean {
-        return allIds().any { metadata(it)?.isDefault == true }
     }
 
     internal suspend fun remove(credential: Credential) {

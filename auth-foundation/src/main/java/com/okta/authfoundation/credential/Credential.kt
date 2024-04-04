@@ -208,13 +208,11 @@ class Credential internal constructor(
      * @param token the token to update this [Credential] with.
      * @param security the [Credential.Security] level to store the [token], defaults to the current security.
      * @param tags the map to associate with this [Credential], defaults to the current tags.
-     * @param isDefault specify whether this [Credential] should be set as default, defaults to unchanged default [Credential]
      */
     suspend fun storeToken(
         token: Token,
         security: Security? = null,
-        tags: Map<String, String>? = null,
-        isDefault: Boolean? = null
+        tags: Map<String, String>? = null
     ) {
         if (isDeleted) {
             oidcClient.configuration.eventCoordinator.sendEvent(
@@ -231,7 +229,7 @@ class Credential internal constructor(
             deviceSecret = token.deviceSecret ?: this.token?.deviceSecret,
         )
         val tagsCopy = tags?.toMap() // Making a defensive copy, so it's not modified outside our control.
-        credentialDataSource.internalReplaceCredential(storageIdentifier, tokenToStore, tagsCopy ?: this.tags, security, isDefault)
+        credentialDataSource.internalReplaceCredential(storageIdentifier, tokenToStore, tagsCopy ?: this.tags, security)
         state.value = CredentialState.Data(tokenToStore, tags ?: this.tags)
         oidcClient.configuration.eventCoordinator.sendEvent(
             CredentialStoredEvent(
@@ -248,43 +246,17 @@ class Credential internal constructor(
      *
      * @param security the [Credential.Security] level to store the [token], defaults to the current security.
      * @param tags the map to associate with this [Credential], defaults to the current tags.
-     * @param isDefault specify whether this [Credential] should be set as default, defaults to unchanged default [Credential]
      */
     suspend fun storeToken(
         security: Security? = null,
-        tags: Map<String, String>? = null,
-        isDefault: Boolean? = null
+        tags: Map<String, String>? = null
     ) {
-        token?.let { storeToken(it, security, tags, isDefault) } ?: {
+        token?.let { storeToken(it, security, tags) } ?: {
             oidcClient.configuration.eventCoordinator.sendEvent(
                 CredentialStoredAfterRemovedEvent(
                     this
                 )
             )
-        }
-    }
-
-    /**
-     * Set this [Credential] as default. All other [Credential]s are set as non-default.
-     */
-    suspend fun setDefault() {
-        when (val tokenState = state.value) {
-            is CredentialState.Deleted -> {
-                oidcClient.configuration.eventCoordinator.sendEvent(
-                    CredentialStoredAfterRemovedEvent(this)
-                )
-                return
-            }
-
-            is CredentialState.Data -> {
-                credentialDataSource.internalReplaceCredential(
-                    storageIdentifier,
-                    tokenState.token,
-                    tags,
-                    security = null, // Keep same security
-                    isDefault = true
-                )
-            }
         }
     }
 
