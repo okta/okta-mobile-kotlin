@@ -24,7 +24,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import kotlinx.serialization.json.Json
 import okhttp3.Call
-import okhttp3.CookieJar
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.Response
@@ -74,10 +73,6 @@ class OidcConfiguration private constructor(
     /** The factory for creating a new instance of [Cache]. [Cache] is used to optimize network calls by the SDK. */
     @property:InternalAuthFoundationApi
     val cacheFactory: suspend () -> Cache = AuthFoundationDefaults.cacheFactory,
-
-    /** The CookieJar used for the network calls used by the SDK. */
-    @property:InternalAuthFoundationApi
-    val cookieJar: CookieJar = AuthFoundationDefaults.cookieJar
 ) {
     /**
      * Used to create an OidcConfiguration.
@@ -104,7 +99,6 @@ class OidcConfiguration private constructor(
         accessTokenValidator = AuthFoundationDefaults.accessTokenValidator,
         deviceSecretValidator = AuthFoundationDefaults.deviceSecretValidator,
         cacheFactory = AuthFoundationDefaults.cacheFactory,
-        cookieJar = AuthFoundationDefaults.cookieJar,
     )
 
     /** The Call.Factory which makes calls to the okta server. */
@@ -119,7 +113,7 @@ class OidcConfiguration private constructor(
                     // Add user interceptors last to prioritize user defined behavior over SDK
                     interceptors().addAll(userInterceptors)
                 }
-                .cookieJar(cookieJar)
+                .cookieJar(AuthFoundationDefaults.cookieJar)
                 .build()
         } else {
             callFactory
