@@ -15,23 +15,10 @@
  */
 package com.okta.authfoundation.credential
 
-import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcConfiguration
-import com.okta.testhelpers.OktaRule
-import org.mockito.kotlin.mock
 
 object CredentialFactory {
     const val tokenStorageId: String = "test_storage_id"
-}
-
-fun OktaRule.createCredential(
-    token: Token,
-    tags: Map<String, String> = emptyMap(),
-    oidcClient: OidcClient = createOidcClient(),
-    credentialDataSource: CredentialDataSource = mock(),
-    storageId: String = CredentialFactory.tokenStorageId,
-): Credential {
-    return Credential(credentialDataSource, storageId, token, oidcClient, tags)
 }
 
 fun createToken(

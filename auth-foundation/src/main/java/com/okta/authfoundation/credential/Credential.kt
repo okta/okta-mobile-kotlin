@@ -19,7 +19,6 @@ import android.security.keystore.KeyProperties
 import androidx.annotation.VisibleForTesting
 import androidx.biometric.BiometricPrompt
 import com.okta.authfoundation.AuthFoundationDefaults
-import com.okta.authfoundation.InternalAuthFoundationApi
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundation.client.dto.OidcIntrospectInfo
@@ -27,6 +26,7 @@ import com.okta.authfoundation.client.dto.OidcUserInfo
 import com.okta.authfoundation.credential.events.CredentialDeletedEvent
 import com.okta.authfoundation.credential.events.CredentialStoredAfterRemovedEvent
 import com.okta.authfoundation.credential.events.CredentialStoredEvent
+import com.okta.authfoundation.credential.events.DefaultCredentialChangedEvent
 import com.okta.authfoundation.credential.events.NoAccessTokenAvailableEvent
 import com.okta.authfoundation.events.EventCoordinator
 import com.okta.authfoundation.jwt.Jwt
@@ -54,8 +54,7 @@ import java.util.Objects
  * their credentials, and interacting with resources scoped to the credential.
  */
 class Credential internal constructor(
-    private val credentialDataSource: CredentialDataSource,
-    @property:InternalAuthFoundationApi val storageIdentifier: String,
+    val id: String,
     token: Token,
     oidcClient: OidcClient = OidcClient.createFromConfiguration(token.oidcConfiguration),
     tags: Map<String, String> = emptyMap()
@@ -106,6 +105,84 @@ class Credential internal constructor(
         }
     }
 
+    companion object {
+        private val defaultTokenIdDataSource by lazy { DefaultTokenIdDataStore() }
+
+        @VisibleForTesting
+        internal suspend fun credentialDataSource() = CredentialDataSource.getInstance()
+
+        /**
+         * Returns the default [Credential], or null if no default [Credential] exists.
+         */
+        suspend fun getDefaultCredential(): Credential? {
+            return defaultTokenIdDataSource.getDefaultTokenId()?.let { id -> with(id) }
+        }
+
+        /**
+         * Sets the default [Credential] to provided [credential].
+         */
+        suspend fun setDefaultCredential(credential: Credential) {
+            defaultTokenIdDataSource.setDefaultTokenId(credential.id)
+            AuthFoundationDefaults.eventCoordinator.sendEvent(DefaultCredentialChangedEvent(credential))
+        }
+
+        /**
+         * Returns IDs of all available [Credential] objects in storage.
+         */
+        suspend fun allIds(): List<String> = credentialDataSource().allIds()
+
+        /**
+         * Returns [Token.Metadata] of [Credential] with specified [id].
+         *
+         * @param id The identifier of the [Credential].
+         */
+        suspend fun metadata(id: String) = credentialDataSource().metadata(id)
+
+        /**
+         * Sets the [Token.Metadata] of [Token] with specified [Token.Metadata.id].
+         */
+        suspend fun setMetadata(metadata: Token.Metadata) = credentialDataSource().setMetadata(metadata)
+
+        /**
+         * Return the [Credential] associated with the given [id].
+         *
+         * @param id The id of the [Credential] to fetch.
+         * @param promptInfo The [BiometricPrompt.PromptInfo] for displaying biometric prompt. A non-null value is required if the [Credential] with [id] is stored using a biometric [Credential.Security].
+         */
+        suspend fun with(id: String, promptInfo: BiometricPrompt.PromptInfo? = Security.promptInfo): Credential? {
+            return credentialDataSource().getCredential(id, promptInfo)
+        }
+
+        /**
+         * Return all [Credential] objects matching the given [where] expression. The [where] expression is supplied with [Token.Metadata] and should return true for cases where the user wants to fetch [Credential] with given [Token.Metadata].
+         *
+         * @param promptInfo The [BiometricPrompt.PromptInfo] for displaying biometric prompt. A non-null value is required if a fetched [Credential] is stored using a biometric [Credential.Security].
+         * @param where A function specifying whether a [Credential] with [Token.Metadata] should be fetched. This function should return true for [Credential] with [Token.Metadata] that should be retrieved from storage.
+         */
+        suspend fun find(
+            promptInfo: BiometricPrompt.PromptInfo? = Security.promptInfo,
+            where: (Token.Metadata) -> Boolean
+        ): List<Credential> {
+            return credentialDataSource().findCredential(promptInfo, where)
+        }
+
+        /**
+         * Store a [Token] with optional [tags] and [security] options.
+         * Return the [Credential] object associated with the stored [Token]
+         *
+         * @param token The [Token] to store
+         * @param tags User-defined value map to store along with [token]
+         * @param security Security level for storing the [Token]
+         */
+        suspend fun store(
+            token: Token,
+            tags: Map<String, String> = emptyMap(),
+            security: Security = Security.standard
+        ): Credential {
+            return credentialDataSource().createCredential(token, tags, security)
+        }
+    }
+
     private val refreshCoalescingOrchestrator = CoalescingOrchestrator(
         factory = ::performRealRefresh,
         keepDataInMemory = { false },
@@ -137,13 +214,28 @@ class Credential internal constructor(
 
     /**
      * The tags associated with this [Credential].
-     *
-     * This can be used when calling [Credential.storeToken] to associate this [Credential] with data relevant to your application.
      */
     val tags: Map<String, String>
         get() {
             return Collections.unmodifiableMap(state.value.tags)
         }
+
+    /**
+     * Set tags for this [Credential].
+     */
+    suspend fun setTags(tags: Map<String, String>) {
+        token?.let {
+            setMetadata(Token.Metadata(id, tags, idToken()))
+            state.value = CredentialState.Data(it, tags)
+            oidcClient.configuration.eventCoordinator.sendEvent(
+                CredentialStoredEvent(
+                    this,
+                    this.token,
+                    this.tags
+                )
+            )
+        } ?: throw IllegalStateException("Attempted setting tags for deleted token with id: $id")
+    }
 
     /**
      * Returns a [Flow] that emits the current [Token] that's stored and associated with this [Credential].
@@ -202,18 +294,11 @@ class Credential internal constructor(
     }
 
     /**
-     * Store a token, or update the existing token.
-     * This can also be used to store custom tags.
+     * Replace the [Token] stored in this [Credential].
      *
-     * @param token the token to update this [Credential] with.
-     * @param security the [Credential.Security] level to store the [token], defaults to the current security.
-     * @param tags the map to associate with this [Credential], defaults to the current tags.
+     * @param token The [Token] to store.
      */
-    suspend fun storeToken(
-        token: Token,
-        security: Security? = null,
-        tags: Map<String, String>? = null
-    ) {
+    suspend fun replaceToken(token: Token) {
         if (isDeleted) {
             oidcClient.configuration.eventCoordinator.sendEvent(
                 CredentialStoredAfterRemovedEvent(
@@ -228,9 +313,8 @@ class Credential internal constructor(
             // Device Secret isn't returned when refreshing.
             deviceSecret = token.deviceSecret ?: this.token?.deviceSecret,
         )
-        val tagsCopy = tags?.toMap() // Making a defensive copy, so it's not modified outside our control.
-        credentialDataSource.internalReplaceCredential(storageIdentifier, tokenToStore, tagsCopy ?: this.tags, security)
-        state.value = CredentialState.Data(tokenToStore, tags ?: this.tags)
+        credentialDataSource().replaceToken(id, tokenToStore)
+        state.value = CredentialState.Data(tokenToStore, tags)
         oidcClient.configuration.eventCoordinator.sendEvent(
             CredentialStoredEvent(
                 this,
@@ -238,26 +322,6 @@ class Credential internal constructor(
                 this.tags
             )
         )
-    }
-
-    /**
-     * Store a token, or update the existing token.
-     * This can also be used to store custom tags.
-     *
-     * @param security the [Credential.Security] level to store the [token], defaults to the current security.
-     * @param tags the map to associate with this [Credential], defaults to the current tags.
-     */
-    suspend fun storeToken(
-        security: Security? = null,
-        tags: Map<String, String>? = null
-    ) {
-        token?.let { storeToken(it, security, tags) } ?: {
-            oidcClient.configuration.eventCoordinator.sendEvent(
-                CredentialStoredAfterRemovedEvent(
-                    this
-                )
-            )
-        }
     }
 
     /**
@@ -271,7 +335,7 @@ class Credential internal constructor(
         if (isDeleted) {
             return
         }
-        credentialDataSource.remove(this)
+        credentialDataSource().remove(this)
         state.value = CredentialState.Deleted
         oidcClient.configuration.eventCoordinator.sendEvent(CredentialDeletedEvent(this))
     }
@@ -442,13 +506,13 @@ class Credential internal constructor(
         if (other !is Credential) {
             return false
         }
-        return storageIdentifier == other.storageIdentifier &&
+        return id == other.id &&
             state.value == other.state.value
     }
 
     override fun hashCode(): Int {
         return Objects.hash(
-            storageIdentifier,
+            id,
             state.value,
         )
     }
@@ -462,7 +526,7 @@ private sealed class CredentialState {
         override val tags: Map<String, String>
     ) : CredentialState()
 
-    object Deleted : CredentialState()
+    data object Deleted : CredentialState()
 }
 
 @Serializable

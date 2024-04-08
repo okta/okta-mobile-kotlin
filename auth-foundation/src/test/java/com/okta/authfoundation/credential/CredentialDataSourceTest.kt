@@ -23,8 +23,11 @@ import com.okta.authfoundation.credential.events.CredentialCreatedEvent
 import com.okta.authfoundation.credential.storage.TokenDatabase
 import com.okta.testhelpers.OktaRule
 import com.okta.testhelpers.TestTokenEncryptionHandler
+import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.mockkObject
 import io.mockk.spyk
+import io.mockk.unmockkAll
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Before
@@ -50,6 +53,8 @@ class CredentialDataSourceTest {
         roomTokenStorage = RoomTokenStorage(database, TestTokenEncryptionHandler())
         token = createToken(accessToken = "mainToken")
         credentialDataSource = CredentialDataSource(roomTokenStorage)
+        mockkObject(Credential)
+        coEvery { Credential.credentialDataSource() } returns credentialDataSource
     }
 
     @Test fun `test allIds returns all token IDs from token storage`() = runTest {
@@ -66,6 +71,14 @@ class CredentialDataSourceTest {
 
     @Test fun `get metadata for a non-existing token`() = runTest {
         assertThat(credentialDataSource.metadata("non-existing-id")).isNull()
+    }
+
+    @Test fun `setMetadata changes metadata`() = runTest {
+        val originalMetadata = Token.Metadata("id1", emptyMap(), idToken = null)
+        roomTokenStorage.add(token, originalMetadata)
+        val newMetadata = Token.Metadata("id1", mapOf("someKey" to "someValue"), idToken = null)
+        credentialDataSource.setMetadata(newMetadata)
+        assertThat(credentialDataSource.metadata("id1")).isEqualTo(newMetadata)
     }
 
     @Test fun testCreate(): Unit = runTest {
@@ -88,28 +101,27 @@ class CredentialDataSourceTest {
     }
 
     @Test fun `replaceToken fails when trying to replace a non-existent token`() = runTest {
-        val exception = assertFailsWith<IllegalArgumentException> {
-            credentialDataSource.replaceCredential("non-existent-id", token)
+        assertFailsWith<NoSuchElementException> {
+            credentialDataSource.replaceToken("non-existent-id", token)
         }
-        assertThat(exception.message).isEqualTo("Can't replace non-existing token with id: non-existent-id")
     }
 
     @Test fun `replaceToken successfully replaces token in tokenStorage`() = runTest {
         roomTokenStorage.add(token, Token.Metadata("id", emptyMap(), idToken = null))
         val newToken = createToken(accessToken = "newToken")
-        val credential = credentialDataSource.replaceCredential("id", newToken)
+        credentialDataSource.replaceToken("id", newToken)
+        val credential = credentialDataSource.getCredential("id")
 
         assertThat(roomTokenStorage.getToken("id")).isEqualTo(newToken)
-        assertThat(credential.token).isEqualTo(newToken)
+        assertThat(credential!!.token).isEqualTo(newToken)
     }
 
-    @Test fun `replaceToken successfully replaces token in cached credential objects`() = runTest {
+    @Test fun `credential store successfully replaces token in cached credential objects`() = runTest {
         val credential = credentialDataSource.createCredential(token)
         val newToken = createToken(accessToken = "newToken")
-        val credential2 = credentialDataSource.replaceCredential(credential.storageIdentifier, newToken)
-        assertThat(credential).isEqualTo(credential2)
+        credential.replaceToken(newToken)
         assertThat(credential.token).isEqualTo(newToken)
-        assertThat(roomTokenStorage.getToken(credential.storageIdentifier)).isEqualTo(newToken)
+        assertThat(roomTokenStorage.getToken(credential.id)).isEqualTo(newToken)
     }
 
     @Test fun `getCredential fetches the correct credential`() = runTest {
@@ -156,5 +168,6 @@ class CredentialDataSourceTest {
 
     @After fun tearDown() {
         database.close()
+        unmockkAll()
     }
 }

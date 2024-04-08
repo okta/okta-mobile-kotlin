@@ -279,7 +279,7 @@ class OidcClient private constructor(
                 try {
                     TokenValidator(this@OidcClient, token, nonce, maxAge, jwksDeferred.await()).validate()
                     configuration.eventCoordinator.sendEvent(TokenCreatedEvent(token, credential))
-                    credential?.storeToken(token)
+                    credential?.replaceToken(token)
                 } catch (e: Exception) {
                     return@coroutineScope OidcClientResult.Error(e)
                 }

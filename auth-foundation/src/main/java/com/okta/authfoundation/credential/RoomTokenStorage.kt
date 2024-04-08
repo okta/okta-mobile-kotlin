@@ -91,7 +91,6 @@ class RoomTokenStorage(
         tokenEncryptionHandler.generateKey(security)
         val encryptionResult = tokenEncryptionHandler.encrypt(token, security)
 
-
         tokenDao.insertTokenEntity(
             TokenEntity(
                 id = metadata.id,
