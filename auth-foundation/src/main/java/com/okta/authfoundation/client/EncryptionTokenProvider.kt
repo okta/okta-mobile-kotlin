@@ -21,48 +21,32 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
-import com.okta.authfoundation.InternalAuthFoundationApi
 import com.okta.authfoundation.util.AesEncryptionHandler
 import kotlinx.coroutines.flow.firstOrNull
 import java.util.UUID
 
-@InternalAuthFoundationApi
-class DeviceTokenProvider(
+internal class EncryptionTokenProvider(
     private val aesEncryptionHandler: AesEncryptionHandler = AesEncryptionHandler()
 ) {
     companion object {
-        const val PREFERENCE_NAME = "com.okta.authfoundation.client.deviceToken"
-        val PREFERENCE_KEY = stringPreferencesKey("encryptedDeviceToken")
-        val instance by lazy { DeviceTokenProvider() }
+        const val PREFERENCE_NAME = "com.okta.authfoundation.client.encryptionToken"
+        val PREFERENCE_KEY = stringPreferencesKey("encryptedEncryptionToken")
+        val instance by lazy { EncryptionTokenProvider() }
     }
 
     private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(PREFERENCE_NAME)
     private val context by lazy { ApplicationContextHolder.appContext }
 
-    suspend fun getDeviceToken(): String {
+    suspend fun getEncryptionToken(): String {
         val encryptedDeviceToken = context.dataStore.data.firstOrNull()?.get(PREFERENCE_KEY)
         return encryptedDeviceToken?.let {
             aesEncryptionHandler.decryptString(it)
         } ?: run {
-            val deviceToken = getLegacyDeviceToken() ?: createNewDeviceToken()
+            val deviceToken = UUID.randomUUID().toString()
             setDeviceToken(deviceToken)
             deviceToken
         }
     }
-
-    private fun getLegacyDeviceToken(): String? {
-        return try {
-            val legacyDeviceTokenProvider = LegacyDeviceTokenProvider(context)
-            if (legacyDeviceTokenProvider.containsDeviceToken()) {
-                legacyDeviceTokenProvider.deviceToken
-            } else null
-        } catch (e: Exception) {
-            null
-        }
-    }
-
-    private fun createNewDeviceToken(): String =
-        UUID.randomUUID().toString().filter { it.isLetterOrDigit() }
 
     private suspend fun setDeviceToken(deviceToken: String) =
         context.dataStore.edit { preferences ->

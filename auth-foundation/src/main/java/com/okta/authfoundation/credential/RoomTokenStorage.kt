@@ -20,7 +20,7 @@ import androidx.room.Room
 import com.okta.authfoundation.AuthFoundationDefaults
 import com.okta.authfoundation.InternalAuthFoundationApi
 import com.okta.authfoundation.client.ApplicationContextHolder
-import com.okta.authfoundation.client.DeviceTokenProvider
+import com.okta.authfoundation.client.EncryptionTokenProvider
 import com.okta.authfoundation.credential.storage.TokenDatabase
 import com.okta.authfoundation.credential.storage.TokenEntity
 import kotlinx.coroutines.sync.Mutex
@@ -48,7 +48,7 @@ class RoomTokenStorage(
 
         private suspend fun createInstance(): RoomTokenStorage {
             val context = ApplicationContextHolder.appContext
-            val sqlCipherPassword = DeviceTokenProvider.instance.getDeviceToken()
+            val sqlCipherPassword = EncryptionTokenProvider.instance.getEncryptionToken()
             System.loadLibrary("sqlcipher")
             val tokenDatabase =
                 Room.databaseBuilder(

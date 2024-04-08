@@ -115,20 +115,6 @@ public final class com/okta/authfoundation/client/DeviceSecretValidator$Error : 
 	public fun <init> (Ljava/lang/String;)V
 }
 
-public final class com/okta/authfoundation/client/DeviceTokenProvider {
-	public static final field Companion Lcom/okta/authfoundation/client/DeviceTokenProvider$Companion;
-	public static final field PREFERENCE_NAME Ljava/lang/String;
-	public fun <init> ()V
-	public fun <init> (Lcom/okta/authfoundation/util/AesEncryptionHandler;)V
-	public synthetic fun <init> (Lcom/okta/authfoundation/util/AesEncryptionHandler;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun getDeviceToken (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
-public final class com/okta/authfoundation/client/DeviceTokenProvider$Companion {
-	public final fun getInstance ()Lcom/okta/authfoundation/client/DeviceTokenProvider;
-	public final fun getPREFERENCE_KEY ()Landroidx/datastore/preferences/core/Preferences$Key;
-}
-
 public abstract interface class com/okta/authfoundation/client/IdTokenValidator {
 	public abstract fun validate (Lcom/okta/authfoundation/client/OidcClient;Lcom/okta/authfoundation/jwt/Jwt;Lcom/okta/authfoundation/client/IdTokenValidator$Parameters;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
@@ -157,10 +143,6 @@ public final class com/okta/authfoundation/client/IdTokenValidator$Error$Compani
 public final class com/okta/authfoundation/client/IdTokenValidator$Parameters {
 	public final fun getMaxAge ()Ljava/lang/Integer;
 	public final fun getNonce ()Ljava/lang/String;
-}
-
-public final class com/okta/authfoundation/client/LegacyDeviceTokenProvider {
-	public fun <init> (Landroid/content/Context;)V
 }
 
 public final class com/okta/authfoundation/client/NoOpCache : com/okta/authfoundation/client/Cache {
