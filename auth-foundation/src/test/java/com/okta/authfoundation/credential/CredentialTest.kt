@@ -15,8 +15,11 @@
  */
 package com.okta.authfoundation.credential
 
+import androidx.test.core.app.ApplicationProvider
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
+import com.okta.authfoundation.client.ApplicationContextHolder
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundation.client.dto.OidcIntrospectInfo
@@ -25,8 +28,10 @@ import com.okta.authfoundation.client.events.TokenCreatedEvent
 import com.okta.authfoundation.credential.events.CredentialDeletedEvent
 import com.okta.authfoundation.credential.events.CredentialStoredAfterRemovedEvent
 import com.okta.authfoundation.credential.events.CredentialStoredEvent
+import com.okta.authfoundation.credential.events.DefaultCredentialChangedEvent
 import com.okta.authfoundation.jwt.IdTokenClaims
 import com.okta.authfoundation.jwt.JwtBuilder.Companion.createJwtBuilder
+import com.okta.testhelpers.MockAesEncryptionHandler
 import com.okta.testhelpers.OktaRule
 import com.okta.testhelpers.RequestMatchers.header
 import com.okta.testhelpers.RequestMatchers.method
@@ -40,7 +45,7 @@ import io.mockk.unmockkAll
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -50,20 +55,29 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.test.assertFailsWith
 
+@RunWith(AndroidJUnit4::class)
 class CredentialTest {
     @get:Rule val oktaRule = OktaRule()
 
     private val token = createToken()
     private lateinit var credentialDataSource: CredentialDataSource
     private lateinit var oidcClient: OidcClient
+    private lateinit var defaultCredentialIdDataStore: DefaultCredentialIdDataStore
 
     @Before
     fun setUp() {
         mockkObject(CredentialDataSource)
+        mockkObject(ApplicationContextHolder)
+        every { ApplicationContextHolder.appContext } returns ApplicationProvider.getApplicationContext()
+        mockkObject(DefaultCredentialIdDataStore)
+        defaultCredentialIdDataStore = DefaultCredentialIdDataStore(MockAesEncryptionHandler.instance)
+        every { DefaultCredentialIdDataStore.instance } returns defaultCredentialIdDataStore
+
         credentialDataSource = mockk(relaxed = true)
         oidcClient = mockk {
             coEvery { revokeToken(any()) } returns OidcClientResult.Success(Unit)
@@ -82,7 +96,104 @@ class CredentialTest {
         assertThat(credential.oidcClient.credential).isEqualTo(credential)
     }
 
-    @Test fun testTagsChangeThrows() {
+    @Test
+    fun `getDefaultCredential returns null if no default credential is set`() = runTest {
+        assertThat(Credential.getDefaultCredential()).isNull()
+    }
+
+    @Test
+    fun `getDefaultCredential returns the default credential`() = runTest {
+        val credential = oktaRule.createCredential(createToken())
+        val credentialDataSource = mockk<CredentialDataSource> {
+            coEvery { getCredential(credential.id, any()) } returns credential
+        }
+        coEvery { CredentialDataSource.getInstance() } returns credentialDataSource
+        Credential.setDefaultCredential(credential)
+        assertThat(Credential.getDefaultCredential()).isEqualTo(credential)
+    }
+
+    @Test
+    fun `allIds returns ids of all available credentials`() = runTest {
+        val testIds = listOf("credId1", "credId2")
+        val credentialDataSource = mockk<CredentialDataSource> {
+            coEvery { allIds() } returns testIds
+        }
+        coEvery { CredentialDataSource.getInstance() } returns credentialDataSource
+        assertThat(Credential.allIds()).isEqualTo(testIds)
+        coVerify { credentialDataSource.allIds() }
+    }
+
+    @Test
+    fun `get metadata of credential`() = runTest {
+        val testId = "id1"
+        val expectedMetadata = Token.Metadata("id1", emptyMap(), idToken = null)
+        val credentialDataSource = mockk<CredentialDataSource> {
+            coEvery { metadata(testId) } returns expectedMetadata
+        }
+        coEvery { CredentialDataSource.getInstance() } returns credentialDataSource
+        assertThat(Credential.metadata(testId)).isEqualTo(expectedMetadata)
+        coVerify { credentialDataSource.metadata(testId) }
+    }
+
+    @Test
+    fun `set metadata sets new metadata for credential`() = runTest {
+        val testId = "id1"
+        val oldMetadata = Token.Metadata("id1", emptyMap(), idToken = null)
+        var storedMetadata: Token.Metadata = oldMetadata
+        val newMetadata = Token.Metadata("id1", mapOf("key" to "value"), idToken = null)
+        val credentialDataSource = mockk<CredentialDataSource> {
+            coEvery { setMetadata(any()) } answers {
+                storedMetadata = it.invocation.args[0] as Token.Metadata
+            }
+            coEvery { metadata(testId) } answers { storedMetadata }
+        }
+        coEvery { CredentialDataSource.getInstance() } returns credentialDataSource
+
+        assertThat(Credential.metadata("id1")).isEqualTo(oldMetadata)
+        Credential.setMetadata(newMetadata)
+        assertThat(Credential.metadata("id1")).isEqualTo(newMetadata)
+    }
+
+    @Test
+    fun `with returns token with given id`() = runTest {
+        val testId = "testId"
+        val credential = mockk<Credential>()
+        val credentialDataSource = mockk<CredentialDataSource> {
+            coEvery { getCredential(testId) } returns credential
+        }
+        coEvery { CredentialDataSource.getInstance() } returns credentialDataSource
+
+        assertThat(Credential.with(testId)).isEqualTo(credential)
+        coVerify { credentialDataSource.getCredential(testId) }
+    }
+
+    @Test
+    fun `find returns tokens matching the expression`() = runTest {
+        val credential = mockk<Credential>()
+        val findExpression = mockk<(Token.Metadata) -> Boolean>()
+        val credentialDataSource = mockk<CredentialDataSource> {
+            coEvery { findCredential(where = findExpression) } returns listOf(credential)
+        }
+        coEvery { CredentialDataSource.getInstance() } returns credentialDataSource
+
+        assertThat(Credential.find(where = findExpression)).isEqualTo(listOf(credential))
+        coVerify { credentialDataSource.findCredential(where = findExpression) }
+    }
+
+    @Test
+    fun `store creates a new credential`() = runTest {
+        val credential = mockk<Credential>()
+        val credentialDataSource = mockk<CredentialDataSource> {
+            coEvery { createCredential(token) } returns credential
+        }
+        coEvery { CredentialDataSource.getInstance() } returns credentialDataSource
+
+        assertThat(Credential.store(token)).isEqualTo(credential)
+        coVerify { credentialDataSource.createCredential(token) }
+    }
+
+    @Test fun `changing tag directly without using setTags throws`() {
+        // This behavior exists because changing tags is a suspend function since it accesses TokenStorage
         val map = mutableMapOf<String, String>()
         map["name"] = "Default"
         val credential = oktaRule.createCredential(token, tags = map)
@@ -91,7 +202,24 @@ class CredentialTest {
         }
     }
 
-    @Test fun testGetTokenFlow(): Unit = runBlocking {
+    @Test
+    fun `setTags changes credential metadata`() = runTest {
+        val oldTags = mapOf("key" to "value")
+        val newTags = mapOf("newKey" to "newValue")
+        val credential = oktaRule.createCredential(token, tags = oldTags)
+
+        val credentialDataSource = mockk<CredentialDataSource>(relaxed = true)
+        coEvery { CredentialDataSource.getInstance() } returns credentialDataSource
+
+        assertThat(credential.tags).isEqualTo(oldTags)
+        credential.setTags(newTags)
+        assertThat(credential.tags).isEqualTo(newTags)
+        coVerify { credentialDataSource.setMetadata(Token.Metadata(credential.id, newTags, idToken = null)) }
+        coVerify(exactly = 1) { credentialDataSource.setMetadata(any()) }
+        coVerify(exactly = 0) { credentialDataSource.metadata(credential.id) }
+    }
+
+    @Test fun testGetTokenFlow(): Unit = runTest {
         val token = createToken()
         val token2 = createToken(accessToken = "token 2")
         val credential = oktaRule.createCredential(token = token, credentialDataSource = credentialDataSource)
@@ -104,7 +232,7 @@ class CredentialTest {
         }
     }
 
-    @Test fun testDelete(): Unit = runBlocking {
+    @Test fun testDelete(): Unit = runTest {
         val token = createToken()
         val credential = oktaRule.createCredential(token = token, credentialDataSource = credentialDataSource)
         credential.delete()
@@ -117,7 +245,27 @@ class CredentialTest {
         assertThat(deletedEvent.credential).isEqualTo(credential)
     }
 
-    @Test fun testRemoveIsNoOpAfterRemove(): Unit = runBlocking {
+    @Test
+    fun `delete clears default credential if deleted credential is default`() = runTest {
+        val token = createToken()
+        val credential = oktaRule.createCredential(token = token, credentialDataSource = credentialDataSource)
+        Credential.setDefaultCredential(credential)
+        assertThat(defaultCredentialIdDataStore.getDefaultCredentialId()).isEqualTo(credential.id)
+        credential.delete()
+
+        coVerify { credentialDataSource.remove(credential) }
+        assertThat(credential.token).isNull()
+        assertThat(oktaRule.eventHandler).hasSize(2)
+        val event1 = oktaRule.eventHandler[0]
+        assertThat(event1).isInstanceOf(DefaultCredentialChangedEvent::class.java)
+        val event2 = oktaRule.eventHandler[1]
+        assertThat(event2).isInstanceOf(CredentialDeletedEvent::class.java)
+        val deletedEvent = event2 as CredentialDeletedEvent
+        assertThat(deletedEvent.credential).isEqualTo(credential)
+        assertThat(defaultCredentialIdDataStore.getDefaultCredentialId()).isNull()
+    }
+
+    @Test fun testRemoveIsNoOpAfterRemove(): Unit = runTest {
         val token = createToken()
         val credential = oktaRule.createCredential(token = token, credentialDataSource = credentialDataSource)
         credential.delete()
@@ -126,7 +274,7 @@ class CredentialTest {
         assertThat(credential.token).isNull()
     }
 
-    @Test fun testReplaceTokenIsNoOpAfterRemove(): Unit = runBlocking {
+    @Test fun testReplaceTokenIsNoOpAfterRemove(): Unit = runTest {
         val token = createToken()
         val credential = oktaRule.createCredential(token = token, credentialDataSource = credentialDataSource)
         credential.delete()
@@ -134,7 +282,7 @@ class CredentialTest {
         coVerify(exactly = 0) { credentialDataSource.replaceToken(any(), any()) }
     }
 
-    @Test fun testReplaceTokenEmitsEventAfterRemove(): Unit = runBlocking {
+    @Test fun testReplaceTokenEmitsEventAfterRemove(): Unit = runTest {
         val token = createToken()
         val credential = oktaRule.createCredential(token = token, credentialDataSource = credentialDataSource)
         credential.delete()
@@ -147,7 +295,7 @@ class CredentialTest {
         assertThat(removedEvent.credential).isEqualTo(credential)
     }
 
-    @Test fun testGetTokenFlowReturnsEmptyFlowAfterRemove(): Unit = runBlocking {
+    @Test fun testGetTokenFlowReturnsEmptyFlowAfterRemove(): Unit = runTest {
         val token = createToken()
         val credential = oktaRule.createCredential(token = token, credentialDataSource = credentialDataSource)
         credential.delete()
@@ -156,25 +304,25 @@ class CredentialTest {
         }
     }
 
-    @Test fun testRevokeAccessToken(): Unit = runBlocking {
+    @Test fun testRevokeAccessToken(): Unit = runTest {
         val credential = oktaRule.createCredential(token = createToken(), oidcClient = oidcClient)
         credential.revokeToken(RevokeTokenType.ACCESS_TOKEN)
         coVerify { oidcClient.revokeToken("exampleAccessToken") }
     }
 
-    @Test fun testRevokeRefreshToken(): Unit = runBlocking {
+    @Test fun testRevokeRefreshToken(): Unit = runTest {
         val credential = oktaRule.createCredential(token = createToken(refreshToken = "exampleRefreshToken"), oidcClient = oidcClient)
         credential.revokeToken(RevokeTokenType.REFRESH_TOKEN)
         coVerify { oidcClient.revokeToken("exampleRefreshToken") }
     }
 
-    @Test fun testRevokeDeviceSecret(): Unit = runBlocking {
+    @Test fun testRevokeDeviceSecret(): Unit = runTest {
         val credential = oktaRule.createCredential(token = createToken(deviceSecret = "exampleDeviceSecret"), oidcClient = oidcClient)
         credential.revokeToken(RevokeTokenType.DEVICE_SECRET)
         coVerify { oidcClient.revokeToken("exampleDeviceSecret") }
     }
 
-    @Test fun testRevokeTokenWithNullRefreshTokenReturnsError(): Unit = runBlocking {
+    @Test fun testRevokeTokenWithNullRefreshTokenReturnsError(): Unit = runTest {
         val credential = oktaRule.createCredential(token = createToken())
         val result = credential.revokeToken(RevokeTokenType.REFRESH_TOKEN)
         assertThat(result).isInstanceOf(OidcClientResult.Error::class.java)
@@ -182,7 +330,7 @@ class CredentialTest {
         assertThat(errorResult.exception).hasMessageThat().isEqualTo("No refresh token.")
     }
 
-    @Test fun testRevokeTokenWithNullDeviceSecretReturnsError(): Unit = runBlocking {
+    @Test fun testRevokeTokenWithNullDeviceSecretReturnsError(): Unit = runTest {
         val credential = oktaRule.createCredential(token = createToken())
         val result = credential.revokeToken(RevokeTokenType.DEVICE_SECRET)
         assertThat(result).isInstanceOf(OidcClientResult.Error::class.java)
@@ -190,14 +338,14 @@ class CredentialTest {
         assertThat(errorResult.exception).hasMessageThat().isEqualTo("No device secret.")
     }
 
-    @Test fun testRevokeAllTokensWithOnlyAccessToken(): Unit = runBlocking {
+    @Test fun testRevokeAllTokensWithOnlyAccessToken(): Unit = runTest {
         val credential = oktaRule.createCredential(token = createToken(), oidcClient = oidcClient)
         credential.revokeAllTokens()
         coVerify { oidcClient.revokeToken("exampleAccessToken") }
         coVerify(exactly = 1) { oidcClient.revokeToken(any()) }
     }
 
-    @Test fun testRevokeAllTokensWithRefreshToken(): Unit = runBlocking {
+    @Test fun testRevokeAllTokensWithRefreshToken(): Unit = runTest {
         val credential = oktaRule.createCredential(token = createToken(refreshToken = "exampleRefreshToken"), oidcClient = oidcClient)
         credential.revokeAllTokens()
         coVerify { oidcClient.revokeToken("exampleAccessToken") }
@@ -205,7 +353,7 @@ class CredentialTest {
         coVerify(exactly = 2) { oidcClient.revokeToken(any()) }
     }
 
-    @Test fun testRevokeAllTokensWithDeviceSecret(): Unit = runBlocking {
+    @Test fun testRevokeAllTokensWithDeviceSecret(): Unit = runTest {
         val credential = oktaRule.createCredential(token = createToken(deviceSecret = "exampleDeviceSecret"), oidcClient = oidcClient)
         credential.revokeAllTokens()
         coVerify { oidcClient.revokeToken("exampleAccessToken") }
@@ -213,7 +361,7 @@ class CredentialTest {
         coVerify(exactly = 2) { oidcClient.revokeToken(any()) }
     }
 
-    @Test fun testRevokeAllTokensWithRefreshTokenAndDeviceSecret(): Unit = runBlocking {
+    @Test fun testRevokeAllTokensWithRefreshTokenAndDeviceSecret(): Unit = runTest {
         val credential = oktaRule.createCredential(token = createToken(refreshToken = "exampleRefreshToken", deviceSecret = "exampleDeviceSecret"), oidcClient = oidcClient)
         credential.revokeAllTokens()
         coVerify { oidcClient.revokeToken("exampleAccessToken") }
@@ -222,7 +370,7 @@ class CredentialTest {
         coVerify(exactly = 3) { oidcClient.revokeToken(any()) }
     }
 
-    @Test fun testRevokeAllTokensWithFailedRefreshTokenReturnsError(): Unit = runBlocking {
+    @Test fun testRevokeAllTokensWithFailedRefreshTokenReturnsError(): Unit = runTest {
         coEvery { oidcClient.revokeToken(any()) } answers {
             if (it.invocation.args[0] == "exampleRefreshToken") {
                 OidcClientResult.Error(Exception("Expected Error."))
@@ -256,7 +404,7 @@ class CredentialTest {
         assertThat(credential.scope()).isEqualTo("openid bank_account")
     }
 
-    @Test fun testRefreshWithNoRefreshToken(): Unit = runBlocking {
+    @Test fun testRefreshWithNoRefreshToken(): Unit = runTest {
         val credentialDataSource = mockk<CredentialDataSource>(relaxed = true)
         val credential = oktaRule.createCredential(token = createToken(refreshToken = null), credentialDataSource = credentialDataSource)
         val result = credential.refreshToken()
@@ -267,7 +415,7 @@ class CredentialTest {
         coVerify(exactly = 0) { credentialDataSource.replaceToken(any(), any()) }
     }
 
-    @Test fun testRefreshTokenForwardsError(): Unit = runBlocking {
+    @Test fun testRefreshTokenForwardsError(): Unit = runTest {
         val credentialDataSource = mockk<CredentialDataSource>()
         val oidcClient = mockk<OidcClient> {
             coEvery { refreshToken(any()) } returns OidcClientResult.Error(Exception("From Test"))
@@ -287,7 +435,7 @@ class CredentialTest {
         coVerify(exactly = 0) { credentialDataSource.replaceToken(any(), any()) }
     }
 
-    @Test fun testRefreshToken(): Unit = runBlocking {
+    @Test fun testRefreshToken(): Unit = runTest {
         coEvery { oidcClient.refreshToken(any()) } returns OidcClientResult.Success(createToken(refreshToken = "newRefreshToken"))
         val credential = oktaRule.createCredential(
             token = createToken(refreshToken = "exampleRefreshToken"),
@@ -300,7 +448,7 @@ class CredentialTest {
         assertThat(token.refreshToken).isEqualTo("newRefreshToken")
     }
 
-    @Test fun testRefreshTokenWithRealOidcClient(): Unit = runBlocking {
+    @Test fun testRefreshTokenWithRealOidcClient(): Unit = runTest {
         val credential = oktaRule.createCredential(
             token = createToken(refreshToken = "exampleRefreshToken"),
         )
@@ -315,7 +463,7 @@ class CredentialTest {
         assertThat(credential.token?.refreshToken).isEqualTo("newRefreshToken")
     }
 
-    @Test fun testRefreshTokenWithRealOidcClientPreservesRefreshToken(): Unit = runBlocking {
+    @Test fun testRefreshTokenWithRealOidcClientPreservesRefreshToken(): Unit = runTest {
         val credential = oktaRule.createCredential(
             token = createToken(refreshToken = "exampleRefreshToken"),
         )
@@ -330,7 +478,7 @@ class CredentialTest {
         assertThat(credential.token?.refreshToken).isEqualTo("exampleRefreshToken")
     }
 
-    @Test fun testRefreshTokenWithRealOidcClientEmitsEvent(): Unit = runBlocking {
+    @Test fun testRefreshTokenWithRealOidcClientEmitsEvent(): Unit = runTest {
         val credential = oktaRule.createCredential(
             token = createToken(refreshToken = "exampleRefreshToken"),
         )
@@ -361,7 +509,7 @@ class CredentialTest {
         assertThat(credentialStoredEvent.tags).isEqualTo(emptyMap<String, String>())
     }
 
-    @Test fun testRefreshTokenPreservesRefreshToken(): Unit = runBlocking {
+    @Test fun testRefreshTokenPreservesRefreshToken(): Unit = runTest {
         coEvery { oidcClient.refreshToken(any()) } returns OidcClientResult.Success(createToken())
         val credential = oktaRule.createCredential(
             token = createToken(refreshToken = "exampleRefreshToken"),
@@ -372,7 +520,7 @@ class CredentialTest {
         assertThat(credential.token!!.refreshToken).isEqualTo("exampleRefreshToken")
     }
 
-    @Test fun testRefreshTokenPreservesDeviceSecret(): Unit = runBlocking {
+    @Test fun testRefreshTokenPreservesDeviceSecret(): Unit = runTest {
         coEvery { oidcClient.refreshToken(any()) } returns OidcClientResult.Success(createToken(refreshToken = "newRefreshToken"))
         val credential = oktaRule.createCredential(
             token = createToken(refreshToken = "exampleRefreshToken", deviceSecret = "saved"),
@@ -383,7 +531,7 @@ class CredentialTest {
         assertThat(credential.token!!.deviceSecret).isEqualTo("saved")
     }
 
-    @Test fun testParallelRefreshToken(): Unit = runBlocking {
+    @Test fun testParallelRefreshToken(): Unit = runTest {
         val countDownLatch = CountDownLatch(2)
         coEvery { oidcClient.refreshToken(any()) } coAnswers {
             assertThat(countDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
@@ -417,7 +565,7 @@ class CredentialTest {
         coVerify { oidcClient.refreshToken("exampleRefreshToken") }
     }
 
-    @Test fun testSerialRefreshToken(): Unit = runBlocking {
+    @Test fun testSerialRefreshToken(): Unit = runTest {
         coEvery { oidcClient.refreshToken(any()) } answers {
             OidcClientResult.Success(createToken(refreshToken = "newRefreshToken"))
         }
@@ -436,7 +584,7 @@ class CredentialTest {
         coVerify(exactly = 2) { oidcClient.refreshToken(any()) }
     }
 
-    @Test fun testReplaceToken(): Unit = runBlocking {
+    @Test fun testReplaceToken(): Unit = runTest {
         val credentialDataSource = mockk<CredentialDataSource>(relaxed = true)
         val credential = oktaRule.createCredential(token = token, credentialDataSource = credentialDataSource)
         val newToken = createToken(refreshToken = "stored!")
@@ -445,7 +593,7 @@ class CredentialTest {
         assertThat(credential.token).isEqualTo(newToken)
     }
 
-    @Test fun testReplaceTokenKeepsPreviousDeviceSecret(): Unit = runBlocking {
+    @Test fun testReplaceTokenKeepsPreviousDeviceSecret(): Unit = runTest {
         val credentialDataSource = mockk<CredentialDataSource>(relaxed = true)
         val credential = oktaRule.createCredential(
             token = createToken(refreshToken = "exampleRefreshToken", deviceSecret = "originalDeviceSecret"),
@@ -460,7 +608,7 @@ class CredentialTest {
         assertThat(credential.token?.deviceSecret).isEqualTo("originalDeviceSecret")
     }
 
-    @Test fun testReplaceTokenKeepsStoresDeviceSecret(): Unit = runBlocking {
+    @Test fun testReplaceTokenKeepsStoresDeviceSecret(): Unit = runTest {
         val credentialDataSource = mockk<CredentialDataSource>(relaxed = true)
         val credential = oktaRule.createCredential(
             token = createToken(refreshToken = "exampleRefreshToken", deviceSecret = "originalDeviceSecret"),
@@ -475,32 +623,32 @@ class CredentialTest {
         assertThat(credential.token?.deviceSecret).isEqualTo("updatedDeviceSecret")
     }
 
-    @Test fun testIdTokenWithNullIdTokenReturnsNullJwt(): Unit = runBlocking {
+    @Test fun testIdTokenWithNullIdTokenReturnsNullJwt(): Unit = runTest {
         val credential = oktaRule.createCredential(token = createToken(idToken = null))
         assertThat(credential.idToken()).isNull()
     }
 
-    @Test fun testIdToken(): Unit = runBlocking {
+    @Test fun testIdToken(): Unit = runTest {
         val credential = oktaRule.createCredential(token = createToken(idToken = "eyJraWQiOiJGSkEwSEdOdHN1dWRhX1BsNDVKNDJrdlFxY3N1XzBDNEZnN3BiSkxYVEhZIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiIwMHViNDF6N21nek5xcnlNdjY5NiIsIm5hbWUiOiJKYXkgTmV3c3Ryb20iLCJlbWFpbCI6ImpheW5ld3N0cm9tQGV4YW1wbGUuY29tIiwidmVyIjoxLCJpc3MiOiJodHRwczovL2V4YW1wbGUtdGVzdC5va3RhLmNvbS9vYXV0aDIvZGVmYXVsdCIsImF1ZCI6InVuaXRfdGVzdF9jbGllbnRfaWQiLCJpYXQiOjE2NDQzNDcwNjksImV4cCI6MTY0NDM1MDY2OSwianRpIjoiSUQuNTVjeEJ0ZFlsOGw2YXJLSVNQQndkMHlPVC05VUNUYVhhUVRYdDJsYVJMcyIsImFtciI6WyJwd2QiXSwiaWRwIjoiMDBvOGZvdTdzUmFHR3dkbjQ2OTYiLCJzaWQiOiJpZHhXeGtscF80a1N4dUNfblUxcFhELW5BIiwicHJlZmVycmVkX3VzZXJuYW1lIjoiamF5bmV3c3Ryb21AZXhhbXBsZS5jb20iLCJhdXRoX3RpbWUiOjE2NDQzNDcwNjgsImF0X2hhc2giOiJnTWNHVGJoR1QxR19sZHNIb0pzUHpRIiwiZHNfaGFzaCI6IkRBZUxPRlJxaWZ5c2Jnc3JiT2dib2cifQ.tT8aKK4r8yFcW9KgVtZxvjXRJVzz-_rve14CVtpUlyvCTE1yj20wmPS0z3-JirI9xXgt5KeNPYqo3Wbv8c9XY_HY3hsPQdILYpPsUkf-sctmzSoKC_dTbs5xe8uKSgmpMrggfUAWrNPiJt9Ek2p7GgP64Wx79Pq5vSHk0yWlonFfXut5ahpSfqWilmYlvLr8gFbqoLnAJfl4ZbTY8pPw_aQgCdcQ-ImHRu-8bCSCtbFRzZB-SMJFLfRF2kmx0H-QF855wUODTuUSydkff-BKb-8wnbqWg0R9NvRdoXhEybv8TXXZY3cQqgolWLAyiPMrz07n0q_UEjAilUiCjn1f4Q"))
         val idToken = credential.idToken()
         assertThat(idToken).isNotNull()
         assertThat(idToken?.keyId).isEqualTo("FJA0HGNtsuuda_Pl45J42kvQqcsu_0C4Fg7pbJLXTHY")
     }
 
-    @Test fun testMalformedIdToken(): Unit = runBlocking {
+    @Test fun testMalformedIdToken(): Unit = runTest {
         val credential = oktaRule.createCredential(token = createToken(idToken = "InvalidJwt"))
         val idToken = credential.idToken()
         assertThat(idToken).isNull()
     }
 
-    @Test fun accessTokenIfValidReturnsNullWithExpiredToken(): Unit = runBlocking {
+    @Test fun accessTokenIfValidReturnsNullWithExpiredToken(): Unit = runTest {
         val idTokenClaims = IdTokenClaims(issuedAt = oktaRule.clock.currentTime - MOCK_TOKEN_DURATION)
         val idToken = oktaRule.createOidcClient().createJwtBuilder().createJwt(claims = idTokenClaims).rawValue
         val credential = oktaRule.createCredential(token = createToken(accessToken = "exampleAccessToken", idToken = idToken))
         assertThat(credential.getAccessTokenIfValid()).isNull()
     }
 
-    @Test fun accessTokenIfValidReturnsAccessToken(): Unit = runBlocking {
+    @Test fun accessTokenIfValidReturnsAccessToken(): Unit = runTest {
         val accessToken = "exampleAccessToken"
         val idTokenClaims = IdTokenClaims(issuedAt = oktaRule.clock.currentTime)
         val idToken = oktaRule.createOidcClient().createJwtBuilder().createJwt(claims = idTokenClaims).rawValue
@@ -508,13 +656,13 @@ class CredentialTest {
         assertThat(credential.getAccessTokenIfValid()).isEqualTo(accessToken)
     }
 
-    @Test fun accessTokenIfValidReturnsNullIfIdTokenIsNull(): Unit = runBlocking {
+    @Test fun accessTokenIfValidReturnsNullIfIdTokenIsNull(): Unit = runTest {
         val accessToken = "exampleAccessToken"
         val credential = oktaRule.createCredential(token = createToken(accessToken = accessToken, idToken = null))
         assertThat(credential.getAccessTokenIfValid()).isNull()
     }
 
-    @Test fun accessTokenIfValidReturnsNullIfIdTokenDoesNotContainRequiredPayload(): Unit = runBlocking {
+    @Test fun accessTokenIfValidReturnsNullIfIdTokenDoesNotContainRequiredPayload(): Unit = runTest {
         @Serializable
         class EmptyClaims
 
@@ -524,7 +672,7 @@ class CredentialTest {
         assertThat(credential.getAccessTokenIfValid()).isNull()
     }
 
-    @Test fun getValidAccessTokenReturnsAccessToken(): Unit = runBlocking {
+    @Test fun getValidAccessTokenReturnsAccessToken(): Unit = runTest {
         val accessToken = "exampleAccessToken"
         val idTokenClaims = IdTokenClaims(issuedAt = oktaRule.clock.currentTime)
         val idToken = oktaRule.createOidcClient().createJwtBuilder().createJwt(claims = idTokenClaims).rawValue
@@ -532,14 +680,14 @@ class CredentialTest {
         assertThat(credential.getValidAccessToken()).isEqualTo(accessToken)
     }
 
-    @Test fun getValidAccessTokenReturnsNullWhenAccessTokenExpiredAndNoRefreshToken(): Unit = runBlocking {
+    @Test fun getValidAccessTokenReturnsNullWhenAccessTokenExpiredAndNoRefreshToken(): Unit = runTest {
         val idTokenClaims = IdTokenClaims(issuedAt = oktaRule.clock.currentTime - MOCK_TOKEN_DURATION)
         val idToken = oktaRule.createOidcClient().createJwtBuilder().createJwt(claims = idTokenClaims).rawValue
         val credential = oktaRule.createCredential(token = createToken(accessToken = "exampleAccessToken", idToken = idToken, refreshToken = null))
         assertThat(credential.getValidAccessToken()).isNull()
     }
 
-    @Test fun getValidAccessTokenRefreshesWhenAccessTokenExpired(): Unit = runBlocking {
+    @Test fun getValidAccessTokenRefreshesWhenAccessTokenExpired(): Unit = runTest {
         val expiredAccessToken = "expiredAccessToken"
         val validAccessToken = "exampleAccessToken"
         val expiredIdTokenClaims = IdTokenClaims(issuedAt = oktaRule.clock.currentTime - MOCK_TOKEN_DURATION)
@@ -555,7 +703,7 @@ class CredentialTest {
         assertThat(credential.getValidAccessToken()).isEqualTo(validAccessToken)
     }
 
-    @Test fun getValidAccessTokenReturnsNullWhenRefreshedAccessTokenExpired(): Unit = runBlocking {
+    @Test fun getValidAccessTokenReturnsNullWhenRefreshedAccessTokenExpired(): Unit = runTest {
         val expiredIdTokenClaims = IdTokenClaims(issuedAt = oktaRule.clock.currentTime - MOCK_TOKEN_DURATION)
         val expiredIdToken = oktaRule.createOidcClient().createJwtBuilder().createJwt(claims = expiredIdTokenClaims).rawValue
         coEvery { oidcClient.refreshToken(any()) } returns OidcClientResult.Success(createToken(idToken = expiredIdToken))
@@ -564,7 +712,7 @@ class CredentialTest {
         coVerify { oidcClient.refreshToken(any()) }
     }
 
-    @Test fun testInterceptor(): Unit = runBlocking {
+    @Test fun testInterceptor(): Unit = runTest {
         val accessToken = "exampleAccessToken"
 
         oktaRule.enqueue(
@@ -586,7 +734,7 @@ class CredentialTest {
         assertThat(response.body!!.string()).isEqualTo("[]")
     }
 
-    @Test fun testGetUserInfo(): Unit = runBlocking {
+    @Test fun testGetUserInfo(): Unit = runTest {
         val accessToken = "exampleAccessToken"
         val idTokenClaims = IdTokenClaims(issuedAt = oktaRule.clock.currentTime)
         val idToken = oktaRule.createOidcClient().createJwtBuilder().createJwt(claims = idTokenClaims).rawValue
@@ -606,7 +754,7 @@ class CredentialTest {
         assertThat(result.result.deserializeClaims(ExampleUserInfo.serializer()).sub).isEqualTo("foobar")
     }
 
-    @Test fun testGetUserInfoNeedsRefresh(): Unit = runBlocking {
+    @Test fun testGetUserInfoNeedsRefresh(): Unit = runTest {
         val expiredAccessToken = "expiredAccessToken"
         val validAccessToken = "exampleAccessToken"
         val expiredIdTokenClaims = IdTokenClaims(issuedAt = oktaRule.clock.currentTime - MOCK_TOKEN_DURATION)
@@ -635,14 +783,14 @@ class CredentialTest {
         assertThat(success.result.deserializeClaims(ExampleUserInfo.serializer()).sub).isEqualTo("foobar")
     }
 
-    @Test fun testGetUserInfoNoToken(): Unit = runBlocking {
+    @Test fun testGetUserInfoNoToken(): Unit = runTest {
         val credential = oktaRule.createCredential(token)
         val result = credential.getUserInfo() as OidcClientResult.Error<OidcUserInfo>
         assertThat(result.exception).hasMessageThat().isEqualTo("No Access Token.")
         assertThat(result.exception).isInstanceOf(IllegalStateException::class.java)
     }
 
-    @Test fun testIntrospectNullRefreshToken(): Unit = runBlocking {
+    @Test fun testIntrospectNullRefreshToken(): Unit = runTest {
         val credential = oktaRule.createCredential(token = createToken(refreshToken = null))
         val result = credential.introspectToken(TokenType.REFRESH_TOKEN)
         val errorResult = result as OidcClientResult.Error<OidcIntrospectInfo>
@@ -650,7 +798,7 @@ class CredentialTest {
         assertThat(errorResult.exception).isInstanceOf(IllegalStateException::class.java)
     }
 
-    @Test fun testIntrospectNullIdToken(): Unit = runBlocking {
+    @Test fun testIntrospectNullIdToken(): Unit = runTest {
         val credential = oktaRule.createCredential(token = createToken(idToken = null))
         val result = credential.introspectToken(TokenType.ID_TOKEN)
         val errorResult = result as OidcClientResult.Error<OidcIntrospectInfo>
@@ -658,7 +806,7 @@ class CredentialTest {
         assertThat(errorResult.exception).isInstanceOf(IllegalStateException::class.java)
     }
 
-    @Test fun testIntrospectNullDeviceSecret(): Unit = runBlocking {
+    @Test fun testIntrospectNullDeviceSecret(): Unit = runTest {
         val credential = oktaRule.createCredential(token = createToken(deviceSecret = null))
         val result = credential.introspectToken(TokenType.DEVICE_SECRET)
         val errorResult = result as OidcClientResult.Error<OidcIntrospectInfo>
@@ -666,7 +814,7 @@ class CredentialTest {
         assertThat(errorResult.exception).isInstanceOf(IllegalStateException::class.java)
     }
 
-    @Test fun testIntrospectRefreshToken(): Unit = runBlocking {
+    @Test fun testIntrospectRefreshToken(): Unit = runTest {
         coEvery { oidcClient.introspectToken(any(), any()) } returns OidcClientResult.Success(OidcIntrospectInfo.Inactive)
         val credential = oktaRule.createCredential(token = createToken(refreshToken = "exampleRefreshToken"), oidcClient = oidcClient)
         val result = credential.introspectToken(TokenType.REFRESH_TOKEN)
@@ -675,7 +823,7 @@ class CredentialTest {
         coVerify { oidcClient.introspectToken(TokenType.REFRESH_TOKEN, "exampleRefreshToken") }
     }
 
-    @Test fun testIntrospectAccessToken(): Unit = runBlocking {
+    @Test fun testIntrospectAccessToken(): Unit = runTest {
         coEvery { oidcClient.introspectToken(any(), any()) } returns OidcClientResult.Success(OidcIntrospectInfo.Inactive)
         val credential = oktaRule.createCredential(token = createToken(accessToken = "exampleAccessToken"), oidcClient = oidcClient)
         val result = credential.introspectToken(TokenType.ACCESS_TOKEN)
@@ -684,7 +832,7 @@ class CredentialTest {
         coVerify { oidcClient.introspectToken(TokenType.ACCESS_TOKEN, "exampleAccessToken") }
     }
 
-    @Test fun testIntrospectIdToken(): Unit = runBlocking {
+    @Test fun testIntrospectIdToken(): Unit = runTest {
         coEvery { oidcClient.introspectToken(any(), any()) } returns OidcClientResult.Success(OidcIntrospectInfo.Inactive)
         val credential = oktaRule.createCredential(token = createToken(idToken = "exampleIdToken"), oidcClient = oidcClient)
         val result = credential.introspectToken(TokenType.ID_TOKEN)
@@ -693,7 +841,7 @@ class CredentialTest {
         coVerify { oidcClient.introspectToken(TokenType.ID_TOKEN, "exampleIdToken") }
     }
 
-    @Test fun testIntrospectDeviceSecret(): Unit = runBlocking {
+    @Test fun testIntrospectDeviceSecret(): Unit = runTest {
         coEvery { oidcClient.introspectToken(any(), any()) } returns OidcClientResult.Success(OidcIntrospectInfo.Inactive)
         val credential = oktaRule.createCredential(token = createToken(deviceSecret = "exampleDeviceSecret"), oidcClient = oidcClient)
         val result = credential.introspectToken(TokenType.DEVICE_SECRET)
@@ -702,7 +850,7 @@ class CredentialTest {
         coVerify { oidcClient.introspectToken(TokenType.DEVICE_SECRET, "exampleDeviceSecret") }
     }
 
-    @Test fun testIntrospectAccessTokenNetworkError(): Unit = runBlocking {
+    @Test fun testIntrospectAccessTokenNetworkError(): Unit = runTest {
         coEvery { oidcClient.introspectToken(any(), any()) } returns OidcClientResult.Error(IllegalStateException("Exception from mock!"))
         val credential = oktaRule.createCredential(token = createToken(accessToken = "exampleAccessToken"), oidcClient = oidcClient)
         val result = credential.introspectToken(TokenType.ACCESS_TOKEN)
@@ -711,7 +859,7 @@ class CredentialTest {
         assertThat(errorResult.exception).isInstanceOf(IllegalStateException::class.java)
     }
 
-    @Test fun testReplaceTokenExceptionCausesErrorResponse(): Unit = runBlocking {
+    @Test fun testReplaceTokenExceptionCausesErrorResponse(): Unit = runTest {
         val credentialDataSource = mockk<CredentialDataSource>()
         coEvery {
             credentialDataSource.replaceToken(any(), any())

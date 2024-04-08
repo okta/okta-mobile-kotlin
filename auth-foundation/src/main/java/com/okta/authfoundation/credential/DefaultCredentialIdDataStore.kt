@@ -25,25 +25,30 @@ import com.okta.authfoundation.client.ApplicationContextHolder
 import com.okta.authfoundation.util.AesEncryptionHandler
 import kotlinx.coroutines.flow.firstOrNull
 
-internal class DefaultTokenIdDataStore(
-    private val aesEncryptionHandler: AesEncryptionHandler = AesEncryptionHandler()
+internal class DefaultCredentialIdDataStore(
+    private val aesEncryptionHandler: AesEncryptionHandler
 ) {
     companion object {
-        const val PREFERENCE_NAME = "com.okta.authfoundation.credential.defaultTokenIdDataStore"
-        val PREFERENCE_KEY = stringPreferencesKey("encryptedDefaultTokenId")
+        private const val PREFERENCE_NAME = "com.okta.authfoundation.credential.defaultCredentialIdDataStore"
+        private val PREFERENCE_KEY = stringPreferencesKey("encryptedDefaultCredentialId")
+        val instance by lazy { DefaultCredentialIdDataStore(AesEncryptionHandler()) }
     }
 
     private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(PREFERENCE_NAME)
     private val context by lazy { ApplicationContextHolder.appContext }
 
-    suspend fun getDefaultTokenId(): String? {
-        val encryptedDefaultTokenId = context.dataStore.data.firstOrNull()?.get(PREFERENCE_KEY)
-        return encryptedDefaultTokenId?.let {
+    suspend fun getDefaultCredentialId(): String? {
+        val encryptedDefaultCredentialId = context.dataStore.data.firstOrNull()?.get(PREFERENCE_KEY)
+        return encryptedDefaultCredentialId?.let {
             aesEncryptionHandler.decryptString(it)
         }
     }
 
-    suspend fun setDefaultTokenId(id: String) = context.dataStore.edit { preferences ->
+    suspend fun setDefaultCredentialId(id: String) = context.dataStore.edit { preferences ->
         preferences[PREFERENCE_KEY] = aesEncryptionHandler.encryptString(id)
+    }
+
+    suspend fun clearDefaultCredentialId() = context.dataStore.edit { preferences ->
+        preferences.remove(PREFERENCE_KEY)
     }
 }

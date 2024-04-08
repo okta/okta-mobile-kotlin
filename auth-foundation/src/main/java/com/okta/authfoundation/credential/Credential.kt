@@ -106,7 +106,8 @@ class Credential internal constructor(
     }
 
     companion object {
-        private val defaultTokenIdDataSource by lazy { DefaultTokenIdDataStore() }
+        private val defaultCredentialIdDataStore: DefaultCredentialIdDataStore
+            get() = DefaultCredentialIdDataStore.instance
 
         @VisibleForTesting
         internal suspend fun credentialDataSource() = CredentialDataSource.getInstance()
@@ -115,14 +116,14 @@ class Credential internal constructor(
          * Returns the default [Credential], or null if no default [Credential] exists.
          */
         suspend fun getDefaultCredential(): Credential? {
-            return defaultTokenIdDataSource.getDefaultTokenId()?.let { id -> with(id) }
+            return defaultCredentialIdDataStore.getDefaultCredentialId()?.let { id -> with(id) }
         }
 
         /**
          * Sets the default [Credential] to provided [credential].
          */
         suspend fun setDefaultCredential(credential: Credential) {
-            defaultTokenIdDataSource.setDefaultTokenId(credential.id)
+            defaultCredentialIdDataStore.setDefaultCredentialId(credential.id)
             AuthFoundationDefaults.eventCoordinator.sendEvent(DefaultCredentialChangedEvent(credential))
         }
 
@@ -334,6 +335,9 @@ class Credential internal constructor(
     suspend fun delete() {
         if (isDeleted) {
             return
+        }
+        if (defaultCredentialIdDataStore.getDefaultCredentialId() == id) {
+            defaultCredentialIdDataStore.clearDefaultCredentialId()
         }
         credentialDataSource().remove(this)
         state.value = CredentialState.Deleted
