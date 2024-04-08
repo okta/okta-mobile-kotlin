@@ -19,10 +19,7 @@ import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
 import com.okta.authfoundation.AuthFoundation
-import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcConfiguration
-import com.okta.authfoundation.credential.CredentialDataSource.Companion.createCredentialDataSource
-import com.okta.authfoundationbootstrap.CredentialBootstrap
 import timber.log.Timber
 
 class SampleApplication : Application() {
@@ -44,6 +41,5 @@ class SampleApplication : Application() {
             defaultScope = SampleHelper.DEFAULT_SCOPE,
             issuer = BuildConfig.ISSUER
         )
-        CredentialBootstrap.initialize(OidcClient.default.createCredentialDataSource(this))
     }
 }

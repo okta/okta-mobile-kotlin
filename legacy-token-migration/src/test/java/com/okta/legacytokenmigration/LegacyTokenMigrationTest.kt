@@ -22,7 +22,6 @@ import com.google.common.truth.Truth.assertThat
 import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.credential.CredentialDataSource
 import com.okta.authfoundation.credential.Token
-import com.okta.authfoundationbootstrap.CredentialBootstrap
 import com.okta.legacytokenmigration.LegacyTokenMigration.hasMarkedTokensAsMigrated
 import com.okta.legacytokenmigration.LegacyTokenMigration.markTokensAsMigrated
 import com.okta.legacytokenmigration.LegacyTokenMigration.sharedPreferences
@@ -56,6 +55,7 @@ class LegacyTokenMigrationTest {
     @Before fun reset() {
         sharedPreferences = ApplicationProvider.getApplicationContext<Context>().sharedPreferences()
         sharedPreferences.edit().clear().apply()
+        mockkObject(CredentialDataSource)
         mockkObject(OidcConfiguration)
         every { OidcConfiguration.default } returns OidcConfiguration(
             "clientId",
@@ -87,11 +87,12 @@ class LegacyTokenMigrationTest {
 
     @Test fun testMigrate(): Unit = runBlocking {
         val credentialDataSource = mockk<CredentialDataSource> {
-            coEvery { createCredential(any(), any(), any(), any()) } returns mockk {
+            coEvery { createCredential(any(), any(), any()) } returns mockk {
                 every { id } returns "mock-token-id"
             }
         }
-        CredentialBootstrap.initialize(credentialDataSource)
+        coEvery { CredentialDataSource.getInstance() } returns credentialDataSource
+
         val sessionClient = mockSessionClient(token = mockLegacyToken())
         val result = LegacyTokenMigration.migrate(
             context = ApplicationProvider.getApplicationContext(),
@@ -111,7 +112,7 @@ class LegacyTokenMigrationTest {
             issuedTokenType = null,
             oidcConfiguration = mockk()
         )
-        coVerify { credentialDataSource.createCredential(token, isDefault = true) }
+        coVerify { credentialDataSource.createCredential(token) }
     }
 
     @Test fun testMigrateWithNullTokenReturnsMissingLegacyToken(): Unit = runBlocking {
@@ -132,6 +133,7 @@ class LegacyTokenMigrationTest {
             context = ApplicationProvider.getApplicationContext(),
             sessionClient = sessionClient,
         )
+        (result as LegacyTokenMigration.Result.PreviouslyMigrated).tokenId
         assertThat(result).isEqualTo(LegacyTokenMigration.Result.PreviouslyMigrated("token-id"))
         verify(exactly = 0) { sessionClient.clear() }
     }

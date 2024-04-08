@@ -22,7 +22,6 @@ import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.credential.Credential
 import com.okta.authfoundation.credential.CredentialDataSource
 import com.okta.authfoundation.credential.Token
-import com.okta.authfoundationbootstrap.CredentialBootstrap
 import com.okta.oidc.clients.sessions.SessionClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -39,19 +38,18 @@ object LegacyTokenMigration {
     private const val SHARED_PREFERENCE_MIGRATED_TOKEN_ID_KEY = "com.okta.legacytokenmigration.token.id"
 
     /**
-     * Attempts to migrate a token from a [SessionClient] to a [Token]. The resulting [Token] can be stored using [CredentialBootstrap.setDefaultCredential]
+     * Attempts to migrate a token from a [SessionClient] to a [Token]. The resulting [Token] can be stored using [Credential.store],
+     * and can be set as default using [Credential.setDefaultCredential]
      *
      * @param context used for storing the status of previous migrations in Shared Preferences.
      * @param sessionClient a configured session client with the stored tokens from a previous authentication where the token will be
      *  migrated from.
-     * @param isDefault whether the migrated token should be set as the default credential.
      *
      * @return a [Result] with the outcome of the migration.
      */
     suspend fun migrate(
         context: Context,
-        sessionClient: SessionClient,
-        isDefault: Boolean = true
+        sessionClient: SessionClient
     ): Result {
         return withContext(Dispatchers.IO) {
             val sharedPreferences = context.sharedPreferences()
@@ -72,10 +70,10 @@ object LegacyTokenMigration {
                     issuedTokenType = null,
                     oidcConfiguration = OidcConfiguration.default
                 )
-                val credential = CredentialBootstrap.credentialDataSource.createCredential(token, isDefault = isDefault)
-                sharedPreferences.markTokensAsMigrated(credential.storageIdentifier)
+                val credential = Credential.store(token)
+                sharedPreferences.markTokensAsMigrated(credential.id)
                 sessionClient.clear()
-                Result.SuccessfullyMigrated(credential.storageIdentifier)
+                Result.SuccessfullyMigrated(credential.id)
             } catch (t: Exception) {
                 Result.Error(t)
             }

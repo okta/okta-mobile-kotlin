@@ -20,7 +20,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.okta.authfoundation.client.OidcClientResult
-import com.okta.authfoundationbootstrap.CredentialBootstrap
+import com.okta.authfoundation.credential.Credential
 import com.okta.authn.sdk.AuthenticationStateHandlerAdapter
 import com.okta.authn.sdk.client.AuthenticationClients
 import com.okta.authn.sdk.resource.AuthenticationResponse
@@ -74,7 +74,8 @@ class SessionTokenViewModel : ViewModel() {
                     _state.value = SessionTokenState.Error("Failed to login.")
                 }
                 is OidcClientResult.Success -> {
-                    CredentialBootstrap.setDefaultCredential(token = result.result)
+                    val credential = Credential.store(token = result.result)
+                    Credential.setDefaultCredential(credential)
                     _state.value = SessionTokenState.Token
                 }
             }

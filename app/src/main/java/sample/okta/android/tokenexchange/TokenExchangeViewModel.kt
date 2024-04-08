@@ -20,7 +20,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.okta.authfoundation.client.OidcClientResult
-import com.okta.authfoundationbootstrap.CredentialBootstrap
+import com.okta.authfoundation.credential.Credential
 import com.okta.oauth2.TokenExchangeFlow
 import kotlinx.coroutines.launch
 import sample.okta.android.SampleHelper
@@ -42,10 +42,9 @@ class TokenExchangeViewModel : ViewModel() {
         _state.value = TokenExchangeState.Loading
 
         viewModelScope.launch {
-            val credential = CredentialBootstrap.defaultCredential()
-            val credentialDataSource = CredentialBootstrap.credentialDataSource
+            val credential = Credential.getDefaultCredential()
             val tokenExchangeCredential =
-                credentialDataSource.findCredential { it.tags[SampleHelper.CREDENTIAL_NAME_TAG_KEY] == NAME_TAG_VALUE }
+                Credential.find { it.tags[SampleHelper.CREDENTIAL_NAME_TAG_KEY] == NAME_TAG_VALUE }
                     .firstOrNull()
             val tokenExchangeFlow = TokenExchangeFlow()
             val idToken = credential?.token?.idToken
@@ -65,11 +64,12 @@ class TokenExchangeViewModel : ViewModel() {
                 }
 
                 is OidcClientResult.Success -> {
-                    tokenExchangeCredential?.storeToken(token = result.result)
-                        ?: credentialDataSource.createCredential(
+                    tokenExchangeCredential?.replaceToken(token = result.result) ?: run {
+                        Credential.store(
                             result.result,
                             tags = mapOf(Pair(SampleHelper.CREDENTIAL_NAME_TAG_KEY, NAME_TAG_VALUE))
                         )
+                    }
                     _state.value = TokenExchangeState.Token(NAME_TAG_VALUE)
                 }
             }
