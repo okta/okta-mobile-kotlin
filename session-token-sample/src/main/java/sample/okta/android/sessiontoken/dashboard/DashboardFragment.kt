@@ -53,7 +53,6 @@ internal class DashboardFragment : BaseFragment<FragmentDashboardBinding>(
                     }
                 }
             }
-
         }
 
         viewModel.userInfoLiveData.observe(viewLifecycleOwner) { userInfo ->

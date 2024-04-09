@@ -181,8 +181,8 @@ internal class DashboardViewModel(private val credentialTagNameValue: String?) :
     }
 
     sealed interface CredentialState {
-        data object LoggedOut: CredentialState
-        data class Loaded(val credential: Credential): CredentialState
+        data object LoggedOut : CredentialState
+        data class Loaded(val credential: Credential) : CredentialState
     }
 
     fun deleteCredential() {
