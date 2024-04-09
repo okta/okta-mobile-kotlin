@@ -68,10 +68,10 @@ android {
 `Credential` replaces `SessionClient`, remove usages of `SessionClient` in your application.
 See all available methods here: [Credential](auth-foundation/src/main/java/com/okta/authfoundation/credential/Credential.kt).
 
-## Use WebAuthenticationClient
+## Use WebAuthentication
 
-`WebAuthenticationClient` replaces `WebAuthClient`, remove usages of `WebAuthClient` in your application.
-See all available methods here: [WebAuthenticationClient](web-authentication-ui/src/main/java/com/okta/webauthenticationui/WebAuthenticationClient.kt).
+`WebAuthentication` replaces `WebAuthClient`, remove usages of `WebAuthClient` in your application.
+See all available methods here: [WebAuthentication](web-authentication-ui/src/main/java/com/okta/webauthenticationui/WebAuthentication.kt).
 
 ## Use SessionTokenFlow
 If you're using the legacy Authn APIs to do "custom authentication", you will need to use `SessionTokenFlow` which replaces `authClient.signIn`.

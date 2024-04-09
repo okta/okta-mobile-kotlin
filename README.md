@@ -13,7 +13,6 @@ The Okta Mobile Kotlin SDK is intended to be used on the Android platform.
 This SDK consists of several different libraries, each with detailed documentation.
 
 - [AuthFoundation](auth-foundation) -- Common classes for managing credentials and used as a foundation for other libraries.
-- [AuthFoundationBootstrap](auth-foundation-bootstrap) -- A simplified API for common use cases.
 - [OktaOAuth2](oauth2) -- OAuth2 authentication capabilities for authenticating users.
 - [WebAuthenticationUI](web-authentication-ui) -- Authenticate users using web-based OIDC flows.
 
@@ -41,7 +40,6 @@ implementation(platform('com.okta.kotlin:bom:1.2.1'))
 
 // Add the dependencies to your project.
 implementation('com.okta.kotlin:auth-foundation')
-implementation('com.okta.kotlin:auth-foundation-bootstrap')
 implementation('com.okta.kotlin:oauth2')
 implementation('com.okta.kotlin:web-authentication-ui')
 ```
@@ -91,55 +89,46 @@ The simplest way to integrate authentication in your app is with OIDC through a 
 
 #### Configure your OIDC Settings
 
-Before authenticating your user, you need to create your `OidcClient`, using the settings defined in your application in the Okta Developer Console, and initialize the bootstrap module.
+Before authenticating your user, you need to create your `OidcClient`, using the settings defined in your application in the Okta Developer Console, and initialize the AuthFoundation module.
 
 ```kotlin
 import android.content.Context
-import com.okta.authfoundation.AuthFoundationDefaults
-import com.okta.authfoundation.client.OidcClient
-import com.okta.authfoundation.client.OidcClientResult
+import com.okta.authfoundation.AuthFoundation
 import com.okta.authfoundation.client.OidcConfiguration
-import com.okta.authfoundation.credential.CredentialDataSource.Companion.createCredentialDataSource
-import com.okta.authfoundationbootstrap.CredentialBootstrap
-import okhttp3.HttpUrl.Companion.toHttpUrl
 
 val context: Context = TODO("Supplied by the developer.")
-val oidcConfiguration = OidcConfiguration(
-    clientId = "{clientId}",
-    defaultScope = "openid email profile offline_access",
+AuthFoundation.initializeAndroidContext(context)
+OidcConfiguration.default = OidcConfiguration(
+  clientId = "{clientId}",
+  defaultScope = "openid email profile offline_access",
+  issuer = "https://{yourOktaOrg}.okta.com/oauth2/default"
 )
-val client = OidcClient.createFromDiscoveryUrl(
-    oidcConfiguration,
-    "https://{yourOktaOrg}.okta.com/oauth2/default/.well-known/openid-configuration".toHttpUrl(),
-)
-CredentialBootstrap.initialize(client.createCredentialDataSource(context))
 ```
 
 #### Create a Web Authentication Client
 
-We will create a `WebAuthenticationClient` and use it to perform authentication.
+We will create a `WebAuthentication` and use it to perform authentication.
 
 This launches a [Chrome Custom Tab](https://developer.chrome.com/docs/android/custom-tabs/) to display the login form, and once complete, redirects back to the application.
 
 ```kotlin
 import android.content.Context
 import com.okta.authfoundation.credential.Credential
-import com.okta.authfoundationbootstrap.CredentialBootstrap
 import com.okta.oauth2.AuthorizationCodeFlow
-import com.okta.webauthenticationui.WebAuthenticationClient
-import com.okta.webauthenticationui.WebAuthenticationClient.Companion.createWebAuthenticationClient
+import com.okta.webauthenticationui.WebAuthentication
 
 val context: Context = TODO("Supplied by the developer.")
 val credential: Credential
 val redirectUrl: String = TODO("signInRedirectUri supplied by the developer.")
-val webAuthenticationClient = CredentialBootstrap.oidcClient.createWebAuthenticationClient()
-when (val result = webAuthenticationClient.login(context, redirectUrl)) {
+val webAuthentication = WebAuthentication()
+when (val result = webAuthentication.login(context, redirectUrl)) {
     is OidcClientResult.Error -> {
         // Timber.e(result.exception, "Failed to login.")
         // TODO: Display an error to the user.
     }
     is OidcClientResult.Success -> {
-      credential = CredentialBootstrap.setDefaultCredential(token = result.result)
+      credential = Credential.store(token = result.result)
+      Credential.setDefaultCredential(credential)
       // The credential instance is now initialized! You can use the `Credential` to make calls to OAuth endpoints, or to sign requests!
     }
 }
@@ -166,14 +155,11 @@ android {
 The Device Authorization Flow is designed for Internet connected devices that either lack a browser to perform a user-agent based authorization or are input constrained to the extent that requiring the user to input text in order to authenticate during the authorization flow is impractical.
 
 ```kotlin
-import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.credential.Credential
-import com.okta.authfoundationbootstrap.CredentialBootstrap
 import com.okta.oauth2.DeviceAuthorizationFlow
-import com.okta.oauth2.DeviceAuthorizationFlow.Companion.createDeviceAuthorizationFlow
 
 val credential: Credential
-val deviceAuthorizationFlow: DeviceAuthorizationFlow = CredentialBootstrap.oidcClient.createDeviceAuthorizationFlow()
+val deviceAuthorizationFlow = DeviceAuthorizationFlow()
 
 when (val result = deviceAuthorizationFlow.start()) {
   is OidcClientResult.Error -> {
@@ -191,7 +177,8 @@ when (val result = deviceAuthorizationFlow.start()) {
         // TODO: Display an error to the user.
       }
       is OidcClientResult.Success -> {
-        credential = CredentialBootstrap.setDefaultCredential(token = result.result)
+        credential = Credential.store(token = result.result)
+        Credential.setDefaultCredential(credential)
         // The credential instance is now initialized! You can use the `Credential` to make calls to OAuth endpoints, or to sign requests!
       }
     }
@@ -208,20 +195,16 @@ The Token Exchange Flow exchanges an ID Token and a Device Secret for a new set 
 ```kotlin
 import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.credential.Credential
-import com.okta.authfoundation.credential.CredentialDataSource
-import com.okta.authfoundationbootstrap.CredentialBootstrap
 import com.okta.oauth2.TokenExchangeFlow
-import com.okta.oauth2.TokenExchangeFlow.Companion.createTokenExchangeFlow
 
-val credentialDataSource: CredentialDataSource = CredentialBootstrap.credentialDataSource
-val tokenExchangeFlow: TokenExchangeFlow = CredentialBootstrap.oidcClient.createTokenExchangeFlow()
+val tokenExchangeFlow = TokenExchangeFlow()
 when (val result = tokenExchangeFlow.start(idToken, deviceSecret)) {
   is OidcClientResult.Error -> {
       // Timber.e(result.exception, "Failed to login.")
       // TODO: Display an error to the user.
   }
   is OidcClientResult.Success -> {
-    val tokenExchangeCredential = credentialDataSource.createCredential(result.result)
+    val tokenExchangeCredential = Credential.store(result.result)
     // The credential instance is now initialized! You can use the `Credential` to make calls to OAuth endpoints, or to sign requests!
   }
 }
@@ -249,14 +232,18 @@ There are multiple terms that might be confused when logging a user out.
 ### Using a Credential to determine user authentication status
 There are a few options to determine the status of a user authentication. Each option has unique pros and cons and should be chosen based on the needs of your use case.
 
-- Non null default credential: `CredentialBootstrap.defaultCredential() != null`
-- getValidAccessToken: `CredentialBootstrap.defaultCredential()?.getValidAccessToken() != null`
-- Custom implementation: `CredentialBootstrap.defaultCredential()?.token`, `CredentialBootstrap.defaultCredential()?.refresh()`, and `CredentialBootstrap.defaultCredential()?.getAccessTokenIfValid()`
+- Non null default credential: `Credential.getDefaultCredential() != null`
+- Non empty credential allIds: `Credential.allIds().isNotEmpty()`
+- getValidAccessToken: `Credential.getDefaultCredential()?.getValidAccessToken() != null`
+- Custom implementation: `Credential.getDefaultCredential()?.token`, `Credential.getDefaultCredential()?.refresh()`, and `Credential.getDefaultCredential()?.getAccessTokenIfValid()`
 
 Details on each approach are below.
 
 #### Determine authentication status via non null Credential
-`Credential`s require a `Token`. If there are no `Credential`s present, then no `Token` has been stored. Note that `Credential.defaultCredential()` can be a blocking call if the `Credential` was stored using `Credential.Security.Biometric<Strong/StrongOrDeviceCredential>`.
+`Credential`s require a `Token`. If there are no `Credential`s present, then no `Token` has been stored. Note that `Credential.getDefaultCredential()` can be a blocking call if the `Credential` was stored using `Credential.Security.Biometric<Strong/StrongOrDeviceCredential>`.
+
+#### Determine authentication by checking if any Credentials exist
+`Credential.allIds()` lists list of all ids of stored `Credential`s. If it returns an empty list, there are no stored `Credential`s.
 
 #### Determine authentication status via getValidAccessToken
 `Credential` has a method called `getValidAccessToken` which checks to see if the credential has a token, and has a valid access token. If the access token is expired, and a refresh token exists, a `refresh` is implicitly called on the `Credential`. If the implicit `refresh` is successful, `getValidAccessToken` returns the new access token. There are two main down sides to this approach. First, it's a `suspend fun` and could make network calls. Second, the failure is not returned, an error could occur due to a network error, a missing token, a missing refresh token, or a configuration error.
@@ -267,6 +254,10 @@ If your use case requires insight into errors and the current state of the `Cred
 ### Biometric Credentials
 The SDK has built-in support for handling Biometric encryption. To set the default token encryption as Biometric, `Credential.Security.standard` can be set to `Credential.Security.BiometricStrong` or `Credential.Security.BiometricStrongOrDeviceCredential`. Biometric encryption also requires setting `Credential.Security.promptInfo`.
 
+> Notes:
+> - The SDK does not check which biometrics are enrolled on the user's device. Please check this using https://developer.android.com/reference/android/hardware/biometrics/BiometricManager#canAuthenticate(int) before setting the appropriate security level
+> - The SDK does not handle potential errors due to invalidated user Biometrics. In such cases, the app using the SDK is responsible for fetching a new `Token` and creating a new `Credential`.
+
 #### Setting Biometric security for new Credentials
 
 ```kotlin
@@ -274,7 +265,7 @@ Credential.Security.standard = Credential.Security.BiometricStrong
 Credential.Security.promptInfo = BiometricPrompt.PromptInfo.Builder()
   .setTitle("Title")
   .setNegativeButtonText("Cancel Button")
-  .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG)
+  .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG) // Verify the authenticator is supported by device using BiometricManager.canAuthenticate
   .build()
 ```
 
@@ -283,7 +274,7 @@ Credential.Security.promptInfo = BiometricPrompt.PromptInfo.Builder()
 After setting the `Credential.Security.standard`, any newly created `Credential` will be stored using Biometric encryption. Note that this does not change the security level of previously stored `Credential`s in storage. The security level of a stored `Credential` can be changed as follows:
 
 ```kotlin
-val credential = CredentialBootstrap.defaultCredential() // Or any Credential object
+val credential = Credential.getDefaultCredential() // Or any Credential object
 credential.storeToken(security = Credential.Security.BiometricStrong)
 ```
 
@@ -367,12 +358,12 @@ Token migration is handled automatically by the SDK, unless a custom TokenStorag
 ```kotlin
 val tokenEntry: Token.Entry = TODO("Token.Entry supplied by developer from their custom TokenStorage")
 if (tokenEntry.token != null) {
-    CredentialBootstrap.credentialDataSource.createCredential(
+    val credential = Credential.store(
       tokenEntry.token,
       tokenEntry.tags,
-      security = TODO("Optional parameter for specifying security"),
-      isDefault = TODO("Optional parameter for setting this Token as default")
+      security = TODO("Optional parameter for specifying security")
     )
+    Credential.setDefaultCredential(credential) // If this should be the default Credential
 } else {
     // New TokenStorage does not have entries without a Token object
 }
@@ -380,10 +371,72 @@ if (tokenEntry.token != null) {
 
 ### API migration
 
-`CredentialBootstrap`, `CredentialDataSource`, and `Credential` contain several changes over 1.x. `Credential`s can no longer contain a null `Token`. Because of this change from 1.x, the flow for creating `Credential` without `Token`, followed by calling `Credential.storeToken` can no longer be used.
-When creating a new `Credential`, either with `CredentialBootstrap.credentialDataSource.createCredential` or `CredentialBootstrap.setDefaultCredential`, a `Token` must be provided.
+#### Credential changes
 
-1.x would create a new `Credential` with null `Token` if no default `Credential` existed when calling `CredentialBootstrap.defaultCredential()`. In 2.x, `CredentialBootstrap.defaultCredential()` now returns `Credential?` instead of `Credential` if no default `Credential` exists.
+`CredentialBootstrap`, `CredentialDataSource`, and `Credential` contain several changes over 1.x. `Credential`s can no longer contain a null `Token`. Because of this change from 1.x, the flow for creating `Credential` without `Token`, followed by calling `Credential.storeToken` can no longer be used.
+When creating a new `Credential` with `Credential.store`, a `Token` must be provided.
+
+1.x would create a new `Credential` with null `Token` if no default `Credential` existed when calling `CredentialBootstrap.defaultCredential()`. In 2.x, `Credential.getDefaultCredential()` now returns `Credential?` instead of `Credential` if no default `Credential` exists.
+
+1.x contained `Credential` handling APIs in `CredentialBootstrap` and `CredentialDataSource`. All `Credential` management calls have been moved to `Credential` in 2.x. `CredentialBootstrap` has been deleted, and `CredentialDataSource` is private in 2.x.
+
+#### Initialization changes
+
+The SDK initialization calls in 1.x were as follows:
+
+```kotlin
+val context: Context = TODO("Supplied by the developer.")
+val oidcConfiguration = OidcConfiguration(
+    clientId = "{clientId}",
+    defaultScope = "openid email profile offline_access",
+)
+val client = OidcClient.createFromDiscoveryUrl(
+    oidcConfiguration,
+    "https://{yourOktaOrg}.okta.com/oauth2/default/.well-known/openid-configuration".toHttpUrl(),
+)
+CredentialBootstrap.initialize(client.createCredentialDataSource(context))
+```
+
+In 2.x, this is changed to:
+```kotlin
+val context: Context = TODO("Supplied by the developer.")
+AuthFoundation.initializeAndroidContext(context)
+OidcConfiguration.default = OidcConfiguration(
+  clientId = "{clientId}",
+  defaultScope = "openid email profile offline_access",
+  issuer = "https://{yourOktaOrg}.okta.com/oauth2/default" // Note that 1.x required .well-known/openid-configuration link. 2.x automatically handles this
+)
+```
+
+#### OAuth flows
+
+In 1.x, OAuth flows were created as follows:
+
+```kotlin
+val oauthFlow = CredentialBootstrap.oidcClient.createWebAuthenticationClient() // or createTokenExchangeFlow, createDeviceAuthorizationFlow etc
+```
+
+In 2.x, this has been changed to:
+
+```kotlin
+val oauthFlow = WebAuthentication() // or TokenExchangeFlow, SessionTokenFlow, DeviceAuthorizationFlow, or AuthorizationCodeFlow
+```
+
+By default, all OAuth flows use `OidcClient` associated with `OidcConfiguration.default`. Custom `OidcClient` or `OidcConfiguration` can be passed into OAuth flows as follows:
+
+```kotlin
+// Custom OidcConfiguration
+val oidcConfiguration: OidcConfiguration = TODO("Supplied by user")
+val oauthFlow = WebAuthentication(oidcConfiguration)
+
+// Custom OidcClient
+val oidcClient: OidcClient = TODO("Supplied by user")
+val oauthFlow = WebAuthentication(oidcClient)
+```
+
+#### WebAuthenticationUi
+
+`WebAuthenticationClient` has been renamed to `WebAuthentication`.
 
 ## Troubleshooting
 
