@@ -412,6 +412,22 @@ public final class com/okta/authfoundation/credential/DefaultTokenEncryptionHand
 	public fun generateKey (Lcom/okta/authfoundation/credential/Credential$Security;)V
 }
 
+public abstract interface class com/okta/authfoundation/credential/LegacyTokenStorage {
+	public abstract fun add (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun entries (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun remove (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun replace (Lcom/okta/authfoundation/credential/LegacyTokenStorage$Entry;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class com/okta/authfoundation/credential/LegacyTokenStorage$Entry {
+	public fun <init> (Ljava/lang/String;Lcom/okta/authfoundation/credential/Token;Ljava/util/Map;)V
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getIdentifier ()Ljava/lang/String;
+	public final fun getTags ()Ljava/util/Map;
+	public final fun getToken ()Lcom/okta/authfoundation/credential/Token;
+	public fun hashCode ()I
+}
+
 public final class com/okta/authfoundation/credential/RevokeAllException : java/lang/Exception {
 	public final fun getFailures ()Ljava/util/Map;
 }
@@ -503,6 +519,8 @@ public final class com/okta/authfoundation/credential/TokenEncryptionHandler$Def
 
 public final class com/okta/authfoundation/credential/TokenEncryptionHandler$EncryptionResult {
 	public fun <init> ([BLjava/util/Map;)V
+	public final fun component1 ()[B
+	public final fun component2 ()Ljava/util/Map;
 	public final fun getEncryptedToken ()[B
 	public final fun getEncryptionExtras ()Ljava/util/Map;
 }
@@ -521,15 +539,6 @@ public final class com/okta/authfoundation/credential/TokenStorage$DefaultImpls 
 	public static synthetic fun add$default (Lcom/okta/authfoundation/credential/TokenStorage;Lcom/okta/authfoundation/credential/Token;Lcom/okta/authfoundation/credential/Token$Metadata;Lcom/okta/authfoundation/credential/Credential$Security;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun getToken$default (Lcom/okta/authfoundation/credential/TokenStorage;Ljava/lang/String;Landroidx/biometric/BiometricPrompt$PromptInfo;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun replace$default (Lcom/okta/authfoundation/credential/TokenStorage;Lcom/okta/authfoundation/credential/Token;Lcom/okta/authfoundation/credential/Token$Metadata;Lcom/okta/authfoundation/credential/Credential$Security;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
-}
-
-public final class com/okta/authfoundation/credential/TokenStorage$Entry {
-	public fun <init> (Ljava/lang/String;Lcom/okta/authfoundation/credential/Token;Ljava/util/Map;)V
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getIdentifier ()Ljava/lang/String;
-	public final fun getTags ()Ljava/util/Map;
-	public final fun getToken ()Lcom/okta/authfoundation/credential/Token;
-	public fun hashCode ()I
 }
 
 public final class com/okta/authfoundation/credential/TokenType : java/lang/Enum {
@@ -588,6 +597,17 @@ public final class com/okta/authfoundation/credential/storage/TokenDatabase_Impl
 	public fun clearAllTables ()V
 	public fun getAutoMigrations (Ljava/util/Map;)Ljava/util/List;
 	public fun getRequiredAutoMigrationSpecs ()Ljava/util/Set;
+}
+
+public final class com/okta/authfoundation/credential/storage/migration/V1ToV2StorageMigrator {
+	public static final field Companion Lcom/okta/authfoundation/credential/storage/migration/V1ToV2StorageMigrator$Companion;
+}
+
+public final class com/okta/authfoundation/credential/storage/migration/V1ToV2StorageMigrator$Companion {
+	public final fun getLegacyKeyGenParameterSpec ()Landroid/security/keystore/KeyGenParameterSpec;
+	public final fun getLegacyStorage ()Lcom/okta/authfoundation/credential/LegacyTokenStorage;
+	public final fun setLegacyKeyGenParameterSpec (Landroid/security/keystore/KeyGenParameterSpec;)V
+	public final fun setLegacyStorage (Lcom/okta/authfoundation/credential/LegacyTokenStorage;)V
 }
 
 public final class com/okta/authfoundation/credential/storage/typeconverters/JsonObjectTypeConverter {

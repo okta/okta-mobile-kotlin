@@ -26,12 +26,12 @@ import kotlinx.coroutines.flow.firstOrNull
 import java.util.UUID
 
 internal class EncryptionTokenProvider(
-    private val aesEncryptionHandler: AesEncryptionHandler = AesEncryptionHandler()
+    private val aesEncryptionHandler: AesEncryptionHandler
 ) {
     companion object {
         const val PREFERENCE_NAME = "com.okta.authfoundation.client.encryptionToken"
         val PREFERENCE_KEY = stringPreferencesKey("encryptedEncryptionToken")
-        val instance by lazy { EncryptionTokenProvider() }
+        val instance by lazy { EncryptionTokenProvider(AesEncryptionHandler()) }
     }
 
     private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(PREFERENCE_NAME)
