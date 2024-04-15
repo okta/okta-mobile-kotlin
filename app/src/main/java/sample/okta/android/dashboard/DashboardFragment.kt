@@ -51,7 +51,7 @@ internal class DashboardFragment : BaseFragment<FragmentDashboardBinding>(
     private val onBackPressedCallback = object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {
             lifecycleScope.launch {
-                viewModel.setCredential(CredentialBootstrap.defaultCredential())
+                viewModel.setCredential(CredentialBootstrap.defaultCredential()!!)
             }
         }
     }

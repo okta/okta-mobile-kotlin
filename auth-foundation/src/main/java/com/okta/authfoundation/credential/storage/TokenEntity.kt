@@ -33,7 +33,7 @@ internal data class TokenEntity(
     val id: String,
     val encryptedToken: ByteArray,
     val tags: Map<String, String>,
-    val payloadData: JsonObject,
+    val payloadData: JsonObject?,
     val keyAlias: String,
     val tokenEncryptionType: EncryptionType,
     val isDefault: Boolean,
@@ -86,7 +86,7 @@ internal data class TokenEntity(
         var result = id.hashCode()
         result = 31 * result + encryptedToken.contentHashCode()
         result = 31 * result + tags.hashCode()
-        result = 31 * result + payloadData.hashCode()
+        result = 31 * result + (payloadData?.hashCode() ?: 0)
         result = 31 * result + keyAlias.hashCode()
         result = 31 * result + tokenEncryptionType.hashCode()
         result = 31 * result + isDefault.hashCode()

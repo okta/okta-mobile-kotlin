@@ -20,7 +20,6 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.okta.authfoundationbootstrap.CredentialBootstrap
 import com.okta.legacytokenmigration.LegacyTokenMigration
 import kotlinx.coroutines.launch
 import sample.okta.android.legacy.SampleWebAuthClientHelper
@@ -35,8 +34,7 @@ internal class LaunchViewModel : ViewModel() {
             when (
                 val result = LegacyTokenMigration.migrate(
                     context = context,
-                    sessionClient = SampleWebAuthClientHelper.webAuthClient.sessionClient,
-                    credential = CredentialBootstrap.defaultCredential(),
+                    sessionClient = SampleWebAuthClientHelper.webAuthClient.sessionClient
                 )
             ) {
                 is LegacyTokenMigration.Result.Error -> {
@@ -45,10 +43,10 @@ internal class LaunchViewModel : ViewModel() {
                 LegacyTokenMigration.Result.MissingLegacyToken -> {
                     Timber.d("No token to migrate.")
                 }
-                LegacyTokenMigration.Result.PreviouslyMigrated -> {
+                is LegacyTokenMigration.Result.PreviouslyMigrated -> {
                     Timber.d("Token previously migrated.")
                 }
-                LegacyTokenMigration.Result.SuccessfullyMigrated -> {
+                is LegacyTokenMigration.Result.SuccessfullyMigrated -> {
                     _migratedLiveData.value = Unit // Update the UI.
                 }
             }

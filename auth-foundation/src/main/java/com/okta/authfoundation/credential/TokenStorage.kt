@@ -15,6 +15,8 @@
  */
 package com.okta.authfoundation.credential
 
+import androidx.biometric.BiometricPrompt
+import com.okta.authfoundation.credential.CredentialDataSource.Companion.createCredentialDataSource
 import java.util.Objects
 
 /**
@@ -25,33 +27,23 @@ import java.util.Objects
  * Warning: When implementing a custom [TokenStorage] class, it's vitally important that you do not directly invoke any of these methods yourself. These methods are intended to be called on-demand by the other AuthFoundation classes, and the behavior is undefined if these methods are called directly by the developer.
  */
 interface TokenStorage {
-    /**
-     * Used to access all [Entry]s in storage.
-     *
-     *  @return all [Entry] in storage.
-     */
-    suspend fun entries(): List<Entry>
-
-    /**
-     *  Add a new entry to storage.
-     *
-     *  @param id the unique identifier related to a [TokenStorage.Entry].
-     */
-    suspend fun add(id: String)
-
-    /**
-     *  Remove an existing entry from storage.
-     *
-     *  @param id the unique identifier related to a [TokenStorage.Entry].
-     */
+    suspend fun allIds(): List<String>
+    suspend fun metadata(id: String): Token.Metadata?
+    suspend fun setMetadata(metadata: Token.Metadata)
+    suspend fun add(
+        token: Token,
+        metadata: Token.Metadata,
+        security: Credential.Security = Credential.Security.standard
+    )
     suspend fun remove(id: String)
-
-    /**
-     *  Replace an existing [Entry] in storage with an updated [Entry].
-     *
-     *  @param updatedEntry the new [Entry] to store.
-     */
-    suspend fun replace(updatedEntry: Entry)
+    suspend fun replace(
+        id: String,
+        token: Token,
+        metadata: Token.Metadata? = null,
+        security: Credential.Security? = null
+    )
+    suspend fun getToken(id: String, promptInfo: BiometricPrompt.PromptInfo? = Credential.Security.promptInfo): Token
+    suspend fun getDefaultToken(promptInfo: BiometricPrompt.PromptInfo? = Credential.Security.promptInfo): Token?
 
     /**
      *  Represents the data to store in [TokenStorage].

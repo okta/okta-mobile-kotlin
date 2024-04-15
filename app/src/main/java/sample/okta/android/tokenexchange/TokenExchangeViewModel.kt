@@ -44,12 +44,11 @@ class TokenExchangeViewModel : ViewModel() {
         viewModelScope.launch {
             val credential = CredentialBootstrap.defaultCredential()
             val credentialDataSource = CredentialBootstrap.credentialDataSource
-            val tokenExchangeCredential = credentialDataSource.listCredentials().firstOrNull { c ->
-                c.tags[SampleHelper.CREDENTIAL_NAME_TAG_KEY] == NAME_TAG_VALUE
-            } ?: credentialDataSource.createCredential()
-            tokenExchangeCredential.storeToken(tags = mapOf(Pair(SampleHelper.CREDENTIAL_NAME_TAG_KEY, NAME_TAG_VALUE)))
+            val tokenExchangeCredential =
+                credentialDataSource.findCredential { it.tags[SampleHelper.CREDENTIAL_NAME_TAG_KEY] == NAME_TAG_VALUE }
+                    .firstOrNull()
             val tokenExchangeFlow = CredentialBootstrap.oidcClient.createTokenExchangeFlow()
-            val idToken = credential.token?.idToken
+            val idToken = credential?.token?.idToken
             if (idToken == null) {
                 _state.value = TokenExchangeState.Error("Missing Id Token")
                 return@launch
@@ -64,8 +63,13 @@ class TokenExchangeViewModel : ViewModel() {
                     Timber.e(result.exception, "Failed to start token exchange flow.")
                     _state.value = TokenExchangeState.Error("An error occurred.")
                 }
+
                 is OidcClientResult.Success -> {
-                    tokenExchangeCredential.storeToken(token = result.result)
+                    tokenExchangeCredential?.storeToken(token = result.result)
+                        ?: credentialDataSource.createCredential(
+                            result.result,
+                            tags = mapOf(Pair(SampleHelper.CREDENTIAL_NAME_TAG_KEY, NAME_TAG_VALUE))
+                        )
                     _state.value = TokenExchangeState.Token(NAME_TAG_VALUE)
                 }
             }

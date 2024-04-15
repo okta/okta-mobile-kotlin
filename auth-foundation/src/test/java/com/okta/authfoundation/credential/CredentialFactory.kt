@@ -16,9 +16,7 @@
 package com.okta.authfoundation.credential
 
 import com.okta.authfoundation.client.OidcClient
-import com.okta.testhelpers.InMemoryTokenStorage
 import com.okta.testhelpers.OktaRule
-import kotlinx.coroutines.runBlocking
 import org.mockito.kotlin.mock
 
 object CredentialFactory {
@@ -26,19 +24,13 @@ object CredentialFactory {
 }
 
 fun OktaRule.createCredential(
-    token: Token? = null,
+    token: Token,
     tags: Map<String, String> = emptyMap(),
     oidcClient: OidcClient = createOidcClient(),
-    tokenStorage: TokenStorage = InMemoryTokenStorage(),
     credentialDataSource: CredentialDataSource = mock(),
     storageId: String = CredentialFactory.tokenStorageId,
 ): Credential {
-    if (token != null) {
-        runBlocking {
-            tokenStorage.add(CredentialFactory.tokenStorageId)
-        }
-    }
-    return Credential(oidcClient, tokenStorage, credentialDataSource, storageId, token, tags)
+    return Credential(oidcClient, credentialDataSource, storageId, token, tags)
 }
 
 fun createToken(

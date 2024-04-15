@@ -22,37 +22,37 @@ import com.okta.authfoundation.credential.storage.TokenEntity
 internal class RoomTokenStorage(
     tokenDatabase: TokenDatabase,
     private val tokenEncryptionHandler: TokenEncryptionHandler
-) {
+) : TokenStorage {
     private val tokenDao = tokenDatabase.tokenDao()
 
-    suspend fun allIds(): List<String> = tokenDao.allEntries().map { it.id }
+    override suspend fun allIds(): List<String> = tokenDao.allEntries().map { it.id }
 
-    suspend fun metadata(id: String): Token.Metadata? {
+    override suspend fun metadata(id: String): Token.Metadata? {
         return tokenDao.getById(id)?.let {
             Token.Metadata(
                 it.id,
                 it.tags,
-                it.payloadData
+                it.payloadData,
+                it.isDefault
             )
         }
     }
 
-    suspend fun setMetadata(metadata: Token.Metadata) {
+    override suspend fun setMetadata(metadata: Token.Metadata) {
         val tokenEntity = tokenDao.getById(id = metadata.id) ?: throw NoSuchElementException()
         tokenDao.updateTokenEntity(
             tokenEntity.copy(tags = metadata.tags, payloadData = metadata.payloadData)
         )
     }
 
-    suspend fun add(
+    override suspend fun add(
         token: Token,
         metadata: Token.Metadata,
-        security: Credential.Security = Credential.Security.standard,
-        isDefault: Boolean = false
+        security: Credential.Security
     ) {
         val (encryptedToken, encryptionExtras) = tokenEncryptionHandler.encrypt(token, security)
 
-        if (isDefault) {
+        if (metadata.isDefault) {
             tokenDao.allEntries().firstOrNull { it.isDefault }?.let {
                 tokenDao.updateTokenEntity(
                     it.copy(isDefault = false)
@@ -68,24 +68,23 @@ internal class RoomTokenStorage(
                 payloadData = metadata.payloadData,
                 keyAlias = security.keyAlias,
                 tokenEncryptionType = TokenEntity.EncryptionType.fromSecurity(security),
-                isDefault = isDefault,
+                isDefault = metadata.isDefault,
                 encryptionExtras = encryptionExtras
             )
         )
     }
 
-    suspend fun remove(id: String) {
+    override suspend fun remove(id: String) {
         tokenDao.getById(id)?.let { tokenEntity ->
             tokenDao.deleteTokenEntity(tokenEntity)
         }
     }
 
-    suspend fun replace(
+    override suspend fun replace(
         id: String,
         token: Token,
-        metadata: Token.Metadata? = null,
-        security: Credential.Security? = null,
-        isDefault: Boolean? = null,
+        metadata: Token.Metadata?,
+        security: Credential.Security?,
     ) {
         val tokenEntity = tokenDao.getById(id) ?: throw NoSuchElementException()
 
@@ -104,23 +103,23 @@ internal class RoomTokenStorage(
             tokenEncryptionType = security?.let {
                 TokenEntity.EncryptionType.fromSecurity(it)
             } ?: tokenEntity.tokenEncryptionType,
-            isDefault = isDefault ?: tokenEntity.isDefault,
+            isDefault = metadata?.isDefault ?: tokenEntity.isDefault,
             encryptionExtras = encryptionExtras
         )
 
-        if (isDefault == true && previousDefault != null) {
+        if (metadata?.isDefault == true && previousDefault != null) {
             tokenDao.updateTokenEntity(updatedTokenEntity, previousDefault.copy(isDefault = false))
         } else {
             tokenDao.updateTokenEntity(updatedTokenEntity)
         }
     }
 
-    suspend fun getToken(id: String, promptInfo: PromptInfo? = Credential.Security.promptInfo): Token {
+    override suspend fun getToken(id: String, promptInfo: PromptInfo?): Token {
         val tokenEntity = tokenDao.getById(id) ?: throw NoSuchElementException()
         return getTokenFromEntity(tokenEntity, promptInfo)
     }
 
-    suspend fun getDefaultToken(promptInfo: PromptInfo? = Credential.Security.promptInfo): Token? {
+    override suspend fun getDefaultToken(promptInfo: PromptInfo?): Token? {
         return tokenDao.allEntries().firstOrNull { it.isDefault }?.let {
             getTokenFromEntity(it, promptInfo)
         }

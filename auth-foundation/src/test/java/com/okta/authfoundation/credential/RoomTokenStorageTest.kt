@@ -36,7 +36,8 @@ class RoomTokenStorageTest {
     private val tokenMetadata = Token.Metadata(
         id = "id",
         tags = mapOf("key" to "value"),
-        payloadData = buildJsonObject { put("claim", "claimValue") }
+        payloadData = buildJsonObject { put("claim", "claimValue") },
+        isDefault = false
     )
 
     private lateinit var database: TokenDatabase
@@ -88,15 +89,15 @@ class RoomTokenStorageTest {
 
     @Test
     fun `add token sets the token to default when requested`() = runTest {
-        roomTokenStorage.add(token, tokenMetadata, isDefault = true)
+        roomTokenStorage.add(token, tokenMetadata.copy(isDefault = true))
         assertThat(roomTokenStorage.getToken(tokenMetadata.id)).isEqualTo(token)
     }
 
     @Test
     fun `add token sets the correct token to default if another default token already exists`() = runTest {
-        roomTokenStorage.add(token, tokenMetadata, isDefault = true)
+        roomTokenStorage.add(token, tokenMetadata.copy(isDefault = true))
         val newToken = createToken(idToken = "different")
-        roomTokenStorage.add(newToken, tokenMetadata.copy(id = "differentId"), isDefault = true)
+        roomTokenStorage.add(newToken, tokenMetadata.copy(id = "differentId", isDefault = true))
         assertThat(roomTokenStorage.getDefaultToken()).isEqualTo(newToken)
     }
 
@@ -135,7 +136,7 @@ class RoomTokenStorageTest {
     fun `replace sets default token when no other default token exists`() = runTest {
         roomTokenStorage.add(token, tokenMetadata)
         assertThat(roomTokenStorage.getDefaultToken()).isNull()
-        roomTokenStorage.replace(tokenMetadata.id, token, isDefault = true)
+        roomTokenStorage.replace(tokenMetadata.id, token, tokenMetadata.copy(isDefault = true))
         assertThat(roomTokenStorage.getDefaultToken()).isEqualTo(token)
     }
 
@@ -143,10 +144,10 @@ class RoomTokenStorageTest {
     fun `replace sets correct default when another default token already exists`() = runTest {
         val newToken = createToken(idToken = "differentIdToken")
         val newTokenMetadata = tokenMetadata.copy(id = "differentId")
-        roomTokenStorage.add(token, tokenMetadata, isDefault = true)
+        roomTokenStorage.add(token, tokenMetadata.copy(isDefault = true))
         roomTokenStorage.add(newToken, newTokenMetadata)
         assertThat(roomTokenStorage.getDefaultToken()).isEqualTo(token)
-        roomTokenStorage.replace(newTokenMetadata.id, newToken, isDefault = true)
+        roomTokenStorage.replace(newTokenMetadata.id, newToken, newTokenMetadata.copy(isDefault = true))
         assertThat(roomTokenStorage.getDefaultToken()).isEqualTo(newToken)
     }
 
