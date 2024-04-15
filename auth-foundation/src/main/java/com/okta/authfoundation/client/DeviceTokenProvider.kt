@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-Present Okta, Inc.
+ * Copyright 2024-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,57 +16,56 @@
 package com.okta.authfoundation.client
 
 import android.content.Context
-import android.content.SharedPreferences
-import androidx.annotation.VisibleForTesting
-import androidx.security.crypto.EncryptedSharedPreferences
-import androidx.security.crypto.MasterKeys
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.preferencesDataStore
+import com.okta.authfoundation.InternalAuthFoundationApi
+import com.okta.authfoundation.util.AesEncryptionHandler
+import kotlinx.coroutines.flow.firstOrNull
 import java.util.UUID
 
-internal class DeviceTokenProvider(private val appContext: Context) {
-    internal companion object {
-        @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
-        internal const val FILE_NAME = "com.okta.authfoundation.device_token_storage"
-        @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
-        internal const val PREFERENCE_KEY = "com.okta.authfoundation.device_token_key"
-
-        internal var shared: DeviceTokenProvider? = null
+@InternalAuthFoundationApi
+class DeviceTokenProvider(
+    private val aesEncryptionHandler: AesEncryptionHandler = AesEncryptionHandler()
+) {
+    companion object {
+        const val PREFERENCE_NAME = "com.okta.authfoundation.client.deviceToken"
+        val PREFERENCE_KEY = stringPreferencesKey("encryptedDeviceToken")
+        val instance by lazy { DeviceTokenProvider() }
     }
 
-    private val masterKeyAlias = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC)
+    private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(PREFERENCE_NAME)
+    private val context by lazy { ApplicationContextHolder.appContext }
 
-    private fun createSharedPreferences(): SharedPreferences {
-        return EncryptedSharedPreferences.create(
-            FILE_NAME,
-            masterKeyAlias,
-            appContext,
-            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-        )
+    suspend fun getDeviceToken(): String {
+        val encryptedDeviceToken = context.dataStore.data.firstOrNull()?.get(PREFERENCE_KEY)
+        return encryptedDeviceToken?.let {
+            aesEncryptionHandler.decryptString(it)
+        } ?: run {
+            val deviceToken = getLegacyDeviceToken() ?: createNewDeviceToken()
+            setDeviceToken(deviceToken)
+            deviceToken
+        }
     }
 
-    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
-    internal val sharedPrefs: SharedPreferences by lazy {
-        try {
-            createSharedPreferences()
+    private fun getLegacyDeviceToken(): String? {
+        return try {
+            val legacyDeviceTokenProvider = LegacyDeviceTokenProvider(context)
+            if (legacyDeviceTokenProvider.containsDeviceToken()) {
+                legacyDeviceTokenProvider.deviceToken
+            } else null
         } catch (e: Exception) {
-            val sharedPreferences = appContext.getSharedPreferences(FILE_NAME, Context.MODE_PRIVATE)
-            sharedPreferences.edit().clear().commit()
-            createSharedPreferences()
+            null
         }
     }
 
-    private val sharedPrefsEditor = sharedPrefs.edit()
+    private fun createNewDeviceToken(): String =
+        UUID.randomUUID().toString().filter { it.isLetterOrDigit() }
 
-    internal val deviceTokenUUID: String
-        get() {
-            return sharedPrefs.getString(PREFERENCE_KEY, null) ?: run {
-                val newDeviceToken = UUID.randomUUID().toString()
-                sharedPrefsEditor.putString(PREFERENCE_KEY, newDeviceToken)
-                sharedPrefsEditor.commit()
-                newDeviceToken
-            }
+    private suspend fun setDeviceToken(deviceToken: String) =
+        context.dataStore.edit { preferences ->
+            preferences[PREFERENCE_KEY] = aesEncryptionHandler.encryptString(deviceToken)
         }
-
-    internal val deviceToken: String
-        get() = deviceTokenUUID.filter { it.isLetterOrDigit() }
 }

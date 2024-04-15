@@ -25,6 +25,7 @@ import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.credential.events.CredentialCreatedEvent
 import com.okta.authfoundation.credential.storage.TokenDatabase
 import com.okta.authfoundation.jwt.JwtParser
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.JsonObject
 import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
 import java.util.Collections
@@ -64,12 +65,7 @@ class CredentialDataSource internal constructor(
             tokenEncryptionHandler: TokenEncryptionHandler = DefaultTokenEncryptionHandler()
         ): CredentialDataSource {
             ApplicationContextHolder.setApplicationContext(context.applicationContext)
-            val deviceTokenProvider = DeviceTokenProvider.shared ?: run {
-                val _deviceTokenProvider = DeviceTokenProvider(context)
-                DeviceTokenProvider.shared = _deviceTokenProvider
-                _deviceTokenProvider
-            }
-            val sqlCipherPassword = deviceTokenProvider.deviceToken
+            val sqlCipherPassword = runBlocking { DeviceTokenProvider.instance.getDeviceToken() }
             System.loadLibrary("sqlcipher")
             val tokenDatabase =
                 Room.databaseBuilder(context, TokenDatabase::class.java, TokenDatabase.DB_NAME)

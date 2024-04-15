@@ -73,6 +73,7 @@ dependencies {
     implementation deps.lifecycle.viewmodel_ktx
     implementation deps.androidx_activity_ktx
     implementation deps.androidx_constraintlayout
+    implementation deps.androidx_datastore_preferences
     implementation deps.androidx_sqlite
     implementation deps.app_compat
     implementation deps.okio.jvm
