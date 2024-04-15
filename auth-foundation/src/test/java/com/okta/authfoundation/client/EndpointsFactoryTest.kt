@@ -22,6 +22,8 @@ import com.okta.testhelpers.RequestMatchers.path
 import com.okta.testhelpers.testBodyFromFile
 import kotlinx.coroutines.runBlocking
 import okhttp3.HttpUrl.Companion.toHttpUrl
+import org.junit.After
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
@@ -29,6 +31,16 @@ internal class EndpointsFactoryTest {
     private val mockPrefix = "client_test_responses"
 
     @get:Rule val oktaRule = OktaRule()
+
+    @Before
+    fun setup() {
+        EndpointsFactory.reset()
+    }
+
+    @After
+    fun tearDown() {
+        EndpointsFactory.reset()
+    }
 
     @Test fun testCachedEndpointsDoesNotMakeNetworkCall(): Unit = runBlocking {
         oktaRule.enqueue(

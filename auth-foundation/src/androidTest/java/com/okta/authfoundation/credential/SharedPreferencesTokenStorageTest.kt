@@ -24,6 +24,7 @@ import androidx.security.crypto.MasterKeys
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
+import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.credential.events.TokenStorageAccessErrorEvent
 import com.okta.authfoundation.events.EventCoordinator
 import com.okta.authfoundation.events.EventHandler
@@ -122,6 +123,7 @@ class SharedPreferencesTokenStorageTest {
             idToken = null,
             deviceSecret = null,
             issuedTokenType = null,
+            oidcConfiguration = OidcConfiguration("clientId", "defaultScope", "discoveryUrl")
         )
         subject.replace(TokenStorage.Entry("one", token, mapOf("foo" to "bar")))
         val entry = subject.entries().first()

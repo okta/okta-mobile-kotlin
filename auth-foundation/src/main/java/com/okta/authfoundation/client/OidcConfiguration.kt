@@ -71,9 +71,9 @@ class OidcConfiguration private constructor(
     @property:InternalAuthFoundationApi
     val deviceSecretValidator: DeviceSecretValidator = AuthFoundationDefaults.deviceSecretValidator,
 
-    /** The Cache used to optimize network calls by the SDK. */
+    /** The factory for creating a new instance of [Cache]. [Cache] is used to optimize network calls by the SDK. */
     @property:InternalAuthFoundationApi
-    val cache: Cache = AuthFoundationDefaults.cache,
+    val cacheFactory: suspend () -> Cache = AuthFoundationDefaults.cacheFactory,
 
     /** The CookieJar used for the network calls used by the SDK. */
     @property:InternalAuthFoundationApi
@@ -103,7 +103,7 @@ class OidcConfiguration private constructor(
         idTokenValidator = AuthFoundationDefaults.idTokenValidator,
         accessTokenValidator = AuthFoundationDefaults.accessTokenValidator,
         deviceSecretValidator = AuthFoundationDefaults.deviceSecretValidator,
-        cache = AuthFoundationDefaults.cache,
+        cacheFactory = AuthFoundationDefaults.cacheFactory,
         cookieJar = AuthFoundationDefaults.cookieJar,
     )
 

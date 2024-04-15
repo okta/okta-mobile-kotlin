@@ -23,19 +23,33 @@ import kotlin.time.Duration.Companion.seconds
 class DeviceTokenCookieJar(private val oidcClock: OidcClock) : CookieJar {
     private val savedCookiesCache = mutableMapOf<String, List<Cookie>>()
 
-    private val deviceTokenCookieBuilder by lazy {
-        Cookie.Builder()
+    private val deviceTokenCookieBuilder: Cookie.Builder?
+        get() {
+            return DeviceTokenProvider.shared?.let {
+                getDtCookieBuilderWith(it.deviceToken)
+            } ?: run {
+                ApplicationContextHolder.appContext?.let { context ->
+                    val deviceTokenProvider = DeviceTokenProvider(context)
+                    DeviceTokenProvider.shared = deviceTokenProvider
+                    getDtCookieBuilderWith(deviceTokenProvider.deviceToken)
+                }
+            }
+        }
+
+    private fun getDtCookieBuilderWith(deviceToken: String): Cookie.Builder {
+        return Cookie.Builder()
             .name("DT")
-            .value(DeviceTokenProvider.deviceToken)
+            .value(deviceToken)
             .secure()
     }
 
     override fun loadForRequest(url: HttpUrl): List<Cookie> {
-        val deviceTokenCookie = deviceTokenCookieBuilder.domain(url.host).build()
+        val deviceTokenCookie = deviceTokenCookieBuilder?.domain(url.host)?.build()
         val savedCookiesForDomain = savedCookiesCache[url.host]?.filter {
             it.expiresAt > oidcClock.currentTimeEpochSecond().seconds.inWholeMilliseconds
         } ?: emptyList()
-        return savedCookiesForDomain + listOf(deviceTokenCookie)
+        val deviceTokenCookieList = deviceTokenCookie?.let { listOf(it) } ?: emptyList()
+        return savedCookiesForDomain + deviceTokenCookieList
     }
 
     override fun saveFromResponse(url: HttpUrl, cookies: List<Cookie>) {

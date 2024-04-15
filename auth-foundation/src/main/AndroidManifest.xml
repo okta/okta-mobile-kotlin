@@ -11,14 +11,5 @@
             android:name=".TransparentBiometricActivity"
             android:theme="@style/Theme.AppCompat.Transparent"
             android:exported="false" />
-
-        <provider
-            android:name="androidx.startup.InitializationProvider"
-            android:authorities="${applicationId}.androidx-startup"
-            android:exported="false"
-            tools:node="merge">
-            <meta-data android:name="com.okta.authfoundation.client.DeviceTokenInitializer"
-                android:value="androidx.startup" />
-        </provider>
     </application>
 </manifest>
