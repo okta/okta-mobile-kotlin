@@ -377,8 +377,8 @@ public final class com/okta/authfoundation/credential/CredentialDataSource {
 	public static synthetic fun getCredential$default (Lcom/okta/authfoundation/credential/CredentialDataSource;Ljava/lang/String;Landroidx/biometric/BiometricPrompt$PromptInfo;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public final fun getOidcClient ()Lcom/okta/authfoundation/client/OidcClient;
 	public final fun metadata (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public final fun replaceToken (Ljava/lang/String;Lcom/okta/authfoundation/credential/Token;Ljava/util/Map;Lcom/okta/authfoundation/credential/Credential$Security;Ljava/lang/Boolean;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun replaceToken$default (Lcom/okta/authfoundation/credential/CredentialDataSource;Ljava/lang/String;Lcom/okta/authfoundation/credential/Token;Ljava/util/Map;Lcom/okta/authfoundation/credential/Credential$Security;Ljava/lang/Boolean;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public final fun replaceCredential (Ljava/lang/String;Lcom/okta/authfoundation/credential/Token;Ljava/util/Map;Lcom/okta/authfoundation/credential/Credential$Security;Ljava/lang/Boolean;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun replaceCredential$default (Lcom/okta/authfoundation/credential/CredentialDataSource;Ljava/lang/String;Lcom/okta/authfoundation/credential/Token;Ljava/util/Map;Lcom/okta/authfoundation/credential/Credential$Security;Ljava/lang/Boolean;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public final class com/okta/authfoundation/credential/CredentialDataSource$Companion {
