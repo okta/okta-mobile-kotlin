@@ -31,23 +31,26 @@ import java.util.UUID
  *
  * See [Authorization Code Flow documentation](https://developer.okta.com/docs/guides/implement-grant-type/authcodepkce/main/#about-the-authorization-code-grant-with-pkce)
  */
-class AuthorizationCodeFlow private constructor(
+class AuthorizationCodeFlow(
     private val oidcClient: OidcClient,
 ) {
     companion object {
         init {
             SdkVersionsRegistry.register(SDK_VERSION)
         }
-
-        /**
-         * Initializes an authorization code flow using the [OidcClient].
-         *
-         * @receiver the [OidcClient] used to perform the low level OIDC requests, as well as with which to use the configuration from.
-         */
-        fun OidcClient.createAuthorizationCodeFlow(): AuthorizationCodeFlow {
-            return AuthorizationCodeFlow(this)
-        }
     }
+
+    /**
+     * Initializes an authorization code flow.
+     */
+    constructor() : this(OidcClient.default)
+
+    /**
+     * Initializes an authorization code flow using the [OidcConfiguration].
+     *
+     * @param oidcConfiguration the [OidcConfiguration] specifying the authorization servers.
+     */
+    constructor(oidcConfiguration: OidcConfiguration) : this(OidcClient.createFromConfiguration(oidcConfiguration))
 
     /**
      * A model representing the context and current state for an authorization session.

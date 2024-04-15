@@ -21,7 +21,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundationbootstrap.CredentialBootstrap
-import com.okta.oauth2.TokenExchangeFlow.Companion.createTokenExchangeFlow
+import com.okta.oauth2.TokenExchangeFlow
 import kotlinx.coroutines.launch
 import sample.okta.android.SampleHelper
 import timber.log.Timber
@@ -47,7 +47,7 @@ class TokenExchangeViewModel : ViewModel() {
             val tokenExchangeCredential =
                 credentialDataSource.findCredential { it.tags[SampleHelper.CREDENTIAL_NAME_TAG_KEY] == NAME_TAG_VALUE }
                     .firstOrNull()
-            val tokenExchangeFlow = CredentialBootstrap.oidcClient.createTokenExchangeFlow()
+            val tokenExchangeFlow = TokenExchangeFlow()
             val idToken = credential?.token?.idToken
             if (idToken == null) {
                 _state.value = TokenExchangeState.Error("Missing Id Token")

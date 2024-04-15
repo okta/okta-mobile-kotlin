@@ -73,6 +73,7 @@ class OidcClient private constructor(
             )
         }
 
+        @InternalAuthFoundationApi
         fun create(configuration: OidcConfiguration, endpoints: OidcEndpoints): OidcClient {
             return OidcClient(
                 configuration = configuration,
@@ -82,6 +83,8 @@ class OidcClient private constructor(
                 ),
             )
         }
+
+        val default: OidcClient by lazy { createFromConfiguration(OidcConfiguration.default) }
     }
 
     private val jwks: CoalescingOrchestrator<OidcClientResult<Jwks>> = jwks ?: jwksCoalescingOrchestrator()

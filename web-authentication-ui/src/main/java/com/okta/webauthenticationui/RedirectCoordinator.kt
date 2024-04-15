@@ -139,7 +139,7 @@ internal class DefaultRedirectCoordinator(
             // accepting the error.
             emitErrorJob = coroutineScope.launch {
                 delay(AuthFoundationDefaults.loginCancellationDebounceTime)
-                val exception = WebAuthenticationClient.FlowCancelledException()
+                val exception = WebAuthentication.FlowCancelledException()
                 initializationContinuation?.resume(RedirectInitializationResult.Error<Any>(exception))
                 val localContinuation = redirectContinuation
                 reset()

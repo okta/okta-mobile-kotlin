@@ -30,23 +30,26 @@ import okhttp3.Request
  *
  * See the [specification](https://openid.net/specs/openid-connect-native-sso-1_0.html)
  */
-class TokenExchangeFlow private constructor(
+class TokenExchangeFlow(
     private val oidcClient: OidcClient,
 ) {
     companion object {
         init {
             SdkVersionsRegistry.register(SDK_VERSION)
         }
-
-        /**
-         * Initializes a token exchange flow using the [OidcClient].
-         *
-         * @receiver the [OidcClient] used to perform the low level OIDC requests, as well as with which to use the configuration from.
-         */
-        fun OidcClient.createTokenExchangeFlow(): TokenExchangeFlow {
-            return TokenExchangeFlow(this)
-        }
     }
+
+    /**
+     * Initializes a token exchange flow.
+     */
+    constructor() : this(OidcClient.default)
+
+    /**
+     * Initializes a token exchange flow using the [OidcConfiguration].
+     *
+     * @param oidcConfiguration the [OidcConfiguration] specifying the authorization servers.
+     */
+    constructor(oidcConfiguration: OidcConfiguration) : this(OidcClient.createFromConfiguration(oidcConfiguration))
 
     /**
      * Initiates the Token Exchange flow.
