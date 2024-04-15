@@ -23,6 +23,7 @@ import com.okta.authfoundation.credential.CredentialDataSource.Companion.createC
 import com.okta.authfoundation.credential.events.CredentialCreatedEvent
 import com.okta.authfoundation.credential.storage.TokenDatabase
 import com.okta.testhelpers.OktaRule
+import com.okta.testhelpers.TestTokenEncryptionHandler
 import io.mockk.coVerify
 import io.mockk.spyk
 import kotlinx.coroutines.test.runTest
@@ -47,7 +48,7 @@ class CredentialDataSourceTest {
             ApplicationProvider.getApplicationContext(),
             TokenDatabase::class.java
         ).allowMainThreadQueries().build()
-        roomTokenStorage = RoomTokenStorage(database, TokenEncryptionHandler())
+        roomTokenStorage = RoomTokenStorage(database, TestTokenEncryptionHandler())
         token = createToken(accessToken = "mainToken")
         credentialDataSource = oktaRule.createOidcClient().createCredentialDataSource(roomTokenStorage)
     }

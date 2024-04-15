@@ -66,7 +66,7 @@ object CredentialBootstrap {
      *
      * This will get the default [Credential] if one exists, or create the default [Credential] is there is not an existing one.
      */
-    suspend fun defaultCredential(promptInfo: BiometricPrompt.PromptInfo? = null): Credential? {
+    suspend fun defaultCredential(promptInfo: BiometricPrompt.PromptInfo? = Credential.Security.promptInfo): Credential? {
         return credentialDataSource.findCredential(promptInfo) { it.isDefault }.firstOrNull()
     }
 

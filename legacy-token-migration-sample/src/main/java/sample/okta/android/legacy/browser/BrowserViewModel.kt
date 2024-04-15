@@ -42,7 +42,7 @@ class BrowserViewModel : ViewModel() {
                     _state.value = BrowserState.Error("Failed to login.")
                 }
                 is OidcClientResult.Success -> {
-                    CredentialBootstrap.defaultCredential().storeToken(token = result.result)
+                    CredentialBootstrap.setDefaultCredential(token = result.result)
                     _state.value = BrowserState.Token
                 }
             }
