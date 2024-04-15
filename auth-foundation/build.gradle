@@ -74,6 +74,7 @@ dependencies {
     implementation deps.startup_runtime
     implementation deps.room.runtime
     implementation deps.room.ktx
+    implementation deps.androidx_biometric
     annotationProcessor deps.room.compiler
     ksp deps.room.compiler
 
