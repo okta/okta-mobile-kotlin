@@ -19,6 +19,7 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
+import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.credential.CredentialDataSource
 import com.okta.authfoundation.credential.CredentialDataSource.Companion.createCredentialDataSource
 import com.okta.authfoundation.credential.RoomTokenStorage
@@ -168,6 +169,7 @@ class CredentialBootstrapTest {
         idToken: String? = null,
         refreshToken: String? = null,
         deviceSecret: String? = null,
+        oidcConfiguration: OidcConfiguration = OidcConfiguration("clientId", "defaultScope", "issuer")
     ): Token {
         return Token(
             tokenType = "Bearer",
@@ -178,6 +180,7 @@ class CredentialBootstrapTest {
             deviceSecret = deviceSecret,
             idToken = idToken,
             issuedTokenType = null,
+            oidcConfiguration = oidcConfiguration
         )
     }
 }

@@ -24,7 +24,6 @@ import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.client.SharedPreferencesCache
 import com.okta.authfoundation.credential.CredentialDataSource.Companion.createCredentialDataSource
 import com.okta.authfoundationbootstrap.CredentialBootstrap
-import okhttp3.HttpUrl.Companion.toHttpUrl
 import timber.log.Timber
 
 class SampleApplication : Application() {
@@ -44,11 +43,9 @@ class SampleApplication : Application() {
         val oidcConfiguration = OidcConfiguration(
             clientId = BuildConfig.CLIENT_ID,
             defaultScope = SampleHelper.DEFAULT_SCOPE,
+            issuer = BuildConfig.ISSUER
         )
-        val oidcClient = OidcClient.createFromDiscoveryUrl(
-            oidcConfiguration,
-            "${BuildConfig.ISSUER}/.well-known/openid-configuration".toHttpUrl(),
-        )
+        val oidcClient = OidcClient.createFromConfiguration(oidcConfiguration)
         CredentialBootstrap.initialize(oidcClient.createCredentialDataSource(this))
     }
 }

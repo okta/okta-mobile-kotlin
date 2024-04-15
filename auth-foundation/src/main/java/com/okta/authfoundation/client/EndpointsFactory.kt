@@ -20,15 +20,15 @@ import com.okta.authfoundation.client.internal.internalPerformRequest
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.okio.decodeFromBufferedSource
-import okhttp3.HttpUrl
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Request
 
 internal object EndpointsFactory {
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
     const val prefix: String = "endpoints:"
 
-    suspend fun get(configuration: OidcConfiguration, discoveryUrl: HttpUrl): OidcClientResult<OidcEndpoints> {
-        val cacheKey = prefix + discoveryUrl.toString()
+    suspend fun get(configuration: OidcConfiguration): OidcClientResult<OidcEndpoints> {
+        val cacheKey = prefix + configuration.discoveryUrl
         val endpoints = withContext(configuration.computeDispatcher) {
             val result = configuration.cache.get(cacheKey) ?: return@withContext null
             return@withContext try {
@@ -44,7 +44,7 @@ internal object EndpointsFactory {
             return endpoints
         }
         val request = Request.Builder()
-            .url(discoveryUrl)
+            .url(configuration.discoveryUrl.toHttpUrl())
             .build()
         return configuration.internalPerformRequest(request, { it.isSuccessful }) { responseBody ->
             @OptIn(ExperimentalSerializationApi::class)

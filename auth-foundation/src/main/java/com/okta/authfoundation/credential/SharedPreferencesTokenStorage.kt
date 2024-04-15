@@ -17,12 +17,11 @@ package com.okta.authfoundation.credential
 
 import android.content.Context
 import android.content.SharedPreferences
-import android.os.Build
 import android.security.keystore.KeyGenParameterSpec
-import androidx.annotation.RequiresApi
 import androidx.annotation.VisibleForTesting
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKeys
+import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.credential.events.TokenStorageAccessErrorEvent
 import com.okta.authfoundation.events.EventCoordinator
 import kotlinx.coroutines.withContext
@@ -31,7 +30,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlin.coroutines.CoroutineContext
 
-@RequiresApi(Build.VERSION_CODES.M)
 internal class SharedPreferencesTokenStorage(
     private val json: Json,
     private val dispatcher: CoroutineContext,
@@ -157,6 +155,6 @@ private class StoredTokens(
     }
 
     fun toTokenStorageEntries(): MutableList<TokenStorage.Entry> {
-        return entries.map { TokenStorage.Entry(it.identifier, it.token?.asToken(), it.tags) }.toMutableList()
+        return entries.map { TokenStorage.Entry(it.identifier, it.token?.asToken(OidcConfiguration.default), it.tags) }.toMutableList()
     }
 }

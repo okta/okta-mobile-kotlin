@@ -38,15 +38,9 @@ internal class EndpointsFactoryTest {
             response.testBodyFromFile("$mockPrefix/endpoints.json")
         }
         val cache = InMemoryCache()
-        EndpointsFactory.get(
-            oktaRule.createConfiguration(cache = cache),
-            oktaRule.baseUrl.newBuilder().encodedPath("/.well-known/openid-configuration").build()
-        ).assertValid()
+        EndpointsFactory.get(oktaRule.createConfiguration(cache = cache)).assertValid()
         // Second call uses cache.
-        EndpointsFactory.get(
-            oktaRule.createConfiguration(cache = cache),
-            oktaRule.baseUrl.newBuilder().encodedPath("/.well-known/openid-configuration").build()
-        ).assertValid()
+        EndpointsFactory.get(oktaRule.createConfiguration(cache = cache)).assertValid()
     }
 
     @Test fun testNullCacheMakesNetworkCall(): Unit = runBlocking {
@@ -60,10 +54,7 @@ internal class EndpointsFactoryTest {
         val url = oktaRule.baseUrl.newBuilder().encodedPath("/.well-known/openid-configuration").build()
         val cacheKey = EndpointsFactory.prefix + url.toString()
         assertThat(cache.get(cacheKey)).isNull()
-        EndpointsFactory.get(
-            oktaRule.createConfiguration(cache = cache),
-            oktaRule.baseUrl.newBuilder().encodedPath("/.well-known/openid-configuration").build()
-        ).assertValid()
+        EndpointsFactory.get(oktaRule.createConfiguration(cache = cache)).assertValid()
         assertThat(cache.get(cacheKey)).startsWith("{") // It's json!
     }
 
@@ -75,12 +66,9 @@ internal class EndpointsFactoryTest {
             response.testBodyFromFile("$mockPrefix/endpoints.json")
         }
         val cache = InMemoryCache()
-        val url = oktaRule.baseUrl.newBuilder().encodedPath("/.well-known/openid-configuration").build()
-        cache.set(EndpointsFactory.prefix + url.toString(), "invalid")
-        EndpointsFactory.get(
-            oktaRule.createConfiguration(cache = cache),
-            url
-        ).assertValid()
+        val configuration = oktaRule.createConfiguration(cache = cache)
+        cache.set(EndpointsFactory.prefix + configuration.discoveryUrl, "invalid")
+        EndpointsFactory.get(configuration).assertValid()
     }
 
     @Test fun testInvalidResponseCausesError(): Unit = runBlocking {
@@ -90,10 +78,7 @@ internal class EndpointsFactoryTest {
         ) { response ->
             response.setBody("""{"invalid"}""")
         }
-        val result = EndpointsFactory.get(
-            oktaRule.createConfiguration(cache = InMemoryCache()),
-            oktaRule.baseUrl.newBuilder().encodedPath("/.well-known/openid-configuration").build()
-        ) as OidcClientResult.Error<OidcEndpoints>
+        val result = EndpointsFactory.get(oktaRule.createConfiguration(cache = InMemoryCache())) as OidcClientResult.Error<OidcEndpoints>
         assertThat(result.exception).hasMessageThat().startsWith("Unexpected JSON token at offset 10")
     }
 
@@ -105,11 +90,7 @@ internal class EndpointsFactoryTest {
             response.setResponseCode(500)
         }
         val cache = InMemoryCache()
-        val url = oktaRule.baseUrl.newBuilder().encodedPath("/.well-known/openid-configuration").build()
-        val result = EndpointsFactory.get(
-            oktaRule.createConfiguration(cache = cache),
-            url
-        ) as OidcClientResult.Error<OidcEndpoints>
+        val result = EndpointsFactory.get(oktaRule.createConfiguration(cache = cache)) as OidcClientResult.Error<OidcEndpoints>
         assertThat(result.exception).hasMessageThat().startsWith("HTTP Error: status code - 500")
 
         oktaRule.enqueue(
@@ -118,10 +99,7 @@ internal class EndpointsFactoryTest {
         ) { response ->
             response.testBodyFromFile("$mockPrefix/endpoints.json")
         }
-        EndpointsFactory.get(
-            oktaRule.createConfiguration(cache = cache),
-            url
-        ).assertValid()
+        EndpointsFactory.get(oktaRule.createConfiguration(cache = cache)).assertValid()
     }
 }
 

@@ -18,6 +18,7 @@ package com.okta.legacytokenmigration
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.annotation.VisibleForTesting
+import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.credential.Credential
 import com.okta.authfoundation.credential.CredentialDataSource
 import com.okta.authfoundation.credential.Token
@@ -69,6 +70,7 @@ object LegacyTokenMigration {
                     idToken = legacyToken.idToken,
                     deviceSecret = null,
                     issuedTokenType = null,
+                    oidcConfiguration = OidcConfiguration.default
                 )
                 val credential = CredentialBootstrap.credentialDataSource.createCredential(token, isDefault = isDefault)
                 sharedPreferences.markTokensAsMigrated(credential.storageIdentifier)

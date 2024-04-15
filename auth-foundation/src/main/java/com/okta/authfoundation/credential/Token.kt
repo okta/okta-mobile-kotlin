@@ -60,6 +60,10 @@ class Token(
      * The issued token type, if returned.
      */
     val issuedTokenType: String?,
+    /**
+     * The configuration that was used to fetch this token.
+     */
+    val oidcConfiguration: OidcConfiguration,
 ) {
     internal fun asSerializableToken(): SerializableToken {
         return SerializableToken(
@@ -87,6 +91,7 @@ class Token(
             idToken = idToken,
             deviceSecret = deviceSecret,
             issuedTokenType = issuedTokenType,
+            oidcConfiguration = oidcConfiguration
         )
     }
 
@@ -161,7 +166,7 @@ internal class SerializableToken internal constructor(
     @SerialName("device_secret") val deviceSecret: String? = null,
     @SerialName("issued_token_type") val issuedTokenType: String? = null,
 ) {
-    fun asToken(): Token {
+    fun asToken(oidcConfiguration: OidcConfiguration): Token {
         return Token(
             tokenType = tokenType,
             expiresIn = expiresIn,
@@ -171,6 +176,7 @@ internal class SerializableToken internal constructor(
             idToken = idToken,
             deviceSecret = deviceSecret,
             issuedTokenType = issuedTokenType,
+            oidcConfiguration = oidcConfiguration
         )
     }
 }
