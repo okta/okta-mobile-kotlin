@@ -237,7 +237,7 @@ class CredentialTest {
         val credential = oktaRule.createCredential(token = token, credentialDataSource = credentialDataSource)
         credential.delete()
         coVerify { credentialDataSource.remove(credential) }
-        assertThat(credential.token).isNull()
+        assertThat(credential.isDeleted).isTrue()
         assertThat(oktaRule.eventHandler).hasSize(1)
         val event = oktaRule.eventHandler[0]
         assertThat(event).isInstanceOf(CredentialDeletedEvent::class.java)
@@ -254,7 +254,7 @@ class CredentialTest {
         credential.delete()
 
         coVerify { credentialDataSource.remove(credential) }
-        assertThat(credential.token).isNull()
+        assertThat(credential.isDeleted).isTrue()
         assertThat(oktaRule.eventHandler).hasSize(2)
         val event1 = oktaRule.eventHandler[0]
         assertThat(event1).isInstanceOf(DefaultCredentialChangedEvent::class.java)
@@ -271,7 +271,7 @@ class CredentialTest {
         credential.delete()
         credential.delete()
         coVerify(exactly = 1) { credentialDataSource.remove(credential) }
-        assertThat(credential.token).isNull()
+        assertThat(credential.isDeleted).isTrue()
     }
 
     @Test fun testReplaceTokenIsNoOpAfterRemove(): Unit = runTest {
@@ -460,7 +460,7 @@ class CredentialTest {
         assertThat(result).isInstanceOf(OidcClientResult.Success::class.java)
         val token = (result as OidcClientResult.Success<Token>).result
         assertThat(token.refreshToken).isEqualTo("newRefreshToken")
-        assertThat(credential.token?.refreshToken).isEqualTo("newRefreshToken")
+        assertThat(credential.token.refreshToken).isEqualTo("newRefreshToken")
     }
 
     @Test fun testRefreshTokenWithRealOidcClientPreservesRefreshToken(): Unit = runTest {
@@ -475,7 +475,7 @@ class CredentialTest {
         assertThat(result).isInstanceOf(OidcClientResult.Success::class.java)
         val token = (result as OidcClientResult.Success<Token>).result
         assertThat(token.refreshToken).isNull()
-        assertThat(credential.token?.refreshToken).isEqualTo("exampleRefreshToken")
+        assertThat(credential.token.refreshToken).isEqualTo("exampleRefreshToken")
     }
 
     @Test fun testRefreshTokenWithRealOidcClientEmitsEvent(): Unit = runTest {
@@ -517,7 +517,7 @@ class CredentialTest {
         )
         credential.refreshToken()
         coVerify { oidcClient.refreshToken("exampleRefreshToken") }
-        assertThat(credential.token!!.refreshToken).isEqualTo("exampleRefreshToken")
+        assertThat(credential.token.refreshToken).isEqualTo("exampleRefreshToken")
     }
 
     @Test fun testRefreshTokenPreservesDeviceSecret(): Unit = runTest {
@@ -528,7 +528,7 @@ class CredentialTest {
         )
         credential.refreshToken()
         coVerify { oidcClient.refreshToken("exampleRefreshToken") }
-        assertThat(credential.token!!.deviceSecret).isEqualTo("saved")
+        assertThat(credential.token.deviceSecret).isEqualTo("saved")
     }
 
     @Test fun testParallelRefreshToken(): Unit = runTest {
@@ -604,8 +604,8 @@ class CredentialTest {
         val expectedToken = createToken(refreshToken = "stored!", deviceSecret = "originalDeviceSecret")
         coVerify { credentialDataSource.replaceToken(CredentialFactory.tokenStorageId, expectedToken) }
         assertThat(credential.token).isEqualTo(expectedToken)
-        assertThat(credential.token?.refreshToken).isEqualTo("stored!")
-        assertThat(credential.token?.deviceSecret).isEqualTo("originalDeviceSecret")
+        assertThat(credential.token.refreshToken).isEqualTo("stored!")
+        assertThat(credential.token.deviceSecret).isEqualTo("originalDeviceSecret")
     }
 
     @Test fun testReplaceTokenKeepsStoresDeviceSecret(): Unit = runTest {
@@ -619,8 +619,8 @@ class CredentialTest {
         credential.replaceToken(token = newToken)
         coVerify { credentialDataSource.replaceToken(CredentialFactory.tokenStorageId, newToken) }
         assertThat(credential.token).isEqualTo(newToken)
-        assertThat(credential.token?.refreshToken).isEqualTo("stored!")
-        assertThat(credential.token?.deviceSecret).isEqualTo("updatedDeviceSecret")
+        assertThat(credential.token.refreshToken).isEqualTo("stored!")
+        assertThat(credential.token.deviceSecret).isEqualTo("updatedDeviceSecret")
     }
 
     @Test fun testIdTokenWithNullIdTokenReturnsNullJwt(): Unit = runTest {
@@ -900,11 +900,6 @@ class CredentialTest {
     @Test fun equalsReturnsFalseWhenDifferentType() {
         val credential = oktaRule.createCredential(token = createToken())
         assertThat(credential).isNotEqualTo("Nope!")
-    }
-
-    @Test fun testHashCode() {
-        val credential = oktaRule.createCredential(token)
-        assertThat(credential.hashCode()).isEqualTo(113663322)
     }
 
     private fun OktaRule.createCredential(

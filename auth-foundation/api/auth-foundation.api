@@ -312,8 +312,8 @@ public final class com/okta/authfoundation/credential/Credential {
 	public fun hashCode ()I
 	public final fun idToken (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun introspectToken (Lcom/okta/authfoundation/credential/TokenType;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun isDeleted ()Z
 	public final fun refreshToken (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public final fun replaceToken (Lcom/okta/authfoundation/credential/Token;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun revokeAllTokens (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun revokeToken (Lcom/okta/authfoundation/credential/RevokeTokenType;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun scope ()Ljava/lang/String;

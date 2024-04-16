@@ -37,8 +37,7 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.filterIsInstance
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.transformWhile
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -96,7 +95,9 @@ class Credential internal constructor(
              */
             var standard: Security
                 get() = _standard ?: Default()
-                set(value) { _standard = value }
+                set(value) {
+                    _standard = value
+                }
 
             /**
              * [BiometricPrompt.PromptInfo] for specifying how to display biometric prompts. This is used whenever [promptInfo] is omitted in method arguments
@@ -124,7 +125,11 @@ class Credential internal constructor(
          */
         suspend fun setDefaultCredential(credential: Credential) {
             defaultCredentialIdDataStore.setDefaultCredentialId(credential.id)
-            AuthFoundationDefaults.eventCoordinator.sendEvent(DefaultCredentialChangedEvent(credential))
+            AuthFoundationDefaults.eventCoordinator.sendEvent(
+                DefaultCredentialChangedEvent(
+                    credential
+                )
+            )
         }
 
         /**
@@ -142,7 +147,8 @@ class Credential internal constructor(
         /**
          * Sets the [Token.Metadata] of [Token] with specified [Token.Metadata.id].
          */
-        suspend fun setMetadata(metadata: Token.Metadata) = credentialDataSource().setMetadata(metadata)
+        suspend fun setMetadata(metadata: Token.Metadata) =
+            credentialDataSource().setMetadata(metadata)
 
         /**
          * Return the [Credential] associated with the given [id].
@@ -150,7 +156,10 @@ class Credential internal constructor(
          * @param id The id of the [Credential] to fetch.
          * @param promptInfo The [BiometricPrompt.PromptInfo] for displaying biometric prompt. A non-null value is required if the [Credential] with [id] is stored using a biometric [Credential.Security].
          */
-        suspend fun with(id: String, promptInfo: BiometricPrompt.PromptInfo? = Security.promptInfo): Credential? {
+        suspend fun with(
+            id: String,
+            promptInfo: BiometricPrompt.PromptInfo? = Security.promptInfo
+        ): Credential? {
             return credentialDataSource().getCredential(id, promptInfo)
         }
 
@@ -189,66 +198,55 @@ class Credential internal constructor(
         keepDataInMemory = { false },
     )
 
-    private val state = MutableStateFlow<CredentialState>(CredentialState.Data(token, tags))
-
-    private val isDeleted: Boolean
-        get() {
-            return state.value == CredentialState.Deleted
-        }
-
     /**
      * The [OidcClient] associated with this [Credential].
      */
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
     internal val oidcClient: OidcClient = oidcClient.withCredential(this)
 
+    private val tokenFlow = MutableStateFlow<Token?>(token)
+
     /**
      * The current [Token] that's stored and associated with this [Credential].
      */
-    val token: Token?
-        get() {
-            return when (val value = state.value) {
-                is CredentialState.Deleted -> null
-                is CredentialState.Data -> value.token
-            }
-        }
+    var token: Token = token
+        internal set
 
     /**
      * The tags associated with this [Credential].
      */
-    val tags: Map<String, String>
-        get() {
-            return Collections.unmodifiableMap(state.value.tags)
-        }
+    var tags: Map<String, String> = tags
+        get() = Collections.unmodifiableMap(field)
+        internal set
+
+    @VisibleForTesting
+    internal var isDeleted: Boolean = false
 
     /**
      * Set tags for this [Credential].
      */
     suspend fun setTags(tags: Map<String, String>) {
-        token?.let {
-            setMetadata(Token.Metadata(id, tags, idToken()))
-            state.value = CredentialState.Data(it, tags)
-            oidcClient.configuration.eventCoordinator.sendEvent(
-                CredentialStoredEvent(
-                    this,
-                    this.token,
-                    this.tags
-                )
+        setMetadata(Token.Metadata(id, tags, idToken()))
+        this.tags = tags
+        oidcClient.configuration.eventCoordinator.sendEvent(
+            CredentialStoredEvent(
+                this,
+                this.token,
+                this.tags
             )
-        } ?: throw IllegalStateException("Attempted setting tags for deleted token with id: $id")
+        )
     }
 
     /**
      * Returns a [Flow] that emits the current [Token] that's stored and associated with this [Credential].
      */
     fun getTokenFlow(): Flow<Token> {
-        return state
+        return tokenFlow
             .transformWhile {
                 emit(it)
-                it !is CredentialState.Deleted
+                it != null
             }
-            .filterIsInstance(CredentialState.Data::class)
-            .map { it.token }
+            .filterNotNull()
     }
 
     /**
@@ -269,24 +267,23 @@ class Credential internal constructor(
      * @param tokenType the [TokenType] to check for validity.
      */
     suspend fun introspectToken(tokenType: TokenType): OidcClientResult<OidcIntrospectInfo> {
-        val localToken = token ?: return OidcClientResult.Error(IllegalStateException("No token."))
         val token = when (tokenType) {
             TokenType.REFRESH_TOKEN -> {
-                localToken.refreshToken
+                token.refreshToken
                     ?: return OidcClientResult.Error(IllegalStateException("No refresh token."))
             }
 
             TokenType.ACCESS_TOKEN -> {
-                localToken.accessToken
+                token.accessToken
             }
 
             TokenType.ID_TOKEN -> {
-                localToken.idToken
+                token.idToken
                     ?: return OidcClientResult.Error(IllegalStateException("No id token."))
             }
 
             TokenType.DEVICE_SECRET -> {
-                localToken.deviceSecret
+                token.deviceSecret
                     ?: return OidcClientResult.Error(IllegalStateException("No device secret."))
             }
         }
@@ -294,12 +291,7 @@ class Credential internal constructor(
         return oidcClient.introspectToken(tokenType, token)
     }
 
-    /**
-     * Replace the [Token] stored in this [Credential].
-     *
-     * @param token The [Token] to store.
-     */
-    suspend fun replaceToken(token: Token) {
+    internal suspend fun replaceToken(token: Token) {
         if (isDeleted) {
             oidcClient.configuration.eventCoordinator.sendEvent(
                 CredentialStoredAfterRemovedEvent(
@@ -310,12 +302,13 @@ class Credential internal constructor(
         }
         val tokenToStore = token.copy(
             // Refresh Token isn't ALWAYS returned when refreshing.
-            refreshToken = token.refreshToken ?: this.token?.refreshToken,
+            refreshToken = token.refreshToken ?: this.token.refreshToken,
             // Device Secret isn't returned when refreshing.
-            deviceSecret = token.deviceSecret ?: this.token?.deviceSecret,
+            deviceSecret = token.deviceSecret ?: this.token.deviceSecret,
         )
         credentialDataSource().replaceToken(id, tokenToStore)
-        state.value = CredentialState.Data(tokenToStore, tags)
+        this.token = tokenToStore
+        tokenFlow.emit(token)
         oidcClient.configuration.eventCoordinator.sendEvent(
             CredentialStoredEvent(
                 this,
@@ -327,7 +320,6 @@ class Credential internal constructor(
 
     /**
      * Removes this [Credential] from the associated [CredentialDataSource].
-     * Also, sets the [Token] to `null`.
      * This [Credential] should not be used after it's been removed.
      *
      * > Note: OIDC Logout terminology is nuanced, see [Logout Documentation](https://github.com/okta/okta-mobile-kotlin#logout) for additional details.
@@ -339,8 +331,9 @@ class Credential internal constructor(
         if (defaultCredentialIdDataStore.getDefaultCredentialId() == id) {
             defaultCredentialIdDataStore.clearDefaultCredentialId()
         }
+        isDeleted = true
+        tokenFlow.emit(null)
         credentialDataSource().remove(this)
-        state.value = CredentialState.Deleted
         oidcClient.configuration.eventCoordinator.sendEvent(CredentialDeletedEvent(this))
     }
 
@@ -352,8 +345,7 @@ class Credential internal constructor(
     }
 
     private suspend fun performRealRefresh(): OidcClientResult<Token> {
-        val localToken = token ?: return OidcClientResult.Error(IllegalStateException("No Token."))
-        val refresh = localToken.refreshToken
+        val refresh = token.refreshToken
             ?: return OidcClientResult.Error(IllegalStateException("No Refresh Token."))
         return oidcClient.refreshToken(refresh)
     }
@@ -368,19 +360,18 @@ class Credential internal constructor(
     suspend fun revokeToken(
         tokenType: RevokeTokenType
     ): OidcClientResult<Unit> {
-        val localToken = token ?: return OidcClientResult.Error(IllegalStateException("No token."))
         val token = when (tokenType) {
             RevokeTokenType.REFRESH_TOKEN -> {
-                localToken.refreshToken
+                token.refreshToken
                     ?: return OidcClientResult.Error(IllegalStateException("No refresh token."))
             }
 
             RevokeTokenType.ACCESS_TOKEN -> {
-                localToken.accessToken
+                token.accessToken
             }
 
             RevokeTokenType.DEVICE_SECRET -> {
-                localToken.deviceSecret
+                token.deviceSecret
                     ?: return OidcClientResult.Error(IllegalStateException("No device secret."))
             }
         }
@@ -393,12 +384,11 @@ class Credential internal constructor(
      * > Note: OIDC Logout terminology is nuanced, see [Logout Documentation](https://github.com/okta/okta-mobile-kotlin#logout) for additional details.
      */
     suspend fun revokeAllTokens(): OidcClientResult<Unit> {
-        val localToken = token ?: return OidcClientResult.Error(IllegalStateException("No token."))
         val pairsToRevoke = mutableMapOf<RevokeTokenType, String>()
 
-        pairsToRevoke[RevokeTokenType.ACCESS_TOKEN] = localToken.accessToken
-        localToken.refreshToken?.let { pairsToRevoke[RevokeTokenType.REFRESH_TOKEN] = it }
-        localToken.deviceSecret?.let { pairsToRevoke[RevokeTokenType.DEVICE_SECRET] = it }
+        pairsToRevoke[RevokeTokenType.ACCESS_TOKEN] = token.accessToken
+        token.refreshToken?.let { pairsToRevoke[RevokeTokenType.REFRESH_TOKEN] = it }
+        token.deviceSecret?.let { pairsToRevoke[RevokeTokenType.DEVICE_SECRET] = it }
 
         return coroutineScope {
             val exceptionPairs = pairsToRevoke
@@ -425,7 +415,7 @@ class Credential internal constructor(
      * Returns the scopes associated with the associated [Token] if present, otherwise the default scopes associated with the [OidcClient].
      */
     fun scope(): String {
-        return token?.scope ?: oidcClient.configuration.defaultScope
+        return token.scope ?: oidcClient.configuration.defaultScope
     }
 
     /**
@@ -434,7 +424,7 @@ class Credential internal constructor(
      * This will return `null` if the associated [Token] or it's `idToken` field is `null`.
      */
     suspend fun idToken(): Jwt? {
-        val idToken = token?.idToken ?: return null
+        val idToken = token.idToken ?: return null
         return try {
             val parser =
                 JwtParser(oidcClient.configuration.json, oidcClient.configuration.computeDispatcher)
@@ -454,10 +444,9 @@ class Credential internal constructor(
      * See [Credential.introspectToken] for checking if the token is valid with the Authorization Server.
      */
     suspend fun getAccessTokenIfValid(): String? {
-        val localToken = token ?: return null
         val idToken = idToken() ?: return null
-        val accessToken = localToken.accessToken
-        val expiresIn = localToken.expiresIn
+        val accessToken = token.accessToken
+        val expiresIn = token.expiresIn
         try {
             val payload = idToken.deserializeClaims(TokenIssuedAtPayload.serializer())
             if (payload.issueAt + expiresIn > oidcClient.configuration.clock.currentTimeEpochSecond()) {
@@ -511,26 +500,17 @@ class Credential internal constructor(
             return false
         }
         return id == other.id &&
-            state.value == other.state.value
+            token == other.token &&
+            tags == other.tags
     }
 
     override fun hashCode(): Int {
         return Objects.hash(
             id,
-            state.value,
+            token,
+            tags
         )
     }
-}
-
-private sealed class CredentialState {
-    open val tags get() = emptyMap<String, String>()
-
-    data class Data(
-        val token: Token,
-        override val tags: Map<String, String>
-    ) : CredentialState()
-
-    data object Deleted : CredentialState()
 }
 
 @Serializable
