@@ -17,6 +17,7 @@ package com.okta.authfoundation.client
 
 import com.google.common.truth.Truth.assertThat
 import com.okta.authfoundation.credential.Token
+import com.okta.authfoundation.credential.createToken
 import com.okta.testhelpers.OktaRule
 import com.okta.testhelpers.RequestMatchers.body
 import com.okta.testhelpers.RequestMatchers.header
@@ -43,7 +44,8 @@ class OidcClientAccessTokenValidationFailureTest {
         ) { response ->
             response.testBodyFromFile("$mockPrefix/token.json")
         }
-        val result = oktaRule.createOidcClient().refreshToken("ExampleRefreshToken")
+        val token = createToken(refreshToken = "ExampleRefreshToken")
+        val result = oktaRule.createOidcClient().refreshToken(token)
         val exception = (result as OidcClientResult.Error<Token>).exception
         assertThat(exception).isInstanceOf(IllegalStateException::class.java)
         assertThat(exception).hasMessageThat().isEqualTo("Failure!")

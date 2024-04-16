@@ -35,5 +35,13 @@ enum class RevokeTokenType {
      * Indicates the device secret should be revoked, if one is present. This will result in the access token, and the refresh token
      * being revoked as well.
      */
-    DEVICE_SECRET,
+    DEVICE_SECRET;
+
+    internal fun toTokenType(): TokenType {
+        return when (this) {
+            ACCESS_TOKEN -> TokenType.ACCESS_TOKEN
+            REFRESH_TOKEN -> TokenType.REFRESH_TOKEN
+            DEVICE_SECRET -> TokenType.DEVICE_SECRET
+        }
+    }
 }

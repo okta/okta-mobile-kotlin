@@ -80,7 +80,7 @@ class CredentialTest {
 
         credentialDataSource = mockk(relaxed = true)
         oidcClient = mockk {
-            coEvery { revokeToken(any()) } returns OidcClientResult.Success(Unit)
+            coEvery { revokeToken(any(), any()) } returns OidcClientResult.Success(Unit)
             every { withCredential(any()) } returns this
             every { configuration } returns oktaRule.configuration
         }
@@ -305,21 +305,24 @@ class CredentialTest {
     }
 
     @Test fun testRevokeAccessToken(): Unit = runTest {
-        val credential = oktaRule.createCredential(token = createToken(), oidcClient = oidcClient)
+        val token = createToken()
+        val credential = oktaRule.createCredential(token = token, oidcClient = oidcClient)
         credential.revokeToken(RevokeTokenType.ACCESS_TOKEN)
-        coVerify { oidcClient.revokeToken("exampleAccessToken") }
+        coVerify { oidcClient.revokeToken(RevokeTokenType.ACCESS_TOKEN, token) }
     }
 
     @Test fun testRevokeRefreshToken(): Unit = runTest {
-        val credential = oktaRule.createCredential(token = createToken(refreshToken = "exampleRefreshToken"), oidcClient = oidcClient)
+        val token = createToken(refreshToken = "exampleRefreshToken")
+        val credential = oktaRule.createCredential(token = token, oidcClient = oidcClient)
         credential.revokeToken(RevokeTokenType.REFRESH_TOKEN)
-        coVerify { oidcClient.revokeToken("exampleRefreshToken") }
+        coVerify { oidcClient.revokeToken(RevokeTokenType.REFRESH_TOKEN, token) }
     }
 
     @Test fun testRevokeDeviceSecret(): Unit = runTest {
-        val credential = oktaRule.createCredential(token = createToken(deviceSecret = "exampleDeviceSecret"), oidcClient = oidcClient)
+        val token = createToken(deviceSecret = "exampleDeviceSecret")
+        val credential = oktaRule.createCredential(token = token, oidcClient = oidcClient)
         credential.revokeToken(RevokeTokenType.DEVICE_SECRET)
-        coVerify { oidcClient.revokeToken("exampleDeviceSecret") }
+        coVerify { oidcClient.revokeToken(RevokeTokenType.DEVICE_SECRET, token) }
     }
 
     @Test fun testRevokeTokenWithNullRefreshTokenReturnsError(): Unit = runTest {
@@ -339,46 +342,53 @@ class CredentialTest {
     }
 
     @Test fun testRevokeAllTokensWithOnlyAccessToken(): Unit = runTest {
-        val credential = oktaRule.createCredential(token = createToken(), oidcClient = oidcClient)
+        val token = createToken()
+        val credential = oktaRule.createCredential(token = token, oidcClient = oidcClient)
         credential.revokeAllTokens()
-        coVerify { oidcClient.revokeToken("exampleAccessToken") }
-        coVerify(exactly = 1) { oidcClient.revokeToken(any()) }
+        coVerify { oidcClient.revokeToken(RevokeTokenType.ACCESS_TOKEN, token) }
+        coVerify(exactly = 1) { oidcClient.revokeToken(any(), any()) }
     }
 
     @Test fun testRevokeAllTokensWithRefreshToken(): Unit = runTest {
-        val credential = oktaRule.createCredential(token = createToken(refreshToken = "exampleRefreshToken"), oidcClient = oidcClient)
+        val token = createToken(refreshToken = "exampleRefreshToken")
+        val credential = oktaRule.createCredential(token = token, oidcClient = oidcClient)
         credential.revokeAllTokens()
-        coVerify { oidcClient.revokeToken("exampleAccessToken") }
-        coVerify { oidcClient.revokeToken("exampleRefreshToken") }
-        coVerify(exactly = 2) { oidcClient.revokeToken(any()) }
+        coVerify { oidcClient.revokeToken(RevokeTokenType.ACCESS_TOKEN, token) }
+        coVerify { oidcClient.revokeToken(RevokeTokenType.REFRESH_TOKEN, token) }
+        coVerify(exactly = 2) { oidcClient.revokeToken(any(), any()) }
     }
 
     @Test fun testRevokeAllTokensWithDeviceSecret(): Unit = runTest {
-        val credential = oktaRule.createCredential(token = createToken(deviceSecret = "exampleDeviceSecret"), oidcClient = oidcClient)
+        val token = createToken(deviceSecret = "exampleDeviceSecret")
+        val credential = oktaRule.createCredential(token = token, oidcClient = oidcClient)
         credential.revokeAllTokens()
-        coVerify { oidcClient.revokeToken("exampleAccessToken") }
-        coVerify { oidcClient.revokeToken("exampleDeviceSecret") }
-        coVerify(exactly = 2) { oidcClient.revokeToken(any()) }
+        coVerify { oidcClient.revokeToken(RevokeTokenType.ACCESS_TOKEN, token) }
+        coVerify { oidcClient.revokeToken(RevokeTokenType.DEVICE_SECRET, token) }
+        coVerify(exactly = 2) { oidcClient.revokeToken(any(), any()) }
     }
 
     @Test fun testRevokeAllTokensWithRefreshTokenAndDeviceSecret(): Unit = runTest {
-        val credential = oktaRule.createCredential(token = createToken(refreshToken = "exampleRefreshToken", deviceSecret = "exampleDeviceSecret"), oidcClient = oidcClient)
+        val token = createToken(refreshToken = "exampleRefreshToken", deviceSecret = "exampleDeviceSecret")
+        val credential = oktaRule.createCredential(token = token, oidcClient = oidcClient)
         credential.revokeAllTokens()
-        coVerify { oidcClient.revokeToken("exampleAccessToken") }
-        coVerify { oidcClient.revokeToken("exampleRefreshToken") }
-        coVerify { oidcClient.revokeToken("exampleDeviceSecret") }
-        coVerify(exactly = 3) { oidcClient.revokeToken(any()) }
+        coVerify { oidcClient.revokeToken(RevokeTokenType.ACCESS_TOKEN, token) }
+        coVerify { oidcClient.revokeToken(RevokeTokenType.REFRESH_TOKEN, token) }
+        coVerify { oidcClient.revokeToken(RevokeTokenType.DEVICE_SECRET, token) }
+        coVerify(exactly = 3) { oidcClient.revokeToken(any(), any()) }
     }
 
     @Test fun testRevokeAllTokensWithFailedRefreshTokenReturnsError(): Unit = runTest {
-        coEvery { oidcClient.revokeToken(any()) } answers {
-            if (it.invocation.args[0] == "exampleRefreshToken") {
+        coEvery { oidcClient.revokeToken(any(), any()) } answers {
+            val revokeTokenType = it.invocation.args[0] as RevokeTokenType
+            val tokenArg = it.invocation.args[1] as Token
+            if (revokeTokenType == RevokeTokenType.REFRESH_TOKEN && tokenArg.refreshToken == "exampleRefreshToken") {
                 OidcClientResult.Error(Exception("Expected Error."))
             } else {
                 OidcClientResult.Success(Unit)
             }
         }
-        val credential = oktaRule.createCredential(token = createToken(refreshToken = "exampleRefreshToken"), oidcClient = oidcClient)
+        val token = createToken(refreshToken = "exampleRefreshToken")
+        val credential = oktaRule.createCredential(token = token, oidcClient = oidcClient)
 
         val result = credential.revokeAllTokens()
 
@@ -389,9 +399,9 @@ class CredentialTest {
         assertThat(exception.failures).hasSize(1)
         assertThat(exception.failures[RevokeTokenType.REFRESH_TOKEN]).hasMessageThat().isEqualTo("Expected Error.")
 
-        coVerify { oidcClient.revokeToken("exampleAccessToken") }
-        coVerify { oidcClient.revokeToken("exampleRefreshToken") }
-        coVerify(exactly = 2) { oidcClient.revokeToken(any()) }
+        coVerify { oidcClient.revokeToken(RevokeTokenType.ACCESS_TOKEN, token) }
+        coVerify { oidcClient.revokeToken(RevokeTokenType.REFRESH_TOKEN, token) }
+        coVerify(exactly = 2) { oidcClient.revokeToken(any(), any()) }
     }
 
     @Test fun testScopesReturnDefaultScopes() {
@@ -411,7 +421,7 @@ class CredentialTest {
         assertThat(result).isInstanceOf(OidcClientResult.Error::class.java)
         val exception = (result as OidcClientResult.Error<Token>).exception
         assertThat(exception).isInstanceOf(IllegalStateException::class.java)
-        assertThat(exception).hasMessageThat().isEqualTo("No Refresh Token.")
+        assertThat(exception).hasMessageThat().isEqualTo("No refresh token.")
         coVerify(exactly = 0) { credentialDataSource.replaceToken(any(), any()) }
     }
 
@@ -422,13 +432,14 @@ class CredentialTest {
             every { withCredential(any()) } returns this
             every { configuration } returns oktaRule.configuration
         }
+        val token = createToken(refreshToken = "exampleRefreshToken")
         val credential = oktaRule.createCredential(
-            token = createToken(refreshToken = "exampleRefreshToken"),
+            token = token,
             oidcClient = oidcClient,
             credentialDataSource = credentialDataSource
         )
         val result = credential.refreshToken()
-        coVerify { oidcClient.refreshToken("exampleRefreshToken") }
+        coVerify { oidcClient.refreshToken(token) }
         assertThat(result).isInstanceOf(OidcClientResult.Error::class.java)
         val exception = (result as OidcClientResult.Error<Token>).exception
         assertThat(exception).hasMessageThat().isEqualTo("From Test")
@@ -437,12 +448,13 @@ class CredentialTest {
 
     @Test fun testRefreshToken(): Unit = runTest {
         coEvery { oidcClient.refreshToken(any()) } returns OidcClientResult.Success(createToken(refreshToken = "newRefreshToken"))
+        val tokenToRefresh = createToken(refreshToken = "exampleRefreshToken")
         val credential = oktaRule.createCredential(
-            token = createToken(refreshToken = "exampleRefreshToken"),
+            token = tokenToRefresh,
             oidcClient = oidcClient
         )
         val result = credential.refreshToken()
-        coVerify { oidcClient.refreshToken("exampleRefreshToken") }
+        coVerify { oidcClient.refreshToken(tokenToRefresh) }
         assertThat(result).isInstanceOf(OidcClientResult.Success::class.java)
         val token = (result as OidcClientResult.Success<Token>).result
         assertThat(token.refreshToken).isEqualTo("newRefreshToken")
@@ -511,23 +523,25 @@ class CredentialTest {
 
     @Test fun testRefreshTokenPreservesRefreshToken(): Unit = runTest {
         coEvery { oidcClient.refreshToken(any()) } returns OidcClientResult.Success(createToken())
+        val token = createToken(refreshToken = "exampleRefreshToken")
         val credential = oktaRule.createCredential(
-            token = createToken(refreshToken = "exampleRefreshToken"),
+            token = token,
             oidcClient = oidcClient
         )
         credential.refreshToken()
-        coVerify { oidcClient.refreshToken("exampleRefreshToken") }
+        coVerify { oidcClient.refreshToken(token) }
         assertThat(credential.token.refreshToken).isEqualTo("exampleRefreshToken")
     }
 
     @Test fun testRefreshTokenPreservesDeviceSecret(): Unit = runTest {
         coEvery { oidcClient.refreshToken(any()) } returns OidcClientResult.Success(createToken(refreshToken = "newRefreshToken"))
+        val token = createToken(refreshToken = "exampleRefreshToken", deviceSecret = "saved")
         val credential = oktaRule.createCredential(
-            token = createToken(refreshToken = "exampleRefreshToken", deviceSecret = "saved"),
+            token = token,
             oidcClient = oidcClient
         )
         credential.refreshToken()
-        coVerify { oidcClient.refreshToken("exampleRefreshToken") }
+        coVerify { oidcClient.refreshToken(token) }
         assertThat(credential.token.deviceSecret).isEqualTo("saved")
     }
 
@@ -541,8 +555,9 @@ class CredentialTest {
                 OidcClientResult.Success(createToken(refreshToken = "newRefreshToken"))
             }
         }
+        val tokenToRefresh = createToken(refreshToken = "exampleRefreshToken")
         val credential = oktaRule.createCredential(
-            token = createToken(refreshToken = "exampleRefreshToken"),
+            token = tokenToRefresh,
             oidcClient = oidcClient
         )
         val deferred1 = async(Dispatchers.IO) {
@@ -562,7 +577,7 @@ class CredentialTest {
         assertThat(token.refreshToken).isEqualTo("newRefreshToken")
         assertThat(result1).isSameInstanceAs(result2)
 
-        coVerify { oidcClient.refreshToken("exampleRefreshToken") }
+        coVerify { oidcClient.refreshToken(tokenToRefresh) }
     }
 
     @Test fun testSerialRefreshToken(): Unit = runTest {
@@ -816,38 +831,42 @@ class CredentialTest {
 
     @Test fun testIntrospectRefreshToken(): Unit = runTest {
         coEvery { oidcClient.introspectToken(any(), any()) } returns OidcClientResult.Success(OidcIntrospectInfo.Inactive)
-        val credential = oktaRule.createCredential(token = createToken(refreshToken = "exampleRefreshToken"), oidcClient = oidcClient)
+        val token = createToken(refreshToken = "exampleRefreshToken")
+        val credential = oktaRule.createCredential(token = token, oidcClient = oidcClient)
         val result = credential.introspectToken(TokenType.REFRESH_TOKEN)
         val successResult = result as OidcClientResult.Success<OidcIntrospectInfo>
         assertThat(successResult.result.active).isFalse()
-        coVerify { oidcClient.introspectToken(TokenType.REFRESH_TOKEN, "exampleRefreshToken") }
+        coVerify { oidcClient.introspectToken(TokenType.REFRESH_TOKEN, token) }
     }
 
     @Test fun testIntrospectAccessToken(): Unit = runTest {
         coEvery { oidcClient.introspectToken(any(), any()) } returns OidcClientResult.Success(OidcIntrospectInfo.Inactive)
-        val credential = oktaRule.createCredential(token = createToken(accessToken = "exampleAccessToken"), oidcClient = oidcClient)
+        val token = createToken(accessToken = "exampleAccessToken")
+        val credential = oktaRule.createCredential(token = token, oidcClient = oidcClient)
         val result = credential.introspectToken(TokenType.ACCESS_TOKEN)
         val successResult = result as OidcClientResult.Success<OidcIntrospectInfo>
         assertThat(successResult.result.active).isFalse()
-        coVerify { oidcClient.introspectToken(TokenType.ACCESS_TOKEN, "exampleAccessToken") }
+        coVerify { oidcClient.introspectToken(TokenType.ACCESS_TOKEN, token) }
     }
 
     @Test fun testIntrospectIdToken(): Unit = runTest {
         coEvery { oidcClient.introspectToken(any(), any()) } returns OidcClientResult.Success(OidcIntrospectInfo.Inactive)
-        val credential = oktaRule.createCredential(token = createToken(idToken = "exampleIdToken"), oidcClient = oidcClient)
+        val token = createToken(idToken = "exampleIdToken")
+        val credential = oktaRule.createCredential(token = token, oidcClient = oidcClient)
         val result = credential.introspectToken(TokenType.ID_TOKEN)
         val successResult = result as OidcClientResult.Success<OidcIntrospectInfo>
         assertThat(successResult.result.active).isFalse()
-        coVerify { oidcClient.introspectToken(TokenType.ID_TOKEN, "exampleIdToken") }
+        coVerify { oidcClient.introspectToken(TokenType.ID_TOKEN, token) }
     }
 
     @Test fun testIntrospectDeviceSecret(): Unit = runTest {
         coEvery { oidcClient.introspectToken(any(), any()) } returns OidcClientResult.Success(OidcIntrospectInfo.Inactive)
-        val credential = oktaRule.createCredential(token = createToken(deviceSecret = "exampleDeviceSecret"), oidcClient = oidcClient)
+        val token = createToken(deviceSecret = "exampleDeviceSecret")
+        val credential = oktaRule.createCredential(token = token, oidcClient = oidcClient)
         val result = credential.introspectToken(TokenType.DEVICE_SECRET)
         val successResult = result as OidcClientResult.Success<OidcIntrospectInfo>
         assertThat(successResult.result.active).isFalse()
-        coVerify { oidcClient.introspectToken(TokenType.DEVICE_SECRET, "exampleDeviceSecret") }
+        coVerify { oidcClient.introspectToken(TokenType.DEVICE_SECRET, token) }
     }
 
     @Test fun testIntrospectAccessTokenNetworkError(): Unit = runTest {

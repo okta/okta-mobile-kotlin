@@ -25,6 +25,7 @@ import com.okta.authfoundation.client.events.TokenCreatedEvent
 import com.okta.authfoundation.client.internal.performRequest
 import com.okta.authfoundation.client.internal.performRequestNonJson
 import com.okta.authfoundation.credential.Credential
+import com.okta.authfoundation.credential.RevokeTokenType
 import com.okta.authfoundation.credential.SerializableToken
 import com.okta.authfoundation.credential.Token
 import com.okta.authfoundation.credential.TokenType
@@ -118,12 +119,16 @@ class OidcClient private constructor(
     /**
      * Attempt to refresh the token.
      *
-     * @param refreshToken the refresh token for which to mint a new [Token] for.
+     * @param token the [Token] to refresh.
      */
     suspend fun refreshToken(
-        refreshToken: String,
+        token: Token,
     ): OidcClientResult<Token> {
         val endpoints = endpointsOrNull() ?: return endpointNotAvailableError()
+
+        val refreshToken = token.getTokenOfType(TokenType.REFRESH_TOKEN).getOrElse { throwable ->
+            return OidcClientResult.Error(throwable as Exception)
+        }
 
         val formBody = FormBody.Builder()
             .add("client_id", configuration.clientId)
@@ -144,14 +149,19 @@ class OidcClient private constructor(
      *
      * > Note: OIDC Logout terminology is nuanced, see [Logout Documentation](https://github.com/okta/okta-mobile-kotlin#logout) for additional details.
      *
+     * @param revokeTokenType the [RevokeTokenType] to revoke.
      * @param token the token to attempt to revoke.
      */
-    suspend fun revokeToken(token: String): OidcClientResult<Unit> {
+    suspend fun revokeToken(revokeTokenType: RevokeTokenType, token: Token): OidcClientResult<Unit> {
         val endpoint = endpointsOrNull()?.revocationEndpoint ?: return endpointNotAvailableError()
+
+        val tokenString = token.getTokenOfType(revokeTokenType.toTokenType()).getOrElse { throwable ->
+            return OidcClientResult.Error(throwable as Exception)
+        }
 
         val formBody = FormBody.Builder()
             .add("client_id", configuration.clientId)
-            .add("token", token)
+            .add("token", tokenString)
             .build()
 
         val request = Request.Builder()
@@ -170,29 +180,18 @@ class OidcClient private constructor(
      */
     suspend fun introspectToken(
         tokenType: TokenType,
-        token: String,
+        token: Token,
     ): OidcClientResult<OidcIntrospectInfo> {
         val introspectEndpoint = endpointsOrNull()?.introspectionEndpoint ?: return endpointNotAvailableError()
 
-        val tokenTypeHint: String = when (tokenType) {
-            TokenType.ACCESS_TOKEN -> {
-                "access_token"
-            }
-            TokenType.REFRESH_TOKEN -> {
-                "refresh_token"
-            }
-            TokenType.ID_TOKEN -> {
-                "id_token"
-            }
-            TokenType.DEVICE_SECRET -> {
-                "device_secret"
-            }
+        val tokenString = token.getTokenOfType(tokenType).getOrElse { throwable ->
+            return OidcClientResult.Error(throwable as Exception)
         }
 
         val formBody = FormBody.Builder()
             .add("client_id", configuration.clientId)
-            .add("token", token)
-            .add("token_type_hint", tokenTypeHint)
+            .add("token", tokenString)
+            .add("token_type_hint", tokenType.toTokenTypeHint())
             .build()
 
         val request = Request.Builder()
@@ -285,6 +284,29 @@ class OidcClient private constructor(
                 }
             }
             return@coroutineScope tokenResult
+        }
+    }
+
+    private fun Token.getTokenOfType(tokenType: TokenType): Result<String> {
+        return when (tokenType) {
+            TokenType.ACCESS_TOKEN -> {
+                Result.success(accessToken)
+            }
+            TokenType.REFRESH_TOKEN -> {
+                refreshToken?.let {
+                    Result.success(it)
+                } ?: Result.failure(IllegalStateException("No refresh token."))
+            }
+            TokenType.ID_TOKEN -> {
+                idToken?.let {
+                    Result.success(it)
+                } ?: Result.failure(IllegalStateException("No id token."))
+            }
+            TokenType.DEVICE_SECRET -> {
+                deviceSecret?.let {
+                    Result.success(it)
+                } ?: Result.failure(IllegalStateException("No device secret."))
+            }
         }
     }
 }

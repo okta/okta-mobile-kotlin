@@ -51,7 +51,7 @@ class OidcClientDeviceSecretValidationFailureTest {
                 response.setBody(body)
             }
         }
-        val result = client.refreshToken("ExampleRefreshToken")
+        val result = client.refreshToken(createToken(refreshToken = "ExampleRefreshToken"))
         assertThat(result).isInstanceOf(OidcClientResult.Success::class.java)
     }
 
@@ -71,7 +71,7 @@ class OidcClientDeviceSecretValidationFailureTest {
                 response.setBody(body)
             }
         }
-        val result = client.refreshToken("ExampleRefreshToken")
+        val result = client.refreshToken(createToken(refreshToken = "ExampleRefreshToken"))
         val exception = (result as OidcClientResult.Error<Token>).exception
         assertThat(exception).isInstanceOf(IllegalStateException::class.java)
         assertThat(exception).hasMessageThat().isEqualTo("Failure!")

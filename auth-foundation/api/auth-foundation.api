@@ -157,10 +157,10 @@ public final class com/okta/authfoundation/client/OidcClient {
 	public final fun endpointsOrNull (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun getConfiguration ()Lcom/okta/authfoundation/client/OidcConfiguration;
 	public final fun getUserInfo (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public final fun introspectToken (Lcom/okta/authfoundation/credential/TokenType;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun introspectToken (Lcom/okta/authfoundation/credential/TokenType;Lcom/okta/authfoundation/credential/Token;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun jwks (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public final fun refreshToken (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public final fun revokeToken (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun refreshToken (Lcom/okta/authfoundation/credential/Token;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun revokeToken (Lcom/okta/authfoundation/credential/RevokeTokenType;Lcom/okta/authfoundation/credential/Token;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun tokenRequest (Lokhttp3/Request;Ljava/lang/String;Ljava/lang/Integer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun tokenRequest$default (Lcom/okta/authfoundation/client/OidcClient;Lokhttp3/Request;Ljava/lang/String;Ljava/lang/Integer;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
@@ -312,7 +312,6 @@ public final class com/okta/authfoundation/credential/Credential {
 	public fun hashCode ()I
 	public final fun idToken (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun introspectToken (Lcom/okta/authfoundation/credential/TokenType;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public final fun isDeleted ()Z
 	public final fun refreshToken (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun revokeAllTokens (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun revokeToken (Lcom/okta/authfoundation/credential/RevokeTokenType;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -540,6 +539,7 @@ public final class com/okta/authfoundation/credential/TokenType : java/lang/Enum
 	public static final field ID_TOKEN Lcom/okta/authfoundation/credential/TokenType;
 	public static final field REFRESH_TOKEN Lcom/okta/authfoundation/credential/TokenType;
 	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public final fun toTokenTypeHint ()Ljava/lang/String;
 	public static fun valueOf (Ljava/lang/String;)Lcom/okta/authfoundation/credential/TokenType;
 	public static fun values ()[Lcom/okta/authfoundation/credential/TokenType;
 }

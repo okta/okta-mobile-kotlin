@@ -267,27 +267,6 @@ class Credential internal constructor(
      * @param tokenType the [TokenType] to check for validity.
      */
     suspend fun introspectToken(tokenType: TokenType): OidcClientResult<OidcIntrospectInfo> {
-        val token = when (tokenType) {
-            TokenType.REFRESH_TOKEN -> {
-                token.refreshToken
-                    ?: return OidcClientResult.Error(IllegalStateException("No refresh token."))
-            }
-
-            TokenType.ACCESS_TOKEN -> {
-                token.accessToken
-            }
-
-            TokenType.ID_TOKEN -> {
-                token.idToken
-                    ?: return OidcClientResult.Error(IllegalStateException("No id token."))
-            }
-
-            TokenType.DEVICE_SECRET -> {
-                token.deviceSecret
-                    ?: return OidcClientResult.Error(IllegalStateException("No device secret."))
-            }
-        }
-
         return oidcClient.introspectToken(tokenType, token)
     }
 
@@ -345,9 +324,7 @@ class Credential internal constructor(
     }
 
     private suspend fun performRealRefresh(): OidcClientResult<Token> {
-        val refresh = token.refreshToken
-            ?: return OidcClientResult.Error(IllegalStateException("No Refresh Token."))
-        return oidcClient.refreshToken(refresh)
+        return oidcClient.refreshToken(token)
     }
 
     /**
@@ -360,22 +337,7 @@ class Credential internal constructor(
     suspend fun revokeToken(
         tokenType: RevokeTokenType
     ): OidcClientResult<Unit> {
-        val token = when (tokenType) {
-            RevokeTokenType.REFRESH_TOKEN -> {
-                token.refreshToken
-                    ?: return OidcClientResult.Error(IllegalStateException("No refresh token."))
-            }
-
-            RevokeTokenType.ACCESS_TOKEN -> {
-                token.accessToken
-            }
-
-            RevokeTokenType.DEVICE_SECRET -> {
-                token.deviceSecret
-                    ?: return OidcClientResult.Error(IllegalStateException("No device secret."))
-            }
-        }
-        return oidcClient.revokeToken(token)
+        return oidcClient.revokeToken(tokenType, token)
     }
 
     /**
@@ -384,17 +346,17 @@ class Credential internal constructor(
      * > Note: OIDC Logout terminology is nuanced, see [Logout Documentation](https://github.com/okta/okta-mobile-kotlin#logout) for additional details.
      */
     suspend fun revokeAllTokens(): OidcClientResult<Unit> {
-        val pairsToRevoke = mutableMapOf<RevokeTokenType, String>()
+        val pairsToRevoke = mutableMapOf<RevokeTokenType, Token>()
 
-        pairsToRevoke[RevokeTokenType.ACCESS_TOKEN] = token.accessToken
-        token.refreshToken?.let { pairsToRevoke[RevokeTokenType.REFRESH_TOKEN] = it }
-        token.deviceSecret?.let { pairsToRevoke[RevokeTokenType.DEVICE_SECRET] = it }
+        pairsToRevoke[RevokeTokenType.ACCESS_TOKEN] = token
+        token.refreshToken?.let { pairsToRevoke[RevokeTokenType.REFRESH_TOKEN] = token }
+        token.deviceSecret?.let { pairsToRevoke[RevokeTokenType.DEVICE_SECRET] = token }
 
         return coroutineScope {
             val exceptionPairs = pairsToRevoke
                 .map { entry ->
                     async {
-                        (oidcClient.revokeToken(entry.value) as? OidcClientResult.Error<Unit>)?.exception?.let {
+                        (oidcClient.revokeToken(entry.key, entry.value) as? OidcClientResult.Error<Unit>)?.exception?.let {
                             entry.key to it
                         }
                     }
