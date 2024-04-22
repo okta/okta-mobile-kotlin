@@ -27,7 +27,6 @@ import com.okta.testhelpers.RequestMatchers.doesNotContainHeaderWithValue
 import com.okta.testhelpers.RequestMatchers.header
 import com.okta.testhelpers.RequestMatchers.path
 import io.mockk.every
-import io.mockk.mockk
 import io.mockk.mockkObject
 import io.mockk.slot
 import io.mockk.unmockkAll
@@ -50,7 +49,6 @@ import okhttp3.mockwebserver.SocketPolicy
 import org.junit.After
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.kotlin.mock
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.math.pow
@@ -258,32 +256,6 @@ class NetworkingTest {
         }
         assertThat((result as OidcClientResult.Success<String>).result).isEqualTo("bar")
         assertThat(interceptor.request?.tag(Credential::class.java)).isNull()
-    }
-
-    @Test fun testPerformRequestHasTagWhenCredentialIsAttachedToOidcClient(): Unit = runTest {
-        val interceptor = RecordingInterceptor()
-        val builder = oktaRule.okHttpClient.newBuilder()
-        builder.addInterceptor(interceptor)
-        val configuration = oktaRule.createConfiguration(builder.build())
-        val credential = mock<Credential>()
-        val oidcClient = OidcClient.create(configuration, oktaRule.createEndpoints())
-            .withCredential(credential)
-        oktaRule.enqueue(
-            path("/test"),
-        ) { response ->
-            response.setBody("""{"foo":"bar"}""")
-        }
-
-        val request = Request.Builder()
-            .url(oktaRule.baseUrl.newBuilder().addPathSegments("test").build())
-            .build()
-
-        val result = oidcClient.performRequest(JsonObject.serializer(), request) {
-            it["foo"]!!.jsonPrimitive.content
-        }
-        assertThat((result as OidcClientResult.Success<String>).result).isEqualTo("bar")
-        assertThat(interceptor.request?.tag(Credential::class.java)).isNotNull()
-        assertThat(interceptor.request?.tag(Credential::class.java)).isEqualTo(credential)
     }
 
     @Test fun testPerformRequestEnsuresTheCoroutineIsActiveBeforeMakingNetworkRequest(): Unit = runTest {
@@ -949,9 +921,7 @@ class NetworkingTest {
             .url(oktaRule.baseUrl.newBuilder().addPathSegments("test").build())
             .build()
 
-        val credential = mockk<Credential>()
         val oidcClient = OidcClient.create(oidcConfiguration, oktaRule.createEndpoints())
-            .withCredential(credential)
 
         oidcClient.performRequest(String.serializer(), request) { /** Ignore response */ }
         assertThat(lastCalledInterceptor).isEqualTo("customInterceptor")

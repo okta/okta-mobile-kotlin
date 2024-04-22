@@ -65,17 +65,15 @@ interface TokenStorage {
     suspend fun remove(id: String)
 
     /**
-     * Replace [Token] with [id] with the given [token]. If no such [Token] with the given [id] exists, [NoSuchElementException] is thrown.
+     * Replace [Token] with [Token.id] with the given [token]. If no such [Token] with the given [Token.id] exists, [NoSuchElementException] is thrown.
      *
-     * @param id id of the [Token] to be replaced.
-     * @param token set the storage entry with [id] to this [Token].
-     * @param metadata set the storage entry with [id] to have this [Token.Metadata]. If null, the metadata is left unchanged.
+     * @param token set the storage entry with [Token.id] to this [Token].
+     * @param metadata set the storage entry with [Token.id] to have this [Token.Metadata]. If null, the metadata is left unchanged.
      * @param security store the [token] in storage with this [Credential.Security] level. If null, the [Credential.Security] level is unchanged.
      *
-     * @throws [NoSuchElementException] if no such storage entry with [id] exists.
+     * @throws [NoSuchElementException] if no such storage entry with [Token.id] exists.
      */
     suspend fun replace(
-        id: String,
         token: Token,
         metadata: Token.Metadata? = null,
         security: Credential.Security? = null

@@ -28,7 +28,8 @@ import java.util.Objects
  * Token information representing a user's access to a resource server, including access token, refresh token, and other related information.
  */
 @Serializable
-class Token(
+class Token constructor(
+    internal val id: String,
     /**
      * The string type of the token (e.g. `Bearer`).
      */
@@ -80,10 +81,12 @@ class Token(
     }
 
     internal fun copy(
-        refreshToken: String?,
-        deviceSecret: String?,
+        id: String = this.id,
+        refreshToken: String? = this.refreshToken,
+        deviceSecret: String? = this.deviceSecret,
     ): Token {
         return Token(
+            id = id,
             tokenType = tokenType,
             expiresIn = expiresIn,
             accessToken = accessToken,
@@ -169,8 +172,9 @@ internal class SerializableToken internal constructor(
     @SerialName("device_secret") val deviceSecret: String? = null,
     @SerialName("issued_token_type") val issuedTokenType: String? = null,
 ) {
-    fun asToken(oidcConfiguration: OidcConfiguration): Token {
+    fun asToken(id: String, oidcConfiguration: OidcConfiguration): Token {
         return Token(
+            id = id,
             tokenType = tokenType,
             expiresIn = expiresIn,
             accessToken = accessToken,

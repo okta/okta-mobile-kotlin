@@ -20,7 +20,6 @@ import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.client.events.RateLimitExceededEvent
-import com.okta.authfoundation.credential.Credential
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.CompletionHandler
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -92,8 +91,7 @@ internal suspend fun <T> OidcClient.internalPerformRequest(
     shouldAttemptJsonDeserialization: (Response) -> Boolean = { it.isSuccessful },
     responseHandler: OidcConfiguration.(BufferedSource) -> T,
 ): OidcClientResult<T> {
-    val requestWithTag = credential?.let { request.newBuilder().tag(Credential::class.java, it).build() } ?: request
-    return configuration.internalPerformRequest(requestWithTag, shouldAttemptJsonDeserialization) {
+    return configuration.internalPerformRequest(request, shouldAttemptJsonDeserialization) {
         configuration.run { responseHandler(it) }
     }
 }

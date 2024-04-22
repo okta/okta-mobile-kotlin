@@ -65,15 +65,15 @@ class CredentialDataSourceTest {
     }
 
     @Test fun `test allIds returns all token IDs from token storage`() = runTest {
-        roomTokenStorage.add(token, Token.Metadata("id1", emptyMap(), idToken = null))
-        roomTokenStorage.add(createToken(), Token.Metadata("id2", emptyMap(), idToken = null))
-        assertThat(credentialDataSource.allIds()).isEqualTo(listOf("id1", "id2"))
+        roomTokenStorage.add(token, Token.Metadata("id", emptyMap(), idToken = null))
+        roomTokenStorage.add(createToken(id = "id2"), Token.Metadata("id2", emptyMap(), idToken = null))
+        assertThat(credentialDataSource.allIds()).isEqualTo(listOf("id", "id2"))
     }
 
     @Test fun `get metadata for an existing token`() = runTest {
-        val metadata = Token.Metadata("id1", emptyMap(), idToken = null)
+        val metadata = Token.Metadata("id", emptyMap(), idToken = null)
         roomTokenStorage.add(token, metadata)
-        assertThat(credentialDataSource.metadata("id1")).isEqualTo(metadata)
+        assertThat(credentialDataSource.metadata("id")).isEqualTo(metadata)
     }
 
     @Test fun `get metadata for a non-existing token`() = runTest {
@@ -81,11 +81,11 @@ class CredentialDataSourceTest {
     }
 
     @Test fun `setMetadata changes metadata`() = runTest {
-        val originalMetadata = Token.Metadata("id1", emptyMap(), idToken = null)
+        val originalMetadata = Token.Metadata("id", emptyMap(), idToken = null)
         roomTokenStorage.add(token, originalMetadata)
-        val newMetadata = Token.Metadata("id1", mapOf("someKey" to "someValue"), idToken = null)
+        val newMetadata = Token.Metadata("id", mapOf("someKey" to "someValue"), idToken = null)
         credentialDataSource.setMetadata(newMetadata)
-        assertThat(credentialDataSource.metadata("id1")).isEqualTo(newMetadata)
+        assertThat(credentialDataSource.metadata("id")).isEqualTo(newMetadata)
     }
 
     @Test fun testCreate(): Unit = runTest {
@@ -94,7 +94,6 @@ class CredentialDataSourceTest {
         val credential = dataSource.createCredential(token)
         assertThat(credential.token).isEqualTo(token)
         assertThat(credential.tags).isEmpty()
-        assertThat(credential.oidcClient.credential).isSameInstanceAs(credential)
         coVerify { tokenStorage.add(any(), any(), any()) }
     }
 
@@ -109,32 +108,24 @@ class CredentialDataSourceTest {
 
     @Test fun `replaceToken fails when trying to replace a non-existent token`() = runTest {
         assertFailsWith<NoSuchElementException> {
-            credentialDataSource.replaceToken("non-existent-id", token)
+            credentialDataSource.replaceToken(token)
         }
     }
 
     @Test fun `replaceToken successfully replaces token in tokenStorage`() = runTest {
-        roomTokenStorage.add(token, Token.Metadata("id", emptyMap(), idToken = null))
+        credentialDataSource.createCredential(token)
         val newToken = createToken(accessToken = "newToken")
-        credentialDataSource.replaceToken("id", newToken)
+        credentialDataSource.replaceToken(newToken)
         val credential = credentialDataSource.getCredential("id")
 
         assertThat(roomTokenStorage.getToken("id")).isEqualTo(newToken)
         assertThat(credential!!.token).isEqualTo(newToken)
     }
 
-    @Test fun `credential store successfully replaces token in cached credential objects`() = runTest {
-        val credential = credentialDataSource.createCredential(token)
-        val newToken = createToken(accessToken = "newToken")
-        credential.replaceToken(newToken)
-        assertThat(credential.token).isEqualTo(newToken)
-        assertThat(roomTokenStorage.getToken(credential.id)).isEqualTo(newToken)
-    }
-
     @Test fun `getCredential fetches the correct credential`() = runTest {
         roomTokenStorage.add(token, Token.Metadata("id", emptyMap(), idToken = null))
         roomTokenStorage.add(
-            createToken(accessToken = "another-token"), Token.Metadata("another-token", emptyMap(), idToken = null)
+            createToken(id = "id2", accessToken = "another-token"), Token.Metadata(id = "id2", emptyMap(), idToken = null)
         )
         assertThat(credentialDataSource.getCredential("id")!!.token).isEqualTo(token)
     }
@@ -156,7 +147,7 @@ class CredentialDataSourceTest {
     }
 
     @Test fun `findCredential fetches all credentials that match the expression`() = runTest {
-        val token2 = createToken(accessToken = "token2")
+        val token2 = createToken(id = "id2", accessToken = "token2")
         roomTokenStorage.add(token, Token.Metadata("id", mapOf("someField" to "sameValue"), idToken = null))
         roomTokenStorage.add(token2, Token.Metadata("id2", mapOf("someField" to "sameValue"), idToken = null))
 
@@ -166,8 +157,8 @@ class CredentialDataSourceTest {
 
     @Test fun testRemove(): Unit = runTest {
         val dataSource = CredentialDataSource(roomTokenStorage)
-        val credential1 = dataSource.createCredential(createToken())
-        dataSource.createCredential(createToken())
+        val credential1 = dataSource.createCredential(createToken(id = "id1"))
+        dataSource.createCredential(createToken(id = "id2"))
         assertThat(dataSource.allIds()).hasSize(2)
         credential1.delete()
         assertThat(dataSource.allIds()).hasSize(1)

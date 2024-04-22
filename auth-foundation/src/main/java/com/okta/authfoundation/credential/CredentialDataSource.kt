@@ -23,7 +23,6 @@ import com.okta.authfoundation.jwt.JwtParser
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.util.Collections
-import java.util.UUID
 
 @InternalAuthFoundationApi
 class CredentialDataSource(
@@ -60,15 +59,14 @@ class CredentialDataSource(
         tags: Map<String, String> = emptyMap(),
         security: Credential.Security = Credential.Security.standard
     ): Credential {
-        val storageIdentifier = UUID.randomUUID().toString()
         val idToken = token.idToken?.let { jwtParser.parse(it) }
         val credential =
-            Credential(storageIdentifier, token, tags = tags)
-        credentialsCache[storageIdentifier] = credential
+            Credential(token, tags = tags)
+        credentialsCache[token.id] = credential
         storage.add(
             token,
             Token.Metadata(
-                storageIdentifier,
+                token.id,
                 tags,
                 idToken
             ),
@@ -78,7 +76,11 @@ class CredentialDataSource(
         return credential
     }
 
-    suspend fun replaceToken(id: String, token: Token) = storage.replace(id, token)
+    suspend fun replaceToken(token: Token) {
+        storage.replace(token)
+        val credential = credentialsCache[token.id] ?: throw IllegalStateException("Attempted replacing a non-existent Token")
+        credential.replaceToken(token)
+    }
 
     suspend fun getCredential(id: String, promptInfo: BiometricPrompt.PromptInfo? = Credential.Security.promptInfo): Credential? {
         return if (id in credentialsCache) credentialsCache[id]
@@ -86,7 +88,6 @@ class CredentialDataSource(
             val metadata = metadata(id) ?: return null
             val token = storage.getToken(id, promptInfo)
             credentialsCache[id] = Credential(
-                metadata.id,
                 token,
                 tags = metadata.tags
             )

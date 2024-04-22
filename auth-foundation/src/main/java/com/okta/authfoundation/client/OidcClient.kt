@@ -37,6 +37,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.serialization.json.JsonObject
 import okhttp3.FormBody
 import okhttp3.Request
+import java.util.UUID
 
 /**
  * The client used for interacting with an Okta Authorization Server.
@@ -48,8 +49,7 @@ import okhttp3.Request
 class OidcClient private constructor(
     @property:InternalAuthFoundationApi val configuration: OidcConfiguration,
     internal val endpoints: CoalescingOrchestrator<OidcClientResult<OidcEndpoints>>,
-    jwks: CoalescingOrchestrator<OidcClientResult<Jwks>>? = null,
-    internal val credential: Credential? = null,
+    jwks: CoalescingOrchestrator<OidcClientResult<Jwks>>? = null
 ) {
     companion object {
         /**
@@ -89,10 +89,6 @@ class OidcClient private constructor(
     }
 
     private val jwks: CoalescingOrchestrator<OidcClientResult<Jwks>> = jwks ?: jwksCoalescingOrchestrator()
-
-    internal fun withCredential(credential: Credential): OidcClient {
-        return OidcClient(configuration, endpoints, jwks, credential)
-    }
 
     /**
      * Performs the OIDC User Info call, which returns claims associated with the supplied `accessToken`.
@@ -141,7 +137,7 @@ class OidcClient private constructor(
             .post(formBody)
             .build()
 
-        return tokenRequest(request)
+        return tokenRequest(request, requestToken = token)
     }
 
     /**
@@ -259,12 +255,15 @@ class OidcClient private constructor(
     suspend fun tokenRequest(
         request: Request,
         nonce: String? = null,
-        maxAge: Int? = null
+        maxAge: Int? = null,
+        requestToken: Token? = null
     ): OidcClientResult<Token> {
         return coroutineScope {
+            val isRefreshRequest = requestToken != null
+            val tokenId = requestToken?.id ?: UUID.randomUUID().toString()
             val tokenDeferred = async {
                 performRequest(SerializableToken.serializer(), request) { serializableToken ->
-                    serializableToken.asToken(oidcConfiguration = configuration)
+                    serializableToken.asToken(id = tokenId, oidcConfiguration = configuration)
                 }
             }
             val jwksDeferred = async {
@@ -277,8 +276,10 @@ class OidcClient private constructor(
 
                 try {
                     TokenValidator(this@OidcClient, token, nonce, maxAge, jwksDeferred.await()).validate()
-                    configuration.eventCoordinator.sendEvent(TokenCreatedEvent(token, credential))
-                    credential?.replaceToken(token)
+                    configuration.eventCoordinator.sendEvent(TokenCreatedEvent(token))
+                    if (isRefreshRequest) {
+                        Credential.credentialDataSource().replaceToken(token)
+                    }
                 } catch (e: Exception) {
                     return@coroutineScope OidcClientResult.Error(e)
                 }

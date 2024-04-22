@@ -17,11 +17,8 @@ package com.okta.authfoundation.credential
 
 import com.okta.authfoundation.client.OidcConfiguration
 
-object CredentialFactory {
-    const val tokenStorageId: String = "test_storage_id"
-}
-
 fun createToken(
+    id: String = "id",
     scope: String = "openid email profile offline_access",
     accessToken: String = "exampleAccessToken",
     idToken: String? = null,
@@ -30,6 +27,7 @@ fun createToken(
     oidcConfiguration: OidcConfiguration = OidcConfiguration("clientId", "defaultScope", "issuer"),
 ): Token {
     return Token(
+        id = id,
         tokenType = "Bearer",
         expiresIn = MOCK_TOKEN_DURATION,
         accessToken = accessToken,

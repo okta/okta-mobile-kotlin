@@ -53,11 +53,16 @@ import java.util.Objects
  * their credentials, and interacting with resources scoped to the credential.
  */
 class Credential internal constructor(
-    val id: String,
     token: Token,
-    oidcClient: OidcClient = OidcClient.createFromConfiguration(token.oidcConfiguration),
+    internal val oidcClient: OidcClient = OidcClient.createFromConfiguration(token.oidcConfiguration),
     tags: Map<String, String> = emptyMap()
 ) {
+
+    /**
+     * Identifier for this credential.
+     */
+    val id = token.id
+
     internal interface BiometricSecurity
 
     /**
@@ -110,7 +115,6 @@ class Credential internal constructor(
         private val defaultCredentialIdDataStore: DefaultCredentialIdDataStore
             get() = DefaultCredentialIdDataStore.instance
 
-        @VisibleForTesting
         internal suspend fun credentialDataSource() = CredentialDataSource.getInstance()
 
         /**
@@ -198,12 +202,6 @@ class Credential internal constructor(
         keepDataInMemory = { false },
     )
 
-    /**
-     * The [OidcClient] associated with this [Credential].
-     */
-    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
-    internal val oidcClient: OidcClient = oidcClient.withCredential(this)
-
     private val tokenFlow = MutableStateFlow<Token?>(token)
 
     /**
@@ -285,7 +283,6 @@ class Credential internal constructor(
             // Device Secret isn't returned when refreshing.
             deviceSecret = token.deviceSecret ?: this.token.deviceSecret,
         )
-        credentialDataSource().replaceToken(id, tokenToStore)
         this.token = tokenToStore
         tokenFlow.emit(token)
         oidcClient.configuration.eventCoordinator.sendEvent(

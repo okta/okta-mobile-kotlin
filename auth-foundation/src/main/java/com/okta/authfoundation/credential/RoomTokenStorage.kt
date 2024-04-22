@@ -88,6 +88,10 @@ class RoomTokenStorage(
         metadata: Token.Metadata,
         security: Credential.Security
     ) {
+        if (token.id != metadata.id) {
+            throw IllegalStateException("TokenStorage.add called with different token.id and metadata.id")
+        }
+
         tokenEncryptionHandler.generateKey(security)
         val encryptionResult = tokenEncryptionHandler.encrypt(token, security)
 
@@ -111,12 +115,15 @@ class RoomTokenStorage(
     }
 
     override suspend fun replace(
-        id: String,
         token: Token,
         metadata: Token.Metadata?,
         security: Credential.Security?,
     ) {
-        val tokenEntity = tokenDao.getById(id) ?: throw NoSuchElementException()
+        if (metadata != null && token.id != metadata.id) {
+            throw IllegalStateException("TokenStorage.replace called with different token.id and metadata.id")
+        }
+
+        val tokenEntity = tokenDao.getById(token.id) ?: throw NoSuchElementException()
 
         security?.let { tokenEncryptionHandler.generateKey(it) }
         val encryptionResult = tokenEncryptionHandler.encrypt(

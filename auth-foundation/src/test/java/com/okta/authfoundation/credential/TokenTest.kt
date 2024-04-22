@@ -38,7 +38,7 @@ class TokenTest {
           "access_token": "exampleAccessToken"
         }
         """.trimIndent()
-        val token = oktaRule.configuration.json.decodeFromString(SerializableToken.serializer(), json).asToken(mockk())
+        val token = oktaRule.configuration.json.decodeFromString(SerializableToken.serializer(), json).asToken("id", mockk())
         assertThat(token.tokenType).isEqualTo("Bearer")
         assertThat(token.expiresIn).isEqualTo(3600)
         assertThat(token.accessToken).isEqualTo("exampleAccessToken")
@@ -60,7 +60,7 @@ class TokenTest {
           "id_token": "exampleIdToken"
         }
         """.trimIndent()
-        val token = oktaRule.configuration.json.decodeFromString(SerializableToken.serializer(), json).asToken(mockk())
+        val token = oktaRule.configuration.json.decodeFromString(SerializableToken.serializer(), json).asToken("id", mockk())
         assertThat(token.tokenType).isEqualTo("Bearer")
         assertThat(token.expiresIn).isEqualTo(3600)
         assertThat(token.accessToken).isEqualTo("exampleAccessToken")
@@ -81,7 +81,7 @@ class TokenTest {
           "device_secret": "exampleDeviceSecret"
         }
         """.trimIndent()
-        val token = oktaRule.configuration.json.decodeFromString(SerializableToken.serializer(), json).asToken(mockk())
+        val token = oktaRule.configuration.json.decodeFromString(SerializableToken.serializer(), json).asToken("id", mockk())
         assertThat(token.tokenType).isEqualTo("Bearer")
         assertThat(token.expiresIn).isEqualTo(3600)
         assertThat(token.accessToken).isEqualTo("exampleAccessToken")
@@ -103,7 +103,7 @@ class TokenTest {
           "issued_token_type": "urn:ietf:params:oauth:token-type:access_token"
         }
         """.trimIndent()
-        val token = oktaRule.configuration.json.decodeFromString(SerializableToken.serializer(), json).asToken(mockk())
+        val token = oktaRule.configuration.json.decodeFromString(SerializableToken.serializer(), json).asToken("id", mockk())
         assertThat(token.tokenType).isEqualTo("Bearer")
         assertThat(token.expiresIn).isEqualTo(3600)
         assertThat(token.accessToken).isEqualTo("exampleAccessToken")
@@ -115,6 +115,7 @@ class TokenTest {
 
     @Test fun testSerializingMinimal() {
         val token = Token(
+            id = "id",
             tokenType = "Bearer",
             expiresIn = 3600,
             accessToken = "exampleAccessToken",
@@ -135,6 +136,7 @@ class TokenTest {
 
     @Test fun testSerializingEverything() {
         val token = Token(
+            id = "id",
             tokenType = "Bearer",
             expiresIn = 3600,
             accessToken = "a",

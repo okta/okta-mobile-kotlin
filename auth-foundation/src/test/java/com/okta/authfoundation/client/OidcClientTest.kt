@@ -19,6 +19,7 @@ import com.google.common.truth.Truth.assertThat
 import com.okta.authfoundation.client.dto.OidcIntrospectInfo
 import com.okta.authfoundation.client.dto.OidcUserInfo
 import com.okta.authfoundation.client.events.TokenCreatedEvent
+import com.okta.authfoundation.credential.Credential
 import com.okta.authfoundation.credential.RevokeTokenType
 import com.okta.authfoundation.credential.Token
 import com.okta.authfoundation.credential.TokenType
@@ -34,11 +35,17 @@ import com.okta.testhelpers.RequestMatchers.method
 import com.okta.testhelpers.RequestMatchers.path
 import com.okta.testhelpers.RequestMatchers.query
 import com.okta.testhelpers.testBodyFromFile
+import io.mockk.coEvery
+import io.mockk.mockk
+import io.mockk.mockkObject
+import io.mockk.unmockkAll
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import okhttp3.HttpUrl.Companion.toHttpUrl
+import org.junit.After
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
@@ -47,6 +54,17 @@ class OidcClientTest {
 
     @get:Rule
     val oktaRule = OktaRule()
+
+    @Before
+    fun setup() {
+        mockkObject(Credential)
+        coEvery { Credential.credentialDataSource() } returns mockk(relaxed = true)
+    }
+
+    @After
+    fun tearDown() {
+        unmockkAll()
+    }
 
     @Test
     fun testCreate(): Unit = runBlocking {
@@ -173,7 +191,6 @@ class OidcClientTest {
         val tokenCreatedEvent = event as TokenCreatedEvent
         assertThat(tokenCreatedEvent.token).isNotNull()
         assertThat(tokenCreatedEvent.token).isEqualTo(successResult.result)
-        assertThat(tokenCreatedEvent.credential).isNull()
     }
 
     @Test
