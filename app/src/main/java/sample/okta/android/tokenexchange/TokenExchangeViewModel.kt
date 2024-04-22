@@ -52,7 +52,7 @@ class TokenExchangeViewModel : ViewModel() {
                 _state.value = TokenExchangeState.Error("Missing Id Token")
                 return@launch
             }
-            val deviceSecret = credential.token?.deviceSecret
+            val deviceSecret = credential.token.deviceSecret
             if (deviceSecret == null) {
                 _state.value = TokenExchangeState.Error("Missing Device Secret")
                 return@launch
@@ -64,12 +64,11 @@ class TokenExchangeViewModel : ViewModel() {
                 }
 
                 is OidcClientResult.Success -> {
-                    tokenExchangeCredential?.replaceToken(token = result.result) ?: run {
-                        Credential.store(
-                            result.result,
-                            tags = mapOf(Pair(SampleHelper.CREDENTIAL_NAME_TAG_KEY, NAME_TAG_VALUE))
-                        )
-                    }
+                    tokenExchangeCredential?.delete()
+                    Credential.store(
+                        result.result,
+                        tags = mapOf(Pair(SampleHelper.CREDENTIAL_NAME_TAG_KEY, NAME_TAG_VALUE))
+                    )
                     _state.value = TokenExchangeState.Token(NAME_TAG_VALUE)
                 }
             }

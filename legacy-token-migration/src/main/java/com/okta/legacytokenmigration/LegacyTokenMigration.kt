@@ -25,6 +25,7 @@ import com.okta.authfoundation.credential.Token
 import com.okta.oidc.clients.sessions.SessionClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.util.UUID
 
 /**
  * A helper class to migrate tokens from the [Legacy OIDC SDK](https://github.com/okta/okta-oidc-android) to Auth Foundations
@@ -60,6 +61,7 @@ object LegacyTokenMigration {
             try {
                 val legacyToken = sessionClient.tokens ?: return@withContext Result.MissingLegacyToken
                 val token = Token(
+                    id = UUID.randomUUID().toString(),
                     tokenType = "Bearer",
                     expiresIn = legacyToken.expiresIn,
                     accessToken = legacyToken.accessToken ?: "",

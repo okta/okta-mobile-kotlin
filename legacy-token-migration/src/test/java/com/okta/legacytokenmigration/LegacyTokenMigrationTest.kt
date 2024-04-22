@@ -35,6 +35,7 @@ import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.mockkObject
+import io.mockk.mockkStatic
 import io.mockk.runs
 import io.mockk.unmockkAll
 import io.mockk.verify
@@ -45,23 +46,28 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import java.util.UUID
 
 @RunWith(RobolectricTestRunner::class)
 class LegacyTokenMigrationTest {
     @get:Rule val oktaRule = OktaRule()
 
     private lateinit var sharedPreferences: SharedPreferences
+    private lateinit var tokenUUID: UUID
 
     @Before fun reset() {
+        tokenUUID = UUID.randomUUID()
         sharedPreferences = ApplicationProvider.getApplicationContext<Context>().sharedPreferences()
         sharedPreferences.edit().clear().apply()
         mockkObject(CredentialDataSource)
         mockkObject(OidcConfiguration)
+        mockkStatic(UUID::class)
         every { OidcConfiguration.default } returns OidcConfiguration(
             "clientId",
             "defaultScope",
             "issuer"
         )
+        every { UUID.randomUUID() } returns tokenUUID
     }
 
     @After fun tearDown() {
@@ -102,6 +108,7 @@ class LegacyTokenMigrationTest {
         assertThat(sharedPreferences.hasMarkedTokensAsMigrated()).isTrue()
         verify { sessionClient.clear() }
         val token = Token(
+            id = tokenUUID.toString(),
             tokenType = "Bearer",
             expiresIn = 300,
             accessToken = "ExampleAccessToken",
