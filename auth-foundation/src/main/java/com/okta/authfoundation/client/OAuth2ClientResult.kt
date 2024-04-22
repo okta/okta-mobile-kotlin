@@ -18,14 +18,14 @@ package com.okta.authfoundation.client
 import com.okta.authfoundation.InternalAuthFoundationApi
 
 /**
- * Describes the result from the OidcClient.
+ * Describes the result from the OAuth2Client.
  */
-sealed class OidcClientResult<T> {
+sealed class OAuth2ClientResult<T> {
     /** An error result. */
     class Error<T> @InternalAuthFoundationApi constructor(
         /** The exception associated with the error. */
         val exception: Exception,
-    ) : OidcClientResult<T>() {
+    ) : OAuth2ClientResult<T>() {
         /**
          * The response type used to represent a completed HTTP response, but a non successful status code.
          */
@@ -50,7 +50,7 @@ sealed class OidcClientResult<T> {
     class Success<T> @InternalAuthFoundationApi constructor(
         /** The result of the success result. */
         val result: T,
-    ) : OidcClientResult<T>()
+    ) : OAuth2ClientResult<T>()
 
     /**
      * Returns the encapsulated value if this instance represents [Success] or throws the encapsulated [Exception] if it is [Error].

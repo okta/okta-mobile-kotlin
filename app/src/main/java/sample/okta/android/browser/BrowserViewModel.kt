@@ -20,7 +20,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.okta.authfoundation.client.OidcClientResult
+import com.okta.authfoundation.client.OAuth2ClientResult
 import com.okta.authfoundation.credential.Credential
 import com.okta.webauthenticationui.WebAuthentication
 import kotlinx.coroutines.launch
@@ -50,11 +50,11 @@ class BrowserViewModel : ViewModel() {
                     scope = scope,
                 )
             ) {
-                is OidcClientResult.Error -> {
+                is OAuth2ClientResult.Error -> {
                     Timber.e(result.exception, "Failed to start login flow.")
                     _state.value = BrowserState.Error("Failed to start login flow.")
                 }
-                is OidcClientResult.Success -> {
+                is OAuth2ClientResult.Success -> {
                     val credential = Credential.store(result.result)
                     Credential.setDefaultCredential(credential)
                     _state.value = BrowserState.Token

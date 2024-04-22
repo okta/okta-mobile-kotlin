@@ -15,10 +15,10 @@
  */
 package com.okta.authfoundation.credential
 
-import com.okta.authfoundation.client.OidcClientResult
+import com.okta.authfoundation.client.OAuth2ClientResult
 
 /**
- * The exception in [OidcClientResult.Error] when a call to [Credential.revokeAllTokens] fails.
+ * The exception in [OAuth2ClientResult.Error] when a call to [Credential.revokeAllTokens] fails.
  */
 class RevokeAllException internal constructor(
     /**

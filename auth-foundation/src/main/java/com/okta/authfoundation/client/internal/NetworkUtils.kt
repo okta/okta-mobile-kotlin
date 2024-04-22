@@ -16,8 +16,8 @@
 package com.okta.authfoundation.client.internal
 
 import com.okta.authfoundation.InternalAuthFoundationApi
-import com.okta.authfoundation.client.OidcClient
-import com.okta.authfoundation.client.OidcClientResult
+import com.okta.authfoundation.client.OAuth2Client
+import com.okta.authfoundation.client.OAuth2ClientResult
 import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.client.events.RateLimitExceededEvent
 import kotlinx.coroutines.CancellableContinuation
@@ -46,12 +46,12 @@ import kotlin.time.Duration.Companion.seconds
 
 @InternalAuthFoundationApi
 @OptIn(ExperimentalSerializationApi::class)
-suspend fun <Raw, Dto> OidcClient.performRequest(
+suspend fun <Raw, Dto> OAuth2Client.performRequest(
     deserializationStrategy: DeserializationStrategy<Raw>,
     request: Request,
     shouldAttemptJsonDeserialization: (Response) -> Boolean = { it.isSuccessful },
     responseMapper: (Raw) -> Dto,
-): OidcClientResult<Dto> {
+): OAuth2ClientResult<Dto> {
     val jsonRequest = if (request.header("accept") == null) {
         request.newBuilder()
             .addHeader("accept", "application/json")
@@ -66,31 +66,31 @@ suspend fun <Raw, Dto> OidcClient.performRequest(
 }
 
 @InternalAuthFoundationApi
-suspend fun OidcClient.performRequest(
+suspend fun OAuth2Client.performRequest(
     request: Request,
-): OidcClientResult<Response> {
+): OAuth2ClientResult<Response> {
     currentCoroutineContext().ensureActive()
     return withContext(configuration.ioDispatcher) {
         try {
             val response = configuration.executeRequest(request)
-            OidcClientResult.Success(response)
+            OAuth2ClientResult.Success(response)
         } catch (e: Exception) {
-            OidcClientResult.Error(e)
+            OAuth2ClientResult.Error(e)
         }
     }
 }
 
-internal suspend fun OidcClient.performRequestNonJson(
+internal suspend fun OAuth2Client.performRequestNonJson(
     request: Request
-): OidcClientResult<Unit> {
+): OAuth2ClientResult<Unit> {
     return internalPerformRequest(request) { }
 }
 
-internal suspend fun <T> OidcClient.internalPerformRequest(
+internal suspend fun <T> OAuth2Client.internalPerformRequest(
     request: Request,
     shouldAttemptJsonDeserialization: (Response) -> Boolean = { it.isSuccessful },
     responseHandler: OidcConfiguration.(BufferedSource) -> T,
-): OidcClientResult<T> {
+): OAuth2ClientResult<T> {
     return configuration.internalPerformRequest(request, shouldAttemptJsonDeserialization) {
         configuration.run { responseHandler(it) }
     }
@@ -100,7 +100,7 @@ internal suspend fun <T> OidcConfiguration.internalPerformRequest(
     request: Request,
     shouldAttemptJsonDeserialization: (Response) -> Boolean,
     responseHandler: (BufferedSource) -> T,
-): OidcClientResult<T> {
+): OAuth2ClientResult<T> {
     currentCoroutineContext().ensureActive()
     return withContext(ioDispatcher) {
         try {
@@ -109,13 +109,13 @@ internal suspend fun <T> OidcConfiguration.internalPerformRequest(
                 // Body is always non-null when returned here. See related OkHttp documentation.
                 val body = responseBody.body!!.source()
                 if (shouldAttemptJsonDeserialization(okHttpResponse)) {
-                    OidcClientResult.Success(responseHandler(body))
+                    OAuth2ClientResult.Success(responseHandler(body))
                 } else {
-                    okHttpResponse.toOidcClientResultError(this@internalPerformRequest, body)
+                    okHttpResponse.toOAuth2ClientResultError(this@internalPerformRequest, body)
                 }
             }
         } catch (e: Exception) {
-            OidcClientResult.Error(e)
+            OAuth2ClientResult.Error(e)
         }
     }
 }
@@ -169,17 +169,17 @@ internal class ErrorResponse(
 )
 
 @OptIn(ExperimentalSerializationApi::class)
-private fun <T> Response.toOidcClientResultError(
+private fun <T> Response.toOAuth2ClientResultError(
     configuration: OidcConfiguration,
     responseBody: BufferedSource,
-): OidcClientResult<T> {
+): OAuth2ClientResult<T> {
     val errorResponse = try {
         responseBody.let { configuration.json.decodeFromBufferedSource<ErrorResponse>(it) }
     } catch (e: Exception) {
         null
     }
-    return OidcClientResult.Error(
-        OidcClientResult.Error.HttpResponseException(
+    return OAuth2ClientResult.Error(
+        OAuth2ClientResult.Error.HttpResponseException(
             responseCode = code,
             error = errorResponse?.error,
             errorDescription = errorResponse?.errorDescription,

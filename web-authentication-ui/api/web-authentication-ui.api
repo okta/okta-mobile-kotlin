@@ -32,8 +32,8 @@ public final class com/okta/webauthenticationui/ForegroundViewModel$State$Launch
 
 public final class com/okta/webauthenticationui/WebAuthentication {
 	public static final field Companion Lcom/okta/webauthenticationui/WebAuthentication$Companion;
-	public fun <init> (Lcom/okta/authfoundation/client/OidcClient;Lcom/okta/webauthenticationui/WebAuthenticationProvider;)V
-	public synthetic fun <init> (Lcom/okta/authfoundation/client/OidcClient;Lcom/okta/webauthenticationui/WebAuthenticationProvider;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lcom/okta/authfoundation/client/OAuth2Client;Lcom/okta/webauthenticationui/WebAuthenticationProvider;)V
+	public synthetic fun <init> (Lcom/okta/authfoundation/client/OAuth2Client;Lcom/okta/webauthenticationui/WebAuthenticationProvider;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun <init> (Lcom/okta/authfoundation/client/OidcConfiguration;Lcom/okta/webauthenticationui/WebAuthenticationProvider;)V
 	public synthetic fun <init> (Lcom/okta/authfoundation/client/OidcConfiguration;Lcom/okta/webauthenticationui/WebAuthenticationProvider;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun <init> (Lcom/okta/webauthenticationui/WebAuthenticationProvider;)V

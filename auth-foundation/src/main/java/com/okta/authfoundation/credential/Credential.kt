@@ -19,8 +19,8 @@ import android.security.keystore.KeyProperties
 import androidx.annotation.VisibleForTesting
 import androidx.biometric.BiometricPrompt
 import com.okta.authfoundation.AuthFoundationDefaults
-import com.okta.authfoundation.client.OidcClient
-import com.okta.authfoundation.client.OidcClientResult
+import com.okta.authfoundation.client.OAuth2Client
+import com.okta.authfoundation.client.OAuth2ClientResult
 import com.okta.authfoundation.client.dto.OidcIntrospectInfo
 import com.okta.authfoundation.client.dto.OidcUserInfo
 import com.okta.authfoundation.credential.events.CredentialDeletedEvent
@@ -54,7 +54,7 @@ import java.util.Objects
  */
 class Credential internal constructor(
     token: Token,
-    internal val oidcClient: OidcClient = OidcClient.createFromConfiguration(token.oidcConfiguration),
+    internal val client: OAuth2Client = OAuth2Client.createFromConfiguration(token.oidcConfiguration),
     tags: Map<String, String> = emptyMap()
 ) {
 
@@ -226,7 +226,7 @@ class Credential internal constructor(
     suspend fun setTags(tags: Map<String, String>) {
         setMetadata(Token.Metadata(id, tags, idToken()))
         this.tags = tags
-        oidcClient.configuration.eventCoordinator.sendEvent(
+        client.configuration.eventCoordinator.sendEvent(
             CredentialStoredEvent(
                 this,
                 this.token,
@@ -252,11 +252,11 @@ class Credential internal constructor(
      *
      * Internally, this uses [Credential.getValidAccessToken] to automatically refresh the access token if it's expired.
      */
-    suspend fun getUserInfo(): OidcClientResult<OidcUserInfo> {
-        val accessToken = getValidAccessToken() ?: return OidcClientResult.Error(
+    suspend fun getUserInfo(): OAuth2ClientResult<OidcUserInfo> {
+        val accessToken = getValidAccessToken() ?: return OAuth2ClientResult.Error(
             IllegalStateException("No Access Token.")
         )
-        return oidcClient.getUserInfo(accessToken)
+        return client.getUserInfo(accessToken)
     }
 
     /**
@@ -264,13 +264,13 @@ class Credential internal constructor(
      *
      * @param tokenType the [TokenType] to check for validity.
      */
-    suspend fun introspectToken(tokenType: TokenType): OidcClientResult<OidcIntrospectInfo> {
-        return oidcClient.introspectToken(tokenType, token)
+    suspend fun introspectToken(tokenType: TokenType): OAuth2ClientResult<OidcIntrospectInfo> {
+        return client.introspectToken(tokenType, token)
     }
 
     internal suspend fun replaceToken(token: Token) {
         if (isDeleted) {
-            oidcClient.configuration.eventCoordinator.sendEvent(
+            client.configuration.eventCoordinator.sendEvent(
                 CredentialStoredAfterRemovedEvent(
                     this
                 )
@@ -285,7 +285,7 @@ class Credential internal constructor(
         )
         this.token = tokenToStore
         tokenFlow.emit(token)
-        oidcClient.configuration.eventCoordinator.sendEvent(
+        client.configuration.eventCoordinator.sendEvent(
             CredentialStoredEvent(
                 this,
                 this.token,
@@ -310,18 +310,18 @@ class Credential internal constructor(
         isDeleted = true
         tokenFlow.emit(null)
         credentialDataSource().remove(this)
-        oidcClient.configuration.eventCoordinator.sendEvent(CredentialDeletedEvent(this))
+        client.configuration.eventCoordinator.sendEvent(CredentialDeletedEvent(this))
     }
 
     /**
      * Attempt to refresh the [Token] associated with this [Credential].
      */
-    suspend fun refreshToken(): OidcClientResult<Token> {
+    suspend fun refreshToken(): OAuth2ClientResult<Token> {
         return refreshCoalescingOrchestrator.get()
     }
 
-    private suspend fun performRealRefresh(): OidcClientResult<Token> {
-        return oidcClient.refreshToken(token)
+    private suspend fun performRealRefresh(): OAuth2ClientResult<Token> {
+        return client.refreshToken(token)
     }
 
     /**
@@ -333,8 +333,8 @@ class Credential internal constructor(
      */
     suspend fun revokeToken(
         tokenType: RevokeTokenType
-    ): OidcClientResult<Unit> {
-        return oidcClient.revokeToken(tokenType, token)
+    ): OAuth2ClientResult<Unit> {
+        return client.revokeToken(tokenType, token)
     }
 
     /**
@@ -342,7 +342,7 @@ class Credential internal constructor(
      *
      * > Note: OIDC Logout terminology is nuanced, see [Logout Documentation](https://github.com/okta/okta-mobile-kotlin#logout) for additional details.
      */
-    suspend fun revokeAllTokens(): OidcClientResult<Unit> {
+    suspend fun revokeAllTokens(): OAuth2ClientResult<Unit> {
         val pairsToRevoke = mutableMapOf<RevokeTokenType, Token>()
 
         pairsToRevoke[RevokeTokenType.ACCESS_TOKEN] = token
@@ -353,7 +353,7 @@ class Credential internal constructor(
             val exceptionPairs = pairsToRevoke
                 .map { entry ->
                     async {
-                        (oidcClient.revokeToken(entry.key, entry.value) as? OidcClientResult.Error<Unit>)?.exception?.let {
+                        (client.revokeToken(entry.key, entry.value) as? OAuth2ClientResult.Error<Unit>)?.exception?.let {
                             entry.key to it
                         }
                     }
@@ -363,18 +363,18 @@ class Credential internal constructor(
                 .toMap()
 
             if (exceptionPairs.isEmpty()) {
-                OidcClientResult.Success(Unit)
+                OAuth2ClientResult.Success(Unit)
             } else {
-                OidcClientResult.Error(RevokeAllException(exceptionPairs))
+                OAuth2ClientResult.Error(RevokeAllException(exceptionPairs))
             }
         }
     }
 
     /**
-     * Returns the scopes associated with the associated [Token] if present, otherwise the default scopes associated with the [OidcClient].
+     * Returns the scopes associated with the associated [Token] if present, otherwise the default scopes associated with the [OAuth2Client].
      */
     fun scope(): String {
-        return token.scope ?: oidcClient.configuration.defaultScope
+        return token.scope ?: client.configuration.defaultScope
     }
 
     /**
@@ -386,7 +386,7 @@ class Credential internal constructor(
         val idToken = token.idToken ?: return null
         return try {
             val parser =
-                JwtParser(oidcClient.configuration.json, oidcClient.configuration.computeDispatcher)
+                JwtParser(client.configuration.json, client.configuration.computeDispatcher)
             parser.parse(idToken)
         } catch (e: Exception) {
             // The token was malformed.
@@ -408,7 +408,7 @@ class Credential internal constructor(
         val expiresIn = token.expiresIn
         try {
             val payload = idToken.deserializeClaims(TokenIssuedAtPayload.serializer())
-            if (payload.issueAt + expiresIn > oidcClient.configuration.clock.currentTimeEpochSecond()) {
+            if (payload.issueAt + expiresIn > client.configuration.clock.currentTimeEpochSecond()) {
                 return accessToken
             }
         } catch (e: Exception) {
@@ -427,7 +427,7 @@ class Credential internal constructor(
     suspend fun getValidAccessToken(): String? {
         getAccessTokenIfValid()?.let { return it }
 
-        return if (refreshToken() is OidcClientResult.Success) {
+        return if (refreshToken() is OAuth2ClientResult.Success) {
             getAccessTokenIfValid()
         } else {
             null
@@ -446,7 +446,7 @@ class Credential internal constructor(
     fun accessTokenInterceptor(): Interceptor {
         return AccessTokenInterceptor(
             ::getValidAccessToken,
-            oidcClient.configuration.eventCoordinator,
+            client.configuration.eventCoordinator,
             this
         )
     }

@@ -28,14 +28,14 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 
-class OidcClientIdTokenValidationFailureTest {
+class OAuth2ClientAccessTokenValidationFailureTest {
     private val mockPrefix = "client_test_responses"
 
-    @get:Rule val oktaRule = OktaRule(
-        idTokenValidator = { _, _, _ -> throw IllegalStateException("Failure!") }
-    )
+    @get:Rule val oktaRule = OktaRule(accessTokenValidator = { _, _, _ ->
+        throw IllegalStateException("Failure!")
+    })
 
-    @Test fun testRefreshTokenIdTokenValidationFailure(): Unit = runBlocking {
+    @Test fun testRefreshTokenAccessTokenValidationFailure(): Unit = runBlocking {
         oktaRule.enqueue(
             method("POST"),
             header("content-type", "application/x-www-form-urlencoded"),
@@ -44,8 +44,9 @@ class OidcClientIdTokenValidationFailureTest {
         ) { response ->
             response.testBodyFromFile("$mockPrefix/token.json")
         }
-        val result = oktaRule.createOidcClient().refreshToken(createToken(refreshToken = "ExampleRefreshToken"))
-        val exception = (result as OidcClientResult.Error<Token>).exception
+        val token = createToken(refreshToken = "ExampleRefreshToken")
+        val result = oktaRule.createOAuth2Client().refreshToken(token)
+        val exception = (result as OAuth2ClientResult.Error<Token>).exception
         assertThat(exception).isInstanceOf(IllegalStateException::class.java)
         assertThat(exception).hasMessageThat().isEqualTo("Failure!")
     }

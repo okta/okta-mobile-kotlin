@@ -20,7 +20,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.okta.authfoundation.client.OidcClientResult
+import com.okta.authfoundation.client.OAuth2ClientResult
 import com.okta.authfoundation.client.dto.OidcIntrospectInfo
 import com.okta.authfoundation.credential.Credential
 import com.okta.authfoundation.credential.RevokeTokenType
@@ -75,10 +75,10 @@ internal class DashboardViewModel(private val credentialTagNameValue: String?) :
     fun revoke(buttonId: Int, tokenType: RevokeTokenType) {
         performRequest(buttonId) { credential ->
             when (credential.revokeToken(tokenType)) {
-                is OidcClientResult.Error -> {
+                is OAuth2ClientResult.Error -> {
                     RequestState.Result("Failed to revoke token.")
                 }
-                is OidcClientResult.Success -> {
+                is OAuth2ClientResult.Success -> {
                     RequestState.Result("Token Revoked.")
                 }
             }
@@ -88,10 +88,10 @@ internal class DashboardViewModel(private val credentialTagNameValue: String?) :
     fun refresh(buttonId: Int) {
         performRequest(buttonId) { credential ->
             when (credential.refreshToken()) {
-                is OidcClientResult.Error -> {
+                is OAuth2ClientResult.Error -> {
                     RequestState.Result("Failed to refresh token.")
                 }
-                is OidcClientResult.Success -> {
+                is OAuth2ClientResult.Success -> {
                     _credentialLiveData.value = CredentialState.Loaded(credential) // Update the UI.
                     RequestState.Result("Token Refreshed.")
                 }
@@ -102,10 +102,10 @@ internal class DashboardViewModel(private val credentialTagNameValue: String?) :
     fun introspect(buttonId: Int, tokenType: TokenType) {
         performRequest(buttonId) { credential ->
             when (val result = credential.introspectToken(tokenType)) {
-                is OidcClientResult.Error -> {
+                is OAuth2ClientResult.Error -> {
                     RequestState.Result("Failed to introspect token.")
                 }
-                is OidcClientResult.Success -> {
+                is OAuth2ClientResult.Success -> {
                     val successResult = result.result
                     if (successResult is OidcIntrospectInfo.Active) {
                         RequestState.Result(successResult.deserializeClaims(JsonObject.serializer()).asMap().displayableKeyValues())
@@ -127,11 +127,11 @@ internal class DashboardViewModel(private val credentialTagNameValue: String?) :
                     idToken = idToken,
                 )
             ) {
-                is OidcClientResult.Error -> {
+                is OAuth2ClientResult.Error -> {
                     Timber.e(result.exception, "Failed to start logout flow.")
                     _requestStateLiveData.value = RequestState.Result("Logout failed.")
                 }
-                is OidcClientResult.Success -> {
+                is OAuth2ClientResult.Success -> {
                     credential.delete()
                     _requestStateLiveData.value = RequestState.Result("Logout successful!")
                 }
@@ -165,11 +165,11 @@ internal class DashboardViewModel(private val credentialTagNameValue: String?) :
 
     private suspend fun getUserInfo() {
         when (val userInfoResult = credential.getUserInfo()) {
-            is OidcClientResult.Error -> {
+            is OAuth2ClientResult.Error -> {
                 Timber.e(userInfoResult.exception, "Failed to fetch user info.")
                 _userInfoLiveData.postValue(emptyMap())
             }
-            is OidcClientResult.Success -> {
+            is OAuth2ClientResult.Success -> {
                 _userInfoLiveData.postValue(userInfoResult.result.deserializeClaims(JsonObject.serializer()).asMap())
             }
         }

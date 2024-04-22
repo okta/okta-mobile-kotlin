@@ -34,7 +34,7 @@ import kotlinx.serialization.encodeToString
 import org.junit.Rule
 import org.junit.Test
 
-class OidcClientDeviceSecretValidationFailureTest {
+class OAuth2ClientDeviceSecretValidationFailureTest {
     @get:Rule val oktaRule = OktaRule(deviceSecretValidator = { _, _, _ ->
         throw IllegalStateException("Failure!")
     })
@@ -42,7 +42,7 @@ class OidcClientDeviceSecretValidationFailureTest {
     @Test fun testRefreshTokenWithNoDeviceSecretPassesValidation(): Unit = runBlocking {
         mockkObject(Credential) {
             coEvery { Credential.credentialDataSource() } returns mockk(relaxed = true)
-            val client = oktaRule.createOidcClient()
+            val client = oktaRule.createOAuth2Client()
             oktaRule.enqueue(
                 method("POST"),
                 header("content-type", "application/x-www-form-urlencoded"),
@@ -61,12 +61,12 @@ class OidcClientDeviceSecretValidationFailureTest {
                 }
             }
             val result = client.refreshToken(createToken(refreshToken = "ExampleRefreshToken"))
-            assertThat(result).isInstanceOf(OidcClientResult.Success::class.java)
+            assertThat(result).isInstanceOf(OAuth2ClientResult.Success::class.java)
         }
     }
 
     @Test fun testRefreshTokenWithDeviceSecretFailsValidation(): Unit = runBlocking {
-        val client = oktaRule.createOidcClient()
+        val client = oktaRule.createOAuth2Client()
         oktaRule.enqueue(
             method("POST"),
             header("content-type", "application/x-www-form-urlencoded"),
@@ -82,7 +82,7 @@ class OidcClientDeviceSecretValidationFailureTest {
             }
         }
         val result = client.refreshToken(createToken(refreshToken = "ExampleRefreshToken"))
-        val exception = (result as OidcClientResult.Error<Token>).exception
+        val exception = (result as OAuth2ClientResult.Error<Token>).exception
         assertThat(exception).isInstanceOf(IllegalStateException::class.java)
         assertThat(exception).hasMessageThat().isEqualTo("Failure!")
     }

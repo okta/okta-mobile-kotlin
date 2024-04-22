@@ -95,7 +95,7 @@ public final class com/okta/authfoundation/claims/ClaimsProviderKt {
 }
 
 public abstract interface class com/okta/authfoundation/client/AccessTokenValidator {
-	public abstract fun validate (Lcom/okta/authfoundation/client/OidcClient;Ljava/lang/String;Lcom/okta/authfoundation/jwt/Jwt;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun validate (Lcom/okta/authfoundation/client/OAuth2Client;Ljava/lang/String;Lcom/okta/authfoundation/jwt/Jwt;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class com/okta/authfoundation/client/AccessTokenValidator$Error : java/lang/IllegalStateException {
@@ -108,7 +108,7 @@ public abstract interface class com/okta/authfoundation/client/Cache {
 }
 
 public abstract interface class com/okta/authfoundation/client/DeviceSecretValidator {
-	public abstract fun validate (Lcom/okta/authfoundation/client/OidcClient;Ljava/lang/String;Lcom/okta/authfoundation/jwt/Jwt;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun validate (Lcom/okta/authfoundation/client/OAuth2Client;Ljava/lang/String;Lcom/okta/authfoundation/jwt/Jwt;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class com/okta/authfoundation/client/DeviceSecretValidator$Error : java/lang/IllegalStateException {
@@ -116,7 +116,7 @@ public final class com/okta/authfoundation/client/DeviceSecretValidator$Error : 
 }
 
 public abstract interface class com/okta/authfoundation/client/IdTokenValidator {
-	public abstract fun validate (Lcom/okta/authfoundation/client/OidcClient;Lcom/okta/authfoundation/jwt/Jwt;Lcom/okta/authfoundation/client/IdTokenValidator$Parameters;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun validate (Lcom/okta/authfoundation/client/OAuth2Client;Lcom/okta/authfoundation/jwt/Jwt;Lcom/okta/authfoundation/client/IdTokenValidator$Parameters;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class com/okta/authfoundation/client/IdTokenValidator$Error : java/lang/IllegalStateException {
@@ -151,9 +151,9 @@ public final class com/okta/authfoundation/client/NoOpCache : com/okta/authfound
 	public fun set (Ljava/lang/String;Ljava/lang/String;)V
 }
 
-public final class com/okta/authfoundation/client/OidcClient {
-	public static final field Companion Lcom/okta/authfoundation/client/OidcClient$Companion;
-	public final fun endpointNotAvailableError ()Lcom/okta/authfoundation/client/OidcClientResult$Error;
+public final class com/okta/authfoundation/client/OAuth2Client {
+	public static final field Companion Lcom/okta/authfoundation/client/OAuth2Client$Companion;
+	public final fun endpointNotAvailableError ()Lcom/okta/authfoundation/client/OAuth2ClientResult$Error;
 	public final fun endpointsOrNull (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun getConfiguration ()Lcom/okta/authfoundation/client/OidcConfiguration;
 	public final fun getUserInfo (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -162,34 +162,34 @@ public final class com/okta/authfoundation/client/OidcClient {
 	public final fun refreshToken (Lcom/okta/authfoundation/credential/Token;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun revokeToken (Lcom/okta/authfoundation/credential/RevokeTokenType;Lcom/okta/authfoundation/credential/Token;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun tokenRequest (Lokhttp3/Request;Ljava/lang/String;Ljava/lang/Integer;Lcom/okta/authfoundation/credential/Token;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun tokenRequest$default (Lcom/okta/authfoundation/client/OidcClient;Lokhttp3/Request;Ljava/lang/String;Ljava/lang/Integer;Lcom/okta/authfoundation/credential/Token;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun tokenRequest$default (Lcom/okta/authfoundation/client/OAuth2Client;Lokhttp3/Request;Ljava/lang/String;Ljava/lang/Integer;Lcom/okta/authfoundation/credential/Token;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
-public final class com/okta/authfoundation/client/OidcClient$Companion {
-	public final fun create (Lcom/okta/authfoundation/client/OidcConfiguration;Lcom/okta/authfoundation/client/OidcEndpoints;)Lcom/okta/authfoundation/client/OidcClient;
-	public final fun createFromConfiguration (Lcom/okta/authfoundation/client/OidcConfiguration;)Lcom/okta/authfoundation/client/OidcClient;
-	public final fun getDefault ()Lcom/okta/authfoundation/client/OidcClient;
+public final class com/okta/authfoundation/client/OAuth2Client$Companion {
+	public final fun create (Lcom/okta/authfoundation/client/OidcConfiguration;Lcom/okta/authfoundation/client/OidcEndpoints;)Lcom/okta/authfoundation/client/OAuth2Client;
+	public final fun createFromConfiguration (Lcom/okta/authfoundation/client/OidcConfiguration;)Lcom/okta/authfoundation/client/OAuth2Client;
+	public final fun getDefault ()Lcom/okta/authfoundation/client/OAuth2Client;
 }
 
-public abstract class com/okta/authfoundation/client/OidcClientResult {
+public abstract class com/okta/authfoundation/client/OAuth2ClientResult {
 	public final fun getOrThrow ()Ljava/lang/Object;
 }
 
-public final class com/okta/authfoundation/client/OidcClientResult$Error : com/okta/authfoundation/client/OidcClientResult {
+public final class com/okta/authfoundation/client/OAuth2ClientResult$Error : com/okta/authfoundation/client/OAuth2ClientResult {
 	public fun <init> (Ljava/lang/Exception;)V
 	public final fun getException ()Ljava/lang/Exception;
 }
 
-public final class com/okta/authfoundation/client/OidcClientResult$Error$HttpResponseException : java/lang/Exception {
+public final class com/okta/authfoundation/client/OAuth2ClientResult$Error$HttpResponseException : java/lang/Exception {
 	public final fun getError ()Ljava/lang/String;
 	public final fun getErrorDescription ()Ljava/lang/String;
 	public final fun getResponseCode ()I
 }
 
-public final class com/okta/authfoundation/client/OidcClientResult$Error$OidcEndpointsNotAvailableException : java/lang/Exception {
+public final class com/okta/authfoundation/client/OAuth2ClientResult$Error$OidcEndpointsNotAvailableException : java/lang/Exception {
 }
 
-public final class com/okta/authfoundation/client/OidcClientResult$Success : com/okta/authfoundation/client/OidcClientResult {
+public final class com/okta/authfoundation/client/OAuth2ClientResult$Success : com/okta/authfoundation/client/OAuth2ClientResult {
 	public fun <init> (Ljava/lang/Object;)V
 	public final fun getResult ()Ljava/lang/Object;
 }
@@ -286,9 +286,9 @@ public final class com/okta/authfoundation/client/events/ValidateIdTokenEvent {
 }
 
 public final class com/okta/authfoundation/client/internal/NetworkUtilsKt {
-	public static final fun performRequest (Lcom/okta/authfoundation/client/OidcClient;Lkotlinx/serialization/DeserializationStrategy;Lokhttp3/Request;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static final fun performRequest (Lcom/okta/authfoundation/client/OidcClient;Lokhttp3/Request;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun performRequest$default (Lcom/okta/authfoundation/client/OidcClient;Lkotlinx/serialization/DeserializationStrategy;Lokhttp3/Request;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final fun performRequest (Lcom/okta/authfoundation/client/OAuth2Client;Lkotlinx/serialization/DeserializationStrategy;Lokhttp3/Request;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun performRequest (Lcom/okta/authfoundation/client/OAuth2Client;Lokhttp3/Request;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun performRequest$default (Lcom/okta/authfoundation/client/OAuth2Client;Lkotlinx/serialization/DeserializationStrategy;Lokhttp3/Request;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public final class com/okta/authfoundation/client/internal/SdkVersionsRegistry {

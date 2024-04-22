@@ -19,7 +19,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.okta.authfoundation.client.OidcClientResult
+import com.okta.authfoundation.client.OAuth2ClientResult
 import com.okta.authfoundation.credential.Credential
 import com.okta.oauth2.ResourceOwnerFlow
 import kotlinx.coroutines.launch
@@ -35,11 +35,11 @@ internal class ResourceOwnerViewModel : ViewModel() {
         viewModelScope.launch {
             val resourceOwnerFlow = ResourceOwnerFlow()
             when (val result = resourceOwnerFlow.start(username, password)) {
-                is OidcClientResult.Error -> {
+                is OAuth2ClientResult.Error -> {
                     Timber.e(result.exception, "Failed to start resource owner flow.")
                     _state.value = ResourceOwnerState.Error("An error occurred.")
                 }
-                is OidcClientResult.Success -> {
+                is OAuth2ClientResult.Success -> {
                     val credential = Credential.store(token = result.result)
                     Credential.setDefaultCredential(credential)
                     _state.value = ResourceOwnerState.Token

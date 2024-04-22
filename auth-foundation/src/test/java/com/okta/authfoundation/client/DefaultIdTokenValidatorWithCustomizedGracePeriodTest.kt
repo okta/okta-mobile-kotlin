@@ -37,7 +37,7 @@ class DefaultIdTokenValidatorWithCustomizedGracePeriodTest {
     }
 
     @Test fun testValidIdToken(): Unit = runBlocking {
-        val client = oktaRule.createOidcClient(oktaRule.createEndpoints("https://example-test.okta.com".toHttpUrl().newBuilder()))
+        val client = oktaRule.createOAuth2Client(oktaRule.createEndpoints("https://example-test.okta.com".toHttpUrl().newBuilder()))
         val idTokenClaims = IdTokenClaims()
         val idToken = client.createJwtBuilder().createJwt(claims = idTokenClaims)
         idTokenValidator.validate(client, idToken, IdTokenValidator.Parameters(null, null))
@@ -62,7 +62,7 @@ class DefaultIdTokenValidatorWithCustomizedGracePeriodTest {
         algorithm: String = "RS256",
     ) {
         try {
-            val client = oktaRule.createOidcClient(
+            val client = oktaRule.createOAuth2Client(
                 oktaRule.createEndpoints("$issuerPrefix://example-test.okta.com".toHttpUrl().newBuilder())
             )
             runBlocking {

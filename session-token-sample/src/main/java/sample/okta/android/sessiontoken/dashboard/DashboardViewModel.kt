@@ -19,7 +19,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.okta.authfoundation.client.OidcClientResult
+import com.okta.authfoundation.client.OAuth2ClientResult
 import com.okta.authfoundation.credential.Credential
 import com.okta.authfoundation.credential.RevokeTokenType
 import kotlinx.coroutines.Job
@@ -58,10 +58,10 @@ internal class DashboardViewModel : ViewModel() {
     fun revoke(buttonId: Int, tokenType: RevokeTokenType) {
         performRequest(buttonId) { credential ->
             when (credential.revokeToken(tokenType)) {
-                is OidcClientResult.Error -> {
+                is OAuth2ClientResult.Error -> {
                     RequestState.Result("Failed to revoke token.")
                 }
-                is OidcClientResult.Success -> {
+                is OAuth2ClientResult.Success -> {
                     RequestState.Result("Token Revoked.")
                 }
             }
@@ -71,10 +71,10 @@ internal class DashboardViewModel : ViewModel() {
     fun refresh(buttonId: Int) {
         performRequest(buttonId) { credential ->
             when (credential.refreshToken()) {
-                is OidcClientResult.Error -> {
+                is OAuth2ClientResult.Error -> {
                     RequestState.Result("Failed to refresh token.")
                 }
-                is OidcClientResult.Success -> {
+                is OAuth2ClientResult.Success -> {
                     _credentialLiveData.value = CredentialState.Loaded(credential) // Update the UI.
                     RequestState.Result("Token Refreshed.")
                 }
@@ -100,11 +100,11 @@ internal class DashboardViewModel : ViewModel() {
 
     private suspend fun getUserInfo() {
         when (val userInfoResult = credential.getUserInfo()) {
-            is OidcClientResult.Error -> {
+            is OAuth2ClientResult.Error -> {
                 Timber.e(userInfoResult.exception, "Failed to fetch user info.")
                 _userInfoLiveData.postValue(emptyMap())
             }
-            is OidcClientResult.Success -> {
+            is OAuth2ClientResult.Success -> {
                 _userInfoLiveData.postValue(userInfoResult.result.deserializeClaims(JsonObject.serializer()).asMap())
             }
         }

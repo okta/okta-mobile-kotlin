@@ -15,8 +15,8 @@
  */
 package com.okta.oauth2
 
-import com.okta.authfoundation.client.OidcClient
-import com.okta.authfoundation.client.OidcClientResult
+import com.okta.authfoundation.client.OAuth2Client
+import com.okta.authfoundation.client.OAuth2ClientResult
 import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.client.internal.SdkVersionsRegistry
 import com.okta.authfoundation.client.internal.performRequest
@@ -37,7 +37,7 @@ import okhttp3.Request
  * Upon visiting that URL and entering in the code, the user is prompted to sign in using their standard credentials. Upon completing authentication, the device automatically signs the user in, without any direct interaction on the user's part.
  */
 class DeviceAuthorizationFlow(
-    private val oidcClient: OidcClient,
+    private val client: OAuth2Client,
 ) {
     companion object {
         init {
@@ -48,14 +48,14 @@ class DeviceAuthorizationFlow(
     /**
      * Initializes a device authorization grant flow.
      */
-    constructor() : this(OidcClient.default)
+    constructor() : this(OAuth2Client.default)
 
     /**
      * Initializes a device authorization grant flow using the [OidcConfiguration].
      *
      * @param oidcConfiguration the [OidcConfiguration] specifying the authorization servers.
      */
-    constructor(oidcConfiguration: OidcConfiguration) : this(OidcClient.createFromConfiguration(oidcConfiguration))
+    constructor(oidcConfiguration: OidcConfiguration) : this(OAuth2Client.createFromConfiguration(oidcConfiguration))
 
     /**
      * A model representing the context and current state for an authorization session.
@@ -119,13 +119,13 @@ class DeviceAuthorizationFlow(
      * @param extraRequestParameters the extra key value pairs to send to the device authorize endpoint.
      *  See [Device Authorize Documentation](https://developer.okta.com/docs/reference/api/oidc/#device-authorize) for parameter
      *  options.
-     * @param scope the scopes to request during sign in. Defaults to the configured [OidcClient] [OidcConfiguration.defaultScope].
+     * @param scope the scopes to request during sign in. Defaults to the configured [OAuth2Client] [OidcConfiguration.defaultScope].
      */
     suspend fun start(
         extraRequestParameters: Map<String, String> = emptyMap(),
-        scope: String = oidcClient.configuration.defaultScope,
-    ): OidcClientResult<Context> {
-        val endpoint = oidcClient.endpointsOrNull()?.deviceAuthorizationEndpoint ?: return oidcClient.endpointNotAvailableError()
+        scope: String = client.configuration.defaultScope,
+    ): OAuth2ClientResult<Context> {
+        val endpoint = client.endpointsOrNull()?.deviceAuthorizationEndpoint ?: return client.endpointNotAvailableError()
 
         val formBodyBuilder = FormBody.Builder()
 
@@ -134,7 +134,7 @@ class DeviceAuthorizationFlow(
         }
 
         formBodyBuilder
-            .add("client_id", oidcClient.configuration.clientId)
+            .add("client_id", client.configuration.clientId)
             .add("scope", scope)
 
         val request = Request.Builder()
@@ -142,7 +142,7 @@ class DeviceAuthorizationFlow(
             .url(endpoint)
             .build()
 
-        return oidcClient.performRequest(SerializableResponse.serializer(), request) { serializableResponse ->
+        return client.performRequest(SerializableResponse.serializer(), request) { serializableResponse ->
             serializableResponse.asFlowContext()
         }
     }
@@ -152,11 +152,11 @@ class DeviceAuthorizationFlow(
      *
      * @param flowContext the [Context] created from a [DeviceAuthorizationFlow.start] call.
      */
-    suspend fun resume(flowContext: Context): OidcClientResult<Token> {
-        val endpoints = oidcClient.endpointsOrNull() ?: return oidcClient.endpointNotAvailableError()
+    suspend fun resume(flowContext: Context): OAuth2ClientResult<Token> {
+        val endpoints = client.endpointsOrNull() ?: return client.endpointNotAvailableError()
 
         val formBodyBuilder = FormBody.Builder()
-            .add("client_id", oidcClient.configuration.clientId)
+            .add("client_id", client.configuration.clientId)
             .add("device_code", flowContext.deviceCode)
             .add("grant_type", "urn:ietf:params:oauth:grant-type:device_code")
 
@@ -174,9 +174,9 @@ class DeviceAuthorizationFlow(
             delayFunction(interval.toLong() * 1000L)
 
             // https://datatracker.ietf.org/doc/html/rfc8628#section-3.5
-            when (val tokenResult = oidcClient.tokenRequest(request)) {
-                is OidcClientResult.Error -> {
-                    val error = (tokenResult.exception as? OidcClientResult.Error.HttpResponseException)?.error
+            when (val tokenResult = client.tokenRequest(request)) {
+                is OAuth2ClientResult.Error -> {
+                    val error = (tokenResult.exception as? OAuth2ClientResult.Error.HttpResponseException)?.error
                     if (error == "authorization_pending") {
                         // Do another loop in the while, we're polling waiting for the user to authorize.
                         continue
@@ -189,11 +189,11 @@ class DeviceAuthorizationFlow(
                         return tokenResult
                     }
                 }
-                is OidcClientResult.Success -> {
+                is OAuth2ClientResult.Success -> {
                     return tokenResult
                 }
             }
         } while (timeLeft > 0)
-        return OidcClientResult.Error(TimeoutException())
+        return OAuth2ClientResult.Error(TimeoutException())
     }
 }

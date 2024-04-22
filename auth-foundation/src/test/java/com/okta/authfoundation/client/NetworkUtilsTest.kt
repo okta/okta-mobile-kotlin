@@ -76,10 +76,10 @@ class NetworkingTest {
             .url(oktaRule.baseUrl.newBuilder().addPathSegments("test").build())
             .build()
 
-        val result = oktaRule.createOidcClient().performRequest(JsonObject.serializer(), request) {
+        val result = oktaRule.createOAuth2Client().performRequest(JsonObject.serializer(), request) {
             it["foo"]!!.jsonPrimitive.content
         }
-        assertThat((result as OidcClientResult.Success<String>).result).isEqualTo("bar")
+        assertThat((result as OAuth2ClientResult.Success<String>).result).isEqualTo("bar")
     }
 
     @Test fun testPerformRequestErrorStatusCodesCallMapper(): Unit = runTest {
@@ -94,10 +94,10 @@ class NetworkingTest {
             .url(oktaRule.baseUrl.newBuilder().addPathSegments("test").build())
             .build()
 
-        val result = oktaRule.createOidcClient().performRequest(JsonObject.serializer(), request, { true }) {
+        val result = oktaRule.createOAuth2Client().performRequest(JsonObject.serializer(), request, { true }) {
             it["foo"]!!.jsonPrimitive.content
         }
-        assertThat((result as OidcClientResult.Success<String>).result).isEqualTo("bar")
+        assertThat((result as OAuth2ClientResult.Success<String>).result).isEqualTo("bar")
     }
 
     @Test fun testPerformRequestExceptionInMapper(): Unit = runTest {
@@ -111,10 +111,10 @@ class NetworkingTest {
             .url(oktaRule.baseUrl.newBuilder().addPathSegments("test").build())
             .build()
 
-        val result = oktaRule.createOidcClient().performRequest<JsonObject, String>(JsonObject.serializer(), request, { true }) {
+        val result = oktaRule.createOAuth2Client().performRequest<JsonObject, String>(JsonObject.serializer(), request, { true }) {
             throw IllegalArgumentException("Test Exception From Mapper")
         }
-        val message = (result as OidcClientResult.Error<String>).exception.message
+        val message = (result as OAuth2ClientResult.Error<String>).exception.message
         assertThat(message).isEqualTo("Test Exception From Mapper")
     }
 
@@ -127,10 +127,10 @@ class NetworkingTest {
             .url(oktaRule.baseUrl.newBuilder().addPathSegments("test").build())
             .build()
 
-        val result = oktaRule.createOidcClient().performRequest(JsonObject.serializer(), request, { true }) {
+        val result = oktaRule.createOAuth2Client().performRequest(JsonObject.serializer(), request, { true }) {
             it["foo"]!!.jsonPrimitive.content
         }
-        val message = (result as OidcClientResult.Error<String>).exception.message
+        val message = (result as OAuth2ClientResult.Error<String>).exception.message
         assertThat(message).contains("EOF")
     }
 
@@ -146,12 +146,12 @@ class NetworkingTest {
             .url(oktaRule.baseUrl.newBuilder().addPathSegments("test").build())
             .build()
 
-        val result = oktaRule.createOidcClient().performRequest(JsonObject.serializer(), request) {
+        val result = oktaRule.createOAuth2Client().performRequest(JsonObject.serializer(), request) {
             it["foo"]!!.jsonPrimitive.content
         }
-        val exception = (result as OidcClientResult.Error<String>).exception
-        assertThat(exception).isInstanceOf(OidcClientResult.Error.HttpResponseException::class.java)
-        val httpResponseException = exception as OidcClientResult.Error.HttpResponseException
+        val exception = (result as OAuth2ClientResult.Error<String>).exception
+        assertThat(exception).isInstanceOf(OAuth2ClientResult.Error.HttpResponseException::class.java)
+        val httpResponseException = exception as OAuth2ClientResult.Error.HttpResponseException
         assertThat(httpResponseException.responseCode).isEqualTo(401)
         assertThat(httpResponseException.error).isNull()
         assertThat(httpResponseException.errorDescription).isNull()
@@ -169,12 +169,12 @@ class NetworkingTest {
             .url(oktaRule.baseUrl.newBuilder().addPathSegments("test").build())
             .build()
 
-        val result = oktaRule.createOidcClient().performRequest(JsonObject.serializer(), request) {
+        val result = oktaRule.createOAuth2Client().performRequest(JsonObject.serializer(), request) {
             it["foo"]!!.jsonPrimitive.content
         }
-        val exception = (result as OidcClientResult.Error<String>).exception
-        assertThat(exception).isInstanceOf(OidcClientResult.Error.HttpResponseException::class.java)
-        val httpResponseException = exception as OidcClientResult.Error.HttpResponseException
+        val exception = (result as OAuth2ClientResult.Error<String>).exception
+        assertThat(exception).isInstanceOf(OAuth2ClientResult.Error.HttpResponseException::class.java)
+        val httpResponseException = exception as OAuth2ClientResult.Error.HttpResponseException
         assertThat(httpResponseException.responseCode).isEqualTo(401)
         assertThat(httpResponseException.error).isEqualTo("bar")
         assertThat(httpResponseException.errorDescription).isEqualTo("baz")
@@ -191,8 +191,8 @@ class NetworkingTest {
             .url(oktaRule.baseUrl.newBuilder().addPathSegments("test").build())
             .build()
 
-        val result = oktaRule.createOidcClient().performRequestNonJson(request)
-        val result2 = (result as OidcClientResult.Success<Unit>).result
+        val result = oktaRule.createOAuth2Client().performRequestNonJson(request)
+        val result2 = (result as OAuth2ClientResult.Success<Unit>).result
         assertThat(result2).isEqualTo(Unit)
     }
 
@@ -207,10 +207,10 @@ class NetworkingTest {
             .url(oktaRule.baseUrl.newBuilder().addPathSegments("test").build())
             .build()
 
-        val result = oktaRule.createOidcClient().performRequest(JsonObject.serializer(), request) {
+        val result = oktaRule.createOAuth2Client().performRequest(JsonObject.serializer(), request) {
             it["foo"]!!.jsonPrimitive.content
         }
-        val exception = (result as OidcClientResult.Error<String>).exception
+        val exception = (result as OAuth2ClientResult.Error<String>).exception
         assertThat(exception).isInstanceOf(SerializationException::class.java)
     }
 
@@ -227,11 +227,11 @@ class NetworkingTest {
             .url(oktaRule.baseUrl.newBuilder().addPathSegments("test").build())
             .build()
 
-        val result = oktaRule.createOidcClient().performRequest(JsonObject.serializer(), request) {
+        val result = oktaRule.createOAuth2Client().performRequest(JsonObject.serializer(), request) {
             it["foo"]!!.jsonPrimitive.content
         }
-        val exception = (result as OidcClientResult.Error<String>).exception
-        assertThat(exception).isInstanceOf(OidcClientResult.Error.HttpResponseException::class.java)
+        val exception = (result as OAuth2ClientResult.Error<String>).exception
+        assertThat(exception).isInstanceOf(OAuth2ClientResult.Error.HttpResponseException::class.java)
         assertThat(exception).hasMessageThat().isEqualTo("HTTP Error: status code - 401")
     }
 
@@ -240,7 +240,7 @@ class NetworkingTest {
         val builder = oktaRule.okHttpClient.newBuilder()
         builder.addInterceptor(interceptor)
         val configuration = oktaRule.createConfiguration(builder.build())
-        val oidcClient = OidcClient.create(configuration, oktaRule.createEndpoints())
+        val OAuth2Client = OAuth2Client.create(configuration, oktaRule.createEndpoints())
         oktaRule.enqueue(
             path("/test"),
         ) { response ->
@@ -251,10 +251,10 @@ class NetworkingTest {
             .url(oktaRule.baseUrl.newBuilder().addPathSegments("test").build())
             .build()
 
-        val result = oidcClient.performRequest(JsonObject.serializer(), request) {
+        val result = OAuth2Client.performRequest(JsonObject.serializer(), request) {
             it["foo"]!!.jsonPrimitive.content
         }
-        assertThat((result as OidcClientResult.Success<String>).result).isEqualTo("bar")
+        assertThat((result as OAuth2ClientResult.Success<String>).result).isEqualTo("bar")
         assertThat(interceptor.request?.tag(Credential::class.java)).isNull()
     }
 
@@ -268,7 +268,7 @@ class NetworkingTest {
         val job = async(Dispatchers.IO) {
             startedCountDownLatch.countDown()
             assertThat(cancelledCountDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
-            oktaRule.createOidcClient().performRequest(JsonObject.serializer(), request) {
+            oktaRule.createOAuth2Client().performRequest(JsonObject.serializer(), request) {
                 throw IllegalStateException("We got a response.")
             }
         }
@@ -288,7 +288,7 @@ class NetworkingTest {
         val job = async(Dispatchers.IO) {
             startedCountDownLatch.countDown()
             assertThat(cancelledCountDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
-            oktaRule.createOidcClient().performRequest(request)
+            oktaRule.createOAuth2Client().performRequest(request)
             throw IllegalStateException("We got a response.")
         }
         assertThat(startedCountDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
@@ -310,8 +310,8 @@ class NetworkingTest {
             .url(oktaRule.baseUrl.newBuilder().addPathSegments("test").build())
             .build()
 
-        val response = oktaRule.createOidcClient().performRequest(request)
-        val successResponse = response as OidcClientResult.Success<Response>
+        val response = oktaRule.createOAuth2Client().performRequest(request)
+        val successResponse = response as OAuth2ClientResult.Success<Response>
         assertThat(successResponse.result.code).isEqualTo(302)
         assertThat(successResponse.result.header("location")).isEqualTo("example:/callback")
     }
@@ -325,8 +325,8 @@ class NetworkingTest {
             .url(oktaRule.baseUrl.newBuilder().addPathSegments("test").build())
             .build()
 
-        val result = oktaRule.createOidcClient().performRequest(request)
-        val message = (result as OidcClientResult.Error<Response>).exception.message
+        val result = oktaRule.createOAuth2Client().performRequest(request)
+        val message = (result as OAuth2ClientResult.Error<Response>).exception.message
         assertThat(message).contains("Failed to connect to")
     }
 
@@ -344,10 +344,10 @@ class NetworkingTest {
             .addHeader("accept", "application/ion+json; okta-version=1.0.0")
             .build()
 
-        val result = oktaRule.createOidcClient().performRequest(JsonObject.serializer(), request) {
+        val result = oktaRule.createOAuth2Client().performRequest(JsonObject.serializer(), request) {
             it["foo"]!!.jsonPrimitive.content
         }
-        assertThat((result as OidcClientResult.Success<String>).result).isEqualTo("bar")
+        assertThat((result as OAuth2ClientResult.Success<String>).result).isEqualTo("bar")
     }
 
     @Test fun testPerformRequestWithNon429ErrorHasNoRetry(): Unit = runTest {
@@ -362,13 +362,13 @@ class NetworkingTest {
             .url(oktaRule.baseUrl.newBuilder().addPathSegments("test").build())
             .build()
 
-        val result = oktaRule.createOidcClient().performRequest(JsonObject.serializer(), request) {
+        val result = oktaRule.createOAuth2Client().performRequest(JsonObject.serializer(), request) {
             it["foo"]!!.jsonPrimitive.content
         }
 
-        val exception = (result as OidcClientResult.Error<String>).exception
-        assertThat(exception).isInstanceOf(OidcClientResult.Error.HttpResponseException::class.java)
-        val httpResponseException = exception as OidcClientResult.Error.HttpResponseException
+        val exception = (result as OAuth2ClientResult.Error<String>).exception
+        assertThat(exception).isInstanceOf(OAuth2ClientResult.Error.HttpResponseException::class.java)
+        val httpResponseException = exception as OAuth2ClientResult.Error.HttpResponseException
         assertThat(httpResponseException.responseCode).isEqualTo(401)
 
         assertThat(oktaRule.mockWebServerDispatcher.numberRemainingInQueue()).isEqualTo(1)
@@ -385,10 +385,10 @@ class NetworkingTest {
             .url(oktaRule.baseUrl.newBuilder().addPathSegments("test").build())
             .build()
 
-        val result = oktaRule.createOidcClient().performRequest(JsonObject.serializer(), request, shouldAttemptJsonDeserialization = { true }) {
+        val result = oktaRule.createOAuth2Client().performRequest(JsonObject.serializer(), request, shouldAttemptJsonDeserialization = { true }) {
             it["foo"]!!.jsonPrimitive.content
         }
-        assertThat((result as OidcClientResult.Success<String>).result).isEqualTo("bar")
+        assertThat((result as OAuth2ClientResult.Success<String>).result).isEqualTo("bar")
     }
 
     @Test fun testPerformRequestWithNon429ErrorAndRateLimitHeadersDoesNotRetry() = runTest {
@@ -404,13 +404,13 @@ class NetworkingTest {
             .url(oktaRule.baseUrl.newBuilder().addPathSegments("test").build())
             .build()
 
-        val result = oktaRule.createOidcClient().performRequest(JsonObject.serializer(), request) {
+        val result = oktaRule.createOAuth2Client().performRequest(JsonObject.serializer(), request) {
             it["foo"]!!.jsonPrimitive.content
         }
 
-        val exception = (result as OidcClientResult.Error<String>).exception
-        assertThat(exception).isInstanceOf(OidcClientResult.Error.HttpResponseException::class.java)
-        val httpResponseException = exception as OidcClientResult.Error.HttpResponseException
+        val exception = (result as OAuth2ClientResult.Error<String>).exception
+        assertThat(exception).isInstanceOf(OAuth2ClientResult.Error.HttpResponseException::class.java)
+        val httpResponseException = exception as OAuth2ClientResult.Error.HttpResponseException
         assertThat(httpResponseException.responseCode).isEqualTo(401)
 
         assertThat(oktaRule.mockWebServerDispatcher.numberRemainingInQueue()).isEqualTo(1)
@@ -429,10 +429,10 @@ class NetworkingTest {
             .url(oktaRule.baseUrl.newBuilder().addPathSegments("test").build())
             .build()
 
-        val result = oktaRule.createOidcClient().performRequest(JsonObject.serializer(), request, { true }) {
+        val result = oktaRule.createOAuth2Client().performRequest(JsonObject.serializer(), request, { true }) {
             it["foo"]!!.jsonPrimitive.content
         }
-        val message = (result as OidcClientResult.Error<String>).exception.message
+        val message = (result as OAuth2ClientResult.Error<String>).exception.message
         assertThat(message).contains("EOF")
 
         assertThat(oktaRule.mockWebServerDispatcher.numberRemainingInQueue()).isEqualTo(1)
@@ -453,11 +453,11 @@ class NetworkingTest {
             .url(oktaRule.baseUrl.newBuilder().addPathSegments("test").build())
             .build()
 
-        val result = oktaRule.createOidcClient().performRequest(JsonObject.serializer(), request) {
+        val result = oktaRule.createOAuth2Client().performRequest(JsonObject.serializer(), request) {
             it["foo"]!!.jsonPrimitive.content
         }
 
-        assertThat((result as OidcClientResult.Success<String>).result).isEqualTo("bar")
+        assertThat((result as OAuth2ClientResult.Success<String>).result).isEqualTo("bar")
     }
 
     @Test fun testPerformRequestRetryOn429FollowedByDifferentError(): Unit = runTest {
@@ -475,13 +475,13 @@ class NetworkingTest {
             .url(oktaRule.baseUrl.newBuilder().addPathSegments("test").build())
             .build()
 
-        val result = oktaRule.createOidcClient().performRequest(JsonObject.serializer(), request) {
+        val result = oktaRule.createOAuth2Client().performRequest(JsonObject.serializer(), request) {
             it["foo"]!!.jsonPrimitive.content
         }
 
-        val exception = (result as OidcClientResult.Error<String>).exception
-        assertThat(exception).isInstanceOf(OidcClientResult.Error.HttpResponseException::class.java)
-        val httpResponseException = exception as OidcClientResult.Error.HttpResponseException
+        val exception = (result as OAuth2ClientResult.Error<String>).exception
+        assertThat(exception).isInstanceOf(OAuth2ClientResult.Error.HttpResponseException::class.java)
+        val httpResponseException = exception as OAuth2ClientResult.Error.HttpResponseException
         assertThat(httpResponseException.responseCode).isEqualTo(404)
     }
 
@@ -503,11 +503,11 @@ class NetworkingTest {
             .url(oktaRule.baseUrl.newBuilder().addPathSegments("test").build())
             .build()
 
-        val result = oktaRule.createOidcClient().performRequest(JsonObject.serializer(), request) {
+        val result = oktaRule.createOAuth2Client().performRequest(JsonObject.serializer(), request) {
             it["foo"]!!.jsonPrimitive.content
         }
 
-        assertThat((result as OidcClientResult.Success<String>).result).isEqualTo("bar")
+        assertThat((result as OAuth2ClientResult.Success<String>).result).isEqualTo("bar")
     }
 
     @Test fun testPerformRequestRetryDoesNotContainRetryForHeaderIfRequestIdMissing(): Unit = runTest {
@@ -530,11 +530,11 @@ class NetworkingTest {
             .url(oktaRule.baseUrl.newBuilder().addPathSegments("test").build())
             .build()
 
-        val result = oktaRule.createOidcClient().performRequest(JsonObject.serializer(), request) {
+        val result = oktaRule.createOAuth2Client().performRequest(JsonObject.serializer(), request) {
             it["foo"]!!.jsonPrimitive.content
         }
 
-        assertThat((result as OidcClientResult.Success<String>).result).isEqualTo("bar")
+        assertThat((result as OAuth2ClientResult.Success<String>).result).isEqualTo("bar")
     }
 
     @Test fun testPerformRequestRetryContainsRetryCountHeader(): Unit = runTest {
@@ -570,11 +570,11 @@ class NetworkingTest {
             .url(oktaRule.baseUrl.newBuilder().addPathSegments("test").build())
             .build()
 
-        val result = oktaRule.createOidcClient().performRequest(JsonObject.serializer(), request) {
+        val result = oktaRule.createOAuth2Client().performRequest(JsonObject.serializer(), request) {
             it["foo"]!!.jsonPrimitive.content
         }
 
-        assertThat((result as OidcClientResult.Success<String>).result).isEqualTo("bar")
+        assertThat((result as OAuth2ClientResult.Success<String>).result).isEqualTo("bar")
     }
 
     @Test fun testPerformRequestRetryAfterMinimumDelay(): Unit = runTest {
@@ -599,12 +599,12 @@ class NetworkingTest {
             .build()
 
         val startTime = currentTime
-        val result = oktaRule.createOidcClient().performRequest(JsonObject.serializer(), request) {
+        val result = oktaRule.createOAuth2Client().performRequest(JsonObject.serializer(), request) {
             it["foo"]!!.jsonPrimitive.content
         }
         val elapsedTime = currentTime - startTime
 
-        assertThat((result as OidcClientResult.Success<String>).result).isEqualTo("bar")
+        assertThat((result as OAuth2ClientResult.Success<String>).result).isEqualTo("bar")
         assertThat(elapsedTime).isEqualTo(minDelaySeconds.seconds.inWholeMilliseconds)
     }
 
@@ -628,12 +628,12 @@ class NetworkingTest {
             .build()
 
         val startTime = currentTime
-        val result = oktaRule.createOidcClient().performRequest(JsonObject.serializer(), request) {
+        val result = oktaRule.createOAuth2Client().performRequest(JsonObject.serializer(), request) {
             it["foo"]!!.jsonPrimitive.content
         }
         val elapsedTime = currentTime - startTime
 
-        assertThat((result as OidcClientResult.Success<String>).result).isEqualTo("bar")
+        assertThat((result as OAuth2ClientResult.Success<String>).result).isEqualTo("bar")
         assertThat(elapsedTime).isEqualTo(rateLimitResetAfterSeconds.seconds.inWholeMilliseconds)
     }
 
@@ -654,13 +654,13 @@ class NetworkingTest {
             .url(oktaRule.baseUrl.newBuilder().addPathSegments("test").build())
             .build()
 
-        val result = oktaRule.createOidcClient().performRequest(JsonObject.serializer(), request) {
+        val result = oktaRule.createOAuth2Client().performRequest(JsonObject.serializer(), request) {
             it["foo"]!!.jsonPrimitive.content
         }
 
-        val exception = (result as OidcClientResult.Error<String>).exception
-        assertThat(exception).isInstanceOf(OidcClientResult.Error.HttpResponseException::class.java)
-        val httpResponseException = exception as OidcClientResult.Error.HttpResponseException
+        val exception = (result as OAuth2ClientResult.Error<String>).exception
+        assertThat(exception).isInstanceOf(OAuth2ClientResult.Error.HttpResponseException::class.java)
+        val httpResponseException = exception as OAuth2ClientResult.Error.HttpResponseException
         assertThat(httpResponseException.responseCode).isEqualTo(429)
     }
 
@@ -685,7 +685,7 @@ class NetworkingTest {
             .build()
 
         val job = launch(Dispatchers.IO) {
-            oktaRule.createOidcClient().performRequest(JsonObject.serializer(), request) {
+            oktaRule.createOAuth2Client().performRequest(JsonObject.serializer(), request) {
                 throw IllegalStateException("We got a response.")
             }
         }
@@ -708,13 +708,13 @@ class NetworkingTest {
             .url(oktaRule.baseUrl.newBuilder().addPathSegments("test").build())
             .build()
 
-        val result = oktaRule.createOidcClient().performRequest(JsonObject.serializer(), request) {
+        val result = oktaRule.createOAuth2Client().performRequest(JsonObject.serializer(), request) {
             it["foo"]!!.jsonPrimitive.content
         }
 
-        val exception = (result as OidcClientResult.Error<String>).exception
-        assertThat(exception).isInstanceOf(OidcClientResult.Error.HttpResponseException::class.java)
-        val httpResponseException = exception as OidcClientResult.Error.HttpResponseException
+        val exception = (result as OAuth2ClientResult.Error<String>).exception
+        assertThat(exception).isInstanceOf(OAuth2ClientResult.Error.HttpResponseException::class.java)
+        val httpResponseException = exception as OAuth2ClientResult.Error.HttpResponseException
         assertThat(httpResponseException.responseCode).isEqualTo(429)
 
         assertThat(oktaRule.mockWebServerDispatcher.numberRemainingInQueue()).isEqualTo(1)
@@ -735,13 +735,13 @@ class NetworkingTest {
             .url(oktaRule.baseUrl.newBuilder().addPathSegments("test").build())
             .build()
 
-        val result = oktaRule.createOidcClient().performRequest(JsonObject.serializer(), request) {
+        val result = oktaRule.createOAuth2Client().performRequest(JsonObject.serializer(), request) {
             it["foo"]!!.jsonPrimitive.content
         }
 
-        val exception = (result as OidcClientResult.Error<String>).exception
-        assertThat(exception).isInstanceOf(OidcClientResult.Error.HttpResponseException::class.java)
-        val httpResponseException = exception as OidcClientResult.Error.HttpResponseException
+        val exception = (result as OAuth2ClientResult.Error<String>).exception
+        assertThat(exception).isInstanceOf(OAuth2ClientResult.Error.HttpResponseException::class.java)
+        val httpResponseException = exception as OAuth2ClientResult.Error.HttpResponseException
         assertThat(httpResponseException.responseCode).isEqualTo(429)
 
         assertThat(oktaRule.mockWebServerDispatcher.numberRemainingInQueue()).isEqualTo(1)
@@ -770,7 +770,7 @@ class NetworkingTest {
         val request = Request.Builder()
             .url(oktaRule.baseUrl.newBuilder().addPathSegments("test").build())
             .build()
-        oktaRule.createOidcClient().performRequest(JsonObject.serializer(), request) {
+        oktaRule.createOAuth2Client().performRequest(JsonObject.serializer(), request) {
             it["foo"]!!.jsonPrimitive.content
         }
 
@@ -807,7 +807,7 @@ class NetworkingTest {
             .build()
 
         val startTime = currentTime
-        oktaRule.createOidcClient().performRequest(JsonObject.serializer(), request) {
+        oktaRule.createOAuth2Client().performRequest(JsonObject.serializer(), request) {
             it["foo"]!!.jsonPrimitive.content
         }
         val elapsedTime = currentTime - startTime
@@ -843,7 +843,7 @@ class NetworkingTest {
             .url(oktaRule.baseUrl.newBuilder().addPathSegments("test").build())
             .build()
 
-        oktaRule.createOidcClient().performRequest(JsonObject.serializer(), request) {
+        oktaRule.createOAuth2Client().performRequest(JsonObject.serializer(), request) {
             it["foo"]!!.jsonPrimitive.content
         }
 
@@ -874,7 +874,7 @@ class NetworkingTest {
             .url(oktaRule.baseUrl.newBuilder().addPathSegments("test").build())
             .build()
 
-        val response = oktaRule.createOidcClient().performRequest(request)
+        val response = oktaRule.createOAuth2Client().performRequest(request)
 
         assertThat(events.size).isEqualTo(4)
         val lastRetryEvent = events.removeLast()
@@ -921,9 +921,9 @@ class NetworkingTest {
             .url(oktaRule.baseUrl.newBuilder().addPathSegments("test").build())
             .build()
 
-        val oidcClient = OidcClient.create(oidcConfiguration, oktaRule.createEndpoints())
+        val OAuth2Client = OAuth2Client.create(oidcConfiguration, oktaRule.createEndpoints())
 
-        oidcClient.performRequest(String.serializer(), request) { /** Ignore response */ }
+        OAuth2Client.performRequest(String.serializer(), request) { /** Ignore response */ }
         assertThat(lastCalledInterceptor).isEqualTo("customInterceptor")
     }
 

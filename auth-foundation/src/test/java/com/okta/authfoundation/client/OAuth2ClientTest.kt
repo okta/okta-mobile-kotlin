@@ -49,7 +49,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
-class OidcClientTest {
+class OAuth2ClientTest {
     private val mockPrefix = "client_test_responses"
 
     @get:Rule
@@ -74,8 +74,8 @@ class OidcClientTest {
         ) { response ->
             response.testBodyFromFile("$mockPrefix/endpoints.json")
         }
-        val client = OidcClient.createFromConfiguration(oktaRule.configuration)
-        val endpoints = (client.endpoints.get() as OidcClientResult.Success<OidcEndpoints>).result
+        val client = OAuth2Client.createFromConfiguration(oktaRule.configuration)
+        val endpoints = (client.endpoints.get() as OAuth2ClientResult.Success<OidcEndpoints>).result
         assertThat(endpoints.issuer).isEqualTo("https://example.okta.com/oauth2/default".toHttpUrl())
         assertThat(endpoints.authorizationEndpoint).isEqualTo("https://example.okta.com/oauth2/default/v1/authorize".toHttpUrl())
         assertThat(endpoints.tokenEndpoint).isEqualTo("https://example.okta.com/oauth2/default/v1/token".toHttpUrl())
@@ -91,9 +91,9 @@ class OidcClientTest {
         oktaRule.enqueue(path("/.well-known/openid-configuration")) { response ->
             response.setResponseCode(503)
         }
-        val client = OidcClient.createFromConfiguration(oktaRule.configuration)
-        val errorResult = (client.endpoints.get() as OidcClientResult.Error<OidcEndpoints>)
-        assertThat(errorResult.exception).isInstanceOf(OidcClientResult.Error.HttpResponseException::class.java)
+        val client = OAuth2Client.createFromConfiguration(oktaRule.configuration)
+        val errorResult = (client.endpoints.get() as OAuth2ClientResult.Error<OidcEndpoints>)
+        assertThat(errorResult.exception).isInstanceOf(OAuth2ClientResult.Error.HttpResponseException::class.java)
         assertThat(errorResult.exception).hasMessageThat()
             .isEqualTo("HTTP Error: status code - 503")
     }
@@ -107,8 +107,8 @@ class OidcClientTest {
         ) { response ->
             response.testBodyFromFile("$mockPrefix/userinfo.json")
         }
-        val result = oktaRule.createOidcClient().getUserInfo("ExampleToken!")
-        val userInfo = (result as OidcClientResult.Success<OidcUserInfo>).result
+        val result = oktaRule.createOAuth2Client().getUserInfo("ExampleToken!")
+        val userInfo = (result as OAuth2ClientResult.Success<OidcUserInfo>).result
 
         @Serializable
         class ExampleUserInfo(
@@ -126,8 +126,8 @@ class OidcClientTest {
         ) { response ->
             response.setBody("""{"name":"Jay Newstrom"}""")
         }
-        val result = oktaRule.createOidcClient().getUserInfo("ExampleToken!")
-        val exception = (result as OidcClientResult.Error<OidcUserInfo>).exception
+        val result = oktaRule.createOAuth2Client().getUserInfo("ExampleToken!")
+        val exception = (result as OAuth2ClientResult.Error<OidcUserInfo>).exception
 
         assertThat(exception).isInstanceOf(IllegalArgumentException::class.java)
         assertThat(exception).hasMessageThat()
@@ -141,9 +141,9 @@ class OidcClientTest {
         ) { response ->
             response.setResponseCode(503)
         }
-        val result = oktaRule.createOidcClient().getUserInfo("ExampleToken!")
-        val errorResult = (result as OidcClientResult.Error<OidcUserInfo>)
-        assertThat(errorResult.exception).isInstanceOf(OidcClientResult.Error.HttpResponseException::class.java)
+        val result = oktaRule.createOAuth2Client().getUserInfo("ExampleToken!")
+        val errorResult = (result as OAuth2ClientResult.Error<OidcUserInfo>)
+        assertThat(errorResult.exception).isInstanceOf(OAuth2ClientResult.Error.HttpResponseException::class.java)
         assertThat(errorResult.exception).hasMessageThat()
             .isEqualTo("HTTP Error: status code - 503")
     }
@@ -158,9 +158,9 @@ class OidcClientTest {
         ) { response ->
             response.testBodyFromFile("$mockPrefix/token.json")
         }
-        val result = oktaRule.createOidcClient()
+        val result = oktaRule.createOAuth2Client()
             .refreshToken(createToken(refreshToken = "ExampleRefreshToken"))
-        val token = (result as OidcClientResult.Success<Token>).result
+        val token = (result as OAuth2ClientResult.Success<Token>).result
         assertThat(token.tokenType).isEqualTo("Bearer")
         assertThat(token.expiresIn).isEqualTo(3600)
         assertThat(token.accessToken).isEqualTo("exampleAccessToken")
@@ -181,10 +181,10 @@ class OidcClientTest {
         ) { response ->
             response.testBodyFromFile("$mockPrefix/token.json")
         }
-        val result = oktaRule.createOidcClient()
+        val result = oktaRule.createOAuth2Client()
             .refreshToken(createToken(refreshToken = "ExampleRefreshToken"))
-        assertThat(result).isInstanceOf(OidcClientResult.Success::class.java)
-        val successResult = result as OidcClientResult.Success<Token>
+        assertThat(result).isInstanceOf(OAuth2ClientResult.Success::class.java)
+        val successResult = result as OAuth2ClientResult.Success<Token>
         assertThat(oktaRule.eventHandler).hasSize(1)
         val event = oktaRule.eventHandler[0]
         assertThat(event).isInstanceOf(TokenCreatedEvent::class.java)
@@ -201,9 +201,9 @@ class OidcClientTest {
             response.setResponseCode(503)
         }
         val result =
-            oktaRule.createOidcClient().refreshToken(createToken(refreshToken = "ExampleToken!"))
-        val errorResult = (result as OidcClientResult.Error<Token>)
-        assertThat(errorResult.exception).isInstanceOf(OidcClientResult.Error.HttpResponseException::class.java)
+            oktaRule.createOAuth2Client().refreshToken(createToken(refreshToken = "ExampleToken!"))
+        val errorResult = (result as OAuth2ClientResult.Error<Token>)
+        assertThat(errorResult.exception).isInstanceOf(OAuth2ClientResult.Error.HttpResponseException::class.java)
         assertThat(errorResult.exception).hasMessageThat()
             .isEqualTo("HTTP Error: status code - 503")
     }
@@ -218,11 +218,11 @@ class OidcClientTest {
         ) { response ->
             response.setResponseCode(200)
         }
-        val result = oktaRule.createOidcClient().revokeToken(
+        val result = oktaRule.createOAuth2Client().revokeToken(
             RevokeTokenType.REFRESH_TOKEN,
             createToken(refreshToken = "ExampleRefreshToken")
         )
-        assertThat(result).isInstanceOf(OidcClientResult.Success::class.java)
+        assertThat(result).isInstanceOf(OAuth2ClientResult.Success::class.java)
     }
 
     @Test
@@ -232,12 +232,12 @@ class OidcClientTest {
         ) { response ->
             response.setResponseCode(503)
         }
-        val result = oktaRule.createOidcClient().revokeToken(
+        val result = oktaRule.createOAuth2Client().revokeToken(
             RevokeTokenType.REFRESH_TOKEN,
             createToken(refreshToken = "ExampleRefreshToken")
         )
-        val errorResult = (result as OidcClientResult.Error<Unit>)
-        assertThat(errorResult.exception).isInstanceOf(OidcClientResult.Error.HttpResponseException::class.java)
+        val errorResult = (result as OAuth2ClientResult.Error<Unit>)
+        assertThat(errorResult.exception).isInstanceOf(OAuth2ClientResult.Error.HttpResponseException::class.java)
         assertThat(errorResult.exception).hasMessageThat()
             .isEqualTo("HTTP Error: status code - 503")
     }
@@ -252,11 +252,11 @@ class OidcClientTest {
         ) { response ->
             response.testBodyFromFile("$mockPrefix/introspectActive.json")
         }
-        val result = oktaRule.createOidcClient().introspectToken(
+        val result = oktaRule.createOAuth2Client().introspectToken(
             TokenType.ACCESS_TOKEN,
             createToken(accessToken = "ExampleAccessToken")
         )
-        val successResult = (result as OidcClientResult.Success<OidcIntrospectInfo>).result
+        val successResult = (result as OAuth2ClientResult.Success<OidcIntrospectInfo>).result
         val activeResult = successResult as OidcIntrospectInfo.Active
         assertThat(successResult.active).isTrue()
         assertThat(activeResult.deserializeClaims(IntrospectExamplePayload.serializer()).username).isEqualTo(
@@ -274,11 +274,11 @@ class OidcClientTest {
         ) { response ->
             response.testBodyFromFile("$mockPrefix/introspectInactive.json")
         }
-        val result = oktaRule.createOidcClient().introspectToken(
+        val result = oktaRule.createOAuth2Client().introspectToken(
             TokenType.ACCESS_TOKEN,
             createToken(accessToken = "ExampleAccessToken")
         )
-        val successResult = (result as OidcClientResult.Success<OidcIntrospectInfo>).result
+        val successResult = (result as OAuth2ClientResult.Success<OidcIntrospectInfo>).result
         assertThat(successResult.active).isFalse()
         assertThat(successResult).isInstanceOf(OidcIntrospectInfo.Inactive::class.java)
     }
@@ -293,9 +293,9 @@ class OidcClientTest {
         ) { response ->
             response.testBodyFromFile("$mockPrefix/introspectActive.json")
         }
-        val result = oktaRule.createOidcClient()
+        val result = oktaRule.createOAuth2Client()
             .introspectToken(TokenType.REFRESH_TOKEN, createToken(refreshToken = "ExampleRefreshToken"))
-        val successResult = (result as OidcClientResult.Success<OidcIntrospectInfo>).result
+        val successResult = (result as OAuth2ClientResult.Success<OidcIntrospectInfo>).result
         val activeResult = successResult as OidcIntrospectInfo.Active
         assertThat(successResult.active).isTrue()
         assertThat(activeResult.deserializeClaims(IntrospectExamplePayload.serializer()).username).isEqualTo(
@@ -314,8 +314,8 @@ class OidcClientTest {
             response.testBodyFromFile("$mockPrefix/introspectActive.json")
         }
         val result =
-            oktaRule.createOidcClient().introspectToken(TokenType.ID_TOKEN, createToken(idToken = "ExampleIdToken"))
-        val successResult = (result as OidcClientResult.Success<OidcIntrospectInfo>).result
+            oktaRule.createOAuth2Client().introspectToken(TokenType.ID_TOKEN, createToken(idToken = "ExampleIdToken"))
+        val successResult = (result as OAuth2ClientResult.Success<OidcIntrospectInfo>).result
         val activeResult = successResult as OidcIntrospectInfo.Active
         assertThat(successResult.active).isTrue()
         assertThat(activeResult.deserializeClaims(IntrospectExamplePayload.serializer()).username).isEqualTo(
@@ -333,9 +333,9 @@ class OidcClientTest {
         ) { response ->
             response.testBodyFromFile("$mockPrefix/introspectActive.json")
         }
-        val result = oktaRule.createOidcClient()
+        val result = oktaRule.createOAuth2Client()
             .introspectToken(TokenType.DEVICE_SECRET, createToken(deviceSecret = "ExampleDeviceSecret"))
-        val successResult = (result as OidcClientResult.Success<OidcIntrospectInfo>).result
+        val successResult = (result as OAuth2ClientResult.Success<OidcIntrospectInfo>).result
         val activeResult = successResult as OidcIntrospectInfo.Active
         assertThat(successResult.active).isTrue()
         assertThat(activeResult.deserializeClaims(IntrospectExamplePayload.serializer()).username).isEqualTo(
@@ -353,9 +353,9 @@ class OidcClientTest {
         ) { response ->
             response.setBody("""{"missing":true}""")
         }
-        val result = oktaRule.createOidcClient()
+        val result = oktaRule.createOAuth2Client()
             .introspectToken(TokenType.DEVICE_SECRET, createToken(deviceSecret = "ExampleDeviceSecret"))
-        assertThat(result).isInstanceOf(OidcClientResult.Error::class.java)
+        assertThat(result).isInstanceOf(OAuth2ClientResult.Error::class.java)
     }
 
     @Test
@@ -366,9 +366,9 @@ class OidcClientTest {
             response.setResponseCode(503)
         }
         val result =
-            oktaRule.createOidcClient().introspectToken(TokenType.ID_TOKEN, createToken(idToken = "ExampleIdToken"))
-        val errorResult = (result as OidcClientResult.Error<OidcIntrospectInfo>)
-        assertThat(errorResult.exception).isInstanceOf(OidcClientResult.Error.HttpResponseException::class.java)
+            oktaRule.createOAuth2Client().introspectToken(TokenType.ID_TOKEN, createToken(idToken = "ExampleIdToken"))
+        val errorResult = (result as OAuth2ClientResult.Error<OidcIntrospectInfo>)
+        assertThat(errorResult.exception).isInstanceOf(OAuth2ClientResult.Error.HttpResponseException::class.java)
         assertThat(errorResult.exception).hasMessageThat()
             .isEqualTo("HTTP Error: status code - 503")
     }
@@ -382,8 +382,8 @@ class OidcClientTest {
         ) { response ->
             response.testBodyFromFile("$mockPrefix/jwks.json")
         }
-        val result = oktaRule.createOidcClient(oktaRule.createEndpoints(includeJwks = true)).jwks()
-        val jwks = (result as OidcClientResult.Success<Jwks>).result
+        val result = oktaRule.createOAuth2Client(oktaRule.createEndpoints(includeJwks = true)).jwks()
+        val jwks = (result as OAuth2ClientResult.Success<Jwks>).result
         assertThat(jwks.keys).hasSize(1)
         val key = jwks.keys[0]
         assertThat(key.algorithm).isEqualTo("RS256")
@@ -401,12 +401,12 @@ class OidcClientTest {
         ) { response ->
             response.testBodyFromFile("$mockPrefix/jwks.json")
         }
-        val client = oktaRule.createOidcClient(oktaRule.createEndpoints(includeJwks = true))
+        val client = oktaRule.createOAuth2Client(oktaRule.createEndpoints(includeJwks = true))
         val result = client.jwks()
-        assertThat(result).isInstanceOf(OidcClientResult.Success::class.java)
+        assertThat(result).isInstanceOf(OAuth2ClientResult.Success::class.java)
         val result2 =
             client.jwks() // This would fail, since we remove all network requests once it's consumed.
-        assertThat(result2).isInstanceOf(OidcClientResult.Success::class.java)
+        assertThat(result2).isInstanceOf(OAuth2ClientResult.Success::class.java)
         assertThat(result).isSameInstanceAs(result2)
     }
 
@@ -422,16 +422,16 @@ class OidcClientTest {
         ) { response ->
             response.testBodyFromFile("$mockPrefix/jwks.json")
         }
-        val client = oktaRule.createOidcClient(oktaRule.createEndpoints(includeJwks = true))
+        val client = oktaRule.createOAuth2Client(oktaRule.createEndpoints(includeJwks = true))
         val result = client.jwks()
-        assertThat(result).isInstanceOf(OidcClientResult.Error::class.java)
+        assertThat(result).isInstanceOf(OAuth2ClientResult.Error::class.java)
         val result2 = client.jwks()
-        assertThat(result2).isInstanceOf(OidcClientResult.Success::class.java)
+        assertThat(result2).isInstanceOf(OAuth2ClientResult.Success::class.java)
     }
 
     @Test
     fun testRefreshTokenValidationWithJwks(): Unit = runBlocking {
-        val client = oktaRule.createOidcClient(oktaRule.createEndpoints(includeJwks = true))
+        val client = oktaRule.createOAuth2Client(oktaRule.createEndpoints(includeJwks = true))
         oktaRule.enqueue(
             path("/oauth2/default/v1/keys"),
         ) { response ->
@@ -450,12 +450,12 @@ class OidcClientTest {
             }
         }
         val result = client.refreshToken(createToken(refreshToken = "ExampleRefreshToken"))
-        assertThat(result).isInstanceOf(OidcClientResult.Success::class.java)
+        assertThat(result).isInstanceOf(OAuth2ClientResult.Success::class.java)
     }
 
     @Test
     fun testRefreshTokenValidationFailsWithJwksError(): Unit = runBlocking {
-        val client = oktaRule.createOidcClient(oktaRule.createEndpoints(includeJwks = true))
+        val client = oktaRule.createOAuth2Client(oktaRule.createEndpoints(includeJwks = true))
         oktaRule.enqueue(
             path("/oauth2/default/v1/keys"),
         ) { response ->
@@ -468,17 +468,17 @@ class OidcClientTest {
             response.testBodyFromFile("$mockPrefix/token.json")
         }
         val result = client.refreshToken(createToken(refreshToken = "ExampleRefreshToken"))
-        assertThat(result).isInstanceOf(OidcClientResult.Error::class.java)
-        val exception = (result as OidcClientResult.Error<Token>).exception
+        assertThat(result).isInstanceOf(OAuth2ClientResult.Error::class.java)
+        val exception = (result as OAuth2ClientResult.Error<Token>).exception
         assertThat(exception).hasMessageThat().isEqualTo("HTTP Error: status code - 503")
-        assertThat(exception).isInstanceOf(OidcClientResult.Error.HttpResponseException::class.java)
-        val httpException = exception as OidcClientResult.Error.HttpResponseException
+        assertThat(exception).isInstanceOf(OAuth2ClientResult.Error.HttpResponseException::class.java)
+        val httpException = exception as OAuth2ClientResult.Error.HttpResponseException
         assertThat(httpException.responseCode).isEqualTo(503)
     }
 
     @Test
     fun testRefreshTokenValidationFailsWithInvalidSignature(): Unit = runBlocking {
-        val client = oktaRule.createOidcClient(oktaRule.createEndpoints(includeJwks = true))
+        val client = oktaRule.createOAuth2Client(oktaRule.createEndpoints(includeJwks = true))
         oktaRule.enqueue(
             path("/oauth2/default/v1/keys"),
         ) { response ->
@@ -497,8 +497,8 @@ class OidcClientTest {
             }
         }
         val result = client.refreshToken(createToken(refreshToken = "ExampleRefreshToken"))
-        assertThat(result).isInstanceOf(OidcClientResult.Error::class.java)
-        val exception = (result as OidcClientResult.Error<Token>).exception
+        assertThat(result).isInstanceOf(OAuth2ClientResult.Error::class.java)
+        val exception = (result as OAuth2ClientResult.Error<Token>).exception
         assertThat(exception).hasMessageThat().isEqualTo("Invalid id_token signature")
         assertThat(exception).isInstanceOf(IdTokenValidator.Error::class.java)
         val idTokenValidatorError = exception as IdTokenValidator.Error

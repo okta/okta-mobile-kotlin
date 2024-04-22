@@ -46,56 +46,56 @@ import java.util.UUID
  *
  * [Okta Developer Docs](https://developer.okta.com/docs/reference/api/oidc)
  */
-class OidcClient private constructor(
+class OAuth2Client private constructor(
     @property:InternalAuthFoundationApi val configuration: OidcConfiguration,
-    internal val endpoints: CoalescingOrchestrator<OidcClientResult<OidcEndpoints>>,
-    jwks: CoalescingOrchestrator<OidcClientResult<Jwks>>? = null
+    internal val endpoints: CoalescingOrchestrator<OAuth2ClientResult<OidcEndpoints>>,
+    jwks: CoalescingOrchestrator<OAuth2ClientResult<Jwks>>? = null
 ) {
     companion object {
         /**
-         * Create an [OidcClient], using the discovery url to create the [OidcEndpoints].
+         * Create an [OAuth2Client], using the discovery url to create the [OidcEndpoints].
          *
          * @param configuration the [OidcConfiguration] detailing the settings to be used when communicating with the Authorization
          *  server, as well as with the rest of the SDK.
          */
         fun createFromConfiguration(
             configuration: OidcConfiguration
-        ): OidcClient {
-            return OidcClient(
+        ): OAuth2Client {
+            return OAuth2Client(
                 configuration = configuration,
                 endpoints = CoalescingOrchestrator(
                     factory = {
                         EndpointsFactory.get(configuration)
                     },
                     keepDataInMemory = { result ->
-                        result is OidcClientResult.Success
+                        result is OAuth2ClientResult.Success
                     }
                 ),
             )
         }
 
         @InternalAuthFoundationApi
-        fun create(configuration: OidcConfiguration, endpoints: OidcEndpoints): OidcClient {
-            return OidcClient(
+        fun create(configuration: OidcConfiguration, endpoints: OidcEndpoints): OAuth2Client {
+            return OAuth2Client(
                 configuration = configuration,
                 endpoints = CoalescingOrchestrator(
-                    factory = { OidcClientResult.Success(endpoints) },
+                    factory = { OAuth2ClientResult.Success(endpoints) },
                     keepDataInMemory = { true },
                 ),
             )
         }
 
-        val default: OidcClient by lazy { createFromConfiguration(OidcConfiguration.default) }
+        val default: OAuth2Client by lazy { createFromConfiguration(OidcConfiguration.default) }
     }
 
-    private val jwks: CoalescingOrchestrator<OidcClientResult<Jwks>> = jwks ?: jwksCoalescingOrchestrator()
+    private val jwks: CoalescingOrchestrator<OAuth2ClientResult<Jwks>> = jwks ?: jwksCoalescingOrchestrator()
 
     /**
      * Performs the OIDC User Info call, which returns claims associated with the supplied `accessToken`.
      *
      * @param accessToken the access token used for authorization to the Authorization Server
      */
-    suspend fun getUserInfo(accessToken: String): OidcClientResult<OidcUserInfo> {
+    suspend fun getUserInfo(accessToken: String): OAuth2ClientResult<OidcUserInfo> {
         val endpoint = endpointsOrNull()?.userInfoEndpoint ?: return endpointNotAvailableError()
 
         val request = Request.Builder()
@@ -119,11 +119,11 @@ class OidcClient private constructor(
      */
     suspend fun refreshToken(
         token: Token,
-    ): OidcClientResult<Token> {
+    ): OAuth2ClientResult<Token> {
         val endpoints = endpointsOrNull() ?: return endpointNotAvailableError()
 
         val refreshToken = token.getTokenOfType(TokenType.REFRESH_TOKEN).getOrElse { throwable ->
-            return OidcClientResult.Error(throwable as Exception)
+            return OAuth2ClientResult.Error(throwable as Exception)
         }
 
         val formBody = FormBody.Builder()
@@ -148,11 +148,11 @@ class OidcClient private constructor(
      * @param revokeTokenType the [RevokeTokenType] to revoke.
      * @param token the token to attempt to revoke.
      */
-    suspend fun revokeToken(revokeTokenType: RevokeTokenType, token: Token): OidcClientResult<Unit> {
+    suspend fun revokeToken(revokeTokenType: RevokeTokenType, token: Token): OAuth2ClientResult<Unit> {
         val endpoint = endpointsOrNull()?.revocationEndpoint ?: return endpointNotAvailableError()
 
         val tokenString = token.getTokenOfType(revokeTokenType.toTokenType()).getOrElse { throwable ->
-            return OidcClientResult.Error(throwable as Exception)
+            return OAuth2ClientResult.Error(throwable as Exception)
         }
 
         val formBody = FormBody.Builder()
@@ -177,11 +177,11 @@ class OidcClient private constructor(
     suspend fun introspectToken(
         tokenType: TokenType,
         token: Token,
-    ): OidcClientResult<OidcIntrospectInfo> {
+    ): OAuth2ClientResult<OidcIntrospectInfo> {
         val introspectEndpoint = endpointsOrNull()?.introspectionEndpoint ?: return endpointNotAvailableError()
 
         val tokenString = token.getTokenOfType(tokenType).getOrElse { throwable ->
-            return OidcClientResult.Error(throwable as Exception)
+            return OAuth2ClientResult.Error(throwable as Exception)
         }
 
         val formBody = FormBody.Builder()
@@ -203,22 +203,22 @@ class OidcClient private constructor(
     /**
      * Performs a call to the Authorization Server to fetch [Jwks].
      */
-    suspend fun jwks(): OidcClientResult<Jwks> {
+    suspend fun jwks(): OAuth2ClientResult<Jwks> {
         return jwks.get()
     }
 
-    private fun jwksCoalescingOrchestrator(): CoalescingOrchestrator<OidcClientResult<Jwks>> {
+    private fun jwksCoalescingOrchestrator(): CoalescingOrchestrator<OAuth2ClientResult<Jwks>> {
         return CoalescingOrchestrator(
             factory = {
                 actualJwks()
             },
             keepDataInMemory = { result ->
-                result is OidcClientResult.Success
+                result is OAuth2ClientResult.Success
             },
         )
     }
 
-    private suspend fun actualJwks(): OidcClientResult<Jwks> {
+    private suspend fun actualJwks(): OAuth2ClientResult<Jwks> {
         val endpoint = endpointsOrNull()?.jwksUri ?: return endpointNotAvailableError()
 
         val url = endpoint.newBuilder()
@@ -237,18 +237,18 @@ class OidcClient private constructor(
     @InternalAuthFoundationApi
     suspend fun endpointsOrNull(): OidcEndpoints? {
         return when (val result = endpoints.get()) {
-            is OidcClientResult.Error -> {
+            is OAuth2ClientResult.Error -> {
                 null
             }
-            is OidcClientResult.Success -> {
+            is OAuth2ClientResult.Success -> {
                 result.result
             }
         }
     }
 
     @InternalAuthFoundationApi
-    fun <T> endpointNotAvailableError(): OidcClientResult.Error<T> {
-        return OidcClientResult.Error(OidcClientResult.Error.OidcEndpointsNotAvailableException())
+    fun <T> endpointNotAvailableError(): OAuth2ClientResult.Error<T> {
+        return OAuth2ClientResult.Error(OAuth2ClientResult.Error.OidcEndpointsNotAvailableException())
     }
 
     @InternalAuthFoundationApi
@@ -257,7 +257,7 @@ class OidcClient private constructor(
         nonce: String? = null,
         maxAge: Int? = null,
         requestToken: Token? = null
-    ): OidcClientResult<Token> {
+    ): OAuth2ClientResult<Token> {
         return coroutineScope {
             val isRefreshRequest = requestToken != null
             val tokenId = requestToken?.id ?: UUID.randomUUID().toString()
@@ -271,17 +271,17 @@ class OidcClient private constructor(
                 jwks()
             }
             val tokenResult = tokenDeferred.await()
-            if (tokenResult is OidcClientResult.Success) {
+            if (tokenResult is OAuth2ClientResult.Success) {
                 val token = tokenResult.result
 
                 try {
-                    TokenValidator(this@OidcClient, token, nonce, maxAge, jwksDeferred.await()).validate()
+                    TokenValidator(this@OAuth2Client, token, nonce, maxAge, jwksDeferred.await()).validate()
                     configuration.eventCoordinator.sendEvent(TokenCreatedEvent(token))
                     if (isRefreshRequest) {
                         Credential.credentialDataSource().replaceToken(token)
                     }
                 } catch (e: Exception) {
-                    return@coroutineScope OidcClientResult.Error(e)
+                    return@coroutineScope OAuth2ClientResult.Error(e)
                 }
             }
             return@coroutineScope tokenResult

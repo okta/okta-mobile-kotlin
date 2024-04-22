@@ -90,7 +90,7 @@ internal class EndpointsFactoryTest {
         ) { response ->
             response.setBody("""{"invalid"}""")
         }
-        val result = EndpointsFactory.get(oktaRule.createConfiguration(cache = InMemoryCache())) as OidcClientResult.Error<OidcEndpoints>
+        val result = EndpointsFactory.get(oktaRule.createConfiguration(cache = InMemoryCache())) as OAuth2ClientResult.Error<OidcEndpoints>
         assertThat(result.exception).hasMessageThat().startsWith("Unexpected JSON token at offset 10")
     }
 
@@ -102,7 +102,7 @@ internal class EndpointsFactoryTest {
             response.setResponseCode(500)
         }
         val cache = InMemoryCache()
-        val result = EndpointsFactory.get(oktaRule.createConfiguration(cache = cache)) as OidcClientResult.Error<OidcEndpoints>
+        val result = EndpointsFactory.get(oktaRule.createConfiguration(cache = cache)) as OAuth2ClientResult.Error<OidcEndpoints>
         assertThat(result.exception).hasMessageThat().startsWith("HTTP Error: status code - 500")
 
         oktaRule.enqueue(
@@ -115,8 +115,8 @@ internal class EndpointsFactoryTest {
     }
 }
 
-private fun OidcClientResult<OidcEndpoints>.assertValid() {
-    val endpoints = (this as OidcClientResult.Success<OidcEndpoints>).result
+private fun OAuth2ClientResult<OidcEndpoints>.assertValid() {
+    val endpoints = (this as OAuth2ClientResult.Success<OidcEndpoints>).result
     assertThat(endpoints.issuer).isEqualTo("https://example.okta.com/oauth2/default".toHttpUrl())
     assertThat(endpoints.authorizationEndpoint).isEqualTo("https://example.okta.com/oauth2/default/v1/authorize".toHttpUrl())
     assertThat(endpoints.tokenEndpoint).isEqualTo("https://example.okta.com/oauth2/default/v1/token".toHttpUrl())

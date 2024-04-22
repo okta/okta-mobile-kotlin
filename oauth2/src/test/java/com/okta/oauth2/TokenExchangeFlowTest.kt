@@ -16,7 +16,7 @@
 package com.okta.oauth2
 
 import com.google.common.truth.Truth.assertThat
-import com.okta.authfoundation.client.OidcClientResult
+import com.okta.authfoundation.client.OAuth2ClientResult
 import com.okta.authfoundation.credential.Token
 import com.okta.testhelpers.OktaRule
 import com.okta.testhelpers.RequestMatchers.body
@@ -35,9 +35,9 @@ class TokenExchangeFlowTest {
         }
         val flow = TokenExchangeFlow(oktaRule.configuration)
         val result = flow.start("foo", "bar")
-        assertThat(result).isInstanceOf(OidcClientResult.Error::class.java)
-        val errorResult = result as OidcClientResult.Error<Token>
-        assertThat(errorResult.exception).isInstanceOf(OidcClientResult.Error.OidcEndpointsNotAvailableException::class.java)
+        assertThat(result).isInstanceOf(OAuth2ClientResult.Error::class.java)
+        val errorResult = result as OAuth2ClientResult.Error<Token>
+        assertThat(errorResult.exception).isInstanceOf(OAuth2ClientResult.Error.OidcEndpointsNotAvailableException::class.java)
         assertThat(errorResult.exception).hasMessageThat().isEqualTo("OIDC Endpoints not available.")
     }
 
@@ -51,8 +51,8 @@ class TokenExchangeFlowTest {
         }
 
         val flow = TokenExchangeFlow()
-        val result = flow.start("foo", "bar") as OidcClientResult.Error<Token>
-        assertThat(result.exception).isInstanceOf(OidcClientResult.Error.HttpResponseException::class.java)
+        val result = flow.start("foo", "bar") as OAuth2ClientResult.Error<Token>
+        assertThat(result.exception).isInstanceOf(OAuth2ClientResult.Error.HttpResponseException::class.java)
         assertThat(result.exception).hasMessageThat().isEqualTo("HTTP Error: status code - 503")
     }
 
@@ -77,7 +77,7 @@ class TokenExchangeFlowTest {
         }
 
         val flow = TokenExchangeFlow()
-        val result = flow.start("foo", "bar") as OidcClientResult.Success<Token>
+        val result = flow.start("foo", "bar") as OAuth2ClientResult.Success<Token>
         assertThat(result.result.accessToken).isEqualTo("exampleAccessToken")
         assertThat(result.result.issuedTokenType).isEqualTo("urn:ietf:params:oauth:token-type:access_token")
     }
@@ -103,7 +103,7 @@ class TokenExchangeFlowTest {
         }
 
         val flow = TokenExchangeFlow()
-        val result = flow.start("foo", "bar", "non_default_audience", scope = "openid profile custom_for_test") as OidcClientResult.Success<Token>
+        val result = flow.start("foo", "bar", "non_default_audience", scope = "openid profile custom_for_test") as OAuth2ClientResult.Success<Token>
         assertThat(result.result.accessToken).isEqualTo("exampleAccessToken")
         assertThat(result.result.issuedTokenType).isEqualTo("urn:ietf:params:oauth:token-type:access_token")
     }

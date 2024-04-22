@@ -16,7 +16,7 @@
 package com.okta.oauth2
 
 import com.google.common.truth.Truth.assertThat
-import com.okta.authfoundation.client.OidcClientResult
+import com.okta.authfoundation.client.OAuth2ClientResult
 import com.okta.authfoundation.credential.Token
 import com.okta.testhelpers.OktaRule
 import com.okta.testhelpers.RequestMatchers.bodyPart
@@ -66,7 +66,7 @@ internal class SessionTokenFlowTest {
         }
         val sessionTokenFlow = SessionTokenFlow()
         val result = sessionTokenFlow.start("exampleSessionToken", "exampleRedirect:/callback")
-        val token = (result as OidcClientResult.Success<Token>).result
+        val token = (result as OAuth2ClientResult.Success<Token>).result
         assertThat(token.tokenType).isEqualTo("Bearer")
         assertThat(token.expiresIn).isEqualTo(3600)
         assertThat(token.accessToken).isEqualTo("exampleAccessToken")
@@ -83,9 +83,9 @@ internal class SessionTokenFlowTest {
         }
         val sessionTokenFlow = SessionTokenFlow(oktaRule.configuration)
         val result = sessionTokenFlow.start("exampleSessionToken", "exampleRedirect:/callback")
-        assertThat(result).isInstanceOf(OidcClientResult.Error::class.java)
-        val errorResult = result as OidcClientResult.Error<Token>
-        assertThat(errorResult.exception).isInstanceOf(OidcClientResult.Error.OidcEndpointsNotAvailableException::class.java)
+        assertThat(result).isInstanceOf(OAuth2ClientResult.Error::class.java)
+        val errorResult = result as OAuth2ClientResult.Error<Token>
+        assertThat(errorResult.exception).isInstanceOf(OAuth2ClientResult.Error.OidcEndpointsNotAvailableException::class.java)
         assertThat(errorResult.exception).hasMessageThat().isEqualTo("OIDC Endpoints not available.")
     }
 
@@ -98,7 +98,7 @@ internal class SessionTokenFlowTest {
         }
         val sessionTokenFlow = SessionTokenFlow()
         val result = sessionTokenFlow.start("exampleSessionToken", "exampleRedirect:/callback")
-        val exception = (result as OidcClientResult.Error<Token>).exception
+        val exception = (result as OAuth2ClientResult.Error<Token>).exception
         assertThat(exception).isInstanceOf(ConnectException::class.java)
         assertThat(exception).hasMessageThat().startsWith("Failed to connect to")
     }
@@ -122,8 +122,8 @@ internal class SessionTokenFlowTest {
         }
         val sessionTokenFlow = SessionTokenFlow()
         val result = sessionTokenFlow.start("exampleSessionToken", "exampleRedirect:/callback")
-        val exception = (result as OidcClientResult.Error<Token>).exception
-        assertThat(exception).isInstanceOf(OidcClientResult.Error.HttpResponseException::class.java)
+        val exception = (result as OAuth2ClientResult.Error<Token>).exception
+        assertThat(exception).isInstanceOf(OAuth2ClientResult.Error.HttpResponseException::class.java)
     }
 
     @Test fun testStartWithExtraParameters(): Unit = runBlocking {
@@ -156,7 +156,7 @@ internal class SessionTokenFlowTest {
             extraRequestParameters = mapOf(Pair("extraOne", "bar")),
             scope = "openid email profile offline_access custom:read"
         )
-        val token = (result as OidcClientResult.Success<Token>).result
+        val token = (result as OAuth2ClientResult.Success<Token>).result
         assertThat(token.accessToken).isEqualTo("exampleAccessToken")
     }
 }
