@@ -120,8 +120,8 @@ import com.okta.webauthenticationui.WebAuthentication
 val context: Context = TODO("Supplied by the developer.")
 val credential: Credential
 val redirectUrl: String = TODO("signInRedirectUri supplied by the developer.")
-val webAuthentication = WebAuthentication()
-when (val result = webAuthentication.login(context, redirectUrl)) {
+val auth = WebAuthentication()
+when (val result = auth.login(context, redirectUrl)) {
     is OidcClientResult.Error -> {
         // Timber.e(result.exception, "Failed to login.")
         // TODO: Display an error to the user.
