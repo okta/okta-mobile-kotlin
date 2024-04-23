@@ -18,6 +18,7 @@ package com.okta.authfoundation.credential
 import com.okta.authfoundation.claims.ClaimsProvider
 import com.okta.authfoundation.claims.DefaultClaimsProvider
 import com.okta.authfoundation.client.OidcConfiguration
+import com.okta.authfoundation.jwt.Jwt
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
@@ -27,7 +28,8 @@ import java.util.Objects
  * Token information representing a user's access to a resource server, including access token, refresh token, and other related information.
  */
 @Serializable
-class Token(
+class Token constructor(
+    internal val id: String,
     /**
      * The string type of the token (e.g. `Bearer`).
      */
@@ -79,10 +81,12 @@ class Token(
     }
 
     internal fun copy(
-        refreshToken: String?,
-        deviceSecret: String?,
+        id: String = this.id,
+        refreshToken: String? = this.refreshToken,
+        deviceSecret: String? = this.deviceSecret,
     ): Token {
         return Token(
+            id = id,
             tokenType = tokenType,
             expiresIn = expiresIn,
             accessToken = accessToken,
@@ -140,12 +144,14 @@ class Token(
         /**
          * The object holding claim values. Use [claimsProvider] for a more convenient way of accessing claims.
          */
-        val payloadData: JsonObject?,
-        /**
-         * true if [Token] is the default [Token], false otherwise
-         */
-        val isDefault: Boolean = false
+        val payloadData: JsonObject?
     ) {
+        constructor(
+            id: String,
+            tags: Map<String, String>,
+            idToken: Jwt?
+        ) : this(id, tags, idToken?.deserializeClaims(JsonObject.serializer()))
+
         /**
          * Convenience object for accessing claims of this [Token]
          */
@@ -166,8 +172,9 @@ internal class SerializableToken internal constructor(
     @SerialName("device_secret") val deviceSecret: String? = null,
     @SerialName("issued_token_type") val issuedTokenType: String? = null,
 ) {
-    fun asToken(oidcConfiguration: OidcConfiguration): Token {
+    fun asToken(id: String, oidcConfiguration: OidcConfiguration): Token {
         return Token(
+            id = id,
             tokenType = tokenType,
             expiresIn = expiresIn,
             accessToken = accessToken,

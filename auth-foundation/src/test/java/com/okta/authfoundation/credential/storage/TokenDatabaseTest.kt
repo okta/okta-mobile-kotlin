@@ -39,8 +39,7 @@ class TokenDatabaseTest {
             put("claim", "claimValue")
         },
         "keyAlias",
-        tokenEncryptionType = TokenEntity.EncryptionType.NON_BIO,
-        isDefault = false,
+        tokenEncryptionType = TokenEntity.EncryptionType.DEFAULT,
         encryptionExtras = mapOf("encryptionExtra" to "value")
     )
 

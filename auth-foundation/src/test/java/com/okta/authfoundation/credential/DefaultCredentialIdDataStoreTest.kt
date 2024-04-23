@@ -30,14 +30,14 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
-class DefaultTokenIdDataStoreTest {
-    private lateinit var defaultTokenIdDataStore: DefaultTokenIdDataStore
+class DefaultCredentialIdDataStoreTest {
+    private lateinit var defaultCredentialIdDataStore: DefaultCredentialIdDataStore
 
     @Before
     fun setUp() {
         mockkObject(ApplicationContextHolder)
         every { ApplicationContextHolder.appContext } returns ApplicationProvider.getApplicationContext()
-        defaultTokenIdDataStore = DefaultTokenIdDataStore(MockAesEncryptionHandler.instance)
+        defaultCredentialIdDataStore = DefaultCredentialIdDataStore(MockAesEncryptionHandler.instance)
     }
 
     @After
@@ -46,24 +46,24 @@ class DefaultTokenIdDataStoreTest {
     }
 
     @Test
-    fun `getDefaultTokenId returns null if no default token is set`() = runTest {
-        assertThat(defaultTokenIdDataStore.getDefaultTokenId()).isNull()
+    fun `getDefaultCredentialId returns null if no default token is set`() = runTest {
+        assertThat(defaultCredentialIdDataStore.getDefaultCredentialId()).isNull()
     }
 
     @Test
-    fun `getDefaultTokenId returns the token id provided in setDefaultTokenId`() = runTest {
+    fun `getDefaultCredentialId returns the token id provided in setDefaultTokenId`() = runTest {
         val tokenId = "tokenId"
-        defaultTokenIdDataStore.setDefaultTokenId(tokenId)
-        assertThat(defaultTokenIdDataStore.getDefaultTokenId()).isEqualTo(tokenId)
+        defaultCredentialIdDataStore.setDefaultCredentialId(tokenId)
+        assertThat(defaultCredentialIdDataStore.getDefaultCredentialId()).isEqualTo(tokenId)
     }
 
     @Test
-    fun `getDefaultTokenId returns the token id provided by the latest call to setDefaultTokenId`() = runTest {
+    fun `getDefaultCredentialId returns the token id provided by the latest call to setDefaultTokenId`() = runTest {
         val oldTokenId = "oldTokenId"
         val newTokenId = "newTokenId"
-        defaultTokenIdDataStore.setDefaultTokenId(oldTokenId)
-        defaultTokenIdDataStore.setDefaultTokenId(newTokenId)
+        defaultCredentialIdDataStore.setDefaultCredentialId(oldTokenId)
+        defaultCredentialIdDataStore.setDefaultCredentialId(newTokenId)
 
-        assertThat(defaultTokenIdDataStore.getDefaultTokenId()).isEqualTo(newTokenId)
+        assertThat(defaultCredentialIdDataStore.getDefaultCredentialId()).isEqualTo(newTokenId)
     }
 }

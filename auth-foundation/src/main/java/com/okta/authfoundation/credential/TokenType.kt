@@ -29,5 +29,22 @@ enum class TokenType {
     ID_TOKEN,
 
     /** Indicates the device secret. */
-    DEVICE_SECRET,
+    DEVICE_SECRET;
+
+    fun toTokenTypeHint(): String {
+        return when (this) {
+            ACCESS_TOKEN -> {
+                "access_token"
+            }
+            REFRESH_TOKEN -> {
+                "refresh_token"
+            }
+            ID_TOKEN -> {
+                "id_token"
+            }
+            DEVICE_SECRET -> {
+                "device_secret"
+            }
+        }
+    }
 }

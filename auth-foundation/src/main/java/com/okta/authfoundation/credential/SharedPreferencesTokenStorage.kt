@@ -155,6 +155,6 @@ private class StoredTokens(
     }
 
     fun toTokenStorageEntries(): MutableList<TokenStorage.Entry> {
-        return entries.map { TokenStorage.Entry(it.identifier, it.token?.asToken(OidcConfiguration.default), it.tags) }.toMutableList()
+        return entries.map { TokenStorage.Entry(it.identifier, it.token?.asToken(id = it.identifier, OidcConfiguration.default), it.tags) }.toMutableList()
     }
 }

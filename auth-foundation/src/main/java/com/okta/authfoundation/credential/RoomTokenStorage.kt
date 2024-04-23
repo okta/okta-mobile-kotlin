@@ -16,15 +16,52 @@
 package com.okta.authfoundation.credential
 
 import androidx.biometric.BiometricPrompt.PromptInfo
+import androidx.room.Room
+import com.okta.authfoundation.AuthFoundationDefaults
 import com.okta.authfoundation.InternalAuthFoundationApi
+import com.okta.authfoundation.client.ApplicationContextHolder
+import com.okta.authfoundation.client.EncryptionTokenProvider
 import com.okta.authfoundation.credential.storage.TokenDatabase
 import com.okta.authfoundation.credential.storage.TokenEntity
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
 
 @InternalAuthFoundationApi
 class RoomTokenStorage(
     tokenDatabase: TokenDatabase,
     private val tokenEncryptionHandler: TokenEncryptionHandler
 ) : TokenStorage {
+    companion object {
+        private var instance: RoomTokenStorage? = null
+        private val instanceMutex = Mutex()
+
+        suspend fun getInstance(): RoomTokenStorage {
+            instanceMutex.withLock {
+                return instance ?: run {
+                    val tokenStorage = createInstance()
+                    instance = tokenStorage
+                    tokenStorage
+                }
+            }
+        }
+
+        private suspend fun createInstance(): RoomTokenStorage {
+            val context = ApplicationContextHolder.appContext
+            val sqlCipherPassword = EncryptionTokenProvider.instance.getEncryptionToken()
+            System.loadLibrary("sqlcipher")
+            val tokenDatabase =
+                Room.databaseBuilder(
+                    context,
+                    TokenDatabase::class.java,
+                    TokenDatabase.DB_NAME
+                )
+                    .openHelperFactory(SupportOpenHelperFactory(sqlCipherPassword.toByteArray()))
+                    .build()
+            return RoomTokenStorage(tokenDatabase, AuthFoundationDefaults.tokenEncryptionHandler)
+        }
+    }
+
     private val tokenDao = tokenDatabase.tokenDao()
 
     override suspend fun allIds(): List<String> = tokenDao.allEntries().map { it.id }
@@ -34,8 +71,7 @@ class RoomTokenStorage(
             Token.Metadata(
                 it.id,
                 it.tags,
-                it.payloadData,
-                it.isDefault
+                it.payloadData
             )
         }
     }
@@ -52,16 +88,12 @@ class RoomTokenStorage(
         metadata: Token.Metadata,
         security: Credential.Security
     ) {
+        if (token.id != metadata.id) {
+            throw IllegalStateException("TokenStorage.add called with different token.id and metadata.id")
+        }
+
         tokenEncryptionHandler.generateKey(security)
         val encryptionResult = tokenEncryptionHandler.encrypt(token, security)
-
-        if (metadata.isDefault) {
-            tokenDao.allEntries().firstOrNull { it.isDefault }?.let {
-                tokenDao.updateTokenEntity(
-                    it.copy(isDefault = false)
-                )
-            }
-        }
 
         tokenDao.insertTokenEntity(
             TokenEntity(
@@ -71,7 +103,6 @@ class RoomTokenStorage(
                 payloadData = metadata.payloadData,
                 keyAlias = security.keyAlias,
                 tokenEncryptionType = TokenEntity.EncryptionType.fromSecurity(security),
-                isDefault = metadata.isDefault,
                 encryptionExtras = encryptionResult.encryptionExtras
             )
         )
@@ -84,15 +115,15 @@ class RoomTokenStorage(
     }
 
     override suspend fun replace(
-        id: String,
         token: Token,
         metadata: Token.Metadata?,
         security: Credential.Security?,
     ) {
-        val tokenEntity = tokenDao.getById(id) ?: throw NoSuchElementException()
+        if (metadata != null && token.id != metadata.id) {
+            throw IllegalStateException("TokenStorage.replace called with different token.id and metadata.id")
+        }
 
-        val previousDefault = tokenDao.allEntries()
-            .firstOrNull { (it.id != id) and it.isDefault }
+        val tokenEntity = tokenDao.getById(token.id) ?: throw NoSuchElementException()
 
         security?.let { tokenEncryptionHandler.generateKey(it) }
         val encryptionResult = tokenEncryptionHandler.encrypt(
@@ -107,26 +138,15 @@ class RoomTokenStorage(
             tokenEncryptionType = security?.let {
                 TokenEntity.EncryptionType.fromSecurity(it)
             } ?: tokenEntity.tokenEncryptionType,
-            isDefault = metadata?.isDefault ?: tokenEntity.isDefault,
             encryptionExtras = encryptionResult.encryptionExtras
         )
 
-        if (metadata?.isDefault == true && previousDefault != null) {
-            tokenDao.updateTokenEntity(updatedTokenEntity, previousDefault.copy(isDefault = false))
-        } else {
-            tokenDao.updateTokenEntity(updatedTokenEntity)
-        }
+        tokenDao.updateTokenEntity(updatedTokenEntity)
     }
 
     override suspend fun getToken(id: String, promptInfo: PromptInfo?): Token {
         val tokenEntity = tokenDao.getById(id) ?: throw NoSuchElementException()
         return getTokenFromEntity(tokenEntity, promptInfo)
-    }
-
-    override suspend fun getDefaultToken(promptInfo: PromptInfo?): Token? {
-        return tokenDao.allEntries().firstOrNull { it.isDefault }?.let {
-            getTokenFromEntity(it, promptInfo)
-        }
     }
 
     private suspend fun getTokenFromEntity(tokenEntity: TokenEntity, promptInfo: PromptInfo?): Token {

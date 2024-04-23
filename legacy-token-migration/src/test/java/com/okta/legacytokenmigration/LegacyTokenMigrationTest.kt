@@ -88,7 +88,7 @@ class LegacyTokenMigrationTest {
     @Test fun testMigrate(): Unit = runBlocking {
         val credentialDataSource = mockk<CredentialDataSource> {
             coEvery { createCredential(any(), any(), any(), any()) } returns mockk {
-                every { storageIdentifier } returns "mock-token-id"
+                every { id } returns "mock-token-id"
             }
         }
         CredentialBootstrap.initialize(credentialDataSource)

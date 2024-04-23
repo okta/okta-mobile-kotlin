@@ -37,8 +37,7 @@ class RoomTokenStorageTest {
     private val tokenMetadata = Token.Metadata(
         id = "id",
         tags = mapOf("key" to "value"),
-        payloadData = buildJsonObject { put("claim", "claimValue") },
-        isDefault = false
+        payloadData = buildJsonObject { put("claim", "claimValue") }
     )
 
     private lateinit var database: TokenDatabase
@@ -88,9 +87,14 @@ class RoomTokenStorageTest {
     }
 
     @Test
-    fun `add token sets the token to default when requested`() = runTest {
-        roomTokenStorage.add(token, tokenMetadata.copy(isDefault = true))
-        assertThat(roomTokenStorage.getToken(tokenMetadata.id)).isEqualTo(token)
+    fun `add token fails if token id and metadata id don't match`() = runTest {
+        val exception = assertFailsWith<IllegalStateException> {
+            roomTokenStorage.add(
+                createToken(id = "tokenId"),
+                tokenMetadata.copy(id = "differentId")
+            )
+        }
+        assertThat(exception.message).isEqualTo("TokenStorage.add called with different token.id and metadata.id")
     }
 
     @Test
@@ -113,15 +117,24 @@ class RoomTokenStorageTest {
         roomTokenStorage.add(token, tokenMetadata)
         assertThat(roomTokenStorage.getToken(tokenMetadata.id)).isEqualTo(token)
         val newToken = createToken(idToken = "newIdToken")
-        roomTokenStorage.replace(tokenMetadata.id, newToken)
+        roomTokenStorage.replace(newToken)
         assertThat(roomTokenStorage.getToken(tokenMetadata.id)).isEqualTo(newToken)
     }
 
     @Test
     fun `replace token with non-existent id`() = runTest {
         assertFailsWith<NoSuchElementException> {
-            roomTokenStorage.replace("non-existent-id", token)
+            roomTokenStorage.replace(token)
         }
+    }
+
+    @Test
+    fun `replace token fails if token id and metadata id are different`() = runTest {
+        roomTokenStorage.add(token, tokenMetadata)
+        val exception = assertFailsWith<IllegalStateException> {
+            roomTokenStorage.replace(token, tokenMetadata.copy(id = "differentId"))
+        }
+        assertThat(exception.message).isEqualTo("TokenStorage.replace called with different token.id and metadata.id")
     }
 
     @Test

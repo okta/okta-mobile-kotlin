@@ -51,7 +51,6 @@ dependencies {
 
     api deps.okta.legacy_oidc
     api project(':auth-foundation')
-    api project(':auth-foundation-bootstrap')
     api deps.kotlin.stdlib
     api deps.coroutines.core
 

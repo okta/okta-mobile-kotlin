@@ -16,13 +16,13 @@
 package com.okta.authfoundation.credential
 
 import androidx.biometric.BiometricPrompt
-import com.okta.authfoundation.credential.CredentialDataSource.Companion.createCredentialDataSource
+import com.okta.authfoundation.AuthFoundationDefaults
 import java.util.Objects
 
 /**
  * Interface used to customize the way tokens are stored, updated, and removed throughout the lifecycle of an application.
  *
- * A default implementation is provided, but for advanced use-cases, you may implement this protocol yourself and pass an instance to [CredentialDataSource.createCredentialDataSource].
+ * A default implementation is provided, but for advanced use-cases, you may implement this protocol yourself and pass an instance to [AuthFoundationDefaults.tokenStorageFactory].
  *
  * Warning: When implementing a custom [TokenStorage] class, it's vitally important that you do not directly invoke any of these methods yourself. These methods are intended to be called on-demand by the other AuthFoundation classes, and the behavior is undefined if these methods are called directly by the developer.
  */
@@ -65,17 +65,15 @@ interface TokenStorage {
     suspend fun remove(id: String)
 
     /**
-     * Replace [Token] with [id] with the given [token]. If no such [Token] with the given [id] exists, [NoSuchElementException] is thrown.
+     * Replace [Token] with [Token.id] with the given [token]. If no such [Token] with the given [Token.id] exists, [NoSuchElementException] is thrown.
      *
-     * @param id id of the [Token] to be replaced.
-     * @param token set the storage entry with [id] to this [Token].
-     * @param metadata set the storage entry with [id] to have this [Token.Metadata]. If null, the metadata is left unchanged.
+     * @param token set the storage entry with [Token.id] to this [Token].
+     * @param metadata set the storage entry with [Token.id] to have this [Token.Metadata]. If null, the metadata is left unchanged.
      * @param security store the [token] in storage with this [Credential.Security] level. If null, the [Credential.Security] level is unchanged.
      *
-     * @throws [NoSuchElementException] if no such storage entry with [id] exists.
+     * @throws [NoSuchElementException] if no such storage entry with [Token.id] exists.
      */
     suspend fun replace(
-        id: String,
         token: Token,
         metadata: Token.Metadata? = null,
         security: Credential.Security? = null
@@ -91,15 +89,6 @@ interface TokenStorage {
      * @throws [NoSuchElementException] if no storage entry with [id] exists.
      */
     suspend fun getToken(id: String, promptInfo: BiometricPrompt.PromptInfo? = Credential.Security.promptInfo): Token
-
-    /**
-     * Get the default [Token]. The storage must have at most one default [Token] at any time.
-     *
-     * @param promptInfo [BiometricPrompt.PromptInfo] to be displayed if the stored [Token] is using biometric [Credential.Security].
-     *
-     * @return The default [Token], null if no default [Token] exists.
-     */
-    suspend fun getDefaultToken(promptInfo: BiometricPrompt.PromptInfo? = Credential.Security.promptInfo): Token?
 
     /**
      *  Represents the data to store in legacy [TokenStorage].

@@ -16,6 +16,7 @@
 package com.okta.authfoundation.client
 
 import com.google.common.truth.Truth.assertThat
+import com.okta.authfoundation.credential.Credential
 import com.okta.authfoundation.credential.Token
 import com.okta.authfoundation.credential.createToken
 import com.okta.authfoundation.jwt.IdTokenClaims
@@ -25,6 +26,9 @@ import com.okta.testhelpers.RequestMatchers.body
 import com.okta.testhelpers.RequestMatchers.header
 import com.okta.testhelpers.RequestMatchers.method
 import com.okta.testhelpers.RequestMatchers.path
+import io.mockk.coEvery
+import io.mockk.mockk
+import io.mockk.mockkObject
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
 import org.junit.Rule
@@ -36,23 +40,29 @@ class OidcClientDeviceSecretValidationFailureTest {
     })
 
     @Test fun testRefreshTokenWithNoDeviceSecretPassesValidation(): Unit = runBlocking {
-        val client = oktaRule.createOidcClient()
-        oktaRule.enqueue(
-            method("POST"),
-            header("content-type", "application/x-www-form-urlencoded"),
-            path("/oauth2/default/v1/token"),
-            body("client_id=unit_test_client_id&grant_type=refresh_token&refresh_token=ExampleRefreshToken"),
-        ) { response ->
-            runBlocking {
-                val idTokenClaims = IdTokenClaims(deviceSecretHash = "not matching")
-                val idToken = client.createJwtBuilder().createJwt(claims = idTokenClaims)
-                val token = createToken(deviceSecret = null, idToken = idToken.rawValue).asSerializableToken()
-                val body = oktaRule.configuration.json.encodeToString(token)
-                response.setBody(body)
+        mockkObject(Credential) {
+            coEvery { Credential.credentialDataSource() } returns mockk(relaxed = true)
+            val client = oktaRule.createOidcClient()
+            oktaRule.enqueue(
+                method("POST"),
+                header("content-type", "application/x-www-form-urlencoded"),
+                path("/oauth2/default/v1/token"),
+                body("client_id=unit_test_client_id&grant_type=refresh_token&refresh_token=ExampleRefreshToken"),
+            ) { response ->
+                runBlocking {
+                    val idTokenClaims = IdTokenClaims(deviceSecretHash = "not matching")
+                    val idToken = client.createJwtBuilder().createJwt(claims = idTokenClaims)
+                    val token = createToken(
+                        deviceSecret = null,
+                        idToken = idToken.rawValue
+                    ).asSerializableToken()
+                    val body = oktaRule.configuration.json.encodeToString(token)
+                    response.setBody(body)
+                }
             }
+            val result = client.refreshToken(createToken(refreshToken = "ExampleRefreshToken"))
+            assertThat(result).isInstanceOf(OidcClientResult.Success::class.java)
         }
-        val result = client.refreshToken("ExampleRefreshToken")
-        assertThat(result).isInstanceOf(OidcClientResult.Success::class.java)
     }
 
     @Test fun testRefreshTokenWithDeviceSecretFailsValidation(): Unit = runBlocking {
@@ -71,7 +81,7 @@ class OidcClientDeviceSecretValidationFailureTest {
                 response.setBody(body)
             }
         }
-        val result = client.refreshToken("ExampleRefreshToken")
+        val result = client.refreshToken(createToken(refreshToken = "ExampleRefreshToken"))
         val exception = (result as OidcClientResult.Error<Token>).exception
         assertThat(exception).isInstanceOf(IllegalStateException::class.java)
         assertThat(exception).hasMessageThat().isEqualTo("Failure!")
