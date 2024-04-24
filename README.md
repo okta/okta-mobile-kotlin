@@ -353,20 +353,38 @@ val oidcConfiguration = OidcConfiguration(
 
 ### Token migration
 
-Token migration is handled automatically by the SDK, unless a custom TokenStorage implementation is used. In case the app uses a custom TokenStorage implementation, Tokens can be migrated as follows:
+The process for Token migration varies based on use of custom `TokenStorage` or encryption spec when creating `CredentialDataSource` in 1.x. Token migration is handled automatically in the simplest case without user intervention:
 
 ```kotlin
-val tokenEntry: Token.Entry = TODO("Token.Entry supplied by developer from their custom TokenStorage")
-if (tokenEntry.token != null) {
-    val credential = Credential.store(
-      tokenEntry.token,
-      tokenEntry.tags,
-      security = TODO("Optional parameter for specifying security")
-    )
-    Credential.setDefaultCredential(credential) // If this should be the default Credential
-} else {
-    // New TokenStorage does not have entries without a Token object
-}
+client.createCredentialDataSource(context)
+```
+
+#### Migration with custom KeyGenParameterSpec
+
+1.x:
+```kotlin
+val keyGenParameterSpec: KeyGenParameterSpec = TODO("Supplied by user")
+client.createCredentialDataSource(context, keyGenParameterSpec)
+```
+2.x:
+```kotlin
+val keyGenParameterSpec: KeyGenParameterSpec = TODO("Supplied by user")
+V1ToV2StorageMigrator.legacyKeyGenParameterSpec = keyGenParameterSpec
+```
+
+#### Migration with custom TokenStorage
+
+1.x:
+```kotlin
+val customTokenStorage: TokenStorage = TODO("Supplied by user")
+client.createCredentialDataSource(customTokenStorage)
+```
+
+2.x:
+```kotlin
+// Convert custom TokenStorage implementation to LegacyTokenStorage
+val legacyTokenStorage: LegacyTokenStorage = TODO("Supplied by user")
+V1ToV2StorageMigrator.legacyStorage = legacyTokenStorage
 ```
 
 ### API migration

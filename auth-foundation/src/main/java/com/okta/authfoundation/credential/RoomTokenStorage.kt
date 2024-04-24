@@ -23,6 +23,7 @@ import com.okta.authfoundation.client.ApplicationContextHolder
 import com.okta.authfoundation.client.EncryptionTokenProvider
 import com.okta.authfoundation.credential.storage.TokenDatabase
 import com.okta.authfoundation.credential.storage.TokenEntity
+import com.okta.authfoundation.credential.storage.migration.V1ToV2StorageMigrator
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
@@ -58,7 +59,9 @@ class RoomTokenStorage(
                 )
                     .openHelperFactory(SupportOpenHelperFactory(sqlCipherPassword.toByteArray()))
                     .build()
-            return RoomTokenStorage(tokenDatabase, AuthFoundationDefaults.tokenEncryptionHandler)
+            val tokenStorage = RoomTokenStorage(tokenDatabase, AuthFoundationDefaults.tokenEncryptionHandler)
+            V1ToV2StorageMigrator(tokenStorage).migrateIfNeeded()
+            return tokenStorage
         }
     }
 

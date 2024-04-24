@@ -17,7 +17,6 @@ package com.okta.authfoundation.credential
 
 import androidx.biometric.BiometricPrompt
 import com.okta.authfoundation.AuthFoundationDefaults
-import java.util.Objects
 
 /**
  * Interface used to customize the way tokens are stored, updated, and removed throughout the lifecycle of an application.
@@ -89,42 +88,4 @@ interface TokenStorage {
      * @throws [NoSuchElementException] if no storage entry with [id] exists.
      */
     suspend fun getToken(id: String, promptInfo: BiometricPrompt.PromptInfo? = Credential.Security.promptInfo): Token
-
-    /**
-     *  Represents the data to store in legacy [TokenStorage].
-     */
-    class Entry(
-        /**
-         * The unique identifier for this [TokenStorage] entry.
-         */
-        val identifier: String,
-        /**
-         *  The [Token] associated with the [TokenStorage] entry.
-         */
-        val token: Token?,
-        /**
-         *  The tags associated with the [TokenStorage] entry.
-         */
-        val tags: Map<String, String>,
-    ) {
-        override fun equals(other: Any?): Boolean {
-            if (other === this) {
-                return true
-            }
-            if (other !is Entry) {
-                return false
-            }
-            return other.identifier == identifier &&
-                other.token == token &&
-                other.tags == tags
-        }
-
-        override fun hashCode(): Int {
-            return Objects.hash(
-                identifier,
-                token,
-                tags,
-            )
-        }
-    }
 }

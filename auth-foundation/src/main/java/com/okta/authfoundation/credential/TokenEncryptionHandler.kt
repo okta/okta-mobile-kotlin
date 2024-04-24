@@ -20,6 +20,7 @@ import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.util.Base64
 import androidx.biometric.BiometricPrompt
+import com.okta.authfoundation.AuthFoundationDefaults
 import com.okta.authfoundation.InternalAuthFoundationApi
 import com.okta.authfoundation.TransparentBiometricActivity
 import com.okta.authfoundation.client.ApplicationContextHolder
@@ -42,7 +43,7 @@ import kotlin.coroutines.Continuation
  *
  * The default implementation is provided, and handles all [Credential.Security] options.
  * A custom implementation may be useful for more advanced use-cases, and for more fine-grained control in handling biometrics.
- * Custom implementations of [TokenEncryptionHandler] can be passed to [CredentialDataSource.createCredentialDataSource].
+ * Custom implementations of [TokenEncryptionHandler] can be passed to [AuthFoundationDefaults.tokenEncryptionHandler].
  */
 interface TokenEncryptionHandler {
     /**
@@ -94,7 +95,10 @@ interface TokenEncryptionHandler {
          * Encryption primitives as a result of [TokenEncryptionHandler.encrypt].
          */
         val encryptionExtras: Map<String, String>
-    )
+    ) {
+        operator fun component1(): ByteArray = encryptedToken
+        operator fun component2(): Map<String, String> = encryptionExtras
+    }
 }
 
 @InternalAuthFoundationApi
