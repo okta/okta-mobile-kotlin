@@ -19,7 +19,7 @@ import android.os.Bundle
 import android.view.View
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
-import com.okta.authfoundationbootstrap.CredentialBootstrap
+import com.okta.authfoundation.credential.Credential
 import kotlinx.coroutines.launch
 import sample.okta.android.sessiontoken.databinding.FragmentLaunchBinding
 import sample.okta.android.sessiontoken.util.BaseFragment
@@ -39,7 +39,7 @@ internal class LaunchFragment : BaseFragment<FragmentLaunchBinding>(
 
     private fun updateDashboardButtonVisibility() {
         lifecycleScope.launch {
-            if (CredentialBootstrap.defaultCredential() != null) {
+            if (Credential.getDefaultCredential() != null) {
                 binding.loggedInTextView.visibility = View.VISIBLE
                 binding.dashboardButton.visibility = View.VISIBLE
                 binding.dashboardButton.setOnClickListener {

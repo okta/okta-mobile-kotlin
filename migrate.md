@@ -24,18 +24,25 @@ Once your application is configured, use the `LegacyTokenMigration.migrate` meth
 ```kotlin
 import android.content.Context
 import com.okta.authfoundation.credential.Credential
-import com.okta.authfoundationbootstrap.CredentialBootstrap
 import com.okta.legacytokenmigration.LegacyTokenMigration
 import com.okta.oidc.clients.sessions.SessionClient
 
 val context: Context = TODO("Supplied by the developer.")
 val sessionClient: SessionClient = TODO("Supplied by the developer.")
 
-when (val result = LegacyTokenMigration.migrate(context, sessionClient, isDefault = TODO("Set this to false if this token shouldn't be default"))) {
+when (val result = LegacyTokenMigration.migrate(context, sessionClient)) {
     is LegacyTokenMigration.Result.Error -> TODO("An error occurred: ${result.exception}")
     LegacyTokenMigration.Result.MissingLegacyToken -> TODO()
-    is LegacyTokenMigration.Result.PreviouslyMigrated -> TODO("Contains ${result.tokenId} for referencing stored token in CredentialDataSource")
-    is LegacyTokenMigration.Result.SuccessfullyMigrated -> TODO("Contains ${result.tokenId} for referencing stored token in CredentialDataSource")
+    is LegacyTokenMigration.Result.PreviouslyMigrated -> {
+        TODO("Contains ${result.tokenId} for referencing stored token in CredentialDataSource")
+        // Optionally set this as default Credential as follows
+        Credential.with(result.tokenId())?.let { Credential.setDefaultCredential(it) }
+    }
+    is LegacyTokenMigration.Result.SuccessfullyMigrated -> {
+        TODO("Contains ${result.tokenId} for referencing stored token in CredentialDataSource")
+        // Optionally set this as default Credential as follows
+        Credential.with(result.tokenId())?.let { Credential.setDefaultCredential(it) }
+    }
 }
 ```
 
@@ -61,10 +68,10 @@ android {
 `Credential` replaces `SessionClient`, remove usages of `SessionClient` in your application.
 See all available methods here: [Credential](auth-foundation/src/main/java/com/okta/authfoundation/credential/Credential.kt).
 
-## Use WebAuthenticationClient
+## Use WebAuthentication
 
-`WebAuthenticationClient` replaces `WebAuthClient`, remove usages of `WebAuthClient` in your application.
-See all available methods here: [WebAuthenticationClient](web-authentication-ui/src/main/java/com/okta/webauthenticationui/WebAuthenticationClient.kt).
+`WebAuthentication` replaces `WebAuthClient`, remove usages of `WebAuthClient` in your application.
+See all available methods here: [WebAuthentication](web-authentication-ui/src/main/java/com/okta/webauthenticationui/WebAuthentication.kt).
 
 ## Use SessionTokenFlow
 If you're using the legacy Authn APIs to do "custom authentication", you will need to use `SessionTokenFlow` which replaces `authClient.signIn`.

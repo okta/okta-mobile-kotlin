@@ -20,7 +20,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.okta.authfoundation.client.OidcClientResult
-import com.okta.authfoundationbootstrap.CredentialBootstrap
+import com.okta.authfoundation.credential.Credential
 import com.okta.oauth2.ResourceOwnerFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -40,7 +40,8 @@ internal class ResourceOwnerViewModel : ViewModel() {
                     _state.value = ResourceOwnerState.Error("An error occurred.")
                 }
                 is OidcClientResult.Success -> {
-                    CredentialBootstrap.setDefaultCredential(token = result.result)
+                    val credential = Credential.store(token = result.result)
+                    Credential.setDefaultCredential(credential)
                     _state.value = ResourceOwnerState.Token
                 }
             }

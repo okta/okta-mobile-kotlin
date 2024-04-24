@@ -17,10 +17,7 @@ package sample.okta.android.legacy
 
 import android.content.Context
 import com.okta.authfoundation.AuthFoundation
-import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.client.OidcConfiguration
-import com.okta.authfoundation.credential.CredentialDataSource.Companion.createCredentialDataSource
-import com.okta.authfoundationbootstrap.CredentialBootstrap
 
 internal object SampleCredentialHelper {
     fun initialize(context: Context) {
@@ -30,6 +27,5 @@ internal object SampleCredentialHelper {
             defaultScope = "openid email profile offline_access",
             issuer = BuildConfig.ISSUER
         )
-        CredentialBootstrap.initialize(OidcClient.default.createCredentialDataSource(context))
     }
 }

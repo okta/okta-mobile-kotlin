@@ -22,7 +22,6 @@ import androidx.lifecycle.viewModelScope
 import com.okta.authfoundation.client.OidcClientResult
 import com.okta.authfoundation.credential.Credential
 import com.okta.authfoundation.credential.RevokeTokenType
-import com.okta.authfoundationbootstrap.CredentialBootstrap
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
@@ -36,8 +35,8 @@ internal class DashboardViewModel : ViewModel() {
     private val _userInfoLiveData = MutableLiveData<Map<String, String>>(emptyMap())
     val userInfoLiveData: LiveData<Map<String, String>> = _userInfoLiveData
 
-    private val _credentialLiveData = MutableLiveData<Credential>()
-    val credentialLiveData: LiveData<Credential> = _credentialLiveData
+    private val _credentialLiveData = MutableLiveData<CredentialState>()
+    val credentialLiveData: LiveData<CredentialState> = _credentialLiveData
 
     var lastButtonId: Int = 0
     private var lastRequestJob: Job? = null
@@ -46,9 +45,13 @@ internal class DashboardViewModel : ViewModel() {
 
     init {
         viewModelScope.launch {
-            credential = CredentialBootstrap.defaultCredential()!!
-            _credentialLiveData.value = credential
-            getUserInfo()
+            Credential.getDefaultCredential()?.let {
+                credential = it
+                _credentialLiveData.value = CredentialState.Loaded(credential)
+                getUserInfo()
+            } ?: run {
+                _credentialLiveData.value = CredentialState.LoggedOut
+            }
         }
     }
 
@@ -72,7 +75,7 @@ internal class DashboardViewModel : ViewModel() {
                     RequestState.Result("Failed to refresh token.")
                 }
                 is OidcClientResult.Success -> {
-                    _credentialLiveData.value = credential // Update the UI.
+                    _credentialLiveData.value = CredentialState.Loaded(credential) // Update the UI.
                     RequestState.Result("Token Refreshed.")
                 }
             }
@@ -105,6 +108,11 @@ internal class DashboardViewModel : ViewModel() {
                 _userInfoLiveData.postValue(userInfoResult.result.deserializeClaims(JsonObject.serializer()).asMap())
             }
         }
+    }
+
+    sealed interface CredentialState {
+        data object LoggedOut : CredentialState
+        data class Loaded(val credential: Credential) : CredentialState
     }
 
     sealed class RequestState {

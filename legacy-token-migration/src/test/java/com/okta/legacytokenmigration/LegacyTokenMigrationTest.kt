@@ -22,7 +22,6 @@ import com.google.common.truth.Truth.assertThat
 import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.credential.CredentialDataSource
 import com.okta.authfoundation.credential.Token
-import com.okta.authfoundationbootstrap.CredentialBootstrap
 import com.okta.legacytokenmigration.LegacyTokenMigration.hasMarkedTokensAsMigrated
 import com.okta.legacytokenmigration.LegacyTokenMigration.markTokensAsMigrated
 import com.okta.legacytokenmigration.LegacyTokenMigration.sharedPreferences
@@ -36,6 +35,7 @@ import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.mockkObject
+import io.mockk.mockkStatic
 import io.mockk.runs
 import io.mockk.unmockkAll
 import io.mockk.verify
@@ -46,22 +46,28 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import java.util.UUID
 
 @RunWith(RobolectricTestRunner::class)
 class LegacyTokenMigrationTest {
     @get:Rule val oktaRule = OktaRule()
 
     private lateinit var sharedPreferences: SharedPreferences
+    private lateinit var tokenUUID: UUID
 
     @Before fun reset() {
+        tokenUUID = UUID.randomUUID()
         sharedPreferences = ApplicationProvider.getApplicationContext<Context>().sharedPreferences()
         sharedPreferences.edit().clear().apply()
+        mockkObject(CredentialDataSource)
         mockkObject(OidcConfiguration)
+        mockkStatic(UUID::class)
         every { OidcConfiguration.default } returns OidcConfiguration(
             "clientId",
             "defaultScope",
             "issuer"
         )
+        every { UUID.randomUUID() } returns tokenUUID
     }
 
     @After fun tearDown() {
@@ -87,11 +93,12 @@ class LegacyTokenMigrationTest {
 
     @Test fun testMigrate(): Unit = runBlocking {
         val credentialDataSource = mockk<CredentialDataSource> {
-            coEvery { createCredential(any(), any(), any(), any()) } returns mockk {
+            coEvery { createCredential(any(), any(), any()) } returns mockk {
                 every { id } returns "mock-token-id"
             }
         }
-        CredentialBootstrap.initialize(credentialDataSource)
+        coEvery { CredentialDataSource.getInstance() } returns credentialDataSource
+
         val sessionClient = mockSessionClient(token = mockLegacyToken())
         val result = LegacyTokenMigration.migrate(
             context = ApplicationProvider.getApplicationContext(),
@@ -101,6 +108,7 @@ class LegacyTokenMigrationTest {
         assertThat(sharedPreferences.hasMarkedTokensAsMigrated()).isTrue()
         verify { sessionClient.clear() }
         val token = Token(
+            id = tokenUUID.toString(),
             tokenType = "Bearer",
             expiresIn = 300,
             accessToken = "ExampleAccessToken",
@@ -111,7 +119,7 @@ class LegacyTokenMigrationTest {
             issuedTokenType = null,
             oidcConfiguration = mockk()
         )
-        coVerify { credentialDataSource.createCredential(token, isDefault = true) }
+        coVerify { credentialDataSource.createCredential(token) }
     }
 
     @Test fun testMigrateWithNullTokenReturnsMissingLegacyToken(): Unit = runBlocking {
@@ -132,6 +140,7 @@ class LegacyTokenMigrationTest {
             context = ApplicationProvider.getApplicationContext(),
             sessionClient = sessionClient,
         )
+        (result as LegacyTokenMigration.Result.PreviouslyMigrated).tokenId
         assertThat(result).isEqualTo(LegacyTokenMigration.Result.PreviouslyMigrated("token-id"))
         verify(exactly = 0) { sessionClient.clear() }
     }

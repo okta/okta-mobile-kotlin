@@ -21,7 +21,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.okta.authfoundation.client.OidcClientResult
-import com.okta.authfoundationbootstrap.CredentialBootstrap
+import com.okta.authfoundation.credential.Credential
 import com.okta.webauthenticationui.WebAuthentication
 import kotlinx.coroutines.launch
 import sample.okta.android.legacy.BuildConfig
@@ -42,7 +42,8 @@ class BrowserViewModel : ViewModel() {
                     _state.value = BrowserState.Error("Failed to login.")
                 }
                 is OidcClientResult.Success -> {
-                    CredentialBootstrap.setDefaultCredential(token = result.result)
+                    val credential = Credential.store(token = result.result)
+                    Credential.setDefaultCredential(credential)
                     _state.value = BrowserState.Token
                 }
             }

@@ -1,7 +1,6 @@
 public final class com/okta/legacytokenmigration/LegacyTokenMigration {
 	public static final field INSTANCE Lcom/okta/legacytokenmigration/LegacyTokenMigration;
-	public final fun migrate (Landroid/content/Context;Lcom/okta/oidc/clients/sessions/SessionClient;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun migrate$default (Lcom/okta/legacytokenmigration/LegacyTokenMigration;Landroid/content/Context;Lcom/okta/oidc/clients/sessions/SessionClient;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public final fun migrate (Landroid/content/Context;Lcom/okta/oidc/clients/sessions/SessionClient;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public abstract class com/okta/legacytokenmigration/LegacyTokenMigration$Result {
