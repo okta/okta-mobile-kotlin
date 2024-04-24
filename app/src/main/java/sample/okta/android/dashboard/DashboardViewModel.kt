@@ -25,7 +25,6 @@ import com.okta.authfoundation.client.dto.OidcIntrospectInfo
 import com.okta.authfoundation.credential.Credential
 import com.okta.authfoundation.credential.RevokeTokenType
 import com.okta.authfoundation.credential.TokenType
-import com.okta.authfoundationbootstrap.CredentialBootstrap
 import com.okta.webauthenticationui.WebAuthentication
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -42,8 +41,8 @@ internal class DashboardViewModel(private val credentialTagNameValue: String?) :
     private val _userInfoLiveData = MutableLiveData<Map<String, String>>(emptyMap())
     val userInfoLiveData: LiveData<Map<String, String>> = _userInfoLiveData
 
-    private val _credentialLiveData = MutableLiveData<Credential>()
-    val credentialLiveData: LiveData<Credential> = _credentialLiveData
+    private val _credentialLiveData = MutableLiveData<CredentialState>()
+    val credentialLiveData: LiveData<CredentialState> = _credentialLiveData
 
     var lastButtonId: Int = 0
     private var lastRequestJob: Job? = null
@@ -52,20 +51,23 @@ internal class DashboardViewModel(private val credentialTagNameValue: String?) :
 
     init {
         viewModelScope.launch {
-            credential = if (credentialTagNameValue == null) {
-                CredentialBootstrap.defaultCredential()!!
+            val cred = if (credentialTagNameValue == null) {
+                Credential.getDefaultCredential()
             } else {
-                CredentialBootstrap.credentialDataSource.findCredential { it.tags[SampleHelper.CREDENTIAL_NAME_TAG_KEY] == credentialTagNameValue }.firstOrNull()
-                    ?: CredentialBootstrap.defaultCredential()!!
+                Credential.find {
+                    it.tags[SampleHelper.CREDENTIAL_NAME_TAG_KEY] == credentialTagNameValue
+                }.firstOrNull() ?: Credential.getDefaultCredential()
             }
-            setCredential(credential)
+            cred?.let { setCredential(it) } ?: run {
+                _credentialLiveData.value = CredentialState.LoggedOut
+            }
         }
     }
 
     fun setCredential(credential: Credential) {
         this.credential = credential
         viewModelScope.launch {
-            _credentialLiveData.value = credential
+            _credentialLiveData.value = CredentialState.Loaded(credential)
             getUserInfo()
         }
     }
@@ -90,7 +92,7 @@ internal class DashboardViewModel(private val credentialTagNameValue: String?) :
                     RequestState.Result("Failed to refresh token.")
                 }
                 is OidcClientResult.Success -> {
-                    _credentialLiveData.value = credential // Update the UI.
+                    _credentialLiveData.value = CredentialState.Loaded(credential) // Update the UI.
                     RequestState.Result("Token Refreshed.")
                 }
             }
@@ -174,8 +176,13 @@ internal class DashboardViewModel(private val credentialTagNameValue: String?) :
     }
 
     sealed class RequestState {
-        object Loading : RequestState()
+        data object Loading : RequestState()
         data class Result(val text: String) : RequestState()
+    }
+
+    sealed interface CredentialState {
+        data object LoggedOut : CredentialState
+        data class Loaded(val credential: Credential) : CredentialState
     }
 
     fun deleteCredential() {
