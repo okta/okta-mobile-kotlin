@@ -28,6 +28,7 @@ import kotlin.test.assertFailsWith
 internal class DefaultTokenEncryptionHandlerTest {
     private val defaultSecurity = Credential.Security.Default("keyAlias")
     private val token = Token(
+        id = "id",
         tokenType = "Bearer",
         expiresIn = 1000,
         accessToken = "accessToken",
