@@ -19,7 +19,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.okta.authfoundation.client.OidcClientResult
+import com.okta.authfoundation.client.OAuth2ClientResult
 import com.okta.authfoundation.credential.Credential
 import com.okta.oauth2.TokenExchangeFlow
 import kotlinx.coroutines.launch
@@ -58,12 +58,12 @@ class TokenExchangeViewModel : ViewModel() {
                 return@launch
             }
             when (val result = tokenExchangeFlow.start(idToken, deviceSecret)) {
-                is OidcClientResult.Error -> {
+                is OAuth2ClientResult.Error -> {
                     Timber.e(result.exception, "Failed to start token exchange flow.")
                     _state.value = TokenExchangeState.Error("An error occurred.")
                 }
 
-                is OidcClientResult.Success -> {
+                is OAuth2ClientResult.Success -> {
                     tokenExchangeCredential?.delete()
                     Credential.store(
                         result.result,

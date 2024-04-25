@@ -19,7 +19,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.okta.authfoundation.client.OidcClientResult
+import com.okta.authfoundation.client.OAuth2ClientResult
 import com.okta.authfoundation.credential.Credential
 import com.okta.oauth2.DeviceAuthorizationFlow
 import kotlinx.coroutines.launch
@@ -39,11 +39,11 @@ internal class DeviceAuthorizationViewModel : ViewModel() {
         viewModelScope.launch {
             val deviceAuthorizationFlow = DeviceAuthorizationFlow()
             when (val result = deviceAuthorizationFlow.start()) {
-                is OidcClientResult.Error -> {
+                is OAuth2ClientResult.Error -> {
                     Timber.e(result.exception, "Failed to start device authorization flow.")
                     _state.value = DeviceAuthorizationState.Error("An error occurred.")
                 }
-                is OidcClientResult.Success -> {
+                is OAuth2ClientResult.Success -> {
                     _state.value = DeviceAuthorizationState.Polling(result.result.userCode, result.result.verificationUri)
                     resume(deviceAuthorizationFlow, result.result)
                 }
@@ -53,11 +53,11 @@ internal class DeviceAuthorizationViewModel : ViewModel() {
 
     private suspend fun resume(deviceAuthorizationFlow: DeviceAuthorizationFlow, flowContext: DeviceAuthorizationFlow.Context) {
         when (val result = deviceAuthorizationFlow.resume(flowContext)) {
-            is OidcClientResult.Error -> {
+            is OAuth2ClientResult.Error -> {
                 Timber.e(result.exception, "Failed to resume device authorization flow.")
                 _state.value = DeviceAuthorizationState.Error("An error occurred.")
             }
-            is OidcClientResult.Success -> {
+            is OAuth2ClientResult.Success -> {
                 val credential = Credential.store(token = result.result)
                 Credential.setDefaultCredential(credential)
                 _state.value = DeviceAuthorizationState.Token

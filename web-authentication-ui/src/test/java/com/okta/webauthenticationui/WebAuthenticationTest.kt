@@ -18,7 +18,7 @@ package com.okta.webauthenticationui
 import android.content.Context
 import android.net.Uri
 import com.google.common.truth.Truth.assertThat
-import com.okta.authfoundation.client.OidcClientResult
+import com.okta.authfoundation.client.OAuth2ClientResult
 import com.okta.authfoundation.credential.Token
 import com.okta.testhelpers.OktaRule
 import com.okta.testhelpers.RequestMatchers.method
@@ -75,7 +75,7 @@ class WebAuthenticationTest {
         val uri = Uri.parse("unitTest:/login?state=$state&code=ExampleCode")
         redirectCoordinator.emit(uri)
 
-        val token = (loginResultDeferred.await() as OidcClientResult.Success<Token>).result
+        val token = (loginResultDeferred.await() as OAuth2ClientResult.Success<Token>).result
         assertThat(token.tokenType).isEqualTo("Bearer")
         assertThat(token.expiresIn).isEqualTo(3600)
         assertThat(token.accessToken).isEqualTo("exampleAccessToken")
@@ -104,7 +104,7 @@ class WebAuthenticationTest {
         assertThat(initializeCountDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
         redirectCoordinator.emit(null)
 
-        val exception = (loginResultDeferred.await() as OidcClientResult.Error<Token>).exception
+        val exception = (loginResultDeferred.await() as OAuth2ClientResult.Error<Token>).exception
         assertThat(exception).isInstanceOf(WebAuthentication.FlowCancelledException::class.java)
     }
 
@@ -133,7 +133,7 @@ class WebAuthenticationTest {
         assertThat(redirectCountDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
         redirectCoordinator.emit(null)
 
-        val exception = (loginResultDeferred.await() as OidcClientResult.Error<Token>).exception
+        val exception = (loginResultDeferred.await() as OAuth2ClientResult.Error<Token>).exception
         assertThat(exception).isInstanceOf(WebAuthentication.FlowCancelledException::class.java)
     }
 
@@ -158,8 +158,8 @@ class WebAuthenticationTest {
         assertThat(initializeCountDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
         redirectCoordinator.runInitializationFunction()
 
-        val exception = (loginResultDeferred.await() as OidcClientResult.Error<Token>).exception
-        assertThat(exception).isInstanceOf(OidcClientResult.Error.OidcEndpointsNotAvailableException::class.java)
+        val exception = (loginResultDeferred.await() as OAuth2ClientResult.Error<Token>).exception
+        assertThat(exception).isInstanceOf(OAuth2ClientResult.Error.OidcEndpointsNotAvailableException::class.java)
     }
 
     @Test fun testLogout(): Unit = runTest {
@@ -189,7 +189,7 @@ class WebAuthenticationTest {
         val uri = Uri.parse("unitTest:/logout?state=$state")
         redirectCoordinator.emit(uri)
 
-        assertThat(logoutResultDeferred.await()).isInstanceOf(OidcClientResult.Success::class.java)
+        assertThat(logoutResultDeferred.await()).isInstanceOf(OAuth2ClientResult.Success::class.java)
     }
 
     @Test fun testLogoutInitializerCancellation(): Unit = runTest {
@@ -210,7 +210,7 @@ class WebAuthenticationTest {
         assertThat(initializeCountDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
         redirectCoordinator.emit(null)
 
-        val exception = (logoutResultDeferred.await() as OidcClientResult.Error<Unit>).exception
+        val exception = (logoutResultDeferred.await() as OAuth2ClientResult.Error<Unit>).exception
         assertThat(exception).isInstanceOf(WebAuthentication.FlowCancelledException::class.java)
     }
 
@@ -239,7 +239,7 @@ class WebAuthenticationTest {
         assertThat(redirectCountDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
         redirectCoordinator.emit(null)
 
-        val exception = (logoutResultDeferred.await() as OidcClientResult.Error<Unit>).exception
+        val exception = (logoutResultDeferred.await() as OAuth2ClientResult.Error<Unit>).exception
         assertThat(exception).isInstanceOf(WebAuthentication.FlowCancelledException::class.java)
     }
 
@@ -264,7 +264,7 @@ class WebAuthenticationTest {
         assertThat(initializeCountDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
         redirectCoordinator.runInitializationFunction()
 
-        val exception = (logoutResultDeferred.await() as OidcClientResult.Error<Unit>).exception
-        assertThat(exception).isInstanceOf(OidcClientResult.Error.OidcEndpointsNotAvailableException::class.java)
+        val exception = (logoutResultDeferred.await() as OAuth2ClientResult.Error<Unit>).exception
+        assertThat(exception).isInstanceOf(OAuth2ClientResult.Error.OidcEndpointsNotAvailableException::class.java)
     }
 }

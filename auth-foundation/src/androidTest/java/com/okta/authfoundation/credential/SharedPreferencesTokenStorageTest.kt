@@ -94,7 +94,7 @@ class SharedPreferencesTokenStorageTest {
     @Test fun testReplace(): Unit = runBlocking {
         subject.add("one")
         assertThat(subject.entries()).hasSize(1)
-        subject.replace(TokenStorage.Entry("one", null, mapOf("foo" to "bar")))
+        subject.replace(LegacyTokenStorage.Entry("one", null, mapOf("foo" to "bar")))
         val entry = subject.entries().first()
         assertThat(entry.identifier).isEqualTo("one")
         assertThat(entry.token).isNull()
@@ -104,7 +104,7 @@ class SharedPreferencesTokenStorageTest {
     @Test fun testReplaceNonExistingEntries(): Unit = runBlocking {
         subject.add("one")
         assertThat(subject.entries()).hasSize(1)
-        subject.replace(TokenStorage.Entry("two", null, mapOf("foo" to "bar")))
+        subject.replace(LegacyTokenStorage.Entry("two", null, mapOf("foo" to "bar")))
         val entry = subject.entries().first()
         assertThat(entry.identifier).isEqualTo("one")
         assertThat(entry.token).isNull()
@@ -115,6 +115,7 @@ class SharedPreferencesTokenStorageTest {
         subject.add("one")
         assertThat(subject.entries()).hasSize(1)
         val token = Token(
+            id = "id",
             tokenType = "Bearer",
             expiresIn = 600,
             accessToken = "anExampleButInvalidAccessToken",
@@ -125,7 +126,7 @@ class SharedPreferencesTokenStorageTest {
             issuedTokenType = null,
             oidcConfiguration = OidcConfiguration("clientId", "defaultScope", "discoveryUrl")
         )
-        subject.replace(TokenStorage.Entry("one", token, mapOf("foo" to "bar")))
+        subject.replace(LegacyTokenStorage.Entry("one", token, mapOf("foo" to "bar")))
         val entry = subject.entries().first()
         assertThat(entry.identifier).isEqualTo("one")
         assertThat(entry.token).isEqualTo(token)

@@ -15,7 +15,7 @@
  */
 package com.okta.authfoundation.jwt
 
-import com.okta.authfoundation.client.OidcClient
+import com.okta.authfoundation.client.OAuth2Client
 import com.okta.authfoundation.client.OidcConfiguration
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -34,7 +34,7 @@ class JwtBuilder private constructor(
     companion object {
         const val KEY_ID = "FJA0HGNtsuuda_Pl45J42kvQqcsu_0C4Fg7pbJLXTHY"
 
-        fun OidcClient.createJwtBuilder(): JwtBuilder {
+        fun OAuth2Client.createJwtBuilder(): JwtBuilder {
             return JwtBuilder(JwtParser(configuration.json, configuration.computeDispatcher), TestKeyFactory.privateKey())
         }
     }

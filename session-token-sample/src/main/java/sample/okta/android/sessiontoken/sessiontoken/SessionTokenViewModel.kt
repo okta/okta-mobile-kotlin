@@ -19,7 +19,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.okta.authfoundation.client.OidcClientResult
+import com.okta.authfoundation.client.OAuth2ClientResult
 import com.okta.authfoundation.credential.Credential
 import com.okta.authn.sdk.AuthenticationStateHandlerAdapter
 import com.okta.authn.sdk.client.AuthenticationClients
@@ -69,11 +69,11 @@ class SessionTokenViewModel : ViewModel() {
         viewModelScope.launch(Dispatchers.Main) {
             val sessionTokenFlow = SessionTokenFlow()
             when (val result = sessionTokenFlow.start(sessionToken, BuildConfig.SIGN_IN_REDIRECT_URI)) {
-                is OidcClientResult.Error -> {
+                is OAuth2ClientResult.Error -> {
                     Timber.e(result.exception, "Failed to login.")
                     _state.value = SessionTokenState.Error("Failed to login.")
                 }
-                is OidcClientResult.Success -> {
+                is OAuth2ClientResult.Success -> {
                     val credential = Credential.store(token = result.result)
                     Credential.setDefaultCredential(credential)
                     _state.value = SessionTokenState.Token

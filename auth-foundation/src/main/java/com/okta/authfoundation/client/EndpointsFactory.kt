@@ -32,7 +32,7 @@ internal object EndpointsFactory {
     private val cacheMutex = Mutex()
     private var cacheInstance: Cache? = null
 
-    suspend fun get(configuration: OidcConfiguration): OidcClientResult<OidcEndpoints> {
+    suspend fun get(configuration: OidcConfiguration): OAuth2ClientResult<OidcEndpoints> {
         val cache = getOrCreateCache(configuration.cacheFactory)
         val cacheKey = prefix + configuration.discoveryUrl
         val endpoints = withContext(configuration.computeDispatcher) {
@@ -41,7 +41,7 @@ internal object EndpointsFactory {
                 val serializableOidcEndpoints = configuration.json.decodeFromString(
                     SerializableOidcEndpoints.serializer(), result
                 )
-                OidcClientResult.Success(serializableOidcEndpoints.asOidcEndpoints())
+                OAuth2ClientResult.Success(serializableOidcEndpoints.asOidcEndpoints())
             } catch (_: Exception) {
                 null
             }

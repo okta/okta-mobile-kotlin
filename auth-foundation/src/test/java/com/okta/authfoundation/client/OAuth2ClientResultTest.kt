@@ -19,14 +19,14 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import kotlin.test.assertFailsWith
 
-internal class OidcClientResultTest {
+internal class OAuth2ClientResultTest {
     @Test fun testGetOrThrowReturnsEncapsulatedValue() {
-        val result = OidcClientResult.Success("Hi")
+        val result = OAuth2ClientResult.Success("Hi")
         assertThat(result.getOrThrow()).isEqualTo("Hi")
     }
 
     @Test fun testGetOrThrowThrowsEncapsulatedException() {
-        val result = OidcClientResult.Error<String>(IllegalStateException("Expected Error"))
+        val result = OAuth2ClientResult.Error<String>(IllegalStateException("Expected Error"))
         val exception = assertFailsWith<IllegalStateException> {
             result.getOrThrow()
         }

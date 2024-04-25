@@ -20,20 +20,20 @@ import com.okta.authfoundation.jwt.Jwks
 import com.okta.authfoundation.jwt.JwtParser
 
 internal class TokenValidator(
-    private val oidcClient: OidcClient,
+    private val client: OAuth2Client,
     private val token: Token,
     private val nonce: String?,
     private val maxAge: Int?,
-    private val jwksResult: OidcClientResult<Jwks>?,
+    private val jwksResult: OAuth2ClientResult<Jwks>?,
 ) {
-    private val parser = JwtParser(oidcClient.configuration.json, oidcClient.configuration.computeDispatcher)
+    private val parser = JwtParser(client.configuration.json, client.configuration.computeDispatcher)
 
     suspend fun validate() {
         if (token.idToken != null) {
             val idToken = parser.parse(token.idToken)
 
-            oidcClient.configuration.idTokenValidator.validate(
-                oidcClient = oidcClient,
+            client.configuration.idTokenValidator.validate(
+                client = client,
                 idToken = idToken,
                 parameters = IdTokenValidator.Parameters(
                     nonce = nonce,
@@ -43,26 +43,26 @@ internal class TokenValidator(
 
             if (jwksResult != null) {
                 when (jwksResult) {
-                    is OidcClientResult.Success -> {
+                    is OAuth2ClientResult.Success -> {
                         if (!idToken.hasValidSignature(jwksResult.result)) {
                             throw IdTokenValidator.Error("Invalid id_token signature", IdTokenValidator.Error.INVALID_JWT_SIGNATURE)
                         }
                     }
-                    is OidcClientResult.Error -> {
+                    is OAuth2ClientResult.Error -> {
                         throw jwksResult.exception
                     }
                 }
             }
 
-            oidcClient.configuration.accessTokenValidator.validate(
-                oidcClient = oidcClient,
+            client.configuration.accessTokenValidator.validate(
+                client = client,
                 accessToken = token.accessToken,
                 idToken = idToken,
             )
 
             token.deviceSecret?.let { deviceSecret ->
-                oidcClient.configuration.deviceSecretValidator.validate(
-                    oidcClient = oidcClient,
+                client.configuration.deviceSecretValidator.validate(
+                    client = client,
                     deviceSecret = deviceSecret,
                     idToken = idToken,
                 )

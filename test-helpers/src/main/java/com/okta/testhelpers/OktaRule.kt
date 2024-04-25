@@ -22,7 +22,7 @@ import com.okta.authfoundation.client.Cache
 import com.okta.authfoundation.client.DeviceSecretValidator
 import com.okta.authfoundation.client.IdTokenValidator
 import com.okta.authfoundation.client.NoOpCache
-import com.okta.authfoundation.client.OidcClient
+import com.okta.authfoundation.client.OAuth2Client
 import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.client.OidcEndpoints
 import com.okta.authfoundation.events.EventCoordinator
@@ -60,18 +60,18 @@ class OktaRule(
             field = value
         }
 
-    var oidcClient: OidcClient = createOidcClient()
+    var client: OAuth2Client = createOAuth2Client()
         set(value) {
-            mockkObject(OidcClient)
-            every { OidcClient.default } returns value
+            mockkObject(OAuth2Client)
+            every { OAuth2Client.default } returns value
             field = value
         }
 
     init {
         mockkObject(OidcConfiguration)
-        mockkObject(OidcClient)
+        mockkObject(OAuth2Client)
         every { OidcConfiguration.default } returns configuration
-        every { OidcClient.default } returns oidcClient
+        every { OAuth2Client.default } returns client
     }
 
     fun createConfiguration(
@@ -120,8 +120,8 @@ class OktaRule(
         )
     }
 
-    fun createOidcClient(endpoints: OidcEndpoints = createEndpoints()): OidcClient {
-        return OidcClient.create(configuration, endpoints)
+    fun createOAuth2Client(endpoints: OidcEndpoints = createEndpoints()): OAuth2Client {
+        return OAuth2Client.create(configuration, endpoints)
     }
 
     override fun apply(base: Statement, description: Description): Statement {

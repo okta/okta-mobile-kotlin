@@ -15,8 +15,8 @@
  */
 package com.okta.oauth2
 
-import com.okta.authfoundation.client.OidcClient
-import com.okta.authfoundation.client.OidcClientResult
+import com.okta.authfoundation.client.OAuth2Client
+import com.okta.authfoundation.client.OAuth2ClientResult
 import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.client.internal.SdkVersionsRegistry
 import com.okta.authfoundation.credential.Token
@@ -31,7 +31,7 @@ import okhttp3.Request
  * See the [specification](https://openid.net/specs/openid-connect-native-sso-1_0.html)
  */
 class TokenExchangeFlow(
-    private val oidcClient: OidcClient,
+    private val client: OAuth2Client,
 ) {
     companion object {
         init {
@@ -42,14 +42,14 @@ class TokenExchangeFlow(
     /**
      * Initializes a token exchange flow.
      */
-    constructor() : this(OidcClient.default)
+    constructor() : this(OAuth2Client.default)
 
     /**
      * Initializes a token exchange flow using the [OidcConfiguration].
      *
      * @param oidcConfiguration the [OidcConfiguration] specifying the authorization servers.
      */
-    constructor(oidcConfiguration: OidcConfiguration) : this(OidcClient.createFromConfiguration(oidcConfiguration))
+    constructor(oidcConfiguration: OidcConfiguration) : this(OAuth2Client.createFromConfiguration(oidcConfiguration))
 
     /**
      * Initiates the Token Exchange flow.
@@ -57,15 +57,15 @@ class TokenExchangeFlow(
      * @param idToken the id token for the user to create a new token for.
      * @param deviceSecret the [Token.deviceSecret] obtained via another authentication flow.
      * @param audience the audience of the authorization server. Defaults to `api://default`.
-     * @param scope the scopes to request during sign in. Defaults to the configured [OidcClient] [OidcConfiguration.defaultScope].
+     * @param scope the scopes to request during sign in. Defaults to the configured [client] [OidcConfiguration.defaultScope].
      */
     suspend fun start(
         idToken: String,
         deviceSecret: String,
         audience: String = "api://default",
-        scope: String = oidcClient.configuration.defaultScope,
-    ): OidcClientResult<Token> {
-        val endpoints = oidcClient.endpointsOrNull() ?: return oidcClient.endpointNotAvailableError()
+        scope: String = client.configuration.defaultScope,
+    ): OAuth2ClientResult<Token> {
+        val endpoints = client.endpointsOrNull() ?: return client.endpointNotAvailableError()
 
         val formBodyBuilder = FormBody.Builder()
             .add("audience", audience)
@@ -73,7 +73,7 @@ class TokenExchangeFlow(
             .add("subject_token", idToken)
             .add("actor_token_type", "urn:x-oath:params:oauth:token-type:device-secret")
             .add("actor_token", deviceSecret)
-            .add("client_id", oidcClient.configuration.clientId)
+            .add("client_id", client.configuration.clientId)
             .add("grant_type", "urn:ietf:params:oauth:grant-type:token-exchange")
             .add("scope", scope)
 
@@ -82,6 +82,6 @@ class TokenExchangeFlow(
             .url(endpoints.tokenEndpoint)
             .build()
 
-        return oidcClient.tokenRequest(request)
+        return client.tokenRequest(request)
     }
 }

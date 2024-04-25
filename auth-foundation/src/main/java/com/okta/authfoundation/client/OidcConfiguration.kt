@@ -30,7 +30,7 @@ import okhttp3.Response
 import kotlin.coroutines.CoroutineContext
 
 /**
- * Configuration options for an OidcClient.
+ * Configuration options for an OAuth2Client.
  *
  * This class is used to define the configuration, as defined in your Okta application settings, that will be used to interact with the OIDC Authorization Server.
  */
@@ -57,7 +57,7 @@ class OidcConfiguration private constructor(
     /** The OidcClock which is used for all time related functions in the SDK. */
     @property:InternalAuthFoundationApi val clock: OidcClock = AuthFoundationDefaults.clock,
 
-    /** The EventCoordinator which the OidcClient should emit events to. */
+    /** The EventCoordinator which the OAuth2Client should emit events to. */
     @Transient @property:InternalAuthFoundationApi val eventCoordinator: EventCoordinator = AuthFoundationDefaults.eventCoordinator,
 
     /** The IdTokenValidator used to validate the Id Token Jwt when tokens are minted. */
