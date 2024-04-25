@@ -39,6 +39,12 @@ import okhttp3.FormBody
 import okhttp3.Request
 import java.util.UUID
 
+@Deprecated(
+    message = "Renamed to OAuth2Client",
+    replaceWith = ReplaceWith("OAuth2Client")
+)
+typealias OidcClient = OAuth2Client
+
 /**
  * The client used for interacting with an Okta Authorization Server.
  *

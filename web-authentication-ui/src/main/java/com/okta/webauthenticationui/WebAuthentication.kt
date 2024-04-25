@@ -28,6 +28,12 @@ import com.okta.oauth2.RedirectEndSessionFlow
 import com.okta.webauthenticationui.events.CustomizeBrowserEvent
 import com.okta.webauthenticationui.events.CustomizeCustomTabsEvent
 
+@Deprecated(
+    message = "Renamed to WebAuthentication",
+    replaceWith = ReplaceWith("WebAuthentication")
+)
+typealias WebAuthenticationClient = WebAuthentication
+
 /**
  * Authentication coordinator that simplifies signing users in using browser-based OIDC authentication flows.
  *
