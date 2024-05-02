@@ -382,7 +382,7 @@ class Credential internal constructor(
      *
      * This will return `null` if the associated [Token] or it's `idToken` field is `null`.
      */
-    suspend fun idToken(): Jwt? {
+    fun idToken(): Jwt? {
         val idToken = token.idToken ?: return null
         return try {
             val parser =
@@ -402,7 +402,7 @@ class Credential internal constructor(
      *
      * See [Credential.introspectToken] for checking if the token is valid with the Authorization Server.
      */
-    suspend fun getAccessTokenIfValid(): String? {
+    fun getAccessTokenIfValid(): String? {
         val idToken = idToken() ?: return null
         val accessToken = token.accessToken
         val expiresIn = token.expiresIn
