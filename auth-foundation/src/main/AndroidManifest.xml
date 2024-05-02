@@ -8,7 +8,7 @@
 
     <application>
         <activity
-            android:name=".TransparentBiometricActivity"
+            android:name=".BiometricDecryptionActivity"
             android:theme="@style/Theme.AppCompat.Transparent"
             android:exported="false" />
     </application>

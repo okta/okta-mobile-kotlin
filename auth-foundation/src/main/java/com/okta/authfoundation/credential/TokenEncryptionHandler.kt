@@ -22,7 +22,7 @@ import android.util.Base64
 import androidx.biometric.BiometricPrompt
 import com.okta.authfoundation.AuthFoundationDefaults
 import com.okta.authfoundation.InternalAuthFoundationApi
-import com.okta.authfoundation.TransparentBiometricActivity
+import com.okta.authfoundation.BiometricDecryptionActivity
 import com.okta.authfoundation.client.ApplicationContextHolder
 import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.util.AndroidKeystoreUtil
@@ -213,9 +213,9 @@ class DefaultTokenEncryptionHandler(
             }
             suspendCancellableCoroutine { continuation ->
                 biometricDecryptionContinuation = continuation
-                TransparentBiometricActivity.navigate(
+                BiometricDecryptionActivity.navigate(
                     ApplicationContextHolder.appContext,
-                    TransparentBiometricActivity.ActivityParameters(
+                    BiometricDecryptionActivity.ActivityParameters(
                         keyStore.provider.name,
                         encryptedToken,
                         encryptionExtras,

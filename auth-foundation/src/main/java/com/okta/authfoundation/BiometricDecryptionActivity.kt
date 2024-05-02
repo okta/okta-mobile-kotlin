@@ -26,20 +26,22 @@ import androidx.biometric.BiometricPrompt.AuthenticationCallback
 import androidx.biometric.BiometricPrompt.PromptInfo
 import androidx.core.content.ContextCompat
 import com.okta.authfoundation.credential.DefaultTokenEncryptionHandler
+import com.okta.authfoundation.credential.Token
 import kotlinx.parcelize.Parcelize
 import java.security.KeyStore
 import javax.crypto.Cipher
+import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
-class TransparentBiometricActivity : AppCompatActivity() {
+class BiometricDecryptionActivity : AppCompatActivity() {
     private lateinit var keyStore: KeyStore
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_transparent_biometric)
+        setContentView(R.layout.activity_decrypt_biometric)
         val activityParameters = getActivityParameters()
-            ?: throw IllegalStateException("${TransparentBiometricActivity::class.simpleName} called without parameters")
+            ?: throw IllegalStateException("${this::class.simpleName} called without parameters")
 
         keyStore = KeyStore.getInstance(activityParameters.keyStoreName).apply { load(null) }
         val privateRsaKey = keyStore.getKey(activityParameters.keyAlias, null)
@@ -124,17 +126,18 @@ class TransparentBiometricActivity : AppCompatActivity() {
         private const val ACTIVITY_PARAMS = "ACTIVITY_PARAMS"
 
         private lateinit var promptInfo: PromptInfo
+        private var continuation: Continuation<Token>? = null
 
         internal fun navigate(
             appContext: Context,
             activityParameters: ActivityParameters,
             promptInfo: PromptInfo
         ) {
-            TransparentBiometricActivity.promptInfo = promptInfo
+            BiometricDecryptionActivity.promptInfo = promptInfo
             val intent = Intent()
             intent.putExtra(ACTIVITY_PARAMS, activityParameters)
-            intent.setClass(appContext, TransparentBiometricActivity::class.java)
-            intent.setAction(TransparentBiometricActivity::class.java.name)
+            intent.setClass(appContext, BiometricDecryptionActivity::class.java)
+            intent.setAction(BiometricDecryptionActivity::class.java.name)
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS)
             appContext.startActivity(intent)
         }
