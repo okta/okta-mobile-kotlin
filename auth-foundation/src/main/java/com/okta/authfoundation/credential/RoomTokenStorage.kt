@@ -15,6 +15,7 @@
  */
 package com.okta.authfoundation.credential
 
+import android.security.keystore.KeyPermanentlyInvalidatedException
 import androidx.biometric.BiometricPrompt.PromptInfo
 import androidx.room.Room
 import com.okta.authfoundation.AuthFoundationDefaults
@@ -138,12 +139,21 @@ class RoomTokenStorage(
     }
 
     private suspend fun getTokenFromEntity(tokenEntity: TokenEntity, promptInfo: PromptInfo?): Token {
-        return tokenEncryptionHandler.decrypt(
-            tokenEntity.encryptedToken,
-            tokenEntity.encryptionExtras,
-            tokenEntity.security,
-            promptInfo
-        )
+        return try {
+            tokenEncryptionHandler.decrypt(
+                tokenEntity.encryptedToken,
+                tokenEntity.encryptionExtras,
+                tokenEntity.security,
+                promptInfo
+            )
+        } catch (ex: KeyPermanentlyInvalidatedException) {
+            tokenDao.allEntries().forEach {
+                if (it.security == tokenEntity.security) {
+                    tokenDao.deleteTokenEntity(it)
+                }
+            }
+            throw ex
+        }
     }
 
     private fun Credential.Security.biometricTimeout(): Int? {

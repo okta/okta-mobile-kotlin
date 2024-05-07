@@ -47,7 +47,10 @@ class BiometricDecryptionActivity : AppCompatActivity() {
         val privateRsaKey = keyStore.getKey(activityParameters.keyAlias, null)
         val rsaCipher = DefaultTokenEncryptionHandler.getRsaCipher()
             .apply { init(Cipher.DECRYPT_MODE, privateRsaKey) }
-        biometricPrompt(activityParameters).authenticate(promptInfo, BiometricPrompt.CryptoObject(rsaCipher))
+        biometricPrompt(activityParameters).authenticate(
+            promptInfo,
+            BiometricPrompt.CryptoObject(rsaCipher)
+        )
     }
 
     override fun finish() {
@@ -69,11 +72,10 @@ class BiometricDecryptionActivity : AppCompatActivity() {
                     errorCode: Int,
                     errString: CharSequence
                 ) {
-                    DefaultTokenEncryptionHandler.biometricDecryptionContinuation
-                        ?.resumeWithException(
-                            BiometricAuthenticationException("Failed biometric authentication with errorCode: $errorCode, and errString: $errString")
-                        )
-                    DefaultTokenEncryptionHandler.biometricDecryptionContinuation = null
+                    continuation?.resumeWithException(
+                        BiometricAuthenticationException("Failed biometric authentication with errorCode: $errorCode, and errString: $errString")
+                    )
+                    continuation = null
                     finish()
                 }
 
@@ -86,20 +88,19 @@ class BiometricDecryptionActivity : AppCompatActivity() {
                             rsaCipher,
                             activityParameters.encryptionExtras
                         )
-                        DefaultTokenEncryptionHandler.biometricDecryptionContinuation?.resume(token)
+                        continuation?.resume(token)
                     } ?: run {
-                        DefaultTokenEncryptionHandler.biometricDecryptionContinuation?.resumeWithException(
+                        continuation?.resumeWithException(
                             BiometricAuthenticationException("Biometric prompt onAuthenticationSucceeded called without crypto object")
                         )
                     }
-                    DefaultTokenEncryptionHandler.biometricDecryptionContinuation = null
+                    continuation = null
                     finish()
                 }
 
                 override fun onAuthenticationFailed() {
-                    DefaultTokenEncryptionHandler.biometricDecryptionContinuation
-                        ?.resumeWithException(BiometricAuthenticationException())
-                    DefaultTokenEncryptionHandler.biometricDecryptionContinuation = null
+                    continuation?.resumeWithException(BiometricAuthenticationException())
+                    continuation = null
                     finish()
                 }
             }
@@ -130,9 +131,14 @@ class BiometricDecryptionActivity : AppCompatActivity() {
 
         internal fun navigate(
             appContext: Context,
+            continuation: Continuation<Token>,
             activityParameters: ActivityParameters,
             promptInfo: PromptInfo
         ) {
+            if (this.continuation != null) {
+                throw IllegalStateException("Attempted calling Biometrics while another call is in progress.")
+            }
+            this.continuation = continuation
             BiometricDecryptionActivity.promptInfo = promptInfo
             val intent = Intent()
             intent.putExtra(ACTIVITY_PARAMS, activityParameters)

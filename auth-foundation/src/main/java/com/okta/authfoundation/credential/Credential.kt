@@ -86,6 +86,7 @@ class Credential internal constructor(
         data class BiometricStrong(
             /**
              * User authentication timeout (in seconds). A timeout of 0 means that auth-per-use keys will be used for Biometrics.
+             * Note that this timeout is always 0 on Android 10 and below.
              */
             override val userAuthenticationTimeout: Int = 5,
             override val keyAlias: String = AuthFoundationDefaults.Encryption.keyAlias + ".biometricStrong.timeout.$userAuthenticationTimeout"
