@@ -40,6 +40,7 @@ class TokenDatabaseTest {
         },
         "keyAlias",
         tokenEncryptionType = TokenEntity.EncryptionType.DEFAULT,
+        biometricTimeout = null,
         encryptionExtras = mapOf("encryptionExtra" to "value")
     )
 

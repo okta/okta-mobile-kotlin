@@ -63,7 +63,9 @@ class Credential internal constructor(
      */
     val id = token.id
 
-    internal interface BiometricSecurity
+    internal interface BiometricSecurity {
+        val userAuthenticationTimeout: Int
+    }
 
     /**
      * Convenience object for specifying security level for storing [Token] objects
@@ -82,14 +84,22 @@ class Credential internal constructor(
          * The stored [Token] is encrypted using a key generated with [KeyProperties.AUTH_BIOMETRIC_STRONG]
          */
         data class BiometricStrong(
-            override val keyAlias: String = AuthFoundationDefaults.Encryption.keyAlias + ".biometricStrong"
+            /**
+             * User authentication timeout (in seconds). A timeout of 0 means that auth-per-use keys will be used for Biometrics.
+             */
+            override val userAuthenticationTimeout: Int = 5,
+            override val keyAlias: String = AuthFoundationDefaults.Encryption.keyAlias + ".biometricStrong.timeout.$userAuthenticationTimeout"
         ) : Security, BiometricSecurity
 
         /**
          * The stored [Token] is encrypted using a key generated with [KeyProperties.AUTH_BIOMETRIC_STRONG] or [KeyProperties.AUTH_DEVICE_CREDENTIAL]
          */
         data class BiometricStrongOrDeviceCredential(
-            override val keyAlias: String = AuthFoundationDefaults.Encryption.keyAlias + ".biometricStrongOrDeviceCredential"
+            /**
+             * User authentication timeout (in seconds). A timeout of 0 means that auth-per-use keys will be used for Biometrics.
+             */
+            override val userAuthenticationTimeout: Int = 5,
+            override val keyAlias: String = AuthFoundationDefaults.Encryption.keyAlias + ".biometricStrongOrDeviceCredential.timeout.$userAuthenticationTimeout"
         ) : Security, BiometricSecurity
 
         companion object {

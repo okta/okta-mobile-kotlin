@@ -129,19 +129,18 @@ class RoomTokenStorageTest {
     }
 
     @Test
-    fun `replace token fails if token id and metadata id are different`() = runTest {
-        roomTokenStorage.add(token, tokenMetadata)
-        val exception = assertFailsWith<IllegalStateException> {
-            roomTokenStorage.replace(token, tokenMetadata.copy(id = "differentId"))
-        }
-        assertThat(exception.message).isEqualTo("TokenStorage.replace called with different token.id and metadata.id")
-    }
-
-    @Test
     fun `get token fails when no token with id exists`() = runTest {
         assertFailsWith<NoSuchElementException> {
             roomTokenStorage.getToken("non-existent-id")
         }
+    }
+
+    @Test
+    fun `add and get biometric token`() = runTest {
+        val biometricSecurity = Credential.Security.BiometricStrong(userAuthenticationTimeout = 20)
+        roomTokenStorage.add(token, tokenMetadata, biometricSecurity)
+        assertThat(roomTokenStorage.getToken(token.id)).isEqualTo(token)
+        assertThat(database.tokenDao().getById(token.id)!!.security).isEqualTo(biometricSecurity)
     }
 
     @After

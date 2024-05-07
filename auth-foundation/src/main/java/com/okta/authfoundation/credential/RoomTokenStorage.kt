@@ -106,6 +106,7 @@ class RoomTokenStorage(
                 payloadData = metadata.payloadData,
                 keyAlias = security.keyAlias,
                 tokenEncryptionType = TokenEntity.EncryptionType.fromSecurity(security),
+                biometricTimeout = security.biometricTimeout(),
                 encryptionExtras = encryptionResult.encryptionExtras
             )
         )
@@ -117,30 +118,14 @@ class RoomTokenStorage(
         }
     }
 
-    override suspend fun replace(
-        token: Token,
-        metadata: Token.Metadata?,
-        security: Credential.Security?,
-    ) {
-        if (metadata != null && token.id != metadata.id) {
-            throw IllegalStateException("TokenStorage.replace called with different token.id and metadata.id")
-        }
-
+    override suspend fun replace(token: Token) {
         val tokenEntity = tokenDao.getById(token.id) ?: throw NoSuchElementException()
-
-        security?.let { tokenEncryptionHandler.generateKey(it) }
         val encryptionResult = tokenEncryptionHandler.encrypt(
-            token, security ?: tokenEntity.security
+            token, tokenEntity.security
         )
 
         val updatedTokenEntity = tokenEntity.copy(
             encryptedToken = encryptionResult.encryptedToken,
-            tags = metadata?.tags ?: tokenEntity.tags,
-            payloadData = metadata?.payloadData ?: tokenEntity.payloadData,
-            keyAlias = security?.keyAlias ?: tokenEntity.keyAlias,
-            tokenEncryptionType = security?.let {
-                TokenEntity.EncryptionType.fromSecurity(it)
-            } ?: tokenEntity.tokenEncryptionType,
             encryptionExtras = encryptionResult.encryptionExtras
         )
 
@@ -159,5 +144,12 @@ class RoomTokenStorage(
             tokenEntity.security,
             promptInfo
         )
+    }
+
+    private fun Credential.Security.biometricTimeout(): Int? {
+        return when (this) {
+            is Credential.BiometricSecurity -> this.userAuthenticationTimeout
+            else -> null
+        }
     }
 }
