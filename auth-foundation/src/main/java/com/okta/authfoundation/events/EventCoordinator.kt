@@ -16,6 +16,7 @@
 package com.okta.authfoundation.events
 
 import com.okta.authfoundation.InternalAuthFoundationApi
+import com.okta.authfoundation.credential.events.Event
 
 /**
  * A centralized coordinator of events emitted throughout Auth Foundation and other Okta SDKs.
@@ -41,7 +42,7 @@ class EventCoordinator(
     ) : this(listOf(eventHandler))
 
     @InternalAuthFoundationApi
-    fun sendEvent(event: Any) {
+    fun sendEvent(event: Event) {
         for (eventHandler in eventHandlers) {
             eventHandler.onEvent(event)
         }

@@ -16,6 +16,7 @@
 package com.okta.authfoundation.client.events
 
 import com.okta.authfoundation.credential.Token
+import com.okta.authfoundation.credential.events.Event
 import com.okta.authfoundation.events.EventHandler
 
 /**
@@ -26,4 +27,4 @@ class TokenCreatedEvent internal constructor(
      * The token that was created.
      */
     val token: Token
-)
+) : Event

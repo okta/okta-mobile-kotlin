@@ -33,4 +33,4 @@ class TokenStorageAccessErrorEvent internal constructor(
      * If true, the storage implementation will attempt to clear all existing items in storage.
      */
     var shouldClearStorageAndTryAgain: Boolean,
-)
+) : Event

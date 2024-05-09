@@ -17,6 +17,7 @@ package com.okta.authfoundation.client
 
 import com.google.common.truth.Truth.assertThat
 import com.okta.authfoundation.client.events.ValidateIdTokenEvent
+import com.okta.authfoundation.credential.events.Event
 import com.okta.authfoundation.events.EventHandler
 import com.okta.authfoundation.jwt.IdTokenClaims
 import com.okta.authfoundation.jwt.JwtBuilder.Companion.createJwtBuilder
@@ -82,7 +83,7 @@ class DefaultIdTokenValidatorWithCustomizedGracePeriodTest {
 }
 
 private class UpdateIssuedAtGracePeriodEventHandler : EventHandler {
-    override fun onEvent(event: Any) {
+    override fun onEvent(event: Event) {
         if (event is ValidateIdTokenEvent) {
             event.issuedAtGracePeriodInSeconds = 30 * 60
         }

@@ -28,4 +28,4 @@ class NoAccessTokenAvailableEvent internal constructor(
      * The [Credential] associated with the event.
      */
     val credential: Credential,
-)
+) : Event

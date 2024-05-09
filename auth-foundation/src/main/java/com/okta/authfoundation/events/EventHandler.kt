@@ -15,6 +15,8 @@
  */
 package com.okta.authfoundation.events
 
+import com.okta.authfoundation.credential.events.Event
+
 /**
  * A centralized handler of events originated from Auth Foundation and other Okta SDKs.
  */
@@ -26,5 +28,5 @@ interface EventHandler {
      *
      * @param event the event being emitted.
      */
-    fun onEvent(event: Any)
+    fun onEvent(event: Event)
 }
