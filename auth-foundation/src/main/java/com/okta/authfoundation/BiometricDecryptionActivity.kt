@@ -15,42 +15,41 @@
  */
 package com.okta.authfoundation
 
-import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import android.os.Parcelable
 import androidx.appcompat.app.AppCompatActivity
 import androidx.biometric.BiometricPrompt
 import androidx.biometric.BiometricPrompt.AuthenticationCallback
 import androidx.biometric.BiometricPrompt.PromptInfo
 import androidx.core.content.ContextCompat
-import com.okta.authfoundation.credential.DefaultTokenEncryptionHandler
-import com.okta.authfoundation.credential.Token
-import kotlinx.parcelize.Parcelize
-import java.security.KeyStore
+import com.okta.authfoundation.client.ApplicationContextHolder
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import java.security.GeneralSecurityException
 import javax.crypto.Cipher
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
 class BiometricDecryptionActivity : AppCompatActivity() {
-    private lateinit var keyStore: KeyStore
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_decrypt_biometric)
-        val activityParameters = getActivityParameters()
-            ?: throw IllegalStateException("${this::class.simpleName} called without parameters")
 
-        keyStore = KeyStore.getInstance(activityParameters.keyStoreName).apply { load(null) }
-        val privateRsaKey = keyStore.getKey(activityParameters.keyAlias, null)
-        val rsaCipher = DefaultTokenEncryptionHandler.getRsaCipher()
-            .apply { init(Cipher.DECRYPT_MODE, privateRsaKey) }
-        biometricPrompt(activityParameters).authenticate(
-            promptInfo,
-            BiometricPrompt.CryptoObject(rsaCipher)
-        )
+        when (val action = biometricAction) {
+            is BiometricAction.Unlock -> {
+                biometricPrompt().authenticate(promptInfo)
+            }
+
+            is BiometricAction.Decrypt -> {
+                biometricPrompt().authenticate(
+                    promptInfo,
+                    BiometricPrompt.CryptoObject(action.cipher)
+                )
+            }
+        }
     }
 
     override fun finish() {
@@ -63,7 +62,7 @@ class BiometricDecryptionActivity : AppCompatActivity() {
         }
     }
 
-    private fun biometricPrompt(activityParameters: ActivityParameters): BiometricPrompt {
+    private fun biometricPrompt(): BiometricPrompt {
         val executor = ContextCompat.getMainExecutor(this)
         return BiometricPrompt(
             this, executor,
@@ -72,85 +71,123 @@ class BiometricDecryptionActivity : AppCompatActivity() {
                     errorCode: Int,
                     errString: CharSequence
                 ) {
-                    continuation?.resumeWithException(
-                        BiometricAuthenticationException("Failed biometric authentication with errorCode: $errorCode, and errString: $errString")
+                    biometricAction.resumeWithException(
+                        BiometricAuthenticationException(
+                            "Failed biometric authentication with errorCode: $errorCode, and errString: $errString",
+                            BiometricExceptionDetails.OnAuthenticationError(errorCode, errString)
+                        )
                     )
-                    continuation = null
                     finish()
                 }
 
                 override fun onAuthenticationSucceeded(
                     result: BiometricPrompt.AuthenticationResult
                 ) {
-                    result.cryptoObject?.cipher?.let { rsaCipher ->
-                        val token = DefaultTokenEncryptionHandler.internalDecrypt(
-                            activityParameters.encryptedToken,
-                            rsaCipher,
-                            activityParameters.encryptionExtras
-                        )
-                        continuation?.resume(token)
-                    } ?: run {
-                        continuation?.resumeWithException(
-                            BiometricAuthenticationException("Biometric prompt onAuthenticationSucceeded called without crypto object")
-                        )
+                    when (val action = biometricAction) {
+                        is BiometricAction.Unlock -> action.continuation.resume(Unit)
+                        is BiometricAction.Decrypt -> {
+                            result.cryptoObject?.cipher?.let { cipher ->
+                                val decryptedData = cipher.doFinal(action.encryptedData)
+                                action.continuation.resume(decryptedData)
+                            } ?: run {
+                                action.resumeWithException(
+                                    BiometricAuthenticationException(
+                                        "Biometric prompt onAuthenticationSucceeded called without crypto object",
+                                        BiometricExceptionDetails.OnAuthenticationSucceeded
+                                    )
+                                )
+                            }
+                        }
                     }
-                    continuation = null
                     finish()
                 }
 
                 override fun onAuthenticationFailed() {
-                    continuation?.resumeWithException(BiometricAuthenticationException())
-                    continuation = null
+                    biometricAction.resumeWithException(
+                        BiometricAuthenticationException(
+                            "Unexpected Biometric error",
+                            BiometricExceptionDetails.OnAuthenticationFailed
+                        )
+                    )
                     finish()
                 }
             }
         )
     }
 
-    private fun getActivityParameters(): ActivityParameters? {
-        return if (Build.VERSION.SDK_INT > Build.VERSION_CODES.TIRAMISU) {
-            intent.extras?.getParcelable(ACTIVITY_PARAMS, ActivityParameters::class.java)
-        } else {
-            intent.extras?.getParcelable(ACTIVITY_PARAMS)
+    private sealed interface BiometricAction {
+        fun resumeWithException(exception: Exception)
+
+        class Unlock(
+            val continuation: Continuation<Unit>
+        ) : BiometricAction {
+            override fun resumeWithException(exception: Exception) {
+                continuation.resumeWithException(exception)
+            }
+        }
+
+        class Decrypt(
+            val cipher: Cipher,
+            val encryptedData: ByteArray,
+            val continuation: Continuation<ByteArray>
+        ) : BiometricAction {
+            override fun resumeWithException(exception: Exception) {
+                continuation.resumeWithException(exception)
+            }
         }
     }
 
-    @Parcelize
-    internal class ActivityParameters(
-        val keyStoreName: String,
-        val encryptedToken: ByteArray,
-        val encryptionExtras: Map<String, String>,
-        val keyAlias: String
-    ) : Parcelable
-
     internal companion object {
-        private const val ACTIVITY_PARAMS = "ACTIVITY_PARAMS"
-
         private lateinit var promptInfo: PromptInfo
-        private var continuation: Continuation<Token>? = null
+        private lateinit var biometricAction: BiometricAction
+        private val accessMutex = Mutex()
 
-        internal fun navigate(
-            appContext: Context,
-            continuation: Continuation<Token>,
-            activityParameters: ActivityParameters,
-            promptInfo: PromptInfo
-        ) {
-            if (this.continuation != null) {
-                throw IllegalStateException("Attempted calling Biometrics while another call is in progress.")
-            }
-            this.continuation = continuation
-            BiometricDecryptionActivity.promptInfo = promptInfo
+        private fun startActivity() {
             val intent = Intent()
-            intent.putExtra(ACTIVITY_PARAMS, activityParameters)
-            intent.setClass(appContext, BiometricDecryptionActivity::class.java)
+            intent.setClass(ApplicationContextHolder.appContext, BiometricDecryptionActivity::class.java)
             intent.setAction(BiometricDecryptionActivity::class.java.name)
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS)
-            appContext.startActivity(intent)
+            ApplicationContextHolder.appContext.startActivity(intent)
+        }
+
+        internal suspend fun biometricUnlock(promptInfo: PromptInfo) {
+            return accessMutex.withLock {
+                suspendCancellableCoroutine { continuation ->
+                    this.promptInfo = promptInfo
+                    biometricAction = BiometricAction.Unlock(continuation)
+                    startActivity()
+                }
+            }
+        }
+
+        internal suspend fun biometricDecrypt(
+            cipher: Cipher,
+            encryptedData: ByteArray,
+            promptInfo: PromptInfo
+        ): ByteArray {
+            return accessMutex.withLock {
+                suspendCancellableCoroutine { continuation ->
+                    this.promptInfo = promptInfo
+                    biometricAction = BiometricAction.Decrypt(
+                        cipher, encryptedData, continuation
+                    )
+                    startActivity()
+                }
+            }
         }
     }
 }
 
-class BiometricAuthenticationException : IllegalAccessException {
-    constructor() : super()
-    constructor(message: String) : super(message)
+class BiometricAuthenticationException(
+    message: String,
+    val biometricExceptionDetails: BiometricExceptionDetails
+) : GeneralSecurityException(message)
+
+sealed interface BiometricExceptionDetails {
+    data object OnAuthenticationSucceeded : BiometricExceptionDetails
+    data object OnAuthenticationFailed : BiometricExceptionDetails
+    data class OnAuthenticationError(
+        val errorCode: Int,
+        val errString: CharSequence
+    ) : BiometricExceptionDetails
 }
