@@ -65,6 +65,9 @@ class Credential internal constructor(
 
     internal interface BiometricSecurity {
         val userAuthenticationTimeout: Int
+        companion object {
+            internal const val TIMEOUT_RANGE_ERROR = "userAuthenticationTimeout must be >= 0"
+        }
     }
 
     /**
@@ -90,7 +93,13 @@ class Credential internal constructor(
              */
             override val userAuthenticationTimeout: Int = 5,
             override val keyAlias: String = AuthFoundationDefaults.Encryption.keyAlias + ".biometricStrong.timeout.$userAuthenticationTimeout"
-        ) : Security, BiometricSecurity
+        ) : Security, BiometricSecurity {
+            init {
+                require(userAuthenticationTimeout >= 0) {
+                    BiometricSecurity.TIMEOUT_RANGE_ERROR
+                }
+            }
+        }
 
         /**
          * The stored [Token] is encrypted using a key generated with [KeyProperties.AUTH_BIOMETRIC_STRONG] or [KeyProperties.AUTH_DEVICE_CREDENTIAL]
@@ -101,7 +110,13 @@ class Credential internal constructor(
              */
             override val userAuthenticationTimeout: Int = 5,
             override val keyAlias: String = AuthFoundationDefaults.Encryption.keyAlias + ".biometricStrongOrDeviceCredential.timeout.$userAuthenticationTimeout"
-        ) : Security, BiometricSecurity
+        ) : Security, BiometricSecurity {
+            init {
+                require(userAuthenticationTimeout >= 0) {
+                    BiometricSecurity.TIMEOUT_RANGE_ERROR
+                }
+            }
+        }
 
         companion object {
             private var _standard: Security? = null

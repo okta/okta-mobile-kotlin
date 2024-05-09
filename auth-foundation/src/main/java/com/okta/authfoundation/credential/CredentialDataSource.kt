@@ -15,6 +15,7 @@
  */
 package com.okta.authfoundation.credential
 
+import android.security.keystore.KeyPermanentlyInvalidatedException
 import androidx.biometric.BiometricPrompt
 import com.okta.authfoundation.AuthFoundationDefaults
 import com.okta.authfoundation.InternalAuthFoundationApi
@@ -86,7 +87,11 @@ class CredentialDataSource(
         return if (id in credentialsCache) credentialsCache[id]
         else {
             val metadata = metadata(id) ?: return null
-            val token = storage.getToken(id, promptInfo)
+            val token = try {
+                storage.getToken(id, promptInfo)
+            } catch (ex: KeyPermanentlyInvalidatedException) {
+                return null
+            }
             credentialsCache[id] = Credential(
                 token,
                 tags = metadata.tags

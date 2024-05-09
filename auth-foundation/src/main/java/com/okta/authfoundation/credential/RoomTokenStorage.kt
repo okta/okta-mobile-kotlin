@@ -22,6 +22,8 @@ import com.okta.authfoundation.AuthFoundationDefaults
 import com.okta.authfoundation.InternalAuthFoundationApi
 import com.okta.authfoundation.client.ApplicationContextHolder
 import com.okta.authfoundation.client.EncryptionTokenProvider
+import com.okta.authfoundation.credential.events.BiometricKeyInvalidatedEvent
+import com.okta.authfoundation.credential.events.BiometricTokenInvalidatedEvent
 import com.okta.authfoundation.credential.storage.TokenDatabase
 import com.okta.authfoundation.credential.storage.TokenEntity
 import com.okta.authfoundation.credential.storage.migration.V1ToV2StorageMigrator
@@ -147,9 +149,15 @@ class RoomTokenStorage(
                 promptInfo
             )
         } catch (ex: KeyPermanentlyInvalidatedException) {
+            val eventCoordinator = AuthFoundationDefaults.eventCoordinator
+            eventCoordinator.sendEvent(BiometricKeyInvalidatedEvent(tokenEntity.keyAlias))
             tokenDao.allEntries().forEach {
                 if (it.security == tokenEntity.security) {
-                    tokenDao.deleteTokenEntity(it)
+                    val biometricTokenInvalidatedEvent = BiometricTokenInvalidatedEvent(tokenEntity.id)
+                    AuthFoundationDefaults.eventCoordinator.sendEvent(biometricTokenInvalidatedEvent)
+                    if (biometricTokenInvalidatedEvent.deleteInvalidatedToken) {
+                        tokenDao.deleteTokenEntity(it)
+                    }
                 }
             }
             throw ex
