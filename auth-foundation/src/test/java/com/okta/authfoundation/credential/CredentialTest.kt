@@ -91,19 +91,35 @@ class CredentialTest {
     }
 
     @Test
-    fun `getDefaultCredential returns null if no default credential is set`() = runTest {
-        assertThat(Credential.getDefaultCredential()).isNull()
+    fun `default returns null if no default credential is set`() {
+        assertThat(Credential.default).isNull()
     }
 
     @Test
-    fun `getDefaultCredential returns the default credential`() = runTest {
+    fun `default returns the default credential`() {
         val credential = oktaRule.createCredential(createToken())
         val credentialDataSource = mockk<CredentialDataSource> {
             coEvery { getCredential(credential.id, any()) } returns credential
         }
         coEvery { CredentialDataSource.getInstance() } returns credentialDataSource
-        Credential.setDefaultCredential(credential)
-        assertThat(Credential.getDefaultCredential()).isEqualTo(credential)
+        Credential.default = credential
+        assertThat(Credential.default).isEqualTo(credential)
+    }
+
+    @Test
+    fun `getDefaultAsync returns null if no default credential is set`() = runTest {
+        assertThat(Credential.getDefaultAsync()).isNull()
+    }
+
+    @Test
+    fun `getDefaultAsync returns the default credential`() = runTest {
+        val credential = oktaRule.createCredential(createToken())
+        val credentialDataSource = mockk<CredentialDataSource> {
+            coEvery { getCredential(credential.id, any()) } returns credential
+        }
+        coEvery { CredentialDataSource.getInstance() } returns credentialDataSource
+        Credential.setDefaultAsync(credential)
+        assertThat(Credential.getDefaultAsync()).isEqualTo(credential)
     }
 
     @Test
@@ -113,7 +129,8 @@ class CredentialTest {
             coEvery { allIds() } returns testIds
         }
         coEvery { CredentialDataSource.getInstance() } returns credentialDataSource
-        assertThat(Credential.allIds()).isEqualTo(testIds)
+        assertThat(Credential.allIds).isEqualTo(testIds)
+        assertThat(Credential.allIdsAsync()).isEqualTo(testIds)
         coVerify { credentialDataSource.allIds() }
     }
 
@@ -126,6 +143,7 @@ class CredentialTest {
         }
         coEvery { CredentialDataSource.getInstance() } returns credentialDataSource
         assertThat(Credential.metadata(testId)).isEqualTo(expectedMetadata)
+        assertThat(Credential.metadataAsync(testId)).isEqualTo(expectedMetadata)
         coVerify { credentialDataSource.metadata(testId) }
     }
 
@@ -135,6 +153,7 @@ class CredentialTest {
         val oldMetadata = Token.Metadata("id1", emptyMap(), idToken = null)
         var storedMetadata: Token.Metadata = oldMetadata
         val newMetadata = Token.Metadata("id1", mapOf("key" to "value"), idToken = null)
+        val newerMetadata = Token.Metadata("id1", mapOf("newKey" to "newValue"), idToken = null)
         val credentialDataSource = mockk<CredentialDataSource> {
             coEvery { setMetadata(any()) } answers {
                 storedMetadata = it.invocation.args[0] as Token.Metadata
@@ -146,6 +165,8 @@ class CredentialTest {
         assertThat(Credential.metadata("id1")).isEqualTo(oldMetadata)
         Credential.setMetadata(newMetadata)
         assertThat(Credential.metadata("id1")).isEqualTo(newMetadata)
+        Credential.setMetadataAsync(newerMetadata)
+        assertThat(Credential.metadata("id1")).isEqualTo(newerMetadata)
     }
 
     @Test
@@ -158,6 +179,7 @@ class CredentialTest {
         coEvery { CredentialDataSource.getInstance() } returns credentialDataSource
 
         assertThat(Credential.with(testId)).isEqualTo(credential)
+        assertThat(Credential.withAsync(testId)).isEqualTo(credential)
         coVerify { credentialDataSource.getCredential(testId) }
     }
 
@@ -171,6 +193,7 @@ class CredentialTest {
         coEvery { CredentialDataSource.getInstance() } returns credentialDataSource
 
         assertThat(Credential.find(where = findExpression)).isEqualTo(listOf(credential))
+        assertThat(Credential.findAsync(where = findExpression)).isEqualTo(listOf(credential))
         coVerify { credentialDataSource.findCredential(where = findExpression) }
     }
 
@@ -200,16 +223,19 @@ class CredentialTest {
     fun `setTags changes credential metadata`() = runTest {
         val oldTags = mapOf("key" to "value")
         val newTags = mapOf("newKey" to "newValue")
+        val newerTags = mapOf("newerKey" to "newerValue")
         val credential = oktaRule.createCredential(token, tags = oldTags)
 
         val credentialDataSource = mockk<CredentialDataSource>(relaxed = true)
         coEvery { CredentialDataSource.getInstance() } returns credentialDataSource
 
         assertThat(credential.tags).isEqualTo(oldTags)
-        credential.setTags(newTags)
+        credential.setTagsAsync(newTags)
         assertThat(credential.tags).isEqualTo(newTags)
+        credential.tags = newerTags
+        assertThat(credential.tags).isEqualTo(newerTags)
         coVerify { credentialDataSource.setMetadata(Token.Metadata(credential.id, newTags, idToken = null)) }
-        coVerify(exactly = 1) { credentialDataSource.setMetadata(any()) }
+        coVerify(exactly = 2) { credentialDataSource.setMetadata(any()) }
         coVerify(exactly = 0) { credentialDataSource.metadata(credential.id) }
     }
 
@@ -243,7 +269,7 @@ class CredentialTest {
     fun `delete clears default credential if deleted credential is default`() = runTest {
         val token = createToken()
         val credential = oktaRule.createCredential(token = token, credentialDataSource = credentialDataSource)
-        Credential.setDefaultCredential(credential)
+        Credential.setDefaultAsync(credential)
         assertThat(defaultCredentialIdDataStore.getDefaultCredentialId()).isEqualTo(credential.id)
         credential.delete()
 

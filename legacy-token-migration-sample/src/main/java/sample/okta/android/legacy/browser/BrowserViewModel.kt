@@ -43,7 +43,7 @@ class BrowserViewModel : ViewModel() {
                 }
                 is OAuth2ClientResult.Success -> {
                     val credential = Credential.store(token = result.result)
-                    Credential.setDefaultCredential(credential)
+                    Credential.setDefaultAsync(credential)
                     _state.value = BrowserState.Token
                 }
             }

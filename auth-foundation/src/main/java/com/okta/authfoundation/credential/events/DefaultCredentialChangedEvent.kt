@@ -16,9 +16,10 @@
 package com.okta.authfoundation.credential.events
 
 import com.okta.authfoundation.credential.Credential
+import com.okta.authfoundation.events.EventHandler
 
 /**
- * Emitted via [EventHandler.onEvent] when the default [Credential] is changed via a [Credential.setDefaultCredential] call.
+ * Emitted via [EventHandler.onEvent] when the default [Credential] is changed.
  */
 class DefaultCredentialChangedEvent internal constructor(
     /**

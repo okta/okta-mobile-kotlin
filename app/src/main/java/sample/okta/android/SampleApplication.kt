@@ -18,8 +18,11 @@ package sample.okta.android
 import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
+import androidx.biometric.BiometricManager
+import androidx.biometric.BiometricPrompt
 import com.okta.authfoundation.AuthFoundation
 import com.okta.authfoundation.client.OidcConfiguration
+import com.okta.authfoundation.credential.Credential
 import timber.log.Timber
 
 class SampleApplication : Application() {
@@ -35,6 +38,12 @@ class SampleApplication : Application() {
 
         Timber.plant(Timber.DebugTree())
 
+        Credential.Security.standard = Credential.Security.BiometricStrongOrDeviceCredential(userAuthenticationTimeout = 5)
+        Credential.Security.promptInfo = BiometricPrompt.PromptInfo.Builder()
+            .setTitle("Title")
+            .setNegativeButtonText("Cancel Button")
+            .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG) // Verify the authenticator is supported by device using BiometricManager.canAuthenticate
+            .build()
         AuthFoundation.initializeAndroidContext(this)
         OidcConfiguration.default = OidcConfiguration(
             clientId = BuildConfig.CLIENT_ID,

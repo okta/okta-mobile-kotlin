@@ -232,15 +232,15 @@ There are multiple terms that might be confused when logging a user out.
 ### Using a Credential to determine user authentication status
 There are a few options to determine the status of a user authentication. Each option has unique pros and cons and should be chosen based on the needs of your use case.
 
-- Non null default credential: `Credential.getDefaultCredential() != null`
+- Non null default credential: `Credential.getDefaultAsync() != null`
 - Non empty credential allIds: `Credential.allIds().isNotEmpty()`
-- getValidAccessToken: `Credential.getDefaultCredential()?.getValidAccessToken() != null`
-- Custom implementation: `Credential.getDefaultCredential()?.token`, `Credential.getDefaultCredential()?.refresh()`, and `Credential.getDefaultCredential()?.getAccessTokenIfValid()`
+- getValidAccessToken: `Credential.getDefaultAsync()?.getValidAccessToken() != null`
+- Custom implementation: `Credential.getDefaultAsync()?.token`, `Credential.getDefaultAsync()?.refresh()`, and `Credential.getDefaultAsync()?.getAccessTokenIfValid()`
 
 Details on each approach are below.
 
 #### Determine authentication status via non null Credential
-`Credential`s require a `Token`. If there are no `Credential`s present, then no `Token` has been stored. Note that `Credential.getDefaultCredential()` can be a blocking call if the `Credential` was stored using `Credential.Security.Biometric<Strong/StrongOrDeviceCredential>`.
+`Credential`s require a `Token`. If there are no `Credential`s present, then no `Token` has been stored. Note that `Credential.getDefaultAsync()` can be a blocking call if the `Credential` was stored using `Credential.Security.Biometric<Strong/StrongOrDeviceCredential>`.
 
 #### Determine authentication by checking if any Credentials exist
 `Credential.allIds()` lists list of all ids of stored `Credential`s. If it returns an empty list, there are no stored `Credential`s.
@@ -257,6 +257,7 @@ The SDK has built-in support for handling Biometric encryption. To set the defau
 > Notes:
 > - The SDK does not check which biometrics are enrolled on the user's device. Please check this using https://developer.android.com/reference/android/hardware/biometrics/BiometricManager#canAuthenticate(int) before setting the appropriate security level
 > - The SDK automatically deletes Token entries stored using invalidated biometric keys.
+> - Biometric Credentials should only be fetched using async APIs in `Credential` class.
 
 #### Setting Biometric security for new Credentials globally
 
@@ -403,9 +404,11 @@ V1ToV2StorageMigrator.legacyStorage = legacyTokenStorage
 `CredentialBootstrap`, `CredentialDataSource`, and `Credential` contain several changes over 1.x. `Credential`s can no longer contain a null `Token`. Because of this change from 1.x, the flow for creating `Credential` without `Token`, followed by calling `Credential.storeToken` can no longer be used.
 When creating a new `Credential` with `Credential.store`, a `Token` must be provided.
 
-1.x would create a new `Credential` with null `Token` if no default `Credential` existed when calling `CredentialBootstrap.defaultCredential()`. In 2.x, `Credential.getDefaultCredential()` now returns `Credential?` instead of `Credential` if no default `Credential` exists.
+1.x would create a new `Credential` with null `Token` if no default `Credential` existed when calling `CredentialBootstrap.defaultCredential()`. In 2.x, default `Credential` can be fetched using `Credential.default` or `Credential.getDefaultAsync()`. Both of those have a type of `Credential?` instead of `Credential`, and return `null` if no default `Credential` exists.
 
 1.x contained `Credential` handling APIs in `CredentialBootstrap` and `CredentialDataSource`. All `Credential` management calls have been moved to `Credential` in 2.x. `CredentialBootstrap` has been deleted, and `CredentialDataSource` is private in 2.x.
+
+1.x provided `suspend` functions for handling creation and management of any `Credential`s. 2.x provides synchronous `Credential` management functions in addition to `suspend` functions. Note that it's still recommended to use `suspend` functions (suffixed with `Async`) if a coroutine scope is available.
 
 #### Initialization changes
 

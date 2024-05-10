@@ -48,7 +48,7 @@ internal class DashboardViewModel : ViewModel() {
 
     init {
         viewModelScope.launch {
-            Credential.getDefaultCredential()?.let {
+            Credential.getDefaultAsync()?.let {
                 credential = it
                 _credentialLiveData.value = CredentialState.Loaded(credential)
                 getUserInfo()
@@ -87,7 +87,7 @@ internal class DashboardViewModel : ViewModel() {
 
     fun logoutOfWeb(context: Context) {
         viewModelScope.launch {
-            val idToken = credential.token?.idToken ?: return@launch
+            val idToken = credential.token.idToken ?: return@launch
             when (
                 val result = WebAuthentication().logoutOfBrowser(
                     context = context,
