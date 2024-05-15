@@ -36,6 +36,7 @@ internal data class TokenEntity(
     val payloadData: JsonObject?,
     val keyAlias: String,
     val tokenEncryptionType: EncryptionType,
+    val biometricTimeout: Int?,
     val encryptionExtras: Map<String, String>
 ) {
     internal enum class EncryptionType {
@@ -43,11 +44,17 @@ internal data class TokenEntity(
         BIO_ONLY,
         BIO_AND_PIN;
 
-        internal fun toSecurity(keyAlias: String): Credential.Security {
+        internal fun toSecurity(keyAlias: String, biometricTimeout: Int?): Credential.Security {
             return when (this) {
                 DEFAULT -> Credential.Security.Default(keyAlias)
-                BIO_ONLY -> Credential.Security.BiometricStrong(keyAlias)
-                BIO_AND_PIN -> Credential.Security.BiometricStrongOrDeviceCredential(keyAlias)
+                BIO_ONLY -> {
+                    if (biometricTimeout == null) throw IllegalStateException("BIO_ONLY TokenEntity stored without timeout")
+                    Credential.Security.BiometricStrong(biometricTimeout, keyAlias)
+                }
+                BIO_AND_PIN -> {
+                    if (biometricTimeout == null) throw IllegalStateException("BIO_AND_PIN TokenEntity stored without timeout")
+                    Credential.Security.BiometricStrongOrDeviceCredential(biometricTimeout, keyAlias)
+                }
             }
         }
 
@@ -63,7 +70,7 @@ internal data class TokenEntity(
     }
 
     val security: Credential.Security
-        get() = tokenEncryptionType.toSecurity(keyAlias)
+        get() = tokenEncryptionType.toSecurity(keyAlias, biometricTimeout)
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

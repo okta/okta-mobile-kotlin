@@ -256,12 +256,12 @@ The SDK has built-in support for handling Biometric encryption. To set the defau
 
 > Notes:
 > - The SDK does not check which biometrics are enrolled on the user's device. Please check this using https://developer.android.com/reference/android/hardware/biometrics/BiometricManager#canAuthenticate(int) before setting the appropriate security level
-> - The SDK does not handle potential errors due to invalidated user Biometrics. In such cases, the app using the SDK is responsible for fetching a new `Token` and creating a new `Credential`.
+> - The SDK automatically deletes Token entries stored using invalidated biometric keys.
 
-#### Setting Biometric security for new Credentials
+#### Setting Biometric security for new Credentials globally
 
 ```kotlin
-Credential.Security.standard = Credential.Security.BiometricStrong
+Credential.Security.standard = Credential.Security.BiometricStrong()
 Credential.Security.promptInfo = BiometricPrompt.PromptInfo.Builder()
   .setTitle("Title")
   .setNegativeButtonText("Cancel Button")
@@ -269,13 +269,22 @@ Credential.Security.promptInfo = BiometricPrompt.PromptInfo.Builder()
   .build()
 ```
 
-#### Changing security level of existing Credential
-
-After setting the `Credential.Security.standard`, any newly created `Credential` will be stored using Biometric encryption. Note that this does not change the security level of previously stored `Credential`s in storage. The security level of a stored `Credential` can be changed as follows:
+#### Setting Biometric security for a single Credential
 
 ```kotlin
-val credential = Credential.getDefaultCredential() // Or any Credential object
-credential.storeToken(security = Credential.Security.BiometricStrong)
+val token = TODO("Supplied by user")
+val credential = Credential.store(token, security = Credential.Security.BiometricStrong())
+```
+
+#### Auth-per-use Biometric keys
+The SDK uses Biometric keys with a timeout of 5 seconds by default. This allows apps to invoke Biometrics once, and perform operations on multiple Biometric `Credential`s. Auth-per-use Biometric `Credential`s are also supported using the following:
+
+```kotlin
+// Globally
+Credential.Security.standard = Credential.Security.BiometricStrong(userAuthenticationTimeout = 0)
+// or per-Credential
+val token = TODO("Supplied by user")
+val credential = Credential.store(token, security = Credential.Security.BiometricStrong(userAuthenticationTimeout = 0))
 ```
 
 ### Networking customization

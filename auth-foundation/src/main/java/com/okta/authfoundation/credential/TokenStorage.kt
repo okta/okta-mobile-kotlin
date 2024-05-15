@@ -67,16 +67,10 @@ interface TokenStorage {
      * Replace [Token] with [Token.id] with the given [token]. If no such [Token] with the given [Token.id] exists, [NoSuchElementException] is thrown.
      *
      * @param token set the storage entry with [Token.id] to this [Token].
-     * @param metadata set the storage entry with [Token.id] to have this [Token.Metadata]. If null, the metadata is left unchanged.
-     * @param security store the [token] in storage with this [Credential.Security] level. If null, the [Credential.Security] level is unchanged.
      *
      * @throws [NoSuchElementException] if no such storage entry with [Token.id] exists.
      */
-    suspend fun replace(
-        token: Token,
-        metadata: Token.Metadata? = null,
-        security: Credential.Security? = null
-    )
+    suspend fun replace(token: Token)
 
     /**
      * Get [Token] from storage with associated [id].

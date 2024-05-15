@@ -15,12 +15,15 @@
  */
 package com.okta.authfoundation.credential
 
+import android.security.keystore.KeyPermanentlyInvalidatedException
 import androidx.biometric.BiometricPrompt.PromptInfo
 import androidx.room.Room
 import com.okta.authfoundation.AuthFoundationDefaults
 import com.okta.authfoundation.InternalAuthFoundationApi
 import com.okta.authfoundation.client.ApplicationContextHolder
 import com.okta.authfoundation.client.EncryptionTokenProvider
+import com.okta.authfoundation.credential.events.BiometricKeyInvalidatedEvent
+import com.okta.authfoundation.credential.events.BiometricTokenInvalidatedEvent
 import com.okta.authfoundation.credential.storage.TokenDatabase
 import com.okta.authfoundation.credential.storage.TokenEntity
 import com.okta.authfoundation.credential.storage.migration.V1ToV2StorageMigrator
@@ -106,6 +109,7 @@ class RoomTokenStorage(
                 payloadData = metadata.payloadData,
                 keyAlias = security.keyAlias,
                 tokenEncryptionType = TokenEntity.EncryptionType.fromSecurity(security),
+                biometricTimeout = security.biometricTimeout(),
                 encryptionExtras = encryptionResult.encryptionExtras
             )
         )
@@ -117,30 +121,14 @@ class RoomTokenStorage(
         }
     }
 
-    override suspend fun replace(
-        token: Token,
-        metadata: Token.Metadata?,
-        security: Credential.Security?,
-    ) {
-        if (metadata != null && token.id != metadata.id) {
-            throw IllegalStateException("TokenStorage.replace called with different token.id and metadata.id")
-        }
-
+    override suspend fun replace(token: Token) {
         val tokenEntity = tokenDao.getById(token.id) ?: throw NoSuchElementException()
-
-        security?.let { tokenEncryptionHandler.generateKey(it) }
         val encryptionResult = tokenEncryptionHandler.encrypt(
-            token, security ?: tokenEntity.security
+            token, tokenEntity.security
         )
 
         val updatedTokenEntity = tokenEntity.copy(
             encryptedToken = encryptionResult.encryptedToken,
-            tags = metadata?.tags ?: tokenEntity.tags,
-            payloadData = metadata?.payloadData ?: tokenEntity.payloadData,
-            keyAlias = security?.keyAlias ?: tokenEntity.keyAlias,
-            tokenEncryptionType = security?.let {
-                TokenEntity.EncryptionType.fromSecurity(it)
-            } ?: tokenEntity.tokenEncryptionType,
             encryptionExtras = encryptionResult.encryptionExtras
         )
 
@@ -153,11 +141,33 @@ class RoomTokenStorage(
     }
 
     private suspend fun getTokenFromEntity(tokenEntity: TokenEntity, promptInfo: PromptInfo?): Token {
-        return tokenEncryptionHandler.decrypt(
-            tokenEntity.encryptedToken,
-            tokenEntity.encryptionExtras,
-            tokenEntity.security,
-            promptInfo
-        )
+        return try {
+            tokenEncryptionHandler.decrypt(
+                tokenEntity.encryptedToken,
+                tokenEntity.encryptionExtras,
+                tokenEntity.security,
+                promptInfo
+            )
+        } catch (ex: KeyPermanentlyInvalidatedException) {
+            val eventCoordinator = AuthFoundationDefaults.eventCoordinator
+            eventCoordinator.sendEvent(BiometricKeyInvalidatedEvent(tokenEntity.keyAlias))
+            tokenDao.allEntries().forEach {
+                if (it.security == tokenEntity.security) {
+                    val biometricTokenInvalidatedEvent = BiometricTokenInvalidatedEvent(tokenEntity.id)
+                    AuthFoundationDefaults.eventCoordinator.sendEvent(biometricTokenInvalidatedEvent)
+                    if (biometricTokenInvalidatedEvent.deleteInvalidatedToken) {
+                        tokenDao.deleteTokenEntity(it)
+                    }
+                }
+            }
+            throw ex
+        }
+    }
+
+    private fun Credential.Security.biometricTimeout(): Int? {
+        return when (this) {
+            is Credential.BiometricSecurity -> this.userAuthenticationTimeout
+            else -> null
+        }
     }
 }

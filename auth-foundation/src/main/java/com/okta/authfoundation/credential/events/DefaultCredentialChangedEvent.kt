@@ -25,4 +25,4 @@ class DefaultCredentialChangedEvent internal constructor(
      * The [Credential] that was set as default.
      */
     val credential: Credential
-)
+) : Event

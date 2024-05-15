@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-Present Okta, Inc.
+ * Copyright 2024-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,4 @@
  */
 package com.okta.authfoundation.credential.events
 
-import com.okta.authfoundation.credential.Credential
-import com.okta.authfoundation.events.EventHandler
-
-/**
- * Emitted via [EventHandler.onEvent] when a [Credential.replaceToken] was invoked after a [Credential.delete] call.
- */
-class CredentialStoredAfterRemovedEvent internal constructor(
-    /**
-     * The [Credential] associated with the event.
-     */
-    val credential: Credential,
-) : Event
+interface Event

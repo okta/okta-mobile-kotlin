@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-Present Okta, Inc.
+ * Copyright 2024-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,16 @@
  */
 package com.okta.authfoundation.credential.events
 
-import com.okta.authfoundation.credential.Credential
-import com.okta.authfoundation.events.EventHandler
+import android.security.keystore.KeyPermanentlyInvalidatedException
+import com.okta.authfoundation.credential.Token
 
 /**
- * Emitted via [EventHandler.onEvent] when a [Credential.replaceToken] was invoked after a [Credential.delete] call.
+ * Emitted when [KeyPermanentlyInvalidatedException] is thrown when trying to use an invalidated biometric
+ * key while fetching a [Token].
  */
-class CredentialStoredAfterRemovedEvent internal constructor(
+class BiometricKeyInvalidatedEvent internal constructor(
     /**
-     * The [Credential] associated with the event.
+     * The key with [keyAlias] that got invalidated.
      */
-    val credential: Credential,
+    val keyAlias: String
 ) : Event

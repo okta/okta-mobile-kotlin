@@ -16,6 +16,7 @@
 package com.okta.webauthenticationui.events
 
 import android.content.pm.PackageManager
+import com.okta.authfoundation.credential.events.Event
 import com.okta.authfoundation.events.EventHandler
 import com.okta.webauthenticationui.WebAuthentication
 
@@ -36,7 +37,7 @@ class CustomizeBrowserEvent internal constructor(
      * The list of browser package names to prefer when selecting which Chrome Custom Tabs intent service is used.
      */
     val preferredBrowsers: MutableList<String> = mutableListOf(CHROME_STABLE, CHROME_SYSTEM, CHROME_BETA)
-) {
+) : Event {
     private companion object {
         private const val CHROME_STABLE = "com.android.chrome"
         private const val CHROME_SYSTEM = "com.google.android.apps.chrome"

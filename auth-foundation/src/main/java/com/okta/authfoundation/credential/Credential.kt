@@ -63,7 +63,12 @@ class Credential internal constructor(
      */
     val id = token.id
 
-    internal interface BiometricSecurity
+    internal interface BiometricSecurity {
+        val userAuthenticationTimeout: Int
+        companion object {
+            internal const val TIMEOUT_RANGE_ERROR = "userAuthenticationTimeout must be >= 0"
+        }
+    }
 
     /**
      * Convenience object for specifying security level for storing [Token] objects
@@ -82,15 +87,36 @@ class Credential internal constructor(
          * The stored [Token] is encrypted using a key generated with [KeyProperties.AUTH_BIOMETRIC_STRONG]
          */
         data class BiometricStrong(
-            override val keyAlias: String = AuthFoundationDefaults.Encryption.keyAlias + ".biometricStrong"
-        ) : Security, BiometricSecurity
+            /**
+             * User authentication timeout (in seconds). A timeout of 0 means that auth-per-use keys will be used for Biometrics.
+             * Note that this timeout is always 0 on Android 10 and below.
+             */
+            override val userAuthenticationTimeout: Int = 5,
+            override val keyAlias: String = AuthFoundationDefaults.Encryption.keyAlias + ".biometricStrong.timeout.$userAuthenticationTimeout"
+        ) : Security, BiometricSecurity {
+            init {
+                require(userAuthenticationTimeout >= 0) {
+                    BiometricSecurity.TIMEOUT_RANGE_ERROR
+                }
+            }
+        }
 
         /**
          * The stored [Token] is encrypted using a key generated with [KeyProperties.AUTH_BIOMETRIC_STRONG] or [KeyProperties.AUTH_DEVICE_CREDENTIAL]
          */
         data class BiometricStrongOrDeviceCredential(
-            override val keyAlias: String = AuthFoundationDefaults.Encryption.keyAlias + ".biometricStrongOrDeviceCredential"
-        ) : Security, BiometricSecurity
+            /**
+             * User authentication timeout (in seconds). A timeout of 0 means that auth-per-use keys will be used for Biometrics.
+             */
+            override val userAuthenticationTimeout: Int = 5,
+            override val keyAlias: String = AuthFoundationDefaults.Encryption.keyAlias + ".biometricStrongOrDeviceCredential.timeout.$userAuthenticationTimeout"
+        ) : Security, BiometricSecurity {
+            init {
+                require(userAuthenticationTimeout >= 0) {
+                    BiometricSecurity.TIMEOUT_RANGE_ERROR
+                }
+            }
+        }
 
         companion object {
             private var _standard: Security? = null
@@ -382,7 +408,7 @@ class Credential internal constructor(
      *
      * This will return `null` if the associated [Token] or it's `idToken` field is `null`.
      */
-    suspend fun idToken(): Jwt? {
+    fun idToken(): Jwt? {
         val idToken = token.idToken ?: return null
         return try {
             val parser =
@@ -402,7 +428,7 @@ class Credential internal constructor(
      *
      * See [Credential.introspectToken] for checking if the token is valid with the Authorization Server.
      */
-    suspend fun getAccessTokenIfValid(): String? {
+    fun getAccessTokenIfValid(): String? {
         val idToken = idToken() ?: return null
         val accessToken = token.accessToken
         val expiresIn = token.expiresIn

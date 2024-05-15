@@ -26,4 +26,4 @@ class CredentialDeletedEvent internal constructor(
      * The [Credential] that was deleted.
      */
     val credential: Credential,
-)
+) : Event

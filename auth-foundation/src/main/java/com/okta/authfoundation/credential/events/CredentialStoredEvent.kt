@@ -37,4 +37,4 @@ class CredentialStoredEvent internal constructor(
      * The tags associated with the event.
      */
     val tags: Map<String, String>,
-)
+) : Event

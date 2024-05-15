@@ -57,14 +57,14 @@ public abstract interface class com/okta/webauthenticationui/WebAuthenticationPr
 	public abstract fun launch (Landroid/content/Context;Lokhttp3/HttpUrl;)Ljava/lang/Exception;
 }
 
-public final class com/okta/webauthenticationui/events/CustomizeBrowserEvent {
+public final class com/okta/webauthenticationui/events/CustomizeBrowserEvent : com/okta/authfoundation/credential/events/Event {
 	public fun <init> ()V
 	public final fun getPreferredBrowsers ()Ljava/util/List;
 	public final fun getQueryIntentServicesFlags ()I
 	public final fun setQueryIntentServicesFlags (I)V
 }
 
-public final class com/okta/webauthenticationui/events/CustomizeCustomTabsEvent {
+public final class com/okta/webauthenticationui/events/CustomizeCustomTabsEvent : com/okta/authfoundation/credential/events/Event {
 	public final fun getContext ()Landroid/content/Context;
 	public final fun getIntentBuilder ()Landroidx/browser/customtabs/CustomTabsIntent$Builder;
 }

@@ -17,16 +17,16 @@ package com.okta.authfoundation.credential
 
 import android.os.Build
 import android.security.keystore.KeyGenParameterSpec
+import android.security.keystore.KeyPermanentlyInvalidatedException
 import android.security.keystore.KeyProperties
 import android.util.Base64
 import androidx.biometric.BiometricPrompt
 import com.okta.authfoundation.AuthFoundationDefaults
+import com.okta.authfoundation.BiometricDecryptionActivity
 import com.okta.authfoundation.InternalAuthFoundationApi
-import com.okta.authfoundation.TransparentBiometricActivity
-import com.okta.authfoundation.client.ApplicationContextHolder
 import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.util.AndroidKeystoreUtil
-import kotlinx.coroutines.suspendCancellableCoroutine
+import java.security.GeneralSecurityException
 import java.security.KeyFactory
 import java.security.KeyPairGenerator
 import java.security.KeyStore
@@ -36,7 +36,6 @@ import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 import javax.crypto.spec.SecretKeySpec
-import kotlin.coroutines.Continuation
 
 /**
  * Interface for defining how [Token]s are encrypted before storing in [RoomTokenStorage], the default implementation of [TokenStorage].
@@ -111,10 +110,6 @@ class DefaultTokenEncryptionHandler(
         init(256)
     }
 
-    init {
-        keyStore.load(null)
-    }
-
     override fun generateKey(security: Credential.Security) {
         if (keyStore.containsAlias(security.keyAlias)) return
 
@@ -140,9 +135,13 @@ class DefaultTokenEncryptionHandler(
                 keyGenParameterSpecBuilder.apply {
                     setUserAuthenticationRequired(true)
                     if (Build.VERSION.SDK_INT > Build.VERSION_CODES.R) {
-                        setUserAuthenticationParameters(0, KeyProperties.AUTH_BIOMETRIC_STRONG)
+                        setUserAuthenticationParameters(
+                            security.userAuthenticationTimeout,
+                            KeyProperties.AUTH_BIOMETRIC_STRONG
+                        )
                     } else {
                         // Setting -1 timeout sets strong biometric encryption in Android 10 and below
+                        // This cannot be set to a custom userAuthenticationTimeout
                         setUserAuthenticationValidityDurationSeconds(-1)
                     }
                 }.build()
@@ -153,12 +152,13 @@ class DefaultTokenEncryptionHandler(
                     setUserAuthenticationRequired(true)
                     if (Build.VERSION.SDK_INT > Build.VERSION_CODES.R) {
                         setUserAuthenticationParameters(
-                            0,
+                            security.userAuthenticationTimeout,
                             KeyProperties.AUTH_BIOMETRIC_STRONG or KeyProperties.AUTH_DEVICE_CREDENTIAL
                         )
                     } else {
-                        // Setting 0 timeout sets strong or device credential encryption in Android 10 and below
-                        setUserAuthenticationValidityDurationSeconds(0)
+                        // Setting a timeout of 0 or higher uses AUTH_BIOMETRIC_STRONG or AUTH_DEVICE_CREDENTIAL
+                        // on Android 10 and below.
+                        setUserAuthenticationValidityDurationSeconds(security.userAuthenticationTimeout)
                     }
                 }.build()
             }
@@ -206,29 +206,82 @@ class DefaultTokenEncryptionHandler(
         security: Credential.Security,
         promptInfo: BiometricPrompt.PromptInfo?
     ): Token {
-        val userAuthenticationRequired = security is Credential.BiometricSecurity
-        return if (userAuthenticationRequired) {
-            if (promptInfo == null) {
-                throw IllegalArgumentException(BIO_TOKEN_NO_PROMPT_INFO_ERROR)
+        return when (security) {
+            is Credential.BiometricSecurity -> {
+                if (promptInfo == null) {
+                    throw IllegalArgumentException(BIO_TOKEN_NO_PROMPT_INFO_ERROR)
+                }
+
+                try {
+                    /*
+                    Try decrypting without biometrics for the following:
+                    1. User might have already authenticated within a non-zero userAuthenticationTimeout during another call.
+                    2. We might catch KeyPermanentlyInvalidatedException
+                     */
+                    return rsaDecrypt(encryptedToken, encryptionExtras, security)
+                } catch (ex: KeyPermanentlyInvalidatedException) {
+                    // This key is no longer valid and the caller should delete all Token entries using this key
+                    keyStore.deleteEntry(security.keyAlias)
+                    throw ex
+                } catch (ex: GeneralSecurityException) {
+                    // Do nothing. We will try using Biometrics after this
+                }
+
+                if (security.userAuthenticationTimeout == 0) { // auth-per-use key
+                    return internalDecrypt(encryptedToken, encryptionExtras) { encryptedAesKey ->
+                        val privateRsaKey = keyStore.getKey(security.keyAlias, null)
+                        val rsaCipher = getRsaCipher().apply { init(Cipher.DECRYPT_MODE, privateRsaKey) }
+                        BiometricDecryptionActivity.biometricDecrypt(rsaCipher, encryptedAesKey, promptInfo)
+                    }
+                } else {
+                    BiometricDecryptionActivity.biometricUnlock(promptInfo)
+                    rsaDecrypt(encryptedToken, encryptionExtras, security)
+                }
             }
-            suspendCancellableCoroutine { continuation ->
-                biometricDecryptionContinuation = continuation
-                TransparentBiometricActivity.navigate(
-                    ApplicationContextHolder.appContext,
-                    TransparentBiometricActivity.ActivityParameters(
-                        keyStore.provider.name,
-                        encryptedToken,
-                        encryptionExtras,
-                        security.keyAlias
-                    ),
-                    promptInfo
+            else -> {
+                rsaDecrypt(encryptedToken, encryptionExtras, security)
+            }
+        }
+    }
+
+    private suspend fun rsaDecrypt(
+        encryptedToken: ByteArray,
+        encryptionExtras: Map<String, String>,
+        security: Credential.Security
+    ): Token {
+        val privateRsaKey = keyStore.getKey(security.keyAlias, null)
+        val rsaCipher = getRsaCipher().apply { init(Cipher.DECRYPT_MODE, privateRsaKey) }
+        return internalDecrypt(encryptedToken, encryptionExtras) { encryptedAesKey ->
+            rsaCipher.doFinal(encryptedAesKey)
+        }
+    }
+
+    private suspend fun internalDecrypt(
+        encryptedToken: ByteArray,
+        encryptionExtras: Map<String, String>,
+        rsaDecryptFunc: suspend (encryptedAesKey: ByteArray) -> ByteArray
+    ): Token {
+        val encryptedAesKeyMaterial =
+            Base64.decode(encryptionExtras[ENCRYPTED_AES_KEY_MATERIAL], Base64.NO_WRAP)
+        val aesKeyMaterial = rsaDecryptFunc(encryptedAesKeyMaterial).decodeToString().split(
+            BASE64_SEPARATOR, limit = 2
+        )
+        val encodedAesKey = Base64.decode(aesKeyMaterial[0], Base64.NO_WRAP)
+        val aesIv = Base64.decode(aesKeyMaterial[1], Base64.NO_WRAP)
+        val aesKey = SecretKeySpec(encodedAesKey, "AES") as SecretKey
+
+        val aesCipher =
+            getAesCipher().apply {
+                init(
+                    Cipher.DECRYPT_MODE,
+                    aesKey,
+                    GCMParameterSpec(128, aesIv)
                 )
             }
-        } else {
-            val privateRsaKey = keyStore.getKey(security.keyAlias, null)
-            val rsaCipher = getRsaCipher().apply { init(Cipher.DECRYPT_MODE, privateRsaKey) }
-            internalDecrypt(encryptedToken, rsaCipher, encryptionExtras)
-        }
+        val decryptedToken = aesCipher.doFinal(encryptedToken)
+        val serializedToken = decryptedToken.decodeToString()
+        return OidcConfiguration.defaultJson()
+            .decodeFromString(Token.serializer(), serializedToken)
     }
 
     internal companion object {
@@ -236,35 +289,6 @@ class DefaultTokenEncryptionHandler(
         internal const val BASE64_SEPARATOR = ","
         internal const val BIO_TOKEN_NO_PROMPT_INFO_ERROR =
             "promptInfo is required for decrypting biometric tokens"
-
-        internal var biometricDecryptionContinuation: Continuation<Token>? = null
-
-        internal fun internalDecrypt(
-            encryptedToken: ByteArray,
-            rsaCipher: Cipher,
-            encryptionExtras: Map<String, String>,
-        ): Token {
-            val encryptedAesKeyMaterial = Base64.decode(encryptionExtras[ENCRYPTED_AES_KEY_MATERIAL], Base64.NO_WRAP)
-            val aesKeyMaterial = rsaCipher.doFinal(encryptedAesKeyMaterial).decodeToString().split(
-                BASE64_SEPARATOR, limit = 2
-            )
-            val encodedAesKey = Base64.decode(aesKeyMaterial[0], Base64.NO_WRAP)
-            val aesIv = Base64.decode(aesKeyMaterial[1], Base64.NO_WRAP)
-            val aesKey = SecretKeySpec(encodedAesKey, "AES") as SecretKey
-
-            val aesCipher =
-                getAesCipher().apply {
-                    init(
-                        Cipher.DECRYPT_MODE,
-                        aesKey,
-                        GCMParameterSpec(128, aesIv)
-                    )
-                }
-            val decryptedToken = aesCipher.doFinal(encryptedToken)
-            val serializedToken = decryptedToken.decodeToString()
-            return OidcConfiguration.defaultJson()
-                .decodeFromString(Token.serializer(), serializedToken)
-        }
 
         private fun getAesCipher(): Cipher {
             return Cipher.getInstance(

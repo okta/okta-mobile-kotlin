@@ -20,6 +20,7 @@ import com.okta.authfoundation.client.events.RateLimitExceededEvent
 import com.okta.authfoundation.client.internal.performRequest
 import com.okta.authfoundation.client.internal.performRequestNonJson
 import com.okta.authfoundation.credential.Credential
+import com.okta.authfoundation.credential.events.Event
 import com.okta.authfoundation.events.EventHandler
 import com.okta.testhelpers.OktaRule
 import com.okta.testhelpers.RequestMatchers.doesNotContainHeader
@@ -752,7 +753,7 @@ class NetworkingTest {
         val maxRetries = 10
         val events = mutableListOf<RateLimitExceededEvent>()
         val rateLimitEventHandler = object : EventHandler {
-            override fun onEvent(event: Any) {
+            override fun onEvent(event: Event) {
                 val errorEvent = event as RateLimitExceededEvent
                 errorEvent.maxRetries = maxRetries
                 events.add(event)
@@ -784,7 +785,7 @@ class NetworkingTest {
         val exponentBase = 2.0
         val events = mutableListOf<RateLimitExceededEvent>()
         val rateLimitEventHandler = object : EventHandler {
-            override fun onEvent(event: Any) {
+            override fun onEvent(event: Event) {
                 val errorEvent = event as RateLimitExceededEvent
                 events.add(event)
                 errorEvent.minDelaySeconds = exponentBase.pow(errorEvent.retryCount).toLong()
@@ -819,7 +820,7 @@ class NetworkingTest {
     @Test fun testPerformRequestRetryChangesMaxRetriesBasedOnHandledEvent(): Unit = runTest {
         val events = mutableListOf<RateLimitExceededEvent>()
         val rateLimitEventHandler = object : EventHandler {
-            override fun onEvent(event: Any) {
+            override fun onEvent(event: Event) {
                 val errorEvent = event as RateLimitExceededEvent
                 events.add(event)
                 // maxRetries should be changing on each iteration. By setting the event's maxRetries
@@ -854,7 +855,7 @@ class NetworkingTest {
     @Test fun testPerformRequestRetryClosesUnusedResponsesAfterEmittingEvent(): Unit = runTest {
         val events = mutableListOf<RateLimitExceededEvent>()
         val rateLimitEventHandler = object : EventHandler {
-            override fun onEvent(event: Any) {
+            override fun onEvent(event: Event) {
                 val errorEvent = event as RateLimitExceededEvent
                 errorEvent.minDelaySeconds = 0L
                 events.add(errorEvent)
@@ -949,7 +950,7 @@ class NetworkingTest {
         minDelaySeconds: Long = 5L,
     ): EventHandler {
         return object : EventHandler {
-            override fun onEvent(event: Any) {
+            override fun onEvent(event: Event) {
                 val errorEvent = event as RateLimitExceededEvent
                 errorEvent.maxRetries = maxRetries
                 errorEvent.minDelaySeconds = minDelaySeconds
