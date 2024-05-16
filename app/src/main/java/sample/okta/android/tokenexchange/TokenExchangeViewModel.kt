@@ -42,7 +42,7 @@ class TokenExchangeViewModel : ViewModel() {
         _state.value = TokenExchangeState.Loading
 
         viewModelScope.launch {
-            val credential = Credential.getDefaultAsync()
+            val credential = Credential.default
             val tokenExchangeCredential =
                 Credential.find { it.tags[SampleHelper.CREDENTIAL_NAME_TAG_KEY] == NAME_TAG_VALUE }
                     .firstOrNull()

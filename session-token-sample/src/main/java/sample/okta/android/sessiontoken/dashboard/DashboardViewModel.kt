@@ -45,7 +45,7 @@ internal class DashboardViewModel : ViewModel() {
 
     init {
         viewModelScope.launch {
-            Credential.getDefaultAsync()?.let {
+            Credential.default?.let {
                 credential = it
                 _credentialLiveData.value = CredentialState.Loaded(credential)
                 getUserInfo()
