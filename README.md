@@ -232,18 +232,18 @@ There are multiple terms that might be confused when logging a user out.
 ### Using a Credential to determine user authentication status
 There are a few options to determine the status of a user authentication. Each option has unique pros and cons and should be chosen based on the needs of your use case.
 
-- Non null default credential: `Credential.getDefaultAsync() != null`
-- Non empty credential allIds: `Credential.allIds().isNotEmpty()`
-- getValidAccessToken: `Credential.getDefaultAsync()?.getValidAccessToken() != null`
-- Custom implementation: `Credential.getDefaultAsync()?.token`, `Credential.getDefaultAsync()?.refresh()`, and `Credential.getDefaultAsync()?.getAccessTokenIfValid()`
+- Non null default credential: `Credential.default != null`
+- Non empty credential allIds: `Credential.allIds.isNotEmpty()`
+- getValidAccessToken: `Credential.default?.getValidAccessToken() != null`
+- Custom implementation: `Credential.default?.token`, `Credential.default?.refresh()`, and `Credential.default?.getAccessTokenIfValid()`
 
 Details on each approach are below.
 
 #### Determine authentication status via non null Credential
-`Credential`s require a `Token`. If there are no `Credential`s present, then no `Token` has been stored. Note that `Credential.getDefaultAsync()` can be a blocking call if the `Credential` was stored using `Credential.Security.Biometric<Strong/StrongOrDeviceCredential>`.
+`Credential`s require a `Token`. If there are no `Credential`s present, then no `Token` has been stored. Note that `Credential.default` can throw a `BiometricInvocationException` if the `Credential` was stored using `Credential.Security.Biometric<Strong/StrongOrDeviceCredential>`.
 
 #### Determine authentication by checking if any Credentials exist
-`Credential.allIds()` lists list of all ids of stored `Credential`s. If it returns an empty list, there are no stored `Credential`s.
+`Credential.allIds` lists list of all ids of stored `Credential`s. If it returns an empty list, there are no stored `Credential`s.
 
 #### Determine authentication status via getValidAccessToken
 `Credential` has a method called `getValidAccessToken` which checks to see if the credential has a token, and has a valid access token. If the access token is expired, and a refresh token exists, a `refresh` is implicitly called on the `Credential`. If the implicit `refresh` is successful, `getValidAccessToken` returns the new access token. There are two main down sides to this approach. First, it's a `suspend fun` and could make network calls. Second, the failure is not returned, an error could occur due to a network error, a missing token, a missing refresh token, or a configuration error.
@@ -257,7 +257,7 @@ The SDK has built-in support for handling Biometric encryption. To set the defau
 > Notes:
 > - The SDK does not check which biometrics are enrolled on the user's device. Please check this using https://developer.android.com/reference/android/hardware/biometrics/BiometricManager#canAuthenticate(int) before setting the appropriate security level
 > - The SDK automatically deletes Token entries stored using invalidated biometric keys.
-> - Biometric Credentials should only be fetched using async APIs in `Credential` class.
+> - Biometric Credentials should only be fetched using async APIs in `Credential` class, otherwise `BiometricInvocationException` will be thrown.
 
 #### Setting Biometric security for new Credentials globally
 
@@ -286,6 +286,30 @@ Credential.Security.standard = Credential.Security.BiometricStrong(userAuthentic
 // or per-Credential
 val token = TODO("Supplied by user")
 val credential = Credential.store(token, security = Credential.Security.BiometricStrong(userAuthenticationTimeout = 0))
+```
+
+#### Biometric exceptions
+Android `BiometricPrompt` can fail due to `AuthenticationCallback.onAuthenticationFailed` and `AuthenticationCallback.onAuthenticationError`. See this relevant Android developer doc: [BiometricPrompt.AuthenticationCallback](https://developer.android.com/reference/kotlin/androidx/biometric/BiometricPrompt.AuthenticationCallback)
+
+`AuthenticationCallback.onAuthenticationError` can return error codes to recover from different Biometric situations, as listed here: https://developer.android.com/reference/kotlin/androidx/biometric/BiometricPrompt#ERROR_CANCELED()
+
+When using Biometric security, `Credential` fetching functions can throw `BiometricAuthenticationException`, and the relevant errors can be queried as follows:
+
+```kotlin
+val credential = try {
+    Credential.getDefaultAsync()
+} catch (ex: BiometricAuthenticationException) {
+    when (val details = ex.biometricExceptionDetails) {
+      is BiometricExceptionDetails.OnAuthenticationFailed -> {
+        TODO("onAuthenticationFailed has no error codes or messages")
+      }
+      is BiometricExceptionDetails.OnAuthenticationError -> {
+        val errorMessage = details.errString
+        // Error code from https://developer.android.com/reference/kotlin/androidx/biometric/BiometricPrompt#constants_1
+        val errorCode = details.errorCode
+      }
+    }
+}
 ```
 
 ### Networking customization
@@ -408,7 +432,7 @@ When creating a new `Credential` with `Credential.store`, a `Token` must be prov
 
 1.x contained `Credential` handling APIs in `CredentialBootstrap` and `CredentialDataSource`. All `Credential` management calls have been moved to `Credential` in 2.x. `CredentialBootstrap` has been deleted, and `CredentialDataSource` is private in 2.x.
 
-1.x provided `suspend` functions for handling creation and management of any `Credential`s. 2.x provides synchronous `Credential` management functions in addition to `suspend` functions. Note that it's still recommended to use `suspend` functions (suffixed with `Async`) if a coroutine scope is available.
+1.x provided `suspend` functions for handling creation and management of any `Credential`s. 2.x provides synchronous `Credential` management functions in addition to `suspend` functions.
 
 #### Initialization changes
 

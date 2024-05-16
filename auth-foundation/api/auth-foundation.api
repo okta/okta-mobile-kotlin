@@ -72,13 +72,6 @@ public final class com/okta/authfoundation/BiometricExceptionDetails$OnAuthentic
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class com/okta/authfoundation/BiometricExceptionDetails$OnAuthenticationSucceeded : com/okta/authfoundation/BiometricExceptionDetails {
-	public static final field INSTANCE Lcom/okta/authfoundation/BiometricExceptionDetails$OnAuthenticationSucceeded;
-	public fun equals (Ljava/lang/Object;)Z
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
 public abstract interface annotation class com/okta/authfoundation/InternalAuthFoundationApi : java/lang/annotation/Annotation {
 }
 
@@ -316,6 +309,11 @@ public final class com/okta/authfoundation/client/internal/NetworkUtilsKt {
 public final class com/okta/authfoundation/client/internal/SdkVersionsRegistry {
 	public static final field INSTANCE Lcom/okta/authfoundation/client/internal/SdkVersionsRegistry;
 	public final fun register (Ljava/lang/String;)V
+}
+
+public final class com/okta/authfoundation/credential/BiometricInvocationException : java/lang/IllegalStateException {
+	public fun <init> (Ljava/lang/String;)V
+	public fun getMessage ()Ljava/lang/String;
 }
 
 public final class com/okta/authfoundation/credential/Credential {

@@ -256,7 +256,7 @@ class DefaultTokenEncryptionHandler(
                 }
 
                 if (isSyncDecryptionContext) {
-                    throw IllegalStateException("Attempted fetching Biometric Token from sync context.")
+                    throw BiometricInvocationException("Attempted fetching Biometric Token from sync context.")
                 }
                 if (security.userAuthenticationTimeout == 0) { // auth-per-use key
                     return internalDecrypt(encryptedToken, encryptionExtras) { encryptedAesKey ->
