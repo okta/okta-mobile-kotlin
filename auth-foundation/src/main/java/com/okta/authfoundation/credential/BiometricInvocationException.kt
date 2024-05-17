@@ -13,17 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.okta.authfoundation.credential.events
-
-import com.okta.authfoundation.credential.Credential
-import com.okta.authfoundation.events.EventHandler
+package com.okta.authfoundation.credential
 
 /**
- * Emitted via [EventHandler.onEvent] when the default [Credential] is changed.
+ * Thrown when fetching a [Credential] with Biometric security using a synchronous [Credential] function.
+ * Biometric [Credential]s should only be fetched using Async functions in [Credential].
  */
-class DefaultCredentialChangedEvent internal constructor(
-    /**
-     * The [Credential] that was set as default.
-     */
-    val credential: Credential
-) : Event
+class BiometricInvocationException(override val message: String?) : IllegalStateException(message)

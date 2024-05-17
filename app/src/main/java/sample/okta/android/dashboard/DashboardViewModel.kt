@@ -52,11 +52,11 @@ internal class DashboardViewModel(private val credentialTagNameValue: String?) :
     init {
         viewModelScope.launch {
             val cred = if (credentialTagNameValue == null) {
-                Credential.getDefaultCredential()
+                Credential.default
             } else {
                 Credential.find {
                     it.tags[SampleHelper.CREDENTIAL_NAME_TAG_KEY] == credentialTagNameValue
-                }.firstOrNull() ?: Credential.getDefaultCredential()
+                }.firstOrNull() ?: Credential.default
             }
             cred?.let { setCredential(it) } ?: run {
                 _credentialLiveData.value = CredentialState.LoggedOut
@@ -119,7 +119,7 @@ internal class DashboardViewModel(private val credentialTagNameValue: String?) :
 
     fun logoutOfWeb(context: Context) {
         viewModelScope.launch {
-            val idToken = credential.token?.idToken ?: return@launch
+            val idToken = credential.token.idToken ?: return@launch
             when (
                 val result = WebAuthentication().logoutOfBrowser(
                     context = context,

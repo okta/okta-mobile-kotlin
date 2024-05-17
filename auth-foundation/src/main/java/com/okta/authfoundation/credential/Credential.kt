@@ -23,6 +23,8 @@ import com.okta.authfoundation.client.OAuth2Client
 import com.okta.authfoundation.client.OAuth2ClientResult
 import com.okta.authfoundation.client.dto.OidcIntrospectInfo
 import com.okta.authfoundation.client.dto.OidcUserInfo
+import com.okta.authfoundation.credential.TokenEncryptionHandler.Companion.withAsyncDecryptionContext
+import com.okta.authfoundation.credential.TokenEncryptionHandler.Companion.withSyncDecryptionContext
 import com.okta.authfoundation.credential.events.CredentialDeletedEvent
 import com.okta.authfoundation.credential.events.CredentialStoredAfterRemovedEvent
 import com.okta.authfoundation.credential.events.CredentialStoredEvent
@@ -39,6 +41,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.transformWhile
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import okhttp3.Interceptor
@@ -65,6 +68,7 @@ class Credential internal constructor(
 
     internal interface BiometricSecurity {
         val userAuthenticationTimeout: Int
+
         companion object {
             internal const val TIMEOUT_RANGE_ERROR = "userAuthenticationTimeout must be >= 0"
         }
@@ -89,7 +93,8 @@ class Credential internal constructor(
         data class BiometricStrong(
             /**
              * User authentication timeout (in seconds). A timeout of 0 means that auth-per-use keys will be used for Biometrics.
-             * Note that this timeout is always 0 on Android 10 and below.
+             *
+             * > Note: This timeout is ignored on Android 10 and below.
              */
             override val userAuthenticationTimeout: Int = 5,
             override val keyAlias: String = AuthFoundationDefaults.Encryption.keyAlias + ".biometricStrong.timeout.$userAuthenticationTimeout"
@@ -144,41 +149,99 @@ class Credential internal constructor(
         internal suspend fun credentialDataSource() = CredentialDataSource.getInstance()
 
         /**
+         * The default [Credential]. This is null if no default [Credential] exists, and it can be
+         * set to null to unset the default [Credential].
+         *
+         * > Note: This blocks on [setDefaultAsync] and [getDefaultAsync].
+         */
+        var default: Credential?
+            get() = runBlocking {
+                defaultCredentialIdDataStore.getDefaultCredentialId()?.let { id -> with(id) }
+            }
+            set(value) = runBlocking { setDefaultAsync(value) }
+
+        /**
          * Returns the default [Credential], or null if no default [Credential] exists.
          */
-        suspend fun getDefaultCredential(): Credential? {
-            return defaultCredentialIdDataStore.getDefaultCredentialId()?.let { id -> with(id) }
+        suspend fun getDefaultAsync(): Credential? {
+            return defaultCredentialIdDataStore.getDefaultCredentialId()?.let { id -> withAsync(id) }
         }
 
         /**
-         * Sets the default [Credential] to provided [credential].
+         * Sets the default [Credential] to provided [credential]. Unsets the default [Credential] if
+         * [credential] is null.
          */
-        suspend fun setDefaultCredential(credential: Credential) {
-            defaultCredentialIdDataStore.setDefaultCredentialId(credential.id)
-            AuthFoundationDefaults.eventCoordinator.sendEvent(
-                DefaultCredentialChangedEvent(
-                    credential
+        suspend fun setDefaultAsync(credential: Credential?) {
+            credential?.let {
+                defaultCredentialIdDataStore.setDefaultCredentialId(credential.id)
+                AuthFoundationDefaults.eventCoordinator.sendEvent(
+                    DefaultCredentialChangedEvent(
+                        credential
+                    )
                 )
-            )
+            } ?: defaultCredentialIdDataStore.clearDefaultCredentialId()
         }
 
         /**
          * Returns IDs of all available [Credential] objects in storage.
+         *
+         * > Note: This blocks on [allIdsAsync].
          */
-        suspend fun allIds(): List<String> = credentialDataSource().allIds()
+        val allIds: List<String>
+            get() = runBlocking { allIdsAsync() }
+
+        /**
+         * Returns IDs of all available [Credential] objects in storage.
+         */
+        suspend fun allIdsAsync() = credentialDataSource().allIds()
+
+        /**
+         * Returns [Token.Metadata] of [Credential] with specified [id].
+         *
+         * > Note: This blocks on [metadataAsync].
+         *
+         * @param id The identifier of the [Credential].
+         */
+        fun metadata(id: String) = runBlocking { metadataAsync(id) }
 
         /**
          * Returns [Token.Metadata] of [Credential] with specified [id].
          *
          * @param id The identifier of the [Credential].
          */
-        suspend fun metadata(id: String) = credentialDataSource().metadata(id)
+        suspend fun metadataAsync(id: String) = credentialDataSource().metadata(id)
+
+        /**
+         * Sets the [Token.Metadata] of [Token] with specified [Token.Metadata.id].
+         *
+         * > Note: This blocks on [setMetadataAsync].
+         */
+        fun setMetadata(metadata: Token.Metadata) = runBlocking { setMetadataAsync(metadata) }
 
         /**
          * Sets the [Token.Metadata] of [Token] with specified [Token.Metadata.id].
          */
-        suspend fun setMetadata(metadata: Token.Metadata) =
+        suspend fun setMetadataAsync(metadata: Token.Metadata) =
             credentialDataSource().setMetadata(metadata)
+
+        /**
+         * Return the [Credential] associated with the given [id].
+         *
+         * > Note: This blocks on [withAsync].
+         *
+         * @param id The id of the [Credential] to fetch.
+         * @param promptInfo The [BiometricPrompt.PromptInfo] for displaying biometric prompt. A non-null value is required if the [Credential] with [id] is stored using a biometric [Credential.Security].
+         */
+        fun with(
+            id: String,
+            promptInfo: BiometricPrompt.PromptInfo? = Security.promptInfo
+        ): Credential? {
+            return runBlocking {
+                withSyncDecryptionContext {
+                    credentialDataSource().getCredential(id, promptInfo)
+                }
+            }
+        }
 
         /**
          * Return the [Credential] associated with the given [id].
@@ -186,11 +249,32 @@ class Credential internal constructor(
          * @param id The id of the [Credential] to fetch.
          * @param promptInfo The [BiometricPrompt.PromptInfo] for displaying biometric prompt. A non-null value is required if the [Credential] with [id] is stored using a biometric [Credential.Security].
          */
-        suspend fun with(
+        suspend fun withAsync(
             id: String,
             promptInfo: BiometricPrompt.PromptInfo? = Security.promptInfo
         ): Credential? {
-            return credentialDataSource().getCredential(id, promptInfo)
+            return withAsyncDecryptionContext {
+                credentialDataSource().getCredential(id, promptInfo)
+            }
+        }
+
+        /**
+         * Return all [Credential] objects matching the given [where] expression. The [where] expression is supplied with [Token.Metadata] and should return true for cases where the user wants to fetch [Credential] with given [Token.Metadata].
+         *
+         * > Note: This blocks on [findAsync].
+         *
+         * @param promptInfo The [BiometricPrompt.PromptInfo] for displaying biometric prompt. A non-null value is required if a fetched [Credential] is stored using a biometric [Credential.Security].
+         * @param where A function specifying whether a [Credential] with [Token.Metadata] should be fetched. This function should return true for [Credential] with [Token.Metadata] that should be retrieved from storage.
+         */
+        fun find(
+            promptInfo: BiometricPrompt.PromptInfo? = Security.promptInfo,
+            where: (Token.Metadata) -> Boolean
+        ): List<Credential> {
+            return runBlocking {
+                withSyncDecryptionContext {
+                    credentialDataSource().findCredential(promptInfo, where)
+                }
+            }
         }
 
         /**
@@ -199,11 +283,31 @@ class Credential internal constructor(
          * @param promptInfo The [BiometricPrompt.PromptInfo] for displaying biometric prompt. A non-null value is required if a fetched [Credential] is stored using a biometric [Credential.Security].
          * @param where A function specifying whether a [Credential] with [Token.Metadata] should be fetched. This function should return true for [Credential] with [Token.Metadata] that should be retrieved from storage.
          */
-        suspend fun find(
+        suspend fun findAsync(
             promptInfo: BiometricPrompt.PromptInfo? = Security.promptInfo,
             where: (Token.Metadata) -> Boolean
         ): List<Credential> {
-            return credentialDataSource().findCredential(promptInfo, where)
+            return withAsyncDecryptionContext {
+                credentialDataSource().findCredential(promptInfo, where)
+            }
+        }
+
+        /**
+         * Store a [Token] with optional [tags] and [security] options.
+         * Return the [Credential] object associated with the stored [Token]
+         *
+         * > Note: This blocks on [storeAsync].
+         *
+         * @param token The [Token] to store
+         * @param tags User-defined value map to store along with [token]
+         * @param security Security level for storing the [Token]
+         */
+        fun store(
+            token: Token,
+            tags: Map<String, String> = emptyMap(),
+            security: Security = Security.standard
+        ): Credential {
+            return runBlocking { storeAsync(token, tags, security) }
         }
 
         /**
@@ -214,7 +318,7 @@ class Credential internal constructor(
          * @param tags User-defined value map to store along with [token]
          * @param security Security level for storing the [Token]
          */
-        suspend fun store(
+        suspend fun storeAsync(
             token: Token,
             tags: Map<String, String> = emptyMap(),
             security: Security = Security.standard
@@ -236,12 +340,20 @@ class Credential internal constructor(
     var token: Token = token
         internal set
 
+    internal var _tags = tags
+
     /**
      * The tags associated with this [Credential].
+     *
+     * > Note: Setting this variable blocks on [setTagsAsync].
      */
-    var tags: Map<String, String> = tags
-        get() = Collections.unmodifiableMap(field)
-        internal set
+    var tags: Map<String, String>
+        get() = Collections.unmodifiableMap(_tags)
+        set(value) {
+            runBlocking {
+                setTagsAsync(value)
+            }
+        }
 
     @VisibleForTesting
     internal var isDeleted: Boolean = false
@@ -249,9 +361,9 @@ class Credential internal constructor(
     /**
      * Set tags for this [Credential].
      */
-    suspend fun setTags(tags: Map<String, String>) {
-        setMetadata(Token.Metadata(id, tags, idToken()))
-        this.tags = tags
+    suspend fun setTagsAsync(tags: Map<String, String>) {
+        setMetadataAsync(Token.Metadata(id, tags, idToken()))
+        _tags = tags
         client.configuration.eventCoordinator.sendEvent(
             CredentialStoredEvent(
                 this,
@@ -324,9 +436,19 @@ class Credential internal constructor(
      * Removes this [Credential] from the associated [CredentialDataSource].
      * This [Credential] should not be used after it's been removed.
      *
+     * > Notes:
+     * > - OIDC Logout terminology is nuanced, see [Logout Documentation](https://github.com/okta/okta-mobile-kotlin#logout) for additional details.
+     * > - This function blocks on [deleteAsync].
+     */
+    fun delete() = runBlocking { deleteAsync() }
+
+    /**
+     * Removes this [Credential] from the associated [CredentialDataSource].
+     * This [Credential] should not be used after it's been removed.
+     *
      * > Note: OIDC Logout terminology is nuanced, see [Logout Documentation](https://github.com/okta/okta-mobile-kotlin#logout) for additional details.
      */
-    suspend fun delete() {
+    suspend fun deleteAsync() {
         if (isDeleted) {
             return
         }

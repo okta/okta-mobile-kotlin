@@ -70,7 +70,7 @@ internal class DefaultTokenEncryptionHandlerTest {
     }
 
     @Test fun decryptingBioTokenWithNoPromptFails() = runTest {
-        val bioSecurity = Credential.Security.BiometricStrong("bioKeyAlias")
+        val bioSecurity = Credential.Security.BiometricStrong(keyAlias = defaultSecurity.keyAlias)
         tokenEncryptionHandler.generateKey(bioSecurity)
         val encryptionResult = tokenEncryptionHandler.encrypt(token, bioSecurity)
         val exception = assertFailsWith<IllegalArgumentException> {

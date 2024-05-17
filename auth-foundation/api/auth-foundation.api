@@ -72,13 +72,6 @@ public final class com/okta/authfoundation/BiometricExceptionDetails$OnAuthentic
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class com/okta/authfoundation/BiometricExceptionDetails$OnAuthenticationSucceeded : com/okta/authfoundation/BiometricExceptionDetails {
-	public static final field INSTANCE Lcom/okta/authfoundation/BiometricExceptionDetails$OnAuthenticationSucceeded;
-	public fun equals (Ljava/lang/Object;)Z
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
 public abstract interface annotation class com/okta/authfoundation/InternalAuthFoundationApi : java/lang/annotation/Annotation {
 }
 
@@ -318,10 +311,16 @@ public final class com/okta/authfoundation/client/internal/SdkVersionsRegistry {
 	public final fun register (Ljava/lang/String;)V
 }
 
+public final class com/okta/authfoundation/credential/BiometricInvocationException : java/lang/IllegalStateException {
+	public fun <init> (Ljava/lang/String;)V
+	public fun getMessage ()Ljava/lang/String;
+}
+
 public final class com/okta/authfoundation/credential/Credential {
 	public static final field Companion Lcom/okta/authfoundation/credential/Credential$Companion;
 	public final fun accessTokenInterceptor ()Lokhttp3/Interceptor;
-	public final fun delete (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun delete ()V
+	public final fun deleteAsync (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getAccessTokenIfValid ()Ljava/lang/String;
 	public final fun getId ()Ljava/lang/String;
@@ -337,21 +336,33 @@ public final class com/okta/authfoundation/credential/Credential {
 	public final fun revokeAllTokens (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun revokeToken (Lcom/okta/authfoundation/credential/RevokeTokenType;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun scope ()Ljava/lang/String;
-	public final fun setTags (Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun setTags (Ljava/util/Map;)V
+	public final fun setTagsAsync (Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class com/okta/authfoundation/credential/Credential$Companion {
-	public final fun allIds (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public final fun find (Landroidx/biometric/BiometricPrompt$PromptInfo;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun find$default (Lcom/okta/authfoundation/credential/Credential$Companion;Landroidx/biometric/BiometricPrompt$PromptInfo;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
-	public final fun getDefaultCredential (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public final fun metadata (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public final fun setDefaultCredential (Lcom/okta/authfoundation/credential/Credential;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public final fun setMetadata (Lcom/okta/authfoundation/credential/Token$Metadata;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public final fun store (Lcom/okta/authfoundation/credential/Token;Ljava/util/Map;Lcom/okta/authfoundation/credential/Credential$Security;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun store$default (Lcom/okta/authfoundation/credential/Credential$Companion;Lcom/okta/authfoundation/credential/Token;Ljava/util/Map;Lcom/okta/authfoundation/credential/Credential$Security;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
-	public final fun with (Ljava/lang/String;Landroidx/biometric/BiometricPrompt$PromptInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun with$default (Lcom/okta/authfoundation/credential/Credential$Companion;Ljava/lang/String;Landroidx/biometric/BiometricPrompt$PromptInfo;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public final fun allIdsAsync (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun find (Landroidx/biometric/BiometricPrompt$PromptInfo;Lkotlin/jvm/functions/Function1;)Ljava/util/List;
+	public static synthetic fun find$default (Lcom/okta/authfoundation/credential/Credential$Companion;Landroidx/biometric/BiometricPrompt$PromptInfo;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ljava/util/List;
+	public final fun findAsync (Landroidx/biometric/BiometricPrompt$PromptInfo;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun findAsync$default (Lcom/okta/authfoundation/credential/Credential$Companion;Landroidx/biometric/BiometricPrompt$PromptInfo;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public final fun getAllIds ()Ljava/util/List;
+	public final fun getDefault ()Lcom/okta/authfoundation/credential/Credential;
+	public final fun getDefaultAsync (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun metadata (Ljava/lang/String;)Lcom/okta/authfoundation/credential/Token$Metadata;
+	public final fun metadataAsync (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun setDefault (Lcom/okta/authfoundation/credential/Credential;)V
+	public final fun setDefaultAsync (Lcom/okta/authfoundation/credential/Credential;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun setMetadata (Lcom/okta/authfoundation/credential/Token$Metadata;)V
+	public final fun setMetadataAsync (Lcom/okta/authfoundation/credential/Token$Metadata;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun store (Lcom/okta/authfoundation/credential/Token;Ljava/util/Map;Lcom/okta/authfoundation/credential/Credential$Security;)Lcom/okta/authfoundation/credential/Credential;
+	public static synthetic fun store$default (Lcom/okta/authfoundation/credential/Credential$Companion;Lcom/okta/authfoundation/credential/Token;Ljava/util/Map;Lcom/okta/authfoundation/credential/Credential$Security;ILjava/lang/Object;)Lcom/okta/authfoundation/credential/Credential;
+	public final fun storeAsync (Lcom/okta/authfoundation/credential/Token;Ljava/util/Map;Lcom/okta/authfoundation/credential/Credential$Security;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun storeAsync$default (Lcom/okta/authfoundation/credential/Credential$Companion;Lcom/okta/authfoundation/credential/Token;Ljava/util/Map;Lcom/okta/authfoundation/credential/Credential$Security;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public final fun with (Ljava/lang/String;Landroidx/biometric/BiometricPrompt$PromptInfo;)Lcom/okta/authfoundation/credential/Credential;
+	public static synthetic fun with$default (Lcom/okta/authfoundation/credential/Credential$Companion;Ljava/lang/String;Landroidx/biometric/BiometricPrompt$PromptInfo;ILjava/lang/Object;)Lcom/okta/authfoundation/credential/Credential;
+	public final fun withAsync (Ljava/lang/String;Landroidx/biometric/BiometricPrompt$PromptInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun withAsync$default (Lcom/okta/authfoundation/credential/Credential$Companion;Ljava/lang/String;Landroidx/biometric/BiometricPrompt$PromptInfo;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public abstract interface class com/okta/authfoundation/credential/Credential$Security {
@@ -534,9 +545,14 @@ public final class com/okta/authfoundation/credential/Token$Metadata {
 }
 
 public abstract interface class com/okta/authfoundation/credential/TokenEncryptionHandler {
+	public static final field Companion Lcom/okta/authfoundation/credential/TokenEncryptionHandler$Companion;
 	public abstract fun decrypt ([BLjava/util/Map;Lcom/okta/authfoundation/credential/Credential$Security;Landroidx/biometric/BiometricPrompt$PromptInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun encrypt (Lcom/okta/authfoundation/credential/Token;Lcom/okta/authfoundation/credential/Credential$Security;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun generateKey (Lcom/okta/authfoundation/credential/Credential$Security;)V
+}
+
+public final class com/okta/authfoundation/credential/TokenEncryptionHandler$Companion {
+	public final fun isSyncDecryptionContext ()Z
 }
 
 public final class com/okta/authfoundation/credential/TokenEncryptionHandler$DefaultImpls {

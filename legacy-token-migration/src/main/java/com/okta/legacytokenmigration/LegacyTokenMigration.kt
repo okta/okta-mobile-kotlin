@@ -40,7 +40,7 @@ object LegacyTokenMigration {
 
     /**
      * Attempts to migrate a token from a [SessionClient] to a [Token]. The resulting [Token] can be stored using [Credential.store],
-     * and can be set as default using [Credential.setDefaultCredential]
+     * and can be set as default using [Credential.setDefaultAsync] or [Credential.default].
      *
      * @param context used for storing the status of previous migrations in Shared Preferences.
      * @param sessionClient a configured session client with the stored tokens from a previous authentication where the token will be

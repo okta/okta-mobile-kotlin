@@ -91,9 +91,8 @@ class BiometricDecryptionActivity : AppCompatActivity() {
                                 action.continuation.resume(decryptedData)
                             } ?: run {
                                 action.resumeWithException(
-                                    BiometricAuthenticationException(
-                                        "Biometric prompt onAuthenticationSucceeded called without crypto object",
-                                        BiometricExceptionDetails.OnAuthenticationSucceeded
+                                    IllegalStateException(
+                                        "Biometric prompt onAuthenticationSucceeded called without crypto object"
                                     )
                                 )
                             }
@@ -184,7 +183,6 @@ class BiometricAuthenticationException(
 ) : GeneralSecurityException(message)
 
 sealed interface BiometricExceptionDetails {
-    data object OnAuthenticationSucceeded : BiometricExceptionDetails
     data object OnAuthenticationFailed : BiometricExceptionDetails
     data class OnAuthenticationError(
         val errorCode: Int,

@@ -53,7 +53,10 @@ class CredentialDataSource(
 
     suspend fun metadata(id: String) = storage.metadata(id)
 
-    suspend fun setMetadata(metadata: Token.Metadata) = storage.setMetadata(metadata)
+    suspend fun setMetadata(metadata: Token.Metadata) {
+        storage.setMetadata(metadata)
+        credentialsCache[metadata.id]?._tags = metadata.tags
+    }
 
     suspend fun createCredential(
         token: Token,

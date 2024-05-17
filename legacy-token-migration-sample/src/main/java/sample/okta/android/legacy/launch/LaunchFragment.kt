@@ -65,7 +65,7 @@ internal class LaunchFragment : BaseFragment<FragmentLaunchBinding>(
                     findNavController().navigate(LaunchFragmentDirections.launchToLegacyDashboard())
                 }
             }
-            if (Credential.getDefaultCredential() != null) {
+            if (Credential.default != null) {
                 binding.loggedInTextView.visibility = View.VISIBLE
                 binding.dashboardButton.visibility = View.VISIBLE
                 binding.dashboardButton.setOnClickListener {

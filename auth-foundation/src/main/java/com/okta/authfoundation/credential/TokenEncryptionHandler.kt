@@ -25,7 +25,10 @@ import com.okta.authfoundation.AuthFoundationDefaults
 import com.okta.authfoundation.BiometricDecryptionActivity
 import com.okta.authfoundation.InternalAuthFoundationApi
 import com.okta.authfoundation.client.OidcConfiguration
+import com.okta.authfoundation.credential.TokenEncryptionHandler.Companion.isSyncDecryptionContext
 import com.okta.authfoundation.util.AndroidKeystoreUtil
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.security.GeneralSecurityException
 import java.security.KeyFactory
 import java.security.KeyPairGenerator
@@ -97,6 +100,31 @@ interface TokenEncryptionHandler {
     ) {
         operator fun component1(): ByteArray = encryptedToken
         operator fun component2(): Map<String, String> = encryptionExtras
+    }
+
+    companion object {
+        private val accessMutex = Mutex()
+
+        /**
+         * Specifies whether a [TokenEncryptionHandler.decrypt] is being called from a synchronous context.
+         * This is useful for handling Biometrics, which can not be handled synchronously.
+         */
+        var isSyncDecryptionContext = false
+            private set
+
+        internal suspend fun <T> withSyncDecryptionContext(action: suspend () -> T): T {
+            return accessMutex.withLock {
+                isSyncDecryptionContext = true
+                action()
+            }
+        }
+
+        internal suspend fun <T> withAsyncDecryptionContext(action: suspend () -> T): T {
+            return accessMutex.withLock {
+                isSyncDecryptionContext = false
+                action()
+            }
+        }
     }
 }
 
@@ -227,17 +255,26 @@ class DefaultTokenEncryptionHandler(
                     // Do nothing. We will try using Biometrics after this
                 }
 
+                if (isSyncDecryptionContext) {
+                    throw BiometricInvocationException("Attempted fetching Biometric Token from sync context.")
+                }
                 if (security.userAuthenticationTimeout == 0) { // auth-per-use key
                     return internalDecrypt(encryptedToken, encryptionExtras) { encryptedAesKey ->
                         val privateRsaKey = keyStore.getKey(security.keyAlias, null)
-                        val rsaCipher = getRsaCipher().apply { init(Cipher.DECRYPT_MODE, privateRsaKey) }
-                        BiometricDecryptionActivity.biometricDecrypt(rsaCipher, encryptedAesKey, promptInfo)
+                        val rsaCipher =
+                            getRsaCipher().apply { init(Cipher.DECRYPT_MODE, privateRsaKey) }
+                        BiometricDecryptionActivity.biometricDecrypt(
+                            rsaCipher,
+                            encryptedAesKey,
+                            promptInfo
+                        )
                     }
                 } else {
                     BiometricDecryptionActivity.biometricUnlock(promptInfo)
                     rsaDecrypt(encryptedToken, encryptionExtras, security)
                 }
             }
+
             else -> {
                 rsaDecrypt(encryptedToken, encryptionExtras, security)
             }
