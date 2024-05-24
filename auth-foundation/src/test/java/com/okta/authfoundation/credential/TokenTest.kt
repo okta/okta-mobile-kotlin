@@ -16,12 +16,19 @@
 package com.okta.authfoundation.credential
 
 import com.google.common.truth.Truth.assertThat
+import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.testhelpers.OktaRule
+import io.mockk.mockk
+import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 import org.junit.Rule
 import org.junit.Test
 
 class TokenTest {
     @get:Rule val oktaRule = OktaRule()
+
+    private val oidcConfiguration = OidcConfiguration("clientId", "defaultScope", "issuer")
 
     @Test fun testDeserializingMinimal() {
         val json = """
@@ -31,7 +38,7 @@ class TokenTest {
           "access_token": "exampleAccessToken"
         }
         """.trimIndent()
-        val token = oktaRule.configuration.json.decodeFromString(SerializableToken.serializer(), json).asToken()
+        val token = oktaRule.configuration.json.decodeFromString(SerializableToken.serializer(), json).asToken("id", mockk())
         assertThat(token.tokenType).isEqualTo("Bearer")
         assertThat(token.expiresIn).isEqualTo(3600)
         assertThat(token.accessToken).isEqualTo("exampleAccessToken")
@@ -53,7 +60,7 @@ class TokenTest {
           "id_token": "exampleIdToken"
         }
         """.trimIndent()
-        val token = oktaRule.configuration.json.decodeFromString(SerializableToken.serializer(), json).asToken()
+        val token = oktaRule.configuration.json.decodeFromString(SerializableToken.serializer(), json).asToken("id", mockk())
         assertThat(token.tokenType).isEqualTo("Bearer")
         assertThat(token.expiresIn).isEqualTo(3600)
         assertThat(token.accessToken).isEqualTo("exampleAccessToken")
@@ -74,7 +81,7 @@ class TokenTest {
           "device_secret": "exampleDeviceSecret"
         }
         """.trimIndent()
-        val token = oktaRule.configuration.json.decodeFromString(SerializableToken.serializer(), json).asToken()
+        val token = oktaRule.configuration.json.decodeFromString(SerializableToken.serializer(), json).asToken("id", mockk())
         assertThat(token.tokenType).isEqualTo("Bearer")
         assertThat(token.expiresIn).isEqualTo(3600)
         assertThat(token.accessToken).isEqualTo("exampleAccessToken")
@@ -96,7 +103,7 @@ class TokenTest {
           "issued_token_type": "urn:ietf:params:oauth:token-type:access_token"
         }
         """.trimIndent()
-        val token = oktaRule.configuration.json.decodeFromString(SerializableToken.serializer(), json).asToken()
+        val token = oktaRule.configuration.json.decodeFromString(SerializableToken.serializer(), json).asToken("id", mockk())
         assertThat(token.tokenType).isEqualTo("Bearer")
         assertThat(token.expiresIn).isEqualTo(3600)
         assertThat(token.accessToken).isEqualTo("exampleAccessToken")
@@ -108,6 +115,7 @@ class TokenTest {
 
     @Test fun testSerializingMinimal() {
         val token = Token(
+            id = "id",
             tokenType = "Bearer",
             expiresIn = 3600,
             accessToken = "exampleAccessToken",
@@ -116,6 +124,7 @@ class TokenTest {
             refreshToken = null,
             deviceSecret = null,
             issuedTokenType = null,
+            oidcConfiguration = oidcConfiguration
         )
         val json = oktaRule.configuration.json.encodeToString(SerializableToken.serializer(), token.asSerializableToken())
         assertThat(json).isEqualTo(
@@ -127,6 +136,7 @@ class TokenTest {
 
     @Test fun testSerializingEverything() {
         val token = Token(
+            id = "id",
             tokenType = "Bearer",
             expiresIn = 3600,
             accessToken = "a",
@@ -134,7 +144,8 @@ class TokenTest {
             refreshToken = "c",
             idToken = "d",
             deviceSecret = "e",
-            issuedTokenType = "f"
+            issuedTokenType = "f",
+            oidcConfiguration = oidcConfiguration
         )
         val json = oktaRule.configuration.json.encodeToString(SerializableToken.serializer(), token.asSerializableToken())
         assertThat(json).isEqualTo(
@@ -142,5 +153,17 @@ class TokenTest {
             {"token_type":"Bearer","expires_in":3600,"access_token":"a","scope":"b","refresh_token":"c","id_token":"d","device_secret":"e","issued_token_type":"f"}
             """.trimIndent()
         )
+    }
+
+    @Test fun `test fetching claims from Token Metadata`() {
+        val tokenMetadata = Token.Metadata(
+            "id",
+            tags = emptyMap(),
+            payloadData = buildJsonObject {
+                put("claim", "claimValue")
+            }
+        )
+        assertThat(tokenMetadata.claimsProvider?.availableClaims()).isEqualTo(setOf("claim"))
+        assertThat(tokenMetadata.claimsProvider?.deserializeClaim("claim", String.serializer())).isEqualTo("claimValue")
     }
 }

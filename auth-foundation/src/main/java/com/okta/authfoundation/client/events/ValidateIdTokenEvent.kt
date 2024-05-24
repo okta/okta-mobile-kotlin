@@ -16,6 +16,7 @@
 package com.okta.authfoundation.client.events
 
 import com.okta.authfoundation.credential.Token
+import com.okta.authfoundation.credential.events.Event
 import com.okta.authfoundation.events.EventHandler
 import com.okta.authfoundation.jwt.Jwt
 
@@ -29,4 +30,4 @@ class ValidateIdTokenEvent internal constructor(
      * *Default:* 10 minutes.
      */
     var issuedAtGracePeriodInSeconds: Int
-)
+) : Event

@@ -32,18 +32,26 @@ internal class DashboardFragment : BaseFragment<FragmentDashboardBinding>(
     private val viewModel by viewModels<DashboardViewModel>()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        viewModel.credentialLiveData.observe(viewLifecycleOwner) { credential ->
-            val token = credential.token ?: return@observe
-            binding.tokenType.text = token.tokenType
-            binding.expiresIn.text = token.expiresIn.toString()
-            binding.accessToken.text = token.accessToken
-            binding.refreshToken.text = token.refreshToken
-            binding.idToken.text = token.idToken
-            binding.scope.text = token.scope
+        viewModel.credentialLiveData.observe(viewLifecycleOwner) { credentialState ->
+            when (credentialState) {
+                is DashboardViewModel.CredentialState.LoggedOut -> {
+                    findNavController().navigate(DashboardFragmentDirections.dashboardToLogin())
+                }
+                is DashboardViewModel.CredentialState.Loaded -> {
+                    val credential = credentialState.credential
+                    val token = credential.token ?: return@observe
+                    binding.tokenType.text = token.tokenType
+                    binding.expiresIn.text = token.expiresIn.toString()
+                    binding.accessToken.text = token.accessToken
+                    binding.refreshToken.text = token.refreshToken
+                    binding.idToken.text = token.idToken
+                    binding.scope.text = token.scope
 
-            if (token.refreshToken == null) {
-                binding.refreshAccessTokenButton.visibility = View.GONE
-                binding.revokeRefreshTokenButton.visibility = View.GONE
+                    if (token.refreshToken == null) {
+                        binding.refreshAccessTokenButton.visibility = View.GONE
+                        binding.revokeRefreshTokenButton.visibility = View.GONE
+                    }
+                }
             }
         }
 

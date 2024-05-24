@@ -15,14 +15,14 @@
  */
 package com.okta.authfoundation.jwt
 
-import com.okta.authfoundation.client.OidcClient
+import com.okta.authfoundation.client.OAuth2Client
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
  * The JSON Web Key Set.
  *
- * Expected to be retrieved via [OidcClient.jwks] and used to validate a [Jwt] signature via [Jwt.hasValidSignature].
+ * Expected to be retrieved via [OAuth2Client.jwks] and used to validate a [Jwt] signature via [Jwt.hasValidSignature].
  */
 class Jwks internal constructor(
     internal val keys: List<Key>

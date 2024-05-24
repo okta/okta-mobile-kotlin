@@ -18,10 +18,8 @@ package com.okta.authfoundation.jwt
 import com.okta.authfoundation.AuthFoundationDefaults
 import com.okta.authfoundation.claims.DefaultClaimsProvider
 import com.okta.authfoundation.client.OidcConfiguration
-import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import okio.ByteString.Companion.decodeBase64
@@ -49,27 +47,25 @@ class JwtParser internal constructor(
      * @param rawValue the string representation of a [Jwt].
      * @throws IllegalArgumentException if [rawValue] is malformed.
      */
-    suspend fun parse(rawValue: String): Jwt {
-        return withContext(computeDispatcher) {
-            val sections = rawValue.split(".")
-            if (sections.size != 3) {
-                throw IllegalArgumentException("Token doesn't contain 3 parts. Needs header, claims data, and signature.")
-            }
-            val headerString = sections[0].decodeBase64()?.utf8() ?: throw IllegalArgumentException("Header isn't valid base64.")
-            val header = json.decodeFromString<JwtHeader>(headerString)
-
-            val claimsString = sections[1].decodeBase64()?.utf8() ?: throw IllegalArgumentException("Claims aren't valid base64.")
-            val claims = json.decodeFromString<JsonObject>(claimsString)
-
-            Jwt(
-                algorithm = header.alg,
-                keyId = header.kid,
-                claimsProvider = DefaultClaimsProvider(claims, json),
-                signature = sections[2],
-                rawValue = rawValue,
-                computeDispatcher = computeDispatcher,
-            )
+    fun parse(rawValue: String): Jwt {
+        val sections = rawValue.split(".")
+        if (sections.size != 3) {
+            throw IllegalArgumentException("Token doesn't contain 3 parts. Needs header, claims data, and signature.")
         }
+        val headerString = sections[0].decodeBase64()?.utf8() ?: throw IllegalArgumentException("Header isn't valid base64.")
+        val header = json.decodeFromString<JwtHeader>(headerString)
+
+        val claimsString = sections[1].decodeBase64()?.utf8() ?: throw IllegalArgumentException("Claims aren't valid base64.")
+        val claims = json.decodeFromString<JsonObject>(claimsString)
+
+        return Jwt(
+            algorithm = header.alg,
+            keyId = header.kid,
+            claimsProvider = DefaultClaimsProvider(claims, json),
+            signature = sections[2],
+            rawValue = rawValue,
+            computeDispatcher = computeDispatcher,
+        )
     }
 }
 

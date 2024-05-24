@@ -20,9 +20,9 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.okta.authfoundation.client.OidcClientResult
-import com.okta.authfoundationbootstrap.CredentialBootstrap
-import com.okta.webauthenticationui.WebAuthenticationClient.Companion.createWebAuthenticationClient
+import com.okta.authfoundation.client.OAuth2ClientResult
+import com.okta.authfoundation.credential.Credential
+import com.okta.webauthenticationui.WebAuthentication
 import kotlinx.coroutines.launch
 import sample.okta.android.BuildConfig
 import sample.okta.android.SampleHelper
@@ -36,27 +36,27 @@ class BrowserViewModel : ViewModel() {
         viewModelScope.launch {
             _state.value = BrowserState.Loading
 
-            val credential = CredentialBootstrap.defaultCredential()
-            val webAuthenticationClient = CredentialBootstrap.oidcClient.createWebAuthenticationClient()
+            val webAuthentication = WebAuthentication()
             var scope = SampleHelper.DEFAULT_SCOPE
             if (addDeviceSsoScope) {
                 scope += " device_sso"
             }
 
             when (
-                val result = webAuthenticationClient.login(
+                val result = webAuthentication.login(
                     context = context,
                     redirectUrl = BuildConfig.SIGN_IN_REDIRECT_URI,
                     extraRequestParameters = emptyMap(),
                     scope = scope,
                 )
             ) {
-                is OidcClientResult.Error -> {
+                is OAuth2ClientResult.Error -> {
                     Timber.e(result.exception, "Failed to start login flow.")
                     _state.value = BrowserState.Error("Failed to start login flow.")
                 }
-                is OidcClientResult.Success -> {
-                    credential.storeToken(token = result.result)
+                is OAuth2ClientResult.Success -> {
+                    val credential = Credential.store(result.result)
+                    Credential.setDefaultAsync(credential)
                     _state.value = BrowserState.Token
                 }
             }

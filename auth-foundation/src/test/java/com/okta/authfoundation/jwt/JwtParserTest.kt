@@ -32,7 +32,7 @@ class JwtParserTest {
     @get:Rule val oktaRule = OktaRule()
 
     @Test fun testJwtParserCreate(): Unit = runBlocking {
-        val input = oktaRule.createOidcClient().createJwtBuilder().createJwt(claims = IdTokenClaims()).rawValue
+        val input = oktaRule.createOAuth2Client().createJwtBuilder().createJwt(claims = IdTokenClaims()).rawValue
 
         val parser = JwtParser.create()
         val jwt = parser.parse(input)
@@ -40,7 +40,7 @@ class JwtParserTest {
     }
 
     @Test fun testJwtParser(): Unit = runBlocking {
-        val input = oktaRule.createOidcClient().createJwtBuilder().createJwt(claims = IdTokenClaims()).rawValue
+        val input = oktaRule.createOAuth2Client().createJwtBuilder().createJwt(claims = IdTokenClaims()).rawValue
 
         val parser = JwtParser(Json { ignoreUnknownKeys = true }, EmptyCoroutineContext)
         val jwt = parser.parse(input)
@@ -62,7 +62,7 @@ class JwtParserTest {
     }
 
     @Test fun testJwtParserMalformed(): Unit = runBlocking {
-        val validInput = oktaRule.createOidcClient().createJwtBuilder().createJwt(claims = IdTokenClaims()).rawValue
+        val validInput = oktaRule.createOAuth2Client().createJwtBuilder().createJwt(claims = IdTokenClaims()).rawValue
         val input = validInput.substringAfter(".") // Removes header.
 
         val parser = JwtParser(Json { ignoreUnknownKeys = true }, EmptyCoroutineContext)
@@ -74,7 +74,7 @@ class JwtParserTest {
     }
 
     @Test fun testJwtInstancesAreEqual(): Unit = runBlocking {
-        val input = oktaRule.createOidcClient().createJwtBuilder().createJwt(claims = IdTokenClaims()).rawValue
+        val input = oktaRule.createOAuth2Client().createJwtBuilder().createJwt(claims = IdTokenClaims()).rawValue
 
         val parser = JwtParser(Json { ignoreUnknownKeys = true }, EmptyCoroutineContext)
         val jwt1 = parser.parse(input)
@@ -85,7 +85,7 @@ class JwtParserTest {
     }
 
     @Test fun testJwtParserNonBase64Header(): Unit = runBlocking {
-        val validInput = oktaRule.createOidcClient().createJwtBuilder().createJwt(claims = IdTokenClaims()).rawValue
+        val validInput = oktaRule.createOAuth2Client().createJwtBuilder().createJwt(claims = IdTokenClaims()).rawValue
         val input = validInput.replaceBefore(".", "+") // Replaces header with `+`.
 
         val parser = JwtParser(Json { ignoreUnknownKeys = true }, EmptyCoroutineContext)
@@ -97,7 +97,7 @@ class JwtParserTest {
     }
 
     @Test fun testJwtParserNonBase64Claims(): Unit = runBlocking {
-        val validInput = oktaRule.createOidcClient().createJwtBuilder().createJwt(claims = IdTokenClaims()).rawValue
+        val validInput = oktaRule.createOAuth2Client().createJwtBuilder().createJwt(claims = IdTokenClaims()).rawValue
         val input = validInput.replaceAfter(".", "+.irrelevantSignature") // Replaces claims with `+`.
 
         val parser = JwtParser(Json { ignoreUnknownKeys = true }, EmptyCoroutineContext)

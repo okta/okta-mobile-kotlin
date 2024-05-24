@@ -1,9 +1,0 @@
-public final class com/okta/authfoundationbootstrap/CredentialBootstrap {
-	public static final field INSTANCE Lcom/okta/authfoundationbootstrap/CredentialBootstrap;
-	public final fun defaultCredential (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public final fun getCredentialDataSource ()Lcom/okta/authfoundation/credential/CredentialDataSource;
-	public final fun getOidcClient ()Lcom/okta/authfoundation/client/OidcClient;
-	public final fun initialize (Lcom/okta/authfoundation/credential/CredentialDataSource;)V
-	public final fun reset ()V
-}
-

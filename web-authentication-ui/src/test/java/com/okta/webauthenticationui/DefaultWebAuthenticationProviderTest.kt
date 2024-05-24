@@ -25,6 +25,7 @@ import android.net.Uri
 import android.provider.Browser
 import androidx.browser.customtabs.CustomTabsService
 import com.google.common.truth.Truth.assertThat
+import com.okta.authfoundation.credential.events.Event
 import com.okta.authfoundation.events.EventCoordinator
 import com.okta.authfoundation.events.EventHandler
 import com.okta.testhelpers.RecordingEventHandler
@@ -92,7 +93,7 @@ class DefaultWebAuthenticationProviderTest {
         installCustomTabsProvider("my.custom.preferred.browser")
         installCustomTabsProvider("com.android.chrome")
         val eventHandler = object : EventHandler {
-            override fun onEvent(event: Any) {
+            override fun onEvent(event: Event) {
                 if (event is CustomizeBrowserEvent) {
                     event.preferredBrowsers.clear()
                     event.preferredBrowsers.add("my.custom.preferred.browser")

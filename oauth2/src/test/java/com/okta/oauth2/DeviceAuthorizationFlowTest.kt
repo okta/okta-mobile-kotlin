@@ -16,11 +16,9 @@
 package com.okta.oauth2
 
 import com.google.common.truth.Truth.assertThat
-import com.okta.authfoundation.client.OidcClient
-import com.okta.authfoundation.client.OidcClientResult
+import com.okta.authfoundation.client.OAuth2ClientResult
 import com.okta.authfoundation.client.OidcEndpoints
 import com.okta.authfoundation.credential.Token
-import com.okta.oauth2.DeviceAuthorizationFlow.Companion.createDeviceAuthorizationFlow
 import com.okta.testhelpers.OktaRule
 import com.okta.testhelpers.RequestMatchers.body
 import com.okta.testhelpers.RequestMatchers.bodyPart
@@ -67,8 +65,8 @@ class DeviceAuthorizationFlowTest {
             response.setBody(minimalBody)
         }
 
-        val flow = oktaRule.createOidcClient().createDeviceAuthorizationFlow()
-        val startResult = (flow.start() as OidcClientResult.Success<DeviceAuthorizationFlow.Context>).result
+        val flow = DeviceAuthorizationFlow()
+        val startResult = (flow.start() as OAuth2ClientResult.Success<DeviceAuthorizationFlow.Context>).result
 
         assertThat(startResult.deviceCode).isEqualTo("1a521d9f-0922-4e6d-8db9-8b654297435a")
         assertThat(startResult.expiresIn).isEqualTo(600)
@@ -82,23 +80,19 @@ class DeviceAuthorizationFlowTest {
         oktaRule.enqueue(path("/.well-known/openid-configuration")) { response ->
             response.setResponseCode(503)
         }
-        val client = OidcClient.createFromDiscoveryUrl(
-            oktaRule.configuration,
-            oktaRule.baseUrl.newBuilder().encodedPath("/.well-known/openid-configuration").build()
-        )
 
-        val flow = client.createDeviceAuthorizationFlow()
-        val startResult = flow.start() as OidcClientResult.Error<DeviceAuthorizationFlow.Context>
-        assertThat(startResult.exception).isInstanceOf(OidcClientResult.Error.OidcEndpointsNotAvailableException::class.java)
+        val flow = DeviceAuthorizationFlow(oktaRule.configuration)
+        val startResult = flow.start() as OAuth2ClientResult.Error<DeviceAuthorizationFlow.Context>
+        assertThat(startResult.exception).isInstanceOf(OAuth2ClientResult.Error.OidcEndpointsNotAvailableException::class.java)
         assertThat(startResult.exception).hasMessageThat().isEqualTo("OIDC Endpoints not available.")
     }
 
     @Test fun testStartWithNoDeviceAuthorizationEndpoints(): Unit = runBlocking {
-        val client = oktaRule.createOidcClient(oktaRule.createEndpoints().copy(deviceAuthorizationEndpoint = null))
+        val client = oktaRule.createOAuth2Client(oktaRule.createEndpoints().copy(deviceAuthorizationEndpoint = null))
 
-        val flow = client.createDeviceAuthorizationFlow()
-        val startResult = flow.start() as OidcClientResult.Error<DeviceAuthorizationFlow.Context>
-        assertThat(startResult.exception).isInstanceOf(OidcClientResult.Error.OidcEndpointsNotAvailableException::class.java)
+        val flow = DeviceAuthorizationFlow(client)
+        val startResult = flow.start() as OAuth2ClientResult.Error<DeviceAuthorizationFlow.Context>
+        assertThat(startResult.exception).isInstanceOf(OAuth2ClientResult.Error.OidcEndpointsNotAvailableException::class.java)
     }
 
     @Test fun testStart(): Unit = runBlocking {
@@ -111,8 +105,8 @@ class DeviceAuthorizationFlowTest {
             response.setBody(successBody)
         }
 
-        val flow = oktaRule.createOidcClient().createDeviceAuthorizationFlow()
-        val startResult = (flow.start() as OidcClientResult.Success<DeviceAuthorizationFlow.Context>).result
+        val flow = DeviceAuthorizationFlow()
+        val startResult = (flow.start() as OAuth2ClientResult.Success<DeviceAuthorizationFlow.Context>).result
 
         assertThat(startResult.deviceCode).isEqualTo("1a521d9f-0922-4e6d-8db9-8b654297435a")
         assertThat(startResult.expiresIn).isEqualTo(600)
@@ -133,12 +127,12 @@ class DeviceAuthorizationFlowTest {
             response.setBody(successBody)
         }
 
-        val flow = oktaRule.createOidcClient().createDeviceAuthorizationFlow()
+        val flow = DeviceAuthorizationFlow()
         val startResult = (
             flow.start(
                 extraRequestParameters = mapOf(Pair("foo", "bar")),
                 scope = "openid email profile offline_access custom:read",
-            ) as OidcClientResult.Success<DeviceAuthorizationFlow.Context>
+            ) as OAuth2ClientResult.Success<DeviceAuthorizationFlow.Context>
             ).result
 
         assertThat(startResult.deviceCode).isEqualTo("1a521d9f-0922-4e6d-8db9-8b654297435a")
@@ -153,10 +147,10 @@ class DeviceAuthorizationFlowTest {
             response.setResponseCode(500)
         }
 
-        val flow = oktaRule.createOidcClient().createDeviceAuthorizationFlow()
-        val startResult = flow.start() as OidcClientResult.Error<DeviceAuthorizationFlow.Context>
+        val flow = DeviceAuthorizationFlow()
+        val startResult = flow.start() as OAuth2ClientResult.Error<DeviceAuthorizationFlow.Context>
 
-        assertThat(startResult.exception).isInstanceOf(OidcClientResult.Error.HttpResponseException::class.java)
+        assertThat(startResult.exception).isInstanceOf(OAuth2ClientResult.Error.HttpResponseException::class.java)
         assertThat(startResult.exception).hasMessageThat().isEqualTo("HTTP Error: status code - 500")
     }
 
@@ -164,16 +158,12 @@ class DeviceAuthorizationFlowTest {
         oktaRule.enqueue(path("/.well-known/openid-configuration")) { response ->
             response.setResponseCode(503)
         }
-        val client = OidcClient.createFromDiscoveryUrl(
-            oktaRule.configuration,
-            oktaRule.baseUrl.newBuilder().encodedPath("/.well-known/openid-configuration").build()
-        )
 
-        val flow = client.createDeviceAuthorizationFlow()
+        val flow = DeviceAuthorizationFlow(oktaRule.configuration)
         val context = mock<DeviceAuthorizationFlow.Context>()
-        val resumeResult = flow.resume(context) as OidcClientResult.Error<Token>
+        val resumeResult = flow.resume(context) as OAuth2ClientResult.Error<Token>
 
-        assertThat(resumeResult.exception).isInstanceOf(OidcClientResult.Error.OidcEndpointsNotAvailableException::class.java)
+        assertThat(resumeResult.exception).isInstanceOf(OAuth2ClientResult.Error.OidcEndpointsNotAvailableException::class.java)
         assertThat(resumeResult.exception).hasMessageThat().isEqualTo("OIDC Endpoints not available.")
     }
 
@@ -186,7 +176,7 @@ class DeviceAuthorizationFlowTest {
             response.testBodyFromFile("$mockPrefix/token.json")
         }
 
-        val flow = oktaRule.createOidcClient().createDeviceAuthorizationFlow()
+        val flow = DeviceAuthorizationFlow()
         val context = DeviceAuthorizationFlow.Context(
             deviceCode = "1a521d9f-0922-4e6d-8db9-8b654297435a",
             interval = 5,
@@ -200,7 +190,7 @@ class DeviceAuthorizationFlowTest {
             assertThat(delay).isEqualTo(5000)
             delayFunctionExecutedCount.incrementAndGet()
         }
-        val resumeResult = flow.resume(context) as OidcClientResult.Success<Token>
+        val resumeResult = flow.resume(context) as OAuth2ClientResult.Success<Token>
         assertThat(resumeResult.result.accessToken).isEqualTo("exampleAccessToken")
         assertThat(delayFunctionExecutedCount.get()).isEqualTo(1)
     }
@@ -225,7 +215,7 @@ class DeviceAuthorizationFlowTest {
             response.testBodyFromFile("$mockPrefix/token.json")
         }
 
-        val flow = oktaRule.createOidcClient().createDeviceAuthorizationFlow()
+        val flow = DeviceAuthorizationFlow()
         val context = DeviceAuthorizationFlow.Context(
             deviceCode = "1a521d9f-0922-4e6d-8db9-8b654297435a",
             interval = 5,
@@ -239,7 +229,7 @@ class DeviceAuthorizationFlowTest {
             assertThat(delay).isEqualTo(5000)
             delayFunctionExecutedCount.incrementAndGet()
         }
-        val resumeResult = flow.resume(context) as OidcClientResult.Success<Token>
+        val resumeResult = flow.resume(context) as OAuth2ClientResult.Success<Token>
         assertThat(resumeResult.result.accessToken).isEqualTo("exampleAccessToken")
         assertThat(delayFunctionExecutedCount.get()).isEqualTo(5)
     }
@@ -264,7 +254,7 @@ class DeviceAuthorizationFlowTest {
             response.testBodyFromFile("$mockPrefix/token.json")
         }
 
-        val flow = oktaRule.createOidcClient().createDeviceAuthorizationFlow()
+        val flow = DeviceAuthorizationFlow()
         val context = DeviceAuthorizationFlow.Context(
             deviceCode = "1a521d9f-0922-4e6d-8db9-8b654297435a",
             interval = 5,
@@ -279,7 +269,7 @@ class DeviceAuthorizationFlowTest {
             delayAmounts += delay
             delayFunctionExecutedCount.incrementAndGet()
         }
-        val resumeResult = flow.resume(context) as OidcClientResult.Success<Token>
+        val resumeResult = flow.resume(context) as OAuth2ClientResult.Success<Token>
         assertThat(resumeResult.result.accessToken).isEqualTo("exampleAccessToken")
         assertThat(delayFunctionExecutedCount.get()).isEqualTo(5)
         assertThat(delayAmounts).containsExactly(5000L, 10_000L, 15_000L, 20_000L, 25_000L)
@@ -297,7 +287,7 @@ class DeviceAuthorizationFlowTest {
             }
         }
 
-        val flow = oktaRule.createOidcClient().createDeviceAuthorizationFlow()
+        val flow = DeviceAuthorizationFlow()
         val context = DeviceAuthorizationFlow.Context(
             deviceCode = "1a521d9f-0922-4e6d-8db9-8b654297435a",
             interval = 5,
@@ -311,7 +301,7 @@ class DeviceAuthorizationFlowTest {
             assertThat(delay).isEqualTo(5000)
             delayFunctionExecutedCount.incrementAndGet()
         }
-        val resumeResult = flow.resume(context) as OidcClientResult.Error
+        val resumeResult = flow.resume(context) as OAuth2ClientResult.Error
         assertThat(resumeResult.exception).isInstanceOf(DeviceAuthorizationFlow.TimeoutException::class.java)
         assertThat(delayFunctionExecutedCount.get()).isEqualTo(4)
     }
@@ -325,7 +315,7 @@ class DeviceAuthorizationFlowTest {
             response.setResponseCode(400)
         }
 
-        val flow = oktaRule.createOidcClient().createDeviceAuthorizationFlow()
+        val flow = DeviceAuthorizationFlow()
         val context = DeviceAuthorizationFlow.Context(
             deviceCode = "1a521d9f-0922-4e6d-8db9-8b654297435a",
             interval = 5,
@@ -334,9 +324,9 @@ class DeviceAuthorizationFlowTest {
             verificationUriComplete = "https://example.okta.com/activate?user_code=GDLMZQCT",
             userCode = "GDLMZQCT",
         )
-        val resumeResult = flow.resume(context) as OidcClientResult.Error<Token>
+        val resumeResult = flow.resume(context) as OAuth2ClientResult.Error<Token>
 
-        assertThat(resumeResult.exception).isInstanceOf(OidcClientResult.Error.HttpResponseException::class.java)
+        assertThat(resumeResult.exception).isInstanceOf(OAuth2ClientResult.Error.HttpResponseException::class.java)
         assertThat(resumeResult.exception).hasMessageThat().isEqualTo("HTTP Error: status code - 400")
     }
 }

@@ -20,9 +20,9 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.okta.authfoundation.client.OidcClientResult
-import com.okta.authfoundationbootstrap.CredentialBootstrap
-import com.okta.webauthenticationui.WebAuthenticationClient.Companion.createWebAuthenticationClient
+import com.okta.authfoundation.client.OAuth2ClientResult
+import com.okta.authfoundation.credential.Credential
+import com.okta.webauthenticationui.WebAuthentication
 import kotlinx.coroutines.launch
 import sample.okta.android.legacy.BuildConfig
 import timber.log.Timber
@@ -35,14 +35,15 @@ class BrowserViewModel : ViewModel() {
         viewModelScope.launch {
             _state.value = BrowserState.Loading
 
-            val webAuthenticationClient = CredentialBootstrap.oidcClient.createWebAuthenticationClient()
-            when (val result = webAuthenticationClient.login(context, BuildConfig.SIGN_IN_REDIRECT_URI)) {
-                is OidcClientResult.Error -> {
+            val webAuthentication = WebAuthentication()
+            when (val result = webAuthentication.login(context, BuildConfig.SIGN_IN_REDIRECT_URI)) {
+                is OAuth2ClientResult.Error -> {
                     Timber.e(result.exception, "Failed to login.")
                     _state.value = BrowserState.Error("Failed to login.")
                 }
-                is OidcClientResult.Success -> {
-                    CredentialBootstrap.defaultCredential().storeToken(token = result.result)
+                is OAuth2ClientResult.Success -> {
+                    val credential = Credential.store(token = result.result)
+                    Credential.setDefaultAsync(credential)
                     _state.value = BrowserState.Token
                 }
             }

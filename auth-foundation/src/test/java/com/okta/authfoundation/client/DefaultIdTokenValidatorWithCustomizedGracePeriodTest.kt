@@ -17,6 +17,7 @@ package com.okta.authfoundation.client
 
 import com.google.common.truth.Truth.assertThat
 import com.okta.authfoundation.client.events.ValidateIdTokenEvent
+import com.okta.authfoundation.credential.events.Event
 import com.okta.authfoundation.events.EventHandler
 import com.okta.authfoundation.jwt.IdTokenClaims
 import com.okta.authfoundation.jwt.JwtBuilder.Companion.createJwtBuilder
@@ -37,7 +38,7 @@ class DefaultIdTokenValidatorWithCustomizedGracePeriodTest {
     }
 
     @Test fun testValidIdToken(): Unit = runBlocking {
-        val client = oktaRule.createOidcClient(oktaRule.createEndpoints("https://example-test.okta.com".toHttpUrl().newBuilder()))
+        val client = oktaRule.createOAuth2Client(oktaRule.createEndpoints("https://example-test.okta.com".toHttpUrl().newBuilder()))
         val idTokenClaims = IdTokenClaims()
         val idToken = client.createJwtBuilder().createJwt(claims = idTokenClaims)
         idTokenValidator.validate(client, idToken, IdTokenValidator.Parameters(null, null))
@@ -62,7 +63,7 @@ class DefaultIdTokenValidatorWithCustomizedGracePeriodTest {
         algorithm: String = "RS256",
     ) {
         try {
-            val client = oktaRule.createOidcClient(
+            val client = oktaRule.createOAuth2Client(
                 oktaRule.createEndpoints("$issuerPrefix://example-test.okta.com".toHttpUrl().newBuilder())
             )
             runBlocking {
@@ -82,7 +83,7 @@ class DefaultIdTokenValidatorWithCustomizedGracePeriodTest {
 }
 
 private class UpdateIssuedAtGracePeriodEventHandler : EventHandler {
-    override fun onEvent(event: Any) {
+    override fun onEvent(event: Event) {
         if (event is ValidateIdTokenEvent) {
             event.issuedAtGracePeriodInSeconds = 30 * 60
         }

@@ -24,9 +24,9 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import com.okta.authfoundation.credential.Credential
 import com.okta.authfoundation.credential.RevokeTokenType
 import com.okta.authfoundation.credential.TokenType
-import com.okta.authfoundationbootstrap.CredentialBootstrap
 import kotlinx.coroutines.launch
 import sample.okta.android.R
 import sample.okta.android.databinding.FragmentDashboardBinding
@@ -51,45 +51,54 @@ internal class DashboardFragment : BaseFragment<FragmentDashboardBinding>(
     private val onBackPressedCallback = object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {
             lifecycleScope.launch {
-                viewModel.setCredential(CredentialBootstrap.defaultCredential())
+                Credential.default?.let { viewModel.setCredential(it) }
             }
         }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        viewModel.credentialLiveData.observe(viewLifecycleOwner) { credential ->
-            lifecycleScope.launch {
-                val defaultCredential = CredentialBootstrap.defaultCredential()
-                onBackPressedCallback.isEnabled = defaultCredential != credential
+        viewModel.credentialLiveData.observe(viewLifecycleOwner) { credentialState ->
+            when (credentialState) {
+                is DashboardViewModel.CredentialState.LoggedOut -> {
+                    // Go back to login screen if no default credential is set
+                    findNavController().navigate(DashboardFragmentDirections.dashboardToLogin())
+                }
+                is DashboardViewModel.CredentialState.Loaded -> {
+                    val credential = credentialState.credential
+                    lifecycleScope.launch {
+                        val defaultCredential = Credential.default
+                        onBackPressedCallback.isEnabled = defaultCredential != credential
 
-                binding.credentialName.text = if (defaultCredential == credential) "Default" else "TokenExchange"
-            }
+                        binding.credentialName.text = if (defaultCredential == credential) "Default" else "TokenExchange"
+                    }
 
-            val token = credential.token ?: return@observe
-            binding.tokenType.text = token.tokenType
-            binding.expiresIn.text = token.expiresIn.toString()
-            binding.accessToken.text = token.accessToken
-            binding.refreshToken.text = token.refreshToken
-            binding.idToken.text = token.idToken
-            binding.scope.text = token.scope
+                    val token = credential.token
+                    binding.tokenType.text = token.tokenType
+                    binding.expiresIn.text = token.expiresIn.toString()
+                    binding.accessToken.text = token.accessToken
+                    binding.refreshToken.text = token.refreshToken
+                    binding.idToken.text = token.idToken
+                    binding.scope.text = token.scope
 
-            if (token.refreshToken == null) {
-                binding.refreshAccessTokenButton.visibility = View.GONE
-                binding.introspectRefreshTokenButton.visibility = View.GONE
-                binding.revokeRefreshTokenButton.visibility = View.GONE
-            } else {
-                binding.refreshAccessTokenButton.visibility = View.VISIBLE
-                binding.introspectRefreshTokenButton.visibility = View.VISIBLE
-                binding.revokeRefreshTokenButton.visibility = View.VISIBLE
-            }
-            if (token.deviceSecret == null) {
-                binding.tokenExchangeButton.visibility = View.GONE
-                binding.introspectDeviceSecretButton.visibility = View.GONE
-                binding.revokeDeviceSecretButton.visibility = View.GONE
-            } else {
-                binding.tokenExchangeButton.visibility = View.VISIBLE
-                binding.introspectDeviceSecretButton.visibility = View.VISIBLE
-                binding.revokeDeviceSecretButton.visibility = View.VISIBLE
+                    if (token.refreshToken == null) {
+                        binding.refreshAccessTokenButton.visibility = View.GONE
+                        binding.introspectRefreshTokenButton.visibility = View.GONE
+                        binding.revokeRefreshTokenButton.visibility = View.GONE
+                    } else {
+                        binding.refreshAccessTokenButton.visibility = View.VISIBLE
+                        binding.introspectRefreshTokenButton.visibility = View.VISIBLE
+                        binding.revokeRefreshTokenButton.visibility = View.VISIBLE
+                    }
+                    if (token.deviceSecret == null) {
+                        binding.tokenExchangeButton.visibility = View.GONE
+                        binding.introspectDeviceSecretButton.visibility = View.GONE
+                        binding.revokeDeviceSecretButton.visibility = View.GONE
+                    } else {
+                        binding.tokenExchangeButton.visibility = View.VISIBLE
+                        binding.introspectDeviceSecretButton.visibility = View.VISIBLE
+                        binding.revokeDeviceSecretButton.visibility = View.VISIBLE
+                    }
+                }
             }
         }
 

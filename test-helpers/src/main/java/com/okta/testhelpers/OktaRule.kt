@@ -21,10 +21,13 @@ import com.okta.authfoundation.client.AccessTokenValidator
 import com.okta.authfoundation.client.Cache
 import com.okta.authfoundation.client.DeviceSecretValidator
 import com.okta.authfoundation.client.IdTokenValidator
-import com.okta.authfoundation.client.OidcClient
+import com.okta.authfoundation.client.NoOpCache
+import com.okta.authfoundation.client.OAuth2Client
 import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.client.OidcEndpoints
 import com.okta.authfoundation.events.EventCoordinator
+import io.mockk.every
+import io.mockk.mockkObject
 import okhttp3.CookieJar
 import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
@@ -50,25 +53,49 @@ class OktaRule(
     val eventHandler: RecordingEventHandler = RecordingEventHandler()
     val clock: TestClock = TestClock()
 
-    val configuration: OidcConfiguration = createConfiguration()
+    var configuration: OidcConfiguration = createConfiguration()
+        set(value) {
+            mockkObject(OidcConfiguration)
+            every { OidcConfiguration.default } returns value
+            field = value
+        }
+
+    var client: OAuth2Client = createOAuth2Client()
+        set(value) {
+            mockkObject(OAuth2Client)
+            every { OAuth2Client.default } returns value
+            field = value
+        }
+
+    init {
+        mockkObject(OidcConfiguration)
+        mockkObject(OAuth2Client)
+        every { OidcConfiguration.default } returns configuration
+        every { OAuth2Client.default } returns client
+    }
 
     fun createConfiguration(
         okHttpClient: OkHttpClient = this.okHttpClient,
-        cache: Cache = AuthFoundationDefaults.cache,
-    ) = OidcConfiguration(
-        clientId = "unit_test_client_id",
-        defaultScope = "openid email profile offline_access",
-        okHttpClientFactory = { okHttpClient },
-        eventCoordinator = EventCoordinator(eventHandler),
-        clock = clock,
-        idTokenValidator = idTokenValidator,
-        accessTokenValidator = accessTokenValidator,
-        deviceSecretValidator = deviceSecretValidator,
-        ioDispatcher = EmptyCoroutineContext,
-        computeDispatcher = EmptyCoroutineContext,
-        cache = cache,
-        cookieJar = CookieJar.NO_COOKIES,
-    )
+        cache: Cache = NoOpCache(),
+    ): OidcConfiguration {
+        mockkObject(AuthFoundationDefaults)
+        every { AuthFoundationDefaults.okHttpClientFactory } returns { okHttpClient }
+        every { AuthFoundationDefaults.eventCoordinator } returns EventCoordinator(eventHandler)
+        every { AuthFoundationDefaults.clock } returns clock
+        every { AuthFoundationDefaults.idTokenValidator } returns idTokenValidator
+        every { AuthFoundationDefaults.accessTokenValidator } returns accessTokenValidator
+        every { AuthFoundationDefaults.deviceSecretValidator } returns deviceSecretValidator
+        every { AuthFoundationDefaults.ioDispatcher } returns EmptyCoroutineContext
+        every { AuthFoundationDefaults.computeDispatcher } returns EmptyCoroutineContext
+        every { AuthFoundationDefaults.cacheFactory } returns { cache }
+        every { AuthFoundationDefaults.cookieJar } returns CookieJar.NO_COOKIES
+
+        return OidcConfiguration(
+            clientId = "unit_test_client_id",
+            defaultScope = "openid email profile offline_access",
+            issuer = baseUrl.toString().removeSuffix("/")
+        )
+    }
 
     fun createEndpoints(
         urlBuilder: HttpUrl.Builder = baseUrl.newBuilder(),
@@ -93,8 +120,8 @@ class OktaRule(
         )
     }
 
-    fun createOidcClient(endpoints: OidcEndpoints = createEndpoints()): OidcClient {
-        return OidcClient.create(configuration, endpoints)
+    fun createOAuth2Client(endpoints: OidcEndpoints = createEndpoints()): OAuth2Client {
+        return OAuth2Client.create(configuration, endpoints)
     }
 
     override fun apply(base: Statement, description: Description): Statement {

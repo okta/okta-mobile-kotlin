@@ -24,6 +24,8 @@ import androidx.security.crypto.MasterKeys
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
+import com.okta.authfoundation.client.OidcConfiguration
+import com.okta.authfoundation.credential.events.Event
 import com.okta.authfoundation.credential.events.TokenStorageAccessErrorEvent
 import com.okta.authfoundation.events.EventCoordinator
 import com.okta.authfoundation.events.EventHandler
@@ -93,7 +95,7 @@ class SharedPreferencesTokenStorageTest {
     @Test fun testReplace(): Unit = runBlocking {
         subject.add("one")
         assertThat(subject.entries()).hasSize(1)
-        subject.replace(TokenStorage.Entry("one", null, mapOf("foo" to "bar")))
+        subject.replace(LegacyTokenStorage.Entry("one", null, mapOf("foo" to "bar")))
         val entry = subject.entries().first()
         assertThat(entry.identifier).isEqualTo("one")
         assertThat(entry.token).isNull()
@@ -103,7 +105,7 @@ class SharedPreferencesTokenStorageTest {
     @Test fun testReplaceNonExistingEntries(): Unit = runBlocking {
         subject.add("one")
         assertThat(subject.entries()).hasSize(1)
-        subject.replace(TokenStorage.Entry("two", null, mapOf("foo" to "bar")))
+        subject.replace(LegacyTokenStorage.Entry("two", null, mapOf("foo" to "bar")))
         val entry = subject.entries().first()
         assertThat(entry.identifier).isEqualTo("one")
         assertThat(entry.token).isNull()
@@ -114,6 +116,7 @@ class SharedPreferencesTokenStorageTest {
         subject.add("one")
         assertThat(subject.entries()).hasSize(1)
         val token = Token(
+            id = "id",
             tokenType = "Bearer",
             expiresIn = 600,
             accessToken = "anExampleButInvalidAccessToken",
@@ -122,8 +125,9 @@ class SharedPreferencesTokenStorageTest {
             idToken = null,
             deviceSecret = null,
             issuedTokenType = null,
+            oidcConfiguration = OidcConfiguration("clientId", "defaultScope", "discoveryUrl")
         )
-        subject.replace(TokenStorage.Entry("one", token, mapOf("foo" to "bar")))
+        subject.replace(LegacyTokenStorage.Entry("one", token, mapOf("foo" to "bar")))
         val entry = subject.entries().first()
         assertThat(entry.identifier).isEqualTo("one")
         assertThat(entry.token).isEqualTo(token)
@@ -159,7 +163,7 @@ class SharedPreferencesTokenStorageTest {
     @Test fun testCorruptEncryptedSharedPreferencesWithShouldClearStorageAndTryAgainSetToFalseShouldThrow() {
         corruptEncryptedSharedPreferences()
         val eventCoordinator = EventCoordinator(object : EventHandler {
-            override fun onEvent(event: Any) {
+            override fun onEvent(event: Event) {
                 val errorEvent = event as TokenStorageAccessErrorEvent
                 errorEvent.shouldClearStorageAndTryAgain = false
             }

@@ -1,7 +1,11 @@
 def versions = [:]
 versions.androidx_activity = '1.5.1'
 versions.androidx_annotation = '1.4.0'
+versions.androidx_biometric = '1.1.0'
 versions.androidx_browser = '1.5.0'
+versions.androidx_constraintlayout = '2.1.4'
+versions.androidx_datastore_preferences = '1.0.0'
+versions.androidx_sqlite = '2.2.0'
 versions.androidx_test = '1.5.0'
 versions.androidx_test_runner = '1.5.2'
 versions.androidx_test_ext = '1.1.5'
@@ -27,7 +31,7 @@ versions.lifecycle = '2.5.1'
 versions.material = '1.6.1'
 versions.mockito_core = '4.6.1'
 versions.mockito_kotlin = '4.0.0'
-versions.mockk = '1.13.7'
+versions.mockk = '1.13.9'
 versions.navigation = '2.5.1'
 versions.okhttp = '4.11.0'
 versions.okio = '3.5.0'
@@ -35,9 +39,11 @@ versions.okta_authn = '2.0.11'
 versions.okta_legacy_oidc = '1.3.2'
 versions.okta_management = '13.0.2'
 versions.robolectric = '4.11'
+versions.room = '2.6.1'
 versions.security_crypto = '1.0.0'
 versions.snakeyaml = '2.0'
 versions.spotless = '6.7.0'
+versions.sqlcipher_android = '4.5.6'
 versions.startup_runtime = '1.1.1'
 versions.timber = '5.0.1'
 versions.truth = '1.1.5'
@@ -45,7 +51,7 @@ versions.turbine = '0.9.0'
 ext.versions = versions
 
 def build_versions = [:]
-build_versions.min_sdk = 21
+build_versions.min_sdk = 23
 build_versions.compile_sdk = 34
 build_versions.target_sdk = 34
 ext.build_versions = build_versions
@@ -55,7 +61,15 @@ def deps = [:]
 deps.androidx_activity_ktx = "androidx.activity:activity-ktx:$versions.androidx_activity"
 deps.androidx_annotation = "androidx.annotation:annotation:$versions.androidx_annotation"
 
+deps.androidx_biometric = "androidx.biometric:biometric:$versions.androidx_biometric"
+
 deps.androidx_browser = "androidx.browser:browser:$versions.androidx_browser"
+
+deps.androidx_constraintlayout = "androidx.constraintlayout:constraintlayout:$versions.androidx_constraintlayout"
+
+deps.androidx_datastore_preferences = "androidx.datastore:datastore-preferences:$versions.androidx_datastore_preferences"
+
+deps.androidx_sqlite = "androidx.sqlite:sqlite:$versions.androidx_sqlite"
 
 def androidx_test = [:]
 androidx_test.core = "androidx.test:core:$versions.androidx_test"
@@ -162,8 +176,17 @@ deps.okta = okta
 
 deps.robolectric = "org.robolectric:robolectric:$versions.robolectric"
 
+def room = [:]
+room.runtime = "androidx.room:room-runtime:$versions.room"
+room.compiler = "androidx.room:room-compiler:$versions.room"
+room.ktx = "androidx.room:room-ktx:$versions.room"
+room.testing = "androidx.room:room-testing:$versions.room"
+deps.room = room
+
 deps.security_crypto = "androidx.security:security-crypto:$versions.security_crypto"
 deps.spotless = "com.diffplug.spotless:spotless-plugin-gradle:$versions.spotless"
+
+deps.sqlcipher_android = "net.zetetic:sqlcipher-android:$versions.sqlcipher_android@aar"
 
 deps.startup_runtime = "androidx.startup:startup-runtime:$versions.startup_runtime"
 

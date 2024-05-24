@@ -16,8 +16,9 @@
 package com.okta.oauth2
 
 import android.net.Uri
-import com.okta.authfoundation.client.OidcClient
-import com.okta.authfoundation.client.OidcClientResult
+import com.okta.authfoundation.client.OAuth2Client
+import com.okta.authfoundation.client.OAuth2ClientResult
+import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.client.internal.SdkVersionsRegistry
 import okhttp3.HttpUrl
 import java.util.UUID
@@ -27,23 +28,26 @@ import java.util.UUID
  *
  * > Note: OIDC Logout terminology is nuanced, see [Logout Documentation](https://github.com/okta/okta-mobile-kotlin#logout) for additional details.
  */
-class RedirectEndSessionFlow private constructor(
-    private val oidcClient: OidcClient,
+class RedirectEndSessionFlow(
+    private val client: OAuth2Client,
 ) {
     companion object {
         init {
             SdkVersionsRegistry.register(SDK_VERSION)
         }
-
-        /**
-         * Initializes an end session redirect flow using the [OidcClient].
-         *
-         * @receiver the [OidcClient] used to perform the low level OIDC requests, as well as with which to use the configuration from.
-         */
-        fun OidcClient.createRedirectEndSessionFlow(): RedirectEndSessionFlow {
-            return RedirectEndSessionFlow(this)
-        }
     }
+
+    /**
+     * Initializes an end session redirect flow.
+     */
+    constructor() : this(OAuth2Client.default)
+
+    /**
+     * Initializes an end session redirect flow using [OidcConfiguration].
+     *
+     * @param oidcConfiguration the [OidcConfiguration] specifying the authorization servers.
+     */
+    constructor(oidcConfiguration: OidcConfiguration) : this(OAuth2Client.createFromConfiguration(oidcConfiguration))
 
     /**
      * A model representing the context and current state for a logout flow.
@@ -58,16 +62,16 @@ class RedirectEndSessionFlow private constructor(
     )
 
     /**
-     * Used in a [OidcClientResult.Error.exception] from [resume].
+     * Used in a [OAuth2ClientResult.Error.exception] from [resume].
      *
      * Includes a message giving more information as to what went wrong.
      */
     class ResumeException internal constructor(message: String) : Exception(message)
 
     /**
-     * Used in a [OidcClientResult.Error.exception] from [resume].
+     * Used in a [OAuth2ClientResult.Error.exception] from [resume].
      *
-     * The redirect scheme of the [Uri] didn't match the one configured for the associated [OidcClient].
+     * The redirect scheme of the [Uri] didn't match the one configured for the associated [client].
      */
     class RedirectSchemeMismatchException internal constructor() : Exception()
 
@@ -78,7 +82,7 @@ class RedirectEndSessionFlow private constructor(
      * @param redirectUrl the redirect URL.
      * @param idToken the token used to identify the session to log the user out of.
      */
-    suspend fun start(redirectUrl: String, idToken: String): OidcClientResult<Context> {
+    suspend fun start(redirectUrl: String, idToken: String): OAuth2ClientResult<Context> {
         return start(redirectUrl, idToken, UUID.randomUUID().toString())
     }
 
@@ -86,15 +90,15 @@ class RedirectEndSessionFlow private constructor(
         redirectUrl: String,
         idToken: String,
         state: String,
-    ): OidcClientResult<Context> {
-        val endpoint = oidcClient.endpointsOrNull()?.endSessionEndpoint ?: return oidcClient.endpointNotAvailableError()
+    ): OAuth2ClientResult<Context> {
+        val endpoint = client.endpointsOrNull()?.endSessionEndpoint ?: return client.endpointNotAvailableError()
 
         val urlBuilder = endpoint.newBuilder()
         urlBuilder.addQueryParameter("id_token_hint", idToken)
         urlBuilder.addQueryParameter("post_logout_redirect_uri", redirectUrl)
         urlBuilder.addQueryParameter("state", state)
 
-        return OidcClientResult.Success(Context(urlBuilder.build(), redirectUrl, state))
+        return OAuth2ClientResult.Success(Context(urlBuilder.build(), redirectUrl, state))
     }
 
     /**
@@ -103,23 +107,23 @@ class RedirectEndSessionFlow private constructor(
      * @param uri the redirect [Uri] which includes the state to validate the logout was successful.
      * @param flowContext the [RedirectEndSessionFlow.Context] used internally to maintain state.
      */
-    fun resume(uri: Uri, flowContext: Context): OidcClientResult<Unit> {
+    fun resume(uri: Uri, flowContext: Context): OAuth2ClientResult<Unit> {
         if (!uri.toString().startsWith(flowContext.redirectUrl)) {
-            return OidcClientResult.Error(RedirectSchemeMismatchException())
+            return OAuth2ClientResult.Error(RedirectSchemeMismatchException())
         }
 
         val errorQueryParameter = uri.getQueryParameter("error")
         if (errorQueryParameter != null) {
             val errorDescription = uri.getQueryParameter("error_description") ?: "An error occurred."
-            return OidcClientResult.Error(ResumeException(errorDescription))
+            return OAuth2ClientResult.Error(ResumeException(errorDescription))
         }
 
         val stateQueryParameter = uri.getQueryParameter("state")
         if (flowContext.state != stateQueryParameter) {
             val error = "Failed due to state mismatch."
-            return OidcClientResult.Error(ResumeException(error))
+            return OAuth2ClientResult.Error(ResumeException(error))
         }
 
-        return OidcClientResult.Success(Unit)
+        return OAuth2ClientResult.Success(Unit)
     }
 }

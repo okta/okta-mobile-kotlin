@@ -15,8 +15,8 @@
  */
 package com.okta.oauth2
 
-import com.okta.authfoundation.client.OidcClient
-import com.okta.authfoundation.client.OidcClientResult
+import com.okta.authfoundation.client.OAuth2Client
+import com.okta.authfoundation.client.OAuth2ClientResult
 import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.client.internal.SdkVersionsRegistry
 import com.okta.authfoundation.credential.Token
@@ -30,42 +30,45 @@ import okhttp3.Request
  *
  * > Important: Resource Owner authentication does not support MFA or other more secure authentication models, and is not recommended for production applications.
  */
-class ResourceOwnerFlow private constructor(
-    private val oidcClient: OidcClient,
+class ResourceOwnerFlow(
+    private val client: OAuth2Client,
 ) {
     companion object {
         init {
             SdkVersionsRegistry.register(SDK_VERSION)
         }
-
-        /**
-         * Initializes a resource owner flow using the [OidcClient].
-         *
-         * @receiver the [OidcClient] used to perform the low level OIDC requests, as well as with which to use the configuration from.
-         */
-        fun OidcClient.createResourceOwnerFlow(): ResourceOwnerFlow {
-            return ResourceOwnerFlow(this)
-        }
     }
+
+    /**
+     * Initializes a resource owner flow.
+     */
+    constructor() : this(OAuth2Client.default)
+
+    /**
+     * Initializes a resource owner flow using the [OidcConfiguration].
+     *
+     * @param oidcConfiguration the [OidcConfiguration] specifying the authorization servers.
+     */
+    constructor(oidcConfiguration: OidcConfiguration) : this(OAuth2Client.createFromConfiguration(oidcConfiguration))
 
     /**
      * Initiates the Resource Owner flow.
      *
      * @param username the username
      * @param password the password
-     * @param scope the scopes to request during sign in. Defaults to the configured [OidcClient] [OidcConfiguration.defaultScope].
+     * @param scope the scopes to request during sign in. Defaults to the configured [client] [OidcConfiguration.defaultScope].
      */
     suspend fun start(
         username: String,
         password: String,
-        scope: String = oidcClient.configuration.defaultScope,
-    ): OidcClientResult<Token> {
-        val endpoints = oidcClient.endpointsOrNull() ?: return oidcClient.endpointNotAvailableError()
+        scope: String = client.configuration.defaultScope,
+    ): OAuth2ClientResult<Token> {
+        val endpoints = client.endpointsOrNull() ?: return client.endpointNotAvailableError()
 
         val formBodyBuilder = FormBody.Builder()
             .add("username", username)
             .add("password", password)
-            .add("client_id", oidcClient.configuration.clientId)
+            .add("client_id", client.configuration.clientId)
             .add("grant_type", "password")
             .add("scope", scope)
 
@@ -74,6 +77,6 @@ class ResourceOwnerFlow private constructor(
             .url(endpoints.tokenEndpoint)
             .build()
 
-        return oidcClient.tokenRequest(request)
+        return client.tokenRequest(request)
     }
 }

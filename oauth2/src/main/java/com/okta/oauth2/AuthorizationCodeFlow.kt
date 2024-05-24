@@ -16,8 +16,8 @@
 package com.okta.oauth2
 
 import android.net.Uri
-import com.okta.authfoundation.client.OidcClient
-import com.okta.authfoundation.client.OidcClientResult
+import com.okta.authfoundation.client.OAuth2Client
+import com.okta.authfoundation.client.OAuth2ClientResult
 import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.client.internal.SdkVersionsRegistry
 import com.okta.authfoundation.credential.Token
@@ -31,23 +31,26 @@ import java.util.UUID
  *
  * See [Authorization Code Flow documentation](https://developer.okta.com/docs/guides/implement-grant-type/authcodepkce/main/#about-the-authorization-code-grant-with-pkce)
  */
-class AuthorizationCodeFlow private constructor(
-    private val oidcClient: OidcClient,
+class AuthorizationCodeFlow(
+    private val client: OAuth2Client,
 ) {
     companion object {
         init {
             SdkVersionsRegistry.register(SDK_VERSION)
         }
-
-        /**
-         * Initializes an authorization code flow using the [OidcClient].
-         *
-         * @receiver the [OidcClient] used to perform the low level OIDC requests, as well as with which to use the configuration from.
-         */
-        fun OidcClient.createAuthorizationCodeFlow(): AuthorizationCodeFlow {
-            return AuthorizationCodeFlow(this)
-        }
     }
+
+    /**
+     * Initializes an authorization code flow.
+     */
+    constructor() : this(OAuth2Client.default)
+
+    /**
+     * Initializes an authorization code flow using the [OidcConfiguration].
+     *
+     * @param oidcConfiguration the [OidcConfiguration] specifying the authorization servers.
+     */
+    constructor(oidcConfiguration: OidcConfiguration) : this(OAuth2Client.createFromConfiguration(oidcConfiguration))
 
     /**
      * A model representing the context and current state for an authorization session.
@@ -65,7 +68,7 @@ class AuthorizationCodeFlow private constructor(
     )
 
     /**
-     * Used in a [OidcClientResult.Error.exception] from [resume].
+     * Used in a [OAuth2ClientResult.Error.exception] from [resume].
      */
     class ResumeException internal constructor(
         message: String,
@@ -79,14 +82,14 @@ class AuthorizationCodeFlow private constructor(
     ) : Exception(message)
 
     /**
-     * Used in a [OidcClientResult.Error.exception] from [resume].
+     * Used in a [OAuth2ClientResult.Error.exception] from [resume].
      *
-     * The redirect scheme of the [Uri] didn't match the one configured for the associated [OidcClient].
+     * The redirect scheme of the [Uri] didn't match the one configured for the associated [OAuth2Client].
      */
     class RedirectSchemeMismatchException internal constructor() : Exception()
 
     /**
-     * Used in a [OidcClientResult.Error.exception] from [resume].
+     * Used in a [OAuth2ClientResult.Error.exception] from [resume].
      *
      * An error representing an irrecoverable error where we didn't get the `code` back in order to complete the Authorization Code
      * Flow.
@@ -101,14 +104,14 @@ class AuthorizationCodeFlow private constructor(
      * @param redirectUrl the redirect URL.
      * @param extraRequestParameters the extra key value pairs to send to the authorize endpoint.
      *  See [Authorize Documentation](https://developer.okta.com/docs/reference/api/oidc/#authorize) for parameter options.
-     * @param scope the scopes to request during sign in. Defaults to the configured [OidcClient] [OidcConfiguration.defaultScope].
+     * @param scope the scopes to request during sign in. Defaults to the configured [OAuth2Client] [OidcConfiguration.defaultScope].
      */
     suspend fun start(
         redirectUrl: String,
         extraRequestParameters: Map<String, String> = emptyMap(),
-        scope: String = oidcClient.configuration.defaultScope,
+        scope: String = client.configuration.defaultScope,
         state: String = UUID.randomUUID().toString()
-    ): OidcClientResult<Context> {
+    ): OAuth2ClientResult<Context> {
         return start(
             redirectUrl = redirectUrl,
             codeVerifier = PkceGenerator.codeVerifier(),
@@ -126,8 +129,8 @@ class AuthorizationCodeFlow private constructor(
         nonce: String,
         extraRequestParameters: Map<String, String>,
         scope: String,
-    ): OidcClientResult<Context> {
-        val endpoint = oidcClient.endpointsOrNull()?.authorizationEndpoint ?: return oidcClient.endpointNotAvailableError()
+    ): OAuth2ClientResult<Context> {
+        val endpoint = client.endpointsOrNull()?.authorizationEndpoint ?: return client.endpointNotAvailableError()
 
         val urlBuilder = endpoint.newBuilder()
 
@@ -139,14 +142,14 @@ class AuthorizationCodeFlow private constructor(
 
         urlBuilder.addQueryParameter("code_challenge", PkceGenerator.codeChallenge(codeVerifier))
         urlBuilder.addQueryParameter("code_challenge_method", PkceGenerator.CODE_CHALLENGE_METHOD)
-        urlBuilder.addQueryParameter("client_id", oidcClient.configuration.clientId)
+        urlBuilder.addQueryParameter("client_id", client.configuration.clientId)
         urlBuilder.addQueryParameter("scope", scope)
         urlBuilder.addQueryParameter("redirect_uri", redirectUrl)
         urlBuilder.addQueryParameter("response_type", "code")
         urlBuilder.addQueryParameter("state", state)
         urlBuilder.addQueryParameter("nonce", nonce)
 
-        return OidcClientResult.Success(Context(urlBuilder.build(), redirectUrl, codeVerifier, state, nonce, maxAge))
+        return OAuth2ClientResult.Success(Context(urlBuilder.build(), redirectUrl, codeVerifier, state, nonce, maxAge))
     }
 
     /**
@@ -156,31 +159,31 @@ class AuthorizationCodeFlow private constructor(
      * @param uri the redirect [Uri] which includes the authorization code to complete the flow.
      * @param flowContext the [AuthorizationCodeFlow.Context] used internally to maintain state.
      */
-    suspend fun resume(uri: Uri, flowContext: Context): OidcClientResult<Token> {
+    suspend fun resume(uri: Uri, flowContext: Context): OAuth2ClientResult<Token> {
         if (!uri.toString().startsWith(flowContext.redirectUrl)) {
-            return OidcClientResult.Error(RedirectSchemeMismatchException())
+            return OAuth2ClientResult.Error(RedirectSchemeMismatchException())
         }
 
         val errorQueryParameter = uri.getQueryParameter("error")
         if (errorQueryParameter != null) {
             val errorDescription = uri.getQueryParameter("error_description") ?: "An error occurred."
-            return OidcClientResult.Error(ResumeException(errorDescription, errorQueryParameter))
+            return OAuth2ClientResult.Error(ResumeException(errorDescription, errorQueryParameter))
         }
 
         val stateQueryParameter = uri.getQueryParameter("state")
         if (flowContext.state != stateQueryParameter) {
             val error = "Failed due to state mismatch."
-            return OidcClientResult.Error(ResumeException(error, "state_mismatch"))
+            return OAuth2ClientResult.Error(ResumeException(error, "state_mismatch"))
         }
 
-        val code = uri.getQueryParameter("code") ?: return OidcClientResult.Error(MissingResultCodeException())
+        val code = uri.getQueryParameter("code") ?: return OAuth2ClientResult.Error(MissingResultCodeException())
 
-        val endpoints = oidcClient.endpointsOrNull() ?: return oidcClient.endpointNotAvailableError()
+        val endpoints = client.endpointsOrNull() ?: return client.endpointNotAvailableError()
 
         val formBodyBuilder = FormBody.Builder()
             .add("redirect_uri", flowContext.redirectUrl)
             .add("code_verifier", flowContext.codeVerifier)
-            .add("client_id", oidcClient.configuration.clientId)
+            .add("client_id", client.configuration.clientId)
             .add("grant_type", "authorization_code")
             .add("code", code)
 
@@ -189,6 +192,6 @@ class AuthorizationCodeFlow private constructor(
             .url(endpoints.tokenEndpoint)
             .build()
 
-        return oidcClient.tokenRequest(request, flowContext.nonce, flowContext.maxAge)
+        return client.tokenRequest(request, flowContext.nonce, flowContext.maxAge)
     }
 }

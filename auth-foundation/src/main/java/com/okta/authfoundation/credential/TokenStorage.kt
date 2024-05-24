@@ -15,79 +15,71 @@
  */
 package com.okta.authfoundation.credential
 
-import java.util.Objects
+import androidx.biometric.BiometricPrompt
+import com.okta.authfoundation.AuthFoundationDefaults
 
 /**
  * Interface used to customize the way tokens are stored, updated, and removed throughout the lifecycle of an application.
  *
- * A default implementation is provided, but for advanced use-cases, you may implement this protocol yourself and pass an instance to [CredentialDataSource.createCredentialDataSource].
+ * A default implementation is provided, but for advanced use-cases, you may implement this protocol yourself and pass an instance to [AuthFoundationDefaults.tokenStorageFactory].
  *
  * Warning: When implementing a custom [TokenStorage] class, it's vitally important that you do not directly invoke any of these methods yourself. These methods are intended to be called on-demand by the other AuthFoundation classes, and the behavior is undefined if these methods are called directly by the developer.
  */
 interface TokenStorage {
     /**
-     * Used to access all [Entry]s in storage.
-     *
-     *  @return all [Entry] in storage.
+     * @return All token IDs.
      */
-    suspend fun entries(): List<Entry>
+    suspend fun allIds(): List<String>
 
     /**
-     *  Add a new entry to storage.
+     * @return [Token.Metadata] for token with specified [id], null if no token with given [id] exists.
      *
-     *  @param id the unique identifier related to a [TokenStorage.Entry].
+     * @param id id of stored token to retrieve [Token.Metadata] for.
      */
-    suspend fun add(id: String)
+    suspend fun metadata(id: String): Token.Metadata?
 
     /**
-     *  Remove an existing entry from storage.
+     * Set [Token.Metadata] for the token with [Token.Metadata.id]
+     */
+    suspend fun setMetadata(metadata: Token.Metadata)
+
+    /**
+     * Add [Token] and its [Token.Metadata] to storage. Encrypt [Token] with specified [security].
      *
-     *  @param id the unique identifier related to a [TokenStorage.Entry].
+     * @param token [Token] to add to storage.
+     * @param metadata [Token.Metadata] for the [token] to add to storage.
+     * @param security [Credential.Security] for specifying how to encrypt the [token] before adding to storage.
+     */
+    suspend fun add(
+        token: Token,
+        metadata: Token.Metadata,
+        security: Credential.Security = Credential.Security.standard
+    )
+
+    /**
+     * Remove [Token] with given [id] from the storage. Does nothing if the provided [id] does not exist in storage.
+     *
+     * @param id id of the [Token] to remove from storage.
      */
     suspend fun remove(id: String)
 
     /**
-     *  Replace an existing [Entry] in storage with an updated [Entry].
+     * Replace [Token] with [Token.id] with the given [token]. If no such [Token] with the given [Token.id] exists, [NoSuchElementException] is thrown.
      *
-     *  @param updatedEntry the new [Entry] to store.
+     * @param token set the storage entry with [Token.id] to this [Token].
+     *
+     * @throws [NoSuchElementException] if no such storage entry with [Token.id] exists.
      */
-    suspend fun replace(updatedEntry: Entry)
+    suspend fun replace(token: Token)
 
     /**
-     *  Represents the data to store in [TokenStorage].
+     * Get [Token] from storage with associated [id].
+     *
+     * @param id id of the [Token] to be retrieved.
+     * @param promptInfo [BiometricPrompt.PromptInfo] to be displayed if the stored [Token] is using biometric [Credential.Security].
+     *
+     * @return [Token] with the specified [id].
+     * @throws [NoSuchElementException] if no storage entry with [id] exists.
      */
-    class Entry(
-        /**
-         * The unique identifier for this [TokenStorage] entry.
-         */
-        val identifier: String,
-        /**
-         *  The [Token] associated with the [TokenStorage] entry.
-         */
-        val token: Token?,
-        /**
-         *  The tags associated with the [TokenStorage] entry.
-         */
-        val tags: Map<String, String>,
-    ) {
-        override fun equals(other: Any?): Boolean {
-            if (other === this) {
-                return true
-            }
-            if (other !is Entry) {
-                return false
-            }
-            return other.identifier == identifier &&
-                other.token == token &&
-                other.tags == tags
-        }
-
-        override fun hashCode(): Int {
-            return Objects.hash(
-                identifier,
-                token,
-                tags,
-            )
-        }
-    }
+    suspend fun getToken(id: String, promptInfo: BiometricPrompt.PromptInfo? = Credential.Security.promptInfo): Token
 }

@@ -15,14 +15,21 @@
  */
 package com.okta.authfoundation.credential
 
+import com.okta.authfoundation.claims.ClaimsProvider
+import com.okta.authfoundation.claims.DefaultClaimsProvider
+import com.okta.authfoundation.client.OidcConfiguration
+import com.okta.authfoundation.jwt.Jwt
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonObject
 import java.util.Objects
 
 /**
  * Token information representing a user's access to a resource server, including access token, refresh token, and other related information.
  */
-class Token(
+@Serializable
+class Token constructor(
+    internal val id: String,
     /**
      * The string type of the token (e.g. `Bearer`).
      */
@@ -55,6 +62,10 @@ class Token(
      * The issued token type, if returned.
      */
     val issuedTokenType: String?,
+    /**
+     * The configuration that was used to fetch this token.
+     */
+    val oidcConfiguration: OidcConfiguration,
 ) {
     internal fun asSerializableToken(): SerializableToken {
         return SerializableToken(
@@ -70,10 +81,12 @@ class Token(
     }
 
     internal fun copy(
-        refreshToken: String?,
-        deviceSecret: String?,
+        id: String = this.id,
+        refreshToken: String? = this.refreshToken,
+        deviceSecret: String? = this.deviceSecret,
     ): Token {
         return Token(
+            id = id,
             tokenType = tokenType,
             expiresIn = expiresIn,
             accessToken = accessToken,
@@ -82,6 +95,7 @@ class Token(
             idToken = idToken,
             deviceSecret = deviceSecret,
             issuedTokenType = issuedTokenType,
+            oidcConfiguration = oidcConfiguration
         )
     }
 
@@ -114,6 +128,37 @@ class Token(
             issuedTokenType,
         )
     }
+
+    /**
+     * Non-sensitive information about the [Token] to be used in storage.
+     */
+    data class Metadata(
+        /**
+         * Storage id of the [Token].
+         */
+        val id: String,
+        /**
+         * A user-specified map of values when storing the [Token].
+         */
+        val tags: Map<String, String>,
+        /**
+         * The object holding claim values. Use [claimsProvider] for a more convenient way of accessing claims.
+         */
+        val payloadData: JsonObject?
+    ) {
+        constructor(
+            id: String,
+            tags: Map<String, String>,
+            idToken: Jwt?
+        ) : this(id, tags, idToken?.deserializeClaims(JsonObject.serializer()))
+
+        /**
+         * Convenience object for accessing claims of this [Token]
+         */
+        val claimsProvider: ClaimsProvider? = payloadData?.let {
+            DefaultClaimsProvider(payloadData, OidcConfiguration.defaultJson())
+        }
+    }
 }
 
 @Serializable
@@ -127,8 +172,9 @@ internal class SerializableToken internal constructor(
     @SerialName("device_secret") val deviceSecret: String? = null,
     @SerialName("issued_token_type") val issuedTokenType: String? = null,
 ) {
-    fun asToken(): Token {
+    fun asToken(id: String, oidcConfiguration: OidcConfiguration): Token {
         return Token(
+            id = id,
             tokenType = tokenType,
             expiresIn = expiresIn,
             accessToken = accessToken,
@@ -137,6 +183,7 @@ internal class SerializableToken internal constructor(
             idToken = idToken,
             deviceSecret = deviceSecret,
             issuedTokenType = issuedTokenType,
+            oidcConfiguration = oidcConfiguration
         )
     }
 }

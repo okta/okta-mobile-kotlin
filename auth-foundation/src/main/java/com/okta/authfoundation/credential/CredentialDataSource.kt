@@ -15,98 +15,108 @@
  */
 package com.okta.authfoundation.credential
 
-import android.content.Context
-import android.os.Build
-import android.security.keystore.KeyGenParameterSpec
-import androidx.annotation.RequiresApi
-import androidx.security.crypto.MasterKeys
+import android.security.keystore.KeyPermanentlyInvalidatedException
+import androidx.biometric.BiometricPrompt
+import com.okta.authfoundation.AuthFoundationDefaults
 import com.okta.authfoundation.InternalAuthFoundationApi
-import com.okta.authfoundation.client.OidcClient
 import com.okta.authfoundation.credential.events.CredentialCreatedEvent
-import com.okta.authfoundation.util.CoalescingOrchestrator
+import com.okta.authfoundation.jwt.JwtParser
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.util.Collections
-import java.util.UUID
 
-/**
- * Responsible for managing [Credential] instances.
- *
- * This is intended to be held as a singleton, and used throughout the lifecycle of the application.
- */
-class CredentialDataSource internal constructor(
-    @property:InternalAuthFoundationApi val oidcClient: OidcClient,
+@InternalAuthFoundationApi
+class CredentialDataSource(
     private val storage: TokenStorage,
 ) {
     companion object {
-        /**
-         * Initializes a credential data source using the [OidcClient].
-         *
-         * @param storage the [TokenStorage] used to persist [Token]s.
-         * @receiver the [OidcClient] used to perform the low level OIDC requests, as well as with which to use the configuration from.
-         */
-        fun OidcClient.createCredentialDataSource(
-            storage: TokenStorage,
-        ): CredentialDataSource {
-            return CredentialDataSource(this, storage)
-        }
+        private var instance: CredentialDataSource? = null
+        private val instanceMutex = Mutex()
 
-        /**
-         * Initializes a credential data source using the [OidcClient].
-         *
-         * @param context the [Context] used to access Android Shared Preferences and crypto primitives to persist [Token]s.
-         * @param keyGenParameterSpec the [KeyGenParameterSpec] used for encryption.
-         * @receiver the [OidcClient] used to perform the low level OIDC requests, as well as with which to use the configuration from.
-         */
-        @RequiresApi(Build.VERSION_CODES.M)
-        @JvmOverloads
-        fun OidcClient.createCredentialDataSource(
-            context: Context,
-            keyGenParameterSpec: KeyGenParameterSpec = MasterKeys.AES256_GCM_SPEC,
-        ): CredentialDataSource {
-            val storage = SharedPreferencesTokenStorage(
-                json = configuration.json,
-                dispatcher = configuration.ioDispatcher,
-                eventCoordinator = configuration.eventCoordinator,
-                context = context,
-                keyGenParameterSpec = keyGenParameterSpec,
-            )
-            return CredentialDataSource(this, storage)
+        suspend fun getInstance(): CredentialDataSource {
+            instanceMutex.withLock {
+                return instance ?: run {
+                    val tokenStorage = AuthFoundationDefaults.tokenStorageFactory()
+                    val credentialDataSource = CredentialDataSource(tokenStorage)
+                    instance = credentialDataSource
+                    credentialDataSource
+                }
+            }
         }
     }
 
-    private val credentials = CoalescingOrchestrator(
-        factory = ::fetchCredentialsFromStorage,
-        keepDataInMemory = { true },
-    )
+    private val jwtParser = JwtParser.create()
 
-    private suspend fun fetchCredentialsFromStorage(): MutableList<Credential> {
-        return Collections.synchronizedList(
-            storage.entries().map {
-                val tagsCopy = it.tags.toMap() // Making a defensive copy, so it's not modified outside our control.
-                Credential(oidcClient, storage, this, it.identifier, it.token, tagsCopy)
-            }.toMutableList()
+    private val credentialsCache = Collections.synchronizedMap(mutableMapOf<String, Credential>())
+
+    suspend fun allIds() = storage.allIds()
+
+    suspend fun metadata(id: String) = storage.metadata(id)
+
+    suspend fun setMetadata(metadata: Token.Metadata) {
+        storage.setMetadata(metadata)
+        credentialsCache[metadata.id]?._tags = metadata.tags
+    }
+
+    suspend fun createCredential(
+        token: Token,
+        tags: Map<String, String> = emptyMap(),
+        security: Credential.Security = Credential.Security.standard
+    ): Credential {
+        val idToken = token.idToken?.let { jwtParser.parse(it) }
+        val credential =
+            Credential(token, tags = tags)
+        credentialsCache[token.id] = credential
+        storage.add(
+            token,
+            Token.Metadata(
+                token.id,
+                tags,
+                idToken
+            ),
+            security
         )
-    }
-
-    /**
-     * Creates a [Credential], and stores it in the associated [TokenStorage].
-     */
-    suspend fun createCredential(): Credential {
-        val storageIdentifier = UUID.randomUUID().toString()
-        val credential = Credential(oidcClient, storage, this, storageIdentifier)
-        credentials.get().add(credential)
-        storage.add(storageIdentifier)
-        oidcClient.configuration.eventCoordinator.sendEvent(CredentialCreatedEvent(credential))
+        AuthFoundationDefaults.eventCoordinator.sendEvent(CredentialCreatedEvent(credential))
         return credential
     }
 
-    /**
-     * Returns all of the [Credential]s stored in the associated [TokenStorage].
-     */
-    suspend fun listCredentials(): List<Credential> {
-        return credentials.get().toMutableList() // Making a defensive copy, so it's not modified outside our control.
+    suspend fun replaceToken(token: Token) {
+        storage.replace(token)
+        val credential = credentialsCache[token.id] ?: throw IllegalStateException("Attempted replacing a non-existent Token")
+        credential.replaceToken(token)
     }
 
-    internal suspend fun remove(credential: Credential) {
-        credentials.get().remove(credential)
+    suspend fun getCredential(id: String, promptInfo: BiometricPrompt.PromptInfo? = Credential.Security.promptInfo): Credential? {
+        return if (id in credentialsCache) credentialsCache[id]
+        else {
+            val metadata = metadata(id) ?: return null
+            val token = try {
+                storage.getToken(id, promptInfo)
+            } catch (ex: KeyPermanentlyInvalidatedException) {
+                return null
+            }
+            credentialsCache[id] = Credential(
+                token,
+                tags = metadata.tags
+            )
+            return credentialsCache[id]
+        }
+    }
+
+    suspend fun findCredential(
+        promptInfo: BiometricPrompt.PromptInfo? = Credential.Security.promptInfo,
+        where: (Token.Metadata) -> Boolean
+    ): List<Credential> {
+        return allIds()
+            .mapNotNull { metadata(it) }
+            .filter { where(it) }
+            .mapNotNull { metadata ->
+                getCredential(metadata.id, promptInfo)
+            }
+    }
+
+    suspend fun remove(credential: Credential) {
+        credentialsCache.remove(credential.id)
+        storage.remove(credential.id)
     }
 }

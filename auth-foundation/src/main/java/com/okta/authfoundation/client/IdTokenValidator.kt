@@ -80,29 +80,29 @@ fun interface IdTokenValidator {
     )
 
     /**
-     * Called when the [OidcClient] receives a [Token] response.
+     * Called when the [OAuth2Client] receives a [Token] response.
      *
      * This should throw an [Exception] if the token is invalid.
      *
-     * @param oidcClient the [OidcClient] that made the [Token] request.
+     * @param client the [OAuth2Client] that made the [Token] request.
      * @param idToken the [Jwt] representing the id token from the [Token] response.
      * @param parameters the [Parameters] used to validate the id token.
      */
-    suspend fun validate(oidcClient: OidcClient, idToken: Jwt, parameters: Parameters)
+    suspend fun validate(client: OAuth2Client, idToken: Jwt, parameters: Parameters)
 }
 
 // https://openid.net/specs/openid-connect-core-1_0.html#IDTokenValidation
 internal class DefaultIdTokenValidator : IdTokenValidator {
-    override suspend fun validate(oidcClient: OidcClient, idToken: Jwt, parameters: IdTokenValidator.Parameters) {
+    override suspend fun validate(client: OAuth2Client, idToken: Jwt, parameters: IdTokenValidator.Parameters) {
         val idTokenPayload = idToken.deserializeClaims(IdTokenValidationPayload.serializer())
 
         val event = ValidateIdTokenEvent(600)
-        oidcClient.configuration.eventCoordinator.sendEvent(event)
+        client.configuration.eventCoordinator.sendEvent(event)
 
-        if (idTokenPayload.iss.toHttpUrl() != oidcClient.endpointsOrNull()?.issuer) {
+        if (idTokenPayload.iss.toHttpUrl() != client.endpointsOrNull()?.issuer) {
             throw IdTokenValidator.Error("Invalid issuer.", IdTokenValidator.Error.INVALID_ISSUER)
         }
-        if (idTokenPayload.aud != oidcClient.configuration.clientId) {
+        if (idTokenPayload.aud != client.configuration.clientId) {
             throw IdTokenValidator.Error("Invalid audience.", IdTokenValidator.Error.INVALID_AUDIENCE)
         }
         if (!idTokenPayload.iss.startsWith("https://")) {
@@ -111,13 +111,13 @@ internal class DefaultIdTokenValidator : IdTokenValidator {
         if (idToken.algorithm != "RS256") {
             throw IdTokenValidator.Error("Invalid JWT algorithm.", IdTokenValidator.Error.INVALID_JWT_ALGORITHM)
         }
-        if (idTokenPayload.exp < oidcClient.configuration.clock.currentTimeEpochSecond()) {
+        if (idTokenPayload.exp < client.configuration.clock.currentTimeEpochSecond()) {
             throw IdTokenValidator.Error(
                 "The current time MUST be before the time represented by the exp Claim.",
                 IdTokenValidator.Error.EXPIRED
             )
         }
-        if (abs(idTokenPayload.iat - oidcClient.configuration.clock.currentTimeEpochSecond()) > event.issuedAtGracePeriodInSeconds) {
+        if (abs(idTokenPayload.iat - client.configuration.clock.currentTimeEpochSecond()) > event.issuedAtGracePeriodInSeconds) {
             throw IdTokenValidator.Error(
                 "Issued at time is not within the allowed threshold of now.",
                 IdTokenValidator.Error.ISSUED_AT_THRESHOLD_NOT_SATISFIED

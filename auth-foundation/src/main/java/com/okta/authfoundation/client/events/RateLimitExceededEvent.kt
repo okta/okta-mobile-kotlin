@@ -15,6 +15,7 @@
  */
 package com.okta.authfoundation.client.events
 
+import com.okta.authfoundation.credential.events.Event
 import com.okta.authfoundation.events.EventHandler
 import okhttp3.Request
 import okhttp3.Response
@@ -49,4 +50,4 @@ class RateLimitExceededEvent internal constructor(
      * retrying [request] when a 429 status code is received.
      */
     var minDelaySeconds: Long = 1L,
-)
+) : Event

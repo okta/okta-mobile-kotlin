@@ -20,7 +20,7 @@ import android.view.View
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
-import com.okta.authfoundationbootstrap.CredentialBootstrap
+import com.okta.authfoundation.credential.Credential
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -65,7 +65,7 @@ internal class LaunchFragment : BaseFragment<FragmentLaunchBinding>(
                     findNavController().navigate(LaunchFragmentDirections.launchToLegacyDashboard())
                 }
             }
-            if (CredentialBootstrap.defaultCredential().token != null) {
+            if (Credential.default != null) {
                 binding.loggedInTextView.visibility = View.VISIBLE
                 binding.dashboardButton.visibility = View.VISIBLE
                 binding.dashboardButton.setOnClickListener {

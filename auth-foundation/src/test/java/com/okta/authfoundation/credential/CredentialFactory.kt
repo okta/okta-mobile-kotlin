@@ -15,40 +15,19 @@
  */
 package com.okta.authfoundation.credential
 
-import com.okta.authfoundation.client.OidcClient
-import com.okta.testhelpers.InMemoryTokenStorage
-import com.okta.testhelpers.OktaRule
-import kotlinx.coroutines.runBlocking
-import org.mockito.kotlin.mock
-
-object CredentialFactory {
-    const val tokenStorageId: String = "test_storage_id"
-}
-
-fun OktaRule.createCredential(
-    token: Token? = null,
-    tags: Map<String, String> = emptyMap(),
-    oidcClient: OidcClient = createOidcClient(),
-    tokenStorage: TokenStorage = InMemoryTokenStorage(),
-    credentialDataSource: CredentialDataSource = mock(),
-    storageId: String = CredentialFactory.tokenStorageId,
-): Credential {
-    if (token != null) {
-        runBlocking {
-            tokenStorage.add(CredentialFactory.tokenStorageId)
-        }
-    }
-    return Credential(oidcClient, tokenStorage, credentialDataSource, storageId, token, tags)
-}
+import com.okta.authfoundation.client.OidcConfiguration
 
 fun createToken(
+    id: String = "id",
     scope: String = "openid email profile offline_access",
     accessToken: String = "exampleAccessToken",
     idToken: String? = null,
     refreshToken: String? = null,
     deviceSecret: String? = null,
+    oidcConfiguration: OidcConfiguration = OidcConfiguration("clientId", "defaultScope", "issuer"),
 ): Token {
     return Token(
+        id = id,
         tokenType = "Bearer",
         expiresIn = MOCK_TOKEN_DURATION,
         accessToken = accessToken,
@@ -57,6 +36,7 @@ fun createToken(
         deviceSecret = deviceSecret,
         idToken = idToken,
         issuedTokenType = null,
+        oidcConfiguration = oidcConfiguration
     )
 }
 

@@ -20,7 +20,7 @@ import com.okta.authfoundation.credential.Token
 import com.okta.authfoundation.events.EventHandler
 
 /**
- * Emitted via [EventHandler.onEvent] after a [Credential] is updated due to a [Credential.storeToken] invocation.
+ * Emitted via [EventHandler.onEvent] after a [Credential] is updated due to a [Credential.replaceToken] invocation.
  */
 class CredentialStoredEvent internal constructor(
     /**
@@ -37,4 +37,4 @@ class CredentialStoredEvent internal constructor(
      * The tags associated with the event.
      */
     val tags: Map<String, String>,
-)
+) : Event

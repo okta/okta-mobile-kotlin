@@ -20,6 +20,11 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+    packagingOptions {
+        resources {
+            excludes += 'META-INF/*'
+        }
+    }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
@@ -40,4 +45,6 @@ dependencies {
 
     implementation deps.okio.jvm
     implementation deps.okhttp.tls
+    implementation deps.mockk.android
+    implementation deps.mockk.agent
 }

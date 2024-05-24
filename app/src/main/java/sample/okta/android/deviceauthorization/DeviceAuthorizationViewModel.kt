@@ -19,10 +19,9 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.okta.authfoundation.client.OidcClientResult
-import com.okta.authfoundationbootstrap.CredentialBootstrap
+import com.okta.authfoundation.client.OAuth2ClientResult
+import com.okta.authfoundation.credential.Credential
 import com.okta.oauth2.DeviceAuthorizationFlow
-import com.okta.oauth2.DeviceAuthorizationFlow.Companion.createDeviceAuthorizationFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -38,13 +37,13 @@ internal class DeviceAuthorizationViewModel : ViewModel() {
         _state.value = DeviceAuthorizationState.Loading
 
         viewModelScope.launch {
-            val deviceAuthorizationFlow = CredentialBootstrap.oidcClient.createDeviceAuthorizationFlow()
+            val deviceAuthorizationFlow = DeviceAuthorizationFlow()
             when (val result = deviceAuthorizationFlow.start()) {
-                is OidcClientResult.Error -> {
+                is OAuth2ClientResult.Error -> {
                     Timber.e(result.exception, "Failed to start device authorization flow.")
                     _state.value = DeviceAuthorizationState.Error("An error occurred.")
                 }
-                is OidcClientResult.Success -> {
+                is OAuth2ClientResult.Success -> {
                     _state.value = DeviceAuthorizationState.Polling(result.result.userCode, result.result.verificationUri)
                     resume(deviceAuthorizationFlow, result.result)
                 }
@@ -54,12 +53,13 @@ internal class DeviceAuthorizationViewModel : ViewModel() {
 
     private suspend fun resume(deviceAuthorizationFlow: DeviceAuthorizationFlow, flowContext: DeviceAuthorizationFlow.Context) {
         when (val result = deviceAuthorizationFlow.resume(flowContext)) {
-            is OidcClientResult.Error -> {
+            is OAuth2ClientResult.Error -> {
                 Timber.e(result.exception, "Failed to resume device authorization flow.")
                 _state.value = DeviceAuthorizationState.Error("An error occurred.")
             }
-            is OidcClientResult.Success -> {
-                CredentialBootstrap.defaultCredential().storeToken(token = result.result)
+            is OAuth2ClientResult.Success -> {
+                val credential = Credential.store(token = result.result)
+                Credential.setDefaultAsync(credential)
                 _state.value = DeviceAuthorizationState.Token
             }
         }
