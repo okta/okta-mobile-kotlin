@@ -65,6 +65,7 @@ dependencies {
     testImplementation deps.mockito.kotlin
     testImplementation deps.kotlin.test
     testImplementation deps.robolectric
+    testImplementation deps.bcprov_jdk18on
     testImplementation project(':test-helpers')
 }
 

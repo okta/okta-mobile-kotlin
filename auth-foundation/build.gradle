@@ -97,6 +97,7 @@ dependencies {
     testImplementation deps.mockk.android
     testImplementation deps.mockk.agent
     testImplementation deps.robolectric
+    testImplementation deps.bcprov_jdk18on
     testImplementation deps.room.testing
     testImplementation deps.turbine
     testImplementation project(':test-helpers')

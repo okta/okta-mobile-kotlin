@@ -86,6 +86,7 @@ dependencies {
     testImplementation deps.kotlin.test
     testImplementation deps.coroutines.test
     testImplementation deps.robolectric
+    testImplementation deps.bcprov_jdk18on
     testImplementation deps.androidx_test.core
     testImplementation deps.androidx_test.core_ktx
     testImplementation deps.mockito.core

@@ -62,6 +62,7 @@ dependencies {
     testImplementation deps.mockk.android
     testImplementation deps.mockk.agent
     testImplementation deps.robolectric
+    testImplementation deps.bcprov_jdk18on
     testImplementation deps.truth
     testImplementation project(':test-helpers')
 }
