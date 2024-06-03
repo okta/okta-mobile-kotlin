@@ -16,10 +16,20 @@
 package com.okta.webauthenticationui
 
 import android.app.Activity
+import android.content.Intent
 import android.net.Uri
 import com.google.common.truth.Truth.assertThat
+import com.okta.authfoundation.AuthFoundationDefaults
+import com.okta.authfoundation.events.EventCoordinator
+import com.okta.testhelpers.RecordingEventHandler
+import io.mockk.coEvery
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.mockkObject
+import io.mockk.unmockkAll
 import kotlinx.coroutines.CompletableDeferred
 import okhttp3.HttpUrl
+import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -37,13 +47,21 @@ import org.robolectric.RobolectricTestRunner
 @RunWith(RobolectricTestRunner::class)
 class ForegroundActivityTest {
     private lateinit var mockUrl: HttpUrl
+    private lateinit var eventHandler: RecordingEventHandler
     private val testUrlString = "http://testing"
 
     @Before
     fun setup() {
-        mockUrl = mock() {
-            on { toString() } doReturn testUrlString
-        }
+        mockUrl = mockk(relaxed = true)
+        every { mockUrl.toString() } returns testUrlString
+        eventHandler = RecordingEventHandler()
+        mockkObject(AuthFoundationDefaults)
+        every { AuthFoundationDefaults.eventCoordinator } returns EventCoordinator(eventHandler)
+    }
+
+    @After
+    fun tearDown() {
+        unmockkAll()
     }
 
     @Test fun testResumeLaunchesWebAuthenticationProvider() {
@@ -169,5 +187,30 @@ class ForegroundActivityTest {
         assertThat(activity.isFinishing).isTrue()
         verify(redirectCoordinator, never()).emit(anyOrNull())
         verify(redirectCoordinator, never()).emitError(any())
+    }
+
+    @Test
+    fun `test lifecycle events`() {
+        val launchedFromActivity = Robolectric.buildActivity(Activity::class.java).create().get()
+        val intent = ForegroundActivity.createIntent(launchedFromActivity)
+        val controller = Robolectric.buildActivity(ForegroundActivity::class.java, intent)
+        val redirectCoordinator = mockk<RedirectCoordinator> {
+            every { launchWebAuthenticationProvider(any(), any()) } returns true
+            coEvery { runInitializationFunction() } answers {
+                RedirectInitializationResult.Success(mockUrl, Any())
+            }
+        }
+        ForegroundViewModel.redirectCoordinator = redirectCoordinator
+
+        controller.create().resume().pause().newIntent(Intent()).destroy()
+        assertThat(eventHandler.toList()).isEqualTo(
+            listOf(
+                ForegroundActivityEvent.OnCreate,
+                ForegroundActivityEvent.OnResume,
+                ForegroundActivityEvent.OnPause,
+                ForegroundActivityEvent.OnNewIntent,
+                ForegroundActivityEvent.OnDestroy
+            )
+        )
     }
 }

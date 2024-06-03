@@ -23,10 +23,12 @@ import androidx.activity.viewModels
 import androidx.annotation.VisibleForTesting
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
+import com.okta.authfoundation.AuthFoundationDefaults
 
 internal class ForegroundActivity : AppCompatActivity() {
     companion object {
-        private const val ACTION_REDIRECT = "com.okta.webauthenticationui.ForegroundActivity.redirect"
+        private const val ACTION_REDIRECT =
+            "com.okta.webauthenticationui.ForegroundActivity.redirect"
 
         fun createIntent(context: Context): Intent {
             return Intent(context, ForegroundActivity::class.java)
@@ -41,16 +43,21 @@ internal class ForegroundActivity : AppCompatActivity() {
         }
     }
 
-    @VisibleForTesting val viewModel by viewModels<ForegroundViewModel>()
+    @VisibleForTesting
+    val viewModel by viewModels<ForegroundViewModel>()
+
+    private val eventCoordinator = AuthFoundationDefaults.eventCoordinator
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        eventCoordinator.sendEvent(ForegroundActivityEvent.OnCreate)
 
         handleRedirectIfAvailable(intent)
     }
 
     override fun onResume() {
         super.onResume()
+        eventCoordinator.sendEvent(ForegroundActivityEvent.OnResume)
 
         viewModel.onResume(this)
 
@@ -59,6 +66,7 @@ internal class ForegroundActivity : AppCompatActivity() {
 
     override fun onPause() {
         super.onPause()
+        eventCoordinator.sendEvent(ForegroundActivityEvent.OnPause)
 
         // Removing the observer because we want the result delivered in onResume (where we observer), rather than onStart in the case
         // where the activity was backgrounded.
@@ -68,8 +76,14 @@ internal class ForegroundActivity : AppCompatActivity() {
         }
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        eventCoordinator.sendEvent(ForegroundActivityEvent.OnDestroy)
+    }
+
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+        eventCoordinator.sendEvent(ForegroundActivityEvent.OnNewIntent)
         handleRedirectIfAvailable(intent)
     }
 
@@ -82,6 +96,7 @@ internal class ForegroundActivity : AppCompatActivity() {
 
     override fun onBackPressed() {
         super.onBackPressed()
+        eventCoordinator.sendEvent(ForegroundActivityEvent.OnBackPressed)
         viewModel.flowCancelled()
     }
 
@@ -90,12 +105,15 @@ internal class ForegroundActivity : AppCompatActivity() {
             ForegroundViewModel.State.Error -> {
                 finish()
             }
+
             is ForegroundViewModel.State.LaunchBrowser -> {
                 viewModel.launchBrowser(this, state.urlString)
             }
+
             ForegroundViewModel.State.AwaitingInitialization -> {
                 // Idle, nothing to do.
             }
+
             ForegroundViewModel.State.AwaitingBrowserCallback -> {
                 // Idle, nothing to do.
             }
