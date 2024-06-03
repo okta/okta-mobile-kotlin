@@ -15,7 +15,7 @@
  */
 package com.okta.testhelpers
 
-import com.okta.authfoundation.credential.events.Event
+import com.okta.authfoundation.events.Event
 import com.okta.authfoundation.events.EventHandler
 import java.util.Collections
 

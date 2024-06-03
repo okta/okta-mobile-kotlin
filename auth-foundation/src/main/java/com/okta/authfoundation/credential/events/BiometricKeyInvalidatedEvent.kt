@@ -17,6 +17,7 @@ package com.okta.authfoundation.credential.events
 
 import android.security.keystore.KeyPermanentlyInvalidatedException
 import com.okta.authfoundation.credential.Token
+import com.okta.authfoundation.events.Event
 
 /**
  * Emitted when [KeyPermanentlyInvalidatedException] is thrown when trying to use an invalidated biometric

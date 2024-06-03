@@ -16,6 +16,7 @@
 package com.okta.authfoundation.credential.events
 
 import com.okta.authfoundation.credential.TokenStorage
+import com.okta.authfoundation.events.Event
 import com.okta.authfoundation.events.EventHandler
 
 /**

@@ -15,7 +15,7 @@
  */
 package com.okta.authfoundation.client.events
 
-import com.okta.authfoundation.credential.events.Event
+import com.okta.authfoundation.events.Event
 import com.okta.authfoundation.events.EventHandler
 import okhttp3.Request
 import okhttp3.Response

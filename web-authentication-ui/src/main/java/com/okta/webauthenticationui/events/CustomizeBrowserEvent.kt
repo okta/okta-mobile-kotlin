@@ -16,7 +16,7 @@
 package com.okta.webauthenticationui.events
 
 import android.content.pm.PackageManager
-import com.okta.authfoundation.credential.events.Event
+import com.okta.authfoundation.events.Event
 import com.okta.authfoundation.events.EventHandler
 import com.okta.webauthenticationui.WebAuthentication
 

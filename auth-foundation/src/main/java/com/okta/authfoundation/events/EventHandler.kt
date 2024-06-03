@@ -15,8 +15,6 @@
  */
 package com.okta.authfoundation.events
 
-import com.okta.authfoundation.credential.events.Event
-
 /**
  * A centralized handler of events originated from Auth Foundation and other Okta SDKs.
  */

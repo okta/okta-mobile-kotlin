@@ -17,7 +17,7 @@ package com.okta.webauthenticationui.events
 
 import android.content.Context
 import androidx.browser.customtabs.CustomTabsIntent
-import com.okta.authfoundation.credential.events.Event
+import com.okta.authfoundation.events.Event
 import com.okta.authfoundation.events.EventHandler
 import com.okta.webauthenticationui.WebAuthentication
 

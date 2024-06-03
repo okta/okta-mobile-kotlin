@@ -16,6 +16,7 @@
 package com.okta.authfoundation.credential.events
 
 import android.media.session.MediaSession.Token
+import com.okta.authfoundation.events.Event
 
 /**
  * Emitted when the key of a biometric secured [Token] is invalidated.
