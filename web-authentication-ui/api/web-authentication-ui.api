@@ -1,3 +1,48 @@
+public abstract interface class com/okta/webauthenticationui/ForegroundActivityEvent : com/okta/authfoundation/events/Event {
+}
+
+public final class com/okta/webauthenticationui/ForegroundActivityEvent$OnBackPressed : com/okta/webauthenticationui/ForegroundActivityEvent {
+	public static final field INSTANCE Lcom/okta/webauthenticationui/ForegroundActivityEvent$OnBackPressed;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/okta/webauthenticationui/ForegroundActivityEvent$OnCreate : com/okta/webauthenticationui/ForegroundActivityEvent {
+	public static final field INSTANCE Lcom/okta/webauthenticationui/ForegroundActivityEvent$OnCreate;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/okta/webauthenticationui/ForegroundActivityEvent$OnDestroy : com/okta/webauthenticationui/ForegroundActivityEvent {
+	public static final field INSTANCE Lcom/okta/webauthenticationui/ForegroundActivityEvent$OnDestroy;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/okta/webauthenticationui/ForegroundActivityEvent$OnNewIntent : com/okta/webauthenticationui/ForegroundActivityEvent {
+	public static final field INSTANCE Lcom/okta/webauthenticationui/ForegroundActivityEvent$OnNewIntent;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/okta/webauthenticationui/ForegroundActivityEvent$OnPause : com/okta/webauthenticationui/ForegroundActivityEvent {
+	public static final field INSTANCE Lcom/okta/webauthenticationui/ForegroundActivityEvent$OnPause;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/okta/webauthenticationui/ForegroundActivityEvent$OnResume : com/okta/webauthenticationui/ForegroundActivityEvent {
+	public static final field INSTANCE Lcom/okta/webauthenticationui/ForegroundActivityEvent$OnResume;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
 public final class com/okta/webauthenticationui/ForegroundViewModel$State$AwaitingBrowserCallback$Creator : android/os/Parcelable$Creator {
 	public fun <init> ()V
 	public final fun createFromParcel (Landroid/os/Parcel;)Lcom/okta/webauthenticationui/ForegroundViewModel$State$AwaitingBrowserCallback;
@@ -57,14 +102,14 @@ public abstract interface class com/okta/webauthenticationui/WebAuthenticationPr
 	public abstract fun launch (Landroid/content/Context;Lokhttp3/HttpUrl;)Ljava/lang/Exception;
 }
 
-public final class com/okta/webauthenticationui/events/CustomizeBrowserEvent : com/okta/authfoundation/credential/events/Event {
+public final class com/okta/webauthenticationui/events/CustomizeBrowserEvent : com/okta/authfoundation/events/Event {
 	public fun <init> ()V
 	public final fun getPreferredBrowsers ()Ljava/util/List;
 	public final fun getQueryIntentServicesFlags ()I
 	public final fun setQueryIntentServicesFlags (I)V
 }
 
-public final class com/okta/webauthenticationui/events/CustomizeCustomTabsEvent : com/okta/authfoundation/credential/events/Event {
+public final class com/okta/webauthenticationui/events/CustomizeCustomTabsEvent : com/okta/authfoundation/events/Event {
 	public final fun getContext ()Landroid/content/Context;
 	public final fun getIntentBuilder ()Landroidx/browser/customtabs/CustomTabsIntent$Builder;
 }
