@@ -68,6 +68,7 @@ dependencies {
     testImplementation deps.truth
     testImplementation deps.jackson_databind
     testImplementation deps.robolectric
+    testImplementation deps.bcprov_jdk18on
     testImplementation project(':test-utils')
 }
 
