@@ -1,5 +1,25 @@
 # Changelog
 
+## [2.0.0] - 2024-06-03
+
+[Commits](https://github.com/okta/okta-mobile-kotlin/compare/1.2.1...2.0.0)
+
+This is a major version release with a number of breaking API changes and new features. Please check README.md changes under the above Commits link.
+
+### Migration
+- See [Migrating from okta-mobile-kotlin 1.x to 2.x](https://github.com/okta/okta-mobile-kotlin?tab=readme-ov-file#migrating-from-okta-mobile-kotlin-1x-to-2x) for a full description of how to migrate.
+
+### Major changes
+- The SDK now includes first class support for Biometric encryption. See [Biometric Credentials](https://github.com/okta/okta-mobile-kotlin?tab=readme-ov-file#biometric-credentials)
+- TokenStorage interface is redefined and reimplemented. If using a custom TokenStorage, please migrate it using [Token Migration guide](https://github.com/okta/okta-mobile-kotlin?tab=readme-ov-file#token-migration)
+- OAuth APIs are instantiated differently from before. Users no longer need to manage references to OidcClient for instantiating OAuth flows.
+- Internally, EncryptedSharedPreferences have been removed from the SDK, and replaced with Room DB. Encryption is done using AndroidKeyStore primitives, and SQLCipher. Migration to the new storage is handled automatically for most cases.
+
+### Minor changes
+- Jetpack startup has been removed from the SDK. This should resolve any startup initializer issues.
+- DT cookie has been removed from this SDK. That will be moved to [okta-idx-android](https://github.com/okta/okta-idx-android) instead.
+- EventCoordinator events now subclass Event class. This should make it easier to find Events.
+
 ## [1.2.1] - 2024-01-31
 
 [Commits](https://github.com/okta/okta-mobile-kotlin/compare/1.2.0...1.2.1)
