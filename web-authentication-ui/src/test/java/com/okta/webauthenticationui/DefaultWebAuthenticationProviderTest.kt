@@ -25,7 +25,7 @@ import android.net.Uri
 import android.provider.Browser
 import androidx.browser.customtabs.CustomTabsService
 import com.google.common.truth.Truth.assertThat
-import com.okta.authfoundation.credential.events.Event
+import com.okta.authfoundation.events.Event
 import com.okta.authfoundation.events.EventCoordinator
 import com.okta.authfoundation.events.EventHandler
 import com.okta.testhelpers.RecordingEventHandler

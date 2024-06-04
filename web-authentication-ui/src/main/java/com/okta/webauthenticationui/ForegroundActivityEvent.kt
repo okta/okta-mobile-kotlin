@@ -13,6 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.okta.authfoundation.credential.events
+package com.okta.webauthenticationui
 
-interface Event
+import com.okta.authfoundation.events.Event
+
+/**
+ * Events emitted during different Android activity lifecycle stages of [ForegroundActivity].
+ */
+sealed interface ForegroundActivityEvent : Event {
+    data object OnCreate : ForegroundActivityEvent
+    data object OnNewIntent : ForegroundActivityEvent
+    data object OnResume : ForegroundActivityEvent
+    data object OnPause : ForegroundActivityEvent
+    data object OnDestroy : ForegroundActivityEvent
+    data object OnBackPressed : ForegroundActivityEvent
+}

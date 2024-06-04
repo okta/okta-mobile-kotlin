@@ -20,7 +20,7 @@ import com.okta.authfoundation.client.events.RateLimitExceededEvent
 import com.okta.authfoundation.client.internal.performRequest
 import com.okta.authfoundation.client.internal.performRequestNonJson
 import com.okta.authfoundation.credential.Credential
-import com.okta.authfoundation.credential.events.Event
+import com.okta.authfoundation.events.Event
 import com.okta.authfoundation.events.EventHandler
 import com.okta.testhelpers.OktaRule
 import com.okta.testhelpers.RequestMatchers.doesNotContainHeader

@@ -13,19 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.okta.authfoundation.credential.events
+package com.okta.authfoundation.events
 
-import android.security.keystore.KeyPermanentlyInvalidatedException
-import com.okta.authfoundation.credential.Token
-import com.okta.authfoundation.events.Event
-
-/**
- * Emitted when [KeyPermanentlyInvalidatedException] is thrown when trying to use an invalidated biometric
- * key while fetching a [Token].
- */
-class BiometricKeyInvalidatedEvent internal constructor(
-    /**
-     * The key with [keyAlias] that got invalidated.
-     */
-    val keyAlias: String
-) : Event
+interface Event
