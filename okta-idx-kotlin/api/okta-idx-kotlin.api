@@ -24,8 +24,8 @@ public final class com/okta/idx/kotlin/client/InteractionCodeFlow {
 }
 
 public final class com/okta/idx/kotlin/client/InteractionCodeFlow$Companion {
-	public final fun createInteractionCodeFlow (Lcom/okta/authfoundation/client/OidcClient;Ljava/lang/String;Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun createInteractionCodeFlow$default (Lcom/okta/idx/kotlin/client/InteractionCodeFlow$Companion;Lcom/okta/authfoundation/client/OidcClient;Ljava/lang/String;Ljava/util/Map;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public final fun create (Ljava/lang/String;Ljava/util/Map;Lcom/okta/authfoundation/client/OAuth2Client;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun create$default (Lcom/okta/idx/kotlin/client/InteractionCodeFlow$Companion;Ljava/lang/String;Ljava/util/Map;Lcom/okta/authfoundation/client/OAuth2Client;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public final class com/okta/idx/kotlin/client/InteractionCodeFlowContext {
