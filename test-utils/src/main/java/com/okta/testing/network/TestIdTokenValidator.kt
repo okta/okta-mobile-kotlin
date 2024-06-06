@@ -16,7 +16,7 @@
 package com.okta.testing.network
 
 import com.okta.authfoundation.client.IdTokenValidator
-import com.okta.authfoundation.client.OidcClient
+import com.okta.authfoundation.client.OAuth2Client
 import com.okta.authfoundation.jwt.Jwt
 
 class TestIdTokenValidator : IdTokenValidator {
@@ -25,7 +25,7 @@ class TestIdTokenValidator : IdTokenValidator {
     @Volatile lateinit var lastIdTokenParameters: IdTokenValidator.Parameters
         private set
 
-    override suspend fun validate(oidcClient: OidcClient, idToken: Jwt, parameters: IdTokenValidator.Parameters) {
+    override suspend fun validate(client: OAuth2Client, idToken: Jwt, parameters: IdTokenValidator.Parameters) {
         lastIdToken = idToken
         lastIdTokenParameters = parameters
     }

@@ -15,7 +15,7 @@
  */
 package com.okta.nativeauthentication
 
-import com.okta.authfoundation.client.OidcClientResult
+import com.okta.authfoundation.client.OAuth2ClientResult
 import com.okta.authfoundation.client.internal.SdkVersionsRegistry
 import com.okta.authfoundation.credential.Token
 import com.okta.idx.kotlin.client.InteractionCodeFlow
@@ -42,7 +42,7 @@ class NativeAuthenticationClient internal constructor(
 
         fun create(
             callback: Callback,
-            interactionCodeFlowFactory: suspend () -> OidcClientResult<InteractionCodeFlow>
+            interactionCodeFlowFactory: suspend () -> OAuth2ClientResult<InteractionCodeFlow>
         ): Flow<Form> {
             return NativeAuthenticationClient(
                 formTransformers = listOf(SignInTitleTransformer()),
@@ -58,20 +58,20 @@ class NativeAuthenticationClient internal constructor(
 
     internal fun create(
         callback: Callback,
-        interactionCodeFlowFactory: suspend () -> OidcClientResult<InteractionCodeFlow>,
+        interactionCodeFlowFactory: suspend () -> OAuth2ClientResult<InteractionCodeFlow>,
     ): Flow<Form> {
         suspend fun start(formFactory: FormFactory, sendChannel: SendChannel<*>, coroutineScope: CoroutineScope) {
             formFactory.emit(LoadingFormBuilder.create())
 
             when (val result = interactionCodeFlowFactory()) {
-                is OidcClientResult.Error -> {
+                is OAuth2ClientResult.Error -> {
                     formFactory.emit(
                         RetryFormBuilder.create(coroutineScope) {
                             start(formFactory, sendChannel, coroutineScope)
                         }
                     )
                 }
-                is OidcClientResult.Success -> {
+                is OAuth2ClientResult.Success -> {
                     val wrapperCallback = object : Callback() {
                         override fun signInComplete(token: Token) {
                             super.signInComplete(token)
@@ -79,7 +79,7 @@ class NativeAuthenticationClient internal constructor(
                             sendChannel.close()
                         }
                     }
-                    OidcClientResultTransformer(
+                    ClientResultTransformer(
                         callback = wrapperCallback,
                         interactionCodeFlow = result.result,
                         coroutineScope = coroutineScope,

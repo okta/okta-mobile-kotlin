@@ -16,7 +16,7 @@
 package com.okta.idx.kotlin.dto.v1
 
 import com.google.common.truth.Truth.assertThat
-import com.okta.authfoundation.client.OidcClient
+import com.okta.authfoundation.client.OAuth2Client
 import com.okta.idx.kotlin.client.InteractionCodeFlowContext
 import com.okta.idx.kotlin.dto.createField
 import com.okta.idx.kotlin.dto.createRemediation
@@ -40,7 +40,7 @@ class RequestMiddlewareTest {
                 createField(name = "second", value = "orange"),
             )
         )
-        val request = remediation.asJsonRequest(networkRule.createOidcClient())
+        val request = remediation.asJsonRequest(networkRule.createClient())
         assertThat(request.url).isEqualTo("https://test.okta.com/idp/idx/identify".toHttpUrl())
         assertThat(request.method).isEqualTo("POST")
         assertThat(request.headers["accept"]).isEqualTo("application/json; okta-version=1.0.0")
@@ -68,7 +68,7 @@ class RequestMiddlewareTest {
 
     @Test fun testTokenRequestFromInteractionCode(): Unit = runBlocking {
         val flowContext = InteractionCodeFlowContext(codeVerifier = "123456", interactionHandle = "234567", state = "345678", redirectUrl = "test.okta.com/login", nonce = "456789", maxAge = null)
-        val request = tokenRequestFromInteractionCode(networkRule.createOidcClient(), flowContext, "654321")
+        val request = tokenRequestFromInteractionCode(networkRule.createClient(), flowContext, "654321")
         assertThat(request.url.toString()).endsWith("/oauth2/default/v1/token")
         assertThat(request.method).isEqualTo("POST")
         val buffer = Buffer()
@@ -79,7 +79,7 @@ class RequestMiddlewareTest {
 
     @Test fun testIntrospectRequest(): Unit = runBlocking {
         val flowContext = InteractionCodeFlowContext(codeVerifier = "123456", interactionHandle = "234567", state = "345678", redirectUrl = "test.okta.com/login", nonce = "456789", maxAge = null)
-        val request = introspectRequest(networkRule.createOidcClient(), flowContext)
+        val request = introspectRequest(networkRule.createClient(), flowContext)
         assertThat(request.url.toString()).endsWith("/idp/idx/introspect")
         assertThat(request.method).isEqualTo("POST")
         val buffer = Buffer()
@@ -89,7 +89,7 @@ class RequestMiddlewareTest {
     }
 
     @Test fun testInteractContext(): Unit = runBlocking {
-        val interactContext = InteractContext.create(networkRule.createOidcClient(), "test.okta.com/login", codeVerifier = "asdfasdf", state = "randomGen", nonce = "exampleNonce")!!
+        val interactContext = InteractContext.create(networkRule.createClient(), "test.okta.com/login", codeVerifier = "asdfasdf", state = "randomGen", nonce = "exampleNonce")!!
         assertThat(interactContext.codeVerifier).isEqualTo("asdfasdf")
         assertThat(interactContext.state).isEqualTo("randomGen")
         assertThat(interactContext.nonce).isEqualTo("exampleNonce")
@@ -108,11 +108,7 @@ class RequestMiddlewareTest {
             response.socketPolicy = SocketPolicy.DISCONNECT_AT_START
         }
         val interactContext = InteractContext.create(
-            OidcClient.createFromDiscoveryUrl(
-                networkRule.configuration,
-                networkRule.mockedUrl().newBuilder()
-                    .addPathSegments(".well-known/openid-configuration").build(),
-            ),
+            OAuth2Client.createFromConfiguration(networkRule.configuration),
             "test.okta.com/login", codeVerifier = "asdfasdf", state = "randomGen"
         )
         assertThat(interactContext).isNull()
@@ -120,7 +116,7 @@ class RequestMiddlewareTest {
 
     @Test fun testInteractContextWithExtraParameters(): Unit = runBlocking {
         val extraParameters = mapOf(Pair("recovery_token", "secret"))
-        val interactContext = InteractContext.create(networkRule.createOidcClient(), "test.okta.com/login", extraParameters, codeVerifier = "asdfasdf", state = "randomGen", nonce = "exampleNonce")!!
+        val interactContext = InteractContext.create(networkRule.createClient(), "test.okta.com/login", extraParameters, codeVerifier = "asdfasdf", state = "randomGen", nonce = "exampleNonce")!!
         assertThat(interactContext.codeVerifier).isEqualTo("asdfasdf")
         assertThat(interactContext.state).isEqualTo("randomGen")
         val request = interactContext.request
@@ -134,7 +130,7 @@ class RequestMiddlewareTest {
 
     @Test fun testInteractContextWithMaxAge(): Unit = runBlocking {
         val extraParameters = mapOf(Pair("max_age", "5"))
-        val interactContext = InteractContext.create(networkRule.createOidcClient(), "test.okta.com/login", extraParameters, codeVerifier = "asdfasdf", state = "randomGen", nonce = "exampleNonce")!!
+        val interactContext = InteractContext.create(networkRule.createClient(), "test.okta.com/login", extraParameters, codeVerifier = "asdfasdf", state = "randomGen", nonce = "exampleNonce")!!
         assertThat(interactContext.maxAge).isEqualTo(5)
         val request = interactContext.request
         assertThat(request.url.toString()).endsWith("/oauth2/default/v1/interact")
@@ -147,7 +143,7 @@ class RequestMiddlewareTest {
 
     @Test fun testInteractContextWithMalformedMaxAge(): Unit = runBlocking {
         val extraParameters = mapOf(Pair("max_age", "abcd"))
-        val interactContext = InteractContext.create(networkRule.createOidcClient(), "test.okta.com/login", extraParameters, codeVerifier = "asdfasdf", state = "randomGen", nonce = "exampleNonce")!!
+        val interactContext = InteractContext.create(networkRule.createClient(), "test.okta.com/login", extraParameters, codeVerifier = "asdfasdf", state = "randomGen", nonce = "exampleNonce")!!
         assertThat(interactContext.maxAge).isNull()
         val request = interactContext.request
         assertThat(request.url.toString()).endsWith("/oauth2/default/v1/interact")

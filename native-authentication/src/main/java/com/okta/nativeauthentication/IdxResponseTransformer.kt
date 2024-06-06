@@ -15,7 +15,7 @@
  */
 package com.okta.nativeauthentication
 
-import com.okta.authfoundation.client.OidcClientResult
+import com.okta.authfoundation.client.OAuth2ClientResult
 import com.okta.idx.kotlin.client.InteractionCodeFlow
 import com.okta.idx.kotlin.dto.IdxAuthenticator
 import com.okta.idx.kotlin.dto.IdxAuthenticatorCollection
@@ -32,7 +32,7 @@ import com.okta.nativeauthentication.form.Form
 
 internal interface IdxResponseTransformer {
     fun transform(
-        resultHandler: suspend (resultProducer: suspend (InteractionCodeFlow) -> OidcClientResult<IdxResponse>) -> Unit,
+        resultHandler: suspend (resultProducer: suspend (InteractionCodeFlow) -> OAuth2ClientResult<IdxResponse>) -> Unit,
         response: IdxResponse,
         clickHandler: (IdxRemediation, Form) -> Unit,
     ): Form.Builder
@@ -40,7 +40,7 @@ internal interface IdxResponseTransformer {
 
 internal class RealIdxResponseTransformer : IdxResponseTransformer {
     override fun transform(
-        resultHandler: suspend (resultProducer: suspend (InteractionCodeFlow) -> OidcClientResult<IdxResponse>) -> Unit,
+        resultHandler: suspend (resultProducer: suspend (InteractionCodeFlow) -> OAuth2ClientResult<IdxResponse>) -> Unit,
         response: IdxResponse,
         clickHandler: (IdxRemediation, Form) -> Unit,
     ): Form.Builder {
@@ -191,7 +191,7 @@ internal class RealIdxResponseTransformer : IdxResponseTransformer {
     }
 
     private fun IdxRemediation.pollingAction(
-        resultHandler: suspend (resultProducer: suspend (InteractionCodeFlow) -> OidcClientResult<IdxResponse>) -> Unit,
+        resultHandler: suspend (resultProducer: suspend (InteractionCodeFlow) -> OAuth2ClientResult<IdxResponse>) -> Unit,
     ): (suspend () -> Unit)? {
         val remediationCapability = capabilities.get<IdxPollRemediationCapability>()
         val authenticatorCapability = authenticators.capability<IdxPollAuthenticatorCapability>()

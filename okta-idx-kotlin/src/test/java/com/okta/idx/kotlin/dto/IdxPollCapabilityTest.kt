@@ -16,9 +16,8 @@
 package com.okta.idx.kotlin.dto
 
 import com.google.common.truth.Truth.assertThat
-import com.okta.authfoundation.client.OidcClientResult
+import com.okta.authfoundation.client.OAuth2ClientResult
 import com.okta.idx.kotlin.client.InteractionCodeFlow
-import com.okta.idx.kotlin.client.InteractionCodeFlow.Companion.createInteractionCodeFlow
 import com.okta.testing.network.NetworkRule
 import com.okta.testing.network.RequestMatchers.path
 import com.okta.testing.testBodyFromFile
@@ -43,15 +42,15 @@ class IdxPollCapabilityTest {
             response.testBodyFromFile("client/challengeAuthenticatorRemediationResponseLongPoll.json")
         }
 
-        val clientResult = networkRule.createOidcClient().createInteractionCodeFlow("test.okta.com/login") as OidcClientResult.Success<InteractionCodeFlow>
+        val clientResult = InteractionCodeFlow.create("test.okta.com/login") as OAuth2ClientResult.Success<InteractionCodeFlow>
         val client = clientResult.result
-        val resumeResult = client.resume() as OidcClientResult.Success<IdxResponse>
+        val resumeResult = client.resume() as OAuth2ClientResult.Success<IdxResponse>
         val resumeResponse = resumeResult.result
 
         val capability = resumeResponse.remediations[0].authenticators[0].capabilities.get<IdxPollAuthenticatorCapability>()!!
         val delays = mutableListOf<Long>()
         capability.delayFunction = { delays += it }
-        val pollResult = capability.poll(client) as OidcClientResult.Success<IdxResponse>
+        val pollResult = capability.poll(client) as OAuth2ClientResult.Success<IdxResponse>
 
         assertThat(pollResult.result.isLoginSuccessful).isTrue()
         assertThat(delays).containsExactly(4000L, 8000L)
@@ -68,15 +67,15 @@ class IdxPollCapabilityTest {
             response.testBodyFromFile("client/selectAuthenticatorAuthenticateRemediationResponse.json")
         }
 
-        val clientResult = networkRule.createOidcClient().createInteractionCodeFlow("test.okta.com/login") as OidcClientResult.Success<InteractionCodeFlow>
+        val clientResult = InteractionCodeFlow.create("test.okta.com/login") as OAuth2ClientResult.Success<InteractionCodeFlow>
         val client = clientResult.result
-        val resumeResult = client.resume() as OidcClientResult.Success<IdxResponse>
+        val resumeResult = client.resume() as OAuth2ClientResult.Success<IdxResponse>
         val resumeResponse = resumeResult.result
 
         val capability = resumeResponse.remediations[0].authenticators[0].capabilities.get<IdxPollAuthenticatorCapability>()!!
         val delays = mutableListOf<Long>()
         capability.delayFunction = { delays += it }
-        val pollResult = capability.poll(client) as OidcClientResult.Success<IdxResponse>
+        val pollResult = capability.poll(client) as OAuth2ClientResult.Success<IdxResponse>
 
         assertThat(pollResult.result.remediations.first().name).isEqualTo("select-authenticator-authenticate")
         assertThat(delays).containsExactly(4000L)
@@ -96,15 +95,15 @@ class IdxPollCapabilityTest {
             response.testBodyFromFile("client/challengePollRemediationResponseLong.json")
         }
 
-        val clientResult = networkRule.createOidcClient().createInteractionCodeFlow("test.okta.com/login") as OidcClientResult.Success<InteractionCodeFlow>
+        val clientResult = InteractionCodeFlow.create("test.okta.com/login") as OAuth2ClientResult.Success<InteractionCodeFlow>
         val client = clientResult.result
-        val resumeResult = client.resume() as OidcClientResult.Success<IdxResponse>
+        val resumeResult = client.resume() as OAuth2ClientResult.Success<IdxResponse>
         val resumeResponse = resumeResult.result
 
         val capability = resumeResponse.remediations[0].capabilities.get<IdxPollRemediationCapability>()!!
         val delays = mutableListOf<Long>()
         capability.delayFunction = { delays += it }
-        val pollResult = capability.poll(client) as OidcClientResult.Success<IdxResponse>
+        val pollResult = capability.poll(client) as OAuth2ClientResult.Success<IdxResponse>
 
         assertThat(pollResult.result.isLoginSuccessful).isTrue()
         assertThat(delays).containsExactly(4000L, 8000L)
@@ -121,15 +120,15 @@ class IdxPollCapabilityTest {
             response.testBodyFromFile("client/selectAuthenticatorAuthenticateRemediationResponse.json")
         }
 
-        val clientResult = networkRule.createOidcClient().createInteractionCodeFlow("test.okta.com/login") as OidcClientResult.Success<InteractionCodeFlow>
+        val clientResult = InteractionCodeFlow.create("test.okta.com/login") as OAuth2ClientResult.Success<InteractionCodeFlow>
         val client = clientResult.result
-        val resumeResult = client.resume() as OidcClientResult.Success<IdxResponse>
+        val resumeResult = client.resume() as OAuth2ClientResult.Success<IdxResponse>
         val resumeResponse = resumeResult.result
 
         val capability = resumeResponse.remediations[0].capabilities.get<IdxPollRemediationCapability>()!!
         val delays = mutableListOf<Long>()
         capability.delayFunction = { delays += it }
-        val pollResult = capability.poll(client) as OidcClientResult.Success<IdxResponse>
+        val pollResult = capability.poll(client) as OAuth2ClientResult.Success<IdxResponse>
 
         assertThat(pollResult.result.remediations.first().name).isEqualTo("select-authenticator-authenticate")
         assertThat(delays).containsExactly(4000L)

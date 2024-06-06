@@ -15,7 +15,7 @@
  */
 package com.okta.idx.kotlin.dto.v1
 
-import com.okta.authfoundation.client.OidcClient
+import com.okta.authfoundation.client.OAuth2Client
 import com.okta.idx.kotlin.client.InteractionCodeFlowContext
 import com.okta.idx.kotlin.dto.IdxRemediation
 import com.okta.idx.kotlin.util.PkceGenerator
@@ -30,11 +30,11 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.util.UUID
 
-internal fun IdxRemediation.asJsonRequest(oidcClient: OidcClient): Request {
+internal fun IdxRemediation.asJsonRequest(client: OAuth2Client): Request {
     val requestBuilder = Request.Builder().url(href)
 
     if (method == "POST") {
-        val jsonBody = oidcClient.configuration.json.encodeToString(toJsonContent())
+        val jsonBody = client.configuration.json.encodeToString(toJsonContent())
         requestBuilder.post(jsonBody.toRequestBody("application/ion+json; okta-version=1.0.0".toMediaType()))
     }
 
@@ -99,31 +99,31 @@ internal fun IdxRemediation.asFormRequest(): Request {
 }
 
 internal suspend fun tokenRequestFromInteractionCode(
-    oidcClient: OidcClient,
+    client: OAuth2Client,
     flowContext: InteractionCodeFlowContext,
     interactionCode: String,
 ): Request {
     val formBodyBuilder = FormBody.Builder()
         .add("grant_type", "interaction_code")
-        .add("client_id", oidcClient.configuration.clientId)
+        .add("client_id", client.configuration.clientId)
         .add("interaction_code", interactionCode)
         .add("code_verifier", flowContext.codeVerifier)
 
     return Request.Builder()
-        .url(oidcClient.endpointsOrNull()!!.tokenEndpoint)
+        .url(client.endpointsOrNull()!!.tokenEndpoint)
         .post(formBodyBuilder.build())
         .build()
 }
 
 internal suspend fun introspectRequest(
-    oidcClient: OidcClient,
+    client: OAuth2Client,
     flowContext: InteractionCodeFlowContext,
 ): Request {
-    val urlBuilder = oidcClient.endpointsOrNull()!!.issuer.newBuilder()
+    val urlBuilder = client.endpointsOrNull()!!.issuer.newBuilder()
         .encodedPath("/idp/idx/introspect")
 
     val introspectRequest = IntrospectRequest(flowContext.interactionHandle)
-    val jsonBody = oidcClient.configuration.json.encodeToString(introspectRequest)
+    val jsonBody = client.configuration.json.encodeToString(introspectRequest)
 
     return Request.Builder()
         .url(urlBuilder.build())
@@ -140,7 +140,7 @@ internal class InteractContext private constructor(
 ) {
     companion object {
         suspend fun create(
-            oidcClient: OidcClient,
+            client: OAuth2Client,
             redirectUrl: String,
             extraParameters: Map<String, String> = emptyMap(),
             codeVerifier: String = PkceGenerator.codeVerifier(),
@@ -148,13 +148,13 @@ internal class InteractContext private constructor(
             nonce: String = UUID.randomUUID().toString(),
         ): InteractContext? {
             val codeChallenge = PkceGenerator.codeChallenge(codeVerifier)
-            val endpoints = oidcClient.endpointsOrNull() ?: return null
+            val endpoints = client.endpointsOrNull() ?: return null
             val urlBuilder = endpoints.issuer.newBuilder()
                 .addPathSegments("v1/interact")
 
             val formBody = FormBody.Builder()
-                .add("client_id", oidcClient.configuration.clientId)
-                .add("scope", oidcClient.configuration.defaultScope)
+                .add("client_id", client.configuration.clientId)
+                .add("scope", client.configuration.defaultScope)
                 .add("code_challenge", codeChallenge)
                 .add("code_challenge_method", PkceGenerator.CODE_CHALLENGE_METHOD)
                 .add("redirect_uri", redirectUrl)

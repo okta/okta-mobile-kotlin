@@ -21,7 +21,7 @@ import android.widget.Toast
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
-import com.okta.authfoundationbootstrap.CredentialBootstrap
+import com.okta.authfoundation.credential.Credential
 import com.okta.idx.android.dynamic.R
 import com.okta.idx.android.dynamic.databinding.FragmentDashboardBinding
 import com.okta.idx.android.dynamic.databinding.RowDashboardClaimBinding
@@ -36,7 +36,7 @@ internal class DashboardFragment : BaseFragment<FragmentDashboardBinding>(
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         lifecycleScope.launch {
-            CredentialBootstrap.defaultCredential().token?.let { token ->
+            Credential.default?.token?.let { token ->
                 binding.tokenType.text = token.tokenType
                 binding.expiresIn.text = token.expiresIn.toString()
                 binding.accessToken.text = token.accessToken

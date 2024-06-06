@@ -7,7 +7,7 @@ versions.androidx_test_orchestrator = '1.4.2'
 versions.androidx_text_uiautomator = '2.2.0'
 versions.android_gradle_plugin = '8.1.2'
 versions.appcompat = '1.4.2'
-versions.auth_foundation = '1.2.1'
+versions.auth_foundation = '2.0.0'
 versions.bouncycastle = '1.78.1'
 versions.compose = '1.5.4'
 versions.constraint_layout = '2.1.4'
@@ -31,6 +31,7 @@ versions.material = '1.6.1'
 versions.material_compose_theme = '1.1.17'
 versions.mockito_core = '4.6.1'
 versions.mockito_kotlin = '4.0.0'
+versions.mockk = '1.13.11'
 versions.navigation = '2.5.1'
 versions.okhttp = '4.11.0'
 versions.okio = '3.5.0'
@@ -43,7 +44,7 @@ versions.truth = '1.1.5'
 ext.versions = versions
 
 def build_versions = [:]
-build_versions.min_sdk = 21
+build_versions.min_sdk = 23
 build_versions.compile_sdk = 34
 build_versions.target_sdk = 34
 ext.build_versions = build_versions
@@ -136,6 +137,11 @@ mockito.core = "org.mockito:mockito-core:$versions.mockito_core"
 mockito.kotlin = "org.mockito.kotlin:mockito-kotlin:$versions.mockito_kotlin"
 deps.mockito = mockito
 
+def mockk = [:]
+mockk.android = "io.mockk:mockk-android:$versions.mockk"
+mockk.agent = "io.mockk:mockk-agent:$versions.mockk"
+deps.mockk = mockk
+
 def navigation = [:]
 navigation.fragment_ktx = "androidx.navigation:navigation-fragment-ktx:$versions.navigation"
 navigation.ui_ktx = "androidx.navigation:navigation-ui-ktx:$versions.navigation"
@@ -156,7 +162,6 @@ deps.okio = okio
 def okta = [:]
 okta.management_sdk = "com.okta.sdk:okta-sdk-impl:$versions.okta_management"
 okta.auth_foundation = "com.okta.kotlin:auth-foundation:$versions.auth_foundation"
-okta.auth_foundation_bootstrap = "com.okta.kotlin:auth-foundation-bootstrap:$versions.auth_foundation"
 deps.okta = okta
 
 deps.robolectric = "org.robolectric:robolectric:$versions.robolectric"

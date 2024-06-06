@@ -15,7 +15,7 @@
  */
 package com.okta.nativeauthentication
 
-import com.okta.authfoundation.client.OidcClientResult
+import com.okta.authfoundation.client.OAuth2ClientResult
 import com.okta.idx.kotlin.client.InteractionCodeFlow
 import com.okta.idx.kotlin.dto.IdxRemediation
 import com.okta.idx.kotlin.dto.IdxResponse
@@ -26,7 +26,7 @@ import com.okta.nativeauthentication.form.RetryFormBuilder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
-internal class OidcClientResultTransformer(
+internal class ClientResultTransformer(
     private val callback: NativeAuthenticationClient.Callback,
     private val interactionCodeFlow: InteractionCodeFlow,
     private val coroutineScope: CoroutineScope,
@@ -34,19 +34,19 @@ internal class OidcClientResultTransformer(
     private val responseTransformer: IdxResponseTransformer,
 ) {
     suspend fun transformAndEmit(
-        resultProducer: suspend (InteractionCodeFlow) -> OidcClientResult<IdxResponse>,
+        resultProducer: suspend (InteractionCodeFlow) -> OAuth2ClientResult<IdxResponse>,
     ) {
         formFactory.emit(LoadingFormBuilder.create())
 
         when (val result = resultProducer(interactionCodeFlow)) {
-            is OidcClientResult.Error -> {
+            is OAuth2ClientResult.Error -> {
                 formFactory.emit(
                     RetryFormBuilder.create(coroutineScope) {
                         transformAndEmit(resultProducer)
                     }
                 )
             }
-            is OidcClientResult.Success -> {
+            is OAuth2ClientResult.Success -> {
                 val response = result.result
                 if (response.isLoginSuccessful) {
                     coroutineScope.launch {
@@ -77,14 +77,14 @@ internal class OidcClientResultTransformer(
 
         val remediation = response.remediations[IdxRemediation.Type.ISSUE]!!
         when (val result = interactionCodeFlow.exchangeInteractionCodeForTokens(remediation)) {
-            is OidcClientResult.Error -> {
+            is OAuth2ClientResult.Error -> {
                 formFactory.emit(
                     RetryFormBuilder.create(coroutineScope) {
                         exchangeInteractionCodeForTokensAndEmit(response)
                     }
                 )
             }
-            is OidcClientResult.Success -> {
+            is OAuth2ClientResult.Success -> {
                 formFactory.emit(LabelFormBuilder.create("Complete"))
 
                 callback.signInComplete(result.result)

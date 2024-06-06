@@ -16,10 +16,9 @@
 package com.okta.nativeauthentication
 
 import com.google.common.truth.Truth.assertThat
-import com.okta.authfoundation.client.OidcClientResult
+import com.okta.authfoundation.client.OAuth2ClientResult
 import com.okta.authfoundation.credential.Token
 import com.okta.idx.kotlin.client.InteractionCodeFlow
-import com.okta.idx.kotlin.client.InteractionCodeFlow.Companion.createInteractionCodeFlow
 import com.okta.idx.kotlin.dto.IdxRemediation
 import com.okta.idx.kotlin.dto.IdxResponse
 import com.okta.nativeauthentication.form.Element
@@ -66,10 +65,9 @@ class NativeAuthenticationClientTest {
     ): Flow<Form> {
         interactResponseFactory()
         fakeCallback = FakeCallback()
-        val oidcClient = networkRule.createOidcClient()
         fakeIdxResponseTransformer = FakeIdxResponseTransformer()
         return NativeAuthenticationClient(emptyList(), fakeIdxResponseTransformer).create(fakeCallback) {
-            oidcClient.createInteractionCodeFlow("test.okta.com/login")
+            InteractionCodeFlow.create("test.okta.com/login")
         }
     }
 
@@ -287,7 +285,7 @@ private class FakeIdxResponseTransformer : IdxResponseTransformer {
     var makeTextInputRequired = false
 
     override fun transform(
-        resultHandler: suspend (resultProducer: suspend (InteractionCodeFlow) -> OidcClientResult<IdxResponse>) -> Unit,
+        resultHandler: suspend (resultProducer: suspend (InteractionCodeFlow) -> OAuth2ClientResult<IdxResponse>) -> Unit,
         response: IdxResponse,
         clickHandler: (IdxRemediation, Form) -> Unit
     ): Form.Builder {

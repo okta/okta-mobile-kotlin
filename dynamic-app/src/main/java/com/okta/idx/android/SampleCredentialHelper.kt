@@ -16,26 +16,17 @@
 package com.okta.idx.android
 
 import android.content.Context
-import com.okta.authfoundation.AuthFoundationDefaults
-import com.okta.authfoundation.client.OidcClient
+import com.okta.authfoundation.AuthFoundation
 import com.okta.authfoundation.client.OidcConfiguration
-import com.okta.authfoundation.client.SharedPreferencesCache
-import com.okta.authfoundation.credential.CredentialDataSource.Companion.createCredentialDataSource
-import com.okta.authfoundationbootstrap.CredentialBootstrap
 import com.okta.idx.android.dynamic.BuildConfig
-import okhttp3.HttpUrl.Companion.toHttpUrl
 
 internal object SampleCredentialHelper {
     fun initialize(context: Context) {
-        AuthFoundationDefaults.cache = SharedPreferencesCache.create(context)
-        val oidcConfiguration = OidcConfiguration(
+        OidcConfiguration.default = OidcConfiguration(
+            issuer = BuildConfig.ISSUER,
             clientId = BuildConfig.CLIENT_ID,
             defaultScope = "openid email profile offline_access",
         )
-        val oidcClient = OidcClient.createFromDiscoveryUrl(
-            oidcConfiguration,
-            "${BuildConfig.ISSUER}/.well-known/openid-configuration".toHttpUrl(),
-        )
-        CredentialBootstrap.initialize(oidcClient.createCredentialDataSource(context))
+        AuthFoundation.initializeAndroidContext(context)
     }
 }

@@ -15,11 +15,15 @@
  */
 package com.okta.testing.network
 
+import com.okta.authfoundation.AuthFoundationDefaults
 import com.okta.authfoundation.client.Cache
-import com.okta.authfoundation.client.OidcClient
+import com.okta.authfoundation.client.OAuth2Client
 import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.client.OidcEndpoints
 import com.okta.authfoundation.events.EventCoordinator
+import io.mockk.every
+import io.mockk.mockkObject
+import io.mockk.unmockkAll
 import okhttp3.CookieJar
 import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
@@ -68,22 +72,38 @@ class NetworkRule : TestRule {
 
     val clock: TestClock = TestClock()
 
-    val configuration: OidcConfiguration = OidcConfiguration(
-        clientId = "test",
-        defaultScope = "openid email profile offline_access",
-        okHttpClientFactory = { okHttpClient() },
-        eventCoordinator = EventCoordinator(emptyList()),
-        clock = clock,
-        idTokenValidator = idTokenValidator,
-        accessTokenValidator = { _, _, _ -> },
-        deviceSecretValidator = { _, _, _ -> },
-        ioDispatcher = EmptyCoroutineContext,
-        computeDispatcher = EmptyCoroutineContext,
-        cache = NoOpCache(),
-        cookieJar = CookieJar.NO_COOKIES,
-    )
+    var urlBuilder = mockedUrl().newBuilder()
 
-    fun createOidcClient(urlBuilder: HttpUrl.Builder = mockedUrl().newBuilder()): OidcClient {
+    val configuration: OidcConfiguration by lazy {
+        OidcConfiguration(
+            issuer = urlBuilder.encodedPath("/oauth2/default").build().toString(),
+            clientId = "test",
+            defaultScope = "openid email profile offline_access",
+        )
+    }
+
+    val client: OAuth2Client by lazy { createClient() }
+
+    init {
+        unmockkAll()
+        mockkObject(AuthFoundationDefaults)
+        AuthFoundationDefaults.apply {
+            every { okHttpClientFactory } returns { okHttpClient() }
+            every { eventCoordinator } returns EventCoordinator(emptyList())
+            every { clock } returns this@NetworkRule.clock
+            every { idTokenValidator } returns this@NetworkRule.idTokenValidator
+            every { accessTokenValidator } returns { _, _, _ -> }
+            every { deviceSecretValidator } returns { _, _, _ -> }
+            every { ioDispatcher } returns EmptyCoroutineContext
+            every { computeDispatcher } returns EmptyCoroutineContext
+            every { cacheFactory } returns { NoOpCache() }
+            every { cookieJar } returns CookieJar.NO_COOKIES
+        }
+        mockkObject(OAuth2Client)
+        every { OAuth2Client.default } returns client
+    }
+
+    fun createClient(): OAuth2Client {
         val endpoints = OidcEndpoints(
             issuer = urlBuilder.encodedPath("/oauth2/default").build(),
             authorizationEndpoint = urlBuilder.encodedPath("/oauth2/default/v1/authorize").build(),
@@ -95,7 +115,7 @@ class NetworkRule : TestRule {
             endSessionEndpoint = urlBuilder.encodedPath("/oauth2/default/v1/logout").build(),
             deviceAuthorizationEndpoint = null,
         )
-        return OidcClient.create(configuration, endpoints)
+        return OAuth2Client.create(configuration, endpoints)
     }
 }
 

@@ -15,9 +15,8 @@
  */
 package com.okta.nativeauthentication.utils
 
-import com.okta.authfoundation.client.OidcClientResult
+import com.okta.authfoundation.client.OAuth2ClientResult
 import com.okta.idx.kotlin.client.InteractionCodeFlow
-import com.okta.idx.kotlin.client.InteractionCodeFlow.Companion.createInteractionCodeFlow
 import com.okta.idx.kotlin.dto.IdxResponse
 import com.okta.testing.network.NetworkRule
 import com.okta.testing.network.RequestMatchers.path
@@ -32,9 +31,8 @@ internal class IdxResponseFactory(private val networkRule: NetworkRule) {
         networkRule.enqueue(path("/idp/idx/introspect")) { response ->
             response.setBody(json)
         }
-        val oidcClient = networkRule.createOidcClient()
-        val interactionCodeFlowResult = oidcClient.createInteractionCodeFlow("test.okta.com/login")
-        val interactionCodeFlow = (interactionCodeFlowResult as OidcClientResult.Success<InteractionCodeFlow>).result
-        (interactionCodeFlow.resume() as OidcClientResult.Success<IdxResponse>).result
+        val interactionCodeFlowResult = InteractionCodeFlow.create("test.okta.com/login")
+        val interactionCodeFlow = (interactionCodeFlowResult as OAuth2ClientResult.Success<InteractionCodeFlow>).result
+        (interactionCodeFlow.resume() as OAuth2ClientResult.Success<IdxResponse>).result
     }
 }

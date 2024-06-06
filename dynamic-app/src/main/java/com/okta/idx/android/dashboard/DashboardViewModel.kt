@@ -19,9 +19,9 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.okta.authfoundation.client.OidcClientResult
+import com.okta.authfoundation.client.OAuth2ClientResult
+import com.okta.authfoundation.credential.Credential
 import com.okta.authfoundation.credential.RevokeTokenType
-import com.okta.authfoundationbootstrap.CredentialBootstrap
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -33,14 +33,20 @@ internal class DashboardViewModel : ViewModel() {
 
     private val _userInfoLiveData = MutableLiveData<Map<String, String>>(emptyMap())
     val userInfoLiveData: LiveData<Map<String, String>> = _userInfoLiveData
+    private lateinit var credential: Credential
 
     init {
         viewModelScope.launch {
-            when (val result = CredentialBootstrap.defaultCredential().getUserInfo()) {
-                is OidcClientResult.Error -> {
+            credential = Credential.default ?: run {
+                // Null Credential, go back to login screen
+                _logoutStateLiveData.postValue(LogoutState.Success)
+                return@launch
+            }
+            when (val result = credential.getUserInfo()) {
+                is OAuth2ClientResult.Error -> {
                     Timber.e(result.exception, "User info request failed.")
                 }
-                is OidcClientResult.Success -> {
+                is OAuth2ClientResult.Success -> {
                     val successResult = result.result
                     _userInfoLiveData.postValue(successResult.deserializeClaims(JsonObject.serializer()).asMap())
                 }
@@ -52,11 +58,11 @@ internal class DashboardViewModel : ViewModel() {
         _logoutStateLiveData.value = LogoutState.Loading
 
         viewModelScope.launch {
-            when (CredentialBootstrap.defaultCredential().revokeToken(RevokeTokenType.ACCESS_TOKEN)) {
-                is OidcClientResult.Error -> {
+            when (credential.revokeToken(RevokeTokenType.ACCESS_TOKEN)) {
+                is OAuth2ClientResult.Error -> {
                     _logoutStateLiveData.postValue(LogoutState.Failed)
                 }
-                is OidcClientResult.Success -> {
+                is OAuth2ClientResult.Success -> {
                     _logoutStateLiveData.postValue(LogoutState.Success)
                 }
             }

@@ -16,7 +16,7 @@
 package com.okta.nativeauthentication
 
 import com.google.common.truth.Truth.assertThat
-import com.okta.authfoundation.client.OidcClientResult
+import com.okta.authfoundation.client.OAuth2ClientResult
 import com.okta.idx.kotlin.client.InteractionCodeFlow
 import com.okta.idx.kotlin.dto.IdxRemediation
 import com.okta.idx.kotlin.dto.IdxResponse
@@ -35,7 +35,7 @@ internal class RealIdxResponseTransformerTest {
     private val idxResponseFactory = IdxResponseFactory(networkRule)
 
     private val noInteractionsResponseTransformer: suspend (
-        resultProducer: suspend (InteractionCodeFlow) -> OidcClientResult<IdxResponse>
+        resultProducer: suspend (InteractionCodeFlow) -> OAuth2ClientResult<IdxResponse>
     ) -> Unit = {
         throw AssertionError("Not expected")
     }

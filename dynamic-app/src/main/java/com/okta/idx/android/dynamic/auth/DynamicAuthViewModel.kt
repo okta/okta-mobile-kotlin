@@ -23,14 +23,13 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.okta.authfoundation.client.OidcClientResult
-import com.okta.authfoundationbootstrap.CredentialBootstrap
+import com.okta.authfoundation.client.OAuth2ClientResult
+import com.okta.authfoundation.credential.Credential
 import com.okta.idx.android.dynamic.BuildConfig
 import com.okta.idx.android.dynamic.EmailRedirectCoordinator
 import com.okta.idx.android.dynamic.SocialRedirectCoordinator
 import com.okta.idx.kotlin.client.IdxRedirectResult
 import com.okta.idx.kotlin.client.InteractionCodeFlow
-import com.okta.idx.kotlin.client.InteractionCodeFlow.Companion.createInteractionCodeFlow
 import com.okta.idx.kotlin.dto.IdxAuthenticator
 import com.okta.idx.kotlin.dto.IdxAuthenticatorCollection
 import com.okta.idx.kotlin.dto.IdxIdpCapability
@@ -75,23 +74,23 @@ internal class DynamicAuthViewModel(private val recoveryToken: String) : ViewMod
             }
             // Initiate the IDX client and start IDX flow.
             when (
-                val clientResult = CredentialBootstrap.oidcClient.createInteractionCodeFlow(
+                val clientResult = InteractionCodeFlow.create(
                     redirectUrl = BuildConfig.REDIRECT_URI,
                     extraStartRequestParameters = extraRequestParameters,
                 )
             ) {
-                is OidcClientResult.Error -> {
+                is OAuth2ClientResult.Error -> {
                     Timber.e(clientResult.exception, "Failed to create client")
                     _state.value = DynamicAuthState.Error("Failed to create client")
                 }
-                is OidcClientResult.Success -> {
+                is OAuth2ClientResult.Success -> {
                     flow = clientResult.result
                     // Call the IDX API's resume method to receive the first IDX response.
                     when (val resumeResult = clientResult.result.resume()) {
-                        is OidcClientResult.Error -> {
+                        is OAuth2ClientResult.Error -> {
                             _state.value = DynamicAuthState.Error("Failed to call resume")
                         }
-                        is OidcClientResult.Success -> {
+                        is OAuth2ClientResult.Success -> {
                             handleResponse(resumeResult.result)
                         }
                     }
@@ -107,11 +106,11 @@ internal class DynamicAuthViewModel(private val recoveryToken: String) : ViewMod
             _state.value = DynamicAuthState.Loading
             viewModelScope.launch {
                 when (val resumeResult = localFlow.resume()) {
-                    is OidcClientResult.Error -> {
+                    is OAuth2ClientResult.Error -> {
                         Timber.e(resumeResult.exception, "Failed to call resume")
                         _state.value = DynamicAuthState.Error("Failed to call resume with exception: ${resumeResult.exception}")
                     }
-                    is OidcClientResult.Success -> {
+                    is OAuth2ClientResult.Success -> {
                         handleResponse(resumeResult.result)
                     }
                 }
@@ -132,7 +131,7 @@ internal class DynamicAuthViewModel(private val recoveryToken: String) : ViewMod
                     handleResponse(redirectResult.response)
                 }
                 is IdxRedirectResult.Tokens -> {
-                    CredentialBootstrap.defaultCredential().storeToken(redirectResult.response)
+                    Credential.default = Credential.store(token = redirectResult.response)
                     _state.value = DynamicAuthState.Tokens
                 }
                 null -> {
@@ -163,8 +162,8 @@ internal class DynamicAuthViewModel(private val recoveryToken: String) : ViewMod
         // If a response is successful, immediately exchange it for a token and exit.
         if (response.isLoginSuccessful) {
             when (val result = flow?.exchangeInteractionCodeForTokens(response.remediations[IdxRemediation.Type.ISSUE]!!)) {
-                is OidcClientResult.Success -> {
-                    CredentialBootstrap.defaultCredential().storeToken(result.result)
+                is OAuth2ClientResult.Success -> {
+                    Credential.default = Credential.store(result.result)
                     cancelPolling()
                     _state.value = DynamicAuthState.Tokens
                 }
@@ -386,10 +385,10 @@ internal class DynamicAuthViewModel(private val recoveryToken: String) : ViewMod
 
         pollingJob = viewModelScope.launch {
             when (val result = pollFunction(localFlow)) {
-                is OidcClientResult.Error -> {
+                is OAuth2ClientResult.Error -> {
                     _state.value = DynamicAuthState.Error("Failed to poll")
                 }
-                is OidcClientResult.Success -> {
+                is OAuth2ClientResult.Success -> {
                     handleResponse(result.result)
                 }
             }
@@ -427,7 +426,7 @@ internal class DynamicAuthViewModel(private val recoveryToken: String) : ViewMod
         viewModelScope.launch {
             _state.value = DynamicAuthState.Loading
             when (val resumeResult = flow?.proceed(remediation)) {
-                is OidcClientResult.Success -> {
+                is OAuth2ClientResult.Success -> {
                     handleResponse(resumeResult.result)
                 }
                 else -> {

@@ -77,7 +77,6 @@ dependencies {
     implementation project(':okta-idx-kotlin')
 
 
-    implementation deps.okta.auth_foundation_bootstrap
     implementation deps.kotlin.stdlib
     implementation deps.core_ktx
     implementation deps.app_compat
