@@ -41,7 +41,9 @@ class IdxRedirectResultTest {
             nonce = "defg",
             maxAge = maxAge
         )
-        return InteractionCodeFlow(networkRule.createClient(), flowContext)
+        return InteractionCodeFlow(networkRule.createClient()).apply {
+            this.flowContext = flowContext
+        }
     }
 
     @Test fun testRedirectResultInvalidUrl(): Unit = runBlocking {

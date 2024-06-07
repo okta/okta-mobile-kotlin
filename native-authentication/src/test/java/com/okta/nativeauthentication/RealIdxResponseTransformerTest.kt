@@ -26,9 +26,12 @@ import com.okta.testing.network.NetworkRule
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
 
+@RunWith(RobolectricTestRunner::class)
 internal class RealIdxResponseTransformerTest {
     @get:Rule val networkRule = NetworkRule()
 

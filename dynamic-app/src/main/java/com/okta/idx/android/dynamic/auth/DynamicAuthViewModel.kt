@@ -72,10 +72,11 @@ internal class DynamicAuthViewModel(private val recoveryToken: String) : ViewMod
             if (recoveryToken.isNotEmpty()) {
                 extraRequestParameters["recovery_token"] = recoveryToken
             }
+            val interactionCodeFlow = InteractionCodeFlow()
             // Initiate the IDX client and start IDX flow.
             when (
-                val clientResult = InteractionCodeFlow.create(
-                    redirectUrl = BuildConfig.REDIRECT_URI,
+                val clientResult = interactionCodeFlow.start(
+                    redirectUri = Uri.parse(BuildConfig.REDIRECT_URI),
                     extraStartRequestParameters = extraRequestParameters,
                 )
             ) {
@@ -84,9 +85,9 @@ internal class DynamicAuthViewModel(private val recoveryToken: String) : ViewMod
                     _state.value = DynamicAuthState.Error("Failed to create client")
                 }
                 is OAuth2ClientResult.Success -> {
-                    flow = clientResult.result
+                    flow = interactionCodeFlow
                     // Call the IDX API's resume method to receive the first IDX response.
-                    when (val resumeResult = clientResult.result.resume()) {
+                    when (val resumeResult = interactionCodeFlow.resume()) {
                         is OAuth2ClientResult.Error -> {
                             _state.value = DynamicAuthState.Error("Failed to call resume")
                         }

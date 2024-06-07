@@ -15,6 +15,7 @@
  */
 package com.okta.nativeauthentication
 
+import android.net.Uri
 import com.google.common.truth.Truth.assertThat
 import com.okta.authfoundation.client.OAuth2ClientResult
 import com.okta.authfoundation.credential.Token
@@ -37,11 +38,14 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
 
+@RunWith(RobolectricTestRunner::class)
 class NativeAuthenticationClientTest {
     @get:Rule val networkRule = NetworkRule()
 
@@ -67,7 +71,9 @@ class NativeAuthenticationClientTest {
         fakeCallback = FakeCallback()
         fakeIdxResponseTransformer = FakeIdxResponseTransformer()
         return NativeAuthenticationClient(emptyList(), fakeIdxResponseTransformer).create(fakeCallback) {
-            InteractionCodeFlow.create("test.okta.com/login")
+            val flow = InteractionCodeFlow()
+            flow.start(Uri.parse("test.okta.com/login"))
+            flow
         }
     }
 
@@ -136,30 +142,6 @@ class NativeAuthenticationClientTest {
         // Implicitly ensuring this doesn't throw or cause another request.
         assertThat((formReference.get().elements[0] as Element.Label).text).isEqualTo("Fake Label")
         (formReference.get().elements[2] as Element.Action).onClick(formReference.get())
-    }
-
-    @Test fun testFailedInteractCallRetriesInteract(): Unit = runBlocking {
-        networkRule.enqueue(path("/idp/idx/introspect")) { response ->
-            response.testBodyFromFile("IdentifyRemediationResponse.json")
-        }
-        val flow = setup(::enqueueInteractFailure)
-        val formCounter = AtomicInteger()
-        val forms = flow.take(4).onEach { form ->
-            if (formCounter.getAndIncrement() == 1) {
-                enqueueInteractSuccess()
-                (form.elements[0] as Element.Action).onClick(form)
-            }
-        }.toList()
-        assertThat(forms[0].elements).hasSize(1)
-        assertThat((forms[0].elements[0])).isInstanceOf(Element.Loading::class.java)
-        assertThat(forms[1].elements).hasSize(1)
-        assertThat((forms[1].elements[0] as Element.Action).text).isEqualTo("Retry")
-        assertThat(forms[2].elements).hasSize(1)
-        assertThat((forms[2].elements[0])).isInstanceOf(Element.Loading::class.java)
-        assertThat(forms[3].elements).hasSize(3)
-        assertThat((forms[3].elements[0] as Element.Label).text).isEqualTo("Fake Label")
-        assertThat((forms[3].elements[1] as Element.TextInput).label).isEqualTo("Fake Text Input")
-        assertThat((forms[3].elements[2] as Element.Action).text).isEqualTo("Fake Button")
     }
 
     @Test fun testFailedIntrospectCallRetriesIntrospect(): Unit = runBlocking {

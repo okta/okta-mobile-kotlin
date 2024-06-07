@@ -27,7 +27,10 @@ import com.okta.testing.network.NetworkRule
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
+@RunWith(RobolectricTestRunner::class)
 internal class SignInTitleTransformerTest {
     @get:Rule val networkRule = NetworkRule()
 

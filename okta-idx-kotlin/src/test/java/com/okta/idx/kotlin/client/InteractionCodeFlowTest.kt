@@ -15,6 +15,7 @@
  */
 package com.okta.idx.kotlin.client
 
+import android.net.Uri
 import com.google.common.truth.Truth.assertThat
 import com.okta.authfoundation.client.OAuth2Client
 import com.okta.authfoundation.client.OAuth2ClientResult
@@ -31,17 +32,23 @@ import kotlinx.coroutines.runBlocking
 import okhttp3.mockwebserver.SocketPolicy
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
+@RunWith(RobolectricTestRunner::class)
 class InteractionCodeFlowTest {
     @get:Rule val networkRule = NetworkRule()
+
+    private val testUri = Uri.parse("test.okta.com/login")
 
     @Test fun testStart(): Unit = runBlocking {
         networkRule.enqueue(path("/oauth2/default/v1/interact")) { response ->
             response.testBodyFromFile("client/interactResponse.json")
         }
 
-        val clientResult = InteractionCodeFlow.create("test.okta.com/login") as OAuth2ClientResult.Success<InteractionCodeFlow>
-        assertThat(clientResult.result.flowContext.interactionHandle).isEqualTo("029ZAB")
+        val flow = InteractionCodeFlow()
+        flow.start(testUri)
+        assertThat(flow.flowContext.interactionHandle).isEqualTo("029ZAB")
     }
 
     @Test fun testStartWithNoEndpoints(): Unit = runBlocking {
@@ -50,7 +57,8 @@ class InteractionCodeFlowTest {
         }
 
         val client = OAuth2Client.createFromConfiguration(networkRule.configuration)
-        val clientResult = InteractionCodeFlow.create("test.okta.com/login", client = client) as OAuth2ClientResult.Error<InteractionCodeFlow>
+        val flow = InteractionCodeFlow(client = client)
+        val clientResult = flow.start(testUri) as OAuth2ClientResult.Error<Unit>
         assertThat(clientResult.exception).isInstanceOf(OAuth2ClientResult.Error.OidcEndpointsNotAvailableException::class.java)
     }
 
@@ -63,8 +71,8 @@ class InteractionCodeFlowTest {
         }
 
         val extraParameters = mapOf(Pair("recovery_token", "secret123"))
-        val clientResult = InteractionCodeFlow.create("test.okta.com/login", extraParameters) as OAuth2ClientResult.Success<InteractionCodeFlow>
-        assertThat(clientResult.result.flowContext.interactionHandle).isEqualTo("029ZAB")
+        val flow = InteractionCodeFlow().apply { start(testUri, extraParameters) }
+        assertThat(flow.flowContext.interactionHandle).isEqualTo("029ZAB")
     }
 
     @Test fun testResume(): Unit = runBlocking {
@@ -76,11 +84,10 @@ class InteractionCodeFlowTest {
             response.testBodyFromFile("client/identifyRemediationResponse.json")
         }
 
-        val clientResult = InteractionCodeFlow.create("test.okta.com/login") as OAuth2ClientResult.Success<InteractionCodeFlow>
-        val client = clientResult.result
-        assertThat(client.flowContext.interactionHandle).isEqualTo("029ZAB")
+        val flow = InteractionCodeFlow().apply { start(testUri) }
+        assertThat(flow.flowContext.interactionHandle).isEqualTo("029ZAB")
 
-        val resumeResult = client.resume() as OAuth2ClientResult.Success<IdxResponse>
+        val resumeResult = flow.resume() as OAuth2ClientResult.Success<IdxResponse>
         assertThat(resumeResult.result.remediations).hasSize(4)
     }
 
@@ -96,18 +103,17 @@ class InteractionCodeFlowTest {
             response.testBodyFromFile("client/successWithInteractionCodeResponse.json")
         }
 
-        val clientResult = InteractionCodeFlow.create("test.okta.com/login") as OAuth2ClientResult.Success<InteractionCodeFlow>
-        val client = clientResult.result
-        assertThat(client.flowContext.interactionHandle).isEqualTo("029ZAB")
+        val flow = InteractionCodeFlow().apply { start(testUri) }
+        assertThat(flow.flowContext.interactionHandle).isEqualTo("029ZAB")
 
-        val resumeResult = client.resume() as OAuth2ClientResult.Success<IdxResponse>
+        val resumeResult = flow.resume() as OAuth2ClientResult.Success<IdxResponse>
         val resumeResponse = resumeResult.result
         assertThat(resumeResponse.remediations).hasSize(4)
 
         val identifyRemediation = resumeResponse.remediations[0]
         identifyRemediation["identifier"]?.value = "test@okta.com"
         identifyRemediation["credentials.passcode"]?.value = "example"
-        val proceedResult = client.proceed(identifyRemediation) as OAuth2ClientResult.Success<IdxResponse>
+        val proceedResult = flow.proceed(identifyRemediation) as OAuth2ClientResult.Success<IdxResponse>
         assertThat(proceedResult.result.remediations[1].type).isEqualTo(IdxRemediation.Type.ISSUE)
     }
 
@@ -123,18 +129,17 @@ class InteractionCodeFlowTest {
             response.testBodyFromFile("client/identifyRemediationResponse.json")
         }
 
-        val clientResult = InteractionCodeFlow.create("test.okta.com/login") as OAuth2ClientResult.Success<InteractionCodeFlow>
-        val client = clientResult.result
-        assertThat(client.flowContext.interactionHandle).isEqualTo("029ZAB")
+        val flow = InteractionCodeFlow().apply { start(testUri) }
+        assertThat(flow.flowContext.interactionHandle).isEqualTo("029ZAB")
 
-        val resumeResult = client.resume() as OAuth2ClientResult.Success<IdxResponse>
+        val resumeResult = flow.resume() as OAuth2ClientResult.Success<IdxResponse>
         val resumeResponse = resumeResult.result
         assertThat(resumeResponse.remediations).hasSize(4)
 
         val identifyRemediation = resumeResponse.remediations[0]
         identifyRemediation["identifier"]?.value = "test@okta.com"
         identifyRemediation["credentials.passcode"]?.value = "example"
-        val proceedResult = client.proceed(identifyRemediation) as OAuth2ClientResult.Success<IdxResponse>
+        val proceedResult = flow.proceed(identifyRemediation) as OAuth2ClientResult.Success<IdxResponse>
         val newIdentifyRemediation = proceedResult.result.remediations[0]
         assertThat(newIdentifyRemediation["identifier"]?.value).isEqualTo("test@okta.com")
         assertThat(newIdentifyRemediation["credentials.passcode"]?.value).isEqualTo("example")
@@ -154,25 +159,24 @@ class InteractionCodeFlowTest {
             response.testBodyFromFile("client/tokenResponse.json")
         }
 
-        val clientResult = InteractionCodeFlow.create("test.okta.com/login") as OAuth2ClientResult.Success<InteractionCodeFlow>
-        val client = clientResult.result
-        assertThat(client.flowContext.interactionHandle).isEqualTo("029ZAB")
+        val flow = InteractionCodeFlow().apply { start(testUri) }
+        assertThat(flow.flowContext.interactionHandle).isEqualTo("029ZAB")
 
-        val resumeResult = client.resume() as OAuth2ClientResult.Success<IdxResponse>
+        val resumeResult = flow.resume() as OAuth2ClientResult.Success<IdxResponse>
         val resumeResponse = resumeResult.result
         assertThat(resumeResponse.remediations).hasSize(4)
 
         val identifyRemediation = resumeResponse.remediations[0]
         identifyRemediation["identifier"]?.value = "test@okta.com"
         identifyRemediation["credentials.passcode"]?.value = "example"
-        val proceedResult = client.proceed(identifyRemediation) as OAuth2ClientResult.Success<IdxResponse>
+        val proceedResult = flow.proceed(identifyRemediation) as OAuth2ClientResult.Success<IdxResponse>
         val proceedResponse = proceedResult.result
         val issueRemediation = proceedResponse.remediations[1]
         assertThat(issueRemediation.type).isEqualTo(IdxRemediation.Type.ISSUE)
 
-        val tokenResult = client.exchangeInteractionCodeForTokens(issueRemediation) as OAuth2ClientResult.Success<Token>
+        val tokenResult = flow.exchangeInteractionCodeForTokens(issueRemediation) as OAuth2ClientResult.Success<Token>
         assertThat(tokenResult.result.accessToken).isEqualTo("eyJraWQiOiJBaE1qU3VMQWdBTDJ1dHVVY2lFRWJ2R1JUbi1GRkt1Y2tVTDJibVZMVmp3IiwiYWxnIjoiUlMyNTYifQ.eyJ2ZXIiOjEsImp0aSI6IkFULm01N1NsVUpMRUQyT1RtLXVrUFBEVGxFY0tialFvYy1wVGxVdm5ha0k3T1Eub2FyNjFvOHVVOVlGVnBYcjYybzQiLCJpc3MiOiJodHRwczovL2Zvby5wcmV2aWV3LmNvbS9vYXV0aDIvZGVmYXVsdCIsImF1ZCI6ImFwaTovL2RlZmF1bHQiLCJpYXQiOjE2MDg1NjcwMTgsImV4cCI6MTYwODU3MDYxOCwiY2lkIjoiMG9henNtcHhacFZFZzRjaFMybzQiLCJ1aWQiOiIwMHUxMGt2dkZDMDZHT21odTJvNSIsInNjcCI6WyJvcGVuaWQiLCJwcm9maWxlIiwib2ZmbGluZV9hY2Nlc3MiXSwic3ViIjoiZm9vQG9rdGEuY29tIn0.lg2T8dKVfic_JU6qzNBqDuw3RFUq7Da5UO37eY3W-cOOb9UqijxGYj7d-z8qK1UJjRRcDg-rTMzYQbKCLVxjBw")
-        assertThat(networkRule.idTokenValidator.lastIdTokenParameters.nonce).isEqualTo(client.flowContext.nonce)
+        assertThat(networkRule.idTokenValidator.lastIdTokenParameters.nonce).isEqualTo(flow.flowContext.nonce)
         assertThat(networkRule.idTokenValidator.lastIdTokenParameters.maxAge).isNull()
     }
 
@@ -191,28 +195,24 @@ class InteractionCodeFlowTest {
         }
 
         val extraParameters = mapOf("max_age" to "65")
-        val clientResult = InteractionCodeFlow.create(
-            redirectUrl = "test.okta.com/login",
-            extraStartRequestParameters = extraParameters,
-        ) as OAuth2ClientResult.Success<InteractionCodeFlow>
-        val client = clientResult.result
-        assertThat(client.flowContext.interactionHandle).isEqualTo("029ZAB")
+        val flow = InteractionCodeFlow().apply { start(testUri, extraParameters) }
+        assertThat(flow.flowContext.interactionHandle).isEqualTo("029ZAB")
 
-        val resumeResult = client.resume() as OAuth2ClientResult.Success<IdxResponse>
+        val resumeResult = flow.resume() as OAuth2ClientResult.Success<IdxResponse>
         val resumeResponse = resumeResult.result
         assertThat(resumeResponse.remediations).hasSize(4)
 
         val identifyRemediation = resumeResponse.remediations[0]
         identifyRemediation["identifier"]?.value = "test@okta.com"
         identifyRemediation["credentials.passcode"]?.value = "example"
-        val proceedResult = client.proceed(identifyRemediation) as OAuth2ClientResult.Success<IdxResponse>
+        val proceedResult = flow.proceed(identifyRemediation) as OAuth2ClientResult.Success<IdxResponse>
         val proceedResponse = proceedResult.result
         val issueRemediation = proceedResponse.remediations[1]
         assertThat(issueRemediation.type).isEqualTo(IdxRemediation.Type.ISSUE)
 
-        val tokenResult = client.exchangeInteractionCodeForTokens(issueRemediation) as OAuth2ClientResult.Success<Token>
+        val tokenResult = flow.exchangeInteractionCodeForTokens(issueRemediation) as OAuth2ClientResult.Success<Token>
         assertThat(tokenResult.result.accessToken).isEqualTo("eyJraWQiOiJBaE1qU3VMQWdBTDJ1dHVVY2lFRWJ2R1JUbi1GRkt1Y2tVTDJibVZMVmp3IiwiYWxnIjoiUlMyNTYifQ.eyJ2ZXIiOjEsImp0aSI6IkFULm01N1NsVUpMRUQyT1RtLXVrUFBEVGxFY0tialFvYy1wVGxVdm5ha0k3T1Eub2FyNjFvOHVVOVlGVnBYcjYybzQiLCJpc3MiOiJodHRwczovL2Zvby5wcmV2aWV3LmNvbS9vYXV0aDIvZGVmYXVsdCIsImF1ZCI6ImFwaTovL2RlZmF1bHQiLCJpYXQiOjE2MDg1NjcwMTgsImV4cCI6MTYwODU3MDYxOCwiY2lkIjoiMG9henNtcHhacFZFZzRjaFMybzQiLCJ1aWQiOiIwMHUxMGt2dkZDMDZHT21odTJvNSIsInNjcCI6WyJvcGVuaWQiLCJwcm9maWxlIiwib2ZmbGluZV9hY2Nlc3MiXSwic3ViIjoiZm9vQG9rdGEuY29tIn0.lg2T8dKVfic_JU6qzNBqDuw3RFUq7Da5UO37eY3W-cOOb9UqijxGYj7d-z8qK1UJjRRcDg-rTMzYQbKCLVxjBw")
-        assertThat(networkRule.idTokenValidator.lastIdTokenParameters.nonce).isEqualTo(client.flowContext.nonce)
+        assertThat(networkRule.idTokenValidator.lastIdTokenParameters.nonce).isEqualTo(flow.flowContext.nonce)
         assertThat(networkRule.idTokenValidator.lastIdTokenParameters.maxAge).isEqualTo(65)
     }
 
@@ -221,11 +221,10 @@ class InteractionCodeFlowTest {
             response.testBodyFromFile("client/interactResponse.json")
         }
 
-        val clientResult = InteractionCodeFlow.create("test.okta.com/login") as OAuth2ClientResult.Success<InteractionCodeFlow>
-        assertThat(clientResult.result.flowContext.interactionHandle).isEqualTo("029ZAB")
+        val flow = InteractionCodeFlow().apply { start(testUri) }
+        assertThat(flow.flowContext.interactionHandle).isEqualTo("029ZAB")
 
-        val client = clientResult.result
-        val exchangeCodesResult = client.exchangeInteractionCodeForTokens(createRemediation(emptyList())) as OAuth2ClientResult.Error<Token>
+        val exchangeCodesResult = flow.exchangeInteractionCodeForTokens(createRemediation(emptyList())) as OAuth2ClientResult.Error<Token>
         assertThat(exchangeCodesResult.exception.message).isEqualTo("Invalid remediation.")
     }
 
@@ -239,11 +238,10 @@ class InteractionCodeFlowTest {
             response.testBodyFromFile("client/identifyRemediationResponse.json").setResponseCode(499)
         }
 
-        val clientResult = InteractionCodeFlow.create("test.okta.com/login") as OAuth2ClientResult.Success<InteractionCodeFlow>
-        val client = clientResult.result
-        assertThat(client.flowContext.interactionHandle).isEqualTo("029ZAB")
+        val flow = InteractionCodeFlow().apply { start(testUri) }
+        assertThat(flow.flowContext.interactionHandle).isEqualTo("029ZAB")
 
-        val resumeResult = client.resume() as OAuth2ClientResult.Success<IdxResponse>
+        val resumeResult = flow.resume() as OAuth2ClientResult.Success<IdxResponse>
         assertThat(resumeResult.result.remediations).hasSize(4)
     }
 
@@ -257,11 +255,10 @@ class InteractionCodeFlowTest {
             response.testBodyFromFile("client/identifyRemediationResponse.json").setResponseCode(500)
         }
 
-        val clientResult = InteractionCodeFlow.create("test.okta.com/login") as OAuth2ClientResult.Success<InteractionCodeFlow>
-        val client = clientResult.result
-        assertThat(client.flowContext.interactionHandle).isEqualTo("029ZAB")
+        val flow = InteractionCodeFlow().apply { start(testUri) }
+        assertThat(flow.flowContext.interactionHandle).isEqualTo("029ZAB")
 
-        val resumeResult = client.resume() as OAuth2ClientResult.Error<IdxResponse>
+        val resumeResult = flow.resume() as OAuth2ClientResult.Error<IdxResponse>
         assertThat(resumeResult.exception.message).isEqualTo("HTTP Error: status code - 500")
     }
 }

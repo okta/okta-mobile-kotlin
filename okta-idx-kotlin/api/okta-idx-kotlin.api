@@ -16,16 +16,18 @@ public final class com/okta/idx/kotlin/client/IdxRedirectResult$Tokens : com/okt
 
 public final class com/okta/idx/kotlin/client/InteractionCodeFlow {
 	public static final field Companion Lcom/okta/idx/kotlin/client/InteractionCodeFlow$Companion;
+	public fun <init> ()V
+	public fun <init> (Lcom/okta/authfoundation/client/OAuth2Client;)V
+	public fun <init> (Lcom/okta/authfoundation/client/OidcConfiguration;)V
 	public final fun evaluateRedirectUri (Landroid/net/Uri;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun exchangeInteractionCodeForTokens (Lcom/okta/idx/kotlin/dto/IdxRemediation;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public final fun getFlowContext ()Lcom/okta/idx/kotlin/client/InteractionCodeFlowContext;
 	public final fun proceed (Lcom/okta/idx/kotlin/dto/IdxRemediation;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun resume (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun start (Landroid/net/Uri;Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun start$default (Lcom/okta/idx/kotlin/client/InteractionCodeFlow;Landroid/net/Uri;Ljava/util/Map;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public final class com/okta/idx/kotlin/client/InteractionCodeFlow$Companion {
-	public final fun create (Ljava/lang/String;Ljava/util/Map;Lcom/okta/authfoundation/client/OAuth2Client;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun create$default (Lcom/okta/idx/kotlin/client/InteractionCodeFlow$Companion;Ljava/lang/String;Ljava/util/Map;Lcom/okta/authfoundation/client/OAuth2Client;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public final class com/okta/idx/kotlin/client/InteractionCodeFlowContext {

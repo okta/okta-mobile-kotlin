@@ -15,7 +15,6 @@
  */
 package com.okta.nativeauthentication
 
-import com.okta.authfoundation.client.OAuth2ClientResult
 import com.okta.authfoundation.client.internal.SdkVersionsRegistry
 import com.okta.authfoundation.credential.Token
 import com.okta.idx.kotlin.client.InteractionCodeFlow
@@ -23,7 +22,6 @@ import com.okta.nativeauthentication.form.Form
 import com.okta.nativeauthentication.form.FormFactory
 import com.okta.nativeauthentication.form.FormTransformer
 import com.okta.nativeauthentication.form.LoadingFormBuilder
-import com.okta.nativeauthentication.form.RetryFormBuilder
 import com.okta.nativeauthentication.form.transformer.SignInTitleTransformer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.SendChannel
@@ -42,7 +40,7 @@ class NativeAuthenticationClient internal constructor(
 
         fun create(
             callback: Callback,
-            interactionCodeFlowFactory: suspend () -> OAuth2ClientResult<InteractionCodeFlow>
+            interactionCodeFlowFactory: suspend () -> InteractionCodeFlow
         ): Flow<Form> {
             return NativeAuthenticationClient(
                 formTransformers = listOf(SignInTitleTransformer()),
@@ -58,37 +56,26 @@ class NativeAuthenticationClient internal constructor(
 
     internal fun create(
         callback: Callback,
-        interactionCodeFlowFactory: suspend () -> OAuth2ClientResult<InteractionCodeFlow>,
+        interactionCodeFlowFactory: suspend () -> InteractionCodeFlow,
     ): Flow<Form> {
         suspend fun start(formFactory: FormFactory, sendChannel: SendChannel<*>, coroutineScope: CoroutineScope) {
             formFactory.emit(LoadingFormBuilder.create())
-
-            when (val result = interactionCodeFlowFactory()) {
-                is OAuth2ClientResult.Error -> {
-                    formFactory.emit(
-                        RetryFormBuilder.create(coroutineScope) {
-                            start(formFactory, sendChannel, coroutineScope)
-                        }
-                    )
+            val interactionCodeFlow = interactionCodeFlowFactory()
+            val wrapperCallback = object : Callback() {
+                override fun signInComplete(token: Token) {
+                    super.signInComplete(token)
+                    callback.signInComplete(token)
+                    sendChannel.close()
                 }
-                is OAuth2ClientResult.Success -> {
-                    val wrapperCallback = object : Callback() {
-                        override fun signInComplete(token: Token) {
-                            super.signInComplete(token)
-                            callback.signInComplete(token)
-                            sendChannel.close()
-                        }
-                    }
-                    ClientResultTransformer(
-                        callback = wrapperCallback,
-                        interactionCodeFlow = result.result,
-                        coroutineScope = coroutineScope,
-                        formFactory = formFactory,
-                        responseTransformer = idxResponseTransformer,
-                    ).transformAndEmit { interactionCodeFlow ->
-                        interactionCodeFlow.resume()
-                    }
-                }
+            }
+            ClientResultTransformer(
+                callback = wrapperCallback,
+                interactionCodeFlow = interactionCodeFlow,
+                coroutineScope = coroutineScope,
+                formFactory = formFactory,
+                responseTransformer = idxResponseTransformer,
+            ).transformAndEmit { flow ->
+                flow.resume()
             }
         }
 
