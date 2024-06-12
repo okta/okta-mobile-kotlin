@@ -94,6 +94,7 @@ internal class ForegroundActivity : AppCompatActivity() {
         }
     }
 
+    @Suppress("OverrideDeprecatedMigration")
     override fun onBackPressed() {
         super.onBackPressed()
         eventCoordinator.sendEvent(ForegroundActivityEvent.OnBackPressed)
