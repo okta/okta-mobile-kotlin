@@ -33,6 +33,7 @@ android {
         }
     }
     compileOptions {
+        coreLibraryDesugaringEnabled true
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
     }
@@ -67,6 +68,8 @@ android {
 }
 
 dependencies {
+    coreLibraryDesugaring libs.core.library.desugaring
+
     api libs.kotlin.stdlib
     api libs.okhttp.core
     api libs.okio.core

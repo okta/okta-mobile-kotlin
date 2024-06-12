@@ -26,6 +26,7 @@ android {
         }
     }
     compileOptions {
+        coreLibraryDesugaringEnabled true
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
     }
@@ -36,6 +37,8 @@ android {
 }
 
 dependencies {
+    coreLibraryDesugaring libs.core.library.desugaring
+
     api project(':auth-foundation')
     api libs.kotlin.stdlib
     api libs.okhttp.core
