@@ -117,6 +117,12 @@ public final class com/okta/authfoundation/client/AccessTokenValidator$Error : j
 	public fun <init> (Ljava/lang/String;)V
 }
 
+public final class com/okta/authfoundation/client/ApplicationContextHolder {
+	public static final field INSTANCE Lcom/okta/authfoundation/client/ApplicationContextHolder;
+	public final fun getAppContext ()Landroid/content/Context;
+	public final fun setApplicationContext (Landroid/content/Context;)V
+}
+
 public abstract interface class com/okta/authfoundation/client/Cache {
 	public abstract fun get (Ljava/lang/String;)Ljava/lang/String;
 	public abstract fun set (Ljava/lang/String;Ljava/lang/String;)V

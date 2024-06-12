@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.0.1] - 2024-06-12
+
+[Commits](https://github.com/okta/okta-mobile-kotlin/compare/2.0.0...2.0.1)
+
+This version exposes ApplicationContextHolder for use by [okta-idx-android](https://github.com/okta/okta-idx-android)
+
 ## [2.0.0] - 2024-06-03
 
 [Commits](https://github.com/okta/okta-mobile-kotlin/compare/1.2.1...2.0.0)

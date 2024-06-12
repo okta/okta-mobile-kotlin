@@ -16,8 +16,10 @@
 package com.okta.authfoundation.client
 
 import android.content.Context
+import com.okta.authfoundation.InternalAuthFoundationApi
 
-internal object ApplicationContextHolder {
+@InternalAuthFoundationApi
+object ApplicationContextHolder {
     lateinit var appContext: Context
         private set
 
