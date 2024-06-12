@@ -50,22 +50,22 @@ android {
 }
 
 dependencies {
-    api deps.kotlin.stdlib
-    api deps.okhttp.core
-    api deps.coroutines.android
-    api deps.kotlin.serialization_json
-    api deps.okio.core
+    api libs.kotlin.stdlib
+    api libs.okhttp.core
+    api libs.coroutines.android
+    api libs.kotlin.serialization.json
+    api libs.okio.core
     api project(':auth-foundation')
 
-    implementation deps.okio.jvm
+    implementation libs.okio.jvm
 
-    testImplementation deps.junit
-    testImplementation deps.truth
-    testImplementation deps.mockito.core
-    testImplementation deps.mockito.kotlin
-    testImplementation deps.kotlin.test
-    testImplementation deps.robolectric
-    testImplementation deps.bcprov_jdk18on
+    testImplementation libs.junit
+    testImplementation libs.truth
+    testImplementation libs.mockito.core
+    testImplementation libs.mockito.kotlin
+    testImplementation libs.kotlin.test
+    testImplementation libs.robolectric
+    testImplementation libs.bcprov.jdk18on
     testImplementation project(':test-helpers')
 }
 

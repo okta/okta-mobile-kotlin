@@ -61,55 +61,55 @@ android {
 }
 
 dependencies {
-    coreLibraryDesugaring deps.core_library_desugaring
+    coreLibraryDesugaring libs.core.library.desugaring
 
-    api deps.kotlin.stdlib
-    api deps.okhttp.core
-    api deps.coroutines.core
-    api deps.kotlin.serialization_json
-    api deps.okio.core
-    api deps.androidx_biometric
+    api libs.kotlin.stdlib
+    api libs.okhttp.core
+    api libs.coroutines.core
+    api libs.kotlin.serialization.json
+    api libs.okio.core
+    api libs.androidx.biometric
 
-    implementation deps.lifecycle.viewmodel_ktx
-    implementation deps.androidx_activity_ktx
-    implementation deps.androidx_constraintlayout
-    implementation deps.androidx_datastore_preferences
-    implementation deps.androidx_sqlite
-    implementation deps.app_compat
-    implementation deps.okio.jvm
-    implementation deps.kotlin.serialization_okio
-    implementation deps.security_crypto
-    implementation deps.startup_runtime
-    implementation deps.room.runtime
-    implementation deps.room.ktx
-    implementation deps.sqlcipher_android
-    annotationProcessor deps.room.compiler
-    ksp deps.room.compiler
+    implementation libs.lifecycle.viewmodel.ktx
+    implementation libs.androidx.activity.ktx
+    implementation libs.androidx.constraintlayout
+    implementation libs.androidx.datastore.preferences
+    implementation libs.androidx.sqlite
+    implementation libs.app.compat
+    implementation libs.okio.jvm
+    implementation libs.kotlin.serialization.okio
+    implementation libs.security.crypto
+    implementation libs.startup.runtime
+    implementation libs.room.runtime
+    implementation libs.room.ktx
+    implementation libs.sqlcipher.android
+    annotationProcessor libs.room.compiler
+    ksp libs.room.compiler
 
-    testImplementation deps.coroutines.test
-    testImplementation deps.androidx_test.core
-    testImplementation deps.androidx_test.ext_junit
-    testImplementation deps.junit
-    testImplementation deps.truth
-    testImplementation deps.kotlin.test
-    testImplementation deps.mockito.core
-    testImplementation deps.mockito.kotlin
-    testImplementation deps.mockk.android
-    testImplementation deps.mockk.agent
-    testImplementation deps.robolectric
-    testImplementation deps.bcprov_jdk18on
-    testImplementation deps.room.testing
-    testImplementation deps.turbine
+    testImplementation libs.coroutines.test
+    testImplementation libs.androidx.test.core
+    testImplementation libs.androidx.test.ext.junit
+    testImplementation libs.junit
+    testImplementation libs.truth
+    testImplementation libs.kotlin.test
+    testImplementation libs.mockito.core
+    testImplementation libs.mockito.kotlin
+    testImplementation libs.mockk.android
+    testImplementation libs.mockk.agent
+    testImplementation libs.robolectric
+    testImplementation libs.bcprov.jdk18on
+    testImplementation libs.room.testing
+    testImplementation libs.turbine
     testImplementation project(':test-helpers')
 
-    androidTestImplementation deps.junit
-    androidTestImplementation deps.truth
-    androidTestImplementation deps.kotlin.test
-    androidTestImplementation deps.androidx_test.core
-    androidTestImplementation deps.androidx_test.ext_junit
-    androidTestImplementation deps.androidx_test.runner
-    androidTestImplementation deps.androidx_test.rules
-    androidTestImplementation deps.coroutines.test
+    androidTestImplementation libs.junit
+    androidTestImplementation libs.truth
+    androidTestImplementation libs.kotlin.test
+    androidTestImplementation libs.androidx.test.core
+    androidTestImplementation libs.androidx.test.ext.junit
+    androidTestImplementation libs.androidx.test.runner
+    androidTestImplementation libs.androidx.test.rules
+    androidTestImplementation libs.coroutines.test
 }
 
 preBuild.dependsOn(copyKotlinTemplates)
