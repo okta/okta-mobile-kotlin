@@ -1,0 +1,48 @@
+def build_versions = [:]
+build_versions.min_sdk = 23
+build_versions.compile_sdk = 34
+build_versions.target_sdk = 34
+ext.build_versions = build_versions
+
+static def addRepos(RepositoryHandler handler) {
+    handler.mavenLocal()
+    handler.google()
+    handler.mavenCentral()
+    handler.jcenter()
+}
+
+def forceVersions(ConfigurationContainer configurations) {
+    configurations.configureEach {
+        resolutionStrategy {
+            force libs.jackson.databind // Vulnerability fix: OKTA-614751
+        }
+    }
+}
+
+def configureSpotless(Project project) {
+    project.apply plugin: 'com.diffplug.spotless'
+
+    project.spotless {
+        format 'misc', {
+            target '**/*.gradle', '**/*.md', '**/.gitignore', '**/*.xml', '**/*.json', '**/*.properties', '**/*.yml', '**/*.kt'
+            targetExclude '.idea/*', '**/build/*', '.gradle/*'
+
+            trimTrailingWhitespace()
+            endWithNewline()
+        }
+    }
+
+    project.plugins.withId('kotlin-android') {
+        project.spotless {
+            kotlin {
+                target '**/*.kt'
+                ktlint()
+                licenseHeaderFile rootProject.file('licenseTemplate.txt')
+            }
+        }
+    }
+}
+
+ext.addRepos = this.&addRepos
+ext.forceVersions = this.&forceVersions
+ext.configureSpotless = this.&configureSpotless

@@ -1,17 +1,17 @@
 buildscript {
-    apply from: 'versions.gradle'
+    apply from: 'utils.gradle'
     addRepos(repositories)
     forceVersions(configurations)
 
     dependencies {
-        classpath deps.android_gradle_plugin
-        classpath deps.dokka_gradle_plugin
-        classpath deps.kotlin.binary_compatibility_plugin
-        classpath deps.kotlin.plugin
-        classpath deps.navigation.safe_args_plugin
-        classpath deps.kotlin.serialization_plugin
-        classpath deps.gradle_maven_publish
-        classpath deps.spotless
+        classpath libs.android.gradle.plugin
+        classpath libs.dokka.gradle.plugin
+        classpath libs.kotlin.binary.compatibility.plugin
+        classpath libs.kotlin.plugin
+        classpath libs.navigation.safe.args.plugin
+        classpath libs.kotlin.serialization.plugin
+        classpath libs.gradle.maven.publish
+        classpath libs.spotless
     }
 }
 

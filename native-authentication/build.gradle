@@ -49,26 +49,26 @@ android {
 
 dependencies {
     api project(':okta-idx-kotlin')
-    api deps.kotlin.stdlib
-    api deps.okhttp.core
-    api deps.okio.core
-    api deps.coroutines.android
+    api libs.kotlin.stdlib
+    api libs.okhttp.core
+    api libs.okio.core
+    api libs.coroutines.android
 
-    implementation deps.kotlin.serialization_json
-    implementation deps.okio.jvm
+    implementation libs.kotlin.serialization.json
+    implementation libs.okio.jvm
 
-    testImplementation deps.coroutines.test
-    testImplementation deps.junit
-    testImplementation deps.mockito.core
-    testImplementation deps.mockito.kotlin
-    testImplementation deps.okhttp.mock_web_server
-    testImplementation deps.okhttp.tls
-    testImplementation deps.okio.core
-    testImplementation deps.okio.jvm
-    testImplementation deps.truth
-    testImplementation deps.jackson_databind
-    testImplementation deps.robolectric
-    testImplementation deps.bcprov_jdk18on
+    testImplementation libs.coroutines.test
+    testImplementation libs.junit
+    testImplementation libs.mockito.core
+    testImplementation libs.mockito.kotlin
+    testImplementation libs.okhttp.mock.web.server
+    testImplementation libs.okhttp.tls
+    testImplementation libs.okio.core
+    testImplementation libs.okio.jvm
+    testImplementation libs.truth
+    testImplementation libs.jackson.databind
+    testImplementation libs.robolectric
+    testImplementation libs.bcprov.jdk18on
     testImplementation project(':test-utils')
 }
 

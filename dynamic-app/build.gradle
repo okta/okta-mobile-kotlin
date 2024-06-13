@@ -74,61 +74,61 @@ android {
 }
 
 dependencies {
-    coreLibraryDesugaring deps.desugar_libs
+    coreLibraryDesugaring libs.desugar.libs
     implementation project(':okta-idx-kotlin')
 
 
-    implementation deps.kotlin.stdlib
-    implementation deps.core_ktx
-    implementation deps.app_compat
-    implementation deps.constraint_layout
-    implementation deps.navigation.fragment_ktx
-    implementation deps.navigation.ui_ktx
-    implementation deps.lifecycle.viewmodel_ktx
-    implementation deps.lifecycle.livedata_ktx
-    implementation deps.lifecycle.runtime_ktx
-    implementation deps.lifecycle.java8
-    implementation deps.material
-    implementation deps.coroutines.android
-    implementation deps.okhttp.core
-    implementation deps.okhttp.tls
-    implementation deps.okio.core
-    implementation deps.okio.jvm
-    implementation deps.timber
+    implementation libs.kotlin.stdlib
+    implementation libs.core.ktx
+    implementation libs.app.compat
+    implementation libs.androidx.constraintlayout
+    implementation libs.navigation.fragment.ktx
+    implementation libs.navigation.ui.ktx
+    implementation libs.lifecycle.viewmodel.ktx
+    implementation libs.lifecycle.livedata.ktx
+    implementation libs.lifecycle.runtime.ktx
+    implementation libs.lifecycle.java8
+    implementation libs.material
+    implementation libs.coroutines.android
+    implementation libs.okhttp.core
+    implementation libs.okhttp.tls
+    implementation libs.okio.core
+    implementation libs.okio.jvm
+    implementation libs.timber
 
-    implementation deps.jackson_databind
+    implementation libs.jackson.databind
 
-    testImplementation deps.junit
-    testImplementation deps.okhttp.mock_web_server
-    testImplementation deps.okhttp.tls
-    testImplementation deps.okio.core
-    testImplementation deps.okio.jvm
-    testImplementation deps.truth
+    testImplementation libs.junit
+    testImplementation libs.okhttp.mock.web.server
+    testImplementation libs.okhttp.tls
+    testImplementation libs.okio.core
+    testImplementation libs.okio.jvm
+    testImplementation libs.truth
     testImplementation project(':test-utils')
 
-    androidTestUtil deps.androidx_test.orchestrator
+    androidTestUtil libs.androidx.test.orchestrator
 
-    androidTestImplementation deps.jackson_yaml
-    androidTestImplementation deps.okhttp.tls
-    androidTestImplementation deps.okio.core
-    androidTestImplementation deps.okio.jvm
-    androidTestImplementation deps.junit
-    androidTestImplementation deps.androidx_test.core
-    androidTestImplementation deps.androidx_test.ext_junit
-    androidTestImplementation deps.androidx_test.navigation
-    androidTestImplementation deps.androidx_test.runner
-    androidTestImplementation deps.androidx_test.rules
-    androidTestImplementation deps.androidx_test.uiautomator
-    androidTestImplementation deps.coroutines.test
-    androidTestImplementation deps.espresso.core
-    androidTestImplementation deps.espresso.contrib
-    androidTestImplementation deps.espresso.intents
-    androidTestImplementation deps.jsoup
-    androidTestImplementation deps.truth
+    androidTestImplementation libs.jackson.yaml
+    androidTestImplementation libs.okhttp.tls
+    androidTestImplementation libs.okio.core
+    androidTestImplementation libs.okio.jvm
+    androidTestImplementation libs.junit
+    androidTestImplementation libs.androidx.test.core
+    androidTestImplementation libs.androidx.test.ext.junit
+    androidTestImplementation libs.androidx.test.navigation
+    androidTestImplementation libs.androidx.test.runner
+    androidTestImplementation libs.androidx.test.rules
+    androidTestImplementation libs.androidx.test.uiautomator
+    androidTestImplementation libs.coroutines.test
+    androidTestImplementation libs.espresso.core
+    androidTestImplementation libs.espresso.contrib
+    androidTestImplementation libs.espresso.intents
+    androidTestImplementation libs.jsoup
+    androidTestImplementation libs.truth
     androidTestImplementation project(':test-utils')
 
-    androidTestImplementation deps.cucumber.android
-    androidTestImplementation(deps.okta.management_sdk) {
+    androidTestImplementation libs.cucumber.android
+    androidTestImplementation(libs.okta.management.sdk) {
         exclude group: 'org.bouncycastle'
     }
 }

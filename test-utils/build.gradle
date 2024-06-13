@@ -36,13 +36,13 @@ android {
 }
 
 dependencies {
-    api deps.okta.auth_foundation
-    api deps.junit
-    api deps.okhttp.mock_web_server
-    api deps.okhttp.tls
-    api deps.okio.core
-    api deps.truth
-    api deps.jackson_databind
-    api deps.mockk.agent
-    api deps.mockk.android
+    api libs.okta.auth.foundation
+    api libs.junit
+    api libs.okhttp.mock.web.server
+    api libs.okhttp.tls
+    api libs.okio.core
+    api libs.truth
+    api libs.jackson.databind
+    api libs.mockk.agent
+    api libs.mockk.android
 }
