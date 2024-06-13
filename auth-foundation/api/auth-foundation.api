@@ -221,7 +221,6 @@ public abstract interface class com/okta/authfoundation/client/OidcClock {
 
 public final class com/okta/authfoundation/client/OidcConfiguration {
 	public static final field Companion Lcom/okta/authfoundation/client/OidcConfiguration$Companion;
-	public synthetic fun <init> (ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function0;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;Lcom/okta/authfoundation/client/OidcClock;Lcom/okta/authfoundation/client/IdTokenValidator;Lcom/okta/authfoundation/client/AccessTokenValidator;Lcom/okta/authfoundation/client/DeviceSecretValidator;Lkotlin/jvm/functions/Function1;Lkotlinx/serialization/internal/SerializationConstructorMarker;)V
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
 	public final fun getAccessTokenValidator ()Lcom/okta/authfoundation/client/AccessTokenValidator;
 	public final fun getCacheFactory ()Lkotlin/jvm/functions/Function1;
@@ -237,16 +236,15 @@ public final class com/okta/authfoundation/client/OidcConfiguration {
 	public final fun getJson ()Lkotlinx/serialization/json/Json;
 	public final fun getOkHttpClient ()Lokhttp3/Call$Factory;
 	public final fun getOkHttpClientFactory ()Lkotlin/jvm/functions/Function0;
-	public static final synthetic fun write$Self (Lcom/okta/authfoundation/client/OidcConfiguration;Lkotlinx/serialization/encoding/CompositeEncoder;Lkotlinx/serialization/descriptors/SerialDescriptor;)V
 }
 
-public final class com/okta/authfoundation/client/OidcConfiguration$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+public synthetic class com/okta/authfoundation/client/OidcConfiguration$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
 	public static final field INSTANCE Lcom/okta/authfoundation/client/OidcConfiguration$$serializer;
-	public fun childSerializers ()[Lkotlinx/serialization/KSerializer;
-	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lcom/okta/authfoundation/client/OidcConfiguration;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lcom/okta/authfoundation/client/OidcConfiguration;
 	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
-	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
-	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lcom/okta/authfoundation/client/OidcConfiguration;)V
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lcom/okta/authfoundation/client/OidcConfiguration;)V
 	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
 	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
 }
@@ -502,7 +500,6 @@ public final class com/okta/authfoundation/credential/RoomTokenStorage$Companion
 
 public final class com/okta/authfoundation/credential/Token {
 	public static final field Companion Lcom/okta/authfoundation/credential/Token$Companion;
-	public synthetic fun <init> (ILjava/lang/String;Ljava/lang/String;ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lcom/okta/authfoundation/client/OidcConfiguration;Lkotlinx/serialization/internal/SerializationConstructorMarker;)V
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lcom/okta/authfoundation/client/OidcConfiguration;)V
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getAccessToken ()Ljava/lang/String;
@@ -515,16 +512,15 @@ public final class com/okta/authfoundation/credential/Token {
 	public final fun getScope ()Ljava/lang/String;
 	public final fun getTokenType ()Ljava/lang/String;
 	public fun hashCode ()I
-	public static final synthetic fun write$Self (Lcom/okta/authfoundation/credential/Token;Lkotlinx/serialization/encoding/CompositeEncoder;Lkotlinx/serialization/descriptors/SerialDescriptor;)V
 }
 
-public final class com/okta/authfoundation/credential/Token$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+public synthetic class com/okta/authfoundation/credential/Token$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
 	public static final field INSTANCE Lcom/okta/authfoundation/credential/Token$$serializer;
-	public fun childSerializers ()[Lkotlinx/serialization/KSerializer;
-	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lcom/okta/authfoundation/credential/Token;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lcom/okta/authfoundation/credential/Token;
 	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
-	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
-	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lcom/okta/authfoundation/credential/Token;)V
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lcom/okta/authfoundation/credential/Token;)V
 	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
 	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
 }

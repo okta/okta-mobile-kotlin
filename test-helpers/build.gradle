@@ -26,6 +26,7 @@ android {
         }
     }
     compileOptions {
+        coreLibraryDesugaringEnabled true
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
     }
@@ -36,15 +37,17 @@ android {
 }
 
 dependencies {
-    api project(':auth-foundation')
-    api deps.kotlin.stdlib
-    api deps.okhttp.core
-    api deps.okio.core
-    api deps.junit
-    api deps.okhttp.mock_web_server
+    coreLibraryDesugaring libs.core.library.desugaring
 
-    implementation deps.okio.jvm
-    implementation deps.okhttp.tls
-    implementation deps.mockk.android
-    implementation deps.mockk.agent
+    api project(':auth-foundation')
+    api libs.kotlin.stdlib
+    api libs.okhttp.core
+    api libs.okio.core
+    api libs.junit
+    api libs.okhttp.mock.web.server
+
+    implementation libs.okio.jvm
+    implementation libs.okhttp.tls
+    implementation libs.mockk.android
+    implementation libs.mockk.agent
 }

@@ -1,0 +1,162 @@
+[versions]
+androidxActivity = "1.9.0"
+androidxAnnotation = "1.8.0"
+androidxBiometric = "1.1.0"
+androidxBrowser = "1.8.0"
+androidxConstraintlayout = "2.1.4"
+androidxDatastorePreferences = "1.1.1"
+androidxSqlite = "2.4.0"
+androidxTest = "1.5.0"
+androidxTestRunner = "1.5.2"
+androidxTestExt = "1.1.5"
+androidxTestOrchestrator = "1.4.2"
+androidxTextUiautomator = "2.3.0"
+androidGradlePlugin = "8.4.2"
+appcompat = "1.7.0"
+bouncycastle = "1.78.1"
+coreLibraryDesugaring = "2.0.4"
+coreKtx = "1.13.1"
+coroutines = "1.8.0"
+dokka = "1.9.20"
+espresso = "3.5.1"
+gradleMavenPublish = "0.25.2"
+jackson = "2.15.3"
+jsoup = "1.17.2"
+junit = "4.13.2"
+kotlin = "2.0.0"
+kotlinBinaryCompatibility = "0.13.2"
+kotlinSerialization = "1.6.3"
+leakcanary = "2.12"
+lifecycle = "2.8.2"
+material = "1.12.0"
+mockitoCore = "5.4.0"
+mockitoKotlin = "4.0.0"
+mockk = "1.13.11"
+navigation = "2.7.7"
+okhttp = "4.12.0"
+okio = "3.9.0"
+oktaAuthn = "2.0.11"
+oktaLegacyOidc = "1.3.4"
+oktaManagement = "14.0.0"
+robolectric = "4.12.2"
+room = "2.6.1"
+securityCrypto = "1.0.0"
+snakeyaml = "2.2"
+spotless = "6.7.0"
+sqlcipherAndroid = "4.6.0"
+startupRuntime = "1.1.1"
+timber = "5.0.1"
+truth = "1.1.5"
+turbine = "1.1.0"
+
+[libraries]
+androidx-activity-ktx = { module = "androidx.activity:activity-ktx", version.ref = "androidxActivity" }
+androidx-annotation = { module = "androidx.annotation:annotation", version.ref = "androidxAnnotation" }
+androidx-biometric = { module = "androidx.biometric:biometric", version.ref = "androidxBiometric" }
+androidx-browser = { module = "androidx.browser:browser", version.ref = "androidxBrowser" }
+androidx-constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "androidxConstraintlayout" }
+androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "androidxDatastorePreferences" }
+androidx-sqlite = { module = "androidx.sqlite:sqlite", version.ref = "androidxSqlite" }
+
+androidx-test-core = { module = "androidx.test:core", version.ref = "androidxTest" }
+androidx-test-core-ktx = { module = "androidx.test:core-ktx", version.ref = "androidxTest" }
+androidx-test-ext-junit = { module = "androidx.test.ext:junit", version.ref = "androidxTestExt" }
+androidx-test-navigation = { module = "androidx.navigation:navigation-testing", version.ref = "navigation" }
+androidx-test-orchestrator = { module = "androidx.test:orchestrator", version.ref = "androidxTestOrchestrator" }
+androidx-test-runner = { module = "androidx.test:runner", version.ref = "androidxTestRunner" }
+androidx-test-rules = { module = "androidx.test:rules", version.ref = "androidxTest" }
+androidx-test-uiautomator = { module = "androidx.test.uiautomator:uiautomator", version.ref = "androidxTextUiautomator" }
+
+android-gradle-plugin = { module = "com.android.tools.build:gradle", version.ref = "androidGradlePlugin" }
+
+app-compat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
+
+bcprov-jdk18on = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bouncycastle" }
+
+core-library-desugaring = { module = "com.android.tools:desugar_jdk_libs", version.ref = "coreLibraryDesugaring" }
+
+core-ktx = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
+
+coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
+coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
+coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
+
+desugar-libs = { module = "com.android.tools:desugar_jdk_libs", version.ref = "coreLibraryDesugaring" }
+
+dokka-gradle-plugin = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version.ref = "dokka" }
+
+espresso-core = { module = "androidx.test.espresso:espresso-core", version.ref = "espresso" }
+espresso-contrib = { module = "androidx.test.espresso:espresso-contrib", version.ref = "espresso" }
+espresso-intents = { module = "androidx.test.espresso:espresso-intents", version.ref = "espresso" }
+
+gradle-maven-publish = { module = "com.vanniktech:gradle-maven-publish-plugin", version.ref = "gradleMavenPublish" }
+
+jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson" }
+jackson-yaml = { module = "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml", version.ref = "jackson" }
+
+jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup" }
+
+junit = { module = "junit:junit", version.ref = "junit" }
+
+kotlin-binary-compatibility-plugin = { module = "org.jetbrains.kotlinx:binary-compatibility-validator", version.ref = "kotlinBinaryCompatibility" }
+kotlin-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
+kotlin-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinSerialization" }
+kotlin-serialization-okio = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json-okio", version.ref = "kotlinSerialization" }
+kotlin-serialization-plugin = { module = "org.jetbrains.kotlin:kotlin-serialization", version.ref = "kotlin" }
+kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
+kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
+
+leakcanary-android = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanary" }
+
+lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "lifecycle" }
+lifecycle-java8 = { module = "androidx.lifecycle:lifecycle-common-java8", version.ref = "lifecycle" }
+lifecycle-viewmodel-ktx = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "lifecycle" }
+lifecycle-livedata-ktx = { module = "androidx.lifecycle:lifecycle-livedata-ktx", version.ref = "lifecycle" }
+
+material = { module = "com.google.android.material:material", version.ref = "material" }
+
+mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockitoCore" }
+mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version.ref = "mockitoKotlin" }
+
+mockk-android = { module = "io.mockk:mockk-android", version.ref = "mockk" }
+mockk-agent = { module = "io.mockk:mockk-agent", version.ref = "mockk" }
+
+navigation-fragment-ktx = { module = "androidx.navigation:navigation-fragment-ktx", version.ref = "navigation" }
+navigation-ui-ktx = { module = "androidx.navigation:navigation-ui-ktx", version.ref = "navigation" }
+navigation-safe-args-plugin = { module = "androidx.navigation:navigation-safe-args-gradle-plugin", version.ref = "navigation" }
+
+okhttp-core = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
+okhttp-mock-web-server = { module = "com.squareup.okhttp3:mockwebserver", version.ref = "okhttp" }
+okhttp-tls = { module = "com.squareup.okhttp3:okhttp-tls", version.ref = "okhttp" }
+
+okio-core = { module = "com.squareup.okio:okio", version.ref = "okio" }
+okio-jvm = { module = "com.squareup.okio:okio-jvm", version.ref = "okio" }
+
+okta-authn-impl = { module = "com.okta.authn.sdk:okta-authn-sdk-impl", version.ref = "oktaAuthn" }
+okta-authn-api = { module = "com.okta.authn.sdk:okta-authn-sdk-api", version.ref = "oktaAuthn" }
+okta-legacy-oidc = { module = "com.okta.android:okta-oidc-android", version.ref = "oktaLegacyOidc" }
+okta-management-sdk = { module = "com.okta.sdk:okta-sdk-impl", version.ref = "oktaManagement" }
+
+robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
+
+room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
+room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
+room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
+room-testing = { module = "androidx.room:room-testing", version.ref = "room" }
+
+security-crypto = { module = "androidx.security:security-crypto", version.ref = "securityCrypto" }
+spotless = { module = "com.diffplug.spotless:spotless-plugin-gradle", version.ref = "spotless" }
+
+sqlcipher-android = { module = "net.zetetic:sqlcipher-android", version.ref = "sqlcipherAndroid" }
+
+startup-runtime = { module = "androidx.startup:startup-runtime", version.ref = "startupRuntime" }
+
+snakeyaml = { module = "org.yaml:snakeyaml", version.ref = "snakeyaml" }
+
+timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
+truth = { module = "com.google.truth:truth", version.ref = "truth" }
+turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
+
+[plugins]
+
+[bundles]

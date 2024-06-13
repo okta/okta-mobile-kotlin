@@ -1,22 +1,25 @@
+import com.vanniktech.maven.publish.AndroidSingleVariantLibrary
+import org.jetbrains.dokka.gradle.DokkaTaskPartial
+
 buildscript {
-    apply from: 'versions.gradle'
+    apply from: 'utils.gradle'
     addRepos(repositories)
     forceVersions(configurations)
 
     dependencies {
-        classpath deps.android_gradle_plugin
-        classpath deps.dokka_gradle_plugin
-        classpath deps.gradle_maven_publish
-        classpath deps.kotlin.binary_compatibility_plugin
-        classpath deps.kotlin.plugin
-        classpath deps.kotlin.serialization_plugin
-        classpath deps.navigation.safe_args_plugin
-        classpath deps.spotless
+        classpath libs.android.gradle.plugin
+        classpath libs.dokka.gradle.plugin
+        classpath libs.gradle.maven.publish
+        classpath libs.kotlin.binary.compatibility.plugin
+        classpath libs.kotlin.plugin
+        classpath libs.kotlin.serialization.plugin
+        classpath libs.navigation.safe.args.plugin
+        classpath libs.spotless
     }
 }
 
 plugins {
-    id 'com.google.devtools.ksp' version '1.9.10-1.0.13' apply false
+    id 'com.google.devtools.ksp' version '2.0.0-1.0.22' apply false
 }
 
 apply plugin: 'org.jetbrains.dokka'
@@ -33,7 +36,7 @@ allprojects {
 }
 
 subprojects {
-    task allDeps(type: DependencyReportTask) {}
+    tasks.register("allDeps", DependencyReportTask) {}
 }
 
 def configurePublishing(Project project) {
@@ -61,13 +64,13 @@ def configurePublishing(Project project) {
         }
 
         if (project.plugins.hasPlugin('com.android.library')) {
-            project.mavenPublishing.configure(new com.vanniktech.maven.publish.AndroidSingleVariantLibrary("release"))
+            project.mavenPublishing.configure(new AndroidSingleVariantLibrary("release"))
         }
     }
 }
 
 def configureDokka(Project p) {
-    p.tasks.withType(org.jetbrains.dokka.gradle.DokkaTaskPartial).configureEach {
+    p.tasks.withType(DokkaTaskPartial).configureEach {
         dokkaSourceSets {
             configureEach {
                 jdkVersion.set(11)

@@ -47,22 +47,22 @@ android {
 }
 
 dependencies {
-    coreLibraryDesugaring deps.core_library_desugaring
+    coreLibraryDesugaring libs.core.library.desugaring
 
-    api deps.okta.legacy_oidc
+    api libs.okta.legacy.oidc
     api project(':auth-foundation')
-    api deps.kotlin.stdlib
-    api deps.coroutines.core
+    api libs.kotlin.stdlib
+    api libs.coroutines.core
 
-    implementation deps.androidx_annotation
+    implementation libs.androidx.annotation
 
-    testImplementation deps.androidx_test.core_ktx
-    testImplementation deps.junit
-    testImplementation deps.kotlin.test
-    testImplementation deps.mockk.android
-    testImplementation deps.mockk.agent
-    testImplementation deps.robolectric
-    testImplementation deps.bcprov_jdk18on
-    testImplementation deps.truth
+    testImplementation libs.androidx.test.core.ktx
+    testImplementation libs.junit
+    testImplementation libs.kotlin.test
+    testImplementation libs.mockk.android
+    testImplementation libs.mockk.agent
+    testImplementation libs.robolectric
+    testImplementation libs.bcprov.jdk18on
+    testImplementation libs.truth
     testImplementation project(':test-helpers')
 }

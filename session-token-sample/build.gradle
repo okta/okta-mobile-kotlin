@@ -36,6 +36,7 @@ android {
     }
     buildFeatures {
         viewBinding true
+        buildConfig true
     }
     packagingOptions {
         resources {
@@ -48,34 +49,34 @@ android {
 }
 
 dependencies {
-    coreLibraryDesugaring deps.desugar_libs
+    coreLibraryDesugaring libs.desugar.libs
 
     implementation project(':oauth2')
 
-    implementation deps.okta.authn_api
-    runtimeOnly(deps.okta.authn_impl) {
+    implementation libs.okta.authn.api
+    runtimeOnly(libs.okta.authn.impl) {
         exclude group: 'com.okta.sdk', module: 'okta-sdk-httpclient'
         exclude group: 'org.bouncycastle'
     }
-    runtimeOnly(deps.jackson_databind)
-    runtimeOnly(deps.snakeyaml)
+    runtimeOnly(libs.jackson.databind)
+    runtimeOnly(libs.snakeyaml)
 
-    implementation deps.kotlin.stdlib
-    implementation deps.core_ktx
-    implementation deps.app_compat
-    implementation deps.navigation.fragment_ktx
-    implementation deps.navigation.ui_ktx
-    implementation deps.lifecycle.viewmodel_ktx
-    implementation deps.lifecycle.livedata_ktx
-    implementation deps.lifecycle.runtime_ktx
-    implementation deps.lifecycle.java8
-    implementation deps.material
-    implementation deps.coroutines.android
-    implementation deps.okhttp.core
-    implementation deps.okhttp.tls
-    implementation deps.okio.core
-    implementation deps.okio.jvm
-    implementation deps.timber
+    implementation libs.kotlin.stdlib
+    implementation libs.core.ktx
+    implementation libs.app.compat
+    implementation libs.navigation.fragment.ktx
+    implementation libs.navigation.ui.ktx
+    implementation libs.lifecycle.viewmodel.ktx
+    implementation libs.lifecycle.livedata.ktx
+    implementation libs.lifecycle.runtime.ktx
+    implementation libs.lifecycle.java8
+    implementation libs.material
+    implementation libs.coroutines.android
+    implementation libs.okhttp.core
+    implementation libs.okhttp.tls
+    implementation libs.okio.core
+    implementation libs.okio.jvm
+    implementation libs.timber
 
-    debugImplementation deps.leakcanary.android
+    debugImplementation libs.leakcanary.android
 }
