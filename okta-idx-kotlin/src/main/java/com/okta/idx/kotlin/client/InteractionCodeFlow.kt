@@ -41,7 +41,7 @@ import com.okta.idx.kotlin.dto.v1.Response as V1Response
 /**
  * The InteractionCodeFlow class is used to define and initiate an authentication workflow utilizing the Okta Identity Engine.
  */
-class InteractionCodeFlow(private val client: OAuth2Client) {
+class InteractionCodeFlow(val client: OAuth2Client) {
     companion object {
         init {
             SdkVersionsRegistry.register(SDK_VERSION)
