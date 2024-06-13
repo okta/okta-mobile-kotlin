@@ -70,8 +70,11 @@ The `InteractionCodeFlow` class is used to define and initiate an authentication
 
 This class makes heavy use of [Kotlin Coroutines][kotlin-coroutines] to perform the actions asynchronously.
 
-#### OidcClient.createInteractionCodeFlow
-The `createInteractionCodeFlow` extension method on `OidcClient` is used to create an `InteractionCodeFlow`, and to start an authorization flow.
+#### Constructing InteractionCodeFlow
+`InteractionCodeFlow` can be instantiated with `OAuth2Client.default` by using the default constructor `InteractionCodeFlow()`. Alternatively, a non-default `OAuth2Client` or `OidcConfiguration` can be provided.
+
+#### InteractionCodeFlow.start
+The `start` method starts the authentication flow, and returns the result as `OAuth2ClientResult<Unit>`. The result is empty on success, and an error in form `OAuth2ClientResult.Error` in case of an error.
 
 #### InteractionCodeFlow.resume
 The `resume` method on an `InteractionCodeFlow` is used to reveal the current remediations.

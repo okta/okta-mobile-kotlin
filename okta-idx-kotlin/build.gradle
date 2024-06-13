@@ -56,9 +56,13 @@ dependencies {
     api libs.coroutines.android
     api libs.okta.auth.foundation
 
+    implementation libs.androidx.datastore.preferences
     implementation libs.kotlin.serialization.json
     implementation libs.okio.jvm
+    implementation libs.security.crypto
 
+    testImplementation libs.androidx.test.ext.junit
+    testImplementation libs.coroutines.test
     testImplementation libs.junit
     testImplementation libs.okhttp.mock.web.server
     testImplementation libs.okhttp.tls

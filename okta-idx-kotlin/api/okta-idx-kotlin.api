@@ -1,3 +1,17 @@
+public final class com/okta/authfoundation/client/DeviceTokenProvider {
+	public static final field Companion Lcom/okta/authfoundation/client/DeviceTokenProvider$Companion;
+	public static final field PREFERENCE_NAME Ljava/lang/String;
+	public fun <init> ()V
+	public fun <init> (Lcom/okta/authfoundation/util/AesEncryptionHandler;)V
+	public synthetic fun <init> (Lcom/okta/authfoundation/util/AesEncryptionHandler;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getDeviceToken (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class com/okta/authfoundation/client/DeviceTokenProvider$Companion {
+	public final fun getInstance ()Lcom/okta/authfoundation/client/DeviceTokenProvider;
+	public final fun getPREFERENCE_KEY ()Landroidx/datastore/preferences/core/Preferences$Key;
+}
+
 public abstract class com/okta/idx/kotlin/client/IdxRedirectResult {
 }
 
