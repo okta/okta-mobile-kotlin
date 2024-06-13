@@ -149,8 +149,13 @@ internal class InteractContext private constructor(
         ): InteractContext? {
             val codeChallenge = PkceGenerator.codeChallenge(codeVerifier)
             val endpoints = client.endpointsOrNull() ?: return null
-            val urlBuilder = endpoints.issuer.newBuilder()
-                .addPathSegments("v1/interact")
+            val urlBuilder = endpoints.issuer.newBuilder().apply {
+                if (endpoints.issuer.pathSegments.contains("oauth2")) {
+                    addPathSegments("v1/interact")
+                } else {
+                    addPathSegments("oauth2/v1/interact")
+                }
+            }
 
             val formBody = FormBody.Builder()
                 .add("client_id", client.configuration.clientId)

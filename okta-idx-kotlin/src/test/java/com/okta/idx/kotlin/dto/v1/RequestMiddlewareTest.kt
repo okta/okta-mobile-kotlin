@@ -17,12 +17,17 @@ package com.okta.idx.kotlin.dto.v1
 
 import com.google.common.truth.Truth.assertThat
 import com.okta.authfoundation.client.OAuth2Client
+import com.okta.authfoundation.client.OidcConfiguration
+import com.okta.authfoundation.client.OidcEndpoints
 import com.okta.idx.kotlin.client.InteractionCodeFlowContext
 import com.okta.idx.kotlin.dto.createField
 import com.okta.idx.kotlin.dto.createRemediation
 import com.okta.testing.network.NetworkRule
 import com.okta.testing.network.RequestMatchers.path
+import io.mockk.every
+import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.mockwebserver.SocketPolicy
@@ -96,6 +101,35 @@ class RequestMiddlewareTest {
         assertThat(interactContext.maxAge).isNull()
         val request = interactContext.request
         assertThat(request.url.toString()).endsWith("/oauth2/default/v1/interact")
+        assertThat(request.method).isEqualTo("POST")
+        val buffer = Buffer()
+        request.body?.writeTo(buffer)
+        assertThat(buffer.readUtf8()).isEqualTo("client_id=test&scope=openid%20email%20profile%20offline_access&code_challenge=JBP7NwmwWTnwTPLpL30Il_wllvmtC4qeqFXHv-uq6JI&code_challenge_method=S256&redirect_uri=test.okta.com%2Flogin&state=randomGen&nonce=exampleNonce")
+        assertThat(request.body?.contentType()).isEqualTo("application/x-www-form-urlencoded".toMediaType())
+    }
+
+    @Test
+    fun `InteractContext with org auth server appends oauth to path`() = runTest {
+        val exampleUrl = "https://example.com".toHttpUrl()
+        val endpoints = mockk<OidcEndpoints> {
+            every { issuer } returns exampleUrl
+        }
+        val oAuth2Client = OAuth2Client.create(
+            OidcConfiguration(
+                issuer = exampleUrl.toString(),
+                clientId = "test",
+                defaultScope = "openid email profile offline_access"
+            ),
+            endpoints
+        )
+
+        val interactContext = InteractContext.create(oAuth2Client, "test.okta.com/login", codeVerifier = "asdfasdf", state = "randomGen", nonce = "exampleNonce")!!
+        assertThat(interactContext.codeVerifier).isEqualTo("asdfasdf")
+        assertThat(interactContext.state).isEqualTo("randomGen")
+        assertThat(interactContext.nonce).isEqualTo("exampleNonce")
+        assertThat(interactContext.maxAge).isNull()
+        val request = interactContext.request
+        assertThat(request.url.toString()).endsWith("/oauth2/v1/interact")
         assertThat(request.method).isEqualTo("POST")
         val buffer = Buffer()
         request.body?.writeTo(buffer)
