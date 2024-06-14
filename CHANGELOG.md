@@ -1,5 +1,14 @@
 # Changelog
 
+## [3.0.0] 2024-06-14
+
+[Commits](https://github.com/okta/okta-idx-android/compare/2.4.1...3.0.0)
+
+### Changed
+- Update AuthFoundation to 2.0. By updating to AuthFoundation 2.0, initializing `InteractionCodeFlow` has changed from `oidcClient.createInteractionCodeFlow` to `InteractionCodeFlow`. Users must perform an additional `InteractionCodeFlow.start` call before calling `InteractionCodeFlow.resume`.
+- AuthFoundation 2.0 is a major version release with breaking API changes. As a result, okta-idx-android is also a major version release. See okta-mobile-kotlin [migration guide from 1.x to 2.x](https://github.com/okta/okta-mobile-kotlin?tab=readme-ov-file#migrating-from-okta-mobile-kotlin-1x-to-2x).
+- Root level org auth URLs are now supported with this release.
+
 ## [2.4.1] 2024-03-20
 
 ### Changed
