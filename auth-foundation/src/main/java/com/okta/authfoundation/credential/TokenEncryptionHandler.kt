@@ -298,8 +298,7 @@ class DefaultTokenEncryptionHandler(
         encryptionExtras: Map<String, String>,
         rsaDecryptFunc: suspend (encryptedAesKey: ByteArray) -> ByteArray
     ): Token {
-        val encryptedAesKeyMaterial =
-            Base64.decode(encryptionExtras[ENCRYPTED_AES_KEY_MATERIAL], Base64.NO_WRAP)
+        val encryptedAesKeyMaterial = Base64.decode(encryptionExtras[ENCRYPTED_AES_KEY_MATERIAL], Base64.NO_WRAP)
         val aesKeyMaterial = rsaDecryptFunc(encryptedAesKeyMaterial).decodeToString().split(
             BASE64_SEPARATOR, limit = 2
         )
