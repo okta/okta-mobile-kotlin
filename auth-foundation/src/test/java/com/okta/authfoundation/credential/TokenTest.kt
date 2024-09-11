@@ -18,7 +18,6 @@ package com.okta.authfoundation.credential
 import com.google.common.truth.Truth.assertThat
 import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.testhelpers.OktaRule
-import io.mockk.mockk
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
@@ -38,7 +37,7 @@ class TokenTest {
           "access_token": "exampleAccessToken"
         }
         """.trimIndent()
-        val token = oktaRule.configuration.json.decodeFromString(SerializableToken.serializer(), json).asToken("id", mockk())
+        val token = oktaRule.configuration.json.decodeFromString(SerializableToken.serializer(), json).asToken("id", oktaRule.configuration)
         assertThat(token.tokenType).isEqualTo("Bearer")
         assertThat(token.expiresIn).isEqualTo(3600)
         assertThat(token.accessToken).isEqualTo("exampleAccessToken")
@@ -47,6 +46,7 @@ class TokenTest {
         assertThat(token.idToken).isNull()
         assertThat(token.deviceSecret).isNull()
         assertThat(token.issuedTokenType).isNull()
+        assertThat(token.issuedAt).isEqualTo(oktaRule.clock.currentTime)
     }
 
     @Test fun testDeserializingDefault() {
@@ -60,13 +60,14 @@ class TokenTest {
           "id_token": "exampleIdToken"
         }
         """.trimIndent()
-        val token = oktaRule.configuration.json.decodeFromString(SerializableToken.serializer(), json).asToken("id", mockk())
+        val token = oktaRule.configuration.json.decodeFromString(SerializableToken.serializer(), json).asToken("id", oktaRule.configuration)
         assertThat(token.tokenType).isEqualTo("Bearer")
         assertThat(token.expiresIn).isEqualTo(3600)
         assertThat(token.accessToken).isEqualTo("exampleAccessToken")
         assertThat(token.scope).isEqualTo("offline_access profile openid email")
         assertThat(token.refreshToken).isEqualTo("exampleRefreshToken")
         assertThat(token.idToken).isEqualTo("exampleIdToken")
+        assertThat(token.issuedAt).isEqualTo(oktaRule.clock.currentTime)
     }
 
     @Test fun testDeserializingWithDeviceSecret() {
@@ -81,7 +82,7 @@ class TokenTest {
           "device_secret": "exampleDeviceSecret"
         }
         """.trimIndent()
-        val token = oktaRule.configuration.json.decodeFromString(SerializableToken.serializer(), json).asToken("id", mockk())
+        val token = oktaRule.configuration.json.decodeFromString(SerializableToken.serializer(), json).asToken("id", oktaRule.configuration)
         assertThat(token.tokenType).isEqualTo("Bearer")
         assertThat(token.expiresIn).isEqualTo(3600)
         assertThat(token.accessToken).isEqualTo("exampleAccessToken")
@@ -103,7 +104,7 @@ class TokenTest {
           "issued_token_type": "urn:ietf:params:oauth:token-type:access_token"
         }
         """.trimIndent()
-        val token = oktaRule.configuration.json.decodeFromString(SerializableToken.serializer(), json).asToken("id", mockk())
+        val token = oktaRule.configuration.json.decodeFromString(SerializableToken.serializer(), json).asToken("id", oktaRule.configuration)
         assertThat(token.tokenType).isEqualTo("Bearer")
         assertThat(token.expiresIn).isEqualTo(3600)
         assertThat(token.accessToken).isEqualTo("exampleAccessToken")
@@ -153,6 +154,56 @@ class TokenTest {
             {"token_type":"Bearer","expires_in":3600,"access_token":"a","scope":"b","refresh_token":"c","id_token":"d","device_secret":"e","issued_token_type":"f"}
             """.trimIndent()
         )
+    }
+
+    @Test
+    fun `test deserializing without issuedAt`() {
+        val json = """
+            {
+                "id": "id",
+                "tokenType": "Bearer",
+                "expiresIn": 3600,
+                "accessToken": "accessToken",
+                "scope": null,
+                "refreshToken": null,
+                "idToken": null,
+                "deviceSecret": null,
+                "issuedTokenType": null,
+                "oidcConfiguration": {
+                    "clientId": "clientId",
+                    "defaultScope": "defaultScope",
+                    "discoveryUrl": "issuer/.well-known/openid-configuration"
+                }
+            }
+        """.trimIndent()
+        val token = oktaRule.configuration.json.decodeFromString(Token.serializer(), json)
+        assertThat(token.issuedAt).isEqualTo(oktaRule.clock.currentTime - token.expiresIn)
+    }
+
+    @Test
+    fun `test deserializing with issuedAt`() {
+        val issuedAt = 1234
+        val json = """
+            {
+                "id": "id",
+                "tokenType": "Bearer",
+                "expiresIn": 3600,
+                "accessToken": "accessToken",
+                "scope": null,
+                "refreshToken": null,
+                "idToken": null,
+                "deviceSecret": null,
+                "issuedTokenType": null,
+                "oidcConfiguration": {
+                    "clientId": "clientId",
+                    "defaultScope": "defaultScope",
+                    "discoveryUrl": "issuer/.well-known/openid-configuration"
+                },
+                "issuedAt": $issuedAt
+            }
+        """.trimIndent()
+        val token = oktaRule.configuration.json.decodeFromString(Token.serializer(), json)
+        assertThat(token.issuedAt).isEqualTo(issuedAt)
     }
 
     @Test fun `test fetching claims from Token Metadata`() {

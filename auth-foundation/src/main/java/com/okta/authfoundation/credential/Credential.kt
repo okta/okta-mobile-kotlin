@@ -551,18 +551,21 @@ class Credential internal constructor(
      * See [Credential.introspectToken] for checking if the token is valid with the Authorization Server.
      */
     fun getAccessTokenIfValid(): String? {
-        val idToken = idToken() ?: return null
         val accessToken = token.accessToken
         val expiresIn = token.expiresIn
-        try {
-            val payload = idToken.deserializeClaims(TokenIssuedAtPayload.serializer())
-            if (payload.issueAt + expiresIn > client.configuration.clock.currentTimeEpochSecond()) {
-                return accessToken
-            }
-        } catch (e: Exception) {
-            // Failed to parse access token JWT.
+        if (issuedAt() + expiresIn > client.configuration.clock.currentTimeEpochSecond()) {
+            return accessToken
         }
         return null
+    }
+
+    private fun issuedAt(): Long {
+        return try {
+            idToken()?.deserializeClaims(TokenIssuedAtPayload.serializer())?.issueAt
+        } catch (e: Exception) {
+            // Failed to parse id token JWT. Return token.issuedAt
+            null
+        } ?: token.issuedAt
     }
 
     /**
@@ -621,6 +624,6 @@ class Credential internal constructor(
 }
 
 @Serializable
-private class TokenIssuedAtPayload(
+internal class TokenIssuedAtPayload(
     @SerialName("iat") val issueAt: Long,
 )

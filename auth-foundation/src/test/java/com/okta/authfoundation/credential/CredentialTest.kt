@@ -64,7 +64,7 @@ import kotlin.test.assertFailsWith
 class CredentialTest {
     @get:Rule val oktaRule = OktaRule()
 
-    private val token = createToken()
+    private val token = createToken(issuedAt = 0L)
     private lateinit var credentialDataSource: CredentialDataSource
     private lateinit var client: OAuth2Client
     private lateinit var defaultCredentialIdDataStore: DefaultCredentialIdDataStore
@@ -694,20 +694,40 @@ class CredentialTest {
         assertThat(credential.getAccessTokenIfValid()).isEqualTo(accessToken)
     }
 
-    @Test fun accessTokenIfValidReturnsNullIfIdTokenIsNull(): Unit = runTest {
+    @Test
+    fun `accessTokenIfValid returns null if idToken is null and expiry time is passed`() = runTest {
         val accessToken = "exampleAccessToken"
-        val credential = oktaRule.createCredential(token = createToken(accessToken = accessToken, idToken = null))
-        assertThat(credential.getAccessTokenIfValid()).isNull()
+        val credential = oktaRule.createCredential(token = createToken(accessToken = accessToken, issuedAt = oktaRule.clock.currentTime - MOCK_TOKEN_DURATION))
+        assertThat(credential.getAccessTokenIfValid()).isEqualTo(null)
     }
 
-    @Test fun accessTokenIfValidReturnsNullIfIdTokenDoesNotContainRequiredPayload(): Unit = runTest {
+    @Test
+    fun `accessTokenIfValid returns access token even if idToken is null`() = runTest {
+        val accessToken = "exampleAccessToken"
+        val credential = oktaRule.createCredential(token = createToken(accessToken = accessToken, issuedAt = oktaRule.clock.currentTime))
+        assertThat(credential.getAccessTokenIfValid()).isEqualTo(accessToken)
+    }
+
+    @Test
+    fun `accessTokenIfValid returns null if idToken does not contain required payload and issuedAt is past expiry time`(): Unit = runTest {
         @Serializable
         class EmptyClaims
 
         val accessToken = "exampleAccessToken"
         val idToken = oktaRule.createOAuth2Client().createJwtBuilder().createJwt(claims = EmptyClaims()).rawValue
-        val credential = oktaRule.createCredential(token = createToken(accessToken = accessToken, idToken = idToken))
+        val credential = oktaRule.createCredential(token = createToken(accessToken = accessToken, idToken = idToken, issuedAt = oktaRule.clock.currentTime - MOCK_TOKEN_DURATION))
         assertThat(credential.getAccessTokenIfValid()).isNull()
+    }
+
+    @Test
+    fun `accessTokenIfValid returns accessToken if idToken does not contain required payload but issuedAt is not expired`(): Unit = runTest {
+        @Serializable
+        class EmptyClaims
+
+        val accessToken = "exampleAccessToken"
+        val idToken = oktaRule.createOAuth2Client().createJwtBuilder().createJwt(claims = EmptyClaims()).rawValue
+        val credential = oktaRule.createCredential(token = createToken(accessToken = accessToken, idToken = idToken, issuedAt = oktaRule.clock.currentTime))
+        assertThat(credential.getAccessTokenIfValid()).isEqualTo(accessToken)
     }
 
     @Test fun getValidAccessTokenReturnsAccessToken(): Unit = runTest {
