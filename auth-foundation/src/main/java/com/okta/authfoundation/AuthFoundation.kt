@@ -22,4 +22,8 @@ object AuthFoundation {
     fun initializeAndroidContext(context: Context) {
         ApplicationContextHolder.setApplicationContext(context)
     }
+
+    internal suspend fun initializeStorage() {
+        AuthFoundationDefaults.tokenStorageFactory()
+    }
 }

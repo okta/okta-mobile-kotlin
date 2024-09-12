@@ -21,6 +21,7 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
+import com.okta.authfoundation.AuthFoundation
 import com.okta.authfoundation.client.ApplicationContextHolder
 import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.credential.DefaultCredentialIdDataStore
@@ -33,9 +34,12 @@ import com.okta.authfoundation.credential.storage.migration.V1ToV2StorageMigrato
 import com.okta.authfoundation.credential.storage.migration.V1ToV2StorageMigrator.Companion.LEGACY_DEFAULT_CREDENTIAL_NAME_TAG_VALUE
 import com.okta.testhelpers.MockAesEncryptionHandler
 import com.okta.testhelpers.TestTokenEncryptionHandler
+import io.mockk.coEvery
 import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
 import io.mockk.mockkObject
+import io.mockk.runs
 import io.mockk.unmockkAll
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -77,6 +81,8 @@ class V1ToV2StorageMigratorTest {
         every { OidcConfiguration.default } returns OidcConfiguration("clientId", "defaultScope", "issuer")
         mockkObject(V1ToV2StorageMigrator)
         every { V1ToV2StorageMigrator.legacyKeyGenParameterSpec } returns mockk()
+        mockkObject(AuthFoundation)
+        coEvery { AuthFoundation.initializeStorage() } just runs
     }
 
     @After

@@ -19,6 +19,7 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
+import com.okta.authfoundation.AuthFoundation
 import com.okta.authfoundation.client.ApplicationContextHolder
 import com.okta.authfoundation.credential.events.CredentialCreatedEvent
 import com.okta.authfoundation.credential.storage.TokenDatabase
@@ -28,7 +29,9 @@ import com.okta.testhelpers.TestTokenEncryptionHandler
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
+import io.mockk.just
 import io.mockk.mockkObject
+import io.mockk.runs
 import io.mockk.spyk
 import io.mockk.unmockkAll
 import kotlinx.coroutines.test.runTest
@@ -62,6 +65,8 @@ class CredentialDataSourceTest {
         every { ApplicationContextHolder.appContext } returns ApplicationProvider.getApplicationContext()
         mockkObject(DefaultCredentialIdDataStore)
         every { DefaultCredentialIdDataStore.instance } returns DefaultCredentialIdDataStore(MockAesEncryptionHandler.getInstance())
+        mockkObject(AuthFoundation)
+        coEvery { AuthFoundation.initializeStorage() } just runs
     }
 
     @Test fun `test allIds returns all token IDs from token storage`() = runTest {
