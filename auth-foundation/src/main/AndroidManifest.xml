@@ -6,7 +6,9 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
 
-    <application>
+    <application
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/full_backup_content">
         <activity
             android:name=".BiometricDecryptionActivity"
             android:theme="@style/Theme.AppCompat.Transparent"

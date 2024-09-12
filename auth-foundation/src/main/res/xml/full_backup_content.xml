@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<full-backup-content>
+    <exclude domain="file" path="datastore/com.okta.authfoundation.client.encryptionToken.preferences_pb"/>
+    <exclude domain="file" path="datastore/com.okta.authfoundation.credential.defaultCredentialIdDataStore.preferences_pb"/>
+    <exclude domain="file" path="datastore/com.okta.authfoundation.credential.storage.isStorageMigratedFromV1.preferences_pb"/>
+    <exclude domain="file" path="datastore/com.okta.idx.client.deviceToken.preferences_pb"/>
+    <exclude domain="database" path="token_database"/>
+    <exclude domain="database" path="token_database-wal"/>
+    <exclude domain="database" path="token_database-shm"/>
+</full-backup-content>
