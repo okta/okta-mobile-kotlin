@@ -29,6 +29,7 @@ import com.okta.oidc.Tokens
 import com.okta.oidc.clients.sessions.SessionClient
 import com.okta.oidc.util.AuthorizationException
 import com.okta.testhelpers.OktaRule
+import com.okta.testhelpers.TestClock
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -117,7 +118,9 @@ class LegacyTokenMigrationTest {
             idToken = "ExampleIdToken",
             deviceSecret = null,
             issuedTokenType = null,
-            oidcConfiguration = mockk()
+            oidcConfiguration = mockk {
+                every { clock } returns TestClock()
+            }
         )
         coVerify { credentialDataSource.createCredential(token) }
     }
