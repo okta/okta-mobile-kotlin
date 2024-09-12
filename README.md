@@ -80,6 +80,11 @@ SDKs are split between two primary use cases:
   - Okta supports many OAuth flows, our Android SDKs support the following: Authorization Code, Interaction Code, Refresh Token, Resource Owner Password, Device Authorization, and Token Exchange.
 - Managing the token lifecycle (refresh, storage, validation, etc)
 
+### Auto backup rules
+
+This SDK uses on-device encryption keys to store data. Because of this, the SDK files should not be backed up. This SDK provides backup rules to exclude files automatically.
+But, if your application provides its own backup rules by specifying `android:dataExtractionRules` or `android:fullBackupContent`, please include SDK backup rules as specified in [data_extraction_rules](auth-foundation/src/main/res/xml/data_extraction_rules.xml) and [full_backup_content](auth-foundation/src/main/res/xml/full_backup_content.xml).
+
 ### Kotlin Coroutines
 [Kotlin Coroutines](https://kotlinlang.org/docs/coroutines-overview.html) are used extensively throughout the SDKs. All methods can be used via any thread (including the main thread), and will switch to a background thread internally when performing network IO or expensive computation.
 
