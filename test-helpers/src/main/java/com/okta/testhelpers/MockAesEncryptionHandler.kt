@@ -18,12 +18,15 @@ package com.okta.testhelpers
 import com.okta.authfoundation.InternalAuthFoundationApi
 import com.okta.authfoundation.util.AesEncryptionHandler
 import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
+import io.mockk.runs
 
 @InternalAuthFoundationApi
 object MockAesEncryptionHandler {
-    val instance = mockk<AesEncryptionHandler>().apply {
+    fun getInstance() = mockk<AesEncryptionHandler>().apply {
         every { encryptString(any()) } returnsArgument 0
         every { decryptString(any()) } returnsArgument 0
+        every { resetEncryptionKey() } just runs
     }
 }

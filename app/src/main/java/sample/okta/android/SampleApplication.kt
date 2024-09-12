@@ -20,7 +20,7 @@ import android.app.Application
 import android.content.Context
 import com.okta.authfoundation.AuthFoundation
 import com.okta.authfoundation.client.OidcConfiguration
-import com.okta.authfoundation.credential.RecoveryUtil
+import com.okta.authfoundation.credential.TokenDbRecoveryUtil
 import timber.log.Timber
 
 class SampleApplication : Application() {
@@ -43,6 +43,6 @@ class SampleApplication : Application() {
             issuer = BuildConfig.ISSUER
         )
         // Use this in case token database is corrupted due to automatic backup/restore
-        RecoveryUtil.setupDatabaseRecovery()
+        TokenDbRecoveryUtil.setupDatabaseRecovery()
     }
 }

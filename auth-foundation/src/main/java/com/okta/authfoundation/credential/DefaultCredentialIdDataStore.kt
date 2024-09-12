@@ -40,7 +40,7 @@ internal class DefaultCredentialIdDataStore(
     suspend fun getDefaultCredentialId(): String? {
         val encryptedDefaultCredentialId = context.dataStore.data.firstOrNull()?.get(PREFERENCE_KEY)
         return encryptedDefaultCredentialId?.let {
-            aesEncryptionHandler.decryptString(it)
+            aesEncryptionHandler.decryptString(it).getOrNull()
         }
     }
 
