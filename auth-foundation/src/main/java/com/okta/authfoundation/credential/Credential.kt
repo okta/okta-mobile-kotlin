@@ -553,19 +553,10 @@ class Credential internal constructor(
     fun getAccessTokenIfValid(): String? {
         val accessToken = token.accessToken
         val expiresIn = token.expiresIn
-        if (issuedAt() + expiresIn > client.configuration.clock.currentTimeEpochSecond()) {
+        if (token.issuedAt + expiresIn > client.configuration.clock.currentTimeEpochSecond()) {
             return accessToken
         }
         return null
-    }
-
-    private fun issuedAt(): Long {
-        return try {
-            idToken()?.deserializeClaims(TokenIssuedAtPayload.serializer())?.issueAt
-        } catch (e: Exception) {
-            // Failed to parse id token JWT. Return token.issuedAt
-            null
-        } ?: token.issuedAt
     }
 
     /**

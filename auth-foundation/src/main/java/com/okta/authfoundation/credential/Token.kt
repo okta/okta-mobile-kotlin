@@ -31,7 +31,7 @@ import java.util.Objects
  * Token information representing a user's access to a resource server, including access token, refresh token, and other related information.
  */
 @Serializable
-class Token @OptIn(ExperimentalSerializationApi::class) constructor(
+class Token @OptIn(ExperimentalSerializationApi::class) private constructor(
     internal val id: String,
     /**
      * The string type of the token (e.g. `Bearer`).
@@ -72,6 +72,31 @@ class Token @OptIn(ExperimentalSerializationApi::class) constructor(
     @EncodeDefault
     internal val issuedAt: Long = oidcConfiguration.clock.currentTimeEpochSecond() - expiresIn,
 ) {
+    constructor(
+        id: String,
+        tokenType: String,
+        expiresIn: Int,
+        accessToken: String,
+        scope: String?,
+        refreshToken: String?,
+        idToken: String?,
+        deviceSecret: String?,
+        issuedTokenType: String?,
+        oidcConfiguration: OidcConfiguration,
+    ) : this(
+        id,
+        tokenType,
+        expiresIn,
+        accessToken,
+        scope,
+        refreshToken,
+        idToken,
+        deviceSecret,
+        issuedTokenType,
+        oidcConfiguration,
+        getIssuedTime(idToken, oidcConfiguration)
+    )
+
     internal fun asSerializableToken(): SerializableToken {
         return SerializableToken(
             tokenType = tokenType,
@@ -100,8 +125,7 @@ class Token @OptIn(ExperimentalSerializationApi::class) constructor(
             idToken = idToken,
             deviceSecret = deviceSecret,
             issuedTokenType = issuedTokenType,
-            oidcConfiguration = oidcConfiguration,
-            issuedAt = getIssuedTime(idToken, oidcConfiguration)
+            oidcConfiguration = oidcConfiguration
         )
     }
 
@@ -167,7 +191,7 @@ class Token @OptIn(ExperimentalSerializationApi::class) constructor(
     }
 
     companion object {
-        internal fun getIssuedTime(idToken: String?, oidcConfiguration: OidcConfiguration): Long {
+        private fun getIssuedTime(idToken: String?, oidcConfiguration: OidcConfiguration): Long {
             val payload = idToken?.let {
                 try {
                     val parser =
@@ -206,8 +230,7 @@ internal class SerializableToken internal constructor(
             idToken = idToken,
             deviceSecret = deviceSecret,
             issuedTokenType = issuedTokenType,
-            oidcConfiguration = oidcConfiguration,
-            issuedAt = Token.getIssuedTime(idToken, oidcConfiguration)
+            oidcConfiguration = oidcConfiguration
         )
     }
 }

@@ -64,7 +64,7 @@ import kotlin.test.assertFailsWith
 class CredentialTest {
     @get:Rule val oktaRule = OktaRule()
 
-    private val token = createToken(issuedAt = 0L)
+    private val token = createToken()
     private lateinit var credentialDataSource: CredentialDataSource
     private lateinit var client: OAuth2Client
     private lateinit var defaultCredentialIdDataStore: DefaultCredentialIdDataStore
@@ -697,14 +697,15 @@ class CredentialTest {
     @Test
     fun `accessTokenIfValid returns null if idToken is null and expiry time is passed`() = runTest {
         val accessToken = "exampleAccessToken"
-        val credential = oktaRule.createCredential(token = createToken(accessToken = accessToken, issuedAt = oktaRule.clock.currentTime - MOCK_TOKEN_DURATION))
+        val credential = oktaRule.createCredential(token = createToken(accessToken = accessToken))
+        expireToken()
         assertThat(credential.getAccessTokenIfValid()).isEqualTo(null)
     }
 
     @Test
     fun `accessTokenIfValid returns access token even if idToken is null`() = runTest {
         val accessToken = "exampleAccessToken"
-        val credential = oktaRule.createCredential(token = createToken(accessToken = accessToken, issuedAt = oktaRule.clock.currentTime))
+        val credential = oktaRule.createCredential(token = createToken(accessToken = accessToken))
         assertThat(credential.getAccessTokenIfValid()).isEqualTo(accessToken)
     }
 
@@ -715,7 +716,8 @@ class CredentialTest {
 
         val accessToken = "exampleAccessToken"
         val idToken = oktaRule.createOAuth2Client().createJwtBuilder().createJwt(claims = EmptyClaims()).rawValue
-        val credential = oktaRule.createCredential(token = createToken(accessToken = accessToken, idToken = idToken, issuedAt = oktaRule.clock.currentTime - MOCK_TOKEN_DURATION))
+        val credential = oktaRule.createCredential(token = createToken(accessToken = accessToken, idToken = idToken))
+        expireToken()
         assertThat(credential.getAccessTokenIfValid()).isNull()
     }
 
@@ -726,7 +728,7 @@ class CredentialTest {
 
         val accessToken = "exampleAccessToken"
         val idToken = oktaRule.createOAuth2Client().createJwtBuilder().createJwt(claims = EmptyClaims()).rawValue
-        val credential = oktaRule.createCredential(token = createToken(accessToken = accessToken, idToken = idToken, issuedAt = oktaRule.clock.currentTime))
+        val credential = oktaRule.createCredential(token = createToken(accessToken = accessToken, idToken = idToken))
         assertThat(credential.getAccessTokenIfValid()).isEqualTo(accessToken)
     }
 
@@ -850,6 +852,7 @@ class CredentialTest {
 
     @Test fun testGetUserInfoNoToken(): Unit = runTest {
         val credential = oktaRule.createCredential(token)
+        expireToken()
         val result = credential.getUserInfo() as OAuth2ClientResult.Error<OidcUserInfo>
         assertThat(result.exception).hasMessageThat().isEqualTo("No Access Token.")
         assertThat(result.exception).isInstanceOf(IllegalStateException::class.java)
@@ -969,6 +972,10 @@ class CredentialTest {
     @Test fun equalsReturnsFalseWhenDifferentType() {
         val credential = oktaRule.createCredential(token = createToken())
         assertThat(credential).isNotEqualTo("Nope!")
+    }
+
+    private fun expireToken() {
+        oktaRule.clock.currentTime += MOCK_TOKEN_DURATION
     }
 
     private val defaultCredentialDataSource: CredentialDataSource

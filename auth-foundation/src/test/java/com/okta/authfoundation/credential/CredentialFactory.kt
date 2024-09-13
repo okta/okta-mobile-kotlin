@@ -25,7 +25,6 @@ fun createToken(
     refreshToken: String? = null,
     deviceSecret: String? = null,
     oidcConfiguration: OidcConfiguration = OidcConfiguration("clientId", "defaultScope", "issuer"),
-    issuedAt: Long = oidcConfiguration.clock.currentTimeEpochSecond(),
 ): Token {
     return Token(
         id = id,
@@ -37,8 +36,7 @@ fun createToken(
         deviceSecret = deviceSecret,
         idToken = idToken,
         issuedTokenType = null,
-        oidcConfiguration = oidcConfiguration,
-        issuedAt = issuedAt
+        oidcConfiguration = oidcConfiguration
     )
 }
 

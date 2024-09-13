@@ -500,8 +500,7 @@ public final class com/okta/authfoundation/credential/RoomTokenStorage$Companion
 
 public final class com/okta/authfoundation/credential/Token {
 	public static final field Companion Lcom/okta/authfoundation/credential/Token$Companion;
-	public fun <init> (Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lcom/okta/authfoundation/client/OidcConfiguration;J)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lcom/okta/authfoundation/client/OidcConfiguration;JILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lcom/okta/authfoundation/client/OidcConfiguration;)V
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getAccessToken ()Ljava/lang/String;
 	public final fun getDeviceSecret ()Ljava/lang/String;
