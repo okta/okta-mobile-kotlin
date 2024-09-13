@@ -42,8 +42,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.transformWhile
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import java.util.Collections
@@ -613,8 +611,3 @@ class Credential internal constructor(
         )
     }
 }
-
-@Serializable
-internal class TokenIssuedAtPayload(
-    @SerialName("iat") val issueAt: Long,
-)

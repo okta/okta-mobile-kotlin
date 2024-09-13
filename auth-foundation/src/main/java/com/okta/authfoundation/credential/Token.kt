@@ -234,3 +234,8 @@ internal class SerializableToken internal constructor(
         )
     }
 }
+
+@Serializable
+private class TokenIssuedAtPayload(
+    @SerialName("iat") val issueAt: Long,
+)
