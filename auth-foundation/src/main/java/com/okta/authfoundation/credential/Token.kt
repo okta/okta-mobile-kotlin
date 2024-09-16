@@ -19,6 +19,9 @@ import com.okta.authfoundation.claims.ClaimsProvider
 import com.okta.authfoundation.claims.DefaultClaimsProvider
 import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.jwt.Jwt
+import com.okta.authfoundation.jwt.JwtParser
+import kotlinx.serialization.EncodeDefault
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
@@ -28,7 +31,7 @@ import java.util.Objects
  * Token information representing a user's access to a resource server, including access token, refresh token, and other related information.
  */
 @Serializable
-class Token constructor(
+class Token @OptIn(ExperimentalSerializationApi::class) private constructor(
     internal val id: String,
     /**
      * The string type of the token (e.g. `Bearer`).
@@ -66,7 +69,34 @@ class Token constructor(
      * The configuration that was used to fetch this token.
      */
     val oidcConfiguration: OidcConfiguration,
+    @EncodeDefault
+    internal val issuedAt: Long = oidcConfiguration.clock.currentTimeEpochSecond() - expiresIn,
 ) {
+    constructor(
+        id: String,
+        tokenType: String,
+        expiresIn: Int,
+        accessToken: String,
+        scope: String?,
+        refreshToken: String?,
+        idToken: String?,
+        deviceSecret: String?,
+        issuedTokenType: String?,
+        oidcConfiguration: OidcConfiguration,
+    ) : this(
+        id,
+        tokenType,
+        expiresIn,
+        accessToken,
+        scope,
+        refreshToken,
+        idToken,
+        deviceSecret,
+        issuedTokenType,
+        oidcConfiguration,
+        getIssuedTime(idToken, oidcConfiguration)
+    )
+
     internal fun asSerializableToken(): SerializableToken {
         return SerializableToken(
             tokenType = tokenType,
@@ -159,6 +189,23 @@ class Token constructor(
             DefaultClaimsProvider(payloadData, OidcConfiguration.defaultJson())
         }
     }
+
+    companion object {
+        private fun getIssuedTime(idToken: String?, oidcConfiguration: OidcConfiguration): Long {
+            val payload = idToken?.let {
+                try {
+                    val parser =
+                        JwtParser(oidcConfiguration.json, oidcConfiguration.computeDispatcher)
+                    val idTokenJwt = parser.parse(idToken)
+                    idTokenJwt.deserializeClaims(TokenInitializationPayload.serializer())
+                } catch (e: Exception) {
+                    // The token was malformed.
+                    null
+                }
+            }
+            return payload?.issuedAt ?: oidcConfiguration.clock.currentTimeEpochSecond()
+        }
+    }
 }
 
 @Serializable
@@ -187,3 +234,8 @@ internal class SerializableToken internal constructor(
         )
     }
 }
+
+@Serializable
+private class TokenInitializationPayload(
+    @SerialName("iat") val issuedAt: Long,
+)

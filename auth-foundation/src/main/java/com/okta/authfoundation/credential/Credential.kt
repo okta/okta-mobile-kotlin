@@ -42,8 +42,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.transformWhile
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import java.util.Collections
@@ -551,16 +549,10 @@ class Credential internal constructor(
      * See [Credential.introspectToken] for checking if the token is valid with the Authorization Server.
      */
     fun getAccessTokenIfValid(): String? {
-        val idToken = idToken() ?: return null
         val accessToken = token.accessToken
         val expiresIn = token.expiresIn
-        try {
-            val payload = idToken.deserializeClaims(TokenIssuedAtPayload.serializer())
-            if (payload.issueAt + expiresIn > client.configuration.clock.currentTimeEpochSecond()) {
-                return accessToken
-            }
-        } catch (e: Exception) {
-            // Failed to parse access token JWT.
+        if (token.issuedAt + expiresIn > client.configuration.clock.currentTimeEpochSecond()) {
+            return accessToken
         }
         return null
     }
@@ -619,8 +611,3 @@ class Credential internal constructor(
         )
     }
 }
-
-@Serializable
-private class TokenIssuedAtPayload(
-    @SerialName("iat") val issueAt: Long,
-)
