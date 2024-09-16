@@ -197,13 +197,13 @@ class Token @OptIn(ExperimentalSerializationApi::class) private constructor(
                     val parser =
                         JwtParser(oidcConfiguration.json, oidcConfiguration.computeDispatcher)
                     val idTokenJwt = parser.parse(idToken)
-                    idTokenJwt.deserializeClaims(TokenIssuedAtPayload.serializer())
+                    idTokenJwt.deserializeClaims(TokenInitializationPayload.serializer())
                 } catch (e: Exception) {
                     // The token was malformed.
                     null
                 }
             }
-            return payload?.issueAt ?: oidcConfiguration.clock.currentTimeEpochSecond()
+            return payload?.issuedAt ?: oidcConfiguration.clock.currentTimeEpochSecond()
         }
     }
 }
@@ -236,6 +236,6 @@ internal class SerializableToken internal constructor(
 }
 
 @Serializable
-private class TokenIssuedAtPayload(
-    @SerialName("iat") val issueAt: Long,
+private class TokenInitializationPayload(
+    @SerialName("iat") val issuedAt: Long,
 )
