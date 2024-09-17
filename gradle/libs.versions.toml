@@ -1,5 +1,5 @@
 [versions]
-authFoundation = "2.0.1"
+authFoundation = "2.0.2"
 androidxConstraintlayout = "2.1.4"
 androidxDatastorePreferences = "1.1.1"
 androidxTest = "1.5.0"

@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.0.1] 2024-09-17
+
+[Commits](https://github.com/okta/okta-idx-android/compare/3.0.0...3.0.1)
+
+### Fixed
+- Fixed occasional encrypted storage corruption.
+
 ## [3.0.0] 2024-06-14
 
 [Commits](https://github.com/okta/okta-idx-android/compare/2.4.1...3.0.0)
