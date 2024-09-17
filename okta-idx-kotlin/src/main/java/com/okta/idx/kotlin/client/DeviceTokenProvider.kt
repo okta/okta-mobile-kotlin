@@ -43,7 +43,7 @@ class DeviceTokenProvider(
     suspend fun getDeviceToken(): String {
         val encryptedDeviceToken = context.dataStore.data.firstOrNull()?.get(PREFERENCE_KEY)
         return encryptedDeviceToken?.let {
-            aesEncryptionHandler.decryptString(it)
+            aesEncryptionHandler.decryptString(it).getOrNull()
         } ?: run {
             val deviceToken = getLegacyDeviceToken() ?: createNewDeviceToken()
             setDeviceToken(deviceToken)
