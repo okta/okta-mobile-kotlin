@@ -16,6 +16,7 @@ android {
         }
     }
     compileOptions {
+        coreLibraryDesugaringEnabled true
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
@@ -36,6 +37,7 @@ android {
 }
 
 dependencies {
+    coreLibraryDesugaring libs.desugar.libs
     api libs.okta.auth.foundation
     api libs.junit
     api libs.okhttp.mock.web.server

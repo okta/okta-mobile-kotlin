@@ -32,10 +32,10 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
     }
 
-    public override fun onNewIntent(intent: Intent?) {
+    public override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
 
-        when (intent?.action) {
+        when (intent.action) {
             SOCIAL_REDIRECT_ACTION -> {
                 intent.data?.let {
                     SocialRedirectCoordinator.listener?.invoke(it)
