@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.0.2] - 2024-09-17
+
+[Commits](https://github.com/okta/okta-mobile-kotlin/compare/2.0.1...2.0.2)
+
+### Fixed
+- Fix AEADBadTagException issues caused by corrupt encrypted files [#313](https://github.com/okta/okta-mobile-kotlin/pull/313)
+- Fix default token migration from 1.x to 2.x [#314](https://github.com/okta/okta-mobile-kotlin/pull/314)
+- Allow using accessToken if idToken is missing [#315](https://github.com/okta/okta-mobile-kotlin/pull/315)
+
 ## [2.0.1] - 2024-06-12
 
 [Commits](https://github.com/okta/okta-mobile-kotlin/compare/2.0.0...2.0.1)
