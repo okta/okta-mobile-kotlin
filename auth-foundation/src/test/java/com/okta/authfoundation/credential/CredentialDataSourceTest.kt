@@ -61,7 +61,7 @@ class CredentialDataSourceTest {
         mockkObject(ApplicationContextHolder)
         every { ApplicationContextHolder.appContext } returns ApplicationProvider.getApplicationContext()
         mockkObject(DefaultCredentialIdDataStore)
-        every { DefaultCredentialIdDataStore.instance } returns DefaultCredentialIdDataStore(MockAesEncryptionHandler.instance)
+        every { DefaultCredentialIdDataStore.instance } returns DefaultCredentialIdDataStore(MockAesEncryptionHandler.getInstance())
     }
 
     @Test fun `test allIds returns all token IDs from token storage`() = runTest {

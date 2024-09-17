@@ -546,6 +546,11 @@ public final class com/okta/authfoundation/credential/Token$Metadata {
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class com/okta/authfoundation/credential/TokenDbRecoveryUtil {
+	public static final field INSTANCE Lcom/okta/authfoundation/credential/TokenDbRecoveryUtil;
+	public final fun setupDatabaseRecovery ()V
+}
+
 public abstract interface class com/okta/authfoundation/credential/TokenEncryptionHandler {
 	public static final field Companion Lcom/okta/authfoundation/credential/TokenEncryptionHandler$Companion;
 	public abstract fun decrypt ([BLjava/util/Map;Lcom/okta/authfoundation/credential/Credential$Security;Landroidx/biometric/BiometricPrompt$PromptInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -719,8 +724,9 @@ public final class com/okta/authfoundation/util/AesEncryptionHandler {
 	public fun <init> ()V
 	public fun <init> (Landroid/security/keystore/KeyGenParameterSpec;)V
 	public synthetic fun <init> (Landroid/security/keystore/KeyGenParameterSpec;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun decryptString (Ljava/lang/String;)Ljava/lang/String;
+	public final fun decryptString-IoAF18A (Ljava/lang/String;)Ljava/lang/Object;
 	public final fun encryptString (Ljava/lang/String;)Ljava/lang/String;
+	public final fun resetEncryptionKey ()V
 }
 
 public final class com/okta/authfoundation/util/AesEncryptionHandler$Companion {
@@ -728,6 +734,7 @@ public final class com/okta/authfoundation/util/AesEncryptionHandler$Companion {
 
 public final class com/okta/authfoundation/util/AndroidKeystoreUtil {
 	public static final field INSTANCE Lcom/okta/authfoundation/util/AndroidKeystoreUtil;
+	public final fun deleteKey (Ljava/lang/String;)V
 	public final fun getKeyStore ()Ljava/security/KeyStore;
 	public final fun getOrCreateAesKey (Landroid/security/keystore/KeyGenParameterSpec;)Ljava/security/Key;
 	public final fun getRsaKeyPairGenerator ()Ljava/security/KeyPairGenerator;

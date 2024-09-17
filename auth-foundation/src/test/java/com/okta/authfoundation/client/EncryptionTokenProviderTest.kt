@@ -18,10 +18,12 @@ package com.okta.authfoundation.client
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
+import com.okta.authfoundation.util.AesEncryptionHandler
 import com.okta.testhelpers.MockAesEncryptionHandler
 import io.mockk.every
 import io.mockk.mockkObject
 import io.mockk.unmockkAll
+import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Before
@@ -30,13 +32,15 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class EncryptionTokenProviderTest {
+    private lateinit var mockAesEncryptionHandler: AesEncryptionHandler
     private lateinit var encryptionTokenProvider: EncryptionTokenProvider
 
     @Before
     fun setUp() {
         mockkObject(ApplicationContextHolder)
         every { ApplicationContextHolder.appContext } returns ApplicationProvider.getApplicationContext()
-        encryptionTokenProvider = EncryptionTokenProvider(MockAesEncryptionHandler.instance)
+        mockAesEncryptionHandler = MockAesEncryptionHandler.getInstance()
+        encryptionTokenProvider = EncryptionTokenProvider(mockAesEncryptionHandler)
     }
 
     @After
@@ -45,8 +49,32 @@ class EncryptionTokenProviderTest {
     }
 
     @Test
-    fun `getEncryptionToken success`() = runTest {
+    fun `getEncryptionToken success with new token`() = runTest {
         val deviceToken = encryptionTokenProvider.getEncryptionToken()
-        assertThat(deviceToken).isNotEmpty()
+        assertThat(deviceToken).isInstanceOf(EncryptionTokenProvider.Result.NewToken::class.java)
+    }
+
+    @Test
+    fun `getEncryptionToken success with existing token`() = runTest {
+        assertThat(encryptionTokenProvider.getEncryptionToken()).isInstanceOf(
+            EncryptionTokenProvider.Result.NewToken::class.java
+        )
+        assertThat(encryptionTokenProvider.getEncryptionToken()).isInstanceOf(
+            EncryptionTokenProvider.Result.ExistingToken::class.java
+        )
+    }
+
+    @Test
+    fun `getEncryptionToken resets encryption key if decryption fails`() = runTest {
+        assertThat(encryptionTokenProvider.getEncryptionToken()).isInstanceOf(
+            EncryptionTokenProvider.Result.NewToken::class.java
+        )
+        verify(exactly = 1) { mockAesEncryptionHandler.resetEncryptionKey() }
+
+        every { mockAesEncryptionHandler.decryptString(any()) } returns Result.failure(Exception())
+        assertThat(encryptionTokenProvider.getEncryptionToken()).isInstanceOf(
+            EncryptionTokenProvider.Result.NewToken::class.java
+        )
+        verify(exactly = 2) { mockAesEncryptionHandler.resetEncryptionKey() }
     }
 }

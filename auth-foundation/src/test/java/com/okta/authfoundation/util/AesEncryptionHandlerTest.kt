@@ -26,6 +26,7 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import javax.crypto.AEADBadTagException
 import javax.crypto.KeyGenerator
 
 @RunWith(AndroidJUnit4::class)
@@ -56,6 +57,18 @@ class AesEncryptionHandlerTest {
         assertThat(encryptedString).isNotEqualTo(testString)
 
         val decryptedString = aesEncryptionHandler.decryptString(encryptedString)
-        assertThat(decryptedString).isEqualTo(testString)
+        assertThat(decryptedString).isEqualTo(Result.success(testString))
+    }
+
+    @Test
+    fun `encrypt then decrypt string with exception`() {
+        val testString = "testString"
+        val encryptedString = aesEncryptionHandler.encryptString(testString)
+        assertThat(encryptedString).isNotEqualTo(testString)
+
+        every { AndroidKeystoreUtil.getOrCreateAesKey(any()) } returns keyGenerator.generateKey() // wrong key
+        val decryptedString = aesEncryptionHandler.decryptString(encryptedString)
+        assertThat(decryptedString.isFailure).isTrue()
+        assertThat(decryptedString.exceptionOrNull()).isInstanceOf(AEADBadTagException::class.java)
     }
 }

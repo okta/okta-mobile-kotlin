@@ -42,6 +42,10 @@ object AndroidKeystoreUtil {
         return KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore")
     }
 
+    fun deleteKey(alias: String) {
+        keyStore.deleteEntry(alias)
+    }
+
     fun getOrCreateAesKey(keyGenParameterSpec: KeyGenParameterSpec): Key {
         if (keyStore.containsAlias(keyGenParameterSpec.keystoreAlias)) {
             return keyStore.getKey(keyGenParameterSpec.keystoreAlias, null)

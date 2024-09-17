@@ -75,7 +75,7 @@ class CredentialTest {
         mockkObject(ApplicationContextHolder)
         every { ApplicationContextHolder.appContext } returns ApplicationProvider.getApplicationContext()
         mockkObject(DefaultCredentialIdDataStore)
-        defaultCredentialIdDataStore = DefaultCredentialIdDataStore(MockAesEncryptionHandler.instance)
+        defaultCredentialIdDataStore = DefaultCredentialIdDataStore(MockAesEncryptionHandler.getInstance())
         every { DefaultCredentialIdDataStore.instance } returns defaultCredentialIdDataStore
 
         credentialDataSource = mockk(relaxed = true)

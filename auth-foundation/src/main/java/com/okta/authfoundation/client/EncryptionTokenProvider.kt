@@ -34,17 +34,25 @@ internal class EncryptionTokenProvider(
         val instance by lazy { EncryptionTokenProvider(AesEncryptionHandler()) }
     }
 
+    sealed interface Result {
+        val token: String
+
+        class NewToken(override val token: String) : Result
+        class ExistingToken(override val token: String) : Result
+    }
+
     private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(PREFERENCE_NAME)
     private val context by lazy { ApplicationContextHolder.appContext }
 
-    suspend fun getEncryptionToken(): String {
+    suspend fun getEncryptionToken(): Result {
         val encryptedDeviceToken = context.dataStore.data.firstOrNull()?.get(PREFERENCE_KEY)
         return encryptedDeviceToken?.let {
-            aesEncryptionHandler.decryptString(it)
+            aesEncryptionHandler.decryptString(it).getOrNull()?.let { Result.ExistingToken(it) }
         } ?: run {
+            aesEncryptionHandler.resetEncryptionKey()
             val deviceToken = UUID.randomUUID().toString()
             setDeviceToken(deviceToken)
-            deviceToken
+            Result.NewToken(deviceToken)
         }
     }
 

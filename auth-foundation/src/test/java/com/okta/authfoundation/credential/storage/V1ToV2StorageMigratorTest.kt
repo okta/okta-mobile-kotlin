@@ -70,7 +70,7 @@ class V1ToV2StorageMigratorTest {
                 any()
             )
         } answers { legacySharedPreferences }
-        defaultCredentialIdDataStore = DefaultCredentialIdDataStore(MockAesEncryptionHandler.instance)
+        defaultCredentialIdDataStore = DefaultCredentialIdDataStore(MockAesEncryptionHandler.getInstance())
         mockkObject(DefaultCredentialIdDataStore)
         every { DefaultCredentialIdDataStore.instance } returns defaultCredentialIdDataStore
         mockkObject(OidcConfiguration)

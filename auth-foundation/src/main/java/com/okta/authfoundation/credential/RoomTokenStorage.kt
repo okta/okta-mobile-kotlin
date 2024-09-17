@@ -15,6 +15,7 @@
  */
 package com.okta.authfoundation.credential
 
+import android.content.Context
 import android.security.keystore.KeyPermanentlyInvalidatedException
 import androidx.biometric.BiometricPrompt.PromptInfo
 import androidx.room.Room
@@ -52,7 +53,10 @@ class RoomTokenStorage(
 
         private suspend fun createInstance(): RoomTokenStorage {
             val context = ApplicationContextHolder.appContext
-            val sqlCipherPassword = EncryptionTokenProvider.instance.getEncryptionToken()
+            val sqlCipherPasswordResult = EncryptionTokenProvider.instance.getEncryptionToken()
+            if (sqlCipherPasswordResult is EncryptionTokenProvider.Result.NewToken) context.resetDatabase()
+            val sqlCipherPassword = sqlCipherPasswordResult.token
+
             System.loadLibrary("sqlcipher")
             val tokenDatabase =
                 Room.databaseBuilder(
@@ -66,6 +70,8 @@ class RoomTokenStorage(
             V1ToV2StorageMigrator(tokenStorage).migrateIfNeeded()
             return tokenStorage
         }
+
+        private fun Context.resetDatabase() = deleteDatabase(TokenDatabase.DB_NAME)
     }
 
     private val tokenDao = tokenDatabase.tokenDao()
