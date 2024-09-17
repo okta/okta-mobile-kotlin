@@ -19,6 +19,7 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
+import com.okta.authfoundation.AuthFoundation
 import com.okta.authfoundation.client.ApplicationContextHolder
 import com.okta.authfoundation.client.OAuth2Client
 import com.okta.authfoundation.client.OAuth2ClientResult
@@ -39,8 +40,10 @@ import com.okta.testhelpers.RequestMatchers.path
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
 import io.mockk.mockkObject
+import io.mockk.runs
 import io.mockk.unmockkAll
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -83,6 +86,8 @@ class CredentialTest {
             coEvery { revokeToken(any(), any()) } returns OAuth2ClientResult.Success(Unit)
             every { configuration } returns oktaRule.configuration
         }
+        mockkObject(AuthFoundation)
+        coEvery { AuthFoundation.initializeStorage() } just runs
     }
 
     @After

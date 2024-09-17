@@ -21,6 +21,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.okta.authfoundation.AuthFoundation
 import com.okta.authfoundation.client.ApplicationContextHolder
 import com.okta.authfoundation.util.AesEncryptionHandler
 import kotlinx.coroutines.flow.firstOrNull
@@ -38,6 +39,7 @@ internal class DefaultCredentialIdDataStore(
     private val context by lazy { ApplicationContextHolder.appContext }
 
     suspend fun getDefaultCredentialId(): String? {
+        AuthFoundation.initializeStorage()
         val encryptedDefaultCredentialId = context.dataStore.data.firstOrNull()?.get(PREFERENCE_KEY)
         return encryptedDefaultCredentialId?.let {
             aesEncryptionHandler.decryptString(it).getOrNull()

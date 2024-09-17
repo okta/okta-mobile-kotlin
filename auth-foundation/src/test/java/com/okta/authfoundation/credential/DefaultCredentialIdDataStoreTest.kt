@@ -18,10 +18,15 @@ package com.okta.authfoundation.credential
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
+import com.okta.authfoundation.AuthFoundation
 import com.okta.authfoundation.client.ApplicationContextHolder
 import com.okta.testhelpers.MockAesEncryptionHandler
+import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
+import io.mockk.just
 import io.mockk.mockkObject
+import io.mockk.runs
 import io.mockk.unmockkAll
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -38,6 +43,8 @@ class DefaultCredentialIdDataStoreTest {
         mockkObject(ApplicationContextHolder)
         every { ApplicationContextHolder.appContext } returns ApplicationProvider.getApplicationContext()
         defaultCredentialIdDataStore = DefaultCredentialIdDataStore(MockAesEncryptionHandler.getInstance())
+        mockkObject(AuthFoundation)
+        coEvery { AuthFoundation.initializeStorage() } just runs
     }
 
     @After
@@ -48,6 +55,7 @@ class DefaultCredentialIdDataStoreTest {
     @Test
     fun `getDefaultCredentialId returns null if no default token is set`() = runTest {
         assertThat(defaultCredentialIdDataStore.getDefaultCredentialId()).isNull()
+        coVerify { AuthFoundation.initializeStorage() }
     }
 
     @Test
@@ -55,6 +63,7 @@ class DefaultCredentialIdDataStoreTest {
         val tokenId = "tokenId"
         defaultCredentialIdDataStore.setDefaultCredentialId(tokenId)
         assertThat(defaultCredentialIdDataStore.getDefaultCredentialId()).isEqualTo(tokenId)
+        coVerify { AuthFoundation.initializeStorage() }
     }
 
     @Test
@@ -65,5 +74,6 @@ class DefaultCredentialIdDataStoreTest {
         defaultCredentialIdDataStore.setDefaultCredentialId(newTokenId)
 
         assertThat(defaultCredentialIdDataStore.getDefaultCredentialId()).isEqualTo(newTokenId)
+        coVerify { AuthFoundation.initializeStorage() }
     }
 }
