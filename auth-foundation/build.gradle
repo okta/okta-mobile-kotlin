@@ -79,7 +79,6 @@ dependencies {
     implementation libs.okio.jvm
     implementation libs.kotlin.serialization.okio
     implementation libs.security.crypto
-    implementation libs.startup.runtime
     implementation libs.room.runtime
     implementation libs.room.ktx
     implementation libs.sqlcipher.android

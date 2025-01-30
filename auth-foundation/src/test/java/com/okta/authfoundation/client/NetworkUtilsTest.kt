@@ -878,7 +878,7 @@ class NetworkingTest {
         val response = oktaRule.createOAuth2Client().performRequest(request)
 
         assertThat(events.size).isEqualTo(4)
-        val lastRetryEvent = events.removeLast()
+        val lastRetryEvent = events.removeAt(events.lastIndex)
         events.forEach { event ->
             val exception = assertFailsWith<IllegalStateException> {
                 event.response.peekBody(Long.MAX_VALUE).string()
