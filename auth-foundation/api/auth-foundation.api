@@ -75,6 +75,36 @@ public final class com/okta/authfoundation/BiometricExceptionDetails$OnAuthentic
 public abstract interface annotation class com/okta/authfoundation/InternalAuthFoundationApi : java/lang/annotation/Annotation {
 }
 
+public final class com/okta/authfoundation/SdkDefaults {
+	public static final field INSTANCE Lcom/okta/authfoundation/SdkDefaults;
+	public final fun getGetAccessTokenValidator ()Lkotlin/jvm/functions/Function0;
+	public final fun getGetCacheFactory ()Lkotlin/jvm/functions/Function0;
+	public final fun getGetClock ()Lkotlin/jvm/functions/Function0;
+	public final fun getGetComputeDispatcher ()Lkotlin/jvm/functions/Function0;
+	public final fun getGetCookieJar ()Lkotlin/jvm/functions/Function0;
+	public final fun getGetDeviceSecretValidator ()Lkotlin/jvm/functions/Function0;
+	public final fun getGetEventCoordinator ()Lkotlin/jvm/functions/Function0;
+	public final fun getGetIdTokenValidator ()Lkotlin/jvm/functions/Function0;
+	public final fun getGetIoDispatcher ()Lkotlin/jvm/functions/Function0;
+	public final fun getGetLoginCancellationDebounceTime ()Lkotlin/jvm/functions/Function0;
+	public final fun getGetOkHttpClientFactory ()Lkotlin/jvm/functions/Function0;
+	public final fun getGetTokenEncryptionHandler ()Lkotlin/jvm/functions/Function0;
+	public final fun getGetTokenStorageFactory ()Lkotlin/jvm/functions/Function0;
+	public final fun setGetAccessTokenValidator (Lkotlin/jvm/functions/Function0;)V
+	public final fun setGetCacheFactory (Lkotlin/jvm/functions/Function0;)V
+	public final fun setGetClock (Lkotlin/jvm/functions/Function0;)V
+	public final fun setGetComputeDispatcher (Lkotlin/jvm/functions/Function0;)V
+	public final fun setGetCookieJar (Lkotlin/jvm/functions/Function0;)V
+	public final fun setGetDeviceSecretValidator (Lkotlin/jvm/functions/Function0;)V
+	public final fun setGetEventCoordinator (Lkotlin/jvm/functions/Function0;)V
+	public final fun setGetIdTokenValidator (Lkotlin/jvm/functions/Function0;)V
+	public final fun setGetIoDispatcher (Lkotlin/jvm/functions/Function0;)V
+	public final fun setGetLoginCancellationDebounceTime (Lkotlin/jvm/functions/Function0;)V
+	public final fun setGetOkHttpClientFactory (Lkotlin/jvm/functions/Function0;)V
+	public final fun setGetTokenEncryptionHandler (Lkotlin/jvm/functions/Function0;)V
+	public final fun setGetTokenStorageFactory (Lkotlin/jvm/functions/Function0;)V
+}
+
 public abstract interface class com/okta/authfoundation/claims/ClaimsProvider {
 	public abstract fun availableClaims ()Ljava/util/Set;
 	public abstract fun deserializeClaim (Ljava/lang/String;Lkotlinx/serialization/DeserializationStrategy;)Ljava/lang/Object;
