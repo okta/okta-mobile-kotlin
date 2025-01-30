@@ -12,7 +12,7 @@ apply plugin: 'binary-compatibility-validator'
 
 def copyKotlinTemplates = tasks.register('copyKotlinTemplates', Copy) {
     from("src/main/kotlinTemplates")
-    into("$buildDir/generated/sources/kotlinTemplates")
+    into("${layout.buildDirectory.get()}/generated/sources/kotlinTemplates")
     expand(projectVersion: project.version)
 }
 

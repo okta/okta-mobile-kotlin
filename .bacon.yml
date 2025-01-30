@@ -7,3 +7,11 @@ test_suites:
     criteria: MERGE
     queue_name: small
     trigger: AUTO
+
+  - name: sca-scan
+    script_path: /root/okta/okta-mobile-kotlin/scripts/
+    sort_order: '1'
+    timeout: '200'
+    script_name: dependency_scan
+    criteria: MAINLINE
+    queue_name: small
