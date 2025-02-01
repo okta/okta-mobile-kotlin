@@ -2,8 +2,16 @@ test_suites:
   - name: sast_scan
     script_path: /root/okta/okta-idx-android/scripts
     script_name: sast_scan
-    sort_order: '1'
+    sort_order: '0'
     timeout: '200'
     criteria: MERGE
-    queue_name: small
+    queue_name: al2023
     trigger: AUTO
+
+  - name: sca-scan
+    script_path: /root/okta/okta-idx-android/scripts/
+    sort_order: '1'
+    timeout: '200'
+    script_name: dependency_scan
+    criteria: MAINLINE
+    queue_name: al2023
