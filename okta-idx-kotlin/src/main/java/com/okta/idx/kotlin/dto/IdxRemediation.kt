@@ -152,7 +152,7 @@ class IdxRemediation internal constructor(
         operator fun get(name: String): Field? {
             val components = name.split(".").toMutableList()
 
-            val componentName = components.removeFirst()
+            val componentName = components.removeAt(0)
             var result = allFields.firstOrNull { it.name == componentName }
             if (result != null && components.isNotEmpty()) {
                 result = result.form?.get(components.joinToString(separator = "."))

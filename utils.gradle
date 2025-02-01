@@ -1,7 +1,7 @@
 def build_versions = [:]
 build_versions.min_sdk = 23
-build_versions.compile_sdk = 34
-build_versions.target_sdk = 34
+build_versions.compile_sdk = 35
+build_versions.target_sdk = 35
 ext.build_versions = build_versions
 
 static def addRepos(RepositoryHandler handler) {
@@ -15,9 +15,13 @@ def forceVersions(ConfigurationContainer configurations) {
     configurations.configureEach {
         resolutionStrategy {
             force libs.bcprov.jdk18on
-            force libs.protobuf.java
             force libs.commons.io
             force libs.jackson.databind // Vulnerability fix: OKTA-614751
+            force libs.netty.common
+            force libs.netty.codec.http
+            force libs.netty.codec.http2
+            force libs.netty.handler
+            force libs.protobuf.java
         }
     }
 }

@@ -5,7 +5,7 @@ test_suites:
     sort_order: '0'
     timeout: '200'
     criteria: MERGE
-    queue_name: al2023
+    queue_name: small
     trigger: AUTO
 
   - name: sca-scan
@@ -14,4 +14,4 @@ test_suites:
     timeout: '200'
     script_name: dependency_scan
     criteria: MAINLINE
-    queue_name: al2023
+    queue_name: small
