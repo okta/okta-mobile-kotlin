@@ -14,6 +14,9 @@ static def addRepos(RepositoryHandler handler) {
 def forceVersions(ConfigurationContainer configurations) {
     configurations.configureEach {
         resolutionStrategy {
+            force libs.bcprov.jdk18on
+            force libs.protobuf.java
+            force libs.commons.io
             force libs.jackson.databind // Vulnerability fix: OKTA-614751
         }
     }

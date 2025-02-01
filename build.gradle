@@ -28,6 +28,10 @@ allprojects {
     configureDokka(it)
 }
 
+subprojects {
+    task allDeps(type: DependencyReportTask) {}
+}
+
 def configurePublishing(Project project) {
     project.plugins.withId('com.vanniktech.maven.publish.base') {
         project.apply plugin: 'signing'
