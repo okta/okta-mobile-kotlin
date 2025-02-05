@@ -118,7 +118,8 @@ class DefaultIdTokenValidatorTest {
     @Test fun testMalformedPayload() {
         val idTokenClaims = IdTokenClaims(issuer = null)
         assertFailsWithMessage(
-            "Unexpected 'null' literal when non-nullable string was expected",
+            "Expected string value for a non-null key 'iss', got null literal instead at element: \$.iss\n" +
+                "JSON input: .....ldsHoJsPzQ\",\"ds_hash\":\"DAeLOFRqifysbgsrbOgbog\",\"nonce\":null}",
             "",
             idTokenClaims
         )
