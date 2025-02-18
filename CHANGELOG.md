@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.0.3] - 2025-02-18
+- Make SDK defaults configurable by third party SDKs [#323](https://github.com/okta/okta-mobile-kotlin/pull/323)
+- Update dependencies
+
 ## [2.0.2] - 2024-09-17
 
 [Commits](https://github.com/okta/okta-mobile-kotlin/compare/2.0.1...2.0.2)
