@@ -36,7 +36,7 @@ Add the `Okta Mobile Kotlin` dependencies to your `build.gradle` file:
 
 ```gradle
 // Ensure all dependencies are compatible using the Bill of Materials (BOM).
-implementation(platform('com.okta.kotlin:bom:2.0.2'))
+implementation(platform('com.okta.kotlin:bom:2.0.3'))
 
 // Add the dependencies to your project.
 implementation('com.okta.kotlin:auth-foundation')
