@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.0.2] 2025-03-10
+
+[Commits](https://github.com/okta/okta-idx-android/compare/3.0.1...3.0.2)
+
+### Fixed
+- Fixed a crash when using this SDK in Flutter
+
 ## [3.0.1] 2024-09-17
 
 [Commits](https://github.com/okta/okta-idx-android/compare/3.0.0...3.0.1)

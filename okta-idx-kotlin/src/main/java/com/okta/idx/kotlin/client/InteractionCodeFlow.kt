@@ -18,6 +18,7 @@ package com.okta.idx.kotlin.client
 import android.net.Uri
 import androidx.annotation.VisibleForTesting
 import com.okta.authfoundation.AuthFoundationDefaults
+import com.okta.authfoundation.SdkDefaults
 import com.okta.authfoundation.client.OAuth2Client
 import com.okta.authfoundation.client.OAuth2ClientResult
 import com.okta.authfoundation.client.OidcConfiguration
@@ -45,7 +46,7 @@ class InteractionCodeFlow(val client: OAuth2Client) {
     companion object {
         init {
             SdkVersionsRegistry.register(SDK_VERSION)
-            AuthFoundationDefaults.cookieJar = DeviceTokenCookieJar()
+            SdkDefaults.getCookieJar = { DeviceTokenCookieJar() }
         }
     }
 
