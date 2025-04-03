@@ -15,6 +15,7 @@
  */
 package com.okta.webauthenticationui
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.Context
@@ -55,8 +56,11 @@ internal class DefaultWebAuthenticationProvider(
         val USER_AGENT_HEADER = "web-authentication-ui/${Build.VERSION.SDK_INT} com.okta.webauthenticationui/2.0.0"
     }
 
+    @SuppressLint("UnsafeOptInUsageWarning")
     override fun launch(context: Context, url: HttpUrl): Exception? {
-        val intentBuilder: CustomTabsIntent.Builder = CustomTabsIntent.Builder()
+        val intentBuilder: CustomTabsIntent.Builder = CustomTabsIntent
+            .Builder()
+            .setEphemeralBrowsingEnabled(true)
         eventCoordinator.sendEvent(CustomizeCustomTabsEvent(context, intentBuilder))
         val tabsIntent: CustomTabsIntent = intentBuilder.build()
 

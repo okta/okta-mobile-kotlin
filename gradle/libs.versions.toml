@@ -2,7 +2,7 @@
 androidxActivity = "1.10.0"
 androidxAnnotation = "1.9.1"
 androidxBiometric = "1.1.0"
-androidxBrowser = "1.8.0"
+androidxBrowser = "1.9.0-alpha01"
 androidxConstraintlayout = "2.2.0"
 androidxDatastorePreferences = "1.1.2"
 androidxSqlite = "2.4.0"
