@@ -108,6 +108,9 @@ class InteractionCodeFlow(val client: OAuth2Client) {
      * This method is usually performed after an InteractionCodeFlow is created, but can also be called at any time to identify what next remediation steps are available to the user.
      */
     suspend fun resume(): OAuth2ClientResult<IdxResponse> {
+        if (!::flowContext.isInitialized) {
+            return OAuth2ClientResult.Error(IllegalStateException("InteractionCodeFlow not started."))
+        }
         val request = withContext(client.configuration.computeDispatcher) {
             introspectRequest(client, flowContext)
         }
@@ -148,6 +151,9 @@ class InteractionCodeFlow(val client: OAuth2Client) {
     suspend fun exchangeInteractionCodeForTokens(
         remediation: IdxRemediation
     ): OAuth2ClientResult<Token> {
+        if (!::flowContext.isInitialized) {
+            return OAuth2ClientResult.Error(IllegalStateException("InteractionCodeFlow not started."))
+        }
         if (remediation.type != IdxRemediation.Type.ISSUE) {
             return OAuth2ClientResult.Error(IllegalStateException("Invalid remediation."))
         }
@@ -165,6 +171,9 @@ class InteractionCodeFlow(val client: OAuth2Client) {
      * Evaluates the given redirect url to determine what next steps can be performed. This is usually used when receiving a redirection from an IDP authentication flow.
      */
     suspend fun evaluateRedirectUri(uri: Uri): IdxRedirectResult {
+        if (!::flowContext.isInitialized) {
+            return IdxRedirectResult.Error("InteractionCodeFlow not started.", IllegalStateException("InteractionCodeFlow not started."))
+        }
         if (!uri.toString().startsWith(flowContext.redirectUrl)) {
             val error = "IDP redirect failed due not matching the configured redirect uri."
             return IdxRedirectResult.Error(error)
@@ -215,6 +224,9 @@ class InteractionCodeFlow(val client: OAuth2Client) {
     }
 
     private suspend fun exchangeInteractionCodeForTokens(interactionCode: String): OAuth2ClientResult<Token> {
+        if (!::flowContext.isInitialized) {
+            return OAuth2ClientResult.Error(IllegalStateException("InteractionCodeFlow not started."))
+        }
         val request = withContext(client.configuration.computeDispatcher) {
             tokenRequestFromInteractionCode(client, flowContext, interactionCode)
         }

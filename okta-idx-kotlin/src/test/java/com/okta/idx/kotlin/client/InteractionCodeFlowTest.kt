@@ -28,7 +28,9 @@ import com.okta.testing.network.RequestMatchers.body
 import com.okta.testing.network.RequestMatchers.bodyContaining
 import com.okta.testing.network.RequestMatchers.path
 import com.okta.testing.testBodyFromFile
+import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import okhttp3.mockwebserver.SocketPolicy
 import org.junit.Rule
 import org.junit.Test
@@ -37,11 +39,13 @@ import org.robolectric.RobolectricTestRunner
 
 @RunWith(RobolectricTestRunner::class)
 class InteractionCodeFlowTest {
-    @get:Rule val networkRule = NetworkRule()
+    @get:Rule
+    val networkRule = NetworkRule()
 
     private val testUri = Uri.parse("test.okta.com/login")
 
-    @Test fun testStart(): Unit = runBlocking {
+    @Test
+    fun testStart(): Unit = runBlocking {
         networkRule.enqueue(path("/oauth2/default/v1/interact")) { response ->
             response.testBodyFromFile("client/interactResponse.json")
         }
@@ -51,7 +55,8 @@ class InteractionCodeFlowTest {
         assertThat(flow.flowContext.interactionHandle).isEqualTo("029ZAB")
     }
 
-    @Test fun testStartWithNoEndpoints(): Unit = runBlocking {
+    @Test
+    fun testStartWithNoEndpoints(): Unit = runBlocking {
         networkRule.enqueue(path(".well-known/openid-configuration")) { response ->
             response.socketPolicy = SocketPolicy.DISCONNECT_AT_START
         }
@@ -62,7 +67,8 @@ class InteractionCodeFlowTest {
         assertThat(clientResult.exception).isInstanceOf(OAuth2ClientResult.Error.OidcEndpointsNotAvailableException::class.java)
     }
 
-    @Test fun testStartWithExtraParameters(): Unit = runBlocking {
+    @Test
+    fun testStartWithExtraParameters(): Unit = runBlocking {
         networkRule.enqueue(
             path("/oauth2/default/v1/interact"),
             bodyContaining("&recovery_token=secret123")
@@ -75,7 +81,8 @@ class InteractionCodeFlowTest {
         assertThat(flow.flowContext.interactionHandle).isEqualTo("029ZAB")
     }
 
-    @Test fun testResume(): Unit = runBlocking {
+    @Test
+    fun testResume(): Unit = runBlocking {
         networkRule.enqueue(path("/oauth2/default/v1/interact")) { response ->
             response.testBodyFromFile("client/interactResponse.json")
         }
@@ -91,7 +98,8 @@ class InteractionCodeFlowTest {
         assertThat(resumeResult.result.remediations).hasSize(4)
     }
 
-    @Test fun testProceed(): Unit = runBlocking {
+    @Test
+    fun testProceed(): Unit = runBlocking {
         networkRule.enqueue(path("/oauth2/default/v1/interact")) { response ->
             response.testBodyFromFile("client/interactResponse.json")
         }
@@ -117,7 +125,8 @@ class InteractionCodeFlowTest {
         assertThat(proceedResult.result.remediations[1].type).isEqualTo(IdxRemediation.Type.ISSUE)
     }
 
-    @Test fun testProceedCopiesRemediationValues(): Unit = runBlocking {
+    @Test
+    fun testProceedCopiesRemediationValues(): Unit = runBlocking {
         networkRule.enqueue(path("/oauth2/default/v1/interact")) { response ->
             response.testBodyFromFile("client/interactResponse.json")
         }
@@ -145,7 +154,8 @@ class InteractionCodeFlowTest {
         assertThat(newIdentifyRemediation["credentials.passcode"]?.value).isEqualTo("example")
     }
 
-    @Test fun testExchangeCodes(): Unit = runBlocking {
+    @Test
+    fun testExchangeCodes(): Unit = runBlocking {
         networkRule.enqueue(path("/oauth2/default/v1/interact")) { response ->
             response.testBodyFromFile("client/interactResponse.json")
         }
@@ -180,7 +190,8 @@ class InteractionCodeFlowTest {
         assertThat(networkRule.idTokenValidator.lastIdTokenParameters.maxAge).isNull()
     }
 
-    @Test fun testExchangeCodesWithMaxAge(): Unit = runBlocking {
+    @Test
+    fun testExchangeCodesWithMaxAge(): Unit = runBlocking {
         networkRule.enqueue(path("/oauth2/default/v1/interact")) { response ->
             response.testBodyFromFile("client/interactResponse.json")
         }
@@ -216,7 +227,8 @@ class InteractionCodeFlowTest {
         assertThat(networkRule.idTokenValidator.lastIdTokenParameters.maxAge).isEqualTo(65)
     }
 
-    @Test fun testExchangeCodeWithWrongRemediationType(): Unit = runBlocking {
+    @Test
+    fun testExchangeCodeWithWrongRemediationType(): Unit = runBlocking {
         networkRule.enqueue(path("/oauth2/default/v1/interact")) { response ->
             response.testBodyFromFile("client/interactResponse.json")
         }
@@ -228,7 +240,8 @@ class InteractionCodeFlowTest {
         assertThat(exchangeCodesResult.exception.message).isEqualTo("Invalid remediation.")
     }
 
-    @Test fun testResumeWithValidNon200HttpCode(): Unit = runBlocking {
+    @Test
+    fun testResumeWithValidNon200HttpCode(): Unit = runBlocking {
         networkRule.enqueue(path("/oauth2/default/v1/interact")) { response ->
             response.testBodyFromFile("client/interactResponse.json")
         }
@@ -245,7 +258,8 @@ class InteractionCodeFlowTest {
         assertThat(resumeResult.result.remediations).hasSize(4)
     }
 
-    @Test fun testResumeWithInvalidHttpCode(): Unit = runBlocking {
+    @Test
+    fun testResumeWithInvalidHttpCode(): Unit = runBlocking {
         networkRule.enqueue(path("/oauth2/default/v1/interact")) { response ->
             response.testBodyFromFile("client/interactResponse.json")
         }
@@ -260,5 +274,45 @@ class InteractionCodeFlowTest {
 
         val resumeResult = flow.resume() as OAuth2ClientResult.Error<IdxResponse>
         assertThat(resumeResult.exception.message).isEqualTo("HTTP Error: status code - 500")
+    }
+
+    @Test
+    fun `resume without calling start, expect illegal state exception`() = runTest {
+        // arrange
+        val flow = InteractionCodeFlow()
+
+        // act
+        val exception = runCatching { flow.resume().getOrThrow() }.exceptionOrNull()
+
+        // assert
+        assertThat(exception).isInstanceOf(IllegalStateException::class.java)
+        assertThat(exception).hasMessageThat().isEqualTo("InteractionCodeFlow not started.")
+    }
+
+    @Test
+    fun `exchangeInteractionCodeForTokens without calling start, expect illegal state exception`() = runTest {
+        // arrange
+        val flow = InteractionCodeFlow()
+
+        // act
+        val exception = runCatching { flow.exchangeInteractionCodeForTokens(mockk()).getOrThrow() }.exceptionOrNull()
+
+        // assert
+        assertThat(exception).isInstanceOf(IllegalStateException::class.java)
+        assertThat(exception).hasMessageThat().isEqualTo("InteractionCodeFlow not started.")
+    }
+
+    @Test
+    fun `evaluateRedirectUri without calling start, expect illegal state exception`() = runTest {
+        // arrange
+        val flow = InteractionCodeFlow()
+
+        // act
+        val redirectResult = flow.evaluateRedirectUri(Uri.parse("https://www.test.com"))
+
+        // assert
+        assertThat(redirectResult).isInstanceOf(IdxRedirectResult.Error::class.java)
+        assertThat((redirectResult as IdxRedirectResult.Error).exception).isInstanceOf(IllegalStateException::class.java)
+        assertThat(redirectResult.exception).hasMessageThat().isEqualTo("InteractionCodeFlow not started.")
     }
 }
