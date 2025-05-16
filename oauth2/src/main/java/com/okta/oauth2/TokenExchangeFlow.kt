@@ -20,6 +20,7 @@ import com.okta.authfoundation.client.OAuth2ClientResult
 import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.client.internal.SdkVersionsRegistry
 import com.okta.authfoundation.credential.Token
+import com.okta.oauth2.BuildConfig.SDK_VERSION
 import okhttp3.FormBody
 import okhttp3.Request
 

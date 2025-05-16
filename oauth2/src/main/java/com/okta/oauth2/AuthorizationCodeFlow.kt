@@ -25,6 +25,7 @@ import okhttp3.FormBody
 import okhttp3.HttpUrl
 import okhttp3.Request
 import java.util.UUID
+import com.okta.oauth2.BuildConfig.SDK_VERSION
 
 /**
  * [AuthorizationCodeFlow] encapsulates the behavior required to authentication using an OIDC Browser redirect flow.

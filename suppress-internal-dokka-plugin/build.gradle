@@ -1,6 +1,0 @@
-apply plugin: 'org.jetbrains.kotlin.jvm'
-
-dependencies {
-    compileOnly "org.jetbrains.dokka:dokka-base:${libs.versions.dokka.get()}"
-    compileOnly "org.jetbrains.dokka:dokka-core:${libs.versions.dokka.get()}"
-}

@@ -1,52 +1,62 @@
 [versions]
-androidxActivity = "1.10.0"
+androidxActivity = "1.10.1"
 androidxAnnotation = "1.9.1"
 androidxBiometric = "1.1.0"
 androidxBrowser = "1.8.0"
-androidxConstraintlayout = "2.2.0"
-androidxDatastorePreferences = "1.1.2"
-androidxSqlite = "2.4.0"
+androidxConstraintlayout = "2.2.1"
+androidxDatastorePreferences = "1.1.6"
+androidxSqlite = "2.5.1"
 androidxTest = "1.6.1"
 androidxTestRunner = "1.6.2"
 androidxTestExt = "1.2.1"
 androidxTestOrchestrator = "1.5.1"
 androidxTextUiautomator = "2.3.0"
-androidGradlePlugin = "8.8.0"
+androidGradlePlugin = "8.10.0"
 appcompat = "1.7.0"
-bouncycastle = "1.78.1"
-coreLibraryDesugaring = "2.1.4"
-coreKtx = "1.15.0"
-coroutines = "1.8.1"
-dokka = "1.9.20"
+bouncycastle = "1.80"
+coreLibraryDesugaring = "2.1.5"
+coreKtx = "1.16.0"
+coroutines = "1.10.1"
+dokkaBase = "2.0.0"
 espresso = "3.6.1"
 gradleMavenPublish = "0.25.2"
-jackson = "2.15.3"
+jackson = "2.18.3"
 jsoup = "1.17.2"
 junit = "4.13.2"
-kotlin = "2.0.21"
-kotlinBinaryCompatibility = "0.13.2"
-kotlinSerialization = "1.7.1"
+kotlin = "2.1.20"
+kotlinBinaryCompatibility = "0.17.0"
+kotlinSerialization = "1.8.1"
 leakcanary = "2.12"
-lifecycle = "2.8.7"
+lifecycle = "2.9.0"
 material = "1.12.0"
 mockitoCore = "5.12.0"
 mockitoKotlin = "4.0.0"
-mockk = "1.13.12"
-navigation = "2.8.6"
+mockk = "1.14.2"
+navigation = "2.9.0"
 okhttp = "4.12.0"
-okio = "3.9.0"
-oktaAuthn = "2.0.11"
+okio = "3.10.2"
+oktaAuthn = "3.0.0"
 oktaLegacyOidc = "1.3.4"
 oktaManagement = "14.0.0"
 robolectric = "4.14.1"
-room = "2.6.1"
+room = "2.7.1"
 securityCrypto = "1.0.0"
-snakeyaml = "2.2"
-spotless = "6.7.0"
-sqlcipherAndroid = "4.6.1"
+snakeyaml = "2.3"
+spotless = "7.0.3"
+sqlcipherAndroid = "4.8.0"
 timber = "5.0.1"
-truth = "1.1.5"
-turbine = "1.1.0"
+truth = "1.4.4"
+turbine = "1.2.0"
+
+sonarqubeGradlePlugin = "6.0.1.5171"
+dokkaGradlePlugin = "2.0.0"
+detektGradlePlugin = "1.23.8"
+googleServicesGradlePlugin = "4.4.2"
+googleFirebaseCrashlyticsGradlePlugin = "3.0.3"
+koverGradlePlugin = "0.9.1"
+ksp = "2.1.20-1.0.32" # prefix with kotlin version.
+safeArgs = "2.9.0"
+compatibilityValidator = "0.17.0"
 
 [libraries]
 androidx-activity-ktx = { module = "androidx.activity:activity-ktx", version.ref = "androidxActivity" }
@@ -66,8 +76,6 @@ androidx-test-runner = { module = "androidx.test:runner", version.ref = "android
 androidx-test-rules = { module = "androidx.test:rules", version.ref = "androidxTest" }
 androidx-test-uiautomator = { module = "androidx.test.uiautomator:uiautomator", version.ref = "androidxTextUiautomator" }
 
-android-gradle-plugin = { module = "com.android.tools.build:gradle", version.ref = "androidGradlePlugin" }
-
 app-compat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
 
 bcprov-jdk18on = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bouncycastle" }
@@ -80,10 +88,8 @@ coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-androi
 coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
 
-desugar-libs = { module = "com.android.tools:desugar_jdk_libs", version.ref = "coreLibraryDesugaring" }
-
-dokka-gradle-plugin = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version.ref = "dokka" }
-
+dokka-base = { module = "org.jetbrains.dokka:dokka-base", version.ref = "dokkaBase" }
+dokka-core = { module = "org.jetbrains.dokka:dokka-core", version.ref = "dokkaBase" }
 espresso-core = { module = "androidx.test.espresso:espresso-core", version.ref = "espresso" }
 espresso-contrib = { module = "androidx.test.espresso:espresso-contrib", version.ref = "espresso" }
 espresso-intents = { module = "androidx.test.espresso:espresso-intents", version.ref = "espresso" }
@@ -154,6 +160,20 @@ timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
 truth = { module = "com.google.truth:truth", version.ref = "truth" }
 turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
 
+
 [plugins]
+android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }
+android-library = { id = "com.android.library", version.ref = "androidGradlePlugin" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+dokka = { id = "org.jetbrains.dokka", version.ref = "dokkaGradlePlugin" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "koverGradlePlugin" }
+sonarqube = { id = "org.sonarqube", version.ref = "sonarqubeGradlePlugin" }
+detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detektGradlePlugin" }
+compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+google-services = { id = "com.google.gms.google-services", version.ref = "googleServicesGradlePlugin" }
+google-crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "googleFirebaseCrashlyticsGradlePlugin" }
+androidx-navigation-safeargs = { id = "androidx.navigation.safeargs.kotlin", version.ref = "safeArgs" }
+kotlinx-binary-compatibility-validator = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version.ref = "compatibilityValidator" }
 
 [bundles]

@@ -25,6 +25,7 @@ import com.okta.authfoundation.client.internal.SdkVersionsRegistry
 import com.okta.authfoundation.credential.Token
 import com.okta.oauth2.AuthorizationCodeFlow
 import com.okta.oauth2.RedirectEndSessionFlow
+import com.okta.webauthenticationui.BuildConfig.SDK_VERSION
 import com.okta.webauthenticationui.events.CustomizeBrowserEvent
 import com.okta.webauthenticationui.events.CustomizeCustomTabsEvent
 

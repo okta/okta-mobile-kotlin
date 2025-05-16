@@ -21,6 +21,7 @@ import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.client.internal.SdkVersionsRegistry
 import com.okta.authfoundation.client.internal.performRequest
 import com.okta.authfoundation.credential.Token
+import com.okta.oauth2.BuildConfig.SDK_VERSION
 import kotlinx.coroutines.delay
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

@@ -22,6 +22,7 @@ import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.client.internal.SdkVersionsRegistry
 import okhttp3.HttpUrl
 import java.util.UUID
+import com.okta.oauth2.BuildConfig.SDK_VERSION
 
 /**
  * [RedirectEndSessionFlow] encapsulates the behavior required to logout using an OIDC Browser redirect flow.
