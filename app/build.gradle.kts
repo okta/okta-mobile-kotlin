@@ -8,9 +8,10 @@ plugins {
     id("androidx.navigation.safeargs.kotlin")
 }
 
-val oktaProperties = Properties().apply {
-    rootProject.file("okta.properties").inputStream().use { load(it) }
-}
+val oktaProperties =
+    Properties().apply {
+        rootProject.file("okta.properties").inputStream().use { load(it) }
+    }
 
 android {
     namespace = "sample.okta.android"

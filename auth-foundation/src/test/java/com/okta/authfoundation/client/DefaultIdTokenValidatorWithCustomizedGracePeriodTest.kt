@@ -31,18 +31,20 @@ import kotlin.test.fail
 
 class DefaultIdTokenValidatorWithCustomizedGracePeriodTest {
     private val idTokenValidator: IdTokenValidator = DefaultIdTokenValidator()
+
     @get:Rule val oktaRule = OktaRule(idTokenValidator = idTokenValidator)
 
     init {
         oktaRule.eventHandler.registerEventHandler(UpdateIssuedAtGracePeriodEventHandler())
     }
 
-    @Test fun testValidIdToken(): Unit = runBlocking {
-        val client = oktaRule.createOAuth2Client(oktaRule.createEndpoints("https://example-test.okta.com".toHttpUrl().newBuilder()))
-        val idTokenClaims = IdTokenClaims()
-        val idToken = client.createJwtBuilder().createJwt(claims = idTokenClaims)
-        idTokenValidator.validate(client, idToken, IdTokenValidator.Parameters(null, null))
-    }
+    @Test fun testValidIdToken(): Unit =
+        runBlocking {
+            val client = oktaRule.createOAuth2Client(oktaRule.createEndpoints("https://example-test.okta.com".toHttpUrl().newBuilder()))
+            val idTokenClaims = IdTokenClaims()
+            val idToken = client.createJwtBuilder().createJwt(claims = idTokenClaims)
+            idTokenValidator.validate(client, idToken, IdTokenValidator.Parameters(null, null))
+        }
 
     @Test fun testIssuedAtTooFarBeforeNow() {
         val idTokenClaims = IdTokenClaims(issuedAt = oktaRule.clock.currentTime - 1801)
@@ -63,14 +65,15 @@ class DefaultIdTokenValidatorWithCustomizedGracePeriodTest {
         algorithm: String = "RS256",
     ) {
         try {
-            val client = oktaRule.createOAuth2Client(
-                oktaRule.createEndpoints("$issuerPrefix://example-test.okta.com".toHttpUrl().newBuilder())
-            )
+            val client =
+                oktaRule.createOAuth2Client(
+                    oktaRule.createEndpoints("$issuerPrefix://example-test.okta.com".toHttpUrl().newBuilder())
+                )
             runBlocking {
                 idTokenValidator.validate(
                     client,
                     client.createJwtBuilder().createJwt(algorithm = algorithm, claims = idTokenClaims),
-                    IdTokenValidator.Parameters(nonce, maxAge),
+                    IdTokenValidator.Parameters(nonce, maxAge)
                 )
             }
             fail()

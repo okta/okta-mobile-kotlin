@@ -25,7 +25,7 @@ import kotlinx.serialization.Serializable
  * Expected to be retrieved via [OAuth2Client.jwks] and used to validate a [Jwt] signature via [Jwt.hasValidSignature].
  */
 class Jwks internal constructor(
-    internal val keys: List<Key>
+    internal val keys: List<Key>,
 ) {
     internal class Key(
         val keyId: String,
@@ -35,25 +35,24 @@ class Jwks internal constructor(
         val exponent: String?,
         val modulus: String?,
     ) {
-        internal fun toSerializableJwksKey(): SerializableJwks.Key {
-            return SerializableJwks.Key(
+        internal fun toSerializableJwksKey(): SerializableJwks.Key =
+            SerializableJwks.Key(
                 algorithm = algorithm,
                 exponent = exponent,
                 modulus = modulus,
                 keyId = keyId,
                 keyType = keyType,
-                use = use,
+                use = use
             )
-        }
     }
 
-    internal fun toSerializableJwks(): SerializableJwks {
-        return SerializableJwks(keys.map { it.toSerializableJwksKey() })
-    }
+    internal fun toSerializableJwks(): SerializableJwks = SerializableJwks(keys.map { it.toSerializableJwksKey() })
 }
 
 @Serializable
-internal class SerializableJwks(@SerialName("keys") val keys: List<Key>) {
+internal class SerializableJwks(
+    @SerialName("keys") val keys: List<Key>,
+) {
     @Serializable
     class Key(
         @SerialName("kid") val keyId: String,
@@ -63,19 +62,16 @@ internal class SerializableJwks(@SerialName("keys") val keys: List<Key>) {
         @SerialName("e") val exponent: String?,
         @SerialName("n") val modulus: String?,
     ) {
-        fun toJwksKey(): Jwks.Key {
-            return Jwks.Key(
+        fun toJwksKey(): Jwks.Key =
+            Jwks.Key(
                 algorithm = algorithm,
                 exponent = exponent,
                 modulus = modulus,
                 keyId = keyId,
                 keyType = keyType,
-                use = use,
+                use = use
             )
-        }
     }
 
-    fun toJwks(): Jwks {
-        return Jwks(keys.map { it.toJwksKey() })
-    }
+    fun toJwks(): Jwks = Jwks(keys.map { it.toJwksKey() })
 }

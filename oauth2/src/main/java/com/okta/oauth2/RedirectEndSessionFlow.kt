@@ -20,9 +20,9 @@ import com.okta.authfoundation.client.OAuth2Client
 import com.okta.authfoundation.client.OAuth2ClientResult
 import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.client.internal.SdkVersionsRegistry
+import com.okta.oauth2.BuildConfig.SDK_VERSION
 import okhttp3.HttpUrl
 import java.util.UUID
-import com.okta.oauth2.BuildConfig.SDK_VERSION
 
 /**
  * [RedirectEndSessionFlow] encapsulates the behavior required to logout using an OIDC Browser redirect flow.
@@ -67,7 +67,9 @@ class RedirectEndSessionFlow(
      *
      * Includes a message giving more information as to what went wrong.
      */
-    class ResumeException internal constructor(message: String) : Exception(message)
+    class ResumeException internal constructor(
+        message: String,
+    ) : Exception(message)
 
     /**
      * Used in a [OAuth2ClientResult.Error.exception] from [resume].
@@ -83,9 +85,10 @@ class RedirectEndSessionFlow(
      * @param redirectUrl the redirect URL.
      * @param idToken the token used to identify the session to log the user out of.
      */
-    suspend fun start(redirectUrl: String, idToken: String): OAuth2ClientResult<Context> {
-        return start(redirectUrl, idToken, UUID.randomUUID().toString())
-    }
+    suspend fun start(
+        redirectUrl: String,
+        idToken: String,
+    ): OAuth2ClientResult<Context> = start(redirectUrl, idToken, UUID.randomUUID().toString())
 
     internal suspend fun start(
         redirectUrl: String,
@@ -108,7 +111,10 @@ class RedirectEndSessionFlow(
      * @param uri the redirect [Uri] which includes the state to validate the logout was successful.
      * @param flowContext the [RedirectEndSessionFlow.Context] used internally to maintain state.
      */
-    fun resume(uri: Uri, flowContext: Context): OAuth2ClientResult<Unit> {
+    fun resume(
+        uri: Uri,
+        flowContext: Context,
+    ): OAuth2ClientResult<Unit> {
         if (!uri.toString().startsWith(flowContext.redirectUrl)) {
             return OAuth2ClientResult.Error(RedirectSchemeMismatchException())
         }

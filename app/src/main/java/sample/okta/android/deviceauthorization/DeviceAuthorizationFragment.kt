@@ -22,12 +22,16 @@ import androidx.navigation.fragment.findNavController
 import sample.okta.android.databinding.FragmentDeviceAuthorizationBinding
 import sample.okta.android.util.BaseFragment
 
-internal class DeviceAuthorizationFragment : BaseFragment<FragmentDeviceAuthorizationBinding>(
-    FragmentDeviceAuthorizationBinding::inflate
-) {
+internal class DeviceAuthorizationFragment :
+    BaseFragment<FragmentDeviceAuthorizationBinding>(
+        FragmentDeviceAuthorizationBinding::inflate
+    ) {
     private val viewModel by viewModels<DeviceAuthorizationViewModel>()
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+    override fun onViewCreated(
+        view: View,
+        savedInstanceState: Bundle?,
+    ) {
         super.onViewCreated(view, savedInstanceState)
 
         binding.tryAgainButton.setOnClickListener {

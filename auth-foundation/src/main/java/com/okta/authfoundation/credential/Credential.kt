@@ -56,9 +56,8 @@ import java.util.Objects
 class Credential internal constructor(
     token: Token,
     internal val client: OAuth2Client = OAuth2Client.createFromConfiguration(token.oidcConfiguration),
-    tags: Map<String, String> = emptyMap()
+    tags: Map<String, String> = emptyMap(),
 ) {
-
     /**
      * Identifier for this credential.
      */
@@ -82,7 +81,7 @@ class Credential internal constructor(
          * Default security level. The stored [Token] is encrypted with a non-biometric key in keychain
          */
         data class Default(
-            override val keyAlias: String = AuthFoundationDefaults.Encryption.keyAlias
+            override val keyAlias: String = AuthFoundationDefaults.Encryption.keyAlias,
         ) : Security
 
         /**
@@ -95,8 +94,9 @@ class Credential internal constructor(
              * > Note: This timeout is ignored on Android 10 and below.
              */
             override val userAuthenticationTimeout: Int = 5,
-            override val keyAlias: String = AuthFoundationDefaults.Encryption.keyAlias + ".biometricStrong.timeout.$userAuthenticationTimeout"
-        ) : Security, BiometricSecurity {
+            override val keyAlias: String = AuthFoundationDefaults.Encryption.keyAlias + ".biometricStrong.timeout.$userAuthenticationTimeout",
+        ) : Security,
+            BiometricSecurity {
             init {
                 require(userAuthenticationTimeout >= 0) {
                     BiometricSecurity.TIMEOUT_RANGE_ERROR
@@ -112,8 +112,9 @@ class Credential internal constructor(
              * User authentication timeout (in seconds). A timeout of 0 means that auth-per-use keys will be used for Biometrics.
              */
             override val userAuthenticationTimeout: Int = 5,
-            override val keyAlias: String = AuthFoundationDefaults.Encryption.keyAlias + ".biometricStrongOrDeviceCredential.timeout.$userAuthenticationTimeout"
-        ) : Security, BiometricSecurity {
+            override val keyAlias: String = AuthFoundationDefaults.Encryption.keyAlias + ".biometricStrongOrDeviceCredential.timeout.$userAuthenticationTimeout",
+        ) : Security,
+            BiometricSecurity {
             init {
                 require(userAuthenticationTimeout >= 0) {
                     BiometricSecurity.TIMEOUT_RANGE_ERROR
@@ -153,17 +154,16 @@ class Credential internal constructor(
          * > Note: This blocks on [setDefaultAsync] and [getDefaultAsync].
          */
         var default: Credential?
-            get() = runBlocking {
-                defaultCredentialIdDataStore.getDefaultCredentialId()?.let { id -> with(id) }
-            }
+            get() =
+                runBlocking {
+                    defaultCredentialIdDataStore.getDefaultCredentialId()?.let { id -> with(id) }
+                }
             set(value) = runBlocking { setDefaultAsync(value) }
 
         /**
          * Returns the default [Credential], or null if no default [Credential] exists.
          */
-        suspend fun getDefaultAsync(): Credential? {
-            return defaultCredentialIdDataStore.getDefaultCredentialId()?.let { id -> withAsync(id) }
-        }
+        suspend fun getDefaultAsync(): Credential? = defaultCredentialIdDataStore.getDefaultCredentialId()?.let { id -> withAsync(id) }
 
         /**
          * Sets the default [Credential] to provided [credential]. Unsets the default [Credential] if
@@ -219,8 +219,7 @@ class Credential internal constructor(
         /**
          * Sets the [Token.Metadata] of [Token] with specified [Token.Metadata.id].
          */
-        suspend fun setMetadataAsync(metadata: Token.Metadata) =
-            credentialDataSource().setMetadata(metadata)
+        suspend fun setMetadataAsync(metadata: Token.Metadata) = credentialDataSource().setMetadata(metadata)
 
         /**
          * Return the [Credential] associated with the given [id].
@@ -232,14 +231,13 @@ class Credential internal constructor(
          */
         fun with(
             id: String,
-            promptInfo: BiometricPrompt.PromptInfo? = Security.promptInfo
-        ): Credential? {
-            return runBlocking {
+            promptInfo: BiometricPrompt.PromptInfo? = Security.promptInfo,
+        ): Credential? =
+            runBlocking {
                 withSyncDecryptionContext {
                     credentialDataSource().getCredential(id, promptInfo)
                 }
             }
-        }
 
         /**
          * Return the [Credential] associated with the given [id].
@@ -249,12 +247,11 @@ class Credential internal constructor(
          */
         suspend fun withAsync(
             id: String,
-            promptInfo: BiometricPrompt.PromptInfo? = Security.promptInfo
-        ): Credential? {
-            return withAsyncDecryptionContext {
+            promptInfo: BiometricPrompt.PromptInfo? = Security.promptInfo,
+        ): Credential? =
+            withAsyncDecryptionContext {
                 credentialDataSource().getCredential(id, promptInfo)
             }
-        }
 
         /**
          * Return all [Credential] objects matching the given [where] expression. The [where] expression is supplied with [Token.Metadata] and should return true for cases where the user wants to fetch [Credential] with given [Token.Metadata].
@@ -266,14 +263,13 @@ class Credential internal constructor(
          */
         fun find(
             promptInfo: BiometricPrompt.PromptInfo? = Security.promptInfo,
-            where: (Token.Metadata) -> Boolean
-        ): List<Credential> {
-            return runBlocking {
+            where: (Token.Metadata) -> Boolean,
+        ): List<Credential> =
+            runBlocking {
                 withSyncDecryptionContext {
                     credentialDataSource().findCredential(promptInfo, where)
                 }
             }
-        }
 
         /**
          * Return all [Credential] objects matching the given [where] expression. The [where] expression is supplied with [Token.Metadata] and should return true for cases where the user wants to fetch [Credential] with given [Token.Metadata].
@@ -283,12 +279,11 @@ class Credential internal constructor(
          */
         suspend fun findAsync(
             promptInfo: BiometricPrompt.PromptInfo? = Security.promptInfo,
-            where: (Token.Metadata) -> Boolean
-        ): List<Credential> {
-            return withAsyncDecryptionContext {
+            where: (Token.Metadata) -> Boolean,
+        ): List<Credential> =
+            withAsyncDecryptionContext {
                 credentialDataSource().findCredential(promptInfo, where)
             }
-        }
 
         /**
          * Store a [Token] with optional [tags] and [security] options.
@@ -303,10 +298,8 @@ class Credential internal constructor(
         fun store(
             token: Token,
             tags: Map<String, String> = emptyMap(),
-            security: Security = Security.standard
-        ): Credential {
-            return runBlocking { storeAsync(token, tags, security) }
-        }
+            security: Security = Security.standard,
+        ): Credential = runBlocking { storeAsync(token, tags, security) }
 
         /**
          * Store a [Token] with optional [tags] and [security] options.
@@ -319,16 +312,15 @@ class Credential internal constructor(
         suspend fun storeAsync(
             token: Token,
             tags: Map<String, String> = emptyMap(),
-            security: Security = Security.standard
-        ): Credential {
-            return credentialDataSource().createCredential(token, tags, security)
-        }
+            security: Security = Security.standard,
+        ): Credential = credentialDataSource().createCredential(token, tags, security)
     }
 
-    private val refreshCoalescingOrchestrator = CoalescingOrchestrator(
-        factory = ::performRealRefresh,
-        keepDataInMemory = { false },
-    )
+    private val refreshCoalescingOrchestrator =
+        CoalescingOrchestrator(
+            factory = ::performRealRefresh,
+            keepDataInMemory = { false }
+        )
 
     private val tokenFlow = MutableStateFlow<Token?>(token)
 
@@ -338,6 +330,7 @@ class Credential internal constructor(
     var token: Token = token
         internal set
 
+    @Suppress("ktlint:standard:backing-property-naming")
     internal var _tags = tags
 
     /**
@@ -374,14 +367,12 @@ class Credential internal constructor(
     /**
      * Returns a [Flow] that emits the current [Token] that's stored and associated with this [Credential].
      */
-    fun getTokenFlow(): Flow<Token> {
-        return tokenFlow
+    fun getTokenFlow(): Flow<Token> =
+        tokenFlow
             .transformWhile {
                 emit(it)
                 it != null
-            }
-            .filterNotNull()
-    }
+            }.filterNotNull()
 
     /**
      * Performs the OIDC User Info call, which returns claims associated with this [Credential].
@@ -389,9 +380,10 @@ class Credential internal constructor(
      * Internally, this uses [Credential.getValidAccessToken] to automatically refresh the access token if it's expired.
      */
     suspend fun getUserInfo(): OAuth2ClientResult<OidcUserInfo> {
-        val accessToken = getValidAccessToken() ?: return OAuth2ClientResult.Error(
-            IllegalStateException("No Access Token.")
-        )
+        val accessToken =
+            getValidAccessToken() ?: return OAuth2ClientResult.Error(
+                IllegalStateException("No Access Token.")
+            )
         return client.getUserInfo(accessToken)
     }
 
@@ -400,9 +392,7 @@ class Credential internal constructor(
      *
      * @param tokenType the [TokenType] to check for validity.
      */
-    suspend fun introspectToken(tokenType: TokenType): OAuth2ClientResult<OidcIntrospectInfo> {
-        return client.introspectToken(tokenType, token)
-    }
+    suspend fun introspectToken(tokenType: TokenType): OAuth2ClientResult<OidcIntrospectInfo> = client.introspectToken(tokenType, token)
 
     internal suspend fun replaceToken(token: Token) {
         if (isDeleted) {
@@ -413,12 +403,13 @@ class Credential internal constructor(
             )
             return
         }
-        val tokenToStore = token.copy(
-            // Refresh Token isn't ALWAYS returned when refreshing.
-            refreshToken = token.refreshToken ?: this.token.refreshToken,
-            // Device Secret isn't returned when refreshing.
-            deviceSecret = token.deviceSecret ?: this.token.deviceSecret,
-        )
+        val tokenToStore =
+            token.copy(
+                // Refresh Token isn't ALWAYS returned when refreshing.
+                refreshToken = token.refreshToken ?: this.token.refreshToken,
+                // Device Secret isn't returned when refreshing.
+                deviceSecret = token.deviceSecret ?: this.token.deviceSecret
+            )
         this.token = tokenToStore
         tokenFlow.emit(token)
         client.configuration.eventCoordinator.sendEvent(
@@ -462,13 +453,9 @@ class Credential internal constructor(
     /**
      * Attempt to refresh the [Token] associated with this [Credential].
      */
-    suspend fun refreshToken(): OAuth2ClientResult<Token> {
-        return refreshCoalescingOrchestrator.get()
-    }
+    suspend fun refreshToken(): OAuth2ClientResult<Token> = refreshCoalescingOrchestrator.get()
 
-    private suspend fun performRealRefresh(): OAuth2ClientResult<Token> {
-        return client.refreshToken(token)
-    }
+    private suspend fun performRealRefresh(): OAuth2ClientResult<Token> = client.refreshToken(token)
 
     /**
      * Attempt to revoke the specified [TokenType].
@@ -477,11 +464,7 @@ class Credential internal constructor(
      *
      * @param tokenType the [TokenType] to revoke.
      */
-    suspend fun revokeToken(
-        tokenType: RevokeTokenType
-    ): OAuth2ClientResult<Unit> {
-        return client.revokeToken(tokenType, token)
-    }
+    suspend fun revokeToken(tokenType: RevokeTokenType): OAuth2ClientResult<Unit> = client.revokeToken(tokenType, token)
 
     /**
      * Attempt to revoke all available tokens.
@@ -496,17 +479,17 @@ class Credential internal constructor(
         token.deviceSecret?.let { pairsToRevoke[RevokeTokenType.DEVICE_SECRET] = token }
 
         return coroutineScope {
-            val exceptionPairs = pairsToRevoke
-                .map { entry ->
-                    async {
-                        (client.revokeToken(entry.key, entry.value) as? OAuth2ClientResult.Error<Unit>)?.exception?.let {
-                            entry.key to it
+            val exceptionPairs =
+                pairsToRevoke
+                    .map { entry ->
+                        async {
+                            (client.revokeToken(entry.key, entry.value) as? OAuth2ClientResult.Error<Unit>)?.exception?.let {
+                                entry.key to it
+                            }
                         }
-                    }
-                }
-                .awaitAll()
-                .filterNotNull()
-                .toMap()
+                    }.awaitAll()
+                    .filterNotNull()
+                    .toMap()
 
             if (exceptionPairs.isEmpty()) {
                 OAuth2ClientResult.Success(Unit)
@@ -519,9 +502,7 @@ class Credential internal constructor(
     /**
      * Returns the scopes associated with the associated [Token] if present, otherwise the default scopes associated with the [OAuth2Client].
      */
-    fun scope(): String {
-        return token.scope ?: client.configuration.defaultScope
-    }
+    fun scope(): String = token.scope ?: client.configuration.defaultScope
 
     /**
      * Retrieve the [Jwt] associated with the [Token.idToken] field.
@@ -583,13 +564,12 @@ class Credential internal constructor(
      * If no valid access token is available, no authorization header will be added, and a [NoAccessTokenAvailableEvent] event will
      * be emitted to the associated [EventCoordinator].
      */
-    fun accessTokenInterceptor(): Interceptor {
-        return AccessTokenInterceptor(
+    fun accessTokenInterceptor(): Interceptor =
+        AccessTokenInterceptor(
             ::getValidAccessToken,
             client.configuration.eventCoordinator,
             this
         )
-    }
 
     override fun equals(other: Any?): Boolean {
         if (other === this) {
@@ -603,11 +583,10 @@ class Credential internal constructor(
             tags == other.tags
     }
 
-    override fun hashCode(): Int {
-        return Objects.hash(
+    override fun hashCode(): Int =
+        Objects.hash(
             id,
             token,
             tags
         )
-    }
 }

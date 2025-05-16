@@ -56,6 +56,10 @@ android {
     }
 }
 
+apiValidation {
+    ignoredClasses.add("com.okta.webauthenticationui.BuildConfig")
+}
+
 dependencies {
     coreLibraryDesugaring(libs.core.library.desugaring)
 

@@ -24,17 +24,25 @@ fun createJwks(
     keyType: String = "RSA",
     use: String = "sig",
     publicKey: RSAPublicKey = TestKeyFactory.publicKey() as RSAPublicKey,
-): Jwks {
-    return Jwks(
-        keys = listOf(
-            Jwks.Key(
-                algorithm = algorithm,
-                exponent = publicKey.publicExponent.toByteArray().toByteString().base64Url(),
-                modulus = publicKey.modulus.toByteArray().toByteString().base64Url(),
-                keyId = keyId,
-                keyType = keyType,
-                use = use,
+): Jwks =
+    Jwks(
+        keys =
+            listOf(
+                Jwks.Key(
+                    algorithm = algorithm,
+                    exponent =
+                        publicKey.publicExponent
+                            .toByteArray()
+                            .toByteString()
+                            .base64Url(),
+                    modulus =
+                        publicKey.modulus
+                            .toByteArray()
+                            .toByteString()
+                            .base64Url(),
+                    keyId = keyId,
+                    keyType = keyType,
+                    use = use
+                )
             )
-        )
     )
-}

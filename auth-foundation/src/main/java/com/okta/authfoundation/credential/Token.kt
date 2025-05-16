@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -97,8 +97,8 @@ class Token @OptIn(ExperimentalSerializationApi::class) private constructor(
         getIssuedTime(idToken, oidcConfiguration)
     )
 
-    internal fun asSerializableToken(): SerializableToken {
-        return SerializableToken(
+    internal fun asSerializableToken(): SerializableToken =
+        SerializableToken(
             tokenType = tokenType,
             expiresIn = expiresIn,
             accessToken = accessToken,
@@ -106,16 +106,15 @@ class Token @OptIn(ExperimentalSerializationApi::class) private constructor(
             refreshToken = refreshToken,
             idToken = idToken,
             deviceSecret = deviceSecret,
-            issuedTokenType = issuedTokenType,
+            issuedTokenType = issuedTokenType
         )
-    }
 
     internal fun copy(
         id: String = this.id,
         refreshToken: String? = this.refreshToken,
         deviceSecret: String? = this.deviceSecret,
-    ): Token {
-        return Token(
+    ): Token =
+        Token(
             id = id,
             tokenType = tokenType,
             expiresIn = expiresIn,
@@ -127,7 +126,6 @@ class Token @OptIn(ExperimentalSerializationApi::class) private constructor(
             issuedTokenType = issuedTokenType,
             oidcConfiguration = oidcConfiguration
         )
-    }
 
     override fun equals(other: Any?): Boolean {
         if (other === this) {
@@ -146,8 +144,8 @@ class Token @OptIn(ExperimentalSerializationApi::class) private constructor(
             other.issuedTokenType == issuedTokenType
     }
 
-    override fun hashCode(): Int {
-        return Objects.hash(
+    override fun hashCode(): Int =
+        Objects.hash(
             tokenType,
             expiresIn,
             accessToken,
@@ -155,9 +153,8 @@ class Token @OptIn(ExperimentalSerializationApi::class) private constructor(
             refreshToken,
             idToken,
             deviceSecret,
-            issuedTokenType,
+            issuedTokenType
         )
-    }
 
     /**
      * Non-sensitive information about the [Token] to be used in storage.
@@ -174,35 +171,40 @@ class Token @OptIn(ExperimentalSerializationApi::class) private constructor(
         /**
          * The object holding claim values. Use [claimsProvider] for a more convenient way of accessing claims.
          */
-        val payloadData: JsonObject?
+        val payloadData: JsonObject?,
     ) {
         constructor(
             id: String,
             tags: Map<String, String>,
-            idToken: Jwt?
+            idToken: Jwt?,
         ) : this(id, tags, idToken?.deserializeClaims(JsonObject.serializer()))
 
         /**
          * Convenience object for accessing claims of this [Token]
          */
-        val claimsProvider: ClaimsProvider? = payloadData?.let {
-            DefaultClaimsProvider(payloadData, OidcConfiguration.defaultJson())
-        }
+        val claimsProvider: ClaimsProvider? =
+            payloadData?.let {
+                DefaultClaimsProvider(payloadData, OidcConfiguration.defaultJson())
+            }
     }
 
     companion object {
-        private fun getIssuedTime(idToken: String?, oidcConfiguration: OidcConfiguration): Long {
-            val payload = idToken?.let {
-                try {
-                    val parser =
-                        JwtParser(oidcConfiguration.json, oidcConfiguration.computeDispatcher)
-                    val idTokenJwt = parser.parse(idToken)
-                    idTokenJwt.deserializeClaims(TokenInitializationPayload.serializer())
-                } catch (e: Exception) {
-                    // The token was malformed.
-                    null
+        private fun getIssuedTime(
+            idToken: String?,
+            oidcConfiguration: OidcConfiguration,
+        ): Long {
+            val payload =
+                idToken?.let {
+                    try {
+                        val parser =
+                            JwtParser(oidcConfiguration.json, oidcConfiguration.computeDispatcher)
+                        val idTokenJwt = parser.parse(idToken)
+                        idTokenJwt.deserializeClaims(TokenInitializationPayload.serializer())
+                    } catch (e: Exception) {
+                        // The token was malformed.
+                        null
+                    }
                 }
-            }
             return payload?.issuedAt ?: oidcConfiguration.clock.currentTimeEpochSecond()
         }
     }
@@ -219,8 +221,11 @@ internal class SerializableToken internal constructor(
     @SerialName("device_secret") val deviceSecret: String? = null,
     @SerialName("issued_token_type") val issuedTokenType: String? = null,
 ) {
-    fun asToken(id: String, oidcConfiguration: OidcConfiguration): Token {
-        return Token(
+    fun asToken(
+        id: String,
+        oidcConfiguration: OidcConfiguration,
+    ): Token =
+        Token(
             id = id,
             tokenType = tokenType,
             expiresIn = expiresIn,
@@ -232,7 +237,6 @@ internal class SerializableToken internal constructor(
             issuedTokenType = issuedTokenType,
             oidcConfiguration = oidcConfiguration
         )
-    }
 }
 
 @Serializable

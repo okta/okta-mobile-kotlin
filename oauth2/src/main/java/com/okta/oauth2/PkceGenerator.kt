@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,5 @@ internal object PkceGenerator {
         return base64Encode(codeVerifier)
     }
 
-    private fun base64Encode(source: ByteArray): String {
-        return source.toByteString().base64Url().trimEnd('=')
-    }
+    private fun base64Encode(source: ByteArray): String = source.toByteString().base64Url().trimEnd('=')
 }

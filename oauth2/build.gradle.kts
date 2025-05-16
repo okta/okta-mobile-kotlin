@@ -42,6 +42,10 @@ android {
     }
 }
 
+apiValidation {
+    ignoredClasses.add("com.okta.oauth2.BuildConfig")
+}
+
 dependencies {
     coreLibraryDesugaring(libs.core.library.desugaring)
 

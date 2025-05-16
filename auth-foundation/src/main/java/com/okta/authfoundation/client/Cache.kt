@@ -34,7 +34,10 @@ interface Cache {
      * @param key the key used to lookup the value at a later time.
      * @param value the value to store.
      */
-    fun set(key: String, value: String)
+    fun set(
+        key: String,
+        value: String,
+    )
 
     /**
      * Look up the key that was previously saved.
@@ -48,9 +51,12 @@ interface Cache {
 /**
  * An implementation of [Cache] which stores key value pairs in Android [SharedPreferences].
  */
-internal class SharedPreferencesCache private constructor(context: Context) : Cache {
+internal class SharedPreferencesCache private constructor(
+    context: Context,
+) : Cache {
     internal companion object {
         internal fun getInstance() = SharedPreferencesCache(ApplicationContextHolder.appContext)
+
         private const val FILE_NAME = "com.okta.authfoundation.cache"
     }
 
@@ -59,21 +65,23 @@ internal class SharedPreferencesCache private constructor(context: Context) : Ca
     }
 
     @SuppressLint("ApplySharedPref")
-    override fun set(key: String, value: String) {
+    override fun set(
+        key: String,
+        value: String,
+    ) {
         sharedPreferences.edit().putString(key, value).commit()
     }
 
-    override fun get(key: String): String? {
-        return sharedPreferences.getString(key, null)
-    }
+    override fun get(key: String): String? = sharedPreferences.getString(key, null)
 }
 
 @InternalAuthFoundationApi
 class NoOpCache : Cache {
-    override fun set(key: String, value: String) {
+    override fun set(
+        key: String,
+        value: String,
+    ) {
     }
 
-    override fun get(key: String): String? {
-        return null
-    }
+    override fun get(key: String): String? = null
 }

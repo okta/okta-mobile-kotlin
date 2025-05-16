@@ -7,6 +7,7 @@ plugins {
     kotlin("android")
     kotlin("plugin.serialization") version libs.versions.kotlin.get()
     id("com.vanniktech.maven.publish.base")
+    id("binary-compatibility-validator")
 }
 
 android {
@@ -48,6 +49,10 @@ android {
     buildFeatures {
         buildConfig = true
     }
+}
+
+apiValidation {
+    ignoredClasses.add("com.okta.authfoundation.BuildConfig")
 }
 
 dependencies {

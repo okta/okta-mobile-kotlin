@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,11 +21,11 @@ import com.okta.authfoundation.client.OAuth2ClientResult
 import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.client.internal.SdkVersionsRegistry
 import com.okta.authfoundation.credential.Token
+import com.okta.oauth2.BuildConfig.SDK_VERSION
 import okhttp3.FormBody
 import okhttp3.HttpUrl
 import okhttp3.Request
 import java.util.UUID
-import com.okta.oauth2.BuildConfig.SDK_VERSION
 
 /**
  * [AuthorizationCodeFlow] encapsulates the behavior required to authentication using an OIDC Browser redirect flow.
@@ -65,7 +65,7 @@ class AuthorizationCodeFlow(
         internal val codeVerifier: String,
         internal val state: String,
         internal val nonce: String,
-        internal val maxAge: Int?
+        internal val maxAge: Int?,
     )
 
     /**
@@ -73,7 +73,6 @@ class AuthorizationCodeFlow(
      */
     class ResumeException internal constructor(
         message: String,
-
         /**
          * The error returned from the server.
          *
@@ -111,9 +110,9 @@ class AuthorizationCodeFlow(
         redirectUrl: String,
         extraRequestParameters: Map<String, String> = emptyMap(),
         scope: String = client.configuration.defaultScope,
-        state: String = UUID.randomUUID().toString()
-    ): OAuth2ClientResult<Context> {
-        return start(
+        state: String = UUID.randomUUID().toString(),
+    ): OAuth2ClientResult<Context> =
+        start(
             redirectUrl = redirectUrl,
             codeVerifier = PkceGenerator.codeVerifier(),
             state = state,
@@ -121,7 +120,6 @@ class AuthorizationCodeFlow(
             extraRequestParameters = extraRequestParameters,
             scope = scope
         )
-    }
 
     internal suspend fun start(
         redirectUrl: String,
@@ -160,7 +158,10 @@ class AuthorizationCodeFlow(
      * @param uri the redirect [Uri] which includes the authorization code to complete the flow.
      * @param flowContext the [AuthorizationCodeFlow.Context] used internally to maintain state.
      */
-    suspend fun resume(uri: Uri, flowContext: Context): OAuth2ClientResult<Token> {
+    suspend fun resume(
+        uri: Uri,
+        flowContext: Context,
+    ): OAuth2ClientResult<Token> {
         if (!uri.toString().startsWith(flowContext.redirectUrl)) {
             return OAuth2ClientResult.Error(RedirectSchemeMismatchException())
         }
@@ -181,17 +182,21 @@ class AuthorizationCodeFlow(
 
         val endpoints = client.endpointsOrNull() ?: return client.endpointNotAvailableError()
 
-        val formBodyBuilder = FormBody.Builder()
-            .add("redirect_uri", flowContext.redirectUrl)
-            .add("code_verifier", flowContext.codeVerifier)
-            .add("client_id", client.configuration.clientId)
-            .add("grant_type", "authorization_code")
-            .add("code", code)
+        val formBodyBuilder =
+            FormBody
+                .Builder()
+                .add("redirect_uri", flowContext.redirectUrl)
+                .add("code_verifier", flowContext.codeVerifier)
+                .add("client_id", client.configuration.clientId)
+                .add("grant_type", "authorization_code")
+                .add("code", code)
 
-        val request = Request.Builder()
-            .post(formBodyBuilder.build())
-            .url(endpoints.tokenEndpoint)
-            .build()
+        val request =
+            Request
+                .Builder()
+                .post(formBodyBuilder.build())
+                .url(endpoints.tokenEndpoint)
+                .build()
 
         return client.tokenRequest(request, flowContext.nonce, flowContext.maxAge)
     }

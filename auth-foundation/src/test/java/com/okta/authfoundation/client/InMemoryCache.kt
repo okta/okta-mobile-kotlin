@@ -18,11 +18,12 @@ package com.okta.authfoundation.client
 internal class InMemoryCache : Cache {
     private val map = mutableMapOf<String, String>()
 
-    override fun set(key: String, value: String) {
+    override fun set(
+        key: String,
+        value: String,
+    ) {
         map[key] = value
     }
 
-    override fun get(key: String): String? {
-        return map[key]
-    }
+    override fun get(key: String): String? = map[key]
 }

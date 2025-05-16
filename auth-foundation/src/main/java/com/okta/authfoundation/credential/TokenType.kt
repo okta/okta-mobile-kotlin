@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,10 +29,12 @@ enum class TokenType {
     ID_TOKEN,
 
     /** Indicates the device secret. */
-    DEVICE_SECRET;
+    DEVICE_SECRET,
 
-    fun toTokenTypeHint(): String {
-        return when (this) {
+    ;
+
+    fun toTokenTypeHint(): String =
+        when (this) {
             ACCESS_TOKEN -> {
                 "access_token"
             }
@@ -46,5 +48,4 @@ enum class TokenType {
                 "device_secret"
             }
         }
-    }
 }

@@ -28,7 +28,9 @@ fun interface AccessTokenValidator {
     /**
      * An error used for describing errors when validating the [Jwt].
      */
-    class Error(message: String) : IllegalStateException(message)
+    class Error(
+        message: String,
+    ) : IllegalStateException(message)
 
     /**
      * Called when the [OAuth2Client] receives a [Token] response.
@@ -39,12 +41,20 @@ fun interface AccessTokenValidator {
      * @param accessToken the access token from the [Token] response.
      * @param idToken the [Jwt] representing the id token from the [Token] response.
      */
-    suspend fun validate(client: OAuth2Client, accessToken: String, idToken: Jwt)
+    suspend fun validate(
+        client: OAuth2Client,
+        accessToken: String,
+        idToken: Jwt,
+    )
 }
 
 // https://openid.net/specs/openid-connect-core-1_0.html#ImplicitTokenValidation
 internal class DefaultAccessTokenValidator : AccessTokenValidator {
-    override suspend fun validate(client: OAuth2Client, accessToken: String, idToken: Jwt) {
+    override suspend fun validate(
+        client: OAuth2Client,
+        accessToken: String,
+        idToken: Jwt,
+    ) {
         if (idToken.algorithm != "RS256") {
             throw AccessTokenValidator.Error("Unsupported algorithm")
         }

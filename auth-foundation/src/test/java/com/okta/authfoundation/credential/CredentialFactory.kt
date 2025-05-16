@@ -25,8 +25,8 @@ fun createToken(
     refreshToken: String? = null,
     deviceSecret: String? = null,
     oidcConfiguration: OidcConfiguration = OidcConfiguration("clientId", "defaultScope", "issuer"),
-): Token {
-    return Token(
+): Token =
+    Token(
         id = id,
         tokenType = "Bearer",
         expiresIn = MOCK_TOKEN_DURATION,
@@ -38,6 +38,5 @@ fun createToken(
         issuedTokenType = null,
         oidcConfiguration = oidcConfiguration
     )
-}
 
 const val MOCK_TOKEN_DURATION: Int = 3600

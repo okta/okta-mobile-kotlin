@@ -28,30 +28,35 @@ import org.junit.Test
 class OidcIntrospectInfoTest {
     @get:Rule val oktaRule = OktaRule()
 
-    @Test fun testPayload(): Unit = runBlocking {
-        val payload = """{"active":true,"foo":"bar"}"""
-        val payloadJson = oktaRule.configuration.json.decodeFromString(JsonObject.serializer(), payload)
-        val subject = payloadJson.asOidcIntrospectInfo(oktaRule.configuration)
-        val activeSubject = subject as OidcIntrospectInfo.Active
-        assertThat(activeSubject.deserializeClaims(ExampleClaim.serializer()).foo).isEqualTo("bar")
-    }
+    @Test fun testPayload(): Unit =
+        runBlocking {
+            val payload = """{"active":true,"foo":"bar"}"""
+            val payloadJson = oktaRule.configuration.json.decodeFromString(JsonObject.serializer(), payload)
+            val subject = payloadJson.asOidcIntrospectInfo(oktaRule.configuration)
+            val activeSubject = subject as OidcIntrospectInfo.Active
+            assertThat(activeSubject.deserializeClaims(ExampleClaim.serializer()).foo).isEqualTo("bar")
+        }
 
-    @Test fun testAsOidcIntrospectInfoActive(): Unit = runBlocking {
-        val payload = """{"active":true,"foo":"bar"}"""
-        val payloadJson = oktaRule.configuration.json.decodeFromString(JsonObject.serializer(), payload)
-        val subject = payloadJson.asOidcIntrospectInfo(oktaRule.configuration)
-        assertThat(subject).isInstanceOf(OidcIntrospectInfo.Active::class.java)
-        assertThat(subject.active).isTrue()
-    }
+    @Test fun testAsOidcIntrospectInfoActive(): Unit =
+        runBlocking {
+            val payload = """{"active":true,"foo":"bar"}"""
+            val payloadJson = oktaRule.configuration.json.decodeFromString(JsonObject.serializer(), payload)
+            val subject = payloadJson.asOidcIntrospectInfo(oktaRule.configuration)
+            assertThat(subject).isInstanceOf(OidcIntrospectInfo.Active::class.java)
+            assertThat(subject.active).isTrue()
+        }
 
-    @Test fun testAsOidcIntrospectInfoInactive(): Unit = runBlocking {
-        val payload = """{"active":false}"""
-        val payloadJson = oktaRule.configuration.json.decodeFromString(JsonObject.serializer(), payload)
-        val subject = payloadJson.asOidcIntrospectInfo(oktaRule.configuration)
-        assertThat(subject).isInstanceOf(OidcIntrospectInfo.Inactive::class.java)
-        assertThat(subject.active).isFalse()
-    }
+    @Test fun testAsOidcIntrospectInfoInactive(): Unit =
+        runBlocking {
+            val payload = """{"active":false}"""
+            val payloadJson = oktaRule.configuration.json.decodeFromString(JsonObject.serializer(), payload)
+            val subject = payloadJson.asOidcIntrospectInfo(oktaRule.configuration)
+            assertThat(subject).isInstanceOf(OidcIntrospectInfo.Inactive::class.java)
+            assertThat(subject.active).isFalse()
+        }
 }
 
 @Serializable
-private class ExampleClaim(@SerialName("foo") val foo: String)
+private class ExampleClaim(
+    @SerialName("foo") val foo: String,
+)

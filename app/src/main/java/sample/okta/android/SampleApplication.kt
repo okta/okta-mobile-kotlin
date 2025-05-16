@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,11 +37,12 @@ class SampleApplication : Application() {
         Timber.plant(Timber.DebugTree())
 
         AuthFoundation.initializeAndroidContext(this)
-        OidcConfiguration.default = OidcConfiguration(
-            clientId = BuildConfig.CLIENT_ID,
-            defaultScope = SampleHelper.DEFAULT_SCOPE,
-            issuer = BuildConfig.ISSUER
-        )
+        OidcConfiguration.default =
+            OidcConfiguration(
+                clientId = BuildConfig.CLIENT_ID,
+                defaultScope = SampleHelper.DEFAULT_SCOPE,
+                issuer = BuildConfig.ISSUER
+            )
         // Use this in case token database is corrupted due to automatic backup/restore
         TokenDbRecoveryUtil.setupDatabaseRecovery()
     }

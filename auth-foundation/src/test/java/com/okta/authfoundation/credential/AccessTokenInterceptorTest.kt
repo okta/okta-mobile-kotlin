@@ -35,7 +35,7 @@ class AccessTokenInterceptorTest {
         oktaRule.enqueue(
             method("GET"),
             doesNotContainHeader("authorization"),
-            path("/customers"),
+            path("/customers")
         ) { response ->
             response.setBody("[]")
         }
@@ -43,8 +43,16 @@ class AccessTokenInterceptorTest {
         val credential = mock<Credential>()
         val accessTokenProvider = { null }
         val interceptor = AccessTokenInterceptor(accessTokenProvider, oktaRule.configuration.eventCoordinator, credential)
-        val okHttpClient = oktaRule.okHttpClient.newBuilder().addInterceptor(interceptor).build()
-        val url = oktaRule.baseUrl.newBuilder().addPathSegment("customers").build()
+        val okHttpClient =
+            oktaRule.okHttpClient
+                .newBuilder()
+                .addInterceptor(interceptor)
+                .build()
+        val url =
+            oktaRule.baseUrl
+                .newBuilder()
+                .addPathSegment("customers")
+                .build()
         val call = okHttpClient.newCall(Request.Builder().url(url).build())
         val response = call.execute()
         assertThat(response.body!!.string()).isEqualTo("[]")
@@ -58,7 +66,7 @@ class AccessTokenInterceptorTest {
         oktaRule.enqueue(
             method("GET"),
             header("authorization", "Bearer Token"),
-            path("/customers"),
+            path("/customers")
         ) { response ->
             response.setBody("[]")
         }
@@ -66,8 +74,16 @@ class AccessTokenInterceptorTest {
         val credential = mock<Credential>()
         val accessTokenProvider = { "Token" }
         val interceptor = AccessTokenInterceptor(accessTokenProvider, oktaRule.configuration.eventCoordinator, credential)
-        val okHttpClient = oktaRule.okHttpClient.newBuilder().addInterceptor(interceptor).build()
-        val url = oktaRule.baseUrl.newBuilder().addPathSegment("customers").build()
+        val okHttpClient =
+            oktaRule.okHttpClient
+                .newBuilder()
+                .addInterceptor(interceptor)
+                .build()
+        val url =
+            oktaRule.baseUrl
+                .newBuilder()
+                .addPathSegment("customers")
+                .build()
         val call = okHttpClient.newCall(Request.Builder().url(url).build())
         val response = call.execute()
         assertThat(response.body!!.string()).isEqualTo("[]")
@@ -83,14 +99,22 @@ class AccessTokenInterceptorTest {
             "Token"
         }
         val interceptor = AccessTokenInterceptor(accessTokenProvider, oktaRule.configuration.eventCoordinator, credential)
-        val okHttpClient = oktaRule.okHttpClient.newBuilder().addInterceptor(interceptor).build()
-        val url = oktaRule.baseUrl.newBuilder().addPathSegment("customers").build()
+        val okHttpClient =
+            oktaRule.okHttpClient
+                .newBuilder()
+                .addInterceptor(interceptor)
+                .build()
+        val url =
+            oktaRule.baseUrl
+                .newBuilder()
+                .addPathSegment("customers")
+                .build()
 
         repeat(5) {
             oktaRule.enqueue(
                 method("GET"),
                 header("authorization", "Bearer Token"),
-                path("/customers"),
+                path("/customers")
             ) { response ->
                 response.setBody("[]")
             }

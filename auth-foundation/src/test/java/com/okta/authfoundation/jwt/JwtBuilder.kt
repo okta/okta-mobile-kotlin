@@ -34,14 +34,13 @@ class JwtBuilder private constructor(
     companion object {
         const val KEY_ID = "FJA0HGNtsuuda_Pl45J42kvQqcsu_0C4Fg7pbJLXTHY"
 
-        fun OAuth2Client.createJwtBuilder(): JwtBuilder {
-            return JwtBuilder(JwtParser(configuration.json, configuration.computeDispatcher), TestKeyFactory.privateKey())
-        }
+        fun OAuth2Client.createJwtBuilder(): JwtBuilder = JwtBuilder(JwtParser(configuration.json, configuration.computeDispatcher), TestKeyFactory.privateKey())
     }
 
-    val json = Json(from = OidcConfiguration.defaultJson()) {
-        encodeDefaults = true
-    }
+    val json =
+        Json(from = OidcConfiguration.defaultJson()) {
+            encodeDefaults = true
+        }
 
     suspend inline fun <reified T> createJwt(
         algorithm: String = "RS256",
@@ -73,9 +72,7 @@ class JwtBuilder private constructor(
         return signedBytes.toByteString().base64Url().trimEnd('=')
     }
 
-    private fun String.toBase64(): String {
-        return toByteArray(Charsets.US_ASCII).toByteString().base64Url().trimEnd('=')
-    }
+    private fun String.toBase64(): String = toByteArray(Charsets.US_ASCII).toByteString().base64Url().trimEnd('=')
 }
 
 @Serializable

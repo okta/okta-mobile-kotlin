@@ -36,9 +36,7 @@ class JwtParser internal constructor(
         /**
          * Initialize a [JwtParser].
          */
-        fun create(): JwtParser {
-            return JwtParser(OidcConfiguration.defaultJson(), AuthFoundationDefaults.computeDispatcher)
-        }
+        fun create(): JwtParser = JwtParser(OidcConfiguration.defaultJson(), AuthFoundationDefaults.computeDispatcher)
     }
 
     /**
@@ -64,7 +62,7 @@ class JwtParser internal constructor(
             claimsProvider = DefaultClaimsProvider(claims, json),
             signature = sections[2],
             rawValue = rawValue,
-            computeDispatcher = computeDispatcher,
+            computeDispatcher = computeDispatcher
         )
     }
 }

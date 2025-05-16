@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,7 +53,7 @@ interface TokenStorage {
     suspend fun add(
         token: Token,
         metadata: Token.Metadata,
-        security: Credential.Security = Credential.Security.standard
+        security: Credential.Security = Credential.Security.standard,
     )
 
     /**
@@ -81,5 +81,8 @@ interface TokenStorage {
      * @return [Token] with the specified [id].
      * @throws [NoSuchElementException] if no storage entry with [id] exists.
      */
-    suspend fun getToken(id: String, promptInfo: BiometricPrompt.PromptInfo? = Credential.Security.promptInfo): Token
+    suspend fun getToken(
+        id: String,
+        promptInfo: BiometricPrompt.PromptInfo? = Credential.Security.promptInfo,
+    ): Token
 }

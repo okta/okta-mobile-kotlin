@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,8 +58,8 @@ internal class SerializableOidcEndpoints(
     @SerialName("end_session_endpoint") val endSessionEndpoint: HttpUrl? = null,
     @SerialName("device_authorization_endpoint") val deviceAuthorizationEndpoint: HttpUrl? = null,
 ) {
-    fun asOidcEndpoints(): OidcEndpoints {
-        return OidcEndpoints(
+    fun asOidcEndpoints(): OidcEndpoints =
+        OidcEndpoints(
             issuer = issuer,
             authorizationEndpoint = authorizationEndpoint,
             tokenEndpoint = tokenEndpoint,
@@ -68,19 +68,19 @@ internal class SerializableOidcEndpoints(
             introspectionEndpoint = introspectionEndpoint,
             revocationEndpoint = revocationEndpoint,
             endSessionEndpoint = endSessionEndpoint,
-            deviceAuthorizationEndpoint = deviceAuthorizationEndpoint,
+            deviceAuthorizationEndpoint = deviceAuthorizationEndpoint
         )
-    }
 }
 
 internal object HttpUrlSerializer : KSerializer<HttpUrl> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("HttpUrl", PrimitiveKind.STRING)
 
-    override fun deserialize(decoder: Decoder): HttpUrl {
-        return decoder.decodeString().toHttpUrl()
-    }
+    override fun deserialize(decoder: Decoder): HttpUrl = decoder.decodeString().toHttpUrl()
 
-    override fun serialize(encoder: Encoder, value: HttpUrl) {
+    override fun serialize(
+        encoder: Encoder,
+        value: HttpUrl,
+    ) {
         encoder.encodeString(value.toString())
     }
 }

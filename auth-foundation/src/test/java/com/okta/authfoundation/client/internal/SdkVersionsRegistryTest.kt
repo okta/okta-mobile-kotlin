@@ -48,12 +48,15 @@ class SdkVersionsRegistryTest {
         SdkVersionsRegistry.register(testVersion)
         SdkVersionsRegistry.register(testVersion)
         val userAgent = SdkVersionsRegistry.userAgent
-        val occurrences = userAgent.windowed(testVersion.length) {
-            if (it == testVersion)
-                1
-            else
-                0
-        }.sum()
+        val occurrences =
+            userAgent
+                .windowed(testVersion.length) {
+                    if (it == testVersion) {
+                        1
+                    } else {
+                        0
+                    }
+                }.sum()
         assertThat(occurrences).isEqualTo(1)
     }
 }

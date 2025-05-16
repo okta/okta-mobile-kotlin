@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,13 +52,15 @@ suspend fun <Raw, Dto> OAuth2Client.performRequest(
     shouldAttemptJsonDeserialization: (Response) -> Boolean = { it.isSuccessful },
     responseMapper: (Raw) -> Dto,
 ): OAuth2ClientResult<Dto> {
-    val jsonRequest = if (request.header("accept") == null) {
-        request.newBuilder()
-            .addHeader("accept", "application/json")
-            .build()
-    } else {
-        request
-    }
+    val jsonRequest =
+        if (request.header("accept") == null) {
+            request
+                .newBuilder()
+                .addHeader("accept", "application/json")
+                .build()
+        } else {
+            request
+        }
     return internalPerformRequest(jsonRequest, shouldAttemptJsonDeserialization) { responseBody ->
         val rawResponse = configuration.json.decodeFromBufferedSource(deserializationStrategy, responseBody)
         responseMapper(rawResponse)
@@ -66,9 +68,7 @@ suspend fun <Raw, Dto> OAuth2Client.performRequest(
 }
 
 @InternalAuthFoundationApi
-suspend fun OAuth2Client.performRequest(
-    request: Request,
-): OAuth2ClientResult<Response> {
+suspend fun OAuth2Client.performRequest(request: Request): OAuth2ClientResult<Response> {
     currentCoroutineContext().ensureActive()
     return withContext(configuration.ioDispatcher) {
         try {
@@ -80,21 +80,16 @@ suspend fun OAuth2Client.performRequest(
     }
 }
 
-internal suspend fun OAuth2Client.performRequestNonJson(
-    request: Request
-): OAuth2ClientResult<Unit> {
-    return internalPerformRequest(request) { }
-}
+internal suspend fun OAuth2Client.performRequestNonJson(request: Request): OAuth2ClientResult<Unit> = internalPerformRequest(request) { }
 
 internal suspend fun <T> OAuth2Client.internalPerformRequest(
     request: Request,
     shouldAttemptJsonDeserialization: (Response) -> Boolean = { it.isSuccessful },
     responseHandler: OidcConfiguration.(BufferedSource) -> T,
-): OAuth2ClientResult<T> {
-    return configuration.internalPerformRequest(request, shouldAttemptJsonDeserialization) {
+): OAuth2ClientResult<T> =
+    configuration.internalPerformRequest(request, shouldAttemptJsonDeserialization) {
         configuration.run { responseHandler(it) }
     }
-}
 
 internal suspend fun <T> OidcConfiguration.internalPerformRequest(
     request: Request,
@@ -138,7 +133,12 @@ private suspend fun OidcConfiguration.executeRequest(
         if (response.code != rateLimitErrorCode || ignoreRateLimit(response)) return response
 
         val requestId = response.header("X-Okta-Request-Id")
-        val responseTimeSeconds = response.headers.getDate("Date")?.time?.milliseconds?.inWholeSeconds
+        val responseTimeSeconds =
+            response.headers
+                .getDate("Date")
+                ?.time
+                ?.milliseconds
+                ?.inWholeSeconds
         val retryTimeSeconds = response.header("X-Rate-Limit-Reset")?.toLongOrNull()
         if (responseTimeSeconds == null || retryTimeSeconds == null) {
             return response
@@ -151,10 +151,13 @@ private suspend fun OidcConfiguration.executeRequest(
 
         if (retryCount <= event.maxRetries) response.close()
 
-        requestToExecute = request.newBuilder().apply {
-            requestId?.let { addHeader("X-Okta-Retry-For", requestId) }
-            addHeader("X-Okta-Retry-Count", retryCount.toString())
-        }.build()
+        requestToExecute =
+            request
+                .newBuilder()
+                .apply {
+                    requestId?.let { addHeader("X-Okta-Retry-For", requestId) }
+                    addHeader("X-Okta-Retry-Count", retryCount.toString())
+                }.build()
 
         delaySeconds = max(timeToResetSeconds, event.minDelaySeconds)
     } while (retryCount <= event.maxRetries)
@@ -173,39 +176,45 @@ private fun <T> Response.toOAuth2ClientResultError(
     configuration: OidcConfiguration,
     responseBody: BufferedSource,
 ): OAuth2ClientResult<T> {
-    val errorResponse = try {
-        responseBody.let { configuration.json.decodeFromBufferedSource<ErrorResponse>(it) }
-    } catch (e: Exception) {
-        null
-    }
+    val errorResponse =
+        try {
+            responseBody.let { configuration.json.decodeFromBufferedSource<ErrorResponse>(it) }
+        } catch (e: Exception) {
+            null
+        }
     return OAuth2ClientResult.Error(
         OAuth2ClientResult.Error.HttpResponseException(
             responseCode = code,
             error = errorResponse?.error,
-            errorDescription = errorResponse?.errorDescription,
+            errorDescription = errorResponse?.errorDescription
         )
     )
 }
 
-private suspend fun Call.await(): Response {
-    return suspendCancellableCoroutine { continuation ->
+private suspend fun Call.await(): Response =
+    suspendCancellableCoroutine { continuation ->
         val callback = ContinuationCallback(this, continuation)
         enqueue(callback)
         continuation.invokeOnCancellation(callback)
     }
-}
 
 private class ContinuationCallback(
     private val call: Call,
-    private val continuation: CancellableContinuation<Response>
-) : Callback, CompletionHandler {
-
+    private val continuation: CancellableContinuation<Response>,
+) : Callback,
+    CompletionHandler {
     @OptIn(ExperimentalCoroutinesApi::class)
-    override fun onResponse(call: Call, response: Response) {
+    override fun onResponse(
+        call: Call,
+        response: Response,
+    ) {
         continuation.resume(response, this)
     }
 
-    override fun onFailure(call: Call, e: IOException) {
+    override fun onFailure(
+        call: Call,
+        e: IOException,
+    ) {
         if (!call.isCanceled()) {
             continuation.resumeWithException(e)
         }

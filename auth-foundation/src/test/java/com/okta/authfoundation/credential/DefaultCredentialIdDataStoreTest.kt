@@ -1,5 +1,5 @@
 /*
- * Copyright 2024-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,27 +53,30 @@ class DefaultCredentialIdDataStoreTest {
     }
 
     @Test
-    fun `getDefaultCredentialId returns null if no default token is set`() = runTest {
-        assertThat(defaultCredentialIdDataStore.getDefaultCredentialId()).isNull()
-        coVerify { AuthFoundation.initializeStorage() }
-    }
+    fun `getDefaultCredentialId returns null if no default token is set`() =
+        runTest {
+            assertThat(defaultCredentialIdDataStore.getDefaultCredentialId()).isNull()
+            coVerify { AuthFoundation.initializeStorage() }
+        }
 
     @Test
-    fun `getDefaultCredentialId returns the token id provided in setDefaultTokenId`() = runTest {
-        val tokenId = "tokenId"
-        defaultCredentialIdDataStore.setDefaultCredentialId(tokenId)
-        assertThat(defaultCredentialIdDataStore.getDefaultCredentialId()).isEqualTo(tokenId)
-        coVerify { AuthFoundation.initializeStorage() }
-    }
+    fun `getDefaultCredentialId returns the token id provided in setDefaultTokenId`() =
+        runTest {
+            val tokenId = "tokenId"
+            defaultCredentialIdDataStore.setDefaultCredentialId(tokenId)
+            assertThat(defaultCredentialIdDataStore.getDefaultCredentialId()).isEqualTo(tokenId)
+            coVerify { AuthFoundation.initializeStorage() }
+        }
 
     @Test
-    fun `getDefaultCredentialId returns the token id provided by the latest call to setDefaultTokenId`() = runTest {
-        val oldTokenId = "oldTokenId"
-        val newTokenId = "newTokenId"
-        defaultCredentialIdDataStore.setDefaultCredentialId(oldTokenId)
-        defaultCredentialIdDataStore.setDefaultCredentialId(newTokenId)
+    fun `getDefaultCredentialId returns the token id provided by the latest call to setDefaultTokenId`() =
+        runTest {
+            val oldTokenId = "oldTokenId"
+            val newTokenId = "newTokenId"
+            defaultCredentialIdDataStore.setDefaultCredentialId(oldTokenId)
+            defaultCredentialIdDataStore.setDefaultCredentialId(newTokenId)
 
-        assertThat(defaultCredentialIdDataStore.getDefaultCredentialId()).isEqualTo(newTokenId)
-        coVerify { AuthFoundation.initializeStorage() }
-    }
+            assertThat(defaultCredentialIdDataStore.getDefaultCredentialId()).isEqualTo(newTokenId)
+            coVerify { AuthFoundation.initializeStorage() }
+        }
 }

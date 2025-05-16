@@ -1,5 +1,5 @@
 /*
- * Copyright 2024-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,32 +49,35 @@ class EncryptionTokenProviderTest {
     }
 
     @Test
-    fun `getEncryptionToken success with new token`() = runTest {
-        val deviceToken = encryptionTokenProvider.getEncryptionToken()
-        assertThat(deviceToken).isInstanceOf(EncryptionTokenProvider.Result.NewToken::class.java)
-    }
+    fun `getEncryptionToken success with new token`() =
+        runTest {
+            val deviceToken = encryptionTokenProvider.getEncryptionToken()
+            assertThat(deviceToken).isInstanceOf(EncryptionTokenProvider.Result.NewToken::class.java)
+        }
 
     @Test
-    fun `getEncryptionToken success with existing token`() = runTest {
-        assertThat(encryptionTokenProvider.getEncryptionToken()).isInstanceOf(
-            EncryptionTokenProvider.Result.NewToken::class.java
-        )
-        assertThat(encryptionTokenProvider.getEncryptionToken()).isInstanceOf(
-            EncryptionTokenProvider.Result.ExistingToken::class.java
-        )
-    }
+    fun `getEncryptionToken success with existing token`() =
+        runTest {
+            assertThat(encryptionTokenProvider.getEncryptionToken()).isInstanceOf(
+                EncryptionTokenProvider.Result.NewToken::class.java
+            )
+            assertThat(encryptionTokenProvider.getEncryptionToken()).isInstanceOf(
+                EncryptionTokenProvider.Result.ExistingToken::class.java
+            )
+        }
 
     @Test
-    fun `getEncryptionToken resets encryption key if decryption fails`() = runTest {
-        assertThat(encryptionTokenProvider.getEncryptionToken()).isInstanceOf(
-            EncryptionTokenProvider.Result.NewToken::class.java
-        )
-        verify(exactly = 1) { mockAesEncryptionHandler.resetEncryptionKey() }
+    fun `getEncryptionToken resets encryption key if decryption fails`() =
+        runTest {
+            assertThat(encryptionTokenProvider.getEncryptionToken()).isInstanceOf(
+                EncryptionTokenProvider.Result.NewToken::class.java
+            )
+            verify(exactly = 1) { mockAesEncryptionHandler.resetEncryptionKey() }
 
-        every { mockAesEncryptionHandler.decryptString(any()) } returns Result.failure(Exception())
-        assertThat(encryptionTokenProvider.getEncryptionToken()).isInstanceOf(
-            EncryptionTokenProvider.Result.NewToken::class.java
-        )
-        verify(exactly = 2) { mockAesEncryptionHandler.resetEncryptionKey() }
-    }
+            every { mockAesEncryptionHandler.decryptString(any()) } returns Result.failure(Exception())
+            assertThat(encryptionTokenProvider.getEncryptionToken()).isInstanceOf(
+                EncryptionTokenProvider.Result.NewToken::class.java
+            )
+            verify(exactly = 2) { mockAesEncryptionHandler.resetEncryptionKey() }
+        }
 }

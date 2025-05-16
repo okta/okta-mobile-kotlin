@@ -29,7 +29,10 @@ internal class ResourceOwnerViewModel : ViewModel() {
     private val _state = MutableLiveData<ResourceOwnerState>(ResourceOwnerState.Idle)
     val state: LiveData<ResourceOwnerState> = _state
 
-    fun login(username: String, password: String) {
+    fun login(
+        username: String,
+        password: String,
+    ) {
         _state.value = ResourceOwnerState.Loading
 
         viewModelScope.launch {
@@ -51,7 +54,12 @@ internal class ResourceOwnerViewModel : ViewModel() {
 
 sealed class ResourceOwnerState {
     object Idle : ResourceOwnerState()
+
     object Loading : ResourceOwnerState()
-    data class Error(val message: String) : ResourceOwnerState()
+
+    data class Error(
+        val message: String,
+    ) : ResourceOwnerState()
+
     object Token : ResourceOwnerState()
 }

@@ -27,10 +27,12 @@ import sample.okta.android.test.UserRule
 @RunWith(AndroidJUnit4::class)
 internal class ResourceOwnerTest {
     @get:Rule val activityRule = ActivityScenarioRule(MainActivity::class.java)
+
     @get:Rule val userRule = UserRule()
 
     @Test fun testResourceOwner() {
-        LaunchPage.goToResourceOwnerPage()
+        LaunchPage
+            .goToResourceOwnerPage()
             .username(userRule.email)
             .password(userRule.password)
             .login()
@@ -39,7 +41,8 @@ internal class ResourceOwnerTest {
     }
 
     @Test fun testResourceOwnerWithError() {
-        LaunchPage.goToResourceOwnerPage()
+        LaunchPage
+            .goToResourceOwnerPage()
             .username(userRule.email)
             .password("Invalid")
             .loginExpectingError()

@@ -93,13 +93,12 @@ interface LegacyTokenStorage {
                 other.tags == tags
         }
 
-        override fun hashCode(): Int {
-            return Objects.hash(
+        override fun hashCode(): Int =
+            Objects.hash(
                 identifier,
                 token,
-                tags,
+                tags
             )
-        }
     }
 }
 
@@ -108,7 +107,7 @@ internal class SharedPreferencesTokenStorage(
     private val dispatcher: CoroutineContext,
     eventCoordinator: EventCoordinator,
     context: Context,
-    keyGenParameterSpec: KeyGenParameterSpec
+    keyGenParameterSpec: KeyGenParameterSpec,
 ) : LegacyTokenStorage {
     internal companion object {
         @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
@@ -118,7 +117,7 @@ internal class SharedPreferencesTokenStorage(
 
         internal fun createSharedPreferences(
             applicationContext: Context,
-            keyGenParameterSpec: KeyGenParameterSpec
+            keyGenParameterSpec: KeyGenParameterSpec,
         ): SharedPreferences {
             val masterKeyAlias = MasterKeys.getOrCreate(keyGenParameterSpec)
 
@@ -170,29 +169,31 @@ internal class SharedPreferencesTokenStorage(
 
     override suspend fun remove(id: String) {
         accessStorage { existingEntries ->
-            existingEntries.indexOfFirst {
-                it.identifier == id
-            }.takeIf { it >= 0 }?.let { index ->
-                existingEntries.removeAt(index)
-            }
+            existingEntries
+                .indexOfFirst {
+                    it.identifier == id
+                }.takeIf { it >= 0 }
+                ?.let { index ->
+                    existingEntries.removeAt(index)
+                }
             existingEntries
         }
     }
 
     override suspend fun replace(updatedEntry: LegacyTokenStorage.Entry) {
         accessStorage { existingEntries ->
-            existingEntries.indexOfFirst {
-                it.identifier == updatedEntry.identifier
-            }.takeIf { it >= 0 }?.let { index ->
-                existingEntries[index] = updatedEntry
-            }
+            existingEntries
+                .indexOfFirst {
+                    it.identifier == updatedEntry.identifier
+                }.takeIf { it >= 0 }
+                ?.let { index ->
+                    existingEntries[index] = updatedEntry
+                }
             existingEntries
         }
     }
 
-    private suspend fun accessStorage(
-        block: (MutableList<LegacyTokenStorage.Entry>) -> List<LegacyTokenStorage.Entry>
-    ) {
+    private suspend fun accessStorage(block: (MutableList<LegacyTokenStorage.Entry>) -> List<LegacyTokenStorage.Entry>) {
         withContext(dispatcher) {
             synchronized(accessLock) {
                 val existingJson = sharedPreferences.getString(PREFERENCE_KEY, null)
@@ -200,14 +201,16 @@ internal class SharedPreferencesTokenStorage(
                     if (existingJson == null) {
                         mutableListOf()
                     } else {
-                        json.decodeFromString(StoredTokens.serializer(), existingJson)
+                        json
+                            .decodeFromString(StoredTokens.serializer(), existingJson)
                             .toTokenStorageEntries()
                     }
                 val updatedEntries = block(existingEntries)
-                val updatedJson = json.encodeToString(
-                    StoredTokens.serializer(),
-                    StoredTokens.from(updatedEntries)
-                )
+                val updatedJson =
+                    json.encodeToString(
+                        StoredTokens.serializer(),
+                        StoredTokens.from(updatedEntries)
+                    )
                 val editor = sharedPreferences.edit()
                 editor.putString(PREFERENCE_KEY, updatedJson)
                 editor.commit()
@@ -218,7 +221,7 @@ internal class SharedPreferencesTokenStorage(
 
 @Serializable
 private class StoredTokens(
-    @SerialName("entries") val entries: List<Entry>
+    @SerialName("entries") val entries: List<Entry>,
 ) {
     @Serializable
     class Entry(
@@ -228,8 +231,8 @@ private class StoredTokens(
     )
 
     companion object {
-        fun from(entries: List<LegacyTokenStorage.Entry>): StoredTokens {
-            return StoredTokens(
+        fun from(entries: List<LegacyTokenStorage.Entry>): StoredTokens =
+            StoredTokens(
                 entries.map {
                     Entry(
                         it.identifier,
@@ -238,16 +241,15 @@ private class StoredTokens(
                     )
                 }
             )
-        }
     }
 
-    fun toTokenStorageEntries(): MutableList<LegacyTokenStorage.Entry> {
-        return entries.map {
-            LegacyTokenStorage.Entry(
-                it.identifier,
-                it.token?.asToken(id = it.identifier, OidcConfiguration.default),
-                it.tags
-            )
-        }.toMutableList()
-    }
+    fun toTokenStorageEntries(): MutableList<LegacyTokenStorage.Entry> =
+        entries
+            .map {
+                LegacyTokenStorage.Entry(
+                    it.identifier,
+                    it.token?.asToken(id = it.identifier, OidcConfiguration.default),
+                    it.tags
+                )
+            }.toMutableList()
 }

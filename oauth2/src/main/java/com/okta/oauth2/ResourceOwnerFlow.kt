@@ -66,17 +66,21 @@ class ResourceOwnerFlow(
     ): OAuth2ClientResult<Token> {
         val endpoints = client.endpointsOrNull() ?: return client.endpointNotAvailableError()
 
-        val formBodyBuilder = FormBody.Builder()
-            .add("username", username)
-            .add("password", password)
-            .add("client_id", client.configuration.clientId)
-            .add("grant_type", "password")
-            .add("scope", scope)
+        val formBodyBuilder =
+            FormBody
+                .Builder()
+                .add("username", username)
+                .add("password", password)
+                .add("client_id", client.configuration.clientId)
+                .add("grant_type", "password")
+                .add("scope", scope)
 
-        val request = Request.Builder()
-            .post(formBodyBuilder.build())
-            .url(endpoints.tokenEndpoint)
-            .build()
+        val request =
+            Request
+                .Builder()
+                .post(formBodyBuilder.build())
+                .url(endpoints.tokenEndpoint)
+                .build()
 
         return client.tokenRequest(request)
     }

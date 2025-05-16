@@ -34,7 +34,7 @@ import timber.log.Timber
 
 internal class WebPage<PreviousPage>(
     private val previousPage: PreviousPage,
-    initialText: String = "Sign in"
+    initialText: String = "Sign in",
 ) {
     companion object {
         fun clearData() {
@@ -64,7 +64,10 @@ internal class WebPage<PreviousPage>(
             Thread.sleep(2000)
         }
 
-        fun launch(url: String, initialText: String): WebPage<Any?> {
+        fun launch(
+            url: String,
+            initialText: String,
+        ): WebPage<Any?> {
             val intent = Intent(Intent.ACTION_VIEW)
             intent.data = Uri.parse(url)
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK

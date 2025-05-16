@@ -44,7 +44,8 @@ class TokenExchangeViewModel : ViewModel() {
         viewModelScope.launch {
             val credential = Credential.default
             val tokenExchangeCredential =
-                Credential.find { it.tags[SampleHelper.CREDENTIAL_NAME_TAG_KEY] == NAME_TAG_VALUE }
+                Credential
+                    .find { it.tags[SampleHelper.CREDENTIAL_NAME_TAG_KEY] == NAME_TAG_VALUE }
                     .firstOrNull()
             val tokenExchangeFlow = TokenExchangeFlow()
             val idToken = credential?.token?.idToken
@@ -78,6 +79,12 @@ class TokenExchangeViewModel : ViewModel() {
 
 sealed class TokenExchangeState {
     object Loading : TokenExchangeState()
-    data class Error(val message: String) : TokenExchangeState()
-    data class Token(val nameTagValue: String) : TokenExchangeState()
+
+    data class Error(
+        val message: String,
+    ) : TokenExchangeState()
+
+    data class Token(
+        val nameTagValue: String,
+    ) : TokenExchangeState()
 }

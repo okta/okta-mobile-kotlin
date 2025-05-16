@@ -50,7 +50,7 @@ object LegacyTokenMigration {
      */
     suspend fun migrate(
         context: Context,
-        sessionClient: SessionClient
+        sessionClient: SessionClient,
     ): Result {
         return withContext(Dispatchers.IO) {
             val sharedPreferences = context.sharedPreferences()
@@ -60,18 +60,19 @@ object LegacyTokenMigration {
             }
             try {
                 val legacyToken = sessionClient.tokens ?: return@withContext Result.MissingLegacyToken
-                val token = Token(
-                    id = UUID.randomUUID().toString(),
-                    tokenType = "Bearer",
-                    expiresIn = legacyToken.expiresIn,
-                    accessToken = legacyToken.accessToken ?: "",
-                    scope = legacyToken.scope?.joinToString(" ") ?: "",
-                    refreshToken = legacyToken.refreshToken,
-                    idToken = legacyToken.idToken,
-                    deviceSecret = null,
-                    issuedTokenType = null,
-                    oidcConfiguration = OidcConfiguration.default
-                )
+                val token =
+                    Token(
+                        id = UUID.randomUUID().toString(),
+                        tokenType = "Bearer",
+                        expiresIn = legacyToken.expiresIn,
+                        accessToken = legacyToken.accessToken ?: "",
+                        scope = legacyToken.scope?.joinToString(" ") ?: "",
+                        refreshToken = legacyToken.refreshToken,
+                        idToken = legacyToken.idToken,
+                        deviceSecret = null,
+                        issuedTokenType = null,
+                        oidcConfiguration = OidcConfiguration.default
+                    )
                 val credential = Credential.store(token)
                 sharedPreferences.markTokensAsMigrated(credential.id)
                 sessionClient.clear()
@@ -82,19 +83,16 @@ object LegacyTokenMigration {
         }
     }
 
-    @VisibleForTesting internal fun Context.sharedPreferences(): SharedPreferences {
-        return getSharedPreferences(SHARED_PREFERENCE_FILE, Context.MODE_PRIVATE)
-    }
+    @VisibleForTesting internal fun Context.sharedPreferences(): SharedPreferences = getSharedPreferences(SHARED_PREFERENCE_FILE, Context.MODE_PRIVATE)
 
-    @VisibleForTesting internal fun SharedPreferences.markTokensAsMigrated(tokenId: String): Unit = with(edit()) {
-        putBoolean(SHARED_PREFERENCE_HAS_MIGRATED_KEY, true)
-        putString(SHARED_PREFERENCE_MIGRATED_TOKEN_ID_KEY, tokenId)
-        apply()
-    }
+    @VisibleForTesting internal fun SharedPreferences.markTokensAsMigrated(tokenId: String): Unit =
+        with(edit()) {
+            putBoolean(SHARED_PREFERENCE_HAS_MIGRATED_KEY, true)
+            putString(SHARED_PREFERENCE_MIGRATED_TOKEN_ID_KEY, tokenId)
+            apply()
+        }
 
-    @VisibleForTesting internal fun SharedPreferences.hasMarkedTokensAsMigrated(): Boolean {
-        return getBoolean(SHARED_PREFERENCE_HAS_MIGRATED_KEY, false)
-    }
+    @VisibleForTesting internal fun SharedPreferences.hasMarkedTokensAsMigrated(): Boolean = getBoolean(SHARED_PREFERENCE_HAS_MIGRATED_KEY, false)
 
     /**
      * Describes the result from [LegacyTokenMigration.migrate].
@@ -104,7 +102,9 @@ object LegacyTokenMigration {
          * The token was previously migrated. No changes were made as a result of the [LegacyTokenMigration.migrate] call. The migrated token was
          * stored in [CredentialDataSource] with the returned [tokenId].
          */
-        data class PreviouslyMigrated(val tokenId: String) : Result()
+        data class PreviouslyMigrated(
+            val tokenId: String,
+        ) : Result()
 
         /**
          * An error occurred when migrating the token.
@@ -114,7 +114,7 @@ object LegacyTokenMigration {
             /**
              *
              */
-            val exception: Exception
+            val exception: Exception,
         ) : Result()
 
         /**
@@ -123,7 +123,9 @@ object LegacyTokenMigration {
          * The [SessionClient] supplied to the [LegacyTokenMigration.migrate] call has been cleared, and should no longer be used.
          * The migrated token is stored in [CredentialDataSource] with the returned [tokenId]
          */
-        data class SuccessfullyMigrated(val tokenId: String) : Result()
+        data class SuccessfullyMigrated(
+            val tokenId: String,
+        ) : Result()
 
         /**
          * The [SessionClient] supplied to the [LegacyTokenMigration.migrate] call did not contain a token, migration is not possible.

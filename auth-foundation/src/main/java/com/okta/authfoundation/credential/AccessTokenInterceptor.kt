@@ -27,9 +27,10 @@ internal class AccessTokenInterceptor(
     private val credential: Credential,
 ) : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
-        val accessToken = runBlocking {
-            accessTokenProvider()
-        }
+        val accessToken =
+            runBlocking {
+                accessTokenProvider()
+            }
 
         if (accessToken == null) {
             eventCoordinator.sendEvent(NoAccessTokenAvailableEvent(credential))

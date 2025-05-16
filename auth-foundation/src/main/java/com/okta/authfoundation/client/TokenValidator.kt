@@ -35,10 +35,11 @@ internal class TokenValidator(
             client.configuration.idTokenValidator.validate(
                 client = client,
                 idToken = idToken,
-                parameters = IdTokenValidator.Parameters(
-                    nonce = nonce,
-                    maxAge = maxAge,
-                ),
+                parameters =
+                    IdTokenValidator.Parameters(
+                        nonce = nonce,
+                        maxAge = maxAge
+                    )
             )
 
             if (jwksResult != null) {
@@ -57,14 +58,14 @@ internal class TokenValidator(
             client.configuration.accessTokenValidator.validate(
                 client = client,
                 accessToken = token.accessToken,
-                idToken = idToken,
+                idToken = idToken
             )
 
             token.deviceSecret?.let { deviceSecret ->
                 client.configuration.deviceSecretValidator.validate(
                     client = client,
                     deviceSecret = deviceSecret,
-                    idToken = idToken,
+                    idToken = idToken
                 )
             }
         }

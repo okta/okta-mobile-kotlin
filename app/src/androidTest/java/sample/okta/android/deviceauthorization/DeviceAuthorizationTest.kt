@@ -29,6 +29,7 @@ import sample.okta.android.web.WebPage
 @RunWith(AndroidJUnit4::class)
 internal class DeviceAuthorizationTest {
     @get:Rule val activityRule = ActivityScenarioRule(MainActivity::class.java)
+
     @get:Rule val userRule = UserRule()
 
     @Before fun clearWebData() {
@@ -39,7 +40,8 @@ internal class DeviceAuthorizationTest {
         val deviceAuthorizationPage = LaunchPage.goToDeviceAuthorizationPage()
 
         val code = deviceAuthorizationPage.getCode()
-        WebPage.launch(deviceAuthorizationPage.getUrl(), "Activate your device")
+        WebPage
+            .launch(deviceAuthorizationPage.getUrl(), "Activate your device")
             .enterCode(code)
             .clickNext()
             .username(userRule.email)
@@ -47,7 +49,8 @@ internal class DeviceAuthorizationTest {
             .loginExpectingDeviceActivated()
             .cancel()
 
-        deviceAuthorizationPage.expectDashboard()
+        deviceAuthorizationPage
+            .expectDashboard()
             .assertIsDefaultCredential()
             .assertHasClaim("email", userRule.email)
     }

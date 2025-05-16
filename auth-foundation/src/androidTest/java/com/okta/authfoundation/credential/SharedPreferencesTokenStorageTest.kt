@@ -49,13 +49,14 @@ class SharedPreferencesTokenStorageTest {
     @Before fun setup() {
         eventHandler = RecordingEventHandler()
         val eventCoordinator = EventCoordinator(eventHandler)
-        subject = SharedPreferencesTokenStorage(
-            json = Json,
-            dispatcher = EmptyCoroutineContext,
-            eventCoordinator = eventCoordinator,
-            context = ApplicationProvider.getApplicationContext(),
-            keyGenParameterSpec = MasterKeys.AES256_GCM_SPEC,
-        )
+        subject =
+            SharedPreferencesTokenStorage(
+                json = Json,
+                dispatcher = EmptyCoroutineContext,
+                eventCoordinator = eventCoordinator,
+                context = ApplicationProvider.getApplicationContext(),
+                keyGenParameterSpec = MasterKeys.AES256_GCM_SPEC
+            )
         cleanup() // Cleanup before and after!
     }
 
@@ -70,111 +71,125 @@ class SharedPreferencesTokenStorageTest {
         }
     }
 
-    @Test fun testEntriesWithNoExistingEntries(): Unit = runBlocking {
-        assertThat(subject.entries()).isEmpty()
-    }
+    @Test fun testEntriesWithNoExistingEntries(): Unit =
+        runBlocking {
+            assertThat(subject.entries()).isEmpty()
+        }
 
-    @Test fun testAdd(): Unit = runBlocking {
-        subject.add("one")
-        assertThat(subject.entries()).hasSize(1)
-    }
+    @Test fun testAdd(): Unit =
+        runBlocking {
+            subject.add("one")
+            assertThat(subject.entries()).hasSize(1)
+        }
 
-    @Test fun testRemove(): Unit = runBlocking {
-        subject.add("one")
-        assertThat(subject.entries()).hasSize(1)
-        subject.remove("one")
-        assertThat(subject.entries()).hasSize(0)
-    }
+    @Test fun testRemove(): Unit =
+        runBlocking {
+            subject.add("one")
+            assertThat(subject.entries()).hasSize(1)
+            subject.remove("one")
+            assertThat(subject.entries()).hasSize(0)
+        }
 
-    @Test fun testRemoveNonExistingEntries(): Unit = runBlocking {
-        assertThat(subject.entries()).hasSize(0)
-        subject.remove("one")
-        assertThat(subject.entries()).hasSize(0)
-    }
+    @Test fun testRemoveNonExistingEntries(): Unit =
+        runBlocking {
+            assertThat(subject.entries()).hasSize(0)
+            subject.remove("one")
+            assertThat(subject.entries()).hasSize(0)
+        }
 
-    @Test fun testReplace(): Unit = runBlocking {
-        subject.add("one")
-        assertThat(subject.entries()).hasSize(1)
-        subject.replace(LegacyTokenStorage.Entry("one", null, mapOf("foo" to "bar")))
-        val entry = subject.entries().first()
-        assertThat(entry.identifier).isEqualTo("one")
-        assertThat(entry.token).isNull()
-        assertThat(entry.tags).containsEntry("foo", "bar")
-    }
+    @Test fun testReplace(): Unit =
+        runBlocking {
+            subject.add("one")
+            assertThat(subject.entries()).hasSize(1)
+            subject.replace(LegacyTokenStorage.Entry("one", null, mapOf("foo" to "bar")))
+            val entry = subject.entries().first()
+            assertThat(entry.identifier).isEqualTo("one")
+            assertThat(entry.token).isNull()
+            assertThat(entry.tags).containsEntry("foo", "bar")
+        }
 
-    @Test fun testReplaceNonExistingEntries(): Unit = runBlocking {
-        subject.add("one")
-        assertThat(subject.entries()).hasSize(1)
-        subject.replace(LegacyTokenStorage.Entry("two", null, mapOf("foo" to "bar")))
-        val entry = subject.entries().first()
-        assertThat(entry.identifier).isEqualTo("one")
-        assertThat(entry.token).isNull()
-        assertThat(entry.tags).doesNotContainEntry("foo", "bar")
-    }
+    @Test fun testReplaceNonExistingEntries(): Unit =
+        runBlocking {
+            subject.add("one")
+            assertThat(subject.entries()).hasSize(1)
+            subject.replace(LegacyTokenStorage.Entry("two", null, mapOf("foo" to "bar")))
+            val entry = subject.entries().first()
+            assertThat(entry.identifier).isEqualTo("one")
+            assertThat(entry.token).isNull()
+            assertThat(entry.tags).doesNotContainEntry("foo", "bar")
+        }
 
-    @Test fun testTokenStorageAndRestoration(): Unit = runBlocking {
-        subject.add("one")
-        assertThat(subject.entries()).hasSize(1)
-        val token = Token(
-            id = "id",
-            tokenType = "Bearer",
-            expiresIn = 600,
-            accessToken = "anExampleButInvalidAccessToken",
-            scope = "openid email offline_access etc",
-            refreshToken = "anExampleButInvalidRefreshToken",
-            idToken = null,
-            deviceSecret = null,
-            issuedTokenType = null,
-            oidcConfiguration = OidcConfiguration("clientId", "defaultScope", "discoveryUrl")
-        )
-        subject.replace(LegacyTokenStorage.Entry("one", token, mapOf("foo" to "bar")))
-        val entry = subject.entries().first()
-        assertThat(entry.identifier).isEqualTo("one")
-        assertThat(entry.token).isEqualTo(token)
-        assertThat(entry.tags).containsEntry("foo", "bar")
-    }
+    @Test fun testTokenStorageAndRestoration(): Unit =
+        runBlocking {
+            subject.add("one")
+            assertThat(subject.entries()).hasSize(1)
+            val token =
+                Token(
+                    id = "id",
+                    tokenType = "Bearer",
+                    expiresIn = 600,
+                    accessToken = "anExampleButInvalidAccessToken",
+                    scope = "openid email offline_access etc",
+                    refreshToken = "anExampleButInvalidRefreshToken",
+                    idToken = null,
+                    deviceSecret = null,
+                    issuedTokenType = null,
+                    oidcConfiguration = OidcConfiguration("clientId", "defaultScope", "discoveryUrl")
+                )
+            subject.replace(LegacyTokenStorage.Entry("one", token, mapOf("foo" to "bar")))
+            val entry = subject.entries().first()
+            assertThat(entry.identifier).isEqualTo("one")
+            assertThat(entry.token).isEqualTo(token)
+            assertThat(entry.tags).containsEntry("foo", "bar")
+        }
 
-    @Test fun testInvalidKeyClearsSharedPreferencesAndIsInitializedWithoutError(): Unit = runBlocking {
-        subject.add("one")
-        assertThat(subject.entries()).hasSize(1)
-        assertThat(eventHandler.size).isEqualTo(0)
+    @Test fun testInvalidKeyClearsSharedPreferencesAndIsInitializedWithoutError(): Unit =
+        runBlocking {
+            subject.add("one")
+            assertThat(subject.entries()).hasSize(1)
+            assertThat(eventHandler.size).isEqualTo(0)
 
-        corruptEncryptedSharedPreferences()
+            corruptEncryptedSharedPreferences()
 
-        val eventCoordinator = EventCoordinator(eventHandler)
-        subject = SharedPreferencesTokenStorage(
-            json = Json,
-            dispatcher = EmptyCoroutineContext,
-            eventCoordinator = eventCoordinator,
-            context = ApplicationProvider.getApplicationContext(),
-            keyGenParameterSpec = MasterKeys.AES256_GCM_SPEC,
-        )
-        assertThat(eventHandler.size).isEqualTo(0) // Access should be lazy!
-        assertThat(subject.entries()).hasSize(0)
-        assertThat(eventHandler.size).isEqualTo(1)
-        val event = eventHandler[0]
-        assertThat(event).isInstanceOf(TokenStorageAccessErrorEvent::class.java)
+            val eventCoordinator = EventCoordinator(eventHandler)
+            subject =
+                SharedPreferencesTokenStorage(
+                    json = Json,
+                    dispatcher = EmptyCoroutineContext,
+                    eventCoordinator = eventCoordinator,
+                    context = ApplicationProvider.getApplicationContext(),
+                    keyGenParameterSpec = MasterKeys.AES256_GCM_SPEC
+                )
+            assertThat(eventHandler.size).isEqualTo(0) // Access should be lazy!
+            assertThat(subject.entries()).hasSize(0)
+            assertThat(eventHandler.size).isEqualTo(1)
+            val event = eventHandler[0]
+            assertThat(event).isInstanceOf(TokenStorageAccessErrorEvent::class.java)
 
-        // It should be functional after it's been reset!
-        subject.add("another")
-        assertThat(subject.entries()).hasSize(1)
-    }
+            // It should be functional after it's been reset!
+            subject.add("another")
+            assertThat(subject.entries()).hasSize(1)
+        }
 
     @Test fun testCorruptEncryptedSharedPreferencesWithShouldClearStorageAndTryAgainSetToFalseShouldThrow() {
         corruptEncryptedSharedPreferences()
-        val eventCoordinator = EventCoordinator(object : EventHandler {
-            override fun onEvent(event: Event) {
-                val errorEvent = event as TokenStorageAccessErrorEvent
-                errorEvent.shouldClearStorageAndTryAgain = false
-            }
-        })
-        subject = SharedPreferencesTokenStorage(
-            json = Json,
-            dispatcher = EmptyCoroutineContext,
-            eventCoordinator = eventCoordinator,
-            context = ApplicationProvider.getApplicationContext(),
-            keyGenParameterSpec = MasterKeys.AES256_GCM_SPEC,
-        )
+        val eventCoordinator =
+            EventCoordinator(
+                object : EventHandler {
+                    override fun onEvent(event: Event) {
+                        val errorEvent = event as TokenStorageAccessErrorEvent
+                        errorEvent.shouldClearStorageAndTryAgain = false
+                    }
+                }
+            )
+        subject =
+            SharedPreferencesTokenStorage(
+                json = Json,
+                dispatcher = EmptyCoroutineContext,
+                eventCoordinator = eventCoordinator,
+                context = ApplicationProvider.getApplicationContext(),
+                keyGenParameterSpec = MasterKeys.AES256_GCM_SPEC
+            )
         assertFailsWith<Exception> {
             runBlocking {
                 subject.add("another")
@@ -183,29 +198,32 @@ class SharedPreferencesTokenStorageTest {
     }
 
     @Test fun testKeyGenParameterSpecIsUsed() {
-        val spec = KeyGenParameterSpec.Builder(
-            "com_okta_authfoundation_storage",
-            KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
-        )
-            .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
-            .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
-            .setUserAuthenticationRequired(true)
-            .setUserAuthenticationParameters(10, KeyProperties.AUTH_BIOMETRIC_STRONG)
-            .setKeySize(256)
-            .build()
+        val spec =
+            KeyGenParameterSpec
+                .Builder(
+                    "com_okta_authfoundation_storage",
+                    KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
+                ).setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+                .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+                .setUserAuthenticationRequired(true)
+                .setUserAuthenticationParameters(10, KeyProperties.AUTH_BIOMETRIC_STRONG)
+                .setKeySize(256)
+                .build()
         val eventCoordinator = EventCoordinator(eventHandler)
-        subject = SharedPreferencesTokenStorage(
-            json = Json,
-            dispatcher = EmptyCoroutineContext,
-            eventCoordinator = eventCoordinator,
-            context = ApplicationProvider.getApplicationContext(),
-            keyGenParameterSpec = spec,
-        )
-        val exception = assertFailsWith<Exception> {
-            runBlocking {
-                subject.add("element")
+        subject =
+            SharedPreferencesTokenStorage(
+                json = Json,
+                dispatcher = EmptyCoroutineContext,
+                eventCoordinator = eventCoordinator,
+                context = ApplicationProvider.getApplicationContext(),
+                keyGenParameterSpec = spec
+            )
+        val exception =
+            assertFailsWith<Exception> {
+                runBlocking {
+                    subject.add("element")
+                }
             }
-        }
         if (exception is InvalidAlgorithmParameterException) {
             // This is the exception we expect if no biometrics are enrolled.
             assertThat(exception.cause).hasMessageThat().isEqualTo("At least one biometric must be enrolled to create keys requiring user authentication for every use")
@@ -224,13 +242,14 @@ class SharedPreferencesTokenStorageTest {
         sharedPreferences.edit().clear().commit()
 
         // Create with a different key!
-        val builder = KeyGenParameterSpec.Builder(
-            "TestingOnly!",
-            KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
-        )
-            .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
-            .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
-            .setKeySize(256)
+        val builder =
+            KeyGenParameterSpec
+                .Builder(
+                    "TestingOnly!",
+                    KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
+                ).setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+                .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+                .setKeySize(256)
         val masterKeyAlias = MasterKeys.getOrCreate(builder.build())
 
         EncryptedSharedPreferences.create(

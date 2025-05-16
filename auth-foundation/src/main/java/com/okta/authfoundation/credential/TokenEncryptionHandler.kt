@@ -1,5 +1,5 @@
 /*
- * Copyright 2024-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,7 +65,7 @@ interface TokenEncryptionHandler {
      */
     suspend fun encrypt(
         token: Token,
-        security: Credential.Security
+        security: Credential.Security,
     ): EncryptionResult
 
     /**
@@ -82,7 +82,7 @@ interface TokenEncryptionHandler {
         encryptedToken: ByteArray,
         encryptionExtras: Map<String, String>,
         security: Credential.Security,
-        promptInfo: BiometricPrompt.PromptInfo? = Credential.Security.promptInfo
+        promptInfo: BiometricPrompt.PromptInfo? = Credential.Security.promptInfo,
     ): Token
 
     /**
@@ -96,9 +96,10 @@ interface TokenEncryptionHandler {
         /**
          * Encryption primitives as a result of [TokenEncryptionHandler.encrypt].
          */
-        val encryptionExtras: Map<String, String>
+        val encryptionExtras: Map<String, String>,
     ) {
         operator fun component1(): ByteArray = encryptedToken
+
         operator fun component2(): Map<String, String> = encryptionExtras
     }
 
@@ -112,85 +113,88 @@ interface TokenEncryptionHandler {
         var isSyncDecryptionContext = false
             private set
 
-        internal suspend fun <T> withSyncDecryptionContext(action: suspend () -> T): T {
-            return accessMutex.withLock {
+        internal suspend fun <T> withSyncDecryptionContext(action: suspend () -> T): T =
+            accessMutex.withLock {
                 isSyncDecryptionContext = true
                 action()
             }
-        }
 
-        internal suspend fun <T> withAsyncDecryptionContext(action: suspend () -> T): T {
-            return accessMutex.withLock {
+        internal suspend fun <T> withAsyncDecryptionContext(action: suspend () -> T): T =
+            accessMutex.withLock {
                 isSyncDecryptionContext = false
                 action()
             }
-        }
     }
 }
 
 @InternalAuthFoundationApi
 class DefaultTokenEncryptionHandler(
     internal val keyStore: KeyStore = AndroidKeystoreUtil.keyStore,
-    private val keyPairGenerator: KeyPairGenerator = AndroidKeystoreUtil.getRsaKeyPairGenerator()
+    private val keyPairGenerator: KeyPairGenerator = AndroidKeystoreUtil.getRsaKeyPairGenerator(),
 ) : TokenEncryptionHandler {
-    private val aesKeyGenerator = KeyGenerator.getInstance("AES").apply {
-        // Generate 256-bit AES keys for encryption
-        init(256)
-    }
+    private val aesKeyGenerator =
+        KeyGenerator.getInstance("AES").apply {
+            // Generate 256-bit AES keys for encryption
+            init(256)
+        }
 
     override fun generateKey(security: Credential.Security) {
         if (keyStore.containsAlias(security.keyAlias)) return
 
-        val keyGenParameterSpecBuilder = KeyGenParameterSpec.Builder(
-            security.keyAlias,
-            KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
-        )
-            .setBlockModes(KeyProperties.BLOCK_MODE_ECB)
-            .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_RSA_OAEP)
-            .setKeySize(2048)
-            .setDigests(
-                KeyProperties.DIGEST_SHA1,
-                KeyProperties.DIGEST_SHA256,
-                KeyProperties.DIGEST_SHA512
-            )
+        val keyGenParameterSpecBuilder =
+            KeyGenParameterSpec
+                .Builder(
+                    security.keyAlias,
+                    KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
+                ).setBlockModes(KeyProperties.BLOCK_MODE_ECB)
+                .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_RSA_OAEP)
+                .setKeySize(2048)
+                .setDigests(
+                    KeyProperties.DIGEST_SHA1,
+                    KeyProperties.DIGEST_SHA256,
+                    KeyProperties.DIGEST_SHA512
+                )
 
-        val keyGenParameterSpec = when (security) {
-            is Credential.Security.Default -> {
-                keyGenParameterSpecBuilder.setUserAuthenticationRequired(false).build()
-            }
+        val keyGenParameterSpec =
+            when (security) {
+                is Credential.Security.Default -> {
+                    keyGenParameterSpecBuilder.setUserAuthenticationRequired(false).build()
+                }
 
-            is Credential.Security.BiometricStrong -> {
-                keyGenParameterSpecBuilder.apply {
-                    setUserAuthenticationRequired(true)
-                    if (Build.VERSION.SDK_INT > Build.VERSION_CODES.R) {
-                        setUserAuthenticationParameters(
-                            security.userAuthenticationTimeout,
-                            KeyProperties.AUTH_BIOMETRIC_STRONG
-                        )
-                    } else {
-                        // Setting -1 timeout sets strong biometric encryption in Android 10 and below
-                        // This cannot be set to a custom userAuthenticationTimeout
-                        setUserAuthenticationValidityDurationSeconds(-1)
-                    }
-                }.build()
-            }
+                is Credential.Security.BiometricStrong -> {
+                    keyGenParameterSpecBuilder
+                        .apply {
+                            setUserAuthenticationRequired(true)
+                            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.R) {
+                                setUserAuthenticationParameters(
+                                    security.userAuthenticationTimeout,
+                                    KeyProperties.AUTH_BIOMETRIC_STRONG
+                                )
+                            } else {
+                                // Setting -1 timeout sets strong biometric encryption in Android 10 and below
+                                // This cannot be set to a custom userAuthenticationTimeout
+                                setUserAuthenticationValidityDurationSeconds(-1)
+                            }
+                        }.build()
+                }
 
-            is Credential.Security.BiometricStrongOrDeviceCredential -> {
-                keyGenParameterSpecBuilder.apply {
-                    setUserAuthenticationRequired(true)
-                    if (Build.VERSION.SDK_INT > Build.VERSION_CODES.R) {
-                        setUserAuthenticationParameters(
-                            security.userAuthenticationTimeout,
-                            KeyProperties.AUTH_BIOMETRIC_STRONG or KeyProperties.AUTH_DEVICE_CREDENTIAL
-                        )
-                    } else {
-                        // Setting a timeout of 0 or higher uses AUTH_BIOMETRIC_STRONG or AUTH_DEVICE_CREDENTIAL
-                        // on Android 10 and below.
-                        setUserAuthenticationValidityDurationSeconds(security.userAuthenticationTimeout)
-                    }
-                }.build()
+                is Credential.Security.BiometricStrongOrDeviceCredential -> {
+                    keyGenParameterSpecBuilder
+                        .apply {
+                            setUserAuthenticationRequired(true)
+                            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.R) {
+                                setUserAuthenticationParameters(
+                                    security.userAuthenticationTimeout,
+                                    KeyProperties.AUTH_BIOMETRIC_STRONG or KeyProperties.AUTH_DEVICE_CREDENTIAL
+                                )
+                            } else {
+                                // Setting a timeout of 0 or higher uses AUTH_BIOMETRIC_STRONG or AUTH_DEVICE_CREDENTIAL
+                                // on Android 10 and below.
+                                setUserAuthenticationValidityDurationSeconds(security.userAuthenticationTimeout)
+                            }
+                        }.build()
+                }
             }
-        }
 
         keyPairGenerator.initialize(keyGenParameterSpec)
         keyPairGenerator.generateKeyPair()
@@ -198,14 +202,16 @@ class DefaultTokenEncryptionHandler(
 
     override suspend fun encrypt(
         token: Token,
-        security: Credential.Security
+        security: Credential.Security,
     ): TokenEncryptionHandler.EncryptionResult {
-        val publicRsaKey = keyStore.getCertificate(security.keyAlias).publicKey.let {
-            // workaround for using public key from
-            // https://developer.android.com/reference/android/security/keystore/KeyGenParameterSpec.html#known-issues
-            KeyFactory.getInstance(it.algorithm)
-                .generatePublic(X509EncodedKeySpec(it.encoded))
-        }
+        val publicRsaKey =
+            keyStore.getCertificate(security.keyAlias).publicKey.let {
+                // workaround for using public key from
+                // https://developer.android.com/reference/android/security/keystore/KeyGenParameterSpec.html#known-issues
+                KeyFactory
+                    .getInstance(it.algorithm)
+                    .generatePublic(X509EncodedKeySpec(it.encoded))
+            }
         val aesKey = aesKeyGenerator.generateKey()
         val encryptionExtras = mutableMapOf<String, String>()
 
@@ -215,11 +221,12 @@ class DefaultTokenEncryptionHandler(
         val encryptedToken = aesCipher.doFinal(serializedToken.toByteArray())
 
         val rsaCipher = getRsaCipher().apply { init(Cipher.ENCRYPT_MODE, publicRsaKey) }
-        val aesKeyMaterial = (
-            Base64.encodeToString(
-                aesKey.encoded,
-                Base64.NO_WRAP
-            ) + BASE64_SEPARATOR + Base64.encodeToString(aesCipher.iv, Base64.NO_WRAP)
+        val aesKeyMaterial =
+            (
+                Base64.encodeToString(
+                    aesKey.encoded,
+                    Base64.NO_WRAP
+                ) + BASE64_SEPARATOR + Base64.encodeToString(aesCipher.iv, Base64.NO_WRAP)
             ).toByteArray()
         val encryptedAesKeyMaterial = rsaCipher.doFinal(aesKeyMaterial)
         encryptionExtras[ENCRYPTED_AES_KEY_MATERIAL] =
@@ -232,7 +239,7 @@ class DefaultTokenEncryptionHandler(
         encryptedToken: ByteArray,
         encryptionExtras: Map<String, String>,
         security: Credential.Security,
-        promptInfo: BiometricPrompt.PromptInfo?
+        promptInfo: BiometricPrompt.PromptInfo?,
     ): Token {
         return when (security) {
             is Credential.BiometricSecurity -> {
@@ -284,7 +291,7 @@ class DefaultTokenEncryptionHandler(
     private suspend fun rsaDecrypt(
         encryptedToken: ByteArray,
         encryptionExtras: Map<String, String>,
-        security: Credential.Security
+        security: Credential.Security,
     ): Token {
         val privateRsaKey = keyStore.getKey(security.keyAlias, null)
         val rsaCipher = getRsaCipher().apply { init(Cipher.DECRYPT_MODE, privateRsaKey) }
@@ -296,13 +303,15 @@ class DefaultTokenEncryptionHandler(
     private suspend fun internalDecrypt(
         encryptedToken: ByteArray,
         encryptionExtras: Map<String, String>,
-        rsaDecryptFunc: suspend (encryptedAesKey: ByteArray) -> ByteArray
+        rsaDecryptFunc: suspend (encryptedAesKey: ByteArray) -> ByteArray,
     ): Token {
         val encryptedAesKeyMaterial =
             Base64.decode(encryptionExtras[ENCRYPTED_AES_KEY_MATERIAL], Base64.NO_WRAP)
-        val aesKeyMaterial = rsaDecryptFunc(encryptedAesKeyMaterial).decodeToString().split(
-            BASE64_SEPARATOR, limit = 2
-        )
+        val aesKeyMaterial =
+            rsaDecryptFunc(encryptedAesKeyMaterial).decodeToString().split(
+                BASE64_SEPARATOR,
+                limit = 2
+            )
         val encodedAesKey = Base64.decode(aesKeyMaterial[0], Base64.NO_WRAP)
         val aesIv = Base64.decode(aesKeyMaterial[1], Base64.NO_WRAP)
         val aesKey = SecretKeySpec(encodedAesKey, "AES") as SecretKey
@@ -317,7 +326,8 @@ class DefaultTokenEncryptionHandler(
             }
         val decryptedToken = aesCipher.doFinal(encryptedToken)
         val serializedToken = decryptedToken.decodeToString()
-        return OidcConfiguration.defaultJson()
+        return OidcConfiguration
+            .defaultJson()
             .decodeFromString(Token.serializer(), serializedToken)
     }
 
@@ -327,20 +337,18 @@ class DefaultTokenEncryptionHandler(
         internal const val BIO_TOKEN_NO_PROMPT_INFO_ERROR =
             "promptInfo is required for decrypting biometric tokens"
 
-        private fun getAesCipher(): Cipher {
-            return Cipher.getInstance(
+        private fun getAesCipher(): Cipher =
+            Cipher.getInstance(
                 KeyProperties.KEY_ALGORITHM_AES + "/" +
                     KeyProperties.BLOCK_MODE_GCM + "/" +
                     KeyProperties.ENCRYPTION_PADDING_NONE
             )
-        }
 
-        internal fun getRsaCipher(): Cipher {
-            return Cipher.getInstance(
+        internal fun getRsaCipher(): Cipher =
+            Cipher.getInstance(
                 KeyProperties.KEY_ALGORITHM_RSA + "/" +
                     KeyProperties.BLOCK_MODE_ECB + "/" +
                     KeyProperties.ENCRYPTION_PADDING_RSA_OAEP
             )
-        }
     }
 }

@@ -27,12 +27,13 @@ package com.okta.authfoundation
     AnnotationTarget.FUNCTION,
     AnnotationTarget.PROPERTY_GETTER,
     AnnotationTarget.PROPERTY_SETTER,
-    AnnotationTarget.TYPEALIAS,
+    AnnotationTarget.TYPEALIAS
 )
 @RequiresOptIn(
     level = RequiresOptIn.Level.ERROR,
-    message = "This is an internal com.okta.authfoundation API that should not be used from outside of Okta SDKs. No compatibility " +
-        "guarantees are provided. It is recommended to report your use-case of internal API to the issue tracker, so stable API " +
-        "could be provided instead"
+    message =
+        "This is an internal com.okta.authfoundation API that should not be used from outside of Okta SDKs. No compatibility " +
+            "guarantees are provided. It is recommended to report your use-case of internal API to the issue tracker, so stable API " +
+            "could be provided instead"
 )
 annotation class InternalAuthFoundationApi

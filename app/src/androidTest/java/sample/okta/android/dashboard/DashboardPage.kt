@@ -65,7 +65,10 @@ internal class DashboardPage {
         return this
     }
 
-    fun assertHasClaim(claim: String, value: String): DashboardPage {
+    fun assertHasClaim(
+        claim: String,
+        value: String,
+    ): DashboardPage {
         waitForView(withId(R.id.claims_title), 10_000)
         onView(
             allOf(

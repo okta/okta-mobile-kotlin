@@ -1,5 +1,5 @@
 /*
- * Copyright 2024-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import kotlinx.coroutines.flow.firstOrNull
 import java.util.UUID
 
 internal class EncryptionTokenProvider(
-    private val aesEncryptionHandler: AesEncryptionHandler
+    private val aesEncryptionHandler: AesEncryptionHandler,
 ) {
     companion object {
         const val PREFERENCE_NAME = "com.okta.authfoundation.client.encryptionToken"
@@ -37,15 +37,23 @@ internal class EncryptionTokenProvider(
     sealed interface Result {
         val token: String
 
-        class NewToken(override val token: String) : Result
-        class ExistingToken(override val token: String) : Result
+        class NewToken(
+            override val token: String,
+        ) : Result
+
+        class ExistingToken(
+            override val token: String,
+        ) : Result
     }
 
     private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(PREFERENCE_NAME)
     private val context by lazy { ApplicationContextHolder.appContext }
 
     suspend fun getEncryptionToken(): Result {
-        val encryptedDeviceToken = context.dataStore.data.firstOrNull()?.get(PREFERENCE_KEY)
+        val encryptedDeviceToken =
+            context.dataStore.data
+                .firstOrNull()
+                ?.get(PREFERENCE_KEY)
         return encryptedDeviceToken?.let {
             aesEncryptionHandler.decryptString(it).getOrNull()?.let { Result.ExistingToken(it) }
         } ?: run {

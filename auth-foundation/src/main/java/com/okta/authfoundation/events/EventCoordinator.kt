@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ class EventCoordinator(
      *
      * > Note: this list cannot be modified once it's passed in, we make a defensive copy to ensure our list isn't changed.
      */
-    eventHandlers: List<EventHandler>
+    eventHandlers: List<EventHandler>,
 ) {
     private val eventHandlers = ArrayList(eventHandlers) // Make a defensive copy.
 
@@ -37,7 +37,7 @@ class EventCoordinator(
         /**
          * The [EventHandler] that should be invoked when an event is emitted.
          */
-        eventHandler: EventHandler
+        eventHandler: EventHandler,
     ) : this(listOf(eventHandler))
 
     @InternalAuthFoundationApi

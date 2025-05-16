@@ -35,55 +35,59 @@ import org.junit.Rule
 import org.junit.Test
 
 class OAuth2ClientDeviceSecretValidationFailureTest {
-    @get:Rule val oktaRule = OktaRule(deviceSecretValidator = { _, _, _ ->
-        throw IllegalStateException("Failure!")
-    })
+    @get:Rule val oktaRule =
+        OktaRule(deviceSecretValidator = { _, _, _ ->
+            throw IllegalStateException("Failure!")
+        })
 
-    @Test fun testRefreshTokenWithNoDeviceSecretPassesValidation(): Unit = runBlocking {
-        mockkObject(Credential) {
-            coEvery { Credential.credentialDataSource() } returns mockk(relaxed = true)
+    @Test fun testRefreshTokenWithNoDeviceSecretPassesValidation(): Unit =
+        runBlocking {
+            mockkObject(Credential) {
+                coEvery { Credential.credentialDataSource() } returns mockk(relaxed = true)
+                val client = oktaRule.createOAuth2Client()
+                oktaRule.enqueue(
+                    method("POST"),
+                    header("content-type", "application/x-www-form-urlencoded"),
+                    path("/oauth2/default/v1/token"),
+                    body("client_id=unit_test_client_id&grant_type=refresh_token&refresh_token=ExampleRefreshToken")
+                ) { response ->
+                    runBlocking {
+                        val idTokenClaims = IdTokenClaims(deviceSecretHash = "not matching")
+                        val idToken = client.createJwtBuilder().createJwt(claims = idTokenClaims)
+                        val token =
+                            createToken(
+                                deviceSecret = null,
+                                idToken = idToken.rawValue
+                            ).asSerializableToken()
+                        val body = oktaRule.configuration.json.encodeToString(token)
+                        response.setBody(body)
+                    }
+                }
+                val result = client.refreshToken(createToken(refreshToken = "ExampleRefreshToken"))
+                assertThat(result).isInstanceOf(OAuth2ClientResult.Success::class.java)
+            }
+        }
+
+    @Test fun testRefreshTokenWithDeviceSecretFailsValidation(): Unit =
+        runBlocking {
             val client = oktaRule.createOAuth2Client()
             oktaRule.enqueue(
                 method("POST"),
                 header("content-type", "application/x-www-form-urlencoded"),
                 path("/oauth2/default/v1/token"),
-                body("client_id=unit_test_client_id&grant_type=refresh_token&refresh_token=ExampleRefreshToken"),
+                body("client_id=unit_test_client_id&grant_type=refresh_token&refresh_token=ExampleRefreshToken")
             ) { response ->
                 runBlocking {
                     val idTokenClaims = IdTokenClaims(deviceSecretHash = "not matching")
                     val idToken = client.createJwtBuilder().createJwt(claims = idTokenClaims)
-                    val token = createToken(
-                        deviceSecret = null,
-                        idToken = idToken.rawValue
-                    ).asSerializableToken()
+                    val token = createToken(deviceSecret = "exampleDeviceSecret", idToken = idToken.rawValue).asSerializableToken()
                     val body = oktaRule.configuration.json.encodeToString(token)
                     response.setBody(body)
                 }
             }
             val result = client.refreshToken(createToken(refreshToken = "ExampleRefreshToken"))
-            assertThat(result).isInstanceOf(OAuth2ClientResult.Success::class.java)
+            val exception = (result as OAuth2ClientResult.Error<Token>).exception
+            assertThat(exception).isInstanceOf(IllegalStateException::class.java)
+            assertThat(exception).hasMessageThat().isEqualTo("Failure!")
         }
-    }
-
-    @Test fun testRefreshTokenWithDeviceSecretFailsValidation(): Unit = runBlocking {
-        val client = oktaRule.createOAuth2Client()
-        oktaRule.enqueue(
-            method("POST"),
-            header("content-type", "application/x-www-form-urlencoded"),
-            path("/oauth2/default/v1/token"),
-            body("client_id=unit_test_client_id&grant_type=refresh_token&refresh_token=ExampleRefreshToken"),
-        ) { response ->
-            runBlocking {
-                val idTokenClaims = IdTokenClaims(deviceSecretHash = "not matching")
-                val idToken = client.createJwtBuilder().createJwt(claims = idTokenClaims)
-                val token = createToken(deviceSecret = "exampleDeviceSecret", idToken = idToken.rawValue).asSerializableToken()
-                val body = oktaRule.configuration.json.encodeToString(token)
-                response.setBody(body)
-            }
-        }
-        val result = client.refreshToken(createToken(refreshToken = "ExampleRefreshToken"))
-        val exception = (result as OAuth2ClientResult.Error<Token>).exception
-        assertThat(exception).isInstanceOf(IllegalStateException::class.java)
-        assertThat(exception).hasMessageThat().isEqualTo("Failure!")
-    }
 }

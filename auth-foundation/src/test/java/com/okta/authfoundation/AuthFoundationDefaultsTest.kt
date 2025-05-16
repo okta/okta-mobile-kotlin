@@ -1,5 +1,5 @@
 /*
- * Copyright 2025-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -84,5 +84,7 @@ class AuthFoundationDefaultsTest {
         assertThat(cookieJar2, `is`(not(newCookieJar)))
     }
 
-    private class DefaultSdkState(val getCookieJar: () -> CookieJar)
+    private class DefaultSdkState(
+        val getCookieJar: () -> CookieJar,
+    )
 }

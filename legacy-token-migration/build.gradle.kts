@@ -45,6 +45,10 @@ android {
     }
 }
 
+apiValidation {
+    ignoredClasses.add("com.okta.legacytokenmigration.BuildConfig")
+}
+
 dependencies {
     coreLibraryDesugaring(libs.core.library.desugaring)
 

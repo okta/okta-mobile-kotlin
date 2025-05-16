@@ -1,5 +1,5 @@
 /*
- * Copyright 2024-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,11 +65,12 @@ class BiometricDecryptionActivity : AppCompatActivity() {
     private fun biometricPrompt(): BiometricPrompt {
         val executor = ContextCompat.getMainExecutor(this)
         return BiometricPrompt(
-            this, executor,
+            this,
+            executor,
             object : AuthenticationCallback() {
                 override fun onAuthenticationError(
                     errorCode: Int,
-                    errString: CharSequence
+                    errString: CharSequence,
                 ) {
                     biometricAction.resumeWithException(
                         BiometricAuthenticationException(
@@ -80,9 +81,7 @@ class BiometricDecryptionActivity : AppCompatActivity() {
                     finish()
                 }
 
-                override fun onAuthenticationSucceeded(
-                    result: BiometricPrompt.AuthenticationResult
-                ) {
+                override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
                     when (val action = biometricAction) {
                         is BiometricAction.Unlock -> action.continuation.resume(Unit)
                         is BiometricAction.Decrypt -> {
@@ -118,7 +117,7 @@ class BiometricDecryptionActivity : AppCompatActivity() {
         fun resumeWithException(exception: Exception)
 
         class Unlock(
-            val continuation: Continuation<Unit>
+            val continuation: Continuation<Unit>,
         ) : BiometricAction {
             override fun resumeWithException(exception: Exception) {
                 continuation.resumeWithException(exception)
@@ -128,7 +127,7 @@ class BiometricDecryptionActivity : AppCompatActivity() {
         class Decrypt(
             val cipher: Cipher,
             val encryptedData: ByteArray,
-            val continuation: Continuation<ByteArray>
+            val continuation: Continuation<ByteArray>,
         ) : BiometricAction {
             override fun resumeWithException(exception: Exception) {
                 continuation.resumeWithException(exception)
@@ -149,43 +148,45 @@ class BiometricDecryptionActivity : AppCompatActivity() {
             ApplicationContextHolder.appContext.startActivity(intent)
         }
 
-        internal suspend fun biometricUnlock(promptInfo: PromptInfo) {
-            return accessMutex.withLock {
+        internal suspend fun biometricUnlock(promptInfo: PromptInfo) =
+            accessMutex.withLock {
                 suspendCancellableCoroutine { continuation ->
                     this.promptInfo = promptInfo
                     biometricAction = BiometricAction.Unlock(continuation)
                     startActivity()
                 }
             }
-        }
 
         internal suspend fun biometricDecrypt(
             cipher: Cipher,
             encryptedData: ByteArray,
-            promptInfo: PromptInfo
-        ): ByteArray {
-            return accessMutex.withLock {
+            promptInfo: PromptInfo,
+        ): ByteArray =
+            accessMutex.withLock {
                 suspendCancellableCoroutine { continuation ->
                     this.promptInfo = promptInfo
-                    biometricAction = BiometricAction.Decrypt(
-                        cipher, encryptedData, continuation
-                    )
+                    biometricAction =
+                        BiometricAction.Decrypt(
+                            cipher,
+                            encryptedData,
+                            continuation
+                        )
                     startActivity()
                 }
             }
-        }
     }
 }
 
 class BiometricAuthenticationException(
     message: String,
-    val biometricExceptionDetails: BiometricExceptionDetails
+    val biometricExceptionDetails: BiometricExceptionDetails,
 ) : GeneralSecurityException(message)
 
 sealed interface BiometricExceptionDetails {
     data object OnAuthenticationFailed : BiometricExceptionDetails
+
     data class OnAuthenticationError(
         val errorCode: Int,
-        val errString: CharSequence
+        val errString: CharSequence,
     ) : BiometricExceptionDetails
 }

@@ -28,7 +28,9 @@ fun interface DeviceSecretValidator {
     /**
      * An error used for describing errors when validating the token.
      */
-    class Error(message: String) : IllegalStateException(message)
+    class Error(
+        message: String,
+    ) : IllegalStateException(message)
 
     /**
      * Called when the [OAuth2Client] receives a [Token] response.
@@ -39,11 +41,19 @@ fun interface DeviceSecretValidator {
      * @param deviceSecret the device secret from the [Token] response.
      * @param idToken the [Jwt] representing the id token from the [Token] response.
      */
-    suspend fun validate(client: OAuth2Client, deviceSecret: String, idToken: Jwt)
+    suspend fun validate(
+        client: OAuth2Client,
+        deviceSecret: String,
+        idToken: Jwt,
+    )
 }
 
 internal class DefaultDeviceSecretValidator : DeviceSecretValidator {
-    override suspend fun validate(client: OAuth2Client, deviceSecret: String, idToken: Jwt) {
+    override suspend fun validate(
+        client: OAuth2Client,
+        deviceSecret: String,
+        idToken: Jwt,
+    ) {
         if (idToken.algorithm != "RS256") {
             throw DeviceSecretValidator.Error("Unsupported algorithm")
         }

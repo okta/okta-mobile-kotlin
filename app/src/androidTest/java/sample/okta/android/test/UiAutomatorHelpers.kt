@@ -33,7 +33,10 @@ fun clickButtonWithTextMatching(text: String) {
     assertThat(uiDevice.findObject(selector).click()).isTrue()
 }
 
-fun setTextForIndex(index: Int, text: String) {
+fun setTextForIndex(
+    index: Int,
+    text: String,
+) {
     val uiDevice = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
     val selector = UiSelector().className(EditText::class.java).instance(index)
     assertThat(uiDevice.findObject(selector).setText(text)).isTrue()
@@ -51,7 +54,10 @@ fun waitForTextMatching(text: String) {
     assertThat(uiDevice.findObject(selector).waitForExists(10_000)).isTrue()
 }
 
-fun waitForResourceIdWithText(resourceId: String, text: String) {
+fun waitForResourceIdWithText(
+    resourceId: String,
+    text: String,
+) {
     val uiDevice = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
     val selector = UiSelector().resourceIdMatches(resourceId).text(text)
     assertThat(uiDevice.findObject(selector).waitForExists(10_000)).isTrue()

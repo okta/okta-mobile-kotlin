@@ -32,19 +32,15 @@ class Jwt internal constructor(
     val algorithm: String,
     /** Identifies the public key used to verify the ID token. */
     val keyId: String,
-
     claimsProvider: ClaimsProvider,
-
     /**
      * The base64 encoded signature.
      */
     val signature: String,
-
     /**
      * The raw value in standard JWT format.
      */
     val rawValue: String,
-
     private val computeDispatcher: CoroutineContext,
 ) : ClaimsProvider by claimsProvider {
     override fun equals(other: Any?): Boolean {
@@ -54,13 +50,9 @@ class Jwt internal constructor(
         return super.equals(other)
     }
 
-    override fun hashCode(): Int {
-        return rawValue.hashCode()
-    }
+    override fun hashCode(): Int = rawValue.hashCode()
 
-    override fun toString(): String {
-        return rawValue
-    }
+    override fun toString(): String = rawValue
 
     /**
      * Validates the [Jwt.signature] against the [Jwks].

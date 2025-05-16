@@ -27,9 +27,7 @@ internal class DeviceAuthorizationPage {
         waitForTextMatching("To sign in, visit .*")
     }
 
-    fun expectDashboard(): DashboardPage {
-        return DashboardPage()
-    }
+    fun expectDashboard(): DashboardPage = DashboardPage()
 
     fun getCode(): String {
         val directions = onView(withId(R.id.directions_text_view)).getText()

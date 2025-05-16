@@ -24,21 +24,25 @@ class JwksTest {
     @get:Rule val oktaRule = OktaRule()
 
     @Test fun testDeserializingDefault() {
-        val json = """
-        {
-            "keys": [
-                {
-                    "kty": "RSA",
-                    "alg": "RS256",
-                    "kid": "p014K-d3IwPWLc0od5LHM1s1u0YDqX4LIl1xg6ik3j4",
-                    "use": "sig",
-                    "e": "AQAB",
-                    "n": "yUPh0wNqXh1CMSxzud4uHkfBKkNX7powR4cRS_i0VxkbiicbNZ0IQhw-enDhZieRti4NhygOJfN8DPmtHsWJxt_pCsibc--bNgylcESpn9K4OxtiQrjUvtRM4WX3PWsKUREDZ0Vp-WAXC2nibvqRP_Ky38DkZMinzvCLabr0IOzyGc9AJrUHib61X6FucSoLM_YrKi2hd2UUHqeGiZrmUcHCrgrxcJIBTSbJq47hZrFzFN5RDq0Ium-lm8DU3bfoSlyc7minHlCWcOd90LtjonIHYqUVlpRYUzj_n4AM7DPKI6DDxC0-hio37qxfdmV_5Zvo6fpxIe8EUbI-oUoS3Q"
-                }
-            ]
-        }
-        """.trimIndent()
-        val jwks = oktaRule.configuration.json.decodeFromString(SerializableJwks.serializer(), json).toJwks()
+        val json =
+            """
+            {
+                "keys": [
+                    {
+                        "kty": "RSA",
+                        "alg": "RS256",
+                        "kid": "p014K-d3IwPWLc0od5LHM1s1u0YDqX4LIl1xg6ik3j4",
+                        "use": "sig",
+                        "e": "AQAB",
+                        "n": "yUPh0wNqXh1CMSxzud4uHkfBKkNX7powR4cRS_i0VxkbiicbNZ0IQhw-enDhZieRti4NhygOJfN8DPmtHsWJxt_pCsibc--bNgylcESpn9K4OxtiQrjUvtRM4WX3PWsKUREDZ0Vp-WAXC2nibvqRP_Ky38DkZMinzvCLabr0IOzyGc9AJrUHib61X6FucSoLM_YrKi2hd2UUHqeGiZrmUcHCrgrxcJIBTSbJq47hZrFzFN5RDq0Ium-lm8DU3bfoSlyc7minHlCWcOd90LtjonIHYqUVlpRYUzj_n4AM7DPKI6DDxC0-hio37qxfdmV_5Zvo6fpxIe8EUbI-oUoS3Q"
+                    }
+                ]
+            }
+            """.trimIndent()
+        val jwks =
+            oktaRule.configuration.json
+                .decodeFromString(SerializableJwks.serializer(), json)
+                .toJwks()
         assertThat(jwks.keys).hasSize(1)
         val key = jwks.keys.first()
         assertThat(key.keyType).isEqualTo("RSA")
@@ -46,24 +50,32 @@ class JwksTest {
         assertThat(key.keyId).isEqualTo("p014K-d3IwPWLc0od5LHM1s1u0YDqX4LIl1xg6ik3j4")
         assertThat(key.use).isEqualTo("sig")
         assertThat(key.exponent).isEqualTo("AQAB")
-        assertThat(key.modulus).isEqualTo("yUPh0wNqXh1CMSxzud4uHkfBKkNX7powR4cRS_i0VxkbiicbNZ0IQhw-enDhZieRti4NhygOJfN8DPmtHsWJxt_pCsibc--bNgylcESpn9K4OxtiQrjUvtRM4WX3PWsKUREDZ0Vp-WAXC2nibvqRP_Ky38DkZMinzvCLabr0IOzyGc9AJrUHib61X6FucSoLM_YrKi2hd2UUHqeGiZrmUcHCrgrxcJIBTSbJq47hZrFzFN5RDq0Ium-lm8DU3bfoSlyc7minHlCWcOd90LtjonIHYqUVlpRYUzj_n4AM7DPKI6DDxC0-hio37qxfdmV_5Zvo6fpxIe8EUbI-oUoS3Q")
+        assertThat(
+            key.modulus
+        ).isEqualTo(
+            "yUPh0wNqXh1CMSxzud4uHkfBKkNX7powR4cRS_i0VxkbiicbNZ0IQhw-enDhZieRti4NhygOJfN8DPmtHsWJxt_pCsibc--bNgylcESpn9K4OxtiQrjUvtRM4WX3PWsKUREDZ0Vp-WAXC2nibvqRP_Ky38DkZMinzvCLabr0IOzyGc9AJrUHib61X6FucSoLM_YrKi2hd2UUHqeGiZrmUcHCrgrxcJIBTSbJq47hZrFzFN5RDq0Ium-lm8DU3bfoSlyc7minHlCWcOd90LtjonIHYqUVlpRYUzj_n4AM7DPKI6DDxC0-hio37qxfdmV_5Zvo6fpxIe8EUbI-oUoS3Q"
+        )
     }
 
     @Test fun testDeserializingRsaWithoutAlgDefaultsToRs256() {
-        val json = """
-        {
-            "keys": [
-                {
-                    "kty": "RSA",
-                    "kid": "p014K-d3IwPWLc0od5LHM1s1u0YDqX4LIl1xg6ik3j4",
-                    "use": "sig",
-                    "e": "AQAB",
-                    "n": "yUPh0wNqXh1CMSxzud4uHkfBKkNX7powR4cRS_i0VxkbiicbNZ0IQhw-enDhZieRti4NhygOJfN8DPmtHsWJxt_pCsibc--bNgylcESpn9K4OxtiQrjUvtRM4WX3PWsKUREDZ0Vp-WAXC2nibvqRP_Ky38DkZMinzvCLabr0IOzyGc9AJrUHib61X6FucSoLM_YrKi2hd2UUHqeGiZrmUcHCrgrxcJIBTSbJq47hZrFzFN5RDq0Ium-lm8DU3bfoSlyc7minHlCWcOd90LtjonIHYqUVlpRYUzj_n4AM7DPKI6DDxC0-hio37qxfdmV_5Zvo6fpxIe8EUbI-oUoS3Q"
-                }
-            ]
-        }
-        """.trimIndent()
-        val jwks = oktaRule.configuration.json.decodeFromString(SerializableJwks.serializer(), json).toJwks()
+        val json =
+            """
+            {
+                "keys": [
+                    {
+                        "kty": "RSA",
+                        "kid": "p014K-d3IwPWLc0od5LHM1s1u0YDqX4LIl1xg6ik3j4",
+                        "use": "sig",
+                        "e": "AQAB",
+                        "n": "yUPh0wNqXh1CMSxzud4uHkfBKkNX7powR4cRS_i0VxkbiicbNZ0IQhw-enDhZieRti4NhygOJfN8DPmtHsWJxt_pCsibc--bNgylcESpn9K4OxtiQrjUvtRM4WX3PWsKUREDZ0Vp-WAXC2nibvqRP_Ky38DkZMinzvCLabr0IOzyGc9AJrUHib61X6FucSoLM_YrKi2hd2UUHqeGiZrmUcHCrgrxcJIBTSbJq47hZrFzFN5RDq0Ium-lm8DU3bfoSlyc7minHlCWcOd90LtjonIHYqUVlpRYUzj_n4AM7DPKI6DDxC0-hio37qxfdmV_5Zvo6fpxIe8EUbI-oUoS3Q"
+                    }
+                ]
+            }
+            """.trimIndent()
+        val jwks =
+            oktaRule.configuration.json
+                .decodeFromString(SerializableJwks.serializer(), json)
+                .toJwks()
         assertThat(jwks.keys).hasSize(1)
         val key = jwks.keys.first()
         assertThat(key.keyType).isEqualTo("RSA")
@@ -71,6 +83,10 @@ class JwksTest {
         assertThat(key.keyId).isEqualTo("p014K-d3IwPWLc0od5LHM1s1u0YDqX4LIl1xg6ik3j4")
         assertThat(key.use).isEqualTo("sig")
         assertThat(key.exponent).isEqualTo("AQAB")
-        assertThat(key.modulus).isEqualTo("yUPh0wNqXh1CMSxzud4uHkfBKkNX7powR4cRS_i0VxkbiicbNZ0IQhw-enDhZieRti4NhygOJfN8DPmtHsWJxt_pCsibc--bNgylcESpn9K4OxtiQrjUvtRM4WX3PWsKUREDZ0Vp-WAXC2nibvqRP_Ky38DkZMinzvCLabr0IOzyGc9AJrUHib61X6FucSoLM_YrKi2hd2UUHqeGiZrmUcHCrgrxcJIBTSbJq47hZrFzFN5RDq0Ium-lm8DU3bfoSlyc7minHlCWcOd90LtjonIHYqUVlpRYUzj_n4AM7DPKI6DDxC0-hio37qxfdmV_5Zvo6fpxIe8EUbI-oUoS3Q")
+        assertThat(
+            key.modulus
+        ).isEqualTo(
+            "yUPh0wNqXh1CMSxzud4uHkfBKkNX7powR4cRS_i0VxkbiicbNZ0IQhw-enDhZieRti4NhygOJfN8DPmtHsWJxt_pCsibc--bNgylcESpn9K4OxtiQrjUvtRM4WX3PWsKUREDZ0Vp-WAXC2nibvqRP_Ky38DkZMinzvCLabr0IOzyGc9AJrUHib61X6FucSoLM_YrKi2hd2UUHqeGiZrmUcHCrgrxcJIBTSbJq47hZrFzFN5RDq0Ium-lm8DU3bfoSlyc7minHlCWcOd90LtjonIHYqUVlpRYUzj_n4AM7DPKI6DDxC0-hio37qxfdmV_5Zvo6fpxIe8EUbI-oUoS3Q"
+        )
     }
 }
