@@ -43,22 +43,31 @@ fun interface IdTokenValidator {
         companion object {
             /** The error that's thrown when an ID Token has an issuer that doesn't match the issuer that made the request. */
             const val INVALID_ISSUER = "invalid_issuer"
+
             /** The error that's thrown when an ID Token has an `aud` that doesn't match the client ID that made the request. */
             const val INVALID_AUDIENCE = "invalid_audience"
+
             /** The error that's thrown when an ID Token has an issuer that doesn't use HTTPS */
             const val ISSUER_NOT_HTTPS = "issuer_not_https"
+
             /** The error that's thrown when an ID Token has a [Jwt] signing algorithm that isn't `RS256`. */
             const val INVALID_JWT_ALGORITHM = "invalid_jwt_algorithm"
+
             /** The error that's thrown when an ID Token has a [Jwt] signature that is invalid. */
             const val INVALID_JWT_SIGNATURE = "invalid_jwt_signature"
+
             /** The error that's thrown when an ID Token is validated after it has expired. */
             const val EXPIRED = "expired"
+
             /** The error that's thrown when an ID Token has an `iat` isn't within the specified threshold of the current time. */
             const val ISSUED_AT_THRESHOLD_NOT_SATISFIED = "issued_at_threshold_not_satisfied"
+
             /** The error that's thrown when an ID Token has a nonce that doesn't match the nonce that made the request. */
             const val NONCE_MISMATCH = "nonce_mismatch"
+
             /** The error that's thrown when an ID Token has an `auth_time` that isn't within the specified `max_age`. */
             const val MAX_AGE_NOT_SATISFIED = "max_age_not_satisfied"
+
             /** The error that's thrown when an ID Token doesn't contain a `sub` claim. */
             const val INVALID_SUBJECT = "invalid_subject"
         }
@@ -72,7 +81,6 @@ fun interface IdTokenValidator {
          * The `nonce` sent with the authorize request, if using Authorization Code Flow and available.
          */
         val nonce: String?,
-
         /**
          * The `max_age` sent to the authorize request, if using Authorization Code Flow and available.
          */
@@ -88,12 +96,20 @@ fun interface IdTokenValidator {
      * @param idToken the [Jwt] representing the id token from the [Token] response.
      * @param parameters the [Parameters] used to validate the id token.
      */
-    suspend fun validate(client: OAuth2Client, idToken: Jwt, parameters: Parameters)
+    suspend fun validate(
+        client: OAuth2Client,
+        idToken: Jwt,
+        parameters: Parameters,
+    )
 }
 
 // https://openid.net/specs/openid-connect-core-1_0.html#IDTokenValidation
 internal class DefaultIdTokenValidator : IdTokenValidator {
-    override suspend fun validate(client: OAuth2Client, idToken: Jwt, parameters: IdTokenValidator.Parameters) {
+    override suspend fun validate(
+        client: OAuth2Client,
+        idToken: Jwt,
+        parameters: IdTokenValidator.Parameters,
+    ) {
         val idTokenPayload = idToken.deserializeClaims(IdTokenValidationPayload.serializer())
 
         val event = ValidateIdTokenEvent(600)
@@ -127,10 +143,11 @@ internal class DefaultIdTokenValidator : IdTokenValidator {
             throw IdTokenValidator.Error("Nonce mismatch.", IdTokenValidator.Error.NONCE_MISMATCH)
         }
         if (parameters.maxAge != null) {
-            val authTime = idTokenPayload.authTime ?: throw IdTokenValidator.Error(
-                "Auth time not available.",
-                IdTokenValidator.Error.MAX_AGE_NOT_SATISFIED
-            )
+            val authTime =
+                idTokenPayload.authTime ?: throw IdTokenValidator.Error(
+                    "Auth time not available.",
+                    IdTokenValidator.Error.MAX_AGE_NOT_SATISFIED
+                )
             val elapsedTime = idTokenPayload.iat - authTime
             if (elapsedTime < 0 || elapsedTime > parameters.maxAge) {
                 throw IdTokenValidator.Error("Max age not satisfied.", IdTokenValidator.Error.MAX_AGE_NOT_SATISFIED)

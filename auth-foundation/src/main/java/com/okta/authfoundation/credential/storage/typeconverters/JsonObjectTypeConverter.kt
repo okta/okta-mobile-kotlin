@@ -1,5 +1,5 @@
 /*
- * Copyright 2024-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,16 +21,14 @@ import kotlinx.serialization.json.JsonObject
 
 class JsonObjectTypeConverter {
     @TypeConverter
-    fun convertToJsonString(jsonObject: JsonObject?): String? {
-        return jsonObject?.let {
+    fun convertToJsonString(jsonObject: JsonObject?): String? =
+        jsonObject?.let {
             OidcConfiguration.defaultJson().encodeToString(JsonObject.serializer(), it)
         }
-    }
 
     @TypeConverter
-    fun convertToObject(json: String?): JsonObject? {
-        return json?.let {
+    fun convertToObject(json: String?): JsonObject? =
+        json?.let {
             OidcConfiguration.defaultJson().decodeFromString(JsonObject.serializer(), it)
         }
-    }
 }

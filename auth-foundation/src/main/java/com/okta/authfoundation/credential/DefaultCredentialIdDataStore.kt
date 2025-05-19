@@ -1,5 +1,5 @@
 /*
- * Copyright 2024-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import com.okta.authfoundation.util.AesEncryptionHandler
 import kotlinx.coroutines.flow.firstOrNull
 
 internal class DefaultCredentialIdDataStore(
-    private val aesEncryptionHandler: AesEncryptionHandler
+    private val aesEncryptionHandler: AesEncryptionHandler,
 ) {
     companion object {
         private const val PREFERENCE_NAME = "com.okta.authfoundation.credential.defaultCredentialIdDataStore"
@@ -40,17 +40,22 @@ internal class DefaultCredentialIdDataStore(
 
     suspend fun getDefaultCredentialId(): String? {
         AuthFoundation.initializeStorage()
-        val encryptedDefaultCredentialId = context.dataStore.data.firstOrNull()?.get(PREFERENCE_KEY)
+        val encryptedDefaultCredentialId =
+            context.dataStore.data
+                .firstOrNull()
+                ?.get(PREFERENCE_KEY)
         return encryptedDefaultCredentialId?.let {
             aesEncryptionHandler.decryptString(it).getOrNull()
         }
     }
 
-    suspend fun setDefaultCredentialId(id: String) = context.dataStore.edit { preferences ->
-        preferences[PREFERENCE_KEY] = aesEncryptionHandler.encryptString(id)
-    }
+    suspend fun setDefaultCredentialId(id: String) =
+        context.dataStore.edit { preferences ->
+            preferences[PREFERENCE_KEY] = aesEncryptionHandler.encryptString(id)
+        }
 
-    suspend fun clearDefaultCredentialId() = context.dataStore.edit { preferences ->
-        preferences.remove(PREFERENCE_KEY)
-    }
+    suspend fun clearDefaultCredentialId() =
+        context.dataStore.edit { preferences ->
+            preferences.remove(PREFERENCE_KEY)
+        }
 }

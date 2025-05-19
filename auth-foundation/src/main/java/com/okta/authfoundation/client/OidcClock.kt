@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,6 @@ import com.okta.authfoundation.AuthFoundationDefaults
  * To use a custom [OidcClock], you construct an instance of your class implementing this interface, and assign it to the [AuthFoundationDefaults.clock] property.
  */
 fun interface OidcClock {
-
     /**
      *  Returns the current time in seconds since January 1, 1970 UTC, adjusting the system clock to correct for clock skew.
      */

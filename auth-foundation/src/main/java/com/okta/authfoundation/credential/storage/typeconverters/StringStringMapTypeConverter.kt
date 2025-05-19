@@ -1,5 +1,5 @@
 /*
- * Copyright 2024-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,16 +24,14 @@ class StringStringMapTypeConverter {
     private val mapSerializer = MapSerializer(String.serializer(), String.serializer())
 
     @TypeConverter
-    fun convertToJsonString(stringStringMap: Map<String, String>?): String? {
-        return stringStringMap?.let {
+    fun convertToJsonString(stringStringMap: Map<String, String>?): String? =
+        stringStringMap?.let {
             OidcConfiguration.defaultJson().encodeToString(mapSerializer, it)
         }
-    }
 
     @TypeConverter
-    fun convertToObject(json: String?): Map<String, String>? {
-        return json?.let {
+    fun convertToObject(json: String?): Map<String, String>? =
+        json?.let {
             OidcConfiguration.defaultJson().decodeFromString(mapSerializer, it)
         }
-    }
 }

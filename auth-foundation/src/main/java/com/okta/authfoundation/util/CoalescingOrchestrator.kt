@@ -31,6 +31,7 @@ class CoalescingOrchestrator<T : Any>(
     private val awaitListener: (() -> Unit)? = null,
 ) {
     @Volatile private lateinit var data: T
+
     @Volatile private var dataInitialized: Boolean = false
 
     @Volatile private var deferred: Deferred<T>? = null
@@ -41,27 +42,28 @@ class CoalescingOrchestrator<T : Any>(
             return data
         }
 
-        val result = coroutineScope {
-            val deferredToAwait: Deferred<T>
-            synchronized(lock) {
-                if (dataInitialized) {
-                    return@coroutineScope data
+        val result =
+            coroutineScope {
+                val deferredToAwait: Deferred<T>
+                synchronized(lock) {
+                    if (dataInitialized) {
+                        return@coroutineScope data
+                    }
+                    val localDeferred = deferred
+                    if (localDeferred != null && !localDeferred.isCancelled) {
+                        deferredToAwait = localDeferred
+                    } else {
+                        deferredToAwait = loadDataAsync(this@coroutineScope)
+                    }
                 }
-                val localDeferred = deferred
-                if (localDeferred != null && !localDeferred.isCancelled) {
-                    deferredToAwait = localDeferred
-                } else {
-                    deferredToAwait = loadDataAsync(this@coroutineScope)
+                try {
+                    awaitListener?.invoke()
+                    deferredToAwait.await()
+                } catch (e: CancellationException) {
+                    // The `deferredToAwait` was cancelled before we could await it by another thread.
+                    null
                 }
             }
-            try {
-                awaitListener?.invoke()
-                deferredToAwait.await()
-            } catch (e: CancellationException) {
-                // The `deferredToAwait` was cancelled before we could await it by another thread.
-                null
-            }
-        }
         if (result != null) {
             return result
         }
@@ -70,17 +72,18 @@ class CoalescingOrchestrator<T : Any>(
     }
 
     private fun loadDataAsync(scope: CoroutineScope): Deferred<T> {
-        val local = scope.async(start = CoroutineStart.LAZY) {
-            val result = factory()
-            synchronized(lock) {
-                if (keepDataInMemory(result)) {
-                    data = result
-                    dataInitialized = true
+        val local =
+            scope.async(start = CoroutineStart.LAZY) {
+                val result = factory()
+                synchronized(lock) {
+                    if (keepDataInMemory(result)) {
+                        data = result
+                        dataInitialized = true
+                    }
+                    deferred = null
                 }
-                deferred = null
+                result
             }
-            result
-        }
 
         deferred = local
 

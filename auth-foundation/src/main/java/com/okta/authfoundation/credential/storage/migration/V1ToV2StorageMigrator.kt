@@ -1,5 +1,5 @@
 /*
- * Copyright 2024-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ import com.okta.authfoundation.jwt.JwtParser
 import kotlinx.coroutines.flow.firstOrNull
 
 class V1ToV2StorageMigrator internal constructor(
-    private val tokenStorage: TokenStorage
+    private val tokenStorage: TokenStorage,
 ) {
     companion object {
         private const val PREFERENCE_NAME = "com.okta.authfoundation.credential.storage.isStorageMigratedFromV1"
@@ -50,15 +50,14 @@ class V1ToV2StorageMigrator internal constructor(
             legacyStorageWith(legacyKeyGenParameterSpec)
         }
 
-        private fun legacyStorageWith(keyGenParameterSpec: KeyGenParameterSpec): SharedPreferencesTokenStorage {
-            return SharedPreferencesTokenStorage(
+        private fun legacyStorageWith(keyGenParameterSpec: KeyGenParameterSpec): SharedPreferencesTokenStorage =
+            SharedPreferencesTokenStorage(
                 OidcConfiguration.defaultJson(),
                 AuthFoundationDefaults.ioDispatcher,
                 AuthFoundationDefaults.eventCoordinator,
                 ApplicationContextHolder.appContext,
                 keyGenParameterSpec
             )
-        }
     }
 
     private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(PREFERENCE_NAME)
@@ -73,16 +72,19 @@ class V1ToV2StorageMigrator internal constructor(
         }
     }
 
-    internal suspend fun isMigrationNeeded(): Boolean {
-        return context.dataStore.data.firstOrNull()?.get(MIGRATED)?.not() ?: true
-    }
+    internal suspend fun isMigrationNeeded(): Boolean =
+        context.dataStore.data
+            .firstOrNull()
+            ?.get(MIGRATED)
+            ?.not() ?: true
 
     private suspend fun migrate() {
-        val legacyEntries = try {
-            legacyStorage.entries()
-        } catch (e: Exception) {
-            emptyList()
-        }
+        val legacyEntries =
+            try {
+                legacyStorage.entries()
+            } catch (e: Exception) {
+                emptyList()
+            }
 
         for (entry in legacyEntries) {
             if (entry.token == null) continue
@@ -95,7 +97,5 @@ class V1ToV2StorageMigrator internal constructor(
         }
     }
 
-    private fun LegacyTokenStorage.Entry.isDefaultTokenEntry(): Boolean {
-        return tags[LEGACY_CREDENTIAL_NAME_TAG_KEY] == LEGACY_DEFAULT_CREDENTIAL_NAME_TAG_VALUE
-    }
+    private fun LegacyTokenStorage.Entry.isDefaultTokenEntry(): Boolean = tags[LEGACY_CREDENTIAL_NAME_TAG_KEY] == LEGACY_DEFAULT_CREDENTIAL_NAME_TAG_VALUE
 }

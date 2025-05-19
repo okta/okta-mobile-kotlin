@@ -1,5 +1,5 @@
 /*
- * Copyright 2024-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,15 +37,19 @@ internal data class TokenEntity(
     val keyAlias: String,
     val tokenEncryptionType: EncryptionType,
     val biometricTimeout: Int?,
-    val encryptionExtras: Map<String, String>
+    val encryptionExtras: Map<String, String>,
 ) {
     internal enum class EncryptionType {
         DEFAULT,
         BIO_ONLY,
-        BIO_AND_PIN;
+        BIO_AND_PIN,
+        ;
 
-        internal fun toSecurity(keyAlias: String, biometricTimeout: Int?): Credential.Security {
-            return when (this) {
+        internal fun toSecurity(
+            keyAlias: String,
+            biometricTimeout: Int?,
+        ): Credential.Security =
+            when (this) {
                 DEFAULT -> Credential.Security.Default(keyAlias)
                 BIO_ONLY -> {
                     if (biometricTimeout == null) throw IllegalStateException("BIO_ONLY TokenEntity stored without timeout")
@@ -56,16 +60,14 @@ internal data class TokenEntity(
                     Credential.Security.BiometricStrongOrDeviceCredential(biometricTimeout, keyAlias)
                 }
             }
-        }
 
         internal companion object {
-            internal fun fromSecurity(security: Credential.Security): EncryptionType {
-                return when (security) {
+            internal fun fromSecurity(security: Credential.Security): EncryptionType =
+                when (security) {
                     is Credential.Security.Default -> DEFAULT
                     is Credential.Security.BiometricStrong -> BIO_ONLY
                     is Credential.Security.BiometricStrongOrDeviceCredential -> BIO_AND_PIN
                 }
-            }
         }
     }
 

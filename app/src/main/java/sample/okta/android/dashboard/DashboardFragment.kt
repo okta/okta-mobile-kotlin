@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,9 +34,10 @@ import sample.okta.android.databinding.RowDashboardClaimBinding
 import sample.okta.android.util.BaseFragment
 import sample.okta.android.util.inflateBinding
 
-internal class DashboardFragment : BaseFragment<FragmentDashboardBinding>(
-    FragmentDashboardBinding::inflate
-) {
+internal class DashboardFragment :
+    BaseFragment<FragmentDashboardBinding>(
+        FragmentDashboardBinding::inflate
+    ) {
     private val args: DashboardFragmentArgs by navArgs()
 
     private val viewModel by viewModels<DashboardViewModel>(factoryProducer = {
@@ -48,15 +49,19 @@ internal class DashboardFragment : BaseFragment<FragmentDashboardBinding>(
         }
     })
 
-    private val onBackPressedCallback = object : OnBackPressedCallback(true) {
-        override fun handleOnBackPressed() {
-            lifecycleScope.launch {
-                Credential.default?.let { viewModel.setCredential(it) }
+    private val onBackPressedCallback =
+        object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                lifecycleScope.launch {
+                    Credential.default?.let { viewModel.setCredential(it) }
+                }
             }
         }
-    }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+    override fun onViewCreated(
+        view: View,
+        savedInstanceState: Bundle?,
+    ) {
         viewModel.credentialLiveData.observe(viewLifecycleOwner) { credentialState ->
             when (credentialState) {
                 is DashboardViewModel.CredentialState.LoggedOut -> {

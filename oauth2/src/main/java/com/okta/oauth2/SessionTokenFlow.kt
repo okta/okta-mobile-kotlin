@@ -30,7 +30,6 @@ import okhttp3.Request
 class SessionTokenFlow(
     private val client: OAuth2Client,
 ) {
-
     /**
      * Initializes a session token flow.
      */
@@ -61,29 +60,34 @@ class SessionTokenFlow(
         val authorizationCodeFlow = AuthorizationCodeFlow(client)
         val mutableParameters = extraRequestParameters.toMutableMap()
         mutableParameters["sessionToken"] = sessionToken
-        val flowContext = when (val startResult = authorizationCodeFlow.start(redirectUrl, mutableParameters, scope)) {
-            is OAuth2ClientResult.Error -> {
-                return OAuth2ClientResult.Error(startResult.exception)
+        val flowContext =
+            when (val startResult = authorizationCodeFlow.start(redirectUrl, mutableParameters, scope)) {
+                is OAuth2ClientResult.Error -> {
+                    return OAuth2ClientResult.Error(startResult.exception)
+                }
+                is OAuth2ClientResult.Success -> {
+                    startResult.result
+                }
             }
-            is OAuth2ClientResult.Success -> {
-                startResult.result
-            }
-        }
 
-        val request = Request.Builder()
-            .url(flowContext.url)
-            .build()
+        val request =
+            Request
+                .Builder()
+                .url(flowContext.url)
+                .build()
 
-        val uri = when (val result = client.performRequest(request)) {
-            is OAuth2ClientResult.Error -> {
-                return OAuth2ClientResult.Error(result.exception)
+        val uri =
+            when (val result = client.performRequest(request)) {
+                is OAuth2ClientResult.Error -> {
+                    return OAuth2ClientResult.Error(result.exception)
+                }
+                is OAuth2ClientResult.Success -> {
+                    val locationHeader =
+                        result.result.header("location")
+                            ?: return OAuth2ClientResult.Error(IllegalStateException("No location header."))
+                    Uri.parse(locationHeader)
+                }
             }
-            is OAuth2ClientResult.Success -> {
-                val locationHeader = result.result.header("location")
-                    ?: return OAuth2ClientResult.Error(IllegalStateException("No location header."))
-                Uri.parse(locationHeader)
-            }
-        }
 
         return authorizationCodeFlow.resume(uri, flowContext)
     }

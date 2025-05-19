@@ -35,49 +35,58 @@ import java.util.concurrent.atomic.AtomicReference
 
 fun ViewInteraction.getText(): String {
     val text = AtomicReference<String>()
-    perform(object : ViewAction {
-        override fun getConstraints() = isAssignableFrom(TextView::class.java)
+    perform(
+        object : ViewAction {
+            override fun getConstraints() = isAssignableFrom(TextView::class.java)
 
-        override fun getDescription() = "Get text from View: ${text.get()}"
+            override fun getDescription() = "Get text from View: ${text.get()}"
 
-        override fun perform(uiController: UiController, view: View) {
-            val tv = view as TextView
-            text.set(tv.text.toString())
+            override fun perform(
+                uiController: UiController,
+                view: View,
+            ) {
+                val tv = view as TextView
+                text.set(tv.text.toString())
+            }
         }
-    })
+    )
     return text.get()
 }
 
-fun waitForView(matcher: Matcher<View>, timeout: Long) {
-    val viewAction = object : ViewAction {
-        override fun getConstraints(): Matcher<View> {
-            return isRoot()
-        }
+fun waitForView(
+    matcher: Matcher<View>,
+    timeout: Long,
+) {
+    val viewAction =
+        object : ViewAction {
+            override fun getConstraints(): Matcher<View> = isRoot()
 
-        override fun getDescription(): String {
-            return "Timeout waiting for view."
-        }
+            override fun getDescription(): String = "Timeout waiting for view."
 
-        override fun perform(uiController: UiController, rootView: View) {
-            uiController.loopMainThreadUntilIdle()
-            val endTime = System.currentTimeMillis() + timeout
+            override fun perform(
+                uiController: UiController,
+                rootView: View,
+            ) {
+                uiController.loopMainThreadUntilIdle()
+                val endTime = System.currentTimeMillis() + timeout
 
-            val matcherWithVisibility = allOf(matcher, withEffectiveVisibility(ViewMatchers.Visibility.VISIBLE))
-            do {
-                for (child in TreeIterables.breadthFirstViewTraversal(rootView)) {
-                    if (matcherWithVisibility.matches(child)) {
-                        return
+                val matcherWithVisibility = allOf(matcher, withEffectiveVisibility(ViewMatchers.Visibility.VISIBLE))
+                do {
+                    for (child in TreeIterables.breadthFirstViewTraversal(rootView)) {
+                        if (matcherWithVisibility.matches(child)) {
+                            return
+                        }
                     }
-                }
-                uiController.loopMainThreadForAtLeast(100)
-            } while (System.currentTimeMillis() < endTime) // in case of a timeout we throw an exception -&gt; test fails
-            throw PerformException.Builder()
-                .withCause(TimeoutException())
-                .withActionDescription(description)
-                .withViewDescription(HumanReadables.describe(rootView))
-                .build()
+                    uiController.loopMainThreadForAtLeast(100)
+                } while (System.currentTimeMillis() < endTime) // in case of a timeout we throw an exception -&gt; test fails
+                throw PerformException
+                    .Builder()
+                    .withCause(TimeoutException())
+                    .withActionDescription(description)
+                    .withViewDescription(HumanReadables.describe(rootView))
+                    .build()
+            }
         }
-    }
 
     onView(isRoot()).perform(viewAction)
 }

@@ -61,7 +61,7 @@ class CredentialDataSource(
     suspend fun createCredential(
         token: Token,
         tags: Map<String, String> = emptyMap(),
-        security: Credential.Security = Credential.Security.standard
+        security: Credential.Security = Credential.Security.standard,
     ): Credential {
         val idToken = token.idToken?.let { jwtParser.parse(it) }
         val credential =
@@ -86,34 +86,39 @@ class CredentialDataSource(
         credential.replaceToken(token)
     }
 
-    suspend fun getCredential(id: String, promptInfo: BiometricPrompt.PromptInfo? = Credential.Security.promptInfo): Credential? {
-        return if (id in credentialsCache) credentialsCache[id]
-        else {
+    suspend fun getCredential(
+        id: String,
+        promptInfo: BiometricPrompt.PromptInfo? = Credential.Security.promptInfo,
+    ): Credential? {
+        return if (id in credentialsCache) {
+            credentialsCache[id]
+        } else {
             val metadata = metadata(id) ?: return null
-            val token = try {
-                storage.getToken(id, promptInfo)
-            } catch (ex: KeyPermanentlyInvalidatedException) {
-                return null
-            }
-            credentialsCache[id] = Credential(
-                token,
-                tags = metadata.tags
-            )
+            val token =
+                try {
+                    storage.getToken(id, promptInfo)
+                } catch (ex: KeyPermanentlyInvalidatedException) {
+                    return null
+                }
+            credentialsCache[id] =
+                Credential(
+                    token,
+                    tags = metadata.tags
+                )
             return credentialsCache[id]
         }
     }
 
     suspend fun findCredential(
         promptInfo: BiometricPrompt.PromptInfo? = Credential.Security.promptInfo,
-        where: (Token.Metadata) -> Boolean
-    ): List<Credential> {
-        return allIds()
+        where: (Token.Metadata) -> Boolean,
+    ): List<Credential> =
+        allIds()
             .mapNotNull { metadata(it) }
             .filter { where(it) }
             .mapNotNull { metadata ->
                 getCredential(metadata.id, promptInfo)
             }
-    }
 
     suspend fun remove(credential: Credential) {
         credentialsCache.remove(credential.id)

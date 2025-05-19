@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,38 +38,27 @@ import kotlin.coroutines.CoroutineContext
 class OidcConfiguration private constructor(
     /** The application's client ID. */
     @property:InternalAuthFoundationApi val clientId: String,
-
     /** The default access scopes required by the client, can be overridden when logging in. */
     @property:InternalAuthFoundationApi val defaultScope: String,
-
     /** The `.well-known/openid-configuration` endpoint associated with the Authorization Server. This is used to fetch the [OidcEndpoints]. */
     @property:InternalAuthFoundationApi val discoveryUrl: String,
-
     /** The Call.Factory which makes calls to the okta server. */
     @property:InternalAuthFoundationApi val okHttpClientFactory: () -> Call.Factory = AuthFoundationDefaults.okHttpClientFactory,
-
     /** The CoroutineDispatcher which should be used for IO bound tasks. */
     @property:InternalAuthFoundationApi val ioDispatcher: CoroutineContext = AuthFoundationDefaults.ioDispatcher,
-
     /** The CoroutineDispatcher which should be used for compute bound tasks. */
     @property:InternalAuthFoundationApi val computeDispatcher: CoroutineContext = AuthFoundationDefaults.computeDispatcher,
-
     /** The OidcClock which is used for all time related functions in the SDK. */
     @property:InternalAuthFoundationApi val clock: OidcClock = AuthFoundationDefaults.clock,
-
     /** The EventCoordinator which the OAuth2Client should emit events to. */
     @Transient @property:InternalAuthFoundationApi val eventCoordinator: EventCoordinator = AuthFoundationDefaults.eventCoordinator,
-
     /** The IdTokenValidator used to validate the Id Token Jwt when tokens are minted. */
     @property:InternalAuthFoundationApi val idTokenValidator: IdTokenValidator = AuthFoundationDefaults.idTokenValidator,
-
     /** The AccessTokenValidator used to validate the Access Token when tokens are minted. */
     @property:InternalAuthFoundationApi val accessTokenValidator: AccessTokenValidator = AuthFoundationDefaults.accessTokenValidator,
-
     /** The DeviceSecretValidator used to validate the device secret when tokens are minted. */
     @property:InternalAuthFoundationApi
     val deviceSecretValidator: DeviceSecretValidator = AuthFoundationDefaults.deviceSecretValidator,
-
     /** The factory for creating a new instance of [Cache]. [Cache] is used to optimize network calls by the SDK. */
     @property:InternalAuthFoundationApi
     val cacheFactory: suspend () -> Cache = AuthFoundationDefaults.cacheFactory,
@@ -85,7 +74,7 @@ class OidcConfiguration private constructor(
         /** The default access scopes required by the client, can be overridden when logging in. */
         defaultScope: String,
         /** The Authorization Server URL, usually https://your_okta_domain.okta.com/oauth2/default */
-        issuer: String
+        issuer: String,
     ) : this(
         clientId = clientId,
         defaultScope = defaultScope,
@@ -98,7 +87,7 @@ class OidcConfiguration private constructor(
         idTokenValidator = AuthFoundationDefaults.idTokenValidator,
         accessTokenValidator = AuthFoundationDefaults.accessTokenValidator,
         deviceSecretValidator = AuthFoundationDefaults.deviceSecretValidator,
-        cacheFactory = AuthFoundationDefaults.cacheFactory,
+        cacheFactory = AuthFoundationDefaults.cacheFactory
     )
 
     /** The Call.Factory which makes calls to the okta server. */
@@ -106,14 +95,14 @@ class OidcConfiguration private constructor(
         val callFactory = okHttpClientFactory()
         if (callFactory is OkHttpClient) {
             val userInterceptors = callFactory.interceptors
-            callFactory.newBuilder()
+            callFactory
+                .newBuilder()
                 .apply { interceptors().clear() }
                 .addInterceptor(OidcUserAgentInterceptor)
                 .apply {
                     // Add user interceptors last to prioritize user defined behavior over SDK
                     interceptors().addAll(userInterceptors)
-                }
-                .cookieJar(AuthFoundationDefaults.cookieJar)
+                }.cookieJar(AuthFoundationDefaults.cookieJar)
                 .build()
         } else {
             callFactory
@@ -125,6 +114,7 @@ class OidcConfiguration private constructor(
 
     companion object {
         internal fun defaultJson(): Json = Json { ignoreUnknownKeys = true }
+
         private var _default: OidcConfiguration? = null
 
         /**
@@ -134,8 +124,11 @@ class OidcConfiguration private constructor(
         var default: OidcConfiguration
             get() = _default ?: throw IllegalStateException("Attempted to use OidcConfiguration.default without setting it")
             set(value) {
-                if (_default == null) _default = value
-                else throw IllegalStateException("Attempted setting OidcConfiguration.default after initialization")
+                if (_default == null) {
+                    _default = value
+                } else {
+                    throw IllegalStateException("Attempted setting OidcConfiguration.default after initialization")
+                }
             }
     }
 }
@@ -143,9 +136,12 @@ class OidcConfiguration private constructor(
 @VisibleForTesting
 internal object OidcUserAgentInterceptor : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
-        val request = chain.request().newBuilder()
-            .header("user-agent", SdkVersionsRegistry.userAgent)
-            .build()
+        val request =
+            chain
+                .request()
+                .newBuilder()
+                .header("user-agent", SdkVersionsRegistry.userAgent)
+                .build()
 
         return chain.proceed(request)
     }

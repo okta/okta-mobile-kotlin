@@ -31,22 +31,24 @@ import org.junit.Test
 class OAuth2ClientIdTokenValidationFailureTest {
     private val mockPrefix = "client_test_responses"
 
-    @get:Rule val oktaRule = OktaRule(
-        idTokenValidator = { _, _, _ -> throw IllegalStateException("Failure!") }
-    )
+    @get:Rule val oktaRule =
+        OktaRule(
+            idTokenValidator = { _, _, _ -> throw IllegalStateException("Failure!") }
+        )
 
-    @Test fun testRefreshTokenIdTokenValidationFailure(): Unit = runBlocking {
-        oktaRule.enqueue(
-            method("POST"),
-            header("content-type", "application/x-www-form-urlencoded"),
-            path("/oauth2/default/v1/token"),
-            body("client_id=unit_test_client_id&grant_type=refresh_token&refresh_token=ExampleRefreshToken"),
-        ) { response ->
-            response.testBodyFromFile("$mockPrefix/token.json")
+    @Test fun testRefreshTokenIdTokenValidationFailure(): Unit =
+        runBlocking {
+            oktaRule.enqueue(
+                method("POST"),
+                header("content-type", "application/x-www-form-urlencoded"),
+                path("/oauth2/default/v1/token"),
+                body("client_id=unit_test_client_id&grant_type=refresh_token&refresh_token=ExampleRefreshToken")
+            ) { response ->
+                response.testBodyFromFile("$mockPrefix/token.json")
+            }
+            val result = oktaRule.createOAuth2Client().refreshToken(createToken(refreshToken = "ExampleRefreshToken"))
+            val exception = (result as OAuth2ClientResult.Error<Token>).exception
+            assertThat(exception).isInstanceOf(IllegalStateException::class.java)
+            assertThat(exception).hasMessageThat().isEqualTo("Failure!")
         }
-        val result = oktaRule.createOAuth2Client().refreshToken(createToken(refreshToken = "ExampleRefreshToken"))
-        val exception = (result as OAuth2ClientResult.Error<Token>).exception
-        assertThat(exception).isInstanceOf(IllegalStateException::class.java)
-        assertThat(exception).hasMessageThat().isEqualTo("Failure!")
-    }
 }

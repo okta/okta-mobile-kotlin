@@ -27,9 +27,10 @@ internal class OAuth2ClientResultTest {
 
     @Test fun testGetOrThrowThrowsEncapsulatedException() {
         val result = OAuth2ClientResult.Error<String>(IllegalStateException("Expected Error"))
-        val exception = assertFailsWith<IllegalStateException> {
-            result.getOrThrow()
-        }
+        val exception =
+            assertFailsWith<IllegalStateException> {
+                result.getOrThrow()
+            }
         assertThat(exception).hasMessageThat().isEqualTo("Expected Error")
     }
 }

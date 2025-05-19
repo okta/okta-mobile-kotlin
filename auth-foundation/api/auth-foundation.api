@@ -276,7 +276,6 @@ public synthetic class com/okta/authfoundation/client/OidcConfiguration$$seriali
 	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
 	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lcom/okta/authfoundation/client/OidcConfiguration;)V
 	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
-	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
 }
 
 public final class com/okta/authfoundation/client/OidcConfiguration$Companion {
@@ -552,7 +551,6 @@ public synthetic class com/okta/authfoundation/credential/Token$$serializer : ko
 	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
 	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lcom/okta/authfoundation/credential/Token;)V
 	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
-	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
 }
 
 public final class com/okta/authfoundation/credential/Token$Companion {
@@ -683,8 +681,9 @@ public final class com/okta/authfoundation/credential/storage/TokenDatabase$Comp
 public final class com/okta/authfoundation/credential/storage/TokenDatabase_Impl : com/okta/authfoundation/credential/storage/TokenDatabase {
 	public fun <init> ()V
 	public fun clearAllTables ()V
-	public fun getAutoMigrations (Ljava/util/Map;)Ljava/util/List;
-	public fun getRequiredAutoMigrationSpecs ()Ljava/util/Set;
+	public fun createAutoMigrations (Ljava/util/Map;)Ljava/util/List;
+	public synthetic fun createOpenDelegate ()Landroidx/room/RoomOpenDelegateMarker;
+	public fun getRequiredAutoMigrationSpecClasses ()Ljava/util/Set;
 }
 
 public final class com/okta/authfoundation/credential/storage/migration/V1ToV2StorageMigrator {

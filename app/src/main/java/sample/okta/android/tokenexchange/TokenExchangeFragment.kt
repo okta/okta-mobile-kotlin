@@ -22,12 +22,16 @@ import androidx.navigation.fragment.findNavController
 import sample.okta.android.databinding.FragmentTokenExchangeBinding
 import sample.okta.android.util.BaseFragment
 
-internal class TokenExchangeFragment : BaseFragment<FragmentTokenExchangeBinding>(
-    FragmentTokenExchangeBinding::inflate
-) {
+internal class TokenExchangeFragment :
+    BaseFragment<FragmentTokenExchangeBinding>(
+        FragmentTokenExchangeBinding::inflate
+    ) {
     private val viewModel by viewModels<TokenExchangeViewModel>()
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+    override fun onViewCreated(
+        view: View,
+        savedInstanceState: Bundle?,
+    ) {
         super.onViewCreated(view, savedInstanceState)
 
         binding.tryAgainButton.setOnClickListener {

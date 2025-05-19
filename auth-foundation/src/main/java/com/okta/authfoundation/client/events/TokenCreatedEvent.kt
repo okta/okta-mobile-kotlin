@@ -26,5 +26,5 @@ class TokenCreatedEvent internal constructor(
     /**
      * The token that was created.
      */
-    val token: Token
+    val token: Token,
 ) : Event

@@ -47,7 +47,10 @@ interface ClaimsProvider {
      * @throws SerializationException if the claim can't be deserialized into the specified type.
      * @return the specified type, deserialized from the claims, if present.
      */
-    fun <T> deserializeClaim(claim: String, deserializationStrategy: DeserializationStrategy<T>): T?
+    fun <T> deserializeClaim(
+        claim: String,
+        deserializationStrategy: DeserializationStrategy<T>,
+    ): T?
 }
 
 /** The subject of the resource, if available. */

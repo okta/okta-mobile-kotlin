@@ -1,5 +1,5 @@
 /*
- * Copyright 2024-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,10 +58,13 @@ class V1ToV2StorageMigratorTest {
     @Before
     fun setUp() {
         context = ApplicationProvider.getApplicationContext()
-        database = Room.inMemoryDatabaseBuilder(
-            ApplicationProvider.getApplicationContext(),
-            TokenDatabase::class.java
-        ).allowMainThreadQueries().build()
+        database =
+            Room
+                .inMemoryDatabaseBuilder(
+                    ApplicationProvider.getApplicationContext(),
+                    TokenDatabase::class.java
+                ).allowMainThreadQueries()
+                .build()
         roomTokenStorage = RoomTokenStorage(database, TestTokenEncryptionHandler())
         legacySharedPreferences = context.getSharedPreferences("testPrefs", Context.MODE_PRIVATE)
 
@@ -92,79 +95,85 @@ class V1ToV2StorageMigratorTest {
     }
 
     @Test
-    fun `migration from legacy storage`() = runTest {
-        val legacyTokenStorage = SharedPreferencesTokenStorage(
-            OidcConfiguration.defaultJson(),
-            this.coroutineContext,
-            mockk(relaxed = true),
-            context,
-            mockk()
-        )
-        every { V1ToV2StorageMigrator.legacyStorage } returns legacyTokenStorage
-        legacyTokenStorage.add("testId")
-        legacyTokenStorage.replace(
-            LegacyTokenStorage.Entry("testId", createToken(), tags = mapOf("key" to "value"))
-        )
-        val migrator = V1ToV2StorageMigrator(roomTokenStorage)
-        assertThat(migrator.isMigrationNeeded()).isTrue()
-        migrator.migrateIfNeeded()
-        assertThat(roomTokenStorage.allIds()).containsExactly("testId")
-        assertThat(migrator.isMigrationNeeded()).isFalse()
-    }
-
-    @Test
-    fun `migration from legacy storage with default token`() = runTest {
-        val legacyTokenStorage = SharedPreferencesTokenStorage(
-            OidcConfiguration.defaultJson(),
-            this.coroutineContext,
-            mockk(relaxed = true),
-            context,
-            mockk()
-        )
-        every { V1ToV2StorageMigrator.legacyStorage } returns legacyTokenStorage
-        legacyTokenStorage.add("defaultTokenId")
-        legacyTokenStorage.replace(
-            LegacyTokenStorage.Entry(
-                "defaultTokenId",
-                createToken(),
-                tags = mapOf(LEGACY_CREDENTIAL_NAME_TAG_KEY to LEGACY_DEFAULT_CREDENTIAL_NAME_TAG_VALUE)
+    fun `migration from legacy storage`() =
+        runTest {
+            val legacyTokenStorage =
+                SharedPreferencesTokenStorage(
+                    OidcConfiguration.defaultJson(),
+                    this.coroutineContext,
+                    mockk(relaxed = true),
+                    context,
+                    mockk()
+                )
+            every { V1ToV2StorageMigrator.legacyStorage } returns legacyTokenStorage
+            legacyTokenStorage.add("testId")
+            legacyTokenStorage.replace(
+                LegacyTokenStorage.Entry("testId", createToken(), tags = mapOf("key" to "value"))
             )
-        )
-        legacyTokenStorage.add("testId")
-        legacyTokenStorage.replace(
-            LegacyTokenStorage.Entry("testId", createToken(), tags = mapOf("key" to "value"))
-        )
-        val migrator = V1ToV2StorageMigrator(roomTokenStorage)
-        assertThat(migrator.isMigrationNeeded()).isTrue()
-        migrator.migrateIfNeeded()
-        assertThat(roomTokenStorage.allIds()).containsExactlyElementsIn(listOf("testId", "defaultTokenId"))
-        assertThat(DefaultCredentialIdDataStore.instance.getDefaultCredentialId()).isEqualTo("defaultTokenId")
-        assertThat(migrator.isMigrationNeeded()).isFalse()
-    }
+            val migrator = V1ToV2StorageMigrator(roomTokenStorage)
+            assertThat(migrator.isMigrationNeeded()).isTrue()
+            migrator.migrateIfNeeded()
+            assertThat(roomTokenStorage.allIds()).containsExactly("testId")
+            assertThat(migrator.isMigrationNeeded()).isFalse()
+        }
 
     @Test
-    fun `migration only happens once`() = runTest {
-        val legacyTokenStorage = SharedPreferencesTokenStorage(
-            OidcConfiguration.defaultJson(),
-            this.coroutineContext,
-            mockk(relaxed = true),
-            context,
-            mockk()
-        )
-        every { V1ToV2StorageMigrator.legacyStorage } returns legacyTokenStorage
-        legacyTokenStorage.add("testId")
-        legacyTokenStorage.replace(
-            LegacyTokenStorage.Entry("testId", createToken(), tags = mapOf("key" to "value"))
-        )
-        val migrator = V1ToV2StorageMigrator(roomTokenStorage)
-        migrator.migrateIfNeeded()
-        assertThat(roomTokenStorage.allIds()).containsExactly("testId")
+    fun `migration from legacy storage with default token`() =
+        runTest {
+            val legacyTokenStorage =
+                SharedPreferencesTokenStorage(
+                    OidcConfiguration.defaultJson(),
+                    this.coroutineContext,
+                    mockk(relaxed = true),
+                    context,
+                    mockk()
+                )
+            every { V1ToV2StorageMigrator.legacyStorage } returns legacyTokenStorage
+            legacyTokenStorage.add("defaultTokenId")
+            legacyTokenStorage.replace(
+                LegacyTokenStorage.Entry(
+                    "defaultTokenId",
+                    createToken(),
+                    tags = mapOf(LEGACY_CREDENTIAL_NAME_TAG_KEY to LEGACY_DEFAULT_CREDENTIAL_NAME_TAG_VALUE)
+                )
+            )
+            legacyTokenStorage.add("testId")
+            legacyTokenStorage.replace(
+                LegacyTokenStorage.Entry("testId", createToken(), tags = mapOf("key" to "value"))
+            )
+            val migrator = V1ToV2StorageMigrator(roomTokenStorage)
+            assertThat(migrator.isMigrationNeeded()).isTrue()
+            migrator.migrateIfNeeded()
+            assertThat(roomTokenStorage.allIds()).containsExactlyElementsIn(listOf("testId", "defaultTokenId"))
+            assertThat(DefaultCredentialIdDataStore.instance.getDefaultCredentialId()).isEqualTo("defaultTokenId")
+            assertThat(migrator.isMigrationNeeded()).isFalse()
+        }
 
-        legacyTokenStorage.add("testId2")
-        legacyTokenStorage.replace(
-            LegacyTokenStorage.Entry("testId2", createToken(), tags = mapOf("key" to "value"))
-        )
-        migrator.migrateIfNeeded()
-        assertThat(roomTokenStorage.allIds()).containsExactly("testId") // Same as before adding testId2
-    }
+    @Test
+    fun `migration only happens once`() =
+        runTest {
+            val legacyTokenStorage =
+                SharedPreferencesTokenStorage(
+                    OidcConfiguration.defaultJson(),
+                    this.coroutineContext,
+                    mockk(relaxed = true),
+                    context,
+                    mockk()
+                )
+            every { V1ToV2StorageMigrator.legacyStorage } returns legacyTokenStorage
+            legacyTokenStorage.add("testId")
+            legacyTokenStorage.replace(
+                LegacyTokenStorage.Entry("testId", createToken(), tags = mapOf("key" to "value"))
+            )
+            val migrator = V1ToV2StorageMigrator(roomTokenStorage)
+            migrator.migrateIfNeeded()
+            assertThat(roomTokenStorage.allIds()).containsExactly("testId")
+
+            legacyTokenStorage.add("testId2")
+            legacyTokenStorage.replace(
+                LegacyTokenStorage.Entry("testId2", createToken(), tags = mapOf("key" to "value"))
+            )
+            migrator.migrateIfNeeded()
+            assertThat(roomTokenStorage.allIds()).containsExactly("testId") // Same as before adding testId2
+        }
 }

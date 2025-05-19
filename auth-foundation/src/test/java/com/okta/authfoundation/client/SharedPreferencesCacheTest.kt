@@ -29,31 +29,35 @@ import org.robolectric.RobolectricTestRunner
 
 @RunWith(RobolectricTestRunner::class)
 internal class SharedPreferencesCacheTest {
-    @Before fun setup() = runTest {
-        mockkObject(ApplicationContextHolder)
-        every { ApplicationContextHolder.appContext } returns ApplicationProvider.getApplicationContext()
-    }
+    @Before fun setup() =
+        runTest {
+            mockkObject(ApplicationContextHolder)
+            every { ApplicationContextHolder.appContext } returns ApplicationProvider.getApplicationContext()
+        }
 
     @After fun tearDown() {
         unmockkAll()
     }
 
-    @Test fun testGetWithoutSet() = runTest {
-        val subject = SharedPreferencesCache.getInstance()
-        assertThat(subject.get("foo")).isNull()
-    }
+    @Test fun testGetWithoutSet() =
+        runTest {
+            val subject = SharedPreferencesCache.getInstance()
+            assertThat(subject.get("foo")).isNull()
+        }
 
-    @Test fun testGetWithSet() = runTest {
-        val subject = SharedPreferencesCache.getInstance()
-        subject.set("foo", "bar")
-        assertThat(subject.get("foo")).isEqualTo("bar")
-    }
+    @Test fun testGetWithSet() =
+        runTest {
+            val subject = SharedPreferencesCache.getInstance()
+            subject.set("foo", "bar")
+            assertThat(subject.get("foo")).isEqualTo("bar")
+        }
 
-    @Test fun testCacheEntriesAreNotShared() = runTest {
-        val subject = SharedPreferencesCache.getInstance()
-        subject.set("foo", "bar")
-        subject.set("food", "chocolate")
-        assertThat(subject.get("foo")).isEqualTo("bar")
-        assertThat(subject.get("food")).isEqualTo("chocolate")
-    }
+    @Test fun testCacheEntriesAreNotShared() =
+        runTest {
+            val subject = SharedPreferencesCache.getInstance()
+            subject.set("foo", "bar")
+            subject.set("food", "chocolate")
+            assertThat(subject.get("foo")).isEqualTo("bar")
+            assertThat(subject.get("food")).isEqualTo("chocolate")
+        }
 }

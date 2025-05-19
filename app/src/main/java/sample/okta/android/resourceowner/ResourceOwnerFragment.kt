@@ -22,18 +22,28 @@ import androidx.navigation.fragment.findNavController
 import sample.okta.android.databinding.FragmentResourceOwnerBinding
 import sample.okta.android.util.BaseFragment
 
-internal class ResourceOwnerFragment : BaseFragment<FragmentResourceOwnerBinding>(
-    FragmentResourceOwnerBinding::inflate
-) {
+internal class ResourceOwnerFragment :
+    BaseFragment<FragmentResourceOwnerBinding>(
+        FragmentResourceOwnerBinding::inflate
+    ) {
     private val viewModel by viewModels<ResourceOwnerViewModel>()
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+    override fun onViewCreated(
+        view: View,
+        savedInstanceState: Bundle?,
+    ) {
         super.onViewCreated(view, savedInstanceState)
 
         binding.login.setOnClickListener {
             viewModel.login(
-                username = binding.username.editText?.text?.toString() ?: "",
-                password = binding.password.editText?.text?.toString() ?: "",
+                username =
+                    binding.username.editText
+                        ?.text
+                        ?.toString() ?: "",
+                password =
+                    binding.password.editText
+                        ?.text
+                        ?.toString() ?: ""
             )
         }
 

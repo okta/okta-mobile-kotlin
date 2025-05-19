@@ -1,5 +1,5 @@
 /*
- * Copyright 2024-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,18 +27,19 @@ import kotlin.test.assertFailsWith
 @RunWith(AndroidJUnit4::class)
 internal class DefaultTokenEncryptionHandlerTest {
     private val defaultSecurity = Credential.Security.Default("keyAlias")
-    private val token = Token(
-        id = "id",
-        tokenType = "Bearer",
-        expiresIn = 1000,
-        accessToken = "accessToken",
-        scope = "scope",
-        refreshToken = "refreshToken",
-        idToken = "idToken",
-        deviceSecret = "deviceSecret",
-        issuedTokenType = "issuedTokenType",
-        oidcConfiguration = OidcConfiguration("clientId", "defaultScope", "discoveryUrl")
-    )
+    private val token =
+        Token(
+            id = "id",
+            tokenType = "Bearer",
+            expiresIn = 1000,
+            accessToken = "accessToken",
+            scope = "scope",
+            refreshToken = "refreshToken",
+            idToken = "idToken",
+            deviceSecret = "deviceSecret",
+            issuedTokenType = "issuedTokenType",
+            oidcConfiguration = OidcConfiguration("clientId", "defaultScope", "discoveryUrl")
+        )
 
     private lateinit var tokenEncryptionHandler: DefaultTokenEncryptionHandler
 
@@ -53,33 +54,38 @@ internal class DefaultTokenEncryptionHandlerTest {
         assertThat(tokenEncryptionHandler.keyStore.containsAlias(defaultSecurity.keyAlias)).isTrue()
     }
 
-    @Test fun encryptSucceeds() = runTest {
-        tokenEncryptionHandler.generateKey(defaultSecurity)
-        tokenEncryptionHandler.encrypt(token, defaultSecurity)
-    }
-
-    @Test fun encryptThenDecryptSucceeds() = runTest {
-        tokenEncryptionHandler.generateKey(defaultSecurity)
-        val encryptionResult = tokenEncryptionHandler.encrypt(token, defaultSecurity)
-        val decryptionResult = tokenEncryptionHandler.decrypt(
-            encryptionResult.encryptedToken,
-            encryptionResult.encryptionExtras,
-            defaultSecurity
-        )
-        assertThat(decryptionResult).isEqualTo(token)
-    }
-
-    @Test fun decryptingBioTokenWithNoPromptFails() = runTest {
-        val bioSecurity = Credential.Security.BiometricStrong(keyAlias = defaultSecurity.keyAlias)
-        tokenEncryptionHandler.generateKey(bioSecurity)
-        val encryptionResult = tokenEncryptionHandler.encrypt(token, bioSecurity)
-        val exception = assertFailsWith<IllegalArgumentException> {
-            tokenEncryptionHandler.decrypt(
-                encryptionResult.encryptedToken,
-                encryptionResult.encryptionExtras,
-                bioSecurity
-            )
+    @Test fun encryptSucceeds() =
+        runTest {
+            tokenEncryptionHandler.generateKey(defaultSecurity)
+            tokenEncryptionHandler.encrypt(token, defaultSecurity)
         }
-        assertThat(exception.message).isEqualTo(DefaultTokenEncryptionHandler.BIO_TOKEN_NO_PROMPT_INFO_ERROR)
-    }
+
+    @Test fun encryptThenDecryptSucceeds() =
+        runTest {
+            tokenEncryptionHandler.generateKey(defaultSecurity)
+            val encryptionResult = tokenEncryptionHandler.encrypt(token, defaultSecurity)
+            val decryptionResult =
+                tokenEncryptionHandler.decrypt(
+                    encryptionResult.encryptedToken,
+                    encryptionResult.encryptionExtras,
+                    defaultSecurity
+                )
+            assertThat(decryptionResult).isEqualTo(token)
+        }
+
+    @Test fun decryptingBioTokenWithNoPromptFails() =
+        runTest {
+            val bioSecurity = Credential.Security.BiometricStrong(keyAlias = defaultSecurity.keyAlias)
+            tokenEncryptionHandler.generateKey(bioSecurity)
+            val encryptionResult = tokenEncryptionHandler.encrypt(token, bioSecurity)
+            val exception =
+                assertFailsWith<IllegalArgumentException> {
+                    tokenEncryptionHandler.decrypt(
+                        encryptionResult.encryptedToken,
+                        encryptionResult.encryptionExtras,
+                        bioSecurity
+                    )
+                }
+            assertThat(exception.message).isEqualTo(DefaultTokenEncryptionHandler.BIO_TOKEN_NO_PROMPT_INFO_ERROR)
+        }
 }

@@ -21,6 +21,7 @@ import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.client.internal.SdkVersionsRegistry
 import com.okta.authfoundation.client.internal.performRequest
 import com.okta.authfoundation.credential.Token
+import com.okta.oauth2.BuildConfig.SDK_VERSION
 import kotlinx.coroutines.delay
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -77,7 +78,6 @@ class DeviceAuthorizationFlow(
          * The time in seconds after which the authorization context will expire.
          */
         val expiresIn: Int,
-
         internal val deviceCode: String,
         internal val interval: Int,
     )
@@ -97,16 +97,15 @@ class DeviceAuthorizationFlow(
         @SerialName("interval") internal val interval: Int = 5,
         @SerialName("expires_in") val expiresIn: Int,
     ) {
-        fun asFlowContext(): Context {
-            return Context(
+        fun asFlowContext(): Context =
+            Context(
                 verificationUri = verificationUri,
                 verificationUriComplete = verificationUriComplete,
                 userCode = userCode,
                 expiresIn = expiresIn,
                 deviceCode = deviceCode,
-                interval = interval,
+                interval = interval
             )
-        }
     }
 
     internal var delayFunction: suspend (Long) -> Unit = ::delay
@@ -137,10 +136,12 @@ class DeviceAuthorizationFlow(
             .add("client_id", client.configuration.clientId)
             .add("scope", scope)
 
-        val request = Request.Builder()
-            .post(formBodyBuilder.build())
-            .url(endpoint)
-            .build()
+        val request =
+            Request
+                .Builder()
+                .post(formBodyBuilder.build())
+                .url(endpoint)
+                .build()
 
         return client.performRequest(SerializableResponse.serializer(), request) { serializableResponse ->
             serializableResponse.asFlowContext()
@@ -155,15 +156,19 @@ class DeviceAuthorizationFlow(
     suspend fun resume(flowContext: Context): OAuth2ClientResult<Token> {
         val endpoints = client.endpointsOrNull() ?: return client.endpointNotAvailableError()
 
-        val formBodyBuilder = FormBody.Builder()
-            .add("client_id", client.configuration.clientId)
-            .add("device_code", flowContext.deviceCode)
-            .add("grant_type", "urn:ietf:params:oauth:grant-type:device_code")
+        val formBodyBuilder =
+            FormBody
+                .Builder()
+                .add("client_id", client.configuration.clientId)
+                .add("device_code", flowContext.deviceCode)
+                .add("grant_type", "urn:ietf:params:oauth:grant-type:device_code")
 
-        val request = Request.Builder()
-            .post(formBodyBuilder.build())
-            .url(endpoints.tokenEndpoint)
-            .build()
+        val request =
+            Request
+                .Builder()
+                .post(formBodyBuilder.build())
+                .url(endpoints.tokenEndpoint)
+                .build()
 
         var timeLeft = flowContext.expiresIn
 

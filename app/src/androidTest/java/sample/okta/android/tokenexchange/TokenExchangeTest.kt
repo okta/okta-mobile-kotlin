@@ -26,6 +26,7 @@ import sample.okta.android.web.WebPage
 
 internal class TokenExchangeTest {
     @get:Rule val activityRule = ActivityTestRule(MainActivity::class.java)
+
     @get:Rule val userRule = UserRule()
 
     @Before fun clearWebData() {
@@ -33,7 +34,8 @@ internal class TokenExchangeTest {
     }
 
     @Test fun testTokenExchange() {
-        LaunchPage.goToBrowserPage()
+        LaunchPage
+            .goToBrowserPage()
             .loginWithWeb()
             .username(userRule.email)
             .password(userRule.password)

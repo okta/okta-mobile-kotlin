@@ -263,5 +263,5 @@ class DefaultClaimsProviderTest {
 
 @Serializable
 private class ExampleUserInfo(
-    @SerialName("sub") val sub: String
+    @SerialName("sub") val sub: String,
 )

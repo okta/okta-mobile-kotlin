@@ -1,5 +1,5 @@
 /*
- * Copyright 2024-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,17 +24,17 @@ import javax.crypto.spec.GCMParameterSpec
 
 @InternalAuthFoundationApi
 class AesEncryptionHandler(
-    private val encryptionKeySpec: KeyGenParameterSpec = defaultEncryptionKeySpec
+    private val encryptionKeySpec: KeyGenParameterSpec = defaultEncryptionKeySpec,
 ) {
     companion object {
         private const val ENCRYPTION_KEY_ALIAS = "com.authfoundation.preferences.datastore.aesKey"
         private const val SEPARATOR = ","
         private val defaultEncryptionKeySpec by lazy {
-            KeyGenParameterSpec.Builder(
-                ENCRYPTION_KEY_ALIAS,
-                KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
-            )
-                .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+            KeyGenParameterSpec
+                .Builder(
+                    ENCRYPTION_KEY_ALIAS,
+                    KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
+                ).setBlockModes(KeyProperties.BLOCK_MODE_GCM)
                 .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
                 .build()
         }
@@ -48,22 +48,24 @@ class AesEncryptionHandler(
         return Base64.encodeToString(cipher.iv, Base64.NO_WRAP) + SEPARATOR + encryptedString
     }
 
-    fun decryptString(encryptedString: String): Result<String> = runCatching {
-        val aesKey = AndroidKeystoreUtil.getOrCreateAesKey(encryptionKeySpec)
-        val (ivBase64, encryptedAesStringBase64) = encryptedString.split(SEPARATOR, limit = 2)
-        val iv = Base64.decode(ivBase64, Base64.NO_WRAP)
-        val encryptedAesString = Base64.decode(encryptedAesStringBase64, Base64.NO_WRAP)
-        val cipher = getCipher().apply { init(Cipher.DECRYPT_MODE, aesKey, GCMParameterSpec(128, iv)) }
-        cipher.doFinal(encryptedAesString).decodeToString()
-    }
+    fun decryptString(encryptedString: String): Result<String> =
+        runCatching {
+            val aesKey = AndroidKeystoreUtil.getOrCreateAesKey(encryptionKeySpec)
+            val (ivBase64, encryptedAesStringBase64) = encryptedString.split(SEPARATOR, limit = 2)
+            val iv = Base64.decode(ivBase64, Base64.NO_WRAP)
+            val encryptedAesString = Base64.decode(encryptedAesStringBase64, Base64.NO_WRAP)
+            val cipher = getCipher().apply { init(Cipher.DECRYPT_MODE, aesKey, GCMParameterSpec(128, iv)) }
+            cipher.doFinal(encryptedAesString).decodeToString()
+        }
 
     fun resetEncryptionKey() {
         AndroidKeystoreUtil.deleteKey(encryptionKeySpec.keystoreAlias)
     }
 
-    private fun getCipher(): Cipher = Cipher.getInstance(
-        KeyProperties.KEY_ALGORITHM_AES + "/" +
-            KeyProperties.BLOCK_MODE_GCM + "/" +
-            KeyProperties.ENCRYPTION_PADDING_NONE
-    )
+    private fun getCipher(): Cipher =
+        Cipher.getInstance(
+            KeyProperties.KEY_ALGORITHM_AES + "/" +
+                KeyProperties.BLOCK_MODE_GCM + "/" +
+                KeyProperties.ENCRYPTION_PADDING_NONE
+        )
 }

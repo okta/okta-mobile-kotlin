@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,18 @@ package com.okta.authfoundation
 
 import kotlin.reflect.KProperty
 
-internal class NoSetAfterGetWithLazyDefaultFactory<T>(val factory: () -> T) {
+internal class NoSetAfterGetWithLazyDefaultFactory<T>(
+    val factory: () -> T,
+) {
     @Volatile private var hasBeenRetrieved: Boolean = false
+
     @Volatile private var instance: T? = null
     private val lock: Any = Any()
 
-    operator fun getValue(thisRef: Any?, property: KProperty<*>): T {
+    operator fun getValue(
+        thisRef: Any?,
+        property: KProperty<*>,
+    ): T {
         hasBeenRetrieved = true
         instance?.let { return it }
         synchronized(lock) {
@@ -33,7 +39,11 @@ internal class NoSetAfterGetWithLazyDefaultFactory<T>(val factory: () -> T) {
         }
     }
 
-    operator fun setValue(thisRef: Any?, property: KProperty<*>, value: T) {
+    operator fun setValue(
+        thisRef: Any?,
+        property: KProperty<*>,
+        value: T,
+    ) {
         synchronized(lock) {
             if (hasBeenRetrieved) {
                 throw IllegalStateException("${property.name} was already accessed, and can't be set.")

@@ -27,28 +27,32 @@ import org.junit.runners.model.Statement
 import java.util.UUID
 
 internal class UserRule : TestRule {
-    private val client = Clients.builder()
-        .setClientId(EndToEndCredentials["/managementSdk/clientId"])
-        .setOrgUrl(EndToEndCredentials["/managementSdk/orgUrl"])
-        .setClientCredentials { EndToEndCredentials["/managementSdk/token"] }
-        .build()
+    private val client =
+        Clients
+            .builder()
+            .setClientId(EndToEndCredentials["/managementSdk/clientId"])
+            .setOrgUrl(EndToEndCredentials["/managementSdk/orgUrl"])
+            .setClientCredentials { EndToEndCredentials["/managementSdk/token"] }
+            .build()
 
     lateinit var email: String
     lateinit var password: String
     val firstName = "Test"
     val lastName = "User"
 
-    override fun apply(base: Statement, description: Description): Statement {
-        return UserStatement(this, base, client)
-    }
+    override fun apply(
+        base: Statement,
+        description: Description,
+    ): Statement = UserStatement(this, base, client)
 }
 
 private class UserStatement(
     private val rule: UserRule,
     private val base: Statement,
-    client: ApiClient
+    client: ApiClient,
 ) : Statement() {
     private val userApi: UserApi = UserApi(client)
+
     override fun evaluate() {
         val user = createUser()
         try {
@@ -61,13 +65,15 @@ private class UserStatement(
     private fun createUser(): User {
         rule.email = "${UUID.randomUUID()}@oktatest.com"
         rule.password = UUID.randomUUID().toString()
-        val user: User = UserBuilder.instance()
-            .setEmail(rule.email)
-            .setFirstName(rule.firstName)
-            .setLastName(rule.lastName)
-            .setPassword(rule.password.toCharArray())
-            .setActive(true)
-            .buildAndCreate(userApi)
+        val user: User =
+            UserBuilder
+                .instance()
+                .setEmail(rule.email)
+                .setFirstName(rule.firstName)
+                .setLastName(rule.lastName)
+                .setPassword(rule.password.toCharArray())
+                .setActive(true)
+                .buildAndCreate(userApi)
         Assert.assertNotNull(user.id)
         return user
     }

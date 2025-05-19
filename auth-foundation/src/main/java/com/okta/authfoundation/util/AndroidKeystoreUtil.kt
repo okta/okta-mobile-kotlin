@@ -1,5 +1,5 @@
 /*
- * Copyright 2024-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,16 +31,13 @@ object AndroidKeystoreUtil {
         ks
     }
 
-    fun getRsaKeyPairGenerator(): KeyPairGenerator {
-        return KeyPairGenerator.getInstance(
+    fun getRsaKeyPairGenerator(): KeyPairGenerator =
+        KeyPairGenerator.getInstance(
             KeyProperties.KEY_ALGORITHM_RSA,
             "AndroidKeyStore"
         )
-    }
 
-    private fun getAesKeyGenerator(): KeyGenerator {
-        return KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore")
-    }
+    private fun getAesKeyGenerator(): KeyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore")
 
     fun deleteKey(alias: String) {
         keyStore.deleteEntry(alias)

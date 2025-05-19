@@ -29,5 +29,5 @@ class ValidateIdTokenEvent internal constructor(
      *
      * *Default:* 10 minutes.
      */
-    var issuedAtGracePeriodInSeconds: Int
+    var issuedAtGracePeriodInSeconds: Int,
 ) : Event

@@ -51,7 +51,10 @@ internal class DeviceAuthorizationViewModel : ViewModel() {
         }
     }
 
-    private suspend fun resume(deviceAuthorizationFlow: DeviceAuthorizationFlow, flowContext: DeviceAuthorizationFlow.Context) {
+    private suspend fun resume(
+        deviceAuthorizationFlow: DeviceAuthorizationFlow,
+        flowContext: DeviceAuthorizationFlow.Context,
+    ) {
         when (val result = deviceAuthorizationFlow.resume(flowContext)) {
             is OAuth2ClientResult.Error -> {
                 Timber.e(result.exception, "Failed to resume device authorization flow.")
@@ -67,8 +70,16 @@ internal class DeviceAuthorizationViewModel : ViewModel() {
 }
 
 sealed class DeviceAuthorizationState {
-    data class Polling(val code: String, val url: String) : DeviceAuthorizationState()
+    data class Polling(
+        val code: String,
+        val url: String,
+    ) : DeviceAuthorizationState()
+
     object Loading : DeviceAuthorizationState()
-    data class Error(val message: String) : DeviceAuthorizationState()
+
+    data class Error(
+        val message: String,
+    ) : DeviceAuthorizationState()
+
     object Token : DeviceAuthorizationState()
 }

@@ -13,6 +13,3 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.okta.oauth2
-
-internal const val SDK_VERSION = "okta-oauth2-kotlin/$projectVersion"

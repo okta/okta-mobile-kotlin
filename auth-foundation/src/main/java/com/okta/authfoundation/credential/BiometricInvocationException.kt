@@ -1,5 +1,5 @@
 /*
- * Copyright 2024-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,4 +19,6 @@ package com.okta.authfoundation.credential
  * Thrown when fetching a [Credential] with Biometric security using a synchronous [Credential] function.
  * Biometric [Credential]s should only be fetched using Async functions in [Credential].
  */
-class BiometricInvocationException(override val message: String?) : IllegalStateException(message)
+class BiometricInvocationException(
+    override val message: String?,
+) : IllegalStateException(message)

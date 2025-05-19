@@ -25,76 +25,88 @@ import org.junit.Test
 class JwtTest {
     @get:Rule val oktaRule = OktaRule()
 
-    @Test fun testHasValidSignature(): Unit = runBlocking {
-        val jwks = createJwks()
-        val jwt = oktaRule.createOAuth2Client().createJwtBuilder().createJwt(claims = IdTokenClaims())
-        assertThat(jwt.hasValidSignature(jwks)).isTrue()
-    }
+    @Test fun testHasValidSignature(): Unit =
+        runBlocking {
+            val jwks = createJwks()
+            val jwt = oktaRule.createOAuth2Client().createJwtBuilder().createJwt(claims = IdTokenClaims())
+            assertThat(jwt.hasValidSignature(jwks)).isTrue()
+        }
 
-    @Test fun testHasValidSignatureWithMissingKey(): Unit = runBlocking {
-        val jwks = Jwks(keys = listOf())
-        val jwt = oktaRule.createOAuth2Client().createJwtBuilder().createJwt(claims = IdTokenClaims())
-        assertThat(jwt.hasValidSignature(jwks)).isFalse()
-    }
+    @Test fun testHasValidSignatureWithMissingKey(): Unit =
+        runBlocking {
+            val jwks = Jwks(keys = listOf())
+            val jwt = oktaRule.createOAuth2Client().createJwtBuilder().createJwt(claims = IdTokenClaims())
+            assertThat(jwt.hasValidSignature(jwks)).isFalse()
+        }
 
-    @Test fun testHasValidSignatureWithDifferentKeyId(): Unit = runBlocking {
-        val jwks = createJwks(keyId = "Different")
-        val jwt = oktaRule.createOAuth2Client().createJwtBuilder().createJwt(claims = IdTokenClaims())
-        assertThat(jwt.hasValidSignature(jwks)).isFalse()
-    }
+    @Test fun testHasValidSignatureWithDifferentKeyId(): Unit =
+        runBlocking {
+            val jwks = createJwks(keyId = "Different")
+            val jwt = oktaRule.createOAuth2Client().createJwtBuilder().createJwt(claims = IdTokenClaims())
+            assertThat(jwt.hasValidSignature(jwks)).isFalse()
+        }
 
-    @Test fun testHasValidSignatureWithInvalidAlgorithm(): Unit = runBlocking {
-        val jwks = createJwks(algorithm = "RS512")
-        val jwt = oktaRule.createOAuth2Client().createJwtBuilder().createJwt(claims = IdTokenClaims())
-        assertThat(jwt.hasValidSignature(jwks)).isFalse()
-    }
+    @Test fun testHasValidSignatureWithInvalidAlgorithm(): Unit =
+        runBlocking {
+            val jwks = createJwks(algorithm = "RS512")
+            val jwt = oktaRule.createOAuth2Client().createJwtBuilder().createJwt(claims = IdTokenClaims())
+            assertThat(jwt.hasValidSignature(jwks)).isFalse()
+        }
 
-    @Test fun testHasValidSignatureWithNullAlgorithm(): Unit = runBlocking {
-        val jwks = createJwks(algorithm = null)
-        val jwt = oktaRule.createOAuth2Client().createJwtBuilder().createJwt(claims = IdTokenClaims())
-        assertThat(jwt.hasValidSignature(jwks)).isFalse()
-    }
+    @Test fun testHasValidSignatureWithNullAlgorithm(): Unit =
+        runBlocking {
+            val jwks = createJwks(algorithm = null)
+            val jwt = oktaRule.createOAuth2Client().createJwtBuilder().createJwt(claims = IdTokenClaims())
+            assertThat(jwt.hasValidSignature(jwks)).isFalse()
+        }
 
-    @Test fun testHasValidSignatureWithInvalidUse(): Unit = runBlocking {
-        val jwks = createJwks(use = "enc")
-        val jwt = oktaRule.createOAuth2Client().createJwtBuilder().createJwt(claims = IdTokenClaims())
-        assertThat(jwt.hasValidSignature(jwks)).isFalse()
-    }
+    @Test fun testHasValidSignatureWithInvalidUse(): Unit =
+        runBlocking {
+            val jwks = createJwks(use = "enc")
+            val jwt = oktaRule.createOAuth2Client().createJwtBuilder().createJwt(claims = IdTokenClaims())
+            assertThat(jwt.hasValidSignature(jwks)).isFalse()
+        }
 
-    @Test fun testHasValidSignatureWithInvalidKeyType(): Unit = runBlocking {
-        val jwks = createJwks(keyType = "HMAC")
-        val jwt = oktaRule.createOAuth2Client().createJwtBuilder().createJwt(claims = IdTokenClaims())
-        assertThat(jwt.hasValidSignature(jwks)).isFalse()
-    }
+    @Test fun testHasValidSignatureWithInvalidKeyType(): Unit =
+        runBlocking {
+            val jwks = createJwks(keyType = "HMAC")
+            val jwt = oktaRule.createOAuth2Client().createJwtBuilder().createJwt(claims = IdTokenClaims())
+            assertThat(jwt.hasValidSignature(jwks)).isFalse()
+        }
 
-    @Test fun testHasValidSignatureWithInvalidSignature(): Unit = runBlocking {
-        val jwks = createJwks()
-        val client = oktaRule.createOAuth2Client()
-        val jwt = client.createJwtBuilder().createJwt(claims = IdTokenClaims())
-        val jwtParser = JwtParser.create()
-        val invalidJwt = jwtParser.parse("${jwt.rawValue.substringBeforeLast(".")}.invalid")
-        assertThat(invalidJwt.hasValidSignature(jwks)).isFalse()
-    }
+    @Test fun testHasValidSignatureWithInvalidSignature(): Unit =
+        runBlocking {
+            val jwks = createJwks()
+            val client = oktaRule.createOAuth2Client()
+            val jwt = client.createJwtBuilder().createJwt(claims = IdTokenClaims())
+            val jwtParser = JwtParser.create()
+            val invalidJwt = jwtParser.parse("${jwt.rawValue.substringBeforeLast(".")}.invalid")
+            assertThat(invalidJwt.hasValidSignature(jwks)).isFalse()
+        }
 
-    @Test fun testEqualsReturnsTrueSameInstance(): Unit = runBlocking {
-        val jwt = oktaRule.createOAuth2Client().createJwtBuilder().createJwt(claims = IdTokenClaims())
-        assertThat(jwt).isEqualTo(jwt)
-    }
+    @Test fun testEqualsReturnsTrueSameInstance(): Unit =
+        runBlocking {
+            val jwt = oktaRule.createOAuth2Client().createJwtBuilder().createJwt(claims = IdTokenClaims())
+            assertThat(jwt).isEqualTo(jwt)
+        }
 
-    @Test fun testEqualsReturnsTrueSameValues(): Unit = runBlocking {
-        val jwt1 = oktaRule.createOAuth2Client().createJwtBuilder().createJwt(claims = IdTokenClaims())
-        val jwt2 = oktaRule.createOAuth2Client().createJwtBuilder().createJwt(claims = IdTokenClaims())
-        assertThat(jwt1).isEqualTo(jwt2)
-    }
+    @Test fun testEqualsReturnsTrueSameValues(): Unit =
+        runBlocking {
+            val jwt1 = oktaRule.createOAuth2Client().createJwtBuilder().createJwt(claims = IdTokenClaims())
+            val jwt2 = oktaRule.createOAuth2Client().createJwtBuilder().createJwt(claims = IdTokenClaims())
+            assertThat(jwt1).isEqualTo(jwt2)
+        }
 
-    @Test fun testEqualsReturnsFalseDifferentValues(): Unit = runBlocking {
-        val jwt1 = oktaRule.createOAuth2Client().createJwtBuilder().createJwt(claims = IdTokenClaims(subject = "Different"))
-        val jwt2 = oktaRule.createOAuth2Client().createJwtBuilder().createJwt(claims = IdTokenClaims())
-        assertThat(jwt1).isNotEqualTo(jwt2)
-    }
+    @Test fun testEqualsReturnsFalseDifferentValues(): Unit =
+        runBlocking {
+            val jwt1 = oktaRule.createOAuth2Client().createJwtBuilder().createJwt(claims = IdTokenClaims(subject = "Different"))
+            val jwt2 = oktaRule.createOAuth2Client().createJwtBuilder().createJwt(claims = IdTokenClaims())
+            assertThat(jwt1).isNotEqualTo(jwt2)
+        }
 
-    @Test fun testEqualsReturnsFalseNonJwt(): Unit = runBlocking {
-        val jwt = oktaRule.createOAuth2Client().createJwtBuilder().createJwt(claims = IdTokenClaims())
-        assertThat(jwt).isNotEqualTo("Different!")
-    }
+    @Test fun testEqualsReturnsFalseNonJwt(): Unit =
+        runBlocking {
+            val jwt = oktaRule.createOAuth2Client().createJwtBuilder().createJwt(claims = IdTokenClaims())
+            assertThat(jwt).isNotEqualTo("Different!")
+        }
 }

@@ -20,6 +20,7 @@ import com.okta.authfoundation.client.OAuth2ClientResult
 import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.client.internal.SdkVersionsRegistry
 import com.okta.authfoundation.credential.Token
+import com.okta.oauth2.BuildConfig.SDK_VERSION
 import okhttp3.FormBody
 import okhttp3.Request
 
@@ -65,17 +66,21 @@ class ResourceOwnerFlow(
     ): OAuth2ClientResult<Token> {
         val endpoints = client.endpointsOrNull() ?: return client.endpointNotAvailableError()
 
-        val formBodyBuilder = FormBody.Builder()
-            .add("username", username)
-            .add("password", password)
-            .add("client_id", client.configuration.clientId)
-            .add("grant_type", "password")
-            .add("scope", scope)
+        val formBodyBuilder =
+            FormBody
+                .Builder()
+                .add("username", username)
+                .add("password", password)
+                .add("client_id", client.configuration.clientId)
+                .add("grant_type", "password")
+                .add("scope", scope)
 
-        val request = Request.Builder()
-            .post(formBodyBuilder.build())
-            .url(endpoints.tokenEndpoint)
-            .build()
+        val request =
+            Request
+                .Builder()
+                .post(formBodyBuilder.build())
+                .url(endpoints.tokenEndpoint)
+                .build()
 
         return client.tokenRequest(request)
     }

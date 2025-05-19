@@ -27,36 +27,43 @@ import okhttp3.Request
 
 internal object EndpointsFactory {
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
-    const val prefix: String = "endpoints:"
+    const val PREFIX: String = "endpoints:"
 
     private val cacheMutex = Mutex()
     private var cacheInstance: Cache? = null
 
     suspend fun get(configuration: OidcConfiguration): OAuth2ClientResult<OidcEndpoints> {
         val cache = getOrCreateCache(configuration.cacheFactory)
-        val cacheKey = prefix + configuration.discoveryUrl
-        val endpoints = withContext(configuration.computeDispatcher) {
-            val result = cache.get(cacheKey) ?: return@withContext null
-            return@withContext try {
-                val serializableOidcEndpoints = configuration.json.decodeFromString(
-                    SerializableOidcEndpoints.serializer(), result
-                )
-                OAuth2ClientResult.Success(serializableOidcEndpoints.asOidcEndpoints())
-            } catch (_: Exception) {
-                null
+        val cacheKey = PREFIX + configuration.discoveryUrl
+        val endpoints =
+            withContext(configuration.computeDispatcher) {
+                val result = cache.get(cacheKey) ?: return@withContext null
+                return@withContext try {
+                    val serializableOidcEndpoints =
+                        configuration.json.decodeFromString(
+                            SerializableOidcEndpoints.serializer(),
+                            result
+                        )
+                    OAuth2ClientResult.Success(serializableOidcEndpoints.asOidcEndpoints())
+                } catch (_: Exception) {
+                    null
+                }
             }
-        }
         if (endpoints != null) {
             return endpoints
         }
-        val request = Request.Builder()
-            .url(configuration.discoveryUrl.toHttpUrl())
-            .build()
+        val request =
+            Request
+                .Builder()
+                .url(configuration.discoveryUrl.toHttpUrl())
+                .build()
         return configuration.internalPerformRequest(request, { it.isSuccessful }) { responseBody ->
             @OptIn(ExperimentalSerializationApi::class)
-            val serializableOidcEndpoints = configuration.json.decodeFromBufferedSource(
-                SerializableOidcEndpoints.serializer(), responseBody.peek()
-            )
+            val serializableOidcEndpoints =
+                configuration.json.decodeFromBufferedSource(
+                    SerializableOidcEndpoints.serializer(),
+                    responseBody.peek()
+                )
             cache.set(cacheKey, responseBody.readUtf8())
             serializableOidcEndpoints.asOidcEndpoints()
         }

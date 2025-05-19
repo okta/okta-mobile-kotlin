@@ -25,20 +25,17 @@ internal class DefaultClaimsProvider(
     private val json: Json,
 ) : ClaimsProvider {
     companion object {
-        fun OidcConfiguration.createClaimsDeserializer(claims: JsonObject): DefaultClaimsProvider {
-            return DefaultClaimsProvider(claims, json)
-        }
+        fun OidcConfiguration.createClaimsDeserializer(claims: JsonObject): DefaultClaimsProvider = DefaultClaimsProvider(claims, json)
     }
 
-    override fun <T> deserializeClaims(deserializationStrategy: DeserializationStrategy<T>): T {
-        return json.decodeFromJsonElement(deserializationStrategy, claims)
-    }
+    override fun <T> deserializeClaims(deserializationStrategy: DeserializationStrategy<T>): T = json.decodeFromJsonElement(deserializationStrategy, claims)
 
-    override fun availableClaims(): Set<String> {
-        return claims.keys
-    }
+    override fun availableClaims(): Set<String> = claims.keys
 
-    override fun <T> deserializeClaim(claim: String, deserializationStrategy: DeserializationStrategy<T>): T? {
+    override fun <T> deserializeClaim(
+        claim: String,
+        deserializationStrategy: DeserializationStrategy<T>,
+    ): T? {
         val element = claims[claim] ?: return null
         return json.decodeFromJsonElement(deserializationStrategy, element)
     }

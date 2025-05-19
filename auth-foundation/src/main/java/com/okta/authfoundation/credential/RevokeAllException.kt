@@ -24,5 +24,5 @@ class RevokeAllException internal constructor(
     /**
      * The exceptions from the revoke token type(s) that failed.
      */
-    val failures: Map<RevokeTokenType, Exception>
+    val failures: Map<RevokeTokenType, Exception>,
 ) : Exception("Failed to revoke all tokens.")

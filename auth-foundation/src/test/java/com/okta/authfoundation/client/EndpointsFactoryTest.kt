@@ -42,77 +42,86 @@ internal class EndpointsFactoryTest {
         EndpointsFactory.reset()
     }
 
-    @Test fun testCachedEndpointsDoesNotMakeNetworkCall(): Unit = runBlocking {
-        oktaRule.enqueue(
-            method("GET"),
-            path("/.well-known/openid-configuration"),
-        ) { response ->
-            response.testBodyFromFile("$mockPrefix/endpoints.json")
+    @Test fun testCachedEndpointsDoesNotMakeNetworkCall(): Unit =
+        runBlocking {
+            oktaRule.enqueue(
+                method("GET"),
+                path("/.well-known/openid-configuration")
+            ) { response ->
+                response.testBodyFromFile("$mockPrefix/endpoints.json")
+            }
+            val cache = InMemoryCache()
+            EndpointsFactory.get(oktaRule.createConfiguration(cache = cache)).assertValid()
+            // Second call uses cache.
+            EndpointsFactory.get(oktaRule.createConfiguration(cache = cache)).assertValid()
         }
-        val cache = InMemoryCache()
-        EndpointsFactory.get(oktaRule.createConfiguration(cache = cache)).assertValid()
-        // Second call uses cache.
-        EndpointsFactory.get(oktaRule.createConfiguration(cache = cache)).assertValid()
-    }
 
-    @Test fun testNullCacheMakesNetworkCall(): Unit = runBlocking {
-        oktaRule.enqueue(
-            method("GET"),
-            path("/.well-known/openid-configuration"),
-        ) { response ->
-            response.testBodyFromFile("$mockPrefix/endpoints.json")
+    @Test fun testNullCacheMakesNetworkCall(): Unit =
+        runBlocking {
+            oktaRule.enqueue(
+                method("GET"),
+                path("/.well-known/openid-configuration")
+            ) { response ->
+                response.testBodyFromFile("$mockPrefix/endpoints.json")
+            }
+            val cache = InMemoryCache()
+            val url =
+                oktaRule.baseUrl
+                    .newBuilder()
+                    .encodedPath("/.well-known/openid-configuration")
+                    .build()
+            val cacheKey = EndpointsFactory.PREFIX + url.toString()
+            assertThat(cache.get(cacheKey)).isNull()
+            EndpointsFactory.get(oktaRule.createConfiguration(cache = cache)).assertValid()
+            assertThat(cache.get(cacheKey)).startsWith("{") // It's json!
         }
-        val cache = InMemoryCache()
-        val url = oktaRule.baseUrl.newBuilder().encodedPath("/.well-known/openid-configuration").build()
-        val cacheKey = EndpointsFactory.prefix + url.toString()
-        assertThat(cache.get(cacheKey)).isNull()
-        EndpointsFactory.get(oktaRule.createConfiguration(cache = cache)).assertValid()
-        assertThat(cache.get(cacheKey)).startsWith("{") // It's json!
-    }
 
-    @Test fun testInvalidCachedEndpointsMakesNetworkCall(): Unit = runBlocking {
-        oktaRule.enqueue(
-            method("GET"),
-            path("/.well-known/openid-configuration"),
-        ) { response ->
-            response.testBodyFromFile("$mockPrefix/endpoints.json")
+    @Test fun testInvalidCachedEndpointsMakesNetworkCall(): Unit =
+        runBlocking {
+            oktaRule.enqueue(
+                method("GET"),
+                path("/.well-known/openid-configuration")
+            ) { response ->
+                response.testBodyFromFile("$mockPrefix/endpoints.json")
+            }
+            val cache = InMemoryCache()
+            val configuration = oktaRule.createConfiguration(cache = cache)
+            cache.set(EndpointsFactory.PREFIX + configuration.discoveryUrl, "invalid")
+            EndpointsFactory.get(configuration).assertValid()
         }
-        val cache = InMemoryCache()
-        val configuration = oktaRule.createConfiguration(cache = cache)
-        cache.set(EndpointsFactory.prefix + configuration.discoveryUrl, "invalid")
-        EndpointsFactory.get(configuration).assertValid()
-    }
 
-    @Test fun testInvalidResponseCausesError(): Unit = runBlocking {
-        oktaRule.enqueue(
-            method("GET"),
-            path("/.well-known/openid-configuration"),
-        ) { response ->
-            response.setBody("""{"invalid"}""")
+    @Test fun testInvalidResponseCausesError(): Unit =
+        runBlocking {
+            oktaRule.enqueue(
+                method("GET"),
+                path("/.well-known/openid-configuration")
+            ) { response ->
+                response.setBody("""{"invalid"}""")
+            }
+            val result = EndpointsFactory.get(oktaRule.createConfiguration(cache = InMemoryCache())) as OAuth2ClientResult.Error<OidcEndpoints>
+            assertThat(result.exception).hasMessageThat().startsWith("Unexpected JSON token at offset 10")
         }
-        val result = EndpointsFactory.get(oktaRule.createConfiguration(cache = InMemoryCache())) as OAuth2ClientResult.Error<OidcEndpoints>
-        assertThat(result.exception).hasMessageThat().startsWith("Unexpected JSON token at offset 10")
-    }
 
-    @Test fun testNetworkFailureFollowedByNetworkCallResultsInValidEndpoints(): Unit = runBlocking {
-        oktaRule.enqueue(
-            method("GET"),
-            path("/.well-known/openid-configuration"),
-        ) { response ->
-            response.setResponseCode(500)
-        }
-        val cache = InMemoryCache()
-        val result = EndpointsFactory.get(oktaRule.createConfiguration(cache = cache)) as OAuth2ClientResult.Error<OidcEndpoints>
-        assertThat(result.exception).hasMessageThat().startsWith("HTTP Error: status code - 500")
+    @Test fun testNetworkFailureFollowedByNetworkCallResultsInValidEndpoints(): Unit =
+        runBlocking {
+            oktaRule.enqueue(
+                method("GET"),
+                path("/.well-known/openid-configuration")
+            ) { response ->
+                response.setResponseCode(500)
+            }
+            val cache = InMemoryCache()
+            val result = EndpointsFactory.get(oktaRule.createConfiguration(cache = cache)) as OAuth2ClientResult.Error<OidcEndpoints>
+            assertThat(result.exception).hasMessageThat().startsWith("HTTP Error: status code - 500")
 
-        oktaRule.enqueue(
-            method("GET"),
-            path("/.well-known/openid-configuration"),
-        ) { response ->
-            response.testBodyFromFile("$mockPrefix/endpoints.json")
+            oktaRule.enqueue(
+                method("GET"),
+                path("/.well-known/openid-configuration")
+            ) { response ->
+                response.testBodyFromFile("$mockPrefix/endpoints.json")
+            }
+            EndpointsFactory.get(oktaRule.createConfiguration(cache = cache)).assertValid()
         }
-        EndpointsFactory.get(oktaRule.createConfiguration(cache = cache)).assertValid()
-    }
 }
 
 private fun OAuth2ClientResult<OidcEndpoints>.assertValid() {

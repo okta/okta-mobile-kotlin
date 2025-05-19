@@ -28,12 +28,10 @@ class CredentialStoredEvent internal constructor(
      * The [Credential] associated with the event.
      */
     val credential: Credential,
-
     /**
      * The [Token] associated with the event.
      */
     val token: Token?,
-
     /**
      * The tags associated with the event.
      */

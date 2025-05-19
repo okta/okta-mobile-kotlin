@@ -1,5 +1,5 @@
 /*
- * Copyright 2024-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
 @InternalAuthFoundationApi
 class RoomTokenStorage(
     tokenDatabase: TokenDatabase,
-    private val tokenEncryptionHandler: TokenEncryptionHandler
+    private val tokenEncryptionHandler: TokenEncryptionHandler,
 ) : TokenStorage {
     companion object {
         private var instance: RoomTokenStorage? = null
@@ -59,12 +59,12 @@ class RoomTokenStorage(
 
             System.loadLibrary("sqlcipher")
             val tokenDatabase =
-                Room.databaseBuilder(
-                    context,
-                    TokenDatabase::class.java,
-                    TokenDatabase.DB_NAME
-                )
-                    .openHelperFactory(SupportOpenHelperFactory(sqlCipherPassword.toByteArray()))
+                Room
+                    .databaseBuilder(
+                        context,
+                        TokenDatabase::class.java,
+                        TokenDatabase.DB_NAME
+                    ).openHelperFactory(SupportOpenHelperFactory(sqlCipherPassword.toByteArray()))
                     .build()
             val tokenStorage = RoomTokenStorage(tokenDatabase, AuthFoundationDefaults.tokenEncryptionHandler)
             V1ToV2StorageMigrator(tokenStorage).migrateIfNeeded()
@@ -78,15 +78,14 @@ class RoomTokenStorage(
 
     override suspend fun allIds(): List<String> = tokenDao.allEntries().map { it.id }
 
-    override suspend fun metadata(id: String): Token.Metadata? {
-        return tokenDao.getById(id)?.let {
+    override suspend fun metadata(id: String): Token.Metadata? =
+        tokenDao.getById(id)?.let {
             Token.Metadata(
                 it.id,
                 it.tags,
                 it.payloadData
             )
         }
-    }
 
     override suspend fun setMetadata(metadata: Token.Metadata) {
         val tokenEntity = tokenDao.getById(id = metadata.id) ?: throw NoSuchElementException()
@@ -98,7 +97,7 @@ class RoomTokenStorage(
     override suspend fun add(
         token: Token,
         metadata: Token.Metadata,
-        security: Credential.Security
+        security: Credential.Security,
     ) {
         if (token.id != metadata.id) {
             throw IllegalStateException("TokenStorage.add called with different token.id and metadata.id")
@@ -129,25 +128,34 @@ class RoomTokenStorage(
 
     override suspend fun replace(token: Token) {
         val tokenEntity = tokenDao.getById(token.id) ?: throw NoSuchElementException()
-        val encryptionResult = tokenEncryptionHandler.encrypt(
-            token, tokenEntity.security
-        )
+        val encryptionResult =
+            tokenEncryptionHandler.encrypt(
+                token,
+                tokenEntity.security
+            )
 
-        val updatedTokenEntity = tokenEntity.copy(
-            encryptedToken = encryptionResult.encryptedToken,
-            encryptionExtras = encryptionResult.encryptionExtras
-        )
+        val updatedTokenEntity =
+            tokenEntity.copy(
+                encryptedToken = encryptionResult.encryptedToken,
+                encryptionExtras = encryptionResult.encryptionExtras
+            )
 
         tokenDao.updateTokenEntity(updatedTokenEntity)
     }
 
-    override suspend fun getToken(id: String, promptInfo: PromptInfo?): Token {
+    override suspend fun getToken(
+        id: String,
+        promptInfo: PromptInfo?,
+    ): Token {
         val tokenEntity = tokenDao.getById(id) ?: throw NoSuchElementException()
         return getTokenFromEntity(tokenEntity, promptInfo)
     }
 
-    private suspend fun getTokenFromEntity(tokenEntity: TokenEntity, promptInfo: PromptInfo?): Token {
-        return try {
+    private suspend fun getTokenFromEntity(
+        tokenEntity: TokenEntity,
+        promptInfo: PromptInfo?,
+    ): Token =
+        try {
             tokenEncryptionHandler.decrypt(
                 tokenEntity.encryptedToken,
                 tokenEntity.encryptionExtras,
@@ -168,12 +176,10 @@ class RoomTokenStorage(
             }
             throw ex
         }
-    }
 
-    private fun Credential.Security.biometricTimeout(): Int? {
-        return when (this) {
+    private fun Credential.Security.biometricTimeout(): Int? =
+        when (this) {
             is Credential.BiometricSecurity -> this.userAuthenticationTimeout
             else -> null
         }
-    }
 }

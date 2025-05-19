@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,8 +49,9 @@ sealed class OidcIntrospectInfo(
      * A model representing an active introspection, which includes the claims returned by the Authorization Server.
      */
     class Active internal constructor(
-        claimsProvider: ClaimsProvider
-    ) : OidcIntrospectInfo(true), ClaimsProvider by claimsProvider
+        claimsProvider: ClaimsProvider,
+    ) : OidcIntrospectInfo(true),
+        ClaimsProvider by claimsProvider
 
     internal object Inactive : OidcIntrospectInfo(false)
 }

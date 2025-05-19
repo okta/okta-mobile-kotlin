@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,10 @@ class BrowserViewModel : ViewModel() {
     private val _state = MutableLiveData<BrowserState>(BrowserState.Idle)
     val state: LiveData<BrowserState> = _state
 
-    fun login(context: Context, addDeviceSsoScope: Boolean) {
+    fun login(
+        context: Context,
+        addDeviceSsoScope: Boolean,
+    ) {
         viewModelScope.launch {
             _state.value = BrowserState.Loading
 
@@ -43,12 +46,13 @@ class BrowserViewModel : ViewModel() {
             }
 
             when (
-                val result = webAuthentication.login(
-                    context = context,
-                    redirectUrl = BuildConfig.SIGN_IN_REDIRECT_URI,
-                    extraRequestParameters = emptyMap(),
-                    scope = scope,
-                )
+                val result =
+                    webAuthentication.login(
+                        context = context,
+                        redirectUrl = BuildConfig.SIGN_IN_REDIRECT_URI,
+                        extraRequestParameters = emptyMap(),
+                        scope = scope
+                    )
             ) {
                 is OAuth2ClientResult.Error -> {
                     Timber.e(result.exception, "Failed to start login flow.")
@@ -66,7 +70,12 @@ class BrowserViewModel : ViewModel() {
 
 sealed class BrowserState {
     object Idle : BrowserState()
+
     object Loading : BrowserState()
-    data class Error(val message: String) : BrowserState()
+
+    data class Error(
+        val message: String,
+    ) : BrowserState()
+
     object Token : BrowserState()
 }

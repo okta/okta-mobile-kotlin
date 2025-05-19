@@ -1,5 +1,5 @@
 /*
- * Copyright 2024-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,8 @@ import java.util.Collections
 class RecordingEventHandler(
     private val list: MutableList<Any> = Collections.synchronizedList(mutableListOf<Any>()),
     private val nestedEventHandlers: MutableList<EventHandler> = Collections.synchronizedList(mutableListOf()),
-) : EventHandler, List<Any> by list {
+) : EventHandler,
+    List<Any> by list {
     override fun onEvent(event: Event) {
         for (eventHandler in nestedEventHandlers) {
             eventHandler.onEvent(event)

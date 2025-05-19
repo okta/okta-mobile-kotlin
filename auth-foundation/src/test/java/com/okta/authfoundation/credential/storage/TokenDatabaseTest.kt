@@ -1,5 +1,5 @@
 /*
- * Copyright 2024-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,93 +31,108 @@ import kotlin.test.assertFailsWith
 
 @RunWith(AndroidJUnit4::class)
 class TokenDatabaseTest {
-    private val baseTokenEntity = TokenEntity(
-        "id",
-        "encryptedToken".toByteArray(),
-        tags = mapOf("key" to "value"),
-        payloadData = buildJsonObject {
-            put("claim", "claimValue")
-        },
-        "keyAlias",
-        tokenEncryptionType = TokenEntity.EncryptionType.DEFAULT,
-        biometricTimeout = null,
-        encryptionExtras = mapOf("encryptionExtra" to "value")
-    )
+    private val baseTokenEntity =
+        TokenEntity(
+            "id",
+            "encryptedToken".toByteArray(),
+            tags = mapOf("key" to "value"),
+            payloadData =
+                buildJsonObject {
+                    put("claim", "claimValue")
+                },
+            "keyAlias",
+            tokenEncryptionType = TokenEntity.EncryptionType.DEFAULT,
+            biometricTimeout = null,
+            encryptionExtras = mapOf("encryptionExtra" to "value")
+        )
 
     private lateinit var database: TokenDatabase
     private lateinit var tokenDao: TokenDao
 
     @Before fun setup() {
-        database = Room.inMemoryDatabaseBuilder(
-            ApplicationProvider.getApplicationContext(),
-            TokenDatabase::class.java
-        ).allowMainThreadQueries().build()
+        database =
+            Room
+                .inMemoryDatabaseBuilder(
+                    ApplicationProvider.getApplicationContext(),
+                    TokenDatabase::class.java
+                ).allowMainThreadQueries()
+                .build()
         tokenDao = database.tokenDao()
     }
 
-    @Test fun `db returns empty list of tokens initially`() = runTest {
-        assertThat(tokenDao.allEntries()).isEmpty()
-    }
-
-    @Test fun `insertTokenEntity successfully inserts new token into db`() = runTest {
-        tokenDao.insertTokenEntity(baseTokenEntity)
-        val result = database.tokenDao().allEntries()
-        assertThat(result).isEqualTo(listOf(baseTokenEntity))
-    }
-
-    @Test fun `insert fails if another token with same id is already in the db`() = runTest {
-        tokenDao.insertTokenEntity(baseTokenEntity)
-        val differentTokenWithSameId = baseTokenEntity.copy(encryptedToken = "anotherValue".toByteArray())
-        assertFailsWith<SQLiteConstraintException> {
-            tokenDao.insertTokenEntity(differentTokenWithSameId)
+    @Test fun `db returns empty list of tokens initially`() =
+        runTest {
+            assertThat(tokenDao.allEntries()).isEmpty()
         }
-    }
 
-    @Test fun `update token`() = runTest {
-        tokenDao.insertTokenEntity(baseTokenEntity)
-        val updatedToken = baseTokenEntity.copy(encryptedToken = "updatedValue".toByteArray())
-        tokenDao.updateTokenEntity(updatedToken)
+    @Test fun `insertTokenEntity successfully inserts new token into db`() =
+        runTest {
+            tokenDao.insertTokenEntity(baseTokenEntity)
+            val result = database.tokenDao().allEntries()
+            assertThat(result).isEqualTo(listOf(baseTokenEntity))
+        }
 
-        val result = tokenDao.allEntries()
-        assertThat(result).isEqualTo(listOf(updatedToken))
-    }
+    @Test fun `insert fails if another token with same id is already in the db`() =
+        runTest {
+            tokenDao.insertTokenEntity(baseTokenEntity)
+            val differentTokenWithSameId = baseTokenEntity.copy(encryptedToken = "anotherValue".toByteArray())
+            assertFailsWith<SQLiteConstraintException> {
+                tokenDao.insertTokenEntity(differentTokenWithSameId)
+            }
+        }
 
-    @Test fun `updating a token with non-existing id in db does nothing`() = runTest {
-        tokenDao.insertTokenEntity(baseTokenEntity)
-        val updatedToken = baseTokenEntity.copy(id = "differentId")
-        tokenDao.updateTokenEntity(updatedToken)
+    @Test fun `update token`() =
+        runTest {
+            tokenDao.insertTokenEntity(baseTokenEntity)
+            val updatedToken = baseTokenEntity.copy(encryptedToken = "updatedValue".toByteArray())
+            tokenDao.updateTokenEntity(updatedToken)
 
-        val result = tokenDao.allEntries()
-        assertThat(result).isEqualTo(listOf(baseTokenEntity))
-    }
+            val result = tokenDao.allEntries()
+            assertThat(result).isEqualTo(listOf(updatedToken))
+        }
 
-    @Test fun `delete token`() = runTest {
-        tokenDao.insertTokenEntity(baseTokenEntity)
-        tokenDao.deleteTokenEntity(baseTokenEntity)
+    @Test fun `updating a token with non-existing id in db does nothing`() =
+        runTest {
+            tokenDao.insertTokenEntity(baseTokenEntity)
+            val updatedToken = baseTokenEntity.copy(id = "differentId")
+            tokenDao.updateTokenEntity(updatedToken)
 
-        val result = tokenDao.allEntries()
-        assertThat(result).isEqualTo(emptyList<TokenEntity>())
-    }
+            val result = tokenDao.allEntries()
+            assertThat(result).isEqualTo(listOf(baseTokenEntity))
+        }
 
-    @Test fun `delete token with non-existent id nothing`() = runTest {
-        tokenDao.insertTokenEntity(baseTokenEntity)
-        val tokenWithDifferentId = baseTokenEntity.copy(id = "differentId")
-        tokenDao.deleteTokenEntity(tokenWithDifferentId)
+    @Test fun `delete token`() =
+        runTest {
+            tokenDao.insertTokenEntity(baseTokenEntity)
+            tokenDao.deleteTokenEntity(baseTokenEntity)
 
-        val result = tokenDao.allEntries()
-        assertThat(result).isEqualTo(listOf(baseTokenEntity))
-    }
+            val result = tokenDao.allEntries()
+            assertThat(result).isEqualTo(emptyList<TokenEntity>())
+        }
 
-    @Test fun `delete token with different fields but same id deletes token with matching id`() = runTest {
-        tokenDao.insertTokenEntity(baseTokenEntity)
-        val tokenWithDifferentNonIdFields = baseTokenEntity.copy(
-            encryptedToken = "differentToken".toByteArray(), tags = emptyMap()
-        )
-        tokenDao.deleteTokenEntity(tokenWithDifferentNonIdFields)
+    @Test fun `delete token with non-existent id nothing`() =
+        runTest {
+            tokenDao.insertTokenEntity(baseTokenEntity)
+            val tokenWithDifferentId = baseTokenEntity.copy(id = "differentId")
+            tokenDao.deleteTokenEntity(tokenWithDifferentId)
 
-        val result = tokenDao.allEntries()
-        assertThat(result).isEqualTo(emptyList<TokenEntity>())
-    }
+            val result = tokenDao.allEntries()
+            assertThat(result).isEqualTo(listOf(baseTokenEntity))
+        }
+
+    @Test fun `delete token with different fields but same id deletes token with matching id`() =
+        runTest {
+            tokenDao.insertTokenEntity(baseTokenEntity)
+            val tokenWithDifferentNonIdFields =
+                baseTokenEntity.copy(
+                    encryptedToken = "differentToken".toByteArray(),
+                    tags = emptyMap()
+                )
+            tokenDao.deleteTokenEntity(tokenWithDifferentNonIdFields)
+
+            val result = tokenDao.allEntries()
+            assertThat(result).isEqualTo(emptyList<TokenEntity>())
+        }
 
     @After fun tearDown() {
         database.close()

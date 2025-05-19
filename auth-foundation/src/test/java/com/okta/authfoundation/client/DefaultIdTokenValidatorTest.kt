@@ -28,40 +28,46 @@ import kotlin.test.fail
 
 class DefaultIdTokenValidatorTest {
     private val idTokenValidator: IdTokenValidator = DefaultIdTokenValidator()
+
     @get:Rule val oktaRule = OktaRule(idTokenValidator = idTokenValidator)
 
-    @Test fun testValidIdToken(): Unit = runBlocking {
-        val client = oktaRule.createOAuth2Client(oktaRule.createEndpoints("https://example-test.okta.com".toHttpUrl().newBuilder()))
-        val idTokenClaims = IdTokenClaims()
-        val idToken = client.createJwtBuilder().createJwt(claims = idTokenClaims)
-        idTokenValidator.validate(client, idToken, IdTokenValidator.Parameters(null, null))
-    }
+    @Test fun testValidIdToken(): Unit =
+        runBlocking {
+            val client = oktaRule.createOAuth2Client(oktaRule.createEndpoints("https://example-test.okta.com".toHttpUrl().newBuilder()))
+            val idTokenClaims = IdTokenClaims()
+            val idToken = client.createJwtBuilder().createJwt(claims = idTokenClaims)
+            idTokenValidator.validate(client, idToken, IdTokenValidator.Parameters(null, null))
+        }
 
-    @Test fun testValidIdTokenWithNoPathInIssuer(): Unit = runBlocking {
-        val client = oktaRule.createOAuth2Client(
-            oktaRule.createEndpoints(
-                "https://example-test.okta.com".toHttpUrl().newBuilder(),
-                includeIssuerPath = false
-            )
-        )
-        val idTokenClaims = IdTokenClaims(issuer = "https://example-test.okta.com")
-        val idToken = client.createJwtBuilder().createJwt(claims = idTokenClaims)
-        idTokenValidator.validate(client, idToken, IdTokenValidator.Parameters(null, null))
-    }
+    @Test fun testValidIdTokenWithNoPathInIssuer(): Unit =
+        runBlocking {
+            val client =
+                oktaRule.createOAuth2Client(
+                    oktaRule.createEndpoints(
+                        "https://example-test.okta.com".toHttpUrl().newBuilder(),
+                        includeIssuerPath = false
+                    )
+                )
+            val idTokenClaims = IdTokenClaims(issuer = "https://example-test.okta.com")
+            val idToken = client.createJwtBuilder().createJwt(claims = idTokenClaims)
+            idTokenValidator.validate(client, idToken, IdTokenValidator.Parameters(null, null))
+        }
 
-    @Test fun testValidIdTokenWithNonce(): Unit = runBlocking {
-        val client = oktaRule.createOAuth2Client(oktaRule.createEndpoints("https://example-test.okta.com".toHttpUrl().newBuilder()))
-        val idTokenClaims = IdTokenClaims(nonce = "6ccdb66d-ad56-4072-b864-7a8fe73c0ac2")
-        val idToken = client.createJwtBuilder().createJwt(claims = idTokenClaims)
-        idTokenValidator.validate(client, idToken, IdTokenValidator.Parameters("6ccdb66d-ad56-4072-b864-7a8fe73c0ac2", null))
-    }
+    @Test fun testValidIdTokenWithNonce(): Unit =
+        runBlocking {
+            val client = oktaRule.createOAuth2Client(oktaRule.createEndpoints("https://example-test.okta.com".toHttpUrl().newBuilder()))
+            val idTokenClaims = IdTokenClaims(nonce = "6ccdb66d-ad56-4072-b864-7a8fe73c0ac2")
+            val idToken = client.createJwtBuilder().createJwt(claims = idTokenClaims)
+            idTokenValidator.validate(client, idToken, IdTokenValidator.Parameters("6ccdb66d-ad56-4072-b864-7a8fe73c0ac2", null))
+        }
 
-    @Test fun testValidIdTokenWithNonceAndMaxAge(): Unit = runBlocking {
-        val client = oktaRule.createOAuth2Client(oktaRule.createEndpoints("https://example-test.okta.com".toHttpUrl().newBuilder()))
-        val idTokenClaims = IdTokenClaims(nonce = "6ccdb66d-ad56-4072-b864-7a8fe73c0ac2")
-        val idToken = client.createJwtBuilder().createJwt(claims = idTokenClaims)
-        idTokenValidator.validate(client, idToken, IdTokenValidator.Parameters("6ccdb66d-ad56-4072-b864-7a8fe73c0ac2", 300))
-    }
+    @Test fun testValidIdTokenWithNonceAndMaxAge(): Unit =
+        runBlocking {
+            val client = oktaRule.createOAuth2Client(oktaRule.createEndpoints("https://example-test.okta.com".toHttpUrl().newBuilder()))
+            val idTokenClaims = IdTokenClaims(nonce = "6ccdb66d-ad56-4072-b864-7a8fe73c0ac2")
+            val idToken = client.createJwtBuilder().createJwt(claims = idTokenClaims)
+            idTokenValidator.validate(client, idToken, IdTokenValidator.Parameters("6ccdb66d-ad56-4072-b864-7a8fe73c0ac2", 300))
+        }
 
     @Test fun testInvalidIssuer() {
         val idTokenClaims = IdTokenClaims(issuer = "https://invalid-test.okta.com/oauth2/default")
@@ -151,7 +157,7 @@ class DefaultIdTokenValidatorTest {
             "Auth time not available.",
             IdTokenValidator.Error.MAX_AGE_NOT_SATISFIED,
             idTokenClaims,
-            maxAge = 300,
+            maxAge = 300
         )
     }
 
@@ -162,7 +168,7 @@ class DefaultIdTokenValidatorTest {
             "Max age not satisfied.",
             IdTokenValidator.Error.MAX_AGE_NOT_SATISFIED,
             idTokenClaims,
-            maxAge = 300,
+            maxAge = 300
         )
     }
 
@@ -173,7 +179,7 @@ class DefaultIdTokenValidatorTest {
             "Max age not satisfied.",
             IdTokenValidator.Error.MAX_AGE_NOT_SATISFIED,
             idTokenClaims,
-            maxAge = 300,
+            maxAge = 300
         )
     }
 
@@ -192,14 +198,15 @@ class DefaultIdTokenValidatorTest {
         algorithm: String = "RS256",
     ) {
         try {
-            val client = oktaRule.createOAuth2Client(
-                oktaRule.createEndpoints("$issuerPrefix://example-test.okta.com".toHttpUrl().newBuilder())
-            )
+            val client =
+                oktaRule.createOAuth2Client(
+                    oktaRule.createEndpoints("$issuerPrefix://example-test.okta.com".toHttpUrl().newBuilder())
+                )
             runBlocking {
                 idTokenValidator.validate(
                     client,
                     client.createJwtBuilder().createJwt(algorithm = algorithm, claims = idTokenClaims),
-                    IdTokenValidator.Parameters(nonce, maxAge),
+                    IdTokenValidator.Parameters(nonce, maxAge)
                 )
             }
             fail()
