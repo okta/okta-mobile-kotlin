@@ -16,11 +16,14 @@
 package com.okta.authfoundation.client
 
 import com.google.common.truth.Truth.assertThat
+import com.okta.authfoundation.client.IdTokenValidator.Error.Companion.INVALID_JWT_SIGNATURE
 import com.okta.authfoundation.client.dto.OidcIntrospectInfo
 import com.okta.authfoundation.client.dto.OidcUserInfo
 import com.okta.authfoundation.client.events.TokenCreatedEvent
+import com.okta.authfoundation.client.internal.performRequest
 import com.okta.authfoundation.credential.Credential
 import com.okta.authfoundation.credential.RevokeTokenType
+import com.okta.authfoundation.credential.SerializableToken
 import com.okta.authfoundation.credential.Token
 import com.okta.authfoundation.credential.TokenType
 import com.okta.authfoundation.credential.createToken
@@ -36,13 +39,17 @@ import com.okta.testhelpers.RequestMatchers.path
 import com.okta.testhelpers.RequestMatchers.query
 import com.okta.testhelpers.testBodyFromFile
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.mockk
+import io.mockk.mockkConstructor
 import io.mockk.mockkObject
+import io.mockk.mockkStatic
+import io.mockk.spyk
 import io.mockk.unmockkAll
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.junit.After
 import org.junit.Before
@@ -534,6 +541,12 @@ class OAuth2ClientTest {
                 response.setBody(oktaRule.configuration.json.encodeToString(keys))
             }
             oktaRule.enqueue(
+                path("/oauth2/default/v1/keys")
+            ) { response ->
+                val keys = createJwks().toSerializableJwks()
+                response.setBody(oktaRule.configuration.json.encodeToString(keys))
+            }
+            oktaRule.enqueue(
                 method("POST"),
                 path("/oauth2/default/v1/token")
             ) { response ->
@@ -554,7 +567,64 @@ class OAuth2ClientTest {
             assertThat(exception).hasMessageThat().isEqualTo("Invalid id_token signature")
             assertThat(exception).isInstanceOf(IdTokenValidator.Error::class.java)
             val idTokenValidatorError = exception as IdTokenValidator.Error
-            assertThat(idTokenValidatorError.identifier).isEqualTo(IdTokenValidator.Error.INVALID_JWT_SIGNATURE)
+            assertThat(idTokenValidatorError.identifier).isEqualTo(INVALID_JWT_SIGNATURE)
+        }
+
+    @Test
+    fun `when validation fails, retry to with new jwks, expect success result returned`() =
+        runBlocking {
+            // arrange
+            mockkStatic("com.okta.authfoundation.client.internal.NetworkUtilsKt")
+
+            val token = createToken(idToken = "dummyIdToken", refreshToken = "dummyRefreshToken")
+            coEvery {
+                any<OAuth2Client>().performRequest(any<DeserializationStrategy<SerializableToken>>(), any(), any(), any<Function1<SerializableToken, Token>>())
+            } returns OAuth2ClientResult.Success(token)
+
+            val spyClient = spyk(oktaRule.createOAuth2Client(oktaRule.createEndpoints(includeJwks = true)))
+            val jwksSuccess = OAuth2ClientResult.Success(createJwks())
+
+            coEvery { spyClient.jwks() } returns jwksSuccess
+            mockkConstructor(TokenValidator::class)
+            coEvery { anyConstructed<TokenValidator>().validate() } throws IdTokenValidator.Error("fail", INVALID_JWT_SIGNATURE) andThen Unit
+
+            // Act
+            val result = spyClient.tokenRequest(mockk(), requestToken = token)
+
+            // Assert
+            coVerify(exactly = 2) { anyConstructed<TokenValidator>().validate() }
+            assertThat(result).isInstanceOf(OAuth2ClientResult.Success::class.java)
+            unmockkAll()
+        }
+
+    @Test
+    fun `when validation fails, retry to with new jwks but still fails expect failure result returned`() =
+        runBlocking {
+            // arrange
+            mockkStatic("com.okta.authfoundation.client.internal.NetworkUtilsKt")
+
+            val token = createToken(idToken = "dummyIdToken", refreshToken = "dummyRefreshToken")
+            coEvery {
+                any<OAuth2Client>().performRequest(any<DeserializationStrategy<SerializableToken>>(), any(), any(), any<Function1<SerializableToken, Token>>())
+            } returns OAuth2ClientResult.Success(token)
+
+            val spyClient = spyk(oktaRule.createOAuth2Client(oktaRule.createEndpoints(includeJwks = true)))
+            val jwksSuccess = OAuth2ClientResult.Success(createJwks())
+
+            coEvery { spyClient.jwks() } returns jwksSuccess
+            mockkConstructor(TokenValidator::class)
+            coEvery { anyConstructed<TokenValidator>().validate() } throws IdTokenValidator.Error("fail", INVALID_JWT_SIGNATURE)
+
+            // Act
+            val result = spyClient.tokenRequest(mockk(), requestToken = token)
+
+            // Assert
+            coVerify(exactly = 2) { anyConstructed<TokenValidator>().validate() }
+            assertThat(result).isInstanceOf(OAuth2ClientResult.Error::class.java)
+            assertThat((result as OAuth2ClientResult.Error).exception)
+                .hasMessageThat()
+                .isEqualTo("fail")
+            unmockkAll()
         }
 }
 

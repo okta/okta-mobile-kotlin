@@ -32,8 +32,6 @@ import com.okta.authfoundation.credential.TokenType
 import com.okta.authfoundation.jwt.Jwks
 import com.okta.authfoundation.jwt.SerializableJwks
 import com.okta.authfoundation.util.CoalescingOrchestrator
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
 import kotlinx.serialization.json.JsonObject
 import okhttp3.FormBody
 import okhttp3.Request
@@ -232,12 +230,8 @@ class OAuth2Client private constructor(
 
     private fun jwksCoalescingOrchestrator(): CoalescingOrchestrator<OAuth2ClientResult<Jwks>> =
         CoalescingOrchestrator(
-            factory = {
-                actualJwks()
-            },
-            keepDataInMemory = { result ->
-                result is OAuth2ClientResult.Success
-            }
+            factory = ::actualJwks,
+            keepDataInMemory = { result -> result is OAuth2ClientResult.Success }
         )
 
     private suspend fun actualJwks(): OAuth2ClientResult<Jwks> {
@@ -266,6 +260,7 @@ class OAuth2Client private constructor(
             is OAuth2ClientResult.Error -> {
                 null
             }
+
             is OAuth2ClientResult.Success -> {
                 result.result
             }
@@ -281,36 +276,39 @@ class OAuth2Client private constructor(
         maxAge: Int? = null,
         requestToken: Token? = null,
     ): OAuth2ClientResult<Token> {
-        return coroutineScope {
-            val isRefreshRequest = requestToken != null
-            val tokenId = requestToken?.id ?: UUID.randomUUID().toString()
-            val tokenDeferred =
-                async {
-                    performRequest(SerializableToken.serializer(), request) { serializableToken ->
-                        serializableToken.asToken(id = tokenId, oidcConfiguration = configuration)
-                    }
-                }
-            val jwksDeferred =
-                async {
-                    endpointsOrNull()?.jwksUri ?: return@async null
-                    jwks()
-                }
-            val tokenResult = tokenDeferred.await()
-            if (tokenResult is OAuth2ClientResult.Success) {
-                val token = tokenResult.result
+        val isRefreshRequest = requestToken != null
+        val tokenId = requestToken?.id ?: UUID.randomUUID().toString()
+        val tokenResult =
+            performRequest(SerializableToken.serializer(), request) { serializableToken ->
+                serializableToken.asToken(id = tokenId, oidcConfiguration = configuration)
+            }
 
-                try {
-                    TokenValidator(this@OAuth2Client, token, nonce, maxAge, jwksDeferred.await()).validate()
-                    configuration.eventCoordinator.sendEvent(TokenCreatedEvent(token))
-                    if (isRefreshRequest) {
-                        Credential.credentialDataSource().replaceToken(token)
-                    }
-                } catch (e: Exception) {
-                    return@coroutineScope OAuth2ClientResult.Error(e)
+        if (tokenResult is OAuth2ClientResult.Success) {
+            suspend fun validateToken(
+                token: Token,
+                jwksResult: OAuth2ClientResult<Jwks>?,
+            ) {
+                TokenValidator(this@OAuth2Client, token, nonce, maxAge, jwksResult).validate()
+                configuration.eventCoordinator.sendEvent(TokenCreatedEvent(token))
+                if (isRefreshRequest) {
+                    Credential.credentialDataSource().replaceToken(token)
                 }
             }
-            return@coroutineScope tokenResult
+
+            runCatching {
+                validateToken(tokenResult.result, endpointsOrNull()?.jwksUri?.run { jwks() })
+            }.recoverCatching { throwable ->
+                if (throwable is IdTokenValidator.Error) {
+                    val refreshJwksOrchestrator = CoalescingOrchestrator(::actualJwks, { result -> result is OAuth2ClientResult.Success }).get()
+                    if (refreshJwksOrchestrator is OAuth2ClientResult.Error) throw throwable else validateToken(tokenResult.result, refreshJwksOrchestrator)
+                } else {
+                    throw throwable
+                }
+            }.onFailure { e ->
+                return OAuth2ClientResult.Error(e as Exception)
+            }
         }
+        return tokenResult
     }
 
     private fun Token.getTokenOfType(tokenType: TokenType): Result<String> =
@@ -318,16 +316,19 @@ class OAuth2Client private constructor(
             TokenType.ACCESS_TOKEN -> {
                 Result.success(accessToken)
             }
+
             TokenType.REFRESH_TOKEN -> {
                 refreshToken?.let {
                     Result.success(it)
                 } ?: Result.failure(IllegalStateException("No refresh token."))
             }
+
             TokenType.ID_TOKEN -> {
                 idToken?.let {
                     Result.success(it)
                 } ?: Result.failure(IllegalStateException("No id token."))
             }
+
             TokenType.DEVICE_SECRET -> {
                 deviceSecret?.let {
                     Result.success(it)

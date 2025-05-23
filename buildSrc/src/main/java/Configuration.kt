@@ -2,11 +2,11 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import java.util.Properties
 
-const val BOM_VERSION = "2.0.3"
-const val AUTH_FOUNDATION_VERSION = "2.0.3"
-const val OAUTH2_VERSION = "2.0.3"
-const val WEB_AUTHENTICATION_UI_VERSION = "2.0.3"
-const val LEGACY_TOKEN_MIGRATION_VERSION = "2.0.3"
+const val BOM_VERSION = "2.0.4"
+const val AUTH_FOUNDATION_VERSION = "2.0.4"
+const val OAUTH2_VERSION = "2.0.4"
+const val WEB_AUTHENTICATION_UI_VERSION = "2.0.4"
+const val LEGACY_TOKEN_MIGRATION_VERSION = "2.0.4"
 const val MIN_SDK = 23
 const val COMPILE_SDK = 35
 const val TARGET_SDK = 35
