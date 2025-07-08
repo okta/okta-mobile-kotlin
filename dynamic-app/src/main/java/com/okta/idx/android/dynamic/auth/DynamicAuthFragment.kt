@@ -163,7 +163,7 @@ internal class DynamicAuthFragment : BaseFragment<FragmentDynamicAuthBinding>(
             is DynamicAuthField.Action -> {
                 val actionBinding = binding.formContent.inflateBinding(FormActionPrimaryBinding::inflate)
                 actionBinding.button.text = label
-                actionBinding.button.setOnClickListener { onClick(requireContext()) }
+                actionBinding.button.setOnClickListener { onClick(requireActivity()) }
                 actionBinding.root
             }
             // Render radio groups for authenticator selection.

@@ -31,7 +31,7 @@ Open the project in Android Studio
 
 ## Configuration
 
-Update the `okta.properties` file in the projects root directory with
+Update the `local.properties` file in the projects root directory with
 the contents created from the [okta admin dashboard](#Okta-Admin-Dashboard):
 
 ```

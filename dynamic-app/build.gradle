@@ -2,10 +2,11 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'androidx.navigation.safeargs.kotlin'
 
-def oktaProperties = new Properties()
-rootProject.file("okta.properties").withInputStream { oktaProperties.load(it) }
+def localProperties = new Properties()
+rootProject.file("local.properties").withInputStream { localProperties.load(it) }
 
 android {
+
     compileSdkVersion build_versions.compile_sdk
 
     defaultConfig {
@@ -15,19 +16,19 @@ android {
         versionCode 1
         versionName '1.0'
 
-        buildConfigField "String", 'ISSUER', "\"${oktaProperties.getProperty('issuer')}\""
-        buildConfigField "String", 'CLIENT_ID', "\"${oktaProperties.getProperty('clientId')}\""
-        buildConfigField "String", 'REDIRECT_URI', "\"${oktaProperties.getProperty('signInRedirectUri')}\""
+        buildConfigField "String", 'ISSUER', "\"${localProperties.getProperty('issuer')}\""
+        buildConfigField "String", 'CLIENT_ID', "\"${localProperties.getProperty('clientId')}\""
+        buildConfigField "String", 'REDIRECT_URI', "\"${localProperties.getProperty('signInRedirectUri')}\""
 
         manifestPlaceholders = [
-                "oktaIdxRedirectScheme": parseScheme(oktaProperties.getProperty('signInRedirectUri')),
-                "oktaIdxEmailHost": oktaProperties.getProperty('emailRedirectHost'),
-                "oktaIdxEmailPrefix": oktaProperties.getProperty('emailRedirectPrefix')
+            "oktaIdxRedirectScheme": parseScheme(localProperties.getProperty('signInRedirectUri')),
+            "oktaIdxEmailHost"     : localProperties.getProperty('emailRedirectHost'),
+            "oktaIdxEmailPrefix"   : localProperties.getProperty('emailRedirectPrefix')
         ]
 
         testInstrumentationRunner 'io.cucumber.android.runner.CucumberAndroidJUnitRunner'
         testInstrumentationRunnerArguments = [
-                cucumberUseAndroidJUnitRunner: findProperty("cucumberUseAndroidJUnitRunner") ?: 'false',
+            cucumberUseAndroidJUnitRunner: findProperty("cucumberUseAndroidJUnitRunner") ?: 'false',
         ]
     }
 
@@ -40,12 +41,28 @@ android {
         }
     }
 
+    signingConfigs {
+        create("debugCertFpt") {
+            storeFile file(localProperties.getProperty('storeFile'))
+            storePassword localProperties.getProperty('storePassword')
+            keyAlias localProperties.getProperty('keyAlias')
+            keyPassword localProperties.getProperty('keyPassword')
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
+
+        debug {
+            signingConfig = signingConfigs.getByName("debugCertFpt")
+            minifyEnabled = false
+            debuggable = true
+        }
     }
+
     compileOptions {
         coreLibraryDesugaringEnabled true
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -95,6 +112,8 @@ dependencies {
     implementation libs.okio.core
     implementation libs.okio.jvm
     implementation libs.timber
+    implementation libs.androidx.credentials.credentials
+    implementation libs.androidx.credentials.play.services.auth
 
     implementation libs.jackson.databind
 

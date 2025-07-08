@@ -41,6 +41,7 @@ securityCrypto = "1.0.0"
 spotless = "6.7.0"
 timber = "5.0.1"
 truth = "1.1.5"
+androidxCredentials = "1.5.0"
 
 [libraries]
 androidx-constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "androidxConstraintlayout" }
@@ -53,6 +54,8 @@ androidx-test-orchestrator = { module = "androidx.test:orchestrator", version.re
 androidx-test-runner = { module = "androidx.test:runner", version.ref = "androidxTestRunner" }
 androidx-test-rules = { module = "androidx.test:rules", version.ref = "androidxTest" }
 androidx-test-uiautomator = { module = "androidx.test.uiautomator:uiautomator", version.ref = "androidxTextUiautomator" }
+androidx-credentials-credentials = { module = "androidx.credentials:credentials", version.ref = "androidxCredentials" }
+androidx-credentials-play-services-auth = { module = "androidx.credentials:credentials-play-services-auth", version.ref = "androidxCredentials" }
 
 android-gradle-plugin = { module = "com.android.tools.build:gradle", version.ref = "androidGradlePlugin" }
 

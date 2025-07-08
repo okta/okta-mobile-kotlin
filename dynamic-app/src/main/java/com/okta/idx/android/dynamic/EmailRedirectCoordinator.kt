@@ -15,11 +15,11 @@
  */
 package com.okta.idx.android.dynamic
 
-import android.content.Context
+import android.app.Activity
 import android.net.Uri
 
 object EmailRedirectCoordinator {
     var listener: EmailRedirectListener? = null
 }
 
-typealias EmailRedirectListener = ((Uri, Context) -> Unit)
+typealias EmailRedirectListener = ((Uri, Activity) -> Unit)

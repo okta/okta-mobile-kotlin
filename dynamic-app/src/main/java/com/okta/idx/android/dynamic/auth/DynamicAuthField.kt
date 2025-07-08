@@ -15,7 +15,7 @@
  */
 package com.okta.idx.android.dynamic.auth
 
-import android.content.Context
+import android.app.Activity
 import android.graphics.Bitmap
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -119,7 +119,7 @@ sealed interface DynamicAuthField {
      */
     data class Action(
         val label: String,
-        val onClick: (context: Context) -> Unit
+        val onClick: (activity: Activity) -> Unit
     ) : DynamicAuthField
 
     /**
