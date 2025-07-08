@@ -74,6 +74,7 @@ dependencies {
     testImplementation libs.jackson.databind
     testImplementation libs.robolectric
     testImplementation libs.bcprov.jdk18on
+    testImplementation libs.json
     testImplementation project(':test-utils')
 }
 

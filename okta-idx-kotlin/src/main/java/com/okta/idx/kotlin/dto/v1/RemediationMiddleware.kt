@@ -26,6 +26,7 @@ import com.okta.idx.kotlin.dto.IdxRemediationCollection
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.serializer
+import java.util.Base64
 
 internal fun Response.toIdxRemediationCollection(
     json: Json,
@@ -208,4 +209,25 @@ private fun List<FormValue>?.toForm(
     return IdxRemediation.Form(
         map { it.toIdxField(json, parsingContext, parentFormValue) }
     )
+}
+
+/**
+ * Converts a Base64 URL encoded string to a Base64 encoded string.
+ * If the string is not a valid Base64 URL encoded string, it throws an `IllegalArgumentException`.
+ * If the string is a Base64 URL encoded string, it returns the original string.
+ *
+ * @param data The string to convert
+ * @return The data in Base64 format.
+ * @throws IllegalArgumentException if the string is not a valid Base64 string.
+ */
+internal fun convertBase64UrltoBase64(data: String): Result<String> = runCatching {
+    Base64.getDecoder().decode(data)
+    Result.success(data) // already a valid Base64 string
+}.getOrElse {
+    runCatching {
+        val base64UrlData = Base64.getUrlDecoder().decode(data)
+        Result.success(Base64.getEncoder().encodeToString(base64UrlData))
+    }.getOrElse {
+        Result.failure(it)
+    }
 }

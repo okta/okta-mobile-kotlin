@@ -25,6 +25,8 @@ import com.okta.idx.kotlin.dto.IdxRecoverCapability
 import com.okta.idx.kotlin.dto.IdxResendCapability
 import com.okta.idx.kotlin.dto.IdxSendCapability
 import com.okta.idx.kotlin.dto.IdxTotpCapability
+import com.okta.idx.kotlin.dto.IdxWebAuthnAuthenticationCapability
+import com.okta.idx.kotlin.dto.IdxWebAuthnRegistrationCapability
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
@@ -63,6 +65,7 @@ internal fun Authenticator.toIdxAuthenticator(
     state: IdxAuthenticator.State,
 ): IdxAuthenticator {
     val capabilities = mutableSetOf<IdxAuthenticator.Capability>()
+    val authenticatorType = type.asIdxAuthenticatorType()
 
     recover?.toIdxRemediation(json)?.let { capabilities += IdxRecoverCapability(it) }
     send?.toIdxRemediation(json)?.let { capabilities += IdxSendCapability(it) }
@@ -71,12 +74,16 @@ internal fun Authenticator.toIdxAuthenticator(
     profile?.let { capabilities += IdxProfileCapability(it) }
     contextualData?.toTotpCapability()?.let { capabilities += it }
     contextualData?.toNumberChallengeCapability()?.let { capabilities += it }
+    if (authenticatorType == IdxAuthenticator.Kind.SECURITY_KEY) {
+        contextualData?.toWebAuthnRegistrationCapability()?.let { capabilities += it }
+        contextualData?.toWebAuthnAuthenticationCapability()?.let { capabilities += it }
+    }
     settings?.toIdxPasswordSettings()?.let { capabilities += it }
 
     return IdxAuthenticator(
         id = id,
         displayName = displayName,
-        type = type.asIdxAuthenticatorType(),
+        type = authenticatorType,
         key = key,
         state = state,
         methods = methods.asIdxAuthenticatorMethods(),
@@ -137,6 +144,20 @@ private fun List<Map<String, String>>?.asMethodNames(): List<String>? {
         }
     }
     return result
+}
+
+private fun Map<String, JsonElement>.toWebAuthnRegistrationCapability(): IdxAuthenticator.Capability? {
+    val activationData = get("activationData") as? JsonObject?
+    return activationData?.toString()?.takeIf { it.isNotEmpty() }?.let {
+        IdxWebAuthnRegistrationCapability(it)
+    }
+}
+
+private fun Map<String, JsonElement>.toWebAuthnAuthenticationCapability(): IdxAuthenticator.Capability? {
+    val challengeData = get("challengeData") as? JsonObject?
+    return challengeData?.toString()?.takeIf { it.isNotEmpty() }?.let {
+        IdxWebAuthnAuthenticationCapability(it)
+    }
 }
 
 private fun Map<String, JsonElement>.toTotpCapability(): IdxAuthenticator.Capability? {
