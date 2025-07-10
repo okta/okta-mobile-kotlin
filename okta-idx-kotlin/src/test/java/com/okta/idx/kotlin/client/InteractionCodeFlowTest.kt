@@ -17,20 +17,30 @@ package com.okta.idx.kotlin.client
 
 import android.net.Uri
 import com.google.common.truth.Truth.assertThat
+import com.okta.authfoundation.AuthFoundationDefaults
 import com.okta.authfoundation.client.OAuth2Client
 import com.okta.authfoundation.client.OAuth2ClientResult
+import com.okta.authfoundation.client.internal.performRequest
 import com.okta.authfoundation.credential.Token
 import com.okta.idx.kotlin.dto.IdxRemediation
 import com.okta.idx.kotlin.dto.IdxResponse
 import com.okta.idx.kotlin.dto.createRemediation
+import com.okta.idx.kotlin.dto.v1.Response
+import com.okta.idx.kotlin.dto.v1.asJsonRequest
 import com.okta.testing.network.NetworkRule
 import com.okta.testing.network.RequestMatchers.body
 import com.okta.testing.network.RequestMatchers.bodyContaining
 import com.okta.testing.network.RequestMatchers.path
 import com.okta.testing.testBodyFromFile
+import io.mockk.coEvery
+import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkStatic
+import io.mockk.slot
+import io.mockk.spyk
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
+import okhttp3.Request
 import okhttp3.mockwebserver.SocketPolicy
 import org.junit.Rule
 import org.junit.Test
@@ -314,5 +324,57 @@ class InteractionCodeFlowTest {
         assertThat(redirectResult).isInstanceOf(IdxRedirectResult.Error::class.java)
         assertThat((redirectResult as IdxRedirectResult.Error).exception).isInstanceOf(IllegalStateException::class.java)
         assertThat(redirectResult.exception).hasMessageThat().isEqualTo("InteractionCodeFlow not started.")
+    }
+
+    @Test
+    fun `proceed adds origin header when it is missing`() = runTest {
+        // arrange
+        mockkStatic("com.okta.idx.kotlin.dto.v1.RequestMiddlewareKt")
+        mockkStatic("com.okta.authfoundation.client.internal.NetworkUtilsKt")
+        every { AuthFoundationDefaults.computeDispatcher } returns testScheduler
+        every { AuthFoundationDefaults.ioDispatcher } returns testScheduler
+        val client = spyk(networkRule.client)
+        val flow = InteractionCodeFlow(client)
+        val mockRemediation = mockk<IdxRemediation>()
+        val requestWithOutHeader = Request.Builder()
+            .url("https://test.okta.com/idp/idx/identify")
+            .build()
+
+        every { mockRemediation.asJsonRequest(any()) } returns requestWithOutHeader
+        val captureRequest = slot<Request>()
+        coEvery { client.performRequest<Response, Response>(any(), capture(captureRequest), any(), any()) } returns mockk(relaxed = true)
+
+        // act
+        flow.proceed(mockRemediation)
+        testScheduler.advanceUntilIdle()
+
+        // assert
+        assertThat(captureRequest.captured.headers["Origin"]).isEqualTo("https://localhost")
+    }
+
+    @Test
+    fun `proceed does not overwrite an existing origin header`() = runTest {
+        // arrange
+        mockkStatic("com.okta.idx.kotlin.dto.v1.RequestMiddlewareKt")
+        mockkStatic("com.okta.authfoundation.client.internal.NetworkUtilsKt")
+        every { AuthFoundationDefaults.computeDispatcher } returns testScheduler
+        every { AuthFoundationDefaults.ioDispatcher } returns testScheduler
+        val client = spyk(networkRule.client)
+        val flow = InteractionCodeFlow(client)
+        val mockRemediation = mockk<IdxRemediation>()
+        val requestWithHeader = Request.Builder()
+            .url("https://test.okta.com/idp/idx/identify")
+            .header("Origin", "https://custom.app.origin")
+            .build()
+        every { mockRemediation.asJsonRequest(any()) } returns requestWithHeader
+        val captureRequest = slot<Request>()
+        coEvery { client.performRequest<Response, Response>(any(), capture(captureRequest), any(), any()) } returns mockk(relaxed = true)
+
+        // act
+        flow.proceed(mockRemediation)
+        testScheduler.advanceUntilIdle()
+
+        // assert
+        assertThat(captureRequest.captured.headers["Origin"]).isEqualTo("https://custom.app.origin")
     }
 }

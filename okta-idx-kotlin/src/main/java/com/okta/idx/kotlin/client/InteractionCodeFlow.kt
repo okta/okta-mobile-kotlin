@@ -36,6 +36,7 @@ import com.okta.idx.kotlin.dto.v1.introspectRequest
 import com.okta.idx.kotlin.dto.v1.toIdxResponse
 import com.okta.idx.kotlin.dto.v1.tokenRequestFromInteractionCode
 import kotlinx.coroutines.withContext
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.Response
 import com.okta.idx.kotlin.dto.v1.Response as V1Response
 
@@ -131,7 +132,13 @@ class InteractionCodeFlow(val client: OAuth2Client) {
      */
     suspend fun proceed(remediation: IdxRemediation): OAuth2ClientResult<IdxResponse> {
         val request = withContext(client.configuration.computeDispatcher) {
-            remediation.asJsonRequest(client)
+            remediation.asJsonRequest(client).let { req ->
+                if (req.headers["Origin"].isNullOrBlank()) {
+                    req.newBuilder()
+                        .header("Origin", client.configuration.discoveryUrl.toHttpUrlOrNull()?.let { "${it.scheme}://${it.host}" } ?: "")
+                        .build()
+                } else req
+            }
         }
 
         return client.performRequest(

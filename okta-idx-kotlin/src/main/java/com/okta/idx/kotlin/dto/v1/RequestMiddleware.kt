@@ -19,7 +19,6 @@ import com.okta.authfoundation.client.OAuth2Client
 import com.okta.idx.kotlin.client.InteractionCodeFlowContext
 import com.okta.idx.kotlin.dto.IdxRemediation
 import com.okta.idx.kotlin.util.PkceGenerator
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject

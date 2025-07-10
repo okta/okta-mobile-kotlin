@@ -120,7 +120,7 @@ internal class DynamicAuthViewModel(private val recoveryToken: String) : ViewMod
     // Resume in case of an error.
     fun resume() {
         val localFlow = flow
-        if (localFlow!=null) {
+        if (localFlow != null) {
             _state.value = DynamicAuthState.Loading
             viewModelScope.launch {
                 when (val resumeResult = localFlow.resume()) {
@@ -167,10 +167,10 @@ internal class DynamicAuthViewModel(private val recoveryToken: String) : ViewMod
         viewModelScope.launch {
             val idxForm = _state.value as DynamicAuthState.Form
             idxForm.idxResponse.remediations.firstOrNull {
-                it.type==IdxRemediation.Type.CHALLENGE_AUTHENTICATOR
+                it.type == IdxRemediation.Type.CHALLENGE_AUTHENTICATOR
             }?.let {
                 val otpCode = uri.getQueryParameter("otp")
-                if (otpCode!=null) {
+                if (otpCode != null) {
                     it.form["credentials.passcode"]?.apply {
                         value = otpCode
                         proceed(it, activity)
@@ -266,7 +266,7 @@ internal class DynamicAuthViewModel(private val recoveryToken: String) : ViewMod
         // If remediation didn't have a TOTP image check the authenticators for one.
         if (!hasAddedTotpImageField) {
             val field = response.authenticators.current?.asTotpImageDynamicAuthField()
-            if (field!=null) {
+            if (field != null) {
                 fields.add(0, field)
             }
         }
@@ -293,7 +293,7 @@ internal class DynamicAuthViewModel(private val recoveryToken: String) : ViewMod
      * Get a bitmap image, like a QR Code, from `IdxRemediation.authenticators` when `IdxTotpCapability` is present.
      */
     private suspend fun IdxRemediation.asTotpImageDynamicAuthField(): List<DynamicAuthField> {
-        val authenticator = authenticators.firstOrNull { it.capabilities.get<IdxTotpCapability>()!=null } ?: return emptyList()
+        val authenticator = authenticators.firstOrNull { it.capabilities.get<IdxTotpCapability>() != null } ?: return emptyList()
         val field = authenticator.asTotpImageDynamicAuthField() ?: return emptyList()
         return listOf(field)
     }
@@ -340,7 +340,7 @@ internal class DynamicAuthViewModel(private val recoveryToken: String) : ViewMod
                 } ?: emptyList()
             }
             // Simple boolean field for checkbox.
-            type=="boolean" -> {
+            type == "boolean" -> {
                 listOf(
                     DynamicAuthField.CheckBox(label ?: "") {
                         value = it
@@ -348,7 +348,7 @@ internal class DynamicAuthViewModel(private val recoveryToken: String) : ViewMod
                 )
             }
             // Simple text field.
-            type=="string" -> {
+            type == "string" -> {
                 val displayMessages = messages.joinToString(separator = "\n") { it.message }
                 val field = DynamicAuthField.Text(label ?: "", isRequired, isSecret, displayMessages) {
                     value = it
@@ -371,7 +371,7 @@ internal class DynamicAuthViewModel(private val recoveryToken: String) : ViewMod
      */
     private fun IdxRemediation.asDynamicAuthFieldResendAction(): List<DynamicAuthField> {
         val capability = authenticators.capability<IdxResendCapability>() ?: return emptyList()
-        if (form.visibleFields.find { it.type!="string" }==null) {
+        if (form.visibleFields.find { it.type != "string" } == null) {
             return emptyList() // There is no way to type in the code yet.
         }
         return listOf(
@@ -386,7 +386,7 @@ internal class DynamicAuthViewModel(private val recoveryToken: String) : ViewMod
      */
     private fun IdxRemediation.asDynamicAuthFieldActions(): List<DynamicAuthField> {
         // Don't show action for actions that are pollable without visible fields.
-        if (form.visibleFields.isEmpty() && capabilities.get<IdxPollRemediationCapability>()!=null) {
+        if (form.visibleFields.isEmpty() && capabilities.get<IdxPollRemediationCapability>() != null) {
             return emptyList()
         }
 
@@ -451,8 +451,8 @@ internal class DynamicAuthViewModel(private val recoveryToken: String) : ViewMod
 
         // Create a poll function for the available capability.
         val pollFunction = when {
-            remediationCapability!=null -> remediationCapability::poll
-            authenticatorCapability!=null -> authenticatorCapability::poll
+            remediationCapability != null -> remediationCapability::poll
+            authenticatorCapability != null -> authenticatorCapability::poll
             else -> return
         }
 
@@ -481,7 +481,7 @@ internal class DynamicAuthViewModel(private val recoveryToken: String) : ViewMod
     private fun proceed(remediation: IdxRemediation, activity: Activity) {
         val idpCapability = remediation.capabilities.get<IdxIdpCapability>()
 
-        if (idpCapability!=null) {
+        if (idpCapability != null) {
             try {
                 val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(idpCapability.redirectUrl.toString()))
                 activity.startActivity(browserIntent)
@@ -496,10 +496,10 @@ internal class DynamicAuthViewModel(private val recoveryToken: String) : ViewMod
                 when (val resumeResult = flow?.proceed(remediation)) {
                     is OAuth2ClientResult.Success -> {
                         val remediation = resumeResult.result.remediations.find { remediation ->
-                            remediation.authenticators.capability<IdxWebAuthnRegistrationCapability>()!=null ||
-                                    remediation.authenticators.capability<IdxWebAuthnAuthenticationCapability>()!=null
+                            remediation.authenticators.capability<IdxWebAuthnRegistrationCapability>() != null ||
+                                remediation.authenticators.capability<IdxWebAuthnAuthenticationCapability>() != null
                         }
-                        if (remediation!=null) {
+                        if (remediation != null) {
                             proceedWithWebAuthn(remediation, activity)
                                 .onSuccess {
                                     handleResponse(it)
@@ -525,27 +525,27 @@ internal class DynamicAuthViewModel(private val recoveryToken: String) : ViewMod
 
         val webAuthnAuthenticateCapability = remediation.authenticators.capability<IdxWebAuthnAuthenticationCapability>()
 
-        return if (webAuthnRegistrationCapability!=null) {
+        return if (webAuthnRegistrationCapability != null) {
             cancelPolling()
             _state.value = DynamicAuthState.Loading
             handleWebAuthnRegistration(remediation, webAuthnRegistrationCapability, activity).fold(
                 {
                     Result.success(it)
                 }, {
-                    _state.value = DynamicAuthState.Error(it.message ?: "Failed to handle WebAuthn registration")
-                    Result.failure(it)
-                }
+                _state.value = DynamicAuthState.Error(it.message ?: "Failed to handle WebAuthn registration")
+                Result.failure(it)
+            }
             )
-        } else if (webAuthnAuthenticateCapability!=null) {
+        } else if (webAuthnAuthenticateCapability != null) {
             cancelPolling()
             _state.value = DynamicAuthState.Loading
             handleWebAuthnAuthentication(remediation, webAuthnAuthenticateCapability, activity).fold(
                 {
                     Result.success(it)
                 }, {
-                    _state.value = DynamicAuthState.Error(it.message ?: "Failed to handle WebAuthn Authentication")
-                    Result.failure(it)
-                }
+                _state.value = DynamicAuthState.Error(it.message ?: "Failed to handle WebAuthn Authentication")
+                Result.failure(it)
+            }
             )
         } else {
             Timber.e("No WebAuthn capability found in remediation: %s", remediation)
@@ -555,6 +555,6 @@ internal class DynamicAuthViewModel(private val recoveryToken: String) : ViewMod
 }
 
 private inline fun <reified Capability : IdxAuthenticator.Capability> IdxAuthenticatorCollection.capability(): Capability? {
-    val authenticator = firstOrNull { it.capabilities.get<Capability>()!=null } ?: return null
+    val authenticator = firstOrNull { it.capabilities.get<Capability>() != null } ?: return null
     return authenticator.capabilities.get()
 }

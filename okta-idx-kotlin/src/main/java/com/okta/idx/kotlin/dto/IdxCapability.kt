@@ -312,8 +312,8 @@ class IdxWebAuthnAuthenticationCapability internal constructor(
 
         val authenticationResponseObject = JSONObject(authenticationResponseJson)
         val response = authenticationResponseObject.getJSONObject("response")
-        val clientDataJson = response.getString("clientDataJson").takeIf { it.isNotBlank() }
-            ?: throw IllegalArgumentException("The 'clientDataJson' field is not present in the authentication response.")
+        val clientDataJson = runCatching { response.getString("clientDataJson") }.getOrNull()?.takeIf { it.isNotBlank() }
+            ?: response.getString("clientDataJSON").takeIf { it.isNotBlank() } ?: throw IllegalArgumentException("The 'clientDataJson' field is not present in the authentication response.")
         val authenticatorData = response.getString("authenticatorData").takeIf { it.isNotBlank() }
             ?: throw IllegalArgumentException("The 'authenticatorData' field is not present in the authentication response.")
         val signature = response.getString("signature").takeIf { it.isNotBlank() }

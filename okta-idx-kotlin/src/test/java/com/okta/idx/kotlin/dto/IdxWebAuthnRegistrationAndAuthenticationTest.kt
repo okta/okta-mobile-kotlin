@@ -445,6 +445,30 @@ class IdxWebAuthnRegistrationAndAuthenticationTest {
     }
 
     @Test
+    fun `withAuthenticationResponseJson succeeds with valid clientDataJSON standard Base64 data`() {
+        // arrange
+        val remediation = createChallengeRemediation()
+        val authResponseJson = """
+            {
+              "response": {
+                "clientDataJSON": "$simpleB64String",
+                "authenticatorData": "$simpleB64String",
+                "signature": "$simpleB64String"
+              }
+            }
+        """.trimIndent()
+        val capability = requireNotNull(remediation.authenticators.capability<IdxWebAuthnAuthenticationCapability>())
+
+        // act
+        val updatedRemediation = capability.withAuthenticationResponseJson(remediation, authResponseJson).getOrThrow()
+
+        // assert
+        Truth.assertThat(updatedRemediation.form["credentials.clientData"]?.value).isEqualTo(simpleB64String)
+        Truth.assertThat(updatedRemediation.form["credentials.authenticatorData"]?.value).isEqualTo(simpleB64String)
+        Truth.assertThat(updatedRemediation.form["credentials.signatureData"]?.value).isEqualTo(simpleB64String)
+    }
+
+    @Test
     fun `withAuthenticationResponseJson fails when capability is missing`() {
         // arrange
         val remediation = createChallengeRemediation(hasCapability = false)
