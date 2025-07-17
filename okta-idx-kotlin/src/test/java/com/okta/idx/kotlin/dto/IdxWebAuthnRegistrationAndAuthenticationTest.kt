@@ -17,6 +17,10 @@ package com.okta.idx.kotlin.dto
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth
+import com.okta.idx.kotlin.dto.v1.Response
+import com.okta.idx.kotlin.dto.v1.toIdxResponse
+import com.okta.testing.stringFromResources
+import kotlinx.serialization.json.Json
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.hamcrest.CoreMatchers.instanceOf
 import org.hamcrest.CoreMatchers.`is`
@@ -588,6 +592,90 @@ class IdxWebAuthnRegistrationAndAuthenticationTest {
         // assert
         Truth.assertThat(result.isFailure).isTrue()
         Truth.assertThat(result.exceptionOrNull()).isInstanceOf(JSONException::class.java)
+    }
+
+    @Test
+    fun `withAuthenticationResponseJson from a remediation that does not contain userHandle form, expect remediation form has no userHandle`() {
+        // arrange
+        val remediation = createChallengeRemediation()
+        val authResponseJson = """
+            {
+              "response": {
+                "clientDataJSON": "$simpleB64String",
+                "authenticatorData": "$simpleB64String",
+                "signature": "$simpleB64String",
+                "userHandle": "testHandle"
+              }
+            }
+        """.trimIndent()
+        val capability = requireNotNull(remediation.authenticators.capability<IdxWebAuthnAuthenticationCapability>())
+
+        // act
+        val updatedRemediation = capability.withAuthenticationResponseJson(remediation, authResponseJson).getOrThrow()
+
+        // assert
+        Truth.assertThat(updatedRemediation.form["credentials.clientData"]?.value).isEqualTo(simpleB64String)
+        Truth.assertThat(updatedRemediation.form["credentials.authenticatorData"]?.value).isEqualTo(simpleB64String)
+        Truth.assertThat(updatedRemediation.form["credentials.signatureData"]?.value).isEqualTo(simpleB64String)
+        Truth.assertThat(updatedRemediation.form["credentials.userHandle"]?.value).isNull()
+    }
+
+    @Test
+    fun `withAuthenticationResponseJson from a remediation that has userHandle form, expect remediation form has userHandle`() {
+        // arrange
+        val userHandle = "testUserHandle"
+        val authResponseJson = """
+            {
+              "response": {
+                "clientDataJSON": "$simpleB64String",
+                "authenticatorData": "$simpleB64String",
+                "signature": "$simpleB64String",
+                "userHandle": "$userHandle"
+              }
+            }
+        """.trimIndent()
+        val json = Json { ignoreUnknownKeys = true }
+        val response = json.decodeFromString<Response>(stringFromResources("dto/webauthnautofill.json"))
+        val idxResponse = response.toIdxResponse(json)
+        val remediation = requireNotNull(idxResponse.remediations["challenge-webauthn-autofillui-authenticator"])
+        val capability = requireNotNull(remediation.capabilities.get<IdxWebAuthnAuthenticationCapability>())
+
+        // act
+        val updatedRemediation = capability.withAuthenticationResponseJson(remediation, authResponseJson).getOrThrow()
+
+        // assert
+        Truth.assertThat(updatedRemediation.form["credentials.clientData"]?.value).isEqualTo(simpleB64String)
+        Truth.assertThat(updatedRemediation.form["credentials.authenticatorData"]?.value).isEqualTo(simpleB64String)
+        Truth.assertThat(updatedRemediation.form["credentials.signatureData"]?.value).isEqualTo(simpleB64String)
+        Truth.assertThat(updatedRemediation.form["credentials.userHandle"]?.value).isEqualTo(userHandle)
+    }
+
+    @Test
+    fun `withAuthenticationResponseJson from a remediation that has userHandle but auth response does not, expect remediation form has no userHandle`() {
+        // arrange
+        val authResponseJson = """
+            {
+              "response": {
+                "clientDataJSON": "$simpleB64String",
+                "authenticatorData": "$simpleB64String",
+                "signature": "$simpleB64String"
+              }
+            }
+        """.trimIndent()
+        val json = Json { ignoreUnknownKeys = true }
+        val response = json.decodeFromString<Response>(stringFromResources("dto/webauthnautofill.json"))
+        val idxResponse = response.toIdxResponse(json)
+        val remediation = requireNotNull(idxResponse.remediations["challenge-webauthn-autofillui-authenticator"])
+        val capability = requireNotNull(remediation.capabilities.get<IdxWebAuthnAuthenticationCapability>())
+
+        // act
+        val updatedRemediation = capability.withAuthenticationResponseJson(remediation, authResponseJson).getOrThrow()
+
+        // assert
+        Truth.assertThat(updatedRemediation.form["credentials.clientData"]?.value).isEqualTo(simpleB64String)
+        Truth.assertThat(updatedRemediation.form["credentials.authenticatorData"]?.value).isEqualTo(simpleB64String)
+        Truth.assertThat(updatedRemediation.form["credentials.signatureData"]?.value).isEqualTo(simpleB64String)
+        Truth.assertThat(updatedRemediation.form["credentials.userHandle"]?.value).isNull()
     }
 
     @Test

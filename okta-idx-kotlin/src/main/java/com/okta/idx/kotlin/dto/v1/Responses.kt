@@ -78,6 +78,7 @@ internal data class Response(
     val app: IonObject<App>? = null,
     val successWithInteractionCode: Form? = null,
     val cancel: Form? = null,
+    val webauthnAutofillUIChallenge: Map<String, JsonElement>? = null,
 )
 
 @Serializable

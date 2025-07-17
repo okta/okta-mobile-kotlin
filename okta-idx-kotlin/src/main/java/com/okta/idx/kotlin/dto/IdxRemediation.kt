@@ -131,6 +131,7 @@ class IdxRemediation internal constructor(
         SKIP,
         CHALLENGE_POLL,
         UNLOCK_ACCOUNT,
+        CHALLENGE_WEBAUTHN_AUTOFILLUI_AUTHENTICATOR,
     }
 
     /**

@@ -23,7 +23,9 @@ import com.okta.idx.kotlin.dto.IdxMessageCollection
 import com.okta.idx.kotlin.dto.IdxPollRemediationCapability
 import com.okta.idx.kotlin.dto.IdxRemediation
 import com.okta.idx.kotlin.dto.IdxRemediationCollection
+import com.okta.idx.kotlin.dto.IdxWebAuthnAuthenticationCapability
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.serializer
 import java.util.Base64
@@ -36,7 +38,7 @@ internal fun Response.toIdxRemediationCollection(
 
     if (remediation?.value != null) {
         for (form in remediation.value) {
-            remediations += form.toIdxRemediation(json, parsingContext)
+            remediations += form.toIdxRemediation(json, parsingContext, webauthnAutofillUIChallenge)
         }
     }
 
@@ -53,20 +55,29 @@ internal fun Response.toIdxRemediationCollection(
 
 internal fun Form.toIdxRemediation(
     json: Json,
-    parsingContext: ParsingContext? = null
+    parsingContext: ParsingContext? = null,
+    webauthnAutofillUIChallenge: Map<String, JsonElement>? = null,
 ): IdxRemediation {
-    val form = IdxRemediation.Form(value?.map { it.toIdxField(json, parsingContext, null) } ?: emptyList())
+    val form =
+        IdxRemediation.Form(value?.map { it.toIdxField(json, parsingContext, null) } ?: emptyList())
     val remediationType = name.toRemediationType()
     val capabilities = mutableSetOf<IdxRemediation.Capability>()
 
     toIdxIdpCapability()?.let { capabilities += it }
 
     val authenticatorsList = mutableListOf<IdxAuthenticator>()
-    relatesTo?.let {
-        for (relatesToElement in it) {
-            parsingContext.authenticatorFor(relatesToElement)?.let { authenticator ->
-                authenticatorsList += authenticator
+    relatesTo?.forEach { relatesToElement ->
+        if (relatesToElement == "webauthnAutofillUIChallenge") {
+            webauthnAutofillUIChallenge?.let { map ->
+                val challengeData = map["value"] as? JsonObject?
+                challengeData?.runCatching { get("challengeData") }?.getOrNull()?.let {
+                    capabilities.add(IdxWebAuthnAuthenticationCapability(it.toString()))
+                }
             }
+        }
+
+        parsingContext.authenticatorFor(relatesToElement)?.let { authenticator ->
+            authenticatorsList += authenticator
         }
     }
 
@@ -194,6 +205,7 @@ private fun String.toRemediationType(): IdxRemediation.Type {
         "skip" -> IdxRemediation.Type.SKIP
         "challenge-poll" -> IdxRemediation.Type.CHALLENGE_POLL
         "unlock-account" -> IdxRemediation.Type.UNLOCK_ACCOUNT
+        "challenge-webauthn-autofillui-authenticator" -> IdxRemediation.Type.CHALLENGE_WEBAUTHN_AUTOFILLUI_AUTHENTICATOR
         else -> IdxRemediation.Type.UNKNOWN
     }
 }
