@@ -15,7 +15,7 @@ coreLibraryDesugaring = "2.1.5"
 coreKtx = "1.15.0"
 coroutines = "1.8.1"
 cucumberAndroid = "7.14.0"
-dokka = "1.9.20"
+dokka = "2.0.0"
 espresso = "3.6.1"
 gradleMavenPublish = "0.25.2"
 jackson = "2.19.1"
@@ -42,6 +42,7 @@ spotless = "6.7.0"
 timber = "5.0.1"
 truth = "1.1.5"
 androidxCredentials = "1.5.0"
+woodstoxCore = "7.1.1"
 
 [libraries]
 androidx-constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "androidxConstraintlayout" }
@@ -138,6 +139,8 @@ spotless = { module = "com.diffplug.spotless:spotless-plugin-gradle", version.re
 
 timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
 truth = { module = "com.google.truth:truth", version.ref = "truth" }
+
+woodstox-core = { module = "com.fasterxml.woodstox:woodstox-core", version.ref = "woodstoxCore"}
 
 [plugins]
 

@@ -22,6 +22,7 @@ def forceVersions(ConfigurationContainer configurations) {
             force libs.netty.codec.http2
             force libs.netty.handler
             force libs.protobuf.java
+            force libs.woodstox.core
         }
     }
 }
