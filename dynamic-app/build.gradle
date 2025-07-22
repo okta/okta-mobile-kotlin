@@ -155,6 +155,9 @@ dependencies {
 }
 
 static def parseScheme(String uri) {
+    if (!uri) {
+        return ""
+    }
     def index = uri.indexOf(':/')
     if (index == -1) {
         throw new IllegalStateException("Scheme is not in a valid format.")
