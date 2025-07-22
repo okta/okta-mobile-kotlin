@@ -1,5 +1,21 @@
 # Changelog
 
+## [3.1.0] 2025-07-18
+
+[Commits](https://github.com/okta/okta-idx-android/compare/3.0.3...3.1.0)
+
+### Added
+
+- Added support for passkey (WebAuthn) enrollment and authentication.
+- Added `webauthnAutofillUIChallenge` as a remediation capability to improve the passkey user experience.
+- Added an example of passkey registration and authentication to the sample app.
+- Added the `Origin` header to all satisfy a backend requirement for android webauthn origin.
+
+### Changed
+
+- Updated the sample app to use `local.properties` instead of `okta.properties` for configuration.
+- Updated the `woodstox`, `dokka`, and `jackson-fasterxml` libraries to their latest versions.
+
 ## [3.0.3] 2025-04-10
 
 [Commits](https://github.com/okta/okta-idx-android/compare/3.0.2...3.0.3)
