@@ -43,15 +43,6 @@ android {
         }
     }
 
-    signingConfigs {
-        create("debugCertFpt") {
-            storeFile file(localProperties.getProperty('storeFile'))
-            storePassword localProperties.getProperty('storePassword')
-            keyAlias localProperties.getProperty('keyAlias')
-            keyPassword localProperties.getProperty('keyPassword')
-        }
-    }
-
     buildTypes {
         release {
             minifyEnabled false
@@ -59,7 +50,6 @@ android {
         }
 
         debug {
-            signingConfig = signingConfigs.getByName("debugCertFpt")
             minifyEnabled = false
             debuggable = true
         }
