@@ -3,7 +3,9 @@ apply plugin: 'kotlin-android'
 apply plugin: 'androidx.navigation.safeargs.kotlin'
 
 def localProperties = new Properties()
-rootProject.file("local.properties").withInputStream { localProperties.load(it) }
+if (rootProject.file("local.properties").exists()) {
+    rootProject.file("local.properties").withInputStream { localProperties.load(it) }
+}
 
 android {
 
