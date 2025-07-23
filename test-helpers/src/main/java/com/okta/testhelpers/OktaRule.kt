@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -102,11 +102,12 @@ class OktaRule(
         includeJwks: Boolean = false,
         includeIssuerPath: Boolean = true,
     ): OidcEndpoints {
-        val issuer = if (includeIssuerPath) {
-            urlBuilder.encodedPath("/oauth2/default").build()
-        } else {
-            urlBuilder.build()
-        }
+        val issuer =
+            if (includeIssuerPath) {
+                urlBuilder.encodedPath("/oauth2/default").build()
+            } else {
+                urlBuilder.build()
+            }
         return OidcEndpoints(
             issuer = issuer,
             authorizationEndpoint = urlBuilder.encodedPath("/oauth2/default/v1/authorize").build(),
@@ -116,25 +117,30 @@ class OktaRule(
             introspectionEndpoint = urlBuilder.encodedPath("/oauth2/default/v1/introspect").build(),
             revocationEndpoint = urlBuilder.encodedPath("/oauth2/default/v1/revoke").build(),
             endSessionEndpoint = urlBuilder.encodedPath("/oauth2/default/v1/logout").build(),
-            deviceAuthorizationEndpoint = urlBuilder.encodedPath("/oauth2/default/v1/device/authorize").build(),
+            deviceAuthorizationEndpoint = urlBuilder.encodedPath("/oauth2/default/v1/device/authorize").build()
         )
     }
 
-    fun createOAuth2Client(endpoints: OidcEndpoints = createEndpoints()): OAuth2Client {
-        return OAuth2Client.create(configuration, endpoints)
-    }
+    fun createOAuth2Client(endpoints: OidcEndpoints = createEndpoints()): OAuth2Client = OAuth2Client.create(configuration, endpoints)
 
-    override fun apply(base: Statement, description: Description): Statement {
-        return MockWebServerStatement(base, mockWebServer.dispatcher, description)
-    }
+    override fun apply(
+        base: Statement,
+        description: Description,
+    ): Statement = MockWebServerStatement(base, mockWebServer.dispatcher, description)
 
-    fun enqueue(vararg requestMatcher: RequestMatcher, responseFactory: (MockResponse) -> Unit) {
+    fun enqueue(
+        vararg requestMatcher: RequestMatcher,
+        responseFactory: (MockResponse) -> Unit,
+    ) {
         mockWebServer.dispatcher.enqueue(*requestMatcher) { response ->
             responseFactory(response)
         }
     }
 
-    fun enqueue(vararg requestMatcher: RequestMatcher, responseFactory: (OktaRecordedRequest, MockResponse) -> Unit) {
+    fun enqueue(
+        vararg requestMatcher: RequestMatcher,
+        responseFactory: (OktaRecordedRequest, MockResponse) -> Unit,
+    ) {
         mockWebServer.dispatcher.enqueue(*requestMatcher) { request, response ->
             responseFactory(request, response)
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,14 +21,21 @@ import androidx.navigation.fragment.findNavController
 import com.okta.idx.android.dynamic.databinding.FragmentLaunchBinding
 import com.okta.idx.android.util.BaseFragment
 
-internal class LaunchFragment : BaseFragment<FragmentLaunchBinding>(
-    FragmentLaunchBinding::inflate
-) {
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+internal class LaunchFragment :
+    BaseFragment<FragmentLaunchBinding>(
+        FragmentLaunchBinding::inflate
+    ) {
+    override fun onViewCreated(
+        view: View,
+        savedInstanceState: Bundle?,
+    ) {
         super.onViewCreated(view, savedInstanceState)
 
         binding.loginButton.setOnClickListener {
-            val recoveryToken = binding.recoveryToken.editText?.text?.toString() ?: ""
+            val recoveryToken =
+                binding.recoveryToken.editText
+                    ?.text
+                    ?.toString() ?: ""
             findNavController().navigate(
                 LaunchFragmentDirections.launchToDynamic(
                     recoveryToken = recoveryToken

@@ -1,8 +1,6 @@
 import com.vanniktech.maven.publish.MavenPublishBaseExtension
-import com.vanniktech.maven.publish.SonatypeHost
 import org.jetbrains.dokka.gradle.DokkaTaskPartial
 import java.net.URI
-import kotlin.math.sign
 
 buildscript {
     dependencies {
@@ -15,17 +13,27 @@ plugins {
     alias(libs.plugins.android.library).apply(false)
     alias(libs.plugins.kotlin.android).apply(false)
     alias(libs.plugins.dokka).apply(true)
+    alias(libs.plugins.sonarqube).apply(true)
     alias(libs.plugins.kover).apply(false)
     alias(libs.plugins.compose.compiler).apply(false)
     alias(libs.plugins.ksp).apply(false)
     alias(libs.plugins.androidx.navigation.safeargs).apply(false)
     alias(libs.plugins.kotlinx.binary.compatibility.validator).apply(false)
+    alias(libs.plugins.androidx.room).apply(false)
 }
 
 allprojects {
     configurations.all {
         resolutionStrategy {
             force(libs.jackson.databind)
+            force(libs.bcprov.jdk18on)
+            force(libs.commons.io)
+            force(libs.netty.common)
+            force(libs.netty.codec.http)
+            force(libs.netty.codec.http2)
+            force(libs.netty.handler)
+            force(libs.protobuf.java)
+            force(libs.woodstox.core)
         }
     }
 
@@ -64,11 +72,12 @@ subprojects {
 
     plugins.withId("com.vanniktech.maven.publish.base") {
         configure<MavenPublishBaseExtension> {
+            val snapshot = project.properties["snapshot"]?.toString()?.toBoolean() ?: false
+            val automaticRelease = if (snapshot) false else project.properties["automaticRelease"]?.toString()?.toBoolean() ?: false
 
-            publishToMavenCentral(SonatypeHost.DEFAULT)
-            if (project.hasProperty("signAllPublications")) {
-                signAllPublications()
-            }
+            publishToMavenCentral(automaticRelease)
+            if (project.hasProperty("signAllPublications")) signAllPublications()
+
             pom {
                 name.set(pomName(project))
                 description.set("Okta Mobile Kotlin")
@@ -103,7 +112,7 @@ subprojects {
                 }
             }
             group = "com.okta.kotlin"
-            version = releaseVersion(project)
+            version = releaseVersion(project).let { if (snapshot) "$it-SNAPSHOT" else it }
 
             if (plugins.hasPlugin("com.android.library")) {
                 configure(com.vanniktech.maven.publish.AndroidSingleVariantLibrary("release"))

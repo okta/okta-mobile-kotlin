@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,10 @@ internal data class ParsingContext(
     val authenticatorPathPairMap: Map<String, IdxAuthenticator>,
 ) {
     companion object {
-        fun create(json: Json, response: Response): ParsingContext {
+        fun create(
+            json: Json,
+            response: Response,
+        ): ParsingContext {
             val authenticatorPathPairs = response.toIdxAuthenticatorPathPairs(json)
             val authenticatorCollection = IdxAuthenticatorCollection(authenticatorPathPairs.map { it.authenticator })
             val authenticatorPathPairMap = authenticatorPathPairs.associateBy({ it.path }, { it.authenticator })
@@ -38,8 +41,9 @@ internal fun ParsingContext?.authenticatorFor(relatesToJsonPath: String?): IdxAu
     return authenticatorPathPairMap[relatesToJsonPath]
 }
 
-internal data class AuthenticatorPathPair(val path: String, val authenticator: IdxAuthenticator)
+internal data class AuthenticatorPathPair(
+    val path: String,
+    val authenticator: IdxAuthenticator,
+)
 
-internal fun IdxAuthenticator.toPathPair(path: String): AuthenticatorPathPair {
-    return AuthenticatorPathPair(path, this)
-}
+internal fun IdxAuthenticator.toPathPair(path: String): AuthenticatorPathPair = AuthenticatorPathPair(path, this)

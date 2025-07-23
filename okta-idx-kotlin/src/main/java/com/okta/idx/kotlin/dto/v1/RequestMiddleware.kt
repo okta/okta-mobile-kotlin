@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,9 +44,7 @@ internal fun IdxRemediation.asJsonRequest(client: OAuth2Client): Request {
     return requestBuilder.build()
 }
 
-internal fun IdxRemediation.toJsonContent(): JsonElement {
-    return form.toJsonContent()
-}
+internal fun IdxRemediation.toJsonContent(): JsonElement = form.toJsonContent()
 
 private fun IdxRemediation.Form.toJsonContent(): JsonElement {
     val result = mutableMapOf<String, JsonElement>()
@@ -67,8 +65,8 @@ private fun IdxRemediation.Form.Field.toJsonContent(): JsonElement? {
     return null
 }
 
-private fun Any?.asJsonElement(): JsonElement {
-    return when (this) {
+private fun Any?.asJsonElement(): JsonElement =
+    when (this) {
         null -> JsonNull
         is JsonElement -> this
         is Boolean -> JsonPrimitive(this)
@@ -76,22 +74,23 @@ private fun Any?.asJsonElement(): JsonElement {
         is Number -> JsonPrimitive(this)
         else -> throw IllegalStateException("Unknown type")
     }
-}
 
 internal fun IdxRemediation.asFormRequest(): Request {
     val formBodyBuilder = FormBody.Builder()
     form.allFields.forEach { field ->
-        val value = when (val fieldValue = field.value) {
-            is JsonPrimitive -> fieldValue.content
-            null -> ""
-            else -> fieldValue.toString()
-        }
+        val value =
+            when (val fieldValue = field.value) {
+                is JsonPrimitive -> fieldValue.content
+                null -> ""
+                else -> fieldValue.toString()
+            }
         if (field.name != null) {
             formBodyBuilder.add(field.name, value)
         }
     }
 
-    return Request.Builder()
+    return Request
+        .Builder()
         .url(href)
         .post(formBodyBuilder.build())
         .build()
@@ -102,13 +101,16 @@ internal suspend fun tokenRequestFromInteractionCode(
     flowContext: InteractionCodeFlowContext,
     interactionCode: String,
 ): Request {
-    val formBodyBuilder = FormBody.Builder()
-        .add("grant_type", "interaction_code")
-        .add("client_id", client.configuration.clientId)
-        .add("interaction_code", interactionCode)
-        .add("code_verifier", flowContext.codeVerifier)
+    val formBodyBuilder =
+        FormBody
+            .Builder()
+            .add("grant_type", "interaction_code")
+            .add("client_id", client.configuration.clientId)
+            .add("interaction_code", interactionCode)
+            .add("code_verifier", flowContext.codeVerifier)
 
-    return Request.Builder()
+    return Request
+        .Builder()
         .url(client.endpointsOrNull()!!.tokenEndpoint)
         .post(formBodyBuilder.build())
         .build()
@@ -118,13 +120,18 @@ internal suspend fun introspectRequest(
     client: OAuth2Client,
     flowContext: InteractionCodeFlowContext,
 ): Request {
-    val urlBuilder = client.endpointsOrNull()!!.issuer.newBuilder()
-        .encodedPath("/idp/idx/introspect")
+    val urlBuilder =
+        client
+            .endpointsOrNull()!!
+            .issuer
+            .newBuilder()
+            .encodedPath("/idp/idx/introspect")
 
     val introspectRequest = IntrospectRequest(flowContext.interactionHandle)
     val jsonBody = client.configuration.json.encodeToString(introspectRequest)
 
-    return Request.Builder()
+    return Request
+        .Builder()
         .url(urlBuilder.build())
         .post(jsonBody.toRequestBody("application/ion+json; okta-version=1.0.0".toMediaType()))
         .build()
@@ -135,7 +142,7 @@ internal class InteractContext private constructor(
     val state: String,
     val request: Request,
     val nonce: String,
-    val maxAge: Int?
+    val maxAge: Int?,
 ) {
     companion object {
         suspend fun create(
@@ -148,22 +155,25 @@ internal class InteractContext private constructor(
         ): InteractContext? {
             val codeChallenge = PkceGenerator.codeChallenge(codeVerifier)
             val endpoints = client.endpointsOrNull() ?: return null
-            val urlBuilder = endpoints.issuer.newBuilder().apply {
-                if (endpoints.issuer.pathSegments.contains("oauth2")) {
-                    addPathSegments("v1/interact")
-                } else {
-                    addPathSegments("oauth2/v1/interact")
+            val urlBuilder =
+                endpoints.issuer.newBuilder().apply {
+                    if (endpoints.issuer.pathSegments.contains("oauth2")) {
+                        addPathSegments("v1/interact")
+                    } else {
+                        addPathSegments("oauth2/v1/interact")
+                    }
                 }
-            }
 
-            val formBody = FormBody.Builder()
-                .add("client_id", client.configuration.clientId)
-                .add("scope", client.configuration.defaultScope)
-                .add("code_challenge", codeChallenge)
-                .add("code_challenge_method", PkceGenerator.CODE_CHALLENGE_METHOD)
-                .add("redirect_uri", redirectUrl)
-                .add("state", state)
-                .add("nonce", nonce)
+            val formBody =
+                FormBody
+                    .Builder()
+                    .add("client_id", client.configuration.clientId)
+                    .add("scope", client.configuration.defaultScope)
+                    .add("code_challenge", codeChallenge)
+                    .add("code_challenge_method", PkceGenerator.CODE_CHALLENGE_METHOD)
+                    .add("redirect_uri", redirectUrl)
+                    .add("state", state)
+                    .add("nonce", nonce)
 
             for (extraParameter in extraParameters) {
                 formBody.add(extraParameter.key, extraParameter.value)
@@ -171,10 +181,12 @@ internal class InteractContext private constructor(
 
             val maxAge = extraParameters["max_age"]?.toIntOrNull()
 
-            val request = Request.Builder()
-                .url(urlBuilder.build())
-                .post(formBody.build())
-                .build()
+            val request =
+                Request
+                    .Builder()
+                    .url(urlBuilder.build())
+                    .post(formBody.build())
+                    .build()
 
             return InteractContext(codeVerifier, state, request, nonce, maxAge)
         }

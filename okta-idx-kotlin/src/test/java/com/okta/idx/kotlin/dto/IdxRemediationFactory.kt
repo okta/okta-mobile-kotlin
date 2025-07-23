@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,8 @@ internal fun createRemediation(
     name: String = "identify",
     authenticators: List<IdxAuthenticator> = emptyList(),
     capabilities: Set<IdxRemediation.Capability> = emptySet(),
-): IdxRemediation {
-    return IdxRemediation(
+): IdxRemediation =
+    IdxRemediation(
         type = IdxRemediation.Type.IDENTIFY,
         name = name,
         form = IdxRemediation.Form(fields),
@@ -31,15 +31,10 @@ internal fun createRemediation(
         capabilities = IdxCapabilityCollection(capabilities),
         method = "POST",
         href = "https://test.okta.com/idp/idx/identify".toHttpUrl(),
-        accepts = "application/json; okta-version=1.0.0",
+        accepts = "application/json; okta-version=1.0.0"
     )
-}
 
-internal fun createForm(
-    fields: List<IdxRemediation.Form.Field>,
-): IdxRemediation.Form {
-    return IdxRemediation.Form(fields)
-}
+internal fun createForm(fields: List<IdxRemediation.Form.Field>): IdxRemediation.Form = IdxRemediation.Form(fields)
 
 internal fun createField(
     name: String,
@@ -48,9 +43,9 @@ internal fun createField(
     form: IdxRemediation.Form? = null,
     authenticator: IdxAuthenticator? = null,
     mutable: Boolean = true,
-    isVisible: Boolean = true
-): IdxRemediation.Form.Field {
-    return IdxRemediation.Form.Field(
+    isVisible: Boolean = true,
+): IdxRemediation.Form.Field =
+    IdxRemediation.Form.Field(
         name = name,
         label = "Test",
         type = type,
@@ -62,6 +57,5 @@ internal fun createField(
         options = null,
         messages = IdxMessageCollection(emptyList()),
         authenticator = authenticator,
-        isVisible = isVisible,
+        isVisible = isVisible
     )
-}

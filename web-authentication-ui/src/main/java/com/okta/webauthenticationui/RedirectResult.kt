@@ -18,7 +18,11 @@ package com.okta.webauthenticationui
 import android.net.Uri
 
 internal sealed class RedirectResult {
-    class Redirect(val uri: Uri) : RedirectResult()
+    class Redirect(
+        val uri: Uri,
+    ) : RedirectResult()
 
-    class Error(val exception: Exception) : RedirectResult()
+    class Error(
+        val exception: Exception,
+    ) : RedirectResult()
 }

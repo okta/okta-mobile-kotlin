@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,14 +29,20 @@ class NetworkDispatcher : Dispatcher() {
         enqueuedResponses = ConcurrentLinkedDeque()
     }
 
-    fun enqueue(vararg requestMatcher: RequestMatcher, responseFactory: (MockResponse) -> Unit) {
+    fun enqueue(
+        vararg requestMatcher: RequestMatcher,
+        responseFactory: (MockResponse) -> Unit,
+    ) {
         val response = MockResponse()
         response.setResponseCode(200)
         responseFactory(response)
         enqueue(composite(*requestMatcher), response)
     }
 
-    fun enqueue(requestMatcher: RequestMatcher, response: MockResponse) {
+    fun enqueue(
+        requestMatcher: RequestMatcher,
+        response: MockResponse,
+    ) {
         enqueuedResponses.add(Entry(requestMatcher, response))
     }
 
@@ -44,9 +50,7 @@ class NetworkDispatcher : Dispatcher() {
         enqueuedResponses.clear()
     }
 
-    fun numberRemainingInQueue(): Int {
-        return enqueuedResponses.size
-    }
+    fun numberRemainingInQueue(): Int = enqueuedResponses.size
 
     override fun dispatch(request: RecordedRequest): MockResponse {
         var matchedEntry: Entry? = null
@@ -67,6 +71,11 @@ class NetworkDispatcher : Dispatcher() {
     }
 }
 
-private class Entry(val requestMatcher: RequestMatcher, val response: MockResponse)
+private class Entry(
+    val requestMatcher: RequestMatcher,
+    val response: MockResponse,
+)
 
-internal class RequestNotFoundException(message: String) : Exception(message)
+internal class RequestNotFoundException(
+    message: String,
+) : Exception(message)

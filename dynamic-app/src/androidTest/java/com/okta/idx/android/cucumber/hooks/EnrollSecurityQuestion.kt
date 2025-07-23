@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,15 +32,16 @@ class EnrollSecurityQuestion {
     @Before("@enrollSecurityQuestion") fun requireEnrolledSecurityQuestion() {
         Assert.assertNotNull(SharedState.user)
         val userFactorApi = UserFactorApi(OktaManagementSdk.client)
-        val factor = SecurityQuestionUserFactor().apply {
-            setProfile(
-                SecurityQuestionUserFactorProfile()
-                    .question("disliked_food")
-                    .questionText("What is the food you least liked as a child?")
-                    .answer(ANSWER)
-            )
-            factorType(FactorType.QUESTION)
-        }
+        val factor =
+            SecurityQuestionUserFactor().apply {
+                setProfile(
+                    SecurityQuestionUserFactorProfile()
+                        .question("disliked_food")
+                        .questionText("What is the food you least liked as a child?")
+                        .answer(ANSWER)
+                )
+                factorType(FactorType.QUESTION)
+            }
         userFactorApi.enrollFactor(SharedState.user!!.id, factor, false, null, null, true)
     }
 }

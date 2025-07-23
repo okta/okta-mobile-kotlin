@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,17 +36,16 @@ internal fun Response.toIdxResponse(json: Json): IdxResponse {
         app = app?.value?.toIdxApplication(),
         user = user?.value?.toIdxUser(),
         messages = messageCollection,
-        isLoginSuccessful = successWithInteractionCode != null,
+        isLoginSuccessful = successWithInteractionCode != null
     )
 }
 
-private fun App.toIdxApplication(): IdxApplication {
-    return IdxApplication(
+private fun App.toIdxApplication(): IdxApplication =
+    IdxApplication(
         id = id,
         label = label,
-        name = name,
+        name = name
     )
-}
 
 private fun User.toIdxUser(): IdxUser? {
     if (id == null) {
@@ -55,17 +54,16 @@ private fun User.toIdxUser(): IdxUser? {
     return IdxUser(id, identifier, profile?.toIdxUserProfile())
 }
 
-private fun User.Profile.toIdxUserProfile(): IdxUser.Profile {
-    return IdxUser.Profile(
+private fun User.Profile.toIdxUserProfile(): IdxUser.Profile =
+    IdxUser.Profile(
         firstName,
         lastName,
         timeZone?.let { TimeZone.getTimeZone(it) },
-        locale?.let { Locale(it) },
+        locale?.let { Locale(it) }
     )
-}
 
-private fun String?.toIdxResponseIntent(): IdxResponse.Intent {
-    return when (this) {
+private fun String?.toIdxResponseIntent(): IdxResponse.Intent =
+    when (this) {
         "ENROLL_NEW_USER" -> IdxResponse.Intent.ENROLL_NEW_USER
         "LOGIN" -> IdxResponse.Intent.LOGIN
         "CREDENTIAL_ENROLLMENT" -> IdxResponse.Intent.CREDENTIAL_ENROLLMENT
@@ -74,4 +72,3 @@ private fun String?.toIdxResponseIntent(): IdxResponse.Intent {
         "CREDENTIAL_MODIFY" -> IdxResponse.Intent.CREDENTIAL_MODIFY
         else -> IdxResponse.Intent.UNKNOWN
     }
-}

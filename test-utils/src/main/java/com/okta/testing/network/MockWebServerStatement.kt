@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import org.junit.runners.model.Statement
 internal class MockWebServerStatement(
     private val baseStatement: Statement,
     private val networkDispatcher: NetworkDispatcher,
-    private val description: Description
+    private val description: Description,
 ) : Statement() {
     override fun evaluate() {
         try {

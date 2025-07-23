@@ -21,16 +21,18 @@ import com.okta.nativeauthentication.form.FormTransformer
 
 internal class SignInTitleTransformer : FormTransformer {
     override fun Form.Builder.transform() {
-        val usernameIndex = elements.indexOfFirst { elementBuilder ->
-            val textInputElementBuilder = (elementBuilder as? Element.TextInput.Builder) ?: return@indexOfFirst false
-            textInputElementBuilder.idxField.name == "identifier" && textInputElementBuilder.remediation.name == "identify"
-        }
+        val usernameIndex =
+            elements.indexOfFirst { elementBuilder ->
+                val textInputElementBuilder = (elementBuilder as? Element.TextInput.Builder) ?: return@indexOfFirst false
+                textInputElementBuilder.idxField.name == "identifier" && textInputElementBuilder.remediation.name == "identify"
+            }
         if (usernameIndex >= 0) {
-            val elementBuilder = Element.Label.Builder(
-                remediation = null,
-                text = "Sign In",
-                type = Element.Label.Type.HEADER,
-            )
+            val elementBuilder =
+                Element.Label.Builder(
+                    remediation = null,
+                    text = "Sign In",
+                    type = Element.Label.Type.HEADER
+                )
             elements.add(usernameIndex, elementBuilder)
         }
     }

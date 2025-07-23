@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,17 +40,19 @@ object OktaMockWebServer {
         okHttpConfigurationHelper.baseUrlReference.set(mockBaseUrl)
     }
 
-    private fun localhostCertificate(): HeldCertificate {
-        return HeldCertificate.Builder()
+    private fun localhostCertificate(): HeldCertificate =
+        HeldCertificate
+            .Builder()
             .addSubjectAlternativeName("localhost")
             .commonName("Test Fixture")
             .build()
-    }
 
     private fun sslSocketFactory(localhostCertificate: HeldCertificate): SSLSocketFactory {
-        val serverCertificates = HandshakeCertificates.Builder()
-            .heldCertificate(localhostCertificate)
-            .build()
+        val serverCertificates =
+            HandshakeCertificates
+                .Builder()
+                .heldCertificate(localhostCertificate)
+                .build()
         return serverCertificates.sslSocketFactory()
     }
 
@@ -60,14 +62,18 @@ object OktaMockWebServer {
         override fun intercept(chain: Interceptor.Chain): Response {
             val baseUrl = baseUrlReference.get()
             var request = chain.request()
-            val newUrl = request.url.newBuilder()
-                .host(baseUrl.host)
-                .scheme(baseUrl.scheme)
-                .port(baseUrl.port)
-                .build()
-            request = request.newBuilder()
-                .url(newUrl)
-                .build()
+            val newUrl =
+                request.url
+                    .newBuilder()
+                    .host(baseUrl.host)
+                    .scheme(baseUrl.scheme)
+                    .port(baseUrl.port)
+                    .build()
+            request =
+                request
+                    .newBuilder()
+                    .url(newUrl)
+                    .build()
             return chain.proceed(request)
         }
     }

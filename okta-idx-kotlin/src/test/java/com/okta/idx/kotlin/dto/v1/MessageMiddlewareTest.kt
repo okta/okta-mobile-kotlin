@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,15 +25,16 @@ class MessageMiddlewareTest {
     private val json = Json { ignoreUnknownKeys = true }
 
     @Test fun testDeserialization() {
-        val messageJson = """
-        {
-          "message": "Authentication failed",
-          "i18n": {
-            "key": "errors.E0000004"
-          },
-          "class": "ERROR"
-        }
-        """.trimIndent()
+        val messageJson =
+            """
+            {
+              "message": "Authentication failed",
+              "i18n": {
+                "key": "errors.E0000004"
+              },
+              "class": "ERROR"
+            }
+            """.trimIndent()
 
         val v1Message = json.decodeFromString<Message>(messageJson)
         assertThat(v1Message.message).isEqualTo("Authentication failed")
@@ -70,8 +71,8 @@ class MessageMiddlewareTest {
         assertThat(message.type).isEqualTo(IdxMessage.Severity.UNKNOWN)
     }
 
-    private fun messageJson(type: String): String {
-        return """
+    private fun messageJson(type: String): String =
+        """
         {
           "message": "Authentication failed",
           "i18n": {
@@ -80,5 +81,4 @@ class MessageMiddlewareTest {
           "class": "$type"
         }
         """.trimIndent()
-    }
 }

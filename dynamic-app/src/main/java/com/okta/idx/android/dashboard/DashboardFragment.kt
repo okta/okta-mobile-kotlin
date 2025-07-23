@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,12 +29,16 @@ import com.okta.idx.android.util.BaseFragment
 import com.okta.idx.android.util.inflateBinding
 import kotlinx.coroutines.launch
 
-internal class DashboardFragment : BaseFragment<FragmentDashboardBinding>(
-    FragmentDashboardBinding::inflate
-) {
+internal class DashboardFragment :
+    BaseFragment<FragmentDashboardBinding>(
+        FragmentDashboardBinding::inflate
+    ) {
     private val viewModel: DashboardViewModel by viewModels()
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+    override fun onViewCreated(
+        view: View,
+        savedInstanceState: Bundle?,
+    ) {
         lifecycleScope.launch {
             Credential.default?.token?.let { token ->
                 binding.tokenType.text = token.tokenType

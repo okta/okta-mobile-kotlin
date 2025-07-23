@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     id("com.android.library")
     id("kotlin-parcelize")
@@ -6,6 +8,7 @@ plugins {
     kotlin("android")
     kotlin("plugin.serialization") version libs.versions.kotlin.get()
     id("com.vanniktech.maven.publish.base")
+    id("spotless")
 }
 
 android {
@@ -32,9 +35,12 @@ android {
         sourceCompatibility = SOURCE_COMPATIBILITY
         targetCompatibility = TARGET_COMPATIBILITY
     }
-    kotlinOptions {
-        jvmTarget = JVM_TARGET
-        freeCompilerArgs += listOf("-Xopt-in=com.okta.authfoundation.InternalAuthFoundationApi")
+
+    kotlin {
+        compilerOptions {
+            jvmTarget = JvmTarget.fromTarget(JVM_TARGET)
+            freeCompilerArgs.add("-opt-in=com.okta.authfoundation.InternalAuthFoundationApi")
+        }
     }
 
     buildFeatures {

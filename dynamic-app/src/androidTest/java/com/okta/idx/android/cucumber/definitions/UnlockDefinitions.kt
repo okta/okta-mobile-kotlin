@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import io.cucumber.java.en.And
 import io.cucumber.java.en.Then
 import io.cucumber.java.en.When
 
+@Suppress("ktlint:standard:function-naming")
 class UnlockDefinitions {
     @When("^she sees a link to unlock her account$")
     fun she_sees_a_link_to_unlock_her_account() {

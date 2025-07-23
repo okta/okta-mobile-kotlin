@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,34 +27,46 @@ import androidx.lifecycle.LiveData
 import com.google.android.material.textfield.TextInputLayout
 import kotlin.reflect.KMutableProperty0
 
-internal fun ViewGroup.inflate(@LayoutRes layoutId: Int): View {
-    return LayoutInflater.from(context).inflate(layoutId, this, false)
-}
+internal fun ViewGroup.inflate(
+    @LayoutRes layoutId: Int,
+): View = LayoutInflater.from(context).inflate(layoutId, this, false)
 
 internal fun <B> ViewGroup.inflateBinding(
     bindingFactory: (
         inflater: LayoutInflater,
         container: ViewGroup?,
-        attachToParent: Boolean
+        attachToParent: Boolean,
     ) -> B,
-    attachToParent: Boolean = false
+    attachToParent: Boolean = false,
 ): B {
     val inflater = LayoutInflater.from(context)
     return bindingFactory(inflater, this, attachToParent)
 }
 
 internal fun EditText.doOnTextChanged(listener: (text: String) -> Unit) {
-    addTextChangedListener(object : TextWatcher {
-        override fun afterTextChanged(s: Editable?) {
-            listener(s?.toString() ?: "")
-        }
+    addTextChangedListener(
+        object : TextWatcher {
+            override fun afterTextChanged(s: Editable?) {
+                listener(s?.toString() ?: "")
+            }
 
-        override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-        }
+            override fun beforeTextChanged(
+                s: CharSequence?,
+                start: Int,
+                count: Int,
+                after: Int,
+            ) {
+            }
 
-        override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+            override fun onTextChanged(
+                s: CharSequence?,
+                start: Int,
+                before: Int,
+                count: Int,
+            ) {
+            }
         }
-    })
+    )
 }
 
 internal fun bindText(
@@ -62,7 +74,7 @@ internal fun bindText(
     textInputLayout: TextInputLayout,
     valueField: KMutableProperty0<String>,
     errorsLiveData: LiveData<String>,
-    viewLifecycleOwner: LifecycleOwner
+    viewLifecycleOwner: LifecycleOwner,
 ) {
     editText.setText(valueField.get())
     editText.doOnTextChanged { value ->

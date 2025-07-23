@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,7 @@ import io.cucumber.java.en.Then
 import io.cucumber.java.en.When
 import timber.log.Timber
 
+@Suppress("ktlint:standard:function-naming")
 internal class VerifyDefinitions {
     @Then("^the screen changes to receive an input for a code$")
     fun the_screen_changes_to_receive_an_input_for_a_code() {

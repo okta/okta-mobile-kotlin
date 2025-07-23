@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,6 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.google.android.material.textfield.TextInputLayout
-import com.okta.idx.android.dashboard.TokenViewModel
 import com.okta.idx.android.dynamic.R
 import com.okta.idx.android.dynamic.databinding.ErrorBinding
 import com.okta.idx.android.dynamic.databinding.ErrorFieldBinding
@@ -50,20 +49,22 @@ import com.okta.idx.android.util.BaseFragment
 import com.okta.idx.android.util.bindText
 import com.okta.idx.android.util.inflateBinding
 
-internal class DynamicAuthFragment : BaseFragment<FragmentDynamicAuthBinding>(
-    FragmentDynamicAuthBinding::inflate
-) {
+internal class DynamicAuthFragment :
+    BaseFragment<FragmentDynamicAuthBinding>(
+        FragmentDynamicAuthBinding::inflate
+    ) {
     private val args: DynamicAuthFragmentArgs by navArgs()
 
     private val viewModel by viewModels<DynamicAuthViewModel>(factoryProducer = {
         object : ViewModelProvider.Factory {
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return DynamicAuthViewModel(args.recoveryToken) as T
-            }
+            override fun <T : ViewModel> create(modelClass: Class<T>): T = DynamicAuthViewModel(args.recoveryToken) as T
         }
     })
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+    override fun onViewCreated(
+        view: View,
+        savedInstanceState: Bundle?,
+    ) {
         super.onViewCreated(view, savedInstanceState)
 
         viewModel.state.observe(viewLifecycleOwner) { state ->
@@ -83,8 +84,7 @@ internal class DynamicAuthFragment : BaseFragment<FragmentDynamicAuthBinding>(
                     addLoadingView()
                 }
                 // If login is success, update the `TokenViewModel` and switch to `DashboardFragment`.
-                is DynamicAuthState.Tokens -> {
-                    TokenViewModel._tokenResponse = state.tokenResponse
+                DynamicAuthState.Tokens -> {
                     findNavController().navigate(DynamicAuthFragmentDirections.dynamicAuthToDashboard())
                 }
             }
@@ -124,8 +124,8 @@ internal class DynamicAuthFragment : BaseFragment<FragmentDynamicAuthBinding>(
     /**
      * Create a `View` to render the `DynamicAuthField`.
      */
-    private fun DynamicAuthField.createView(): View {
-        return when (this) {
+    private fun DynamicAuthField.createView(): View =
+        when (this) {
             // Render text fields.
             is DynamicAuthField.Text -> {
                 val textBinding = binding.formContent.inflateBinding(FormTextBinding::inflate)
@@ -144,7 +144,7 @@ internal class DynamicAuthFragment : BaseFragment<FragmentDynamicAuthBinding>(
                     textInputLayout = textBinding.textInputLayout,
                     valueField = ::value,
                     errorsLiveData = errorsLiveData,
-                    viewLifecycleOwner = viewLifecycleOwner,
+                    viewLifecycleOwner = viewLifecycleOwner
                 )
 
                 textBinding.root
@@ -173,11 +173,12 @@ internal class DynamicAuthFragment : BaseFragment<FragmentDynamicAuthBinding>(
                         val tagOption = view.getTag(R.id.option) as? DynamicAuthField.Options.Option?
                         if (tagOption != null) {
                             val nestedContentView = view.getTag(R.id.nested_content) as View
-                            nestedContentView.visibility = if (tagOption == option) {
-                                View.VISIBLE
-                            } else {
-                                View.GONE
-                            }
+                            nestedContentView.visibility =
+                                if (tagOption == option) {
+                                    View.VISIBLE
+                                } else {
+                                    View.GONE
+                                }
                         }
                     }
                 }
@@ -234,5 +235,4 @@ internal class DynamicAuthFragment : BaseFragment<FragmentDynamicAuthBinding>(
                 binding.root
             }
         }
-    }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,13 +24,15 @@ import kotlinx.serialization.json.Json
 import org.junit.Test
 
 class AuthenticatorMiddlewareTest {
-    private val json = Json {
-        ignoreUnknownKeys = true
-    }
+    private val json =
+        Json {
+            ignoreUnknownKeys = true
+        }
 
     @Test
     fun testSendAuthenticator() {
-        val sendAuthenticatorJson = """
+        val sendAuthenticatorJson =
+            """
             {
               "profile": {
                 "email": "j***a@gmail.com"
@@ -64,7 +66,7 @@ class AuthenticatorMiddlewareTest {
                 }
               ]
             }
-        """.trimIndent()
+            """.trimIndent()
 
         val v1Authenticator = json.decodeFromString<Authenticator>(sendAuthenticatorJson)
         val authenticator = v1Authenticator.toIdxAuthenticator(json, IdxAuthenticator.State.AUTHENTICATING)
@@ -78,54 +80,55 @@ class AuthenticatorMiddlewareTest {
     @Test
     fun `to webAuthnRegistrationCapability with valid contextualData, expect publicKeyCredentialCreationOptions returned`() {
         // arrange
-        val authenticatorJson = """
-      {
-          "contextualData": {
-            "activationData": {
-              "rp": {
-                "name": "rpName"
-              },
-              "user": {
-                "displayName": "testName",
-                "name": "test@test.com",
-                "id": "testId"
-              },
-              "pubKeyCredParams": [
-                {
-                  "type": "public-key",
-                  "alg": -7
-                },
-                {
-                  "type": "public-key",
-                  "alg": -257
-                }
-              ],
-              "challenge": "test-challenge",
-              "attestation": "direct",
-              "authenticatorSelection": {
-                "userVerification": "preferred",
-                "requireResidentKey": false
-              },
-              "u2fParams": {
-                "appid": "https://test.test.com"
-              },
-              "excludeCredentials": [],
-              "extensions": {
-                "credProps": true
-              }
-            }
-          },
-          "type": "security_key",
-          "key": "webauthn",
-          "id": "authenticatorId",
-          "displayName": "Security Key or Biometric",
-          "methods": [
+        val authenticatorJson =
+            """
             {
-              "type": "webauthn"
+                "contextualData": {
+                  "activationData": {
+                    "rp": {
+                      "name": "rpName"
+                    },
+                    "user": {
+                      "displayName": "testName",
+                      "name": "test@test.com",
+                      "id": "testId"
+                    },
+                    "pubKeyCredParams": [
+                      {
+                        "type": "public-key",
+                        "alg": -7
+                      },
+                      {
+                        "type": "public-key",
+                        "alg": -257
+                      }
+                    ],
+                    "challenge": "test-challenge",
+                    "attestation": "direct",
+                    "authenticatorSelection": {
+                      "userVerification": "preferred",
+                      "requireResidentKey": false
+                    },
+                    "u2fParams": {
+                      "appid": "https://test.test.com"
+                    },
+                    "excludeCredentials": [],
+                    "extensions": {
+                      "credProps": true
+                    }
+                  }
+                },
+                "type": "security_key",
+                "key": "webauthn",
+                "id": "authenticatorId",
+                "displayName": "Security Key or Biometric",
+                "methods": [
+                  {
+                    "type": "webauthn"
+                  }
+                ]
             }
-          ]
-      }
-        """.trimIndent()
+            """.trimIndent()
 
         val v1Authenticator = json.decodeFromString<Authenticator>(authenticatorJson)
         // act
@@ -143,21 +146,22 @@ class AuthenticatorMiddlewareTest {
     @Test
     fun `to webAuthnRegistrationCapability with empty contextualData, expect null value`() {
         // arrange
-        val authenticatorJson = """
-      {
-          "contextualData": {
-          },
-          "type": "security_key",
-          "key": "webauthn",
-          "id": "authenticatorId",
-          "displayName": "Security Key or Biometric",
-          "methods": [
+        val authenticatorJson =
+            """
             {
-              "type": "webauthn"
+                "contextualData": {
+                },
+                "type": "security_key",
+                "key": "webauthn",
+                "id": "authenticatorId",
+                "displayName": "Security Key or Biometric",
+                "methods": [
+                  {
+                    "type": "webauthn"
+                  }
+                ]
             }
-          ]
-      }
-        """.trimIndent()
+            """.trimIndent()
 
         val v1Authenticator = json.decodeFromString<Authenticator>(authenticatorJson)
         // act
@@ -170,7 +174,8 @@ class AuthenticatorMiddlewareTest {
 
     @Test
     fun `to webAuthnAuthenticationCapability with valid contextualData, expect publicKeyCredentialCreationOptions returned`() {
-        val contextualData = """
+        val contextualData =
+            """
             {
               "contextualData": {
                 "challengeData": {
@@ -191,7 +196,7 @@ class AuthenticatorMiddlewareTest {
                 }
               ]
             }
-        """.trimIndent()
+            """.trimIndent()
 
         val v1Authenticator = json.decodeFromString<Authenticator>(contextualData)
         // act
@@ -206,7 +211,8 @@ class AuthenticatorMiddlewareTest {
 
     @Test
     fun `to webAuthnAuthenticationCapability with valid empty contextualData, expect null returned`() {
-        val contextualData = """
+        val contextualData =
+            """
             {
               "contextualData": {
               },
@@ -220,7 +226,7 @@ class AuthenticatorMiddlewareTest {
                 }
               ]
             }
-        """.trimIndent()
+            """.trimIndent()
         val v1Authenticator = json.decodeFromString<Authenticator>(contextualData)
 
         // act
@@ -233,7 +239,8 @@ class AuthenticatorMiddlewareTest {
 
     @Test
     fun `to webAuthnRegistrationCapability not called when not a security key, expect null returned`() {
-        val contextualData = """
+        val contextualData =
+            """
             {
               "contextualData": {
                 "challengeData": {
@@ -254,7 +261,7 @@ class AuthenticatorMiddlewareTest {
                 }
               ]
             }
-        """.trimIndent()
+            """.trimIndent()
         val v1Authenticator = json.decodeFromString<Authenticator>(contextualData)
 
         // act
@@ -267,7 +274,8 @@ class AuthenticatorMiddlewareTest {
 
     @Test
     fun `to webAuthnAuthenticationCapability not called when not a security key, expect null returned`() {
-        val contextualData = """
+        val contextualData =
+            """
             {
               "contextualData": {
                 "challengeData": {
@@ -288,7 +296,7 @@ class AuthenticatorMiddlewareTest {
                 }
               ]
             }
-        """.trimIndent()
+            """.trimIndent()
 
         val v1Authenticator = json.decodeFromString<Authenticator>(contextualData)
         // act

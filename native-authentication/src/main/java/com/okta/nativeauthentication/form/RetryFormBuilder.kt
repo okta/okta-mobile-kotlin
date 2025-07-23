@@ -22,17 +22,18 @@ internal object RetryFormBuilder {
     fun create(
         coroutineScope: CoroutineScope,
         text: String = "Retry",
-        onClick: suspend () -> Unit
+        onClick: suspend () -> Unit,
     ): Form.Builder {
-        val retryElement = Element.Action.Builder(
-            remediation = null,
-            text = text,
-            onClick = {
-                coroutineScope.launch {
-                    onClick()
+        val retryElement =
+            Element.Action.Builder(
+                remediation = null,
+                text = text,
+                onClick = {
+                    coroutineScope.launch {
+                        onClick()
+                    }
                 }
-            },
-        )
+            )
         val retryFormBuilder = Form.Builder()
         retryFormBuilder.elements.add(retryElement)
         return retryFormBuilder

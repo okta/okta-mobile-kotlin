@@ -40,10 +40,13 @@ internal class DefaultRedirectCoordinator(
     private val coroutineScope: CoroutineScope,
 ) : RedirectCoordinator {
     @Volatile private var initializationContinuation: Continuation<RedirectInitializationResult<*>>? = null
+
     @VisibleForTesting var initializerContinuationListeningCallback: (() -> Unit)? = null
+
     @Volatile private var initializer: (suspend () -> RedirectInitializationResult<*>)? = null
 
     @Volatile private var redirectContinuation: Continuation<RedirectResult>? = null
+
     @VisibleForTesting var redirectContinuationListeningCallback: (() -> Unit)? = null
 
     @Volatile private var webAuthenticationProvider: WebAuthenticationProvider? = null
@@ -102,7 +105,10 @@ internal class DefaultRedirectCoordinator(
         }
     }
 
-    override fun launchWebAuthenticationProvider(context: Context, url: HttpUrl): Boolean {
+    override fun launchWebAuthenticationProvider(
+        context: Context,
+        url: HttpUrl,
+    ): Boolean {
         val localWebAuthenticationProvider = webAuthenticationProvider
         webAuthenticationProvider = null
 
@@ -137,14 +143,15 @@ internal class DefaultRedirectCoordinator(
             // Return a redirect error after the debounce time. In some cases, the browser can return a null redirect
             // quickly followed by a non-null redirect. In this case, we wait for loginCancellationDebounceTime before
             // accepting the error.
-            emitErrorJob = coroutineScope.launch {
-                delay(AuthFoundationDefaults.loginCancellationDebounceTime)
-                val exception = WebAuthentication.FlowCancelledException()
-                initializationContinuation?.resume(RedirectInitializationResult.Error<Any>(exception))
-                val localContinuation = redirectContinuation
-                reset()
-                localContinuation?.resume(RedirectResult.Error(exception))
-            }
+            emitErrorJob =
+                coroutineScope.launch {
+                    delay(AuthFoundationDefaults.loginCancellationDebounceTime)
+                    val exception = WebAuthentication.FlowCancelledException()
+                    initializationContinuation?.resume(RedirectInitializationResult.Error<Any>(exception))
+                    val localContinuation = redirectContinuation
+                    reset()
+                    localContinuation?.resume(RedirectResult.Error(exception))
+                }
         }
     }
 
@@ -169,7 +176,13 @@ internal interface RedirectCoordinator {
     suspend fun runInitializationFunction(): RedirectInitializationResult<*>
 
     suspend fun listenForResult(): RedirectResult
-    fun launchWebAuthenticationProvider(context: Context, url: HttpUrl): Boolean
+
+    fun launchWebAuthenticationProvider(
+        context: Context,
+        url: HttpUrl,
+    ): Boolean
+
     fun emitError(exception: Exception)
+
     fun emit(uri: Uri?)
 }

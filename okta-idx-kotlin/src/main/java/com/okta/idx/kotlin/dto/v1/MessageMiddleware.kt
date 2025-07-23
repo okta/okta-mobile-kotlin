@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,18 +17,16 @@ package com.okta.idx.kotlin.dto.v1
 
 import com.okta.idx.kotlin.dto.IdxMessage
 
-internal fun Message.toIdxMessage(): IdxMessage {
-    return IdxMessage(
+internal fun Message.toIdxMessage(): IdxMessage =
+    IdxMessage(
         type = type.toSeverity(),
         localizationKey = i18n?.key,
-        message = message,
+        message = message
     )
-}
 
-private fun String.toSeverity(): IdxMessage.Severity {
-    return when (this) {
+private fun String.toSeverity(): IdxMessage.Severity =
+    when (this) {
         "ERROR" -> IdxMessage.Severity.ERROR
         "INFO" -> IdxMessage.Severity.INFO
         else -> IdxMessage.Severity.UNKNOWN
     }
-}

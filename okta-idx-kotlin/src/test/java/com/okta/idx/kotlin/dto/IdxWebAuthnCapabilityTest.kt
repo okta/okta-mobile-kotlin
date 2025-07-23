@@ -1,5 +1,5 @@
 /*
- * Copyright 2025-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,8 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class IdxWebAuthnCapabilityTest {
-
-    private val activationData = """
+    private val activationData =
+        """
         {
           "rp": {
             "name": "testName"
@@ -59,9 +59,10 @@ class IdxWebAuthnCapabilityTest {
             "credProps": true
           }
         }
-    """.trimIndent()
+        """.trimIndent()
 
-    private val challengeData = """
+    private val challengeData =
+        """
         {
             "challengeData": {
                 "challenge": "testChallenge",
@@ -71,7 +72,7 @@ class IdxWebAuthnCapabilityTest {
                 }
             }
         }
-    """.trimIndent()
+        """.trimIndent()
 
     @Test
     fun `publicKeyCredentialCreationOptions returns original data when rpId is null`() {
@@ -138,14 +139,15 @@ class IdxWebAuthnCapabilityTest {
 
     @Test
     fun `publicKeyCredentialCreationOptions with rpId overrides existing id`() {
-        val activationData = """
-        {
-          "rp": {
-            "name": "testName",
-            "id": "original.id"
-          }
-        }
-        """.trimIndent()
+        val activationData =
+            """
+            {
+              "rp": {
+                "name": "testName",
+                "id": "original.id"
+              }
+            }
+            """.trimIndent()
         val capability = IdxWebAuthnRegistrationCapability(activationData)
         val result = capability.publicKeyCredentialCreationOptions(relyingPartyIdentifier = "new.provided.id").getOrThrow()
 
@@ -155,16 +157,17 @@ class IdxWebAuthnCapabilityTest {
 
     @Test
     fun `publicKeyCredentialCreationOptions without rpId derives id from u2fParams`() {
-        val activationData = """
-        {
-          "rp": {
-            "name": "testName",
-            "u2fParams": {
-              "appid": "https://test.test.com"
+        val activationData =
+            """
+            {
+              "rp": {
+                "name": "testName",
+                "u2fParams": {
+                  "appid": "https://test.test.com"
+                }
+              }
             }
-          }
-        }
-        """.trimIndent()
+            """.trimIndent()
         val capability = IdxWebAuthnRegistrationCapability(activationData)
         val result = capability.publicKeyCredentialCreationOptions().getOrThrow()
 
@@ -174,17 +177,18 @@ class IdxWebAuthnCapabilityTest {
 
     @Test
     fun `publicKeyCredentialCreationOptions without rpId preserves existing id`() {
-        val activationData = """
-        {
-          "rp": {
-            "name": "testName",
-            "id": "existing.id",
-            "u2fParams": {
-              "appid": "https://test.test.com"
+        val activationData =
+            """
+            {
+              "rp": {
+                "name": "testName",
+                "id": "existing.id",
+                "u2fParams": {
+                  "appid": "https://test.test.com"
+                }
+              }
             }
-          }
-        }
-        """.trimIndent()
+            """.trimIndent()
         val capability = IdxWebAuthnRegistrationCapability(activationData)
         val result = capability.publicKeyCredentialCreationOptions().getOrThrow()
 
@@ -195,13 +199,14 @@ class IdxWebAuthnCapabilityTest {
 
     @Test
     fun `publicKeyCredentialCreationOptions without rpId and no source for id`() {
-        val activationData = """
-        {
-          "rp": {
-            "name": "testName"
-          }
-        }
-        """.trimIndent()
+        val activationData =
+            """
+            {
+              "rp": {
+                "name": "testName"
+              }
+            }
+            """.trimIndent()
         val capability = IdxWebAuthnRegistrationCapability(activationData)
         val result = capability.publicKeyCredentialCreationOptions().getOrThrow()
 
@@ -212,16 +217,17 @@ class IdxWebAuthnCapabilityTest {
 
     @Test
     fun `publicKeyCredentialCreationOptions with invalid appid does not add id`() {
-        val activationData = """
-        {
-          "rp": {
-            "name": "testName",
-            "u2fParams": {
-              "appid": "this is not a valid uri"
+        val activationData =
+            """
+            {
+              "rp": {
+                "name": "testName",
+                "u2fParams": {
+                  "appid": "this is not a valid uri"
+                }
+              }
             }
-          }
-        }
-        """.trimIndent()
+            """.trimIndent()
         val capability = IdxWebAuthnRegistrationCapability(activationData)
         val result = capability.publicKeyCredentialCreationOptions().getOrThrow()
 
@@ -259,7 +265,8 @@ class IdxWebAuthnCapabilityTest {
     @Test
     fun `challengeData with rpId overrides existing rpId`() {
         // arrange
-        val challengeJson = """
+        val challengeJson =
+            """
             {
               "challenge": "randomChallengeString",
               "rpId": "original.id",
@@ -267,7 +274,7 @@ class IdxWebAuthnCapabilityTest {
                 "appid": "https://test.test.com"
               }
             }
-        """.trimIndent()
+            """.trimIndent()
         val capability = IdxWebAuthnAuthenticationCapability(challengeJson)
 
         // act
@@ -281,7 +288,8 @@ class IdxWebAuthnCapabilityTest {
     @Test
     fun `challengeData without rpId preserves existing rpId`() {
         // arrange
-        val challengeJson = """
+        val challengeJson =
+            """
             {
               "challenge": "randomChallengeString",
               "rpId": "existing.id",
@@ -289,7 +297,7 @@ class IdxWebAuthnCapabilityTest {
                 "appid": "https://test.test.com"
               }
             }
-        """.trimIndent()
+            """.trimIndent()
         val capability = IdxWebAuthnAuthenticationCapability(challengeJson)
 
         // act
@@ -303,14 +311,15 @@ class IdxWebAuthnCapabilityTest {
     @Test
     fun `challengeData without rpId derives id from extensions appid`() {
         // arrange
-        val challengeJson = """
+        val challengeJson =
+            """
             {
               "challenge": "randomChallengeString",
               "extensions": {
                 "appid": "https://test.test.com"
               }
             }
-        """.trimIndent()
+            """.trimIndent()
         val capability = IdxWebAuthnAuthenticationCapability(challengeJson)
 
         // act
@@ -324,14 +333,15 @@ class IdxWebAuthnCapabilityTest {
     @Test
     fun `challengeData with invalid appid does not add rpId`() {
         // arrange
-        val challengeJson = """
+        val challengeJson =
+            """
             {
               "challenge": "randomChallengeString",
               "extensions": {
                 "appid": "invalid appid"
               }
             }
-        """.trimIndent()
+            """.trimIndent()
         val capability = IdxWebAuthnAuthenticationCapability(challengeJson)
 
         // act
@@ -345,11 +355,12 @@ class IdxWebAuthnCapabilityTest {
     @Test
     fun `challengeData without rpId and no source for id does not add rpId`() {
         // arrange
-        val challengeJson = """
+        val challengeJson =
+            """
             {
               "challenge": "randomChallengeString"
             }
-        """.trimIndent()
+            """.trimIndent()
         val capability = IdxWebAuthnAuthenticationCapability(challengeJson)
 
         // act

@@ -12,6 +12,14 @@ public final class com/okta/authfoundation/client/DeviceTokenProvider$Companion 
 	public final fun getPREFERENCE_KEY ()Landroidx/datastore/preferences/core/Preferences$Key;
 }
 
+public final class com/okta/idx/kotlin/BuildConfig {
+	public static final field BUILD_TYPE Ljava/lang/String;
+	public static final field DEBUG Z
+	public static final field LIBRARY_PACKAGE_NAME Ljava/lang/String;
+	public static final field SDK_VERSION Ljava/lang/String;
+	public fun <init> ()V
+}
+
 public abstract class com/okta/idx/kotlin/client/IdxRedirectResult {
 }
 
@@ -118,6 +126,10 @@ public final class com/okta/idx/kotlin/dto/IdxAuthenticatorCollection : java/uti
 	public synthetic fun add (Ljava/lang/Object;)Z
 	public fun addAll (ILjava/util/Collection;)Z
 	public fun addAll (Ljava/util/Collection;)Z
+	public fun addFirst (Lcom/okta/idx/kotlin/dto/IdxAuthenticator;)V
+	public synthetic fun addFirst (Ljava/lang/Object;)V
+	public fun addLast (Lcom/okta/idx/kotlin/dto/IdxAuthenticator;)V
+	public synthetic fun addLast (Ljava/lang/Object;)V
 	public fun clear ()V
 	public fun contains (Lcom/okta/idx/kotlin/dto/IdxAuthenticator;)Z
 	public final fun contains (Ljava/lang/Object;)Z
@@ -140,6 +152,10 @@ public final class com/okta/idx/kotlin/dto/IdxAuthenticatorCollection : java/uti
 	public synthetic fun remove (I)Ljava/lang/Object;
 	public fun remove (Ljava/lang/Object;)Z
 	public fun removeAll (Ljava/util/Collection;)Z
+	public fun removeFirst ()Lcom/okta/idx/kotlin/dto/IdxAuthenticator;
+	public synthetic fun removeFirst ()Ljava/lang/Object;
+	public fun removeLast ()Lcom/okta/idx/kotlin/dto/IdxAuthenticator;
+	public synthetic fun removeLast ()Ljava/lang/Object;
 	public fun replaceAll (Ljava/util/function/UnaryOperator;)V
 	public fun retainAll (Ljava/util/Collection;)Z
 	public fun set (ILcom/okta/idx/kotlin/dto/IdxAuthenticator;)Lcom/okta/idx/kotlin/dto/IdxAuthenticator;
@@ -196,6 +212,10 @@ public final class com/okta/idx/kotlin/dto/IdxMessageCollection : java/util/List
 	public synthetic fun add (Ljava/lang/Object;)Z
 	public fun addAll (ILjava/util/Collection;)Z
 	public fun addAll (Ljava/util/Collection;)Z
+	public fun addFirst (Lcom/okta/idx/kotlin/dto/IdxMessage;)V
+	public synthetic fun addFirst (Ljava/lang/Object;)V
+	public fun addLast (Lcom/okta/idx/kotlin/dto/IdxMessage;)V
+	public synthetic fun addLast (Ljava/lang/Object;)V
 	public fun clear ()V
 	public fun contains (Lcom/okta/idx/kotlin/dto/IdxMessage;)Z
 	public final fun contains (Ljava/lang/Object;)Z
@@ -216,6 +236,10 @@ public final class com/okta/idx/kotlin/dto/IdxMessageCollection : java/util/List
 	public synthetic fun remove (I)Ljava/lang/Object;
 	public fun remove (Ljava/lang/Object;)Z
 	public fun removeAll (Ljava/util/Collection;)Z
+	public fun removeFirst ()Lcom/okta/idx/kotlin/dto/IdxMessage;
+	public synthetic fun removeFirst ()Ljava/lang/Object;
+	public fun removeLast ()Lcom/okta/idx/kotlin/dto/IdxMessage;
+	public synthetic fun removeLast ()Ljava/lang/Object;
 	public fun replaceAll (Ljava/util/function/UnaryOperator;)V
 	public fun retainAll (Ljava/util/Collection;)Z
 	public fun set (ILcom/okta/idx/kotlin/dto/IdxMessage;)Lcom/okta/idx/kotlin/dto/IdxMessage;
@@ -313,6 +337,7 @@ public final class com/okta/idx/kotlin/dto/IdxRemediation$Type : java/lang/Enum 
 	public static final field CHALLENGE_AUTHENTICATOR Lcom/okta/idx/kotlin/dto/IdxRemediation$Type;
 	public static final field CHALLENGE_FACTOR Lcom/okta/idx/kotlin/dto/IdxRemediation$Type;
 	public static final field CHALLENGE_POLL Lcom/okta/idx/kotlin/dto/IdxRemediation$Type;
+	public static final field CHALLENGE_WEBAUTHN_AUTOFILLUI_AUTHENTICATOR Lcom/okta/idx/kotlin/dto/IdxRemediation$Type;
 	public static final field DEVICE_APPLE_SSO_EXTENSION Lcom/okta/idx/kotlin/dto/IdxRemediation$Type;
 	public static final field DEVICE_CHALLENGE_POLL Lcom/okta/idx/kotlin/dto/IdxRemediation$Type;
 	public static final field ENROLLMENT_CHANNEL_DATA Lcom/okta/idx/kotlin/dto/IdxRemediation$Type;
@@ -360,6 +385,10 @@ public final class com/okta/idx/kotlin/dto/IdxRemediationCollection : java/util/
 	public synthetic fun add (Ljava/lang/Object;)Z
 	public fun addAll (ILjava/util/Collection;)Z
 	public fun addAll (Ljava/util/Collection;)Z
+	public fun addFirst (Lcom/okta/idx/kotlin/dto/IdxRemediation;)V
+	public synthetic fun addFirst (Ljava/lang/Object;)V
+	public fun addLast (Lcom/okta/idx/kotlin/dto/IdxRemediation;)V
+	public synthetic fun addLast (Ljava/lang/Object;)V
 	public fun clear ()V
 	public fun contains (Lcom/okta/idx/kotlin/dto/IdxRemediation;)Z
 	public final fun contains (Ljava/lang/Object;)Z
@@ -381,6 +410,10 @@ public final class com/okta/idx/kotlin/dto/IdxRemediationCollection : java/util/
 	public synthetic fun remove (I)Ljava/lang/Object;
 	public fun remove (Ljava/lang/Object;)Z
 	public fun removeAll (Ljava/util/Collection;)Z
+	public fun removeFirst ()Lcom/okta/idx/kotlin/dto/IdxRemediation;
+	public synthetic fun removeFirst ()Ljava/lang/Object;
+	public fun removeLast ()Lcom/okta/idx/kotlin/dto/IdxRemediation;
+	public synthetic fun removeLast ()Ljava/lang/Object;
 	public fun replaceAll (Ljava/util/function/UnaryOperator;)V
 	public fun retainAll (Ljava/util/Collection;)Z
 	public fun set (ILcom/okta/idx/kotlin/dto/IdxRemediation;)Lcom/okta/idx/kotlin/dto/IdxRemediation;
@@ -441,5 +474,17 @@ public final class com/okta/idx/kotlin/dto/IdxUser$Profile {
 	public final fun getLastName ()Ljava/lang/String;
 	public final fun getLocale ()Ljava/util/Locale;
 	public final fun getTimeZone ()Ljava/util/TimeZone;
+}
+
+public final class com/okta/idx/kotlin/dto/IdxWebAuthnAuthenticationCapability : com/okta/idx/kotlin/dto/IdxAuthenticator$Capability, com/okta/idx/kotlin/dto/IdxRemediation$Capability {
+	public final fun challengeData-IoAF18A (Ljava/lang/String;)Ljava/lang/Object;
+	public static synthetic fun challengeData-IoAF18A$default (Lcom/okta/idx/kotlin/dto/IdxWebAuthnAuthenticationCapability;Ljava/lang/String;ILjava/lang/Object;)Ljava/lang/Object;
+	public final fun withAuthenticationResponseJson-gIAlu-s (Lcom/okta/idx/kotlin/dto/IdxRemediation;Ljava/lang/String;)Ljava/lang/Object;
+}
+
+public final class com/okta/idx/kotlin/dto/IdxWebAuthnRegistrationCapability : com/okta/idx/kotlin/dto/IdxAuthenticator$Capability {
+	public final fun publicKeyCredentialCreationOptions-IoAF18A (Ljava/lang/String;)Ljava/lang/Object;
+	public static synthetic fun publicKeyCredentialCreationOptions-IoAF18A$default (Lcom/okta/idx/kotlin/dto/IdxWebAuthnRegistrationCapability;Ljava/lang/String;ILjava/lang/Object;)Ljava/lang/Object;
+	public final fun withRegistrationResponse-gIAlu-s (Lcom/okta/idx/kotlin/dto/IdxRemediation;Ljava/lang/String;)Ljava/lang/Object;
 }
 

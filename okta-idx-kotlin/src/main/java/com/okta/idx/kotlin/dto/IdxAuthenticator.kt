@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,9 +44,7 @@ class IdxAuthenticatorCollection internal constructor(
     /**
      * Access authenticators based on their type.
      */
-    operator fun get(kind: IdxAuthenticator.Kind): IdxAuthenticator? {
-        return authenticators.firstOrNull { it.type == kind }
-    }
+    operator fun get(kind: IdxAuthenticator.Kind): IdxAuthenticator? = authenticators.firstOrNull { it.type == kind }
 }
 
 /**
@@ -55,25 +53,18 @@ class IdxAuthenticatorCollection internal constructor(
 class IdxAuthenticator internal constructor(
     /** Unique identifier for this enrollment. */
     val id: String?,
-
     /** The user-visible name to use for this authenticator enrollment. */
     val displayName: String?,
-
     /** The type of this authenticator, or `unknown` if the type isn't represented by this enumeration. */
     val type: Kind,
-
     /** The key name for the authenticator. */
     val key: String?,
-
     /** Indicates the state of this authenticator, either being an available authenticator, an enrolled authenticator, authenticating, or enrolling. */
     val state: State,
-
     /** Describes the various methods this authenticator can perform. */
     val methods: List<Method>?,
-
     /** Describes the various methods this authenticator can perform, as string values. */
     val methodNames: List<String>?,
-
     /** The [IdxCapabilityCollection] associated with this authenticator. */
     val capabilities: IdxCapabilityCollection<Capability>,
 ) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,29 +25,22 @@ import java.util.Date
 class IdxResponse internal constructor(
     /** The date at which this stage of the workflow expires, after which the authentication process should be restarted. */
     val expiresAt: Date?,
-
     /** A string describing the intent of the workflow, e.g. "LOGIN". */
     val intent: Intent,
-
     /** An object describing the sort of remediation steps available to the user. */
     val remediations: IdxRemediationCollection,
-
     /** Contains information about the available authenticators. */
     val authenticators: IdxAuthenticatorCollection,
-
     /** Returns information about the application, if available. */
     val app: IdxApplication?,
-
     /** Returns information about the user authenticating, if available. */
     val user: IdxUser?,
-
     /**
      * The list of messages sent from the server.
      * Messages reported from the server are usually errors, but may include other information relevant to the user.
      * They should be displayed to the user in the context of the remediation form itself.
      */
     val messages: IdxMessageCollection,
-
     /** Indicates whether or not the user has logged in successfully. If this is `true`, this response object should be exchanged for access tokens utilizing the `exchangeCode` method. */
     val isLoginSuccessful: Boolean,
 ) {

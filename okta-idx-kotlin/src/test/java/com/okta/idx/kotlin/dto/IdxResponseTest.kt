@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,9 +27,10 @@ import java.util.Locale
 import java.util.TimeZone
 
 class IdxResponseTest {
-    private val json = Json {
-        ignoreUnknownKeys = true
-    }
+    private val json =
+        Json {
+            ignoreUnknownKeys = true
+        }
 
     private fun getIdxResponse(filename: String): IdxResponse {
         val response = json.decodeFromString<Response>(stringFromResources("dto/$filename"))
@@ -88,7 +89,12 @@ class IdxResponseTest {
         val enrollmentDataRemediation =
             idxResponse.remediations[IdxRemediation.Type.AUTHENTICATOR_ENROLLMENT_DATA]!!
         assertThat(enrollmentDataRemediation.authenticators.size).isEqualTo(1)
-        assertThat(enrollmentDataRemediation.authenticators[0].capabilities.get<IdxResendCapability>()?.remediation).isNotNull()
+        assertThat(
+            enrollmentDataRemediation.authenticators[0]
+                .capabilities
+                .get<IdxResendCapability>()
+                ?.remediation
+        ).isNotNull()
 
         val selectAuthenticatorEnrollRemediation =
             idxResponse.remediations[IdxRemediation.Type.SELECT_AUTHENTICATOR_ENROLL]!!
@@ -195,7 +201,9 @@ class IdxResponseTest {
         answerOption.value = "Iron Man"
 
         val requestJson = remediation.toJsonContent().toString()
-        assertThat(requestJson).isEqualTo("""{"credentials":{"questionKey":"custom","question":"Favorite Marvel Movie","answer":"Iron Man"},"stateHandle":"02QPkKzfnfgzF5qcKwWW-o39cODD1_MNgnPoiOclXg"}""")
+        assertThat(
+            requestJson
+        ).isEqualTo("""{"credentials":{"questionKey":"custom","question":"Favorite Marvel Movie","answer":"Iron Man"},"stateHandle":"02QPkKzfnfgzF5qcKwWW-o39cODD1_MNgnPoiOclXg"}""")
     }
 
     @Test
@@ -325,18 +333,19 @@ class IdxResponseTest {
     @Test
     fun `challenge-webauthn-autofillui-authenticator remediation contains IdxWebAuthnAuthenticationCapability`() {
         // arrange
-        val expectedChallengeDataJson = JSONObject(
-            """
-        {
-                "challenge": "a-unique-challenge-string",
-                "userVerification": "preferred",
-                "extensions": {
-                    "appid": "https://auth.example.com"
-                },
-                "rpId":"auth.example.com"
-        }
-            """.trimIndent()
-        )
+        val expectedChallengeDataJson =
+            JSONObject(
+                """
+                {
+                        "challenge": "a-unique-challenge-string",
+                        "userVerification": "preferred",
+                        "extensions": {
+                            "appid": "https://auth.example.com"
+                        },
+                        "rpId":"auth.example.com"
+                }
+                """.trimIndent()
+            )
         val idxResponse = getIdxResponse("webauthnautofill.json")
 
         // act

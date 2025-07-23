@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,7 +57,9 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 import kotlin.jvm.java
 
-internal class DynamicAuthViewModel(private val recoveryToken: String) : ViewModel() {
+internal class DynamicAuthViewModel(
+    private val recoveryToken: String,
+) : ViewModel() {
     private val _state = MutableLiveData<DynamicAuthState>(DynamicAuthState.Loading)
     val state: LiveData<DynamicAuthState> = _state
 
@@ -90,10 +92,11 @@ internal class DynamicAuthViewModel(private val recoveryToken: String) : ViewMod
             val interactionCodeFlow = InteractionCodeFlow()
             // Initiate the IDX client and start IDX flow.
             when (
-                val clientResult = interactionCodeFlow.start(
-                    redirectUri = Uri.parse(BuildConfig.REDIRECT_URI),
-                    extraStartRequestParameters = extraRequestParameters,
-                )
+                val clientResult =
+                    interactionCodeFlow.start(
+                        redirectUri = Uri.parse(BuildConfig.REDIRECT_URI),
+                        extraStartRequestParameters = extraRequestParameters
+                    )
             ) {
                 is OAuth2ClientResult.Error -> {
                     Timber.e(clientResult.exception, "Failed to create client")
@@ -163,69 +166,90 @@ internal class DynamicAuthViewModel(private val recoveryToken: String) : ViewMod
         }
     }
 
-    private fun handleEmailRedirect(uri: Uri, activity: Activity) {
+    private fun handleEmailRedirect(
+        uri: Uri,
+        activity: Activity,
+    ) {
         viewModelScope.launch {
             val idxForm = _state.value as DynamicAuthState.Form
-            idxForm.idxResponse.remediations.firstOrNull {
-                it.type == IdxRemediation.Type.CHALLENGE_AUTHENTICATOR
-            }?.let {
-                val otpCode = uri.getQueryParameter("otp")
-                if (otpCode != null) {
-                    it.form["credentials.passcode"]?.apply {
-                        value = otpCode
-                        proceed(it, activity)
+            idxForm.idxResponse.remediations
+                .firstOrNull {
+                    it.type == IdxRemediation.Type.CHALLENGE_AUTHENTICATOR
+                }?.let {
+                    val otpCode = uri.getQueryParameter("otp")
+                    if (otpCode != null) {
+                        it.form["credentials.passcode"]?.apply {
+                            value = otpCode
+                            proceed(it, activity)
+                        }
                     }
                 }
-            }
         }
     }
 
     @SuppressLint("PublicKeyCredential")
-    private suspend fun handleWebAuthnRegistration(remediation: IdxRemediation, capability: IdxWebAuthnRegistrationCapability, activity: Activity): Result<IdxResponse> = runCatching {
-        val publicKeyCredentialCreationOptions = capability.publicKeyCredentialCreationOptions(rpId).getOrThrow()
-        Timber.i("publicKeyCredentialCreationOptions = $publicKeyCredentialCreationOptions")
-        val createCredentialResponse = androidx.credentials.CredentialManager.create(activity).createCredential(activity, CreatePublicKeyCredentialRequest(publicKeyCredentialCreationOptions))
+    private suspend fun handleWebAuthnRegistration(
+        remediation: IdxRemediation,
+        capability: IdxWebAuthnRegistrationCapability,
+        activity: Activity,
+    ): Result<IdxResponse> =
+        runCatching {
+            val publicKeyCredentialCreationOptions = capability.publicKeyCredentialCreationOptions(rpId).getOrThrow()
+            Timber.i("publicKeyCredentialCreationOptions = $publicKeyCredentialCreationOptions")
+            val createCredentialResponse =
+                androidx.credentials.CredentialManager
+                    .create(activity)
+                    .createCredential(activity, CreatePublicKeyCredentialRequest(publicKeyCredentialCreationOptions))
 
-        when (createCredentialResponse) {
-            is CreatePublicKeyCredentialResponse -> {
-                Timber.i("CreatePublicKeyCredentialResponse.registrationResponseJson = ${createCredentialResponse.registrationResponseJson}")
-                val updatedRemediation = capability.withRegistrationResponse(remediation, createCredentialResponse.registrationResponseJson).fold({ it }, { throw it })
+            when (createCredentialResponse) {
+                is CreatePublicKeyCredentialResponse -> {
+                    Timber.i("CreatePublicKeyCredentialResponse.registrationResponseJson = ${createCredentialResponse.registrationResponseJson}")
+                    val updatedRemediation = capability.withRegistrationResponse(remediation, createCredentialResponse.registrationResponseJson).fold({ it }, { throw it })
 
-                when (val result = flow?.proceed(updatedRemediation)) {
-                    is OAuth2ClientResult.Error -> throw IllegalStateException("Failed to proceed ENROLL_AUTHENTICATOR ${result.exception}")
-                    is OAuth2ClientResult.Success -> Result.success(result.result)
-                    null -> throw IllegalStateException("flow is null, cannot handle WebAuthn registration.")
+                    when (val result = flow?.proceed(updatedRemediation)) {
+                        is OAuth2ClientResult.Error -> throw IllegalStateException("Failed to proceed ENROLL_AUTHENTICATOR ${result.exception}")
+                        is OAuth2ClientResult.Success -> Result.success(result.result)
+                        null -> throw IllegalStateException("flow is null, cannot handle WebAuthn registration.")
+                    }
                 }
+
+                else -> throw UnsupportedOperationException("Unsupported credential type ${createCredentialResponse::class.java.name}")
             }
-
-            else -> throw UnsupportedOperationException("Unsupported credential type ${createCredentialResponse::class.java.name}")
+        }.getOrElse {
+            Result.failure(it)
         }
-    }.getOrElse {
-        Result.failure(it)
-    }
 
-    private suspend fun handleWebAuthnAuthentication(remediation: IdxRemediation, capability: IdxWebAuthnAuthenticationCapability, activity: Activity): Result<IdxResponse> = runCatching {
-        val challengeData = capability.challengeData(rpId).getOrThrow()
-        Timber.i("challengeData = $challengeData")
-        val getCredRequest = GetCredentialRequest(listOf(GetPublicKeyCredentialOption(challengeData)))
-        val credential = androidx.credentials.CredentialManager.create(activity).getCredential(activity, getCredRequest).credential
+    private suspend fun handleWebAuthnAuthentication(
+        remediation: IdxRemediation,
+        capability: IdxWebAuthnAuthenticationCapability,
+        activity: Activity,
+    ): Result<IdxResponse> =
+        runCatching {
+            val challengeData = capability.challengeData(rpId).getOrThrow()
+            Timber.i("challengeData = $challengeData")
+            val getCredRequest = GetCredentialRequest(listOf(GetPublicKeyCredentialOption(challengeData)))
+            val credential =
+                androidx.credentials.CredentialManager
+                    .create(activity)
+                    .getCredential(activity, getCredRequest)
+                    .credential
 
-        when (credential) {
-            is PublicKeyCredential -> {
-                Timber.i("PublicKeyCredential response = ${credential.authenticationResponseJson}")
-                val updatedRemediation = capability.withAuthenticationResponseJson(remediation, credential.authenticationResponseJson).getOrThrow()
-                when (val result = flow?.proceed(updatedRemediation)) {
-                    is OAuth2ClientResult.Error -> throw IllegalStateException("Failed to proceed AUTHENTICATOR ${result.exception}")
-                    is OAuth2ClientResult.Success -> Result.success(result.result)
-                    null -> throw IllegalStateException("flow is null, cannot handle WebAuthn authentication.")
+            when (credential) {
+                is PublicKeyCredential -> {
+                    Timber.i("PublicKeyCredential response = ${credential.authenticationResponseJson}")
+                    val updatedRemediation = capability.withAuthenticationResponseJson(remediation, credential.authenticationResponseJson).getOrThrow()
+                    when (val result = flow?.proceed(updatedRemediation)) {
+                        is OAuth2ClientResult.Error -> throw IllegalStateException("Failed to proceed AUTHENTICATOR ${result.exception}")
+                        is OAuth2ClientResult.Success -> Result.success(result.result)
+                        null -> throw IllegalStateException("flow is null, cannot handle WebAuthn authentication.")
+                    }
                 }
-            }
 
-            else -> throw IllegalStateException("Unsupported credential type ${credential::class.java.name}")
+                else -> throw IllegalStateException("Unsupported credential type ${credential::class.java.name}")
+            }
+        }.getOrElse {
+            Result.failure(it)
         }
-    }.getOrElse {
-        Result.failure(it)
-    }
 
     private suspend fun handleResponse(response: IdxResponse) {
         // If a response is successful, immediately exchange it for a token and exit.
@@ -250,11 +274,12 @@ internal class DynamicAuthViewModel(private val recoveryToken: String) : ViewMod
 
         val fields = mutableListOf<DynamicAuthField>()
         for (remediation in response.remediations) {
-            fields += remediation.asTotpImageDynamicAuthField().also {
-                if (it.isNotEmpty()) {
-                    hasAddedTotpImageField = true
+            fields +=
+                remediation.asTotpImageDynamicAuthField().also {
+                    if (it.isNotEmpty()) {
+                        hasAddedTotpImageField = true
+                    }
                 }
-            }
             fields += remediation.asNumberChallengeField()
             for (visibleField in remediation.form.visibleFields) {
                 fields += visibleField.asDynamicAuthFields()
@@ -305,9 +330,10 @@ internal class DynamicAuthViewModel(private val recoveryToken: String) : ViewMod
      */
     private suspend fun IdxAuthenticator.asTotpImageDynamicAuthField(): DynamicAuthField? {
         val capability = capabilities.get<IdxTotpCapability>() ?: return null
-        val bitmap = withContext(Dispatchers.Default) {
-            capability.asImage()
-        } ?: return null
+        val bitmap =
+            withContext(Dispatchers.Default) {
+                capability.asImage()
+            } ?: return null
         val label = displayName ?: "Launch Google Authenticator, tap the \"+\" icon, then select \"Scan a QR code\"."
         return DynamicAuthField.Image(label, bitmap, capability.sharedSecret)
     }
@@ -315,8 +341,8 @@ internal class DynamicAuthViewModel(private val recoveryToken: String) : ViewMod
     /**
      * Get text fields, checkboxes, radio buttons and radio button groups from `IdxRemediation.form.visibleFields`.
      */
-    private fun IdxRemediation.Form.Field.asDynamicAuthFields(): List<DynamicAuthField> {
-        return when {
+    private fun IdxRemediation.Form.Field.asDynamicAuthFields(): List<DynamicAuthField> =
+        when {
             // Nested form inside a field.
             !form?.visibleFields.isNullOrEmpty() -> {
                 val result = mutableListOf<DynamicAuthField>()
@@ -328,11 +354,12 @@ internal class DynamicAuthViewModel(private val recoveryToken: String) : ViewMod
             // Options represent multiple choice items like authenticators and can be nested.
             !options.isNullOrEmpty() -> {
                 options?.let { options ->
-                    val transformed = options.map {
-                        val fields =
-                            it.form?.visibleFields?.flatMap { field -> field.asDynamicAuthFields() } ?: emptyList()
-                        DynamicAuthField.Options.Option(it, it.label, fields)
-                    }
+                    val transformed =
+                        options.map {
+                            val fields =
+                                it.form?.visibleFields?.flatMap { field -> field.asDynamicAuthFields() } ?: emptyList()
+                            DynamicAuthField.Options.Option(it, it.label, fields)
+                        }
                     val displayMessages = messages.joinToString(separator = "\n") { it.message }
                     listOf(
                         DynamicAuthField.Options(label, transformed, isRequired, displayMessages) {
@@ -352,9 +379,10 @@ internal class DynamicAuthViewModel(private val recoveryToken: String) : ViewMod
             // Simple text field.
             type == "string" -> {
                 val displayMessages = messages.joinToString(separator = "\n") { it.message }
-                val field = DynamicAuthField.Text(label ?: "", isRequired, isSecret, displayMessages) {
-                    value = it
-                }
+                val field =
+                    DynamicAuthField.Text(label ?: "", isRequired, isSecret, displayMessages) {
+                        value = it
+                    }
                 (value as? String?)?.let {
                     field.value = it
                 }
@@ -366,7 +394,6 @@ internal class DynamicAuthViewModel(private val recoveryToken: String) : ViewMod
                 emptyList()
             }
         }
-    }
 
     /**
      * Get a resend action from `IdxRemediation.authenticators` when `IdxResendCapability` is present.
@@ -392,23 +419,24 @@ internal class DynamicAuthViewModel(private val recoveryToken: String) : ViewMod
             return emptyList()
         }
 
-        val title = when (type) {
-            IdxRemediation.Type.SKIP -> "Skip"
-            IdxRemediation.Type.ENROLL_PROFILE, IdxRemediation.Type.SELECT_ENROLL_PROFILE -> "Sign Up"
-            IdxRemediation.Type.SELECT_IDENTIFY, IdxRemediation.Type.IDENTIFY -> "Sign In"
-            IdxRemediation.Type.SELECT_AUTHENTICATOR_AUTHENTICATE, IdxRemediation.Type.SELECT_AUTHENTICATOR_ENROLL -> "Choose"
-            IdxRemediation.Type.LAUNCH_AUTHENTICATOR -> "Launch Authenticator"
-            IdxRemediation.Type.CANCEL -> "Restart"
-            IdxRemediation.Type.UNLOCK_ACCOUNT -> "Unlock Account"
-            IdxRemediation.Type.REDIRECT_IDP -> {
-                capabilities.get<IdxIdpCapability>()?.let { capability ->
-                    "Login with ${capability.name}"
-                } ?: "Social Login"
-            }
+        val title =
+            when (type) {
+                IdxRemediation.Type.SKIP -> "Skip"
+                IdxRemediation.Type.ENROLL_PROFILE, IdxRemediation.Type.SELECT_ENROLL_PROFILE -> "Sign Up"
+                IdxRemediation.Type.SELECT_IDENTIFY, IdxRemediation.Type.IDENTIFY -> "Sign In"
+                IdxRemediation.Type.SELECT_AUTHENTICATOR_AUTHENTICATE, IdxRemediation.Type.SELECT_AUTHENTICATOR_ENROLL -> "Choose"
+                IdxRemediation.Type.LAUNCH_AUTHENTICATOR -> "Launch Authenticator"
+                IdxRemediation.Type.CANCEL -> "Restart"
+                IdxRemediation.Type.UNLOCK_ACCOUNT -> "Unlock Account"
+                IdxRemediation.Type.REDIRECT_IDP -> {
+                    capabilities.get<IdxIdpCapability>()?.let { capability ->
+                        "Login with ${capability.name}"
+                    } ?: "Social Login"
+                }
 
-            IdxRemediation.Type.CHALLENGE_WEBAUTHN_AUTOFILLUI_AUTHENTICATOR -> "Use Passkey"
-            else -> "Continue"
-        }
+                IdxRemediation.Type.CHALLENGE_WEBAUTHN_AUTOFILLUI_AUTHENTICATOR -> "Use Passkey"
+                else -> "Continue"
+            }
 
         return listOf(
             DynamicAuthField.Action(title) { activity ->
@@ -453,23 +481,25 @@ internal class DynamicAuthViewModel(private val recoveryToken: String) : ViewMod
         val authenticatorCapability = authenticators.capability<IdxPollAuthenticatorCapability>()
 
         // Create a poll function for the available capability.
-        val pollFunction = when {
-            remediationCapability != null -> remediationCapability::poll
-            authenticatorCapability != null -> authenticatorCapability::poll
-            else -> return
-        }
+        val pollFunction =
+            when {
+                remediationCapability != null -> remediationCapability::poll
+                authenticatorCapability != null -> authenticatorCapability::poll
+                else -> return
+            }
 
-        pollingJob = viewModelScope.launch {
-            when (val result = pollFunction(localFlow)) {
-                is OAuth2ClientResult.Error -> {
-                    _state.value = DynamicAuthState.Error("Failed to poll")
-                }
+        pollingJob =
+            viewModelScope.launch {
+                when (val result = pollFunction(localFlow)) {
+                    is OAuth2ClientResult.Error -> {
+                        _state.value = DynamicAuthState.Error("Failed to poll")
+                    }
 
-                is OAuth2ClientResult.Success -> {
-                    handleResponse(result.result)
+                    is OAuth2ClientResult.Success -> {
+                        handleResponse(result.result)
+                    }
                 }
             }
-        }
     }
 
     private fun cancelPolling() {
@@ -481,7 +511,10 @@ internal class DynamicAuthViewModel(private val recoveryToken: String) : ViewMod
      * Proceed to the next phase of the remediation. If the remediation has an `IdxIdpCapability`,
      * it'll redirect to a browser showing the identity provider, otherwise it calls the Authorization Server with the given `remediation`.
      */
-    private fun proceed(remediation: IdxRemediation, activity: Activity) {
+    private fun proceed(
+        remediation: IdxRemediation,
+        activity: Activity,
+    ) {
         val idpCapability = remediation.capabilities.get<IdxIdpCapability>()
         val idxWebAuthnAuthenticationCapability = remediation.capabilities.get<IdxWebAuthnAuthenticationCapability>()
 
@@ -512,10 +545,11 @@ internal class DynamicAuthViewModel(private val recoveryToken: String) : ViewMod
 
                 when (val resumeResult = flow?.proceed(remediation)) {
                     is OAuth2ClientResult.Success -> {
-                        val remediation = resumeResult.result.remediations.find { remediation ->
-                            remediation.authenticators.capability<IdxWebAuthnRegistrationCapability>() != null ||
-                                remediation.authenticators.capability<IdxWebAuthnAuthenticationCapability>() != null
-                        }
+                        val remediation =
+                            resumeResult.result.remediations.find { remediation ->
+                                remediation.authenticators.capability<IdxWebAuthnRegistrationCapability>() != null ||
+                                    remediation.authenticators.capability<IdxWebAuthnAuthenticationCapability>() != null
+                            }
                         if (remediation != null) {
                             proceedWithWebAuthn(remediation, activity)
                                 .onSuccess {
@@ -536,8 +570,10 @@ internal class DynamicAuthViewModel(private val recoveryToken: String) : ViewMod
         }
     }
 
-    private suspend fun proceedWithWebAuthn(remediation: IdxRemediation, activity: Activity): Result<IdxResponse> {
-
+    private suspend fun proceedWithWebAuthn(
+        remediation: IdxRemediation,
+        activity: Activity,
+    ): Result<IdxResponse> {
         val webAuthnRegistrationCapability = remediation.authenticators.capability<IdxWebAuthnRegistrationCapability>()
 
         val webAuthnAuthenticateCapability = remediation.authenticators.capability<IdxWebAuthnAuthenticationCapability>()
@@ -548,11 +584,12 @@ internal class DynamicAuthViewModel(private val recoveryToken: String) : ViewMod
             handleWebAuthnRegistration(remediation, webAuthnRegistrationCapability, activity).fold(
                 {
                     Result.success(it)
-                }, {
-                Timber.e(it, "Failed to handle WebAuthn registration: %s", it.message)
-                _state.value = DynamicAuthState.Error(it.message ?: "Failed to handle WebAuthn registration")
-                Result.failure(it)
-            }
+                },
+                {
+                    Timber.e(it, "Failed to handle WebAuthn registration: %s", it.message)
+                    _state.value = DynamicAuthState.Error(it.message ?: "Failed to handle WebAuthn registration")
+                    Result.failure(it)
+                }
             )
         } else if (webAuthnAuthenticateCapability != null) {
             cancelPolling()

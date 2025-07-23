@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,8 +41,10 @@ import io.cucumber.java.en.Given
 import io.cucumber.java.en.Then
 import io.cucumber.java.en.When
 
+@Suppress("ktlint:standard:function-naming")
 class LaunchDefinitions {
-    @Given("^Mary navigates to the Basic Login View$") fun navigate_to_basic_login_view() {
+    @Given("^Mary navigates to the Basic Login View$")
+    fun navigate_to_basic_login_view() {
         waitForElement(LAUNCH_TITLE_TEXT_VIEW)
         onView(withId(R.id.login_button)).perform(click())
     }

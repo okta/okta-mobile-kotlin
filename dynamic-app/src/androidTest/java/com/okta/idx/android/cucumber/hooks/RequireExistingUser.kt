@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,14 +30,16 @@ class RequireExistingUser {
 
     @Before("@requireExistingUser", order = 100) fun createUserBeforeScenario() {
         Assert.assertNotNull(SharedState.a18NProfile)
-        val user: User = UserBuilder.instance()
-            .setEmail(SharedState.a18NProfile!!.emailAddress)
-            .setFirstName(EndToEndCredentials["/cucumber/firstName"])
-            .setLastName(SharedState.a18NProfile!!.profileId)
-            .setPassword(EndToEndCredentials["/cucumber/password"].toCharArray())
-            .setMobilePhone(SharedState.a18NProfile!!.phoneNumber)
-            .setActive(true)
-            .buildAndCreate(userApi)
+        val user: User =
+            UserBuilder
+                .instance()
+                .setEmail(SharedState.a18NProfile!!.emailAddress)
+                .setFirstName(EndToEndCredentials["/cucumber/firstName"])
+                .setLastName(SharedState.a18NProfile!!.profileId)
+                .setPassword(EndToEndCredentials["/cucumber/password"].toCharArray())
+                .setMobilePhone(SharedState.a18NProfile!!.phoneNumber)
+                .setActive(true)
+                .buildAndCreate(userApi)
         Assert.assertNotNull(user.id)
         Timber.i("User created: %s", user.profile?.email)
         SharedState.user = user

@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,8 +37,10 @@ class RequireGroupsForUser {
     private fun assignGroupForUser(groupName: String) {
         Assert.assertNotNull(SharedState.user)
         val groupApi = GroupApi(OktaManagementSdk.client)
-        val groupList = groupApi.listGroups(null, null, null, 20, null, null, null, null)
-            .filter { it.profile?.name == groupName }
+        val groupList =
+            groupApi
+                .listGroups(null, null, null, 20, null, null, null, null)
+                .filter { it.profile?.name == groupName }
         Assert.assertFalse(groupList.isEmpty())
         groupList.forEach { group: Group ->
             groupApi.assignUserToGroup(group.id, SharedState.user!!.id)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,9 +32,7 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 
-internal fun Response.toIdxAuthenticatorPathPairs(
-    json: Json,
-): List<AuthenticatorPathPair> {
+internal fun Response.toIdxAuthenticatorPathPairs(json: Json): List<AuthenticatorPathPair> {
     val result = mutableListOf<AuthenticatorPathPair>()
     currentAuthenticatorEnrollment?.value?.apply {
         result += toIdxAuthenticator(json, IdxAuthenticator.State.ENROLLING).toPathPair("$.currentAuthenticatorEnrollment")
@@ -47,14 +45,18 @@ internal fun Response.toIdxAuthenticatorPathPairs(
     }
     authenticatorEnrollments?.value?.let {
         it.forEachIndexed { index, authenticator ->
-            result += authenticator.toIdxAuthenticator(json, IdxAuthenticator.State.ENROLLED)
-                .toPathPair("$.authenticatorEnrollments.value[$index]")
+            result +=
+                authenticator
+                    .toIdxAuthenticator(json, IdxAuthenticator.State.ENROLLED)
+                    .toPathPair("$.authenticatorEnrollments.value[$index]")
         }
     }
     authenticators?.value?.let {
         it.forEachIndexed { index, authenticator ->
-            result += authenticator.toIdxAuthenticator(json, IdxAuthenticator.State.NORMAL)
-                .toPathPair("$.authenticators.value[$index]")
+            result +=
+                authenticator
+                    .toIdxAuthenticator(json, IdxAuthenticator.State.NORMAL)
+                    .toPathPair("$.authenticators.value[$index]")
         }
     }
     return result
@@ -88,12 +90,12 @@ internal fun Authenticator.toIdxAuthenticator(
         state = state,
         methods = methods.asIdxAuthenticatorMethods(),
         methodNames = methods.asMethodNames(),
-        capabilities = IdxCapabilityCollection(capabilities),
+        capabilities = IdxCapabilityCollection(capabilities)
     )
 }
 
-private fun String.asIdxAuthenticatorType(): IdxAuthenticator.Kind {
-    return when (this) {
+private fun String.asIdxAuthenticatorType(): IdxAuthenticator.Kind =
+    when (this) {
         "app" -> IdxAuthenticator.Kind.APP
         "email" -> IdxAuthenticator.Kind.EMAIL
         "phone" -> IdxAuthenticator.Kind.PHONE
@@ -104,7 +106,6 @@ private fun String.asIdxAuthenticatorType(): IdxAuthenticator.Kind {
         "federated" -> IdxAuthenticator.Kind.FEDERATED
         else -> IdxAuthenticator.Kind.UNKNOWN
     }
-}
 
 private fun List<Map<String, String>>?.asIdxAuthenticatorMethods(): List<IdxAuthenticator.Method>? {
     if (this == null) return null
@@ -118,8 +119,8 @@ private fun List<Map<String, String>>?.asIdxAuthenticatorMethods(): List<IdxAuth
     return result
 }
 
-private fun String.asIdxAuthenticatorMethod(): IdxAuthenticator.Method {
-    return when (this) {
+private fun String.asIdxAuthenticatorMethod(): IdxAuthenticator.Method =
+    when (this) {
         "sms" -> IdxAuthenticator.Method.SMS
         "voice" -> IdxAuthenticator.Method.VOICE
         "email" -> IdxAuthenticator.Method.EMAIL
@@ -132,7 +133,6 @@ private fun String.asIdxAuthenticatorMethod(): IdxAuthenticator.Method {
         "security_question" -> IdxAuthenticator.Method.SECURITY_QUESTION
         else -> IdxAuthenticator.Method.UNKNOWN
     }
-}
 
 private fun List<Map<String, String>>?.asMethodNames(): List<String>? {
     if (this == null) return null
@@ -172,26 +172,25 @@ private fun Map<String, JsonElement>.toNumberChallengeCapability(): IdxAuthentic
     return IdxNumberChallengeCapability(correctAnswer = correctAnswer.content)
 }
 
-private fun Authenticator.Settings.toIdxPasswordSettings(): IdxAuthenticator.Capability {
-    return IdxPasswordSettingsCapability(
-        complexity = IdxPasswordSettingsCapability.Complexity(
-            minLength = complexity.minLength,
-            minLowerCase = complexity.minLowerCase,
-            minUpperCase = complexity.minUpperCase,
-            minNumber = complexity.minNumber,
-            minSymbol = complexity.minSymbol,
-            excludeUsername = complexity.excludeUsername,
-            excludeAttributes = complexity.excludeAttributes,
-        ),
-        age = age?.let {
-            IdxPasswordSettingsCapability.Age(
-                minAgeMinutes = it.minAgeMinutes,
-                historyCount = it.historyCount,
-            )
-        },
+private fun Authenticator.Settings.toIdxPasswordSettings(): IdxAuthenticator.Capability =
+    IdxPasswordSettingsCapability(
+        complexity =
+            IdxPasswordSettingsCapability.Complexity(
+                minLength = complexity.minLength,
+                minLowerCase = complexity.minLowerCase,
+                minUpperCase = complexity.minUpperCase,
+                minNumber = complexity.minNumber,
+                minSymbol = complexity.minSymbol,
+                excludeUsername = complexity.excludeUsername,
+                excludeAttributes = complexity.excludeAttributes
+            ),
+        age =
+            age?.let {
+                IdxPasswordSettingsCapability.Age(
+                    minAgeMinutes = it.minAgeMinutes,
+                    historyCount = it.historyCount
+                )
+            }
     )
-}
 
-private fun JsonObject.stringValue(key: String): String? {
-    return (get(key) as? JsonPrimitive?)?.content
-}
+private fun JsonObject.stringValue(key: String): String? = (get(key) as? JsonPrimitive?)?.content

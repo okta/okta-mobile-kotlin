@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,14 +31,12 @@ class IdxMessageCollection internal constructor(
 class IdxMessage internal constructor(
     /** The type of message received from the server. */
     val type: Severity,
-
     /**
      * A localization key representing this message.
      *
      * This allows the text represented by this message to be customized or localized as needed.
      */
     val localizationKey: String?,
-
     /** The default text for this message. */
     val message: String,
 ) {

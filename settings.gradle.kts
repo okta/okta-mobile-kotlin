@@ -25,5 +25,8 @@ include(":session-token-sample")
 include(":suppress-internal-dokka-plugin")
 include(":test-helpers")
 include(":web-authentication-ui")
-
+include(":dynamic-app")
+include(":okta-idx-kotlin")
+include(":native-authentication")
+include(":test-utils")
 

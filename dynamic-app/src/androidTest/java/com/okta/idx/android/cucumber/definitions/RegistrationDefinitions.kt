@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import io.cucumber.java.en.Then
 import io.cucumber.java.en.When
 import org.hamcrest.CoreMatchers.containsString
 
+@Suppress("ktlint:standard:function-naming")
 class RegistrationDefinitions {
     @When("^she fills out her First Name$")
     fun she_fills_out_her_first_name() {

@@ -1,3 +1,4 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.util.Properties
 
 plugins {
@@ -19,6 +20,7 @@ android {
 
     defaultConfig {
         applicationId = "sample.okta.oidc.android"
+        signingConfig = signingConfigs.getByName("debug")
         minSdk = MIN_SDK
         targetSdk = TARGET_SDK
         versionCode = 1
@@ -46,9 +48,11 @@ android {
         targetCompatibility = TARGET_COMPATIBILITY
     }
 
-    kotlinOptions {
-        jvmTarget = JVM_TARGET
-        freeCompilerArgs += listOf("-Xopt-in=kotlin.RequiresOptIn")
+    kotlin {
+        compilerOptions {
+            jvmTarget = JvmTarget.fromTarget(JVM_TARGET)
+            freeCompilerArgs.add("-opt-in=kotlin.RequiresOptIn")
+        }
     }
 
     buildFeatures {

@@ -29,10 +29,11 @@ class Form private constructor(
         val launchActions: MutableList<suspend CoroutineScope.() -> Unit> = mutableListOf(),
     ) {
         fun build(formTransformers: List<FormTransformer>): Form {
-            val builtFromWithoutTransform = Builder(
-                elements = elements.toMutableList(),
-                launchActions = launchActions.toMutableList()
-            )
+            val builtFromWithoutTransform =
+                Builder(
+                    elements = elements.toMutableList(),
+                    launchActions = launchActions.toMutableList()
+                )
 
             for (formFactory in formTransformers) {
                 formFactory.apply {
@@ -40,22 +41,27 @@ class Form private constructor(
                 }
             }
             val builderToElementMap = mutableMapOf<Element.Builder<*>, Element>()
-            val builtElements = elements.map { elementBuilder ->
-                val element = elementBuilder.build()
-                builderToElementMap[elementBuilder] = element
-                element
-            }
+            val builtElements =
+                elements.map { elementBuilder ->
+                    val element = elementBuilder.build()
+                    builderToElementMap[elementBuilder] = element
+                    element
+                }
             return Form(builtElements, builtFromWithoutTransform, builderToElementMap)
         }
     }
 
-    internal data class ValidationResult(val formIsValid: Boolean, val updatedFormBuilder: Builder)
+    internal data class ValidationResult(
+        val formIsValid: Boolean,
+        val updatedFormBuilder: Builder,
+    )
 
     private fun newBuilder(): Builder {
-        val builder = Builder(
-            elements = builtFromWithoutTransform.elements.toMutableList(),
-            launchActions = builtFromWithoutTransform.launchActions.toMutableList()
-        )
+        val builder =
+            Builder(
+                elements = builtFromWithoutTransform.elements.toMutableList(),
+                launchActions = builtFromWithoutTransform.launchActions.toMutableList()
+            )
         for (elementBuilder in builder.elements) {
             builderToElementMap[elementBuilder]?.let { element ->
                 elementBuilder.setValueFromBaseElement(element)
@@ -85,7 +91,5 @@ class Form private constructor(
         return false
     }
 
-    override fun hashCode(): Int {
-        return Objects.hash(elements, builtFromWithoutTransform)
-    }
+    override fun hashCode(): Int = Objects.hash(elements, builtFromWithoutTransform)
 }

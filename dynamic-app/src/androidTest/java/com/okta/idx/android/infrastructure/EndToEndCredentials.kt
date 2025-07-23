@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,5 @@ object EndToEndCredentials {
         jsonNode = mapper.readTree(inputStream)
     }
 
-    operator fun get(key: String): String {
-        return jsonNode.at(key).asText()
-    }
+    operator fun get(key: String): String = jsonNode.at(key).asText()
 }

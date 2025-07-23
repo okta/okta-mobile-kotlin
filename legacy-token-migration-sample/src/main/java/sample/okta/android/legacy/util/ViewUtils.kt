@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,17 +20,17 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.LayoutRes
 
-internal fun ViewGroup.inflate(@LayoutRes layoutId: Int): View {
-    return LayoutInflater.from(context).inflate(layoutId, this, false)
-}
+internal fun ViewGroup.inflate(
+    @LayoutRes layoutId: Int,
+): View = LayoutInflater.from(context).inflate(layoutId, this, false)
 
 internal fun <B> ViewGroup.inflateBinding(
     bindingFactory: (
         inflater: LayoutInflater,
         container: ViewGroup?,
-        attachToParent: Boolean
+        attachToParent: Boolean,
     ) -> B,
-    attachToParent: Boolean = false
+    attachToParent: Boolean = false,
 ): B {
     val inflater = LayoutInflater.from(context)
     return bindingFactory(inflater, this, attachToParent)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,10 @@ interface WebAuthenticationProvider {
      *
      * @return the exception causing the launch to fail.
      */
-    fun launch(context: Context, url: HttpUrl): Exception?
+    fun launch(
+        context: Context,
+        url: HttpUrl,
+    ): Exception?
 }
 
 internal class DefaultWebAuthenticationProvider(
@@ -55,7 +58,10 @@ internal class DefaultWebAuthenticationProvider(
         val USER_AGENT_HEADER = "web-authentication-ui/${Build.VERSION.SDK_INT} com.okta.webauthenticationui/2.0.0"
     }
 
-    override fun launch(context: Context, url: HttpUrl): Exception? {
+    override fun launch(
+        context: Context,
+        url: HttpUrl,
+    ): Exception? {
         val intentBuilder: CustomTabsIntent.Builder = CustomTabsIntent.Builder()
         eventCoordinator.sendEvent(CustomizeCustomTabsEvent(context, intentBuilder))
         val tabsIntent: CustomTabsIntent = intentBuilder.build()

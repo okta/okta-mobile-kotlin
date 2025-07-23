@@ -40,22 +40,14 @@ sealed class Element {
 
     class Loading private constructor() : Element() {
         internal object Builder : Element.Builder<Loading>() {
-            override fun build(): Loading {
-                return Loading()
-            }
+            override fun build(): Loading = Loading()
         }
 
-        override fun newBuilder(): Element.Builder<*> {
-            return Builder
-        }
+        override fun newBuilder(): Element.Builder<*> = Builder
 
-        override fun equals(other: Any?): Boolean {
-            return other is Loading
-        }
+        override fun equals(other: Any?): Boolean = other is Loading
 
-        override fun hashCode(): Int {
-            return Loading::class.java.hashCode()
-        }
+        override fun hashCode(): Int = Loading::class.java.hashCode()
     }
 
     class Action private constructor(
@@ -68,22 +60,20 @@ sealed class Element {
             var text: String,
             var onClick: (Form) -> Unit,
         ) : Element.Builder<Action>() {
-            override fun build(): Action {
-                return Action(
+            override fun build(): Action =
+                Action(
                     remediation = remediation,
                     text = text,
-                    onClick = onClick,
+                    onClick = onClick
                 )
-            }
         }
 
-        override fun newBuilder(): Element.Builder<*> {
-            return Builder(
+        override fun newBuilder(): Element.Builder<*> =
+            Builder(
                 remediation = remediation,
                 text = text,
-                onClick = onClick,
+                onClick = onClick
             )
-        }
     }
 
     class TextInput private constructor(
@@ -104,17 +94,16 @@ sealed class Element {
             var isRequired: Boolean,
             var errorMessage: String,
         ) : Element.Builder<TextInput>() {
-            override fun build(): TextInput {
-                return TextInput(
+            override fun build(): TextInput =
+                TextInput(
                     remediation = remediation,
                     idxField = idxField,
                     label = label,
                     isSecret = isSecret,
                     isRequired = isRequired,
                     errorMessage = errorMessage,
-                    value = value,
+                    value = value
                 )
-            }
 
             override fun setValueFromElement(element: TextInput) {
                 value = element.value
@@ -137,17 +126,16 @@ sealed class Element {
                 idxField.value = valueToSet
             }
 
-        override fun newBuilder(): Element.Builder<*> {
-            return Builder(
+        override fun newBuilder(): Element.Builder<*> =
+            Builder(
                 remediation = remediation,
                 idxField = idxField,
                 label = label,
                 isSecret = isSecret,
                 isRequired = isRequired,
                 errorMessage = errorMessage,
-                value = value,
+                value = value
             )
-        }
     }
 
     class Label private constructor(
@@ -156,7 +144,9 @@ sealed class Element {
         val type: Type,
     ) : Element() {
         enum class Type {
-            DESCRIPTION, HEADER, ERROR,
+            DESCRIPTION,
+            HEADER,
+            ERROR,
         }
 
         internal data class Builder(
@@ -164,22 +154,20 @@ sealed class Element {
             var text: String,
             var type: Type = Type.DESCRIPTION,
         ) : Element.Builder<Label>() {
-            override fun build(): Label {
-                return Label(
+            override fun build(): Label =
+                Label(
                     remediation = remediation,
                     text = text,
-                    type = type,
+                    type = type
                 )
-            }
         }
 
-        override fun newBuilder(): Element.Builder<*> {
-            return Builder(
+        override fun newBuilder(): Element.Builder<*> =
+            Builder(
                 remediation = remediation,
                 text = text,
-                type = type,
+                type = type
             )
-        }
     }
 
     class Options private constructor(
@@ -198,16 +186,15 @@ sealed class Element {
             private val valueUpdater: (IdxRemediation.Form.Field?) -> Unit,
             var option: Option? = null,
         ) : Element.Builder<Options>() {
-            override fun build(): Options {
-                return Options(
+            override fun build(): Options =
+                Options(
                     remediation = remediation,
                     valueUpdater = valueUpdater,
                     options = options.map { it.build() },
                     isRequired = isRequired,
                     errorMessage = errorMessage,
-                    option = option,
+                    option = option
                 )
-            }
 
             override fun setValueFromElement(element: Options) {
                 option = element.option
@@ -234,26 +221,24 @@ sealed class Element {
                 var label: String,
                 val elements: MutableList<Element.Builder<*>>,
             ) {
-                fun build(): Option {
-                    return Option(
+                fun build(): Option =
+                    Option(
                         field = field,
                         label = label,
-                        elements = elements.map { it.build() },
+                        elements = elements.map { it.build() }
                     )
-                }
             }
 
             internal fun update(valueUpdater: (IdxRemediation.Form.Field?) -> Unit) {
                 valueUpdater(field)
             }
 
-            internal fun newBuilder(): Builder {
-                return Builder(
+            internal fun newBuilder(): Builder =
+                Builder(
                     field = field,
                     label = label,
-                    elements = elements.map { it.newBuilder() }.toMutableList(),
+                    elements = elements.map { it.newBuilder() }.toMutableList()
                 )
-            }
         }
 
         @Volatile var option: Option? = option
@@ -262,15 +247,14 @@ sealed class Element {
                 value?.update(valueUpdater) ?: valueUpdater(null)
             }
 
-        override fun newBuilder(): Element.Builder<*> {
-            return Builder(
+        override fun newBuilder(): Element.Builder<*> =
+            Builder(
                 remediation = remediation,
                 options = options.map { it.newBuilder() }.toMutableList(),
                 isRequired = isRequired,
                 errorMessage = errorMessage,
                 valueUpdater = valueUpdater,
-                option = option,
+                option = option
             )
-        }
     }
 }

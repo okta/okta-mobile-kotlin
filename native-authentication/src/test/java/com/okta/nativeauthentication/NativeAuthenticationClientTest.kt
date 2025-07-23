@@ -64,9 +64,7 @@ class NativeAuthenticationClientTest {
         }
     }
 
-    private suspend fun setup(
-        interactResponseFactory: () -> Unit = ::enqueueInteractSuccess,
-    ): Flow<Form> {
+    private suspend fun setup(interactResponseFactory: () -> Unit = ::enqueueInteractSuccess): Flow<Form> {
         interactResponseFactory()
         fakeCallback = FakeCallback()
         fakeIdxResponseTransformer = FakeIdxResponseTransformer()
@@ -77,180 +75,201 @@ class NativeAuthenticationClientTest {
         }
     }
 
-    @Test fun testNativeAuthenticationClientCreatesForm(): Unit = runBlocking {
-        networkRule.enqueue(path("/idp/idx/introspect")) { response ->
-            response.testBodyFromFile("IdentifyRemediationResponse.json")
-        }
-        val flow = setup()
-        val forms = flow.take(2).toList()
-        val loadingForm = forms[0]
-        assertThat(loadingForm.elements).hasSize(1)
-        assertThat(loadingForm.elements[0]).isInstanceOf(Element.Loading::class.java)
-        val form = forms[1]
-        val elements = form.elements
-        assertThat(elements).hasSize(3)
-        assertThat((elements[0] as Element.Label).text).isEqualTo("Fake Label")
-        assertThat((elements[1] as Element.TextInput).label).isEqualTo("Fake Text Input")
-        assertThat((elements[2] as Element.Action).text).isEqualTo("Fake Button")
-    }
-
-    @Test fun testNativeAuthenticationActionSendsRequest(): Unit = runBlocking {
-        networkRule.enqueue(path("/idp/idx/introspect")) { response ->
-            response.testBodyFromFile("IdentifyRemediationResponse.json")
-        }
-        networkRule.enqueue(
-            path("/idp/idx/identify"),
-            body("""{"identifier":"admin@example.com","credentials":{},"stateHandle":"029ZAB"}"""),
-        ) { response ->
-            response.testBodyFromFile("SuccessWithInteractionCodeResponse.json")
-        }
-        networkRule.enqueue(path("/oauth2/v1/token")) { response ->
-            response.testBodyFromFile("TokenResponse.json")
-        }
-        val flow = setup()
-        val formCounter = AtomicInteger()
-        val forms = flow.onEach { form ->
-            val elements = form.elements
-            if (formCounter.getAndIncrement() == 1) {
-                assertThat((elements[0] as Element.Label).text).isEqualTo("Fake Label")
-                (elements[1] as Element.TextInput).value = "admin@example.com"
-                (elements[2] as Element.Action).onClick(form)
-            }
-        }.toList()
-        assertThat(forms).hasSize(4)
-        assertThat(fakeCallback.tokens).hasSize(1)
-    }
-
-    @Test fun testCancellation(): Unit = runBlocking {
-        val cancelCountDownLatch = CountDownLatch(1)
-        val formReference = AtomicReference<Form>()
-        val job = async(Dispatchers.IO) {
+    @Test fun testNativeAuthenticationClientCreatesForm(): Unit =
+        runBlocking {
             networkRule.enqueue(path("/idp/idx/introspect")) { response ->
                 response.testBodyFromFile("IdentifyRemediationResponse.json")
             }
             val flow = setup()
-            flow.onEach { form ->
-                formReference.set(form)
-                if (form.elements[0] !is Element.Loading) {
-                    cancelCountDownLatch.countDown()
-                }
-            }.collect()
-        }
-        assertThat(cancelCountDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
-        job.cancel()
-
-        // Implicitly ensuring this doesn't throw or cause another request.
-        assertThat((formReference.get().elements[0] as Element.Label).text).isEqualTo("Fake Label")
-        (formReference.get().elements[2] as Element.Action).onClick(formReference.get())
-    }
-
-    @Test fun testFailedIntrospectCallRetriesIntrospect(): Unit = runBlocking {
-        networkRule.enqueue(path("/idp/idx/introspect")) { response ->
-            response.setResponseCode(400)
-        }
-        val flow = setup()
-        val formCounter = AtomicInteger()
-        val forms = flow.take(4).onEach { form ->
-            if (formCounter.getAndIncrement() == 1) {
-                networkRule.enqueue(path("/idp/idx/introspect")) { response ->
-                    response.testBodyFromFile("IdentifyRemediationResponse.json")
-                }
-                (form.elements[0] as Element.Action).onClick(form)
-            }
-        }.toList()
-        assertThat(forms[0].elements).hasSize(1)
-        assertThat(forms[0].elements[0]).isInstanceOf(Element.Loading::class.java)
-        assertThat(forms[1].elements).hasSize(1)
-        assertThat((forms[1].elements[0] as Element.Action).text).isEqualTo("Retry")
-        assertThat(forms[2].elements).hasSize(1)
-        assertThat(forms[2].elements[0]).isInstanceOf(Element.Loading::class.java)
-        assertThat(forms[3].elements).hasSize(3)
-        assertThat((forms[3].elements[0] as Element.Label).text).isEqualTo("Fake Label")
-        assertThat((forms[3].elements[1] as Element.TextInput).label).isEqualTo("Fake Text Input")
-        assertThat((forms[3].elements[2] as Element.Action).text).isEqualTo("Fake Button")
-    }
-
-    @Test fun testFailedIdentifyCallRetriesIdentify(): Unit = runBlocking {
-        networkRule.enqueue(path("/idp/idx/introspect")) { response ->
-            response.testBodyFromFile("IdentifyRemediationResponse.json")
-        }
-        networkRule.enqueue(path("/idp/idx/identify")) { response ->
-            response.setResponseCode(400)
-        }
-        networkRule.enqueue(path("/oauth2/v1/token")) { response ->
-            response.testBodyFromFile("TokenResponse.json")
-        }
-
-        val flow = setup()
-        val formCounter = AtomicInteger()
-        val forms = flow.onEach { form ->
+            val forms = flow.take(2).toList()
+            val loadingForm = forms[0]
+            assertThat(loadingForm.elements).hasSize(1)
+            assertThat(loadingForm.elements[0]).isInstanceOf(Element.Loading::class.java)
+            val form = forms[1]
             val elements = form.elements
-            when (formCounter.getAndIncrement()) {
-                1 -> {
-                    assertThat((elements[0] as Element.Label).text).isEqualTo("Fake Label")
-                    (elements[2] as Element.Action).onClick(form)
-                }
-                3 -> {
-                    networkRule.enqueue(path("/idp/idx/identify")) { response ->
-                        response.testBodyFromFile("SuccessWithInteractionCodeResponse.json")
+            assertThat(elements).hasSize(3)
+            assertThat((elements[0] as Element.Label).text).isEqualTo("Fake Label")
+            assertThat((elements[1] as Element.TextInput).label).isEqualTo("Fake Text Input")
+            assertThat((elements[2] as Element.Action).text).isEqualTo("Fake Button")
+        }
+
+    @Test fun testNativeAuthenticationActionSendsRequest(): Unit =
+        runBlocking {
+            networkRule.enqueue(path("/idp/idx/introspect")) { response ->
+                response.testBodyFromFile("IdentifyRemediationResponse.json")
+            }
+            networkRule.enqueue(
+                path("/idp/idx/identify"),
+                body("""{"identifier":"admin@example.com","credentials":{},"stateHandle":"029ZAB"}""")
+            ) { response ->
+                response.testBodyFromFile("SuccessWithInteractionCodeResponse.json")
+            }
+            networkRule.enqueue(path("/oauth2/v1/token")) { response ->
+                response.testBodyFromFile("TokenResponse.json")
+            }
+            val flow = setup()
+            val formCounter = AtomicInteger()
+            val forms =
+                flow
+                    .onEach { form ->
+                        val elements = form.elements
+                        if (formCounter.getAndIncrement() == 1) {
+                            assertThat((elements[0] as Element.Label).text).isEqualTo("Fake Label")
+                            (elements[1] as Element.TextInput).value = "admin@example.com"
+                            (elements[2] as Element.Action).onClick(form)
+                        }
+                    }.toList()
+            assertThat(forms).hasSize(4)
+            assertThat(fakeCallback.tokens).hasSize(1)
+        }
+
+    @Test fun testCancellation(): Unit =
+        runBlocking {
+            val cancelCountDownLatch = CountDownLatch(1)
+            val formReference = AtomicReference<Form>()
+            val job =
+                async(Dispatchers.IO) {
+                    networkRule.enqueue(path("/idp/idx/introspect")) { response ->
+                        response.testBodyFromFile("IdentifyRemediationResponse.json")
                     }
-                    assertThat((elements[0] as Element.Action).text).isEqualTo("Retry")
-                    (elements[0] as Element.Action).onClick(form)
+                    val flow = setup()
+                    flow
+                        .onEach { form ->
+                            formReference.set(form)
+                            if (form.elements[0] !is Element.Loading) {
+                                cancelCountDownLatch.countDown()
+                            }
+                        }.collect()
                 }
-            }
-        }.toList()
-        assertThat(forms).hasSize(6)
-    }
+            assertThat(cancelCountDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
+            job.cancel()
 
-    @Test fun testFailedTokenCallRetriesToken(): Unit = runBlocking {
-        networkRule.enqueue(path("/idp/idx/introspect")) { response ->
-            response.testBodyFromFile("IdentifyRemediationResponse.json")
-        }
-        networkRule.enqueue(path("/idp/idx/identify")) { response ->
-            response.testBodyFromFile("SuccessWithInteractionCodeResponse.json")
-        }
-        networkRule.enqueue(path("/oauth2/v1/token")) { response ->
-            response.setResponseCode(400)
+            // Implicitly ensuring this doesn't throw or cause another request.
+            assertThat((formReference.get().elements[0] as Element.Label).text).isEqualTo("Fake Label")
+            (formReference.get().elements[2] as Element.Action).onClick(formReference.get())
         }
 
-        val flow = setup()
-        val formCounter = AtomicInteger()
-        val forms = flow.onEach { form ->
-            val elements = form.elements
-            when (formCounter.getAndIncrement()) {
-                1 -> {
-                    assertThat((elements[0] as Element.Label).text).isEqualTo("Fake Label")
-                    (elements[2] as Element.Action).onClick(form)
-                }
-                3 -> {
-                    networkRule.enqueue(path("/oauth2/v1/token")) { response ->
-                        response.testBodyFromFile("TokenResponse.json")
-                    }
-                    assertThat((elements[0] as Element.Action).text).isEqualTo("Retry")
-                    (elements[0] as Element.Action).onClick(form)
-                }
+    @Test fun testFailedIntrospectCallRetriesIntrospect(): Unit =
+        runBlocking {
+            networkRule.enqueue(path("/idp/idx/introspect")) { response ->
+                response.setResponseCode(400)
             }
-        }.toList()
-        assertThat(forms).hasSize(6)
-    }
-
-    @Test fun testNativeAuthenticationActionEmitsFormWithError(): Unit = runBlocking {
-        networkRule.enqueue(path("/idp/idx/introspect")) { response ->
-            response.testBodyFromFile("IdentifyRemediationResponse.json")
+            val flow = setup()
+            val formCounter = AtomicInteger()
+            val forms =
+                flow
+                    .take(4)
+                    .onEach { form ->
+                        if (formCounter.getAndIncrement() == 1) {
+                            networkRule.enqueue(path("/idp/idx/introspect")) { response ->
+                                response.testBodyFromFile("IdentifyRemediationResponse.json")
+                            }
+                            (form.elements[0] as Element.Action).onClick(form)
+                        }
+                    }.toList()
+            assertThat(forms[0].elements).hasSize(1)
+            assertThat(forms[0].elements[0]).isInstanceOf(Element.Loading::class.java)
+            assertThat(forms[1].elements).hasSize(1)
+            assertThat((forms[1].elements[0] as Element.Action).text).isEqualTo("Retry")
+            assertThat(forms[2].elements).hasSize(1)
+            assertThat(forms[2].elements[0]).isInstanceOf(Element.Loading::class.java)
+            assertThat(forms[3].elements).hasSize(3)
+            assertThat((forms[3].elements[0] as Element.Label).text).isEqualTo("Fake Label")
+            assertThat((forms[3].elements[1] as Element.TextInput).label).isEqualTo("Fake Text Input")
+            assertThat((forms[3].elements[2] as Element.Action).text).isEqualTo("Fake Button")
         }
-        val flow = setup()
-        fakeIdxResponseTransformer.makeTextInputRequired = true
-        val formCounter = AtomicInteger()
-        val forms = flow.onEach { form ->
-            val elements = form.elements
-            if (formCounter.getAndIncrement() == 1) {
-                assertThat((elements[0] as Element.Label).text).isEqualTo("Fake Label")
-                (elements[2] as Element.Action).onClick(form)
+
+    @Test fun testFailedIdentifyCallRetriesIdentify(): Unit =
+        runBlocking {
+            networkRule.enqueue(path("/idp/idx/introspect")) { response ->
+                response.testBodyFromFile("IdentifyRemediationResponse.json")
             }
-        }.take(3).toList()
-        val errorForm = forms[2]
-        assertThat((errorForm.elements[1] as Element.TextInput).errorMessage).isEqualTo("Field is required.")
-    }
+            networkRule.enqueue(path("/idp/idx/identify")) { response ->
+                response.setResponseCode(400)
+            }
+            networkRule.enqueue(path("/oauth2/v1/token")) { response ->
+                response.testBodyFromFile("TokenResponse.json")
+            }
+
+            val flow = setup()
+            val formCounter = AtomicInteger()
+            val forms =
+                flow
+                    .onEach { form ->
+                        val elements = form.elements
+                        when (formCounter.getAndIncrement()) {
+                            1 -> {
+                                assertThat((elements[0] as Element.Label).text).isEqualTo("Fake Label")
+                                (elements[2] as Element.Action).onClick(form)
+                            }
+                            3 -> {
+                                networkRule.enqueue(path("/idp/idx/identify")) { response ->
+                                    response.testBodyFromFile("SuccessWithInteractionCodeResponse.json")
+                                }
+                                assertThat((elements[0] as Element.Action).text).isEqualTo("Retry")
+                                (elements[0] as Element.Action).onClick(form)
+                            }
+                        }
+                    }.toList()
+            assertThat(forms).hasSize(6)
+        }
+
+    @Test fun testFailedTokenCallRetriesToken(): Unit =
+        runBlocking {
+            networkRule.enqueue(path("/idp/idx/introspect")) { response ->
+                response.testBodyFromFile("IdentifyRemediationResponse.json")
+            }
+            networkRule.enqueue(path("/idp/idx/identify")) { response ->
+                response.testBodyFromFile("SuccessWithInteractionCodeResponse.json")
+            }
+            networkRule.enqueue(path("/oauth2/v1/token")) { response ->
+                response.setResponseCode(400)
+            }
+
+            val flow = setup()
+            val formCounter = AtomicInteger()
+            val forms =
+                flow
+                    .onEach { form ->
+                        val elements = form.elements
+                        when (formCounter.getAndIncrement()) {
+                            1 -> {
+                                assertThat((elements[0] as Element.Label).text).isEqualTo("Fake Label")
+                                (elements[2] as Element.Action).onClick(form)
+                            }
+                            3 -> {
+                                networkRule.enqueue(path("/oauth2/v1/token")) { response ->
+                                    response.testBodyFromFile("TokenResponse.json")
+                                }
+                                assertThat((elements[0] as Element.Action).text).isEqualTo("Retry")
+                                (elements[0] as Element.Action).onClick(form)
+                            }
+                        }
+                    }.toList()
+            assertThat(forms).hasSize(6)
+        }
+
+    @Test fun testNativeAuthenticationActionEmitsFormWithError(): Unit =
+        runBlocking {
+            networkRule.enqueue(path("/idp/idx/introspect")) { response ->
+                response.testBodyFromFile("IdentifyRemediationResponse.json")
+            }
+            val flow = setup()
+            fakeIdxResponseTransformer.makeTextInputRequired = true
+            val formCounter = AtomicInteger()
+            val forms =
+                flow
+                    .onEach { form ->
+                        val elements = form.elements
+                        if (formCounter.getAndIncrement() == 1) {
+                            assertThat((elements[0] as Element.Label).text).isEqualTo("Fake Label")
+                            (elements[2] as Element.Action).onClick(form)
+                        }
+                    }.take(3)
+                    .toList()
+            val errorForm = forms[2]
+            assertThat((errorForm.elements[1] as Element.TextInput).errorMessage).isEqualTo("Field is required.")
+        }
 }
 
 private class FakeCallback : NativeAuthenticationClient.Callback() {
@@ -269,7 +288,7 @@ private class FakeIdxResponseTransformer : IdxResponseTransformer {
     override fun transform(
         resultHandler: suspend (resultProducer: suspend (InteractionCodeFlow) -> OAuth2ClientResult<IdxResponse>) -> Unit,
         response: IdxResponse,
-        clickHandler: (IdxRemediation, Form) -> Unit
+        clickHandler: (IdxRemediation, Form) -> Unit,
     ): Form.Builder {
         val formBuilder = Form.Builder()
 
@@ -278,25 +297,27 @@ private class FakeIdxResponseTransformer : IdxResponseTransformer {
 
         response.remediations.firstOrNull()?.let { remediation ->
             remediation.form.visibleFields.firstOrNull()?.let { field ->
-                val textInputBuilder = Element.TextInput.Builder(
-                    remediation = remediation,
-                    idxField = field,
-                    label = "Fake Text Input",
-                    value = "",
-                    isSecret = false,
-                    isRequired = makeTextInputRequired,
-                    errorMessage = "",
-                )
+                val textInputBuilder =
+                    Element.TextInput.Builder(
+                        remediation = remediation,
+                        idxField = field,
+                        label = "Fake Text Input",
+                        value = "",
+                        isSecret = false,
+                        isRequired = makeTextInputRequired,
+                        errorMessage = ""
+                    )
                 formBuilder.elements += textInputBuilder
             }
 
-            val actionBuilder = Element.Action.Builder(
-                remediation = remediation,
-                text = "Fake Button",
-                onClick = { form ->
-                    clickHandler(remediation, form)
-                },
-            )
+            val actionBuilder =
+                Element.Action.Builder(
+                    remediation = remediation,
+                    text = "Fake Button",
+                    onClick = { form ->
+                        clickHandler(remediation, form)
+                    }
+                )
             formBuilder.elements += actionBuilder
         }
 

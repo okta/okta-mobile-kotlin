@@ -69,12 +69,13 @@ class ForegroundActivityTest {
         val intent = ForegroundActivity.createIntent(launchedFromActivity)
         val controller = Robolectric.buildActivity(ForegroundActivity::class.java, intent)
         val activity = controller.get()
-        val redirectCoordinator = mock<RedirectCoordinator> {
-            on { launchWebAuthenticationProvider(any(), any()) } doReturn true
-            onBlocking { runInitializationFunction() } doAnswer {
-                RedirectInitializationResult.Success(mockUrl, Any())
+        val redirectCoordinator =
+            mock<RedirectCoordinator> {
+                on { launchWebAuthenticationProvider(any(), any()) } doReturn true
+                onBlocking { runInitializationFunction() } doAnswer {
+                    RedirectInitializationResult.Success(mockUrl, Any())
+                }
             }
-        }
         ForegroundViewModel.redirectCoordinator = redirectCoordinator
         controller.create().resume()
 
@@ -90,12 +91,13 @@ class ForegroundActivityTest {
         val controller = Robolectric.buildActivity(ForegroundActivity::class.java, intent)
         val activity = controller.get()
         val deferred = CompletableDeferred<RedirectInitializationResult<Any>>()
-        val redirectCoordinator = mock<RedirectCoordinator> {
-            on { launchWebAuthenticationProvider(any(), any()) } doReturn true
-            onBlocking { runInitializationFunction() } doSuspendableAnswer {
-                deferred.await()
+        val redirectCoordinator =
+            mock<RedirectCoordinator> {
+                on { launchWebAuthenticationProvider(any(), any()) } doReturn true
+                onBlocking { runInitializationFunction() } doSuspendableAnswer {
+                    deferred.await()
+                }
             }
-        }
         ForegroundViewModel.redirectCoordinator = redirectCoordinator
         controller.create().resume().pause()
         verify(redirectCoordinator, never()).launchWebAuthenticationProvider(any(), any())
@@ -113,12 +115,13 @@ class ForegroundActivityTest {
         val intent = ForegroundActivity.createIntent(launchedFromActivity)
         val controller = Robolectric.buildActivity(ForegroundActivity::class.java, intent)
         val activity = controller.get()
-        val redirectCoordinator = mock<RedirectCoordinator> {
-            on { launchWebAuthenticationProvider(any(), any()) } doReturn false
-            onBlocking { runInitializationFunction() } doAnswer {
-                RedirectInitializationResult.Success(mockUrl, Any())
+        val redirectCoordinator =
+            mock<RedirectCoordinator> {
+                on { launchWebAuthenticationProvider(any(), any()) } doReturn false
+                onBlocking { runInitializationFunction() } doAnswer {
+                    RedirectInitializationResult.Success(mockUrl, Any())
+                }
             }
-        }
         ForegroundViewModel.redirectCoordinator = redirectCoordinator
         controller.create().resume()
         assertThat(activity.isFinishing).isTrue()
@@ -131,12 +134,13 @@ class ForegroundActivityTest {
         val intent = ForegroundActivity.createIntent(launchedFromActivity)
         val controller = Robolectric.buildActivity(ForegroundActivity::class.java, intent)
         val activity = controller.get()
-        val redirectCoordinator = mock<RedirectCoordinator> {
-            on { launchWebAuthenticationProvider(any(), any()) } doReturn true
-            onBlocking { runInitializationFunction() } doAnswer {
-                RedirectInitializationResult.Success(mockUrl, Any())
+        val redirectCoordinator =
+            mock<RedirectCoordinator> {
+                on { launchWebAuthenticationProvider(any(), any()) } doReturn true
+                onBlocking { runInitializationFunction() } doAnswer {
+                    RedirectInitializationResult.Success(mockUrl, Any())
+                }
             }
-        }
         ForegroundViewModel.redirectCoordinator = redirectCoordinator
         controller.create().resume()
         assertThat(activity.isFinishing).isFalse()
@@ -151,12 +155,13 @@ class ForegroundActivityTest {
         val intent = ForegroundActivity.createIntent(launchedFromActivity)
         val controller = Robolectric.buildActivity(ForegroundActivity::class.java, intent)
         val activity = controller.get()
-        val redirectCoordinator = mock<RedirectCoordinator> {
-            on { launchWebAuthenticationProvider(any(), any()) } doReturn true
-            onBlocking { runInitializationFunction() } doAnswer {
-                RedirectInitializationResult.Success(mockUrl, Any())
+        val redirectCoordinator =
+            mock<RedirectCoordinator> {
+                on { launchWebAuthenticationProvider(any(), any()) } doReturn true
+                onBlocking { runInitializationFunction() } doAnswer {
+                    RedirectInitializationResult.Success(mockUrl, Any())
+                }
             }
-        }
         ForegroundViewModel.redirectCoordinator = redirectCoordinator
         controller.create().resume()
         assertThat(activity.isFinishing).isFalse()
@@ -174,12 +179,13 @@ class ForegroundActivityTest {
         val intent = ForegroundActivity.createIntent(launchedFromActivity)
         val controller = Robolectric.buildActivity(ForegroundActivity::class.java, intent)
         val activity = controller.get()
-        val redirectCoordinator = mock<RedirectCoordinator> {
-            on { launchWebAuthenticationProvider(any(), any()) } doReturn true
-            onBlocking { runInitializationFunction() } doAnswer {
-                RedirectInitializationResult.Error<Any>(IllegalStateException("From Test!"))
+        val redirectCoordinator =
+            mock<RedirectCoordinator> {
+                on { launchWebAuthenticationProvider(any(), any()) } doReturn true
+                onBlocking { runInitializationFunction() } doAnswer {
+                    RedirectInitializationResult.Error<Any>(IllegalStateException("From Test!"))
+                }
             }
-        }
         ForegroundViewModel.redirectCoordinator = redirectCoordinator
         controller.create().resume()
 
@@ -194,15 +200,21 @@ class ForegroundActivityTest {
         val launchedFromActivity = Robolectric.buildActivity(Activity::class.java).create().get()
         val intent = ForegroundActivity.createIntent(launchedFromActivity)
         val controller = Robolectric.buildActivity(ForegroundActivity::class.java, intent)
-        val redirectCoordinator = mockk<RedirectCoordinator> {
-            every { launchWebAuthenticationProvider(any(), any()) } returns true
-            coEvery { runInitializationFunction() } answers {
-                RedirectInitializationResult.Success(mockUrl, Any())
+        val redirectCoordinator =
+            mockk<RedirectCoordinator> {
+                every { launchWebAuthenticationProvider(any(), any()) } returns true
+                coEvery { runInitializationFunction() } answers {
+                    RedirectInitializationResult.Success(mockUrl, Any())
+                }
             }
-        }
         ForegroundViewModel.redirectCoordinator = redirectCoordinator
 
-        controller.create().resume().pause().newIntent(Intent()).destroy()
+        controller
+            .create()
+            .resume()
+            .pause()
+            .newIntent(Intent())
+            .destroy()
         assertThat(eventHandler.toList()).isEqualTo(
             listOf(
                 ForegroundActivityEvent.OnCreate,

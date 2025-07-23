@@ -1,5 +1,5 @@
 /*
- * Copyright 2024-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,25 +22,27 @@ import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKeys
 import java.util.UUID
 
-internal class LegacyDeviceTokenProvider(private val appContext: Context) {
+internal class LegacyDeviceTokenProvider(
+    private val appContext: Context,
+) {
     internal companion object {
         @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
         internal const val FILE_NAME = "com.okta.authfoundation.device_token_storage"
+
         @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
         internal const val PREFERENCE_KEY = "com.okta.authfoundation.device_token_key"
     }
 
     private val masterKeyAlias by lazy { MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC) }
 
-    private fun createSharedPreferences(): SharedPreferences {
-        return EncryptedSharedPreferences.create(
+    private fun createSharedPreferences(): SharedPreferences =
+        EncryptedSharedPreferences.create(
             FILE_NAME,
             masterKeyAlias,
             appContext,
             EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
             EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
         )
-    }
 
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
     internal val sharedPrefs: SharedPreferences by lazy {

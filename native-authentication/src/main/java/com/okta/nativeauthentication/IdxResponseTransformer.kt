@@ -61,11 +61,12 @@ internal class RealIdxResponseTransformer : IdxResponseTransformer {
     private fun IdxMessageCollection.asElementBuilders(): List<Element.Builder<*>> {
         val elements = mutableListOf<Element.Builder<*>>()
         for (message in messages) {
-            elements += Element.Label.Builder(
-                remediation = null,
-                text = message.message,
-                type = Element.Label.Type.ERROR,
-            )
+            elements +=
+                Element.Label.Builder(
+                    remediation = null,
+                    text = message.message,
+                    type = Element.Label.Type.ERROR
+                )
         }
         return elements
     }
@@ -73,8 +74,8 @@ internal class RealIdxResponseTransformer : IdxResponseTransformer {
     private fun IdxRemediation.Form.Field.asElementBuilders(
         remediation: IdxRemediation,
         forceRequired: Boolean = false,
-    ): List<Element.Builder<*>> {
-        return when {
+    ): List<Element.Builder<*>> =
+        when {
             // Nested form inside a field.
             !form?.visibleFields.isNullOrEmpty() -> {
                 val result = mutableListOf<Element.Builder<*>>()
@@ -86,75 +87,80 @@ internal class RealIdxResponseTransformer : IdxResponseTransformer {
             // Options represent multiple choice items like authenticators or security questions and can be nested.
             !options.isNullOrEmpty() -> {
                 options?.let { options ->
-                    val transformed = options.map {
-                        val nestedElements = it.form?.visibleFields?.flatMap { field ->
-                            field.asElementBuilders(remediation)
-                        } ?: emptyList()
-                        Element.Options.Option.Builder(
-                            field = it,
-                            elements = nestedElements.toMutableList(),
-                            label = it.label ?: "",
+                    val transformed =
+                        options.map {
+                            val nestedElements =
+                                it.form?.visibleFields?.flatMap { field ->
+                                    field.asElementBuilders(remediation)
+                                } ?: emptyList()
+                            Element.Options.Option.Builder(
+                                field = it,
+                                elements = nestedElements.toMutableList(),
+                                label = it.label ?: ""
+                            )
+                        }
+                    val elementBuilder =
+                        Element.Options.Builder(
+                            remediation = remediation,
+                            options = transformed.toMutableList(),
+                            isRequired = isRequired,
+                            errorMessage = messages.joinToString(separator = "\n") { it.message },
+                            valueUpdater = {
+                                selectedOption = it
+                            }
                         )
-                    }
-                    val elementBuilder = Element.Options.Builder(
-                        remediation = remediation,
-                        options = transformed.toMutableList(),
-                        isRequired = isRequired,
-                        errorMessage = messages.joinToString(separator = "\n") { it.message },
-                        valueUpdater = {
-                            selectedOption = it
-                        },
-                    )
                     listOf(elementBuilder)
                 } ?: emptyList()
             }
             // Simple text field.
             (type == "string") -> {
-                val elementBuilder = Element.TextInput.Builder(
-                    remediation = remediation,
-                    idxField = this,
-                    label = label ?: "",
-                    isSecret = isSecret,
-                    value = (value as? String?) ?: "",
-                    isRequired = isRequired || forceRequired,
-                    errorMessage = messages.joinToString(separator = "\n") { it.message },
-                )
+                val elementBuilder =
+                    Element.TextInput.Builder(
+                        remediation = remediation,
+                        idxField = this,
+                        label = label ?: "",
+                        isSecret = isSecret,
+                        value = (value as? String?) ?: "",
+                        isRequired = isRequired || forceRequired,
+                        errorMessage = messages.joinToString(separator = "\n") { it.message }
+                    )
                 listOf(elementBuilder)
             }
             else -> {
                 emptyList()
             }
         }
-    }
 
     private fun IdxRemediation.actionAsElementBuilders(clickHandler: (IdxRemediation, Form) -> Unit): List<Element.Builder<*>> {
         if (form.visibleFields.isEmpty() && capabilities.get<IdxPollRemediationCapability>() != null) {
             return emptyList()
         }
 
-        val title = when (type) {
-            IdxRemediation.Type.SKIP -> "Skip"
-            IdxRemediation.Type.ENROLL_PROFILE, IdxRemediation.Type.SELECT_ENROLL_PROFILE -> "Sign Up"
-            IdxRemediation.Type.SELECT_IDENTIFY, IdxRemediation.Type.IDENTIFY -> "Sign In"
-            IdxRemediation.Type.SELECT_AUTHENTICATOR_AUTHENTICATE, IdxRemediation.Type.SELECT_AUTHENTICATOR_ENROLL -> "Choose"
-            IdxRemediation.Type.LAUNCH_AUTHENTICATOR -> "Launch Authenticator"
-            IdxRemediation.Type.CANCEL -> "Restart"
-            IdxRemediation.Type.UNLOCK_ACCOUNT -> "Unlock Account"
-            IdxRemediation.Type.REDIRECT_IDP -> {
-                capabilities.get<IdxIdpCapability>()?.let { capability ->
-                    "Login with ${capability.name}"
-                } ?: "Social Login"
+        val title =
+            when (type) {
+                IdxRemediation.Type.SKIP -> "Skip"
+                IdxRemediation.Type.ENROLL_PROFILE, IdxRemediation.Type.SELECT_ENROLL_PROFILE -> "Sign Up"
+                IdxRemediation.Type.SELECT_IDENTIFY, IdxRemediation.Type.IDENTIFY -> "Sign In"
+                IdxRemediation.Type.SELECT_AUTHENTICATOR_AUTHENTICATE, IdxRemediation.Type.SELECT_AUTHENTICATOR_ENROLL -> "Choose"
+                IdxRemediation.Type.LAUNCH_AUTHENTICATOR -> "Launch Authenticator"
+                IdxRemediation.Type.CANCEL -> "Restart"
+                IdxRemediation.Type.UNLOCK_ACCOUNT -> "Unlock Account"
+                IdxRemediation.Type.REDIRECT_IDP -> {
+                    capabilities.get<IdxIdpCapability>()?.let { capability ->
+                        "Login with ${capability.name}"
+                    } ?: "Social Login"
+                }
+                else -> "Continue"
             }
-            else -> "Continue"
-        }
 
-        val builder = Element.Action.Builder(
-            remediation = this,
-            text = title,
-            onClick = { form ->
-                clickHandler(this, form)
-            },
-        )
+        val builder =
+            Element.Action.Builder(
+                remediation = this,
+                text = title,
+                onClick = { form ->
+                    clickHandler(this, form)
+                }
+            )
         return listOf(builder)
     }
 
@@ -163,25 +169,27 @@ internal class RealIdxResponseTransformer : IdxResponseTransformer {
         if (form.visibleFields.find { it.type != "string" } == null) {
             return emptyList() // There is no way to type in the code yet.
         }
-        val builder = Element.Action.Builder(
-            remediation = capability.remediation,
-            text = "Resend Code",
-            onClick = { form ->
-                clickHandler(capability.remediation, form)
-            },
-        )
+        val builder =
+            Element.Action.Builder(
+                remediation = capability.remediation,
+                text = "Resend Code",
+                onClick = { form ->
+                    clickHandler(capability.remediation, form)
+                }
+            )
         return listOf(builder)
     }
 
     private fun IdxResponse.recoverElement(clickHandler: (IdxRemediation, Form) -> Unit): List<Element.Builder<*>> {
         val capability = authenticators.current?.capabilities?.get<IdxRecoverCapability>() ?: return emptyList()
-        val builder = Element.Action.Builder(
-            remediation = capability.remediation,
-            text = "Recover",
-            onClick = { form ->
-                clickHandler(capability.remediation, form)
-            },
-        )
+        val builder =
+            Element.Action.Builder(
+                remediation = capability.remediation,
+                text = "Recover",
+                onClick = { form ->
+                    clickHandler(capability.remediation, form)
+                }
+            )
         return listOf(builder)
     }
 
@@ -190,18 +198,17 @@ internal class RealIdxResponseTransformer : IdxResponseTransformer {
         return authenticator.capabilities.get()
     }
 
-    private fun IdxRemediation.pollingAction(
-        resultHandler: suspend (resultProducer: suspend (InteractionCodeFlow) -> OAuth2ClientResult<IdxResponse>) -> Unit,
-    ): (suspend () -> Unit)? {
+    private fun IdxRemediation.pollingAction(resultHandler: suspend (resultProducer: suspend (InteractionCodeFlow) -> OAuth2ClientResult<IdxResponse>) -> Unit): (suspend () -> Unit)? {
         val remediationCapability = capabilities.get<IdxPollRemediationCapability>()
         val authenticatorCapability = authenticators.capability<IdxPollAuthenticatorCapability>()
 
         // Create a poll function for the available capability.
-        val pollFunction = when {
-            remediationCapability != null -> remediationCapability::poll
-            authenticatorCapability != null -> authenticatorCapability::poll
-            else -> return null
-        }
+        val pollFunction =
+            when {
+                remediationCapability != null -> remediationCapability::poll
+                authenticatorCapability != null -> authenticatorCapability::poll
+                else -> return null
+            }
 
         return suspend {
             resultHandler { interactionCodeFlow ->

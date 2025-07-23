@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,8 @@ class RequireUserDeletionAfterRegistration {
         Timber.i("Searching for a user to be deleted: %s", a18nProfile.emailAddress)
         val userApi = UserApi(OktaManagementSdk.client)
         val userToDelete: User? =
-            userApi.listUsers(a18nProfile.emailAddress, null, 20, null, null, null, null)
+            userApi
+                .listUsers(a18nProfile.emailAddress, null, 20, null, null, null, null)
                 .firstOrNull { x ->
                     x.profile?.email == a18nProfile.emailAddress
                 }

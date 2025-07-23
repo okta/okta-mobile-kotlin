@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import io.cucumber.java.en.And
 import io.cucumber.java.en.Then
 import io.cucumber.java.en.When
 
+@Suppress("ktlint:standard:function-naming")
 class PasswordRecoveryDefinitions {
     @When("^she inputs her correct Email$") fun she_inputs_her_correct_email() {
         waitForElementToBeGone(PROGRESS_BAR_VIEW)

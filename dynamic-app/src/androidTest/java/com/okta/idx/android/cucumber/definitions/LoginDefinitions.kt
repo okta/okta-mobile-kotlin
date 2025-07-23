@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,23 +37,28 @@ import io.cucumber.java.en.Given
 import io.cucumber.java.en.Then
 import io.cucumber.java.en.When
 
+@Suppress("ktlint:standard:function-naming")
 class LoginDefinitions {
-    @When("^she fills in her correct username$") fun enter_correct_username() {
+    @When("^she fills in her correct username$")
+    fun enter_correct_username() {
         waitForElementToBeGone(PROGRESS_BAR_VIEW)
         waitForElement(ACTION_BUTTON_VIEW)
 
         onView(withHint("Username")).perform(replaceText(EndToEndCredentials["/cucumber/username"]))
     }
 
-    @And("^she fills in her correct password$") fun enter_correct_password() {
+    @And("^she fills in her correct password$")
+    fun enter_correct_password() {
         onView(withHint("Password")).perform(replaceText(EndToEndCredentials["/cucumber/password"]))
     }
 
-    @And("^she submits the Login form$") fun clicks_login_button() {
+    @And("^she submits the Login form$")
+    fun clicks_login_button() {
         onView(withText("Sign In")).perform(click())
     }
 
-    @When("^she fills in her incorrect username$") fun enter_incorrect_username() {
+    @When("^she fills in her incorrect username$")
+    fun enter_incorrect_username() {
         waitForElementToBeGone(PROGRESS_BAR_VIEW)
         waitForElement(ACTION_BUTTON_VIEW)
 
@@ -67,7 +72,8 @@ class LoginDefinitions {
         onView(withId(R.id.error_text_view)).check(matches(withText("There is no account with the Username $invalidUsername.")))
     }
 
-    @When("^she fills in her incorrect password$") fun enter_incorrect_password() {
+    @When("^she fills in her incorrect password$")
+    fun enter_incorrect_password() {
         onView(withHint("Password")).perform(replaceText(EndToEndCredentials["/cucumber/invalidPassword"]))
     }
 

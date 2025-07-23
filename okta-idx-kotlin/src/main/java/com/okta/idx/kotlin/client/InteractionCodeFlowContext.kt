@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,20 +21,15 @@ package com.okta.idx.kotlin.client
 class InteractionCodeFlowContext internal constructor(
     /** The PKCE code verifier value used when initiating the session using the `interact` method. */
     internal val codeVerifier: String,
-
     /** The interaction handle returned from the `interact` response from the server. */
     internal val interactionHandle: String,
-
     /**
      * The state value used when the `interact` call was initially made.
      *
      * This value can be used to associate a redirect URI to the associated Context that can be used to resume an authentication session.
      */
     internal val state: String,
-
     internal val redirectUrl: String,
-
     internal val nonce: String,
-
-    internal val maxAge: Int?
+    internal val maxAge: Int?,
 )

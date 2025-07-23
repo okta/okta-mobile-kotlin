@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,12 +23,14 @@ import org.junit.Test
 class InteractResponseTest {
     private val json = Json { ignoreUnknownKeys = true }
 
-    @Test fun testDeserialization() {
-        val interactJson = """
-        {
-          "interaction_handle": "NYwq2ADoLvH32XnnQXn-r0d4RhsFORIscEgo-26NyAM"
-        }
-        """.trimIndent()
+    @Test
+    fun testDeserialization() {
+        val interactJson =
+            """
+            {
+              "interaction_handle": "NYwq2ADoLvH32XnnQXn-r0d4RhsFORIscEgo-26NyAM"
+            }
+            """.trimIndent()
         val token = json.decodeFromString<InteractResponse>(interactJson)
         assertThat(token.interactionHandle).isEqualTo("NYwq2ADoLvH32XnnQXn-r0d4RhsFORIscEgo-26NyAM")
     }

@@ -1,5 +1,5 @@
 name: Bug Report
-description: Report a bug you encountered with the Okta IDX Android SDK
+description: Report a bug you encountered with the Okta Mobile Kotlin SDK
 labels: [ bug ]
 body:
   - type: textarea
@@ -43,7 +43,7 @@ body:
   - type: textarea
     id: sdkVersion
     attributes:
-      label: SDK Version
+      label: SDK Version and Artifact(s) used.
     validations:
       required: true
 

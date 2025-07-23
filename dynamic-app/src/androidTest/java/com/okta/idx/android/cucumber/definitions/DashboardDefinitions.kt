@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,8 +41,10 @@ import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.equalTo
 import javax.annotation.CheckReturnValue
 
+@Suppress("ktlint:standard:function-naming")
 class DashboardDefinitions {
-    @Then("^she is redirected to the Root View$") fun redirected_to_root_view() {
+    @Then("^she is redirected to the Root View$")
+    fun redirected_to_root_view() {
         waitForElement(ID_TOKEN_TYPE_TEXT_VIEW)
         onView(withText("Token Type:")).check(matches(isDisplayed()))
         onView(withText("Bearer")).check(matches(isDisplayed()))
@@ -55,7 +57,8 @@ class DashboardDefinitions {
         onView(withText("Bearer")).check(matches(isDisplayed()))
     }
 
-    @And("^the access_token is stored in session$") fun access_token_stored() {
+    @And("^the access_token is stored in session$")
+    fun access_token_stored() {
         onView(withId(R.id.access_token)).check(
             matches(
                 allOf(
@@ -66,7 +69,8 @@ class DashboardDefinitions {
         )
     }
 
-    @And("^the id_token is stored in session$") fun id_token_stored() {
+    @And("^the id_token is stored in session$")
+    fun id_token_stored() {
         onView(withId(R.id.id_token))
             .perform(scrollTo())
             .check(
@@ -79,13 +83,14 @@ class DashboardDefinitions {
             )
     }
 
-    @And("^the refresh_token is stored in session$") fun refresh_token_stored() {
+    @And("^the refresh_token is stored in session$")
+    fun refresh_token_stored() {
         onView(withId(R.id.refresh_token))
             .perform(scrollTo())
             .check(
                 matches(
                     allOf(
-                        isDisplayed(),
+                        isDisplayed()
                     )
                 )
             )
@@ -94,9 +99,11 @@ class DashboardDefinitions {
     @Then("^Mary sees a table with the claims from the /userinfo response$")
     fun mary_sees_a_table_with_the_claims_from_the_userinfo_response() {
         claimViewInteraction("email", EndToEndCredentials["/cucumber/username"])
-            .perform(scrollTo()).check(matches(isDisplayed()))
+            .perform(scrollTo())
+            .check(matches(isDisplayed()))
         claimViewInteraction("preferred_username", EndToEndCredentials["/cucumber/username"])
-            .perform(scrollTo()).check(matches(isDisplayed()))
+            .perform(scrollTo())
+            .check(matches(isDisplayed()))
     }
 
     @And("^she does not see claims from /userinfo$")
@@ -139,8 +146,11 @@ class DashboardDefinitions {
     }
 
     @CheckReturnValue
-    private fun claimViewInteraction(key: String, value: String): ViewInteraction {
-        return onView(
+    private fun claimViewInteraction(
+        key: String,
+        value: String,
+    ): ViewInteraction =
+        onView(
             allOf(
                 withParent(withChild(withText(key))),
                 withId(R.id.text_view_value),
@@ -148,5 +158,4 @@ class DashboardDefinitions {
                 withText(value)
             )
         )
-    }
 }

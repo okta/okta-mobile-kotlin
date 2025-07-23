@@ -22,9 +22,10 @@ import androidx.navigation.fragment.findNavController
 import sample.okta.android.legacy.databinding.FragmentBrowserBinding
 import sample.okta.android.legacy.util.BaseFragment
 
-class LegacyBrowserFragment : BaseFragment<FragmentBrowserBinding>(
-    FragmentBrowserBinding::inflate
-) {
+class LegacyBrowserFragment :
+    BaseFragment<FragmentBrowserBinding>(
+        FragmentBrowserBinding::inflate
+    ) {
     private val viewModel by viewModels<LegacyBrowserViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -32,7 +33,10 @@ class LegacyBrowserFragment : BaseFragment<FragmentBrowserBinding>(
         viewModel.registerCallback(requireActivity())
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+    override fun onViewCreated(
+        view: View,
+        savedInstanceState: Bundle?,
+    ) {
         super.onViewCreated(view, savedInstanceState)
 
         binding.loginWithBrowserButton.setOnClickListener {

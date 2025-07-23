@@ -37,7 +37,9 @@ internal class LegacyBrowserViewModel : ViewModel() {
 
         webClient.registerCallback(
             object : ResultCallback<AuthorizationStatus, AuthorizationException> {
-                override fun onSuccess(@NonNull status: AuthorizationStatus) {
+                override fun onSuccess(
+                    @NonNull status: AuthorizationStatus,
+                ) {
                     if (status == AuthorizationStatus.AUTHORIZED) {
                         _state.value = BrowserState.Token
                     } else {
@@ -49,12 +51,15 @@ internal class LegacyBrowserViewModel : ViewModel() {
                     _state.value = BrowserState.Error("Login was cancelled.")
                 }
 
-                override fun onError(@NonNull msg: String?, error: AuthorizationException?) {
+                override fun onError(
+                    @NonNull msg: String?,
+                    error: AuthorizationException?,
+                ) {
                     Timber.e(error, "Failed to login.")
                     _state.value = BrowserState.Error(msg ?: "An error occurred.")
                 }
             },
-            activity,
+            activity
         )
     }
 
@@ -69,7 +74,12 @@ internal class LegacyBrowserViewModel : ViewModel() {
 
 sealed class BrowserState {
     object Idle : BrowserState()
+
     object Loading : BrowserState()
-    data class Error(val message: String) : BrowserState()
+
+    data class Error(
+        val message: String,
+    ) : BrowserState()
+
     object Token : BrowserState()
 }

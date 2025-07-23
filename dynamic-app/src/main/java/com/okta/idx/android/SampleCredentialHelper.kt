@@ -22,11 +22,12 @@ import com.okta.idx.android.dynamic.BuildConfig
 
 internal object SampleCredentialHelper {
     fun initialize(context: Context) {
-        OidcConfiguration.default = OidcConfiguration(
-            issuer = BuildConfig.ISSUER,
-            clientId = BuildConfig.CLIENT_ID,
-            defaultScope = "openid email profile offline_access",
-        )
+        OidcConfiguration.default =
+            OidcConfiguration(
+                issuer = BuildConfig.ISSUER,
+                clientId = BuildConfig.CLIENT_ID,
+                defaultScope = "openid email profile offline_access"
+            )
         AuthFoundation.initializeAndroidContext(context)
     }
 }

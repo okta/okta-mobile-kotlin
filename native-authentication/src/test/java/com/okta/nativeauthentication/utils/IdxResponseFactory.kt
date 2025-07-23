@@ -24,15 +24,18 @@ import com.okta.testing.network.RequestMatchers.path
 import com.okta.testing.testBodyFromFile
 import kotlinx.coroutines.runBlocking
 
-internal class IdxResponseFactory(private val networkRule: NetworkRule) {
-    fun fromJson(json: String): IdxResponse = runBlocking {
-        networkRule.enqueue(path("/oauth2/default/v1/interact")) { response ->
-            response.testBodyFromFile("SuccessInteractResponse.json")
+internal class IdxResponseFactory(
+    private val networkRule: NetworkRule,
+) {
+    fun fromJson(json: String): IdxResponse =
+        runBlocking {
+            networkRule.enqueue(path("/oauth2/default/v1/interact")) { response ->
+                response.testBodyFromFile("SuccessInteractResponse.json")
+            }
+            networkRule.enqueue(path("/idp/idx/introspect")) { response ->
+                response.setBody(json)
+            }
+            val interactionCodeFlow = InteractionCodeFlow().apply { start(Uri.parse("test.okta.com/login")) }
+            (interactionCodeFlow.resume() as OAuth2ClientResult.Success<IdxResponse>).result
         }
-        networkRule.enqueue(path("/idp/idx/introspect")) { response ->
-            response.setBody(json)
-        }
-        val interactionCodeFlow = InteractionCodeFlow().apply { start(Uri.parse("test.okta.com/login")) }
-        (interactionCodeFlow.resume() as OAuth2ClientResult.Success<IdxResponse>).result
-    }
 }

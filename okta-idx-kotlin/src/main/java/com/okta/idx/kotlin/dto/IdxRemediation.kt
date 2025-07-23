@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,16 +26,12 @@ class IdxRemediationCollection internal constructor(
     /**
      * Returns a remediation based on its name.
      */
-    operator fun get(name: String): IdxRemediation? {
-        return remediations.firstOrNull { it.name == name }
-    }
+    operator fun get(name: String): IdxRemediation? = remediations.firstOrNull { it.name == name }
 
     /**
      * Returns a remediation based on its type.
      */
-    operator fun get(type: IdxRemediation.Type): IdxRemediation? {
-        return remediations.firstOrNull { it.type == type }
-    }
+    operator fun get(type: IdxRemediation.Type): IdxRemediation? = remediations.firstOrNull { it.type == type }
 }
 
 /**
@@ -52,19 +48,14 @@ class IdxRemediationCollection internal constructor(
 class IdxRemediation internal constructor(
     /** The type of this remediation. */
     val type: Type,
-
     /** The string name for this type. */
     val name: String,
-
     /** A description of the form values that this remediation option supports and expects. */
     val form: Form,
-
     /** The set of authenticators associated with this remediation. */
     val authenticators: IdxAuthenticatorCollection,
-
     /** The [IdxCapabilityCollection] associated with this remediation. */
     val capabilities: IdxCapabilityCollection<Capability>,
-
     internal val method: String,
     internal val href: HttpUrl,
     internal val accepts: String?,
@@ -74,9 +65,7 @@ class IdxRemediation internal constructor(
      *
      * To retrieve nested fields, keyPath "." notation can be used to select fields within child forms.
      */
-    operator fun get(name: String): Form.Field? {
-        return form[name]
-    }
+    operator fun get(name: String): Form.Field? = form[name]
 
     /**
      * Marker interface for [IdxRemediation] capabilities.
@@ -138,7 +127,7 @@ class IdxRemediation internal constructor(
      * Object that represents a form of fields associated with a remediation.
      */
     class Form internal constructor(
-        internal val allFields: List<Field>
+        internal val allFields: List<Field>,
     ) {
         /**
          * The list of ordered user-visible fields within this form. Each field may also contain nested forms for collections of related fields.
@@ -165,9 +154,7 @@ class IdxRemediation internal constructor(
         /**
          * Returns the field within this form with the given index.
          */
-        operator fun get(index: Int): Field {
-            return visibleFields[index]
-        }
+        operator fun get(index: Int): Field = visibleFields[index]
 
         /**
          * Describes an individual field within a form, used to collect and submit information from the user to proceed through the authentication workflow.
@@ -179,10 +166,8 @@ class IdxRemediation internal constructor(
             val label: String?,
             /** The type of value expected from the client. */
             val type: String,
-
             /** This is the backing field, without the restrictions of the public field. */
             @Volatile private var _value: Any?,
-
             /** Indicates whether or not the form value is read-only. */
             val isMutable: Boolean,
             /** Indicates whether or not the form value is required to successfully proceed through this remediation option. */
@@ -201,15 +186,12 @@ class IdxRemediation internal constructor(
             val messages: IdxMessageCollection,
             /** Relates this field to an authenticator, when a field is used to represent an authenticator. For example, when a field is used within a series of `options` to identify which authenticator to select. */
             val authenticator: IdxAuthenticator?,
-
             internal val isVisible: Boolean,
         ) {
             /**
              * Returns the nested `form` field with the given name.
              */
-            operator fun get(name: String): Field? {
-                return form?.get(name)
-            }
+            operator fun get(name: String): Field? = form?.get(name)
 
             /** The value to send, if a default is provided from the Identity Engine. */
             var value: Any?

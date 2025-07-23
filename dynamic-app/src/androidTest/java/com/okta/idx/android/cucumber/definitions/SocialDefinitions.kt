@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import io.cucumber.java.en.Then
 import timber.log.Timber
 import kotlin.time.Duration.Companion.seconds
 
+@Suppress("ktlint:standard:function-naming")
 internal class SocialDefinitions {
     @Before("@logOutOfSocialIdP", order = 0)
     fun logOutOfSocialIdP() {

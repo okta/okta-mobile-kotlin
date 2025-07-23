@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,18 +22,28 @@ import androidx.navigation.fragment.findNavController
 import sample.okta.android.sessiontoken.databinding.FragmentSessionTokenBinding
 import sample.okta.android.sessiontoken.util.BaseFragment
 
-internal class SessionTokenFragment : BaseFragment<FragmentSessionTokenBinding>(
-    FragmentSessionTokenBinding::inflate
-) {
+internal class SessionTokenFragment :
+    BaseFragment<FragmentSessionTokenBinding>(
+        FragmentSessionTokenBinding::inflate
+    ) {
     private val viewModel by viewModels<SessionTokenViewModel>()
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+    override fun onViewCreated(
+        view: View,
+        savedInstanceState: Bundle?,
+    ) {
         super.onViewCreated(view, savedInstanceState)
 
         binding.login.setOnClickListener {
             viewModel.login(
-                username = binding.username.editText?.text?.toString() ?: "",
-                password = binding.password.editText?.text?.toString() ?: "",
+                username =
+                    binding.username.editText
+                        ?.text
+                        ?.toString() ?: "",
+                password =
+                    binding.password.editText
+                        ?.text
+                        ?.toString() ?: ""
             )
         }
 

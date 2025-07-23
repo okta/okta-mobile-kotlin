@@ -8,7 +8,7 @@ If you haven't already, [sign the CLA](https://developer.okta.com/cla/).  Common
 
 Summary
 -------
-This document covers how to contribute to an Okta Open Source project. These instructions assume you have a GitHub.com account, so if you don't have one you will have to create one. Your proposed code changes will be published to your own fork of the Okta IDX Android project and you will submit a Pull Request for your changes to be added.
+This document covers how to contribute to an Okta Open Source project. These instructions assume you have a GitHub.com account, so if you don't have one you will have to create one. Your proposed code changes will be published to your own fork of the Okta mobile kotlin project and you will submit a Pull Request for your changes to be added.
 
 _Lets get started!!!_
 
@@ -16,16 +16,16 @@ _Lets get started!!!_
 Fork the code
 -------------
 
-In your browser, navigate to: [https://github.com/okta/okta-idx-android](https://github.com/okta/okta-idx-android)
+In your browser, navigate to: [https://github.com/okta/okta-mobile-kotlin](https://github.com/okta/okta-mobile-kotlin)
 
 Fork the repository by clicking on the 'Fork' button on the top right hand side.  The fork will happen and you will be taken to your own fork of the repository.  Copy the Git repository URL by clicking on the clipboard next to the URL on the right hand side of the page under '**HTTPS** clone URL'.  You will paste this URL when doing the following `git clone` command.
 
-On your computer, follow these steps to setup a local repository for working on the Okta Java SDK:
+On your computer, follow these steps to setup a local repository for working on the Okta mobile kotlin SDK:
 
 ``` bash
-$ git clone https://github.com/YOUR_ACCOUNT/okta-idx-android.git
-$ cd okta-idx-android
-$ git remote add upstream https://github.com/okta/okta-idx-android.git
+$ git clone https://github.com/YOUR_ACCOUNT/okta-mobile-kotlin.git
+$ cd okta-mobile-kotlin
+$ git remote add upstream https://github.com/okta/okta-mobile-kotlin.git
 $ git checkout master
 $ git fetch upstream
 $ git rebase upstream/master
@@ -35,7 +35,7 @@ $ git rebase upstream/master
 Making changes
 --------------
 
-It is important that you create a new branch to make changes on and that you do not change the `master` branch (other than to rebase in changes from `upstream/master`).  In this example I will assume you will be making your changes to a branch called `feature_x`.  This `feature_x` branch will be created on your local repository and will be pushed to your forked repository on GitHub.  Once this branch is on your fork you will create a Pull Request for the changes to be added to the Okta Java SDK project.
+It is important that you create a new branch to make changes on and that you do not change the `master` branch (other than to rebase in changes from `upstream/master`).  In this example I will assume you will be making your changes to a branch called `feature_x`.  This `feature_x` branch will be created on your local repository and will be pushed to your forked repository on GitHub.  Once this branch is on your fork you will create a Pull Request for the changes to be added to the Okta mobile kotlin SDK project.
 
 It is best practice to create a new branch each time you want to contribute to the project and only track the changes for that pull request in this branch.
 
@@ -53,7 +53,7 @@ $ git commit -a -m "descriptive commit message for your changes"
 Rebase `feature_x` to include updates from `upstream/master`
 ------------------------------------------------------------
 
-It is important that you maintain an up-to-date `master` branch in your local repository.  This is done by rebasing in the code changes from `upstream/master` (the official Okta IDX Android project repository) into your local repository.  You will want to do this before you start working on a feature as well as right before you submit your changes as a pull request.  I recommend you do this process periodically while you work to make sure you are working off the most recent project code.
+It is important that you maintain an up-to-date `master` branch in your local repository.  This is done by rebasing in the code changes from `upstream/master` (the official Okta mobile kotlin project repository) into your local repository.  You will want to do this before you start working on a feature as well as right before you submit your changes as a pull request.  I recommend you do this process periodically while you work to make sure you are working off the most recent project code.
 
 This process will do the following:
 
@@ -88,7 +88,7 @@ Now that the `feature_x` branch has been pushed to your GitHub repository, you c
 
 To initiate the pull request, do the following:
 
-1. In your browser, navigate to your forked repository: [https://github.com/YOUR_ACCOUNT/okta-idx-android](https://github.com/YOUR_ACCOUNT/okta-idx-android)
+1. In your browser, navigate to your forked repository: [https://github.com/YOUR_ACCOUNT/okta-mobile-kotlin](https://github.com/YOUR_ACCOUNT/okta-mobile-kotlin)
 2. Click the new button called '**Compare & pull request**' that showed up just above the main area in your forked repository
 3. Validate the pull request will be into the upstream `master` and will be from your `feature_x` branch
 4. Enter a detailed description of the work you have done and then click '**Send pull request**'

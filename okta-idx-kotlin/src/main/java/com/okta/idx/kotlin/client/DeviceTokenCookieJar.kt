@@ -1,5 +1,5 @@
 /*
- * Copyright 2024-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,23 +33,27 @@ internal class DeviceTokenCookieJar : CookieJar {
             return getDtCookieBuilderWith(deviceToken)
         }
 
-    private fun getDtCookieBuilderWith(deviceToken: String): Cookie.Builder {
-        return Cookie.Builder()
+    private fun getDtCookieBuilderWith(deviceToken: String): Cookie.Builder =
+        Cookie
+            .Builder()
             .name("DT")
             .value(deviceToken)
             .secure()
-    }
 
     override fun loadForRequest(url: HttpUrl): List<Cookie> {
         val deviceTokenCookie = deviceTokenCookieBuilder.domain(url.host).build()
-        val savedCookiesForDomain = savedCookiesCache[url.host]?.filter {
-            it.expiresAt > oidcClock.currentTimeEpochSecond().seconds.inWholeMilliseconds
-        } ?: emptyList()
+        val savedCookiesForDomain =
+            savedCookiesCache[url.host]?.filter {
+                it.expiresAt > oidcClock.currentTimeEpochSecond().seconds.inWholeMilliseconds
+            } ?: emptyList()
         val deviceTokenCookieList = listOf(deviceTokenCookie)
         return savedCookiesForDomain + deviceTokenCookieList
     }
 
-    override fun saveFromResponse(url: HttpUrl, cookies: List<Cookie>) {
+    override fun saveFromResponse(
+        url: HttpUrl,
+        cookies: List<Cookie>,
+    ) {
         savedCookiesCache[url.host] = cookies
     }
 }

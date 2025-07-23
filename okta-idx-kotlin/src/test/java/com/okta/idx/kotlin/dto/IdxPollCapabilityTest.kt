@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,105 +34,125 @@ class IdxPollCapabilityTest {
 
     private val testUri = Uri.parse("test.okta.com/login")
 
-    @Test fun testAuthenticatorPoll(): Unit = runBlocking {
-        networkRule.enqueue(path("/oauth2/default/v1/interact")) { response ->
-            response.testBodyFromFile("client/interactResponse.json")
-        }
-        networkRule.enqueue(path("/idp/idx/introspect")) { response ->
-            response.testBodyFromFile("client/challengeAuthenticatorRemediationResponse.json")
-        }
-        networkRule.enqueue(path("/idp/idx/challenge/poll")) { response ->
-            response.testBodyFromFile("client/successWithInteractionCodeResponse.json")
-        }
-        networkRule.enqueue(path("/idp/idx/challenge/poll")) { response ->
-            response.testBodyFromFile("client/challengeAuthenticatorRemediationResponseLongPoll.json")
-        }
+    @Test fun testAuthenticatorPoll(): Unit =
+        runBlocking {
+            networkRule.enqueue(path("/oauth2/default/v1/interact")) { response ->
+                response.testBodyFromFile("client/interactResponse.json")
+            }
+            networkRule.enqueue(path("/idp/idx/introspect")) { response ->
+                response.testBodyFromFile("client/challengeAuthenticatorRemediationResponse.json")
+            }
+            networkRule.enqueue(path("/idp/idx/challenge/poll")) { response ->
+                response.testBodyFromFile("client/successWithInteractionCodeResponse.json")
+            }
+            networkRule.enqueue(path("/idp/idx/challenge/poll")) { response ->
+                response.testBodyFromFile("client/challengeAuthenticatorRemediationResponseLongPoll.json")
+            }
 
-        val flow = InteractionCodeFlow().apply { start(testUri) }
-        val resumeResult = flow.resume() as OAuth2ClientResult.Success<IdxResponse>
-        val resumeResponse = resumeResult.result
+            val flow = InteractionCodeFlow().apply { start(testUri) }
+            val resumeResult = flow.resume() as OAuth2ClientResult.Success<IdxResponse>
+            val resumeResponse = resumeResult.result
 
-        val capability = resumeResponse.remediations[0].authenticators[0].capabilities.get<IdxPollAuthenticatorCapability>()!!
-        val delays = mutableListOf<Long>()
-        capability.delayFunction = { delays += it }
-        val pollResult = capability.poll(flow) as OAuth2ClientResult.Success<IdxResponse>
+            val capability =
+                resumeResponse.remediations[0]
+                    .authenticators[0]
+                    .capabilities
+                    .get<IdxPollAuthenticatorCapability>()!!
+            val delays = mutableListOf<Long>()
+            capability.delayFunction = { delays += it }
+            val pollResult = capability.poll(flow) as OAuth2ClientResult.Success<IdxResponse>
 
-        assertThat(pollResult.result.isLoginSuccessful).isTrue()
-        assertThat(delays).containsExactly(4000L, 8000L)
-    }
-
-    @Test fun testAuthenticatorPollWithChange(): Unit = runBlocking {
-        networkRule.enqueue(path("/oauth2/default/v1/interact")) { response ->
-            response.testBodyFromFile("client/interactResponse.json")
-        }
-        networkRule.enqueue(path("/idp/idx/introspect")) { response ->
-            response.testBodyFromFile("client/challengeAuthenticatorRemediationResponse.json")
-        }
-        networkRule.enqueue(path("/idp/idx/challenge/poll")) { response ->
-            response.testBodyFromFile("client/selectAuthenticatorAuthenticateRemediationResponse.json")
+            assertThat(pollResult.result.isLoginSuccessful).isTrue()
+            assertThat(delays).containsExactly(4000L, 8000L)
         }
 
-        val flow = InteractionCodeFlow().apply { start(testUri) }
-        val resumeResult = flow.resume() as OAuth2ClientResult.Success<IdxResponse>
-        val resumeResponse = resumeResult.result
+    @Test fun testAuthenticatorPollWithChange(): Unit =
+        runBlocking {
+            networkRule.enqueue(path("/oauth2/default/v1/interact")) { response ->
+                response.testBodyFromFile("client/interactResponse.json")
+            }
+            networkRule.enqueue(path("/idp/idx/introspect")) { response ->
+                response.testBodyFromFile("client/challengeAuthenticatorRemediationResponse.json")
+            }
+            networkRule.enqueue(path("/idp/idx/challenge/poll")) { response ->
+                response.testBodyFromFile("client/selectAuthenticatorAuthenticateRemediationResponse.json")
+            }
 
-        val capability = resumeResponse.remediations[0].authenticators[0].capabilities.get<IdxPollAuthenticatorCapability>()!!
-        val delays = mutableListOf<Long>()
-        capability.delayFunction = { delays += it }
-        val pollResult = capability.poll(flow) as OAuth2ClientResult.Success<IdxResponse>
+            val flow = InteractionCodeFlow().apply { start(testUri) }
+            val resumeResult = flow.resume() as OAuth2ClientResult.Success<IdxResponse>
+            val resumeResponse = resumeResult.result
 
-        assertThat(pollResult.result.remediations.first().name).isEqualTo("select-authenticator-authenticate")
-        assertThat(delays).containsExactly(4000L)
-    }
+            val capability =
+                resumeResponse.remediations[0]
+                    .authenticators[0]
+                    .capabilities
+                    .get<IdxPollAuthenticatorCapability>()!!
+            val delays = mutableListOf<Long>()
+            capability.delayFunction = { delays += it }
+            val pollResult = capability.poll(flow) as OAuth2ClientResult.Success<IdxResponse>
 
-    @Test fun testRemediationPoll(): Unit = runBlocking {
-        networkRule.enqueue(path("/oauth2/default/v1/interact")) { response ->
-            response.testBodyFromFile("client/interactResponse.json")
-        }
-        networkRule.enqueue(path("/idp/idx/introspect")) { response ->
-            response.testBodyFromFile("client/challengePollRemediationResponse.json")
-        }
-        networkRule.enqueue(path("/idp/idx/challenge/poll")) { response ->
-            response.testBodyFromFile("client/successWithInteractionCodeResponse.json")
-        }
-        networkRule.enqueue(path("/idp/idx/challenge/poll")) { response ->
-            response.testBodyFromFile("client/challengePollRemediationResponseLong.json")
-        }
-
-        val flow = InteractionCodeFlow().apply { start(testUri) }
-        val resumeResult = flow.resume() as OAuth2ClientResult.Success<IdxResponse>
-        val resumeResponse = resumeResult.result
-
-        val capability = resumeResponse.remediations[0].capabilities.get<IdxPollRemediationCapability>()!!
-        val delays = mutableListOf<Long>()
-        capability.delayFunction = { delays += it }
-        val pollResult = capability.poll(flow) as OAuth2ClientResult.Success<IdxResponse>
-
-        assertThat(pollResult.result.isLoginSuccessful).isTrue()
-        assertThat(delays).containsExactly(4000L, 8000L)
-    }
-
-    @Test fun testRemediationPollWithChange(): Unit = runBlocking {
-        networkRule.enqueue(path("/oauth2/default/v1/interact")) { response ->
-            response.testBodyFromFile("client/interactResponse.json")
-        }
-        networkRule.enqueue(path("/idp/idx/introspect")) { response ->
-            response.testBodyFromFile("client/challengePollRemediationResponse.json")
-        }
-        networkRule.enqueue(path("/idp/idx/challenge/poll")) { response ->
-            response.testBodyFromFile("client/selectAuthenticatorAuthenticateRemediationResponse.json")
+            assertThat(
+                pollResult.result.remediations
+                    .first()
+                    .name
+            ).isEqualTo("select-authenticator-authenticate")
+            assertThat(delays).containsExactly(4000L)
         }
 
-        val flow = InteractionCodeFlow().apply { start(testUri) }
-        val resumeResult = flow.resume() as OAuth2ClientResult.Success<IdxResponse>
-        val resumeResponse = resumeResult.result
+    @Test fun testRemediationPoll(): Unit =
+        runBlocking {
+            networkRule.enqueue(path("/oauth2/default/v1/interact")) { response ->
+                response.testBodyFromFile("client/interactResponse.json")
+            }
+            networkRule.enqueue(path("/idp/idx/introspect")) { response ->
+                response.testBodyFromFile("client/challengePollRemediationResponse.json")
+            }
+            networkRule.enqueue(path("/idp/idx/challenge/poll")) { response ->
+                response.testBodyFromFile("client/successWithInteractionCodeResponse.json")
+            }
+            networkRule.enqueue(path("/idp/idx/challenge/poll")) { response ->
+                response.testBodyFromFile("client/challengePollRemediationResponseLong.json")
+            }
 
-        val capability = resumeResponse.remediations[0].capabilities.get<IdxPollRemediationCapability>()!!
-        val delays = mutableListOf<Long>()
-        capability.delayFunction = { delays += it }
-        val pollResult = capability.poll(flow) as OAuth2ClientResult.Success<IdxResponse>
+            val flow = InteractionCodeFlow().apply { start(testUri) }
+            val resumeResult = flow.resume() as OAuth2ClientResult.Success<IdxResponse>
+            val resumeResponse = resumeResult.result
 
-        assertThat(pollResult.result.remediations.first().name).isEqualTo("select-authenticator-authenticate")
-        assertThat(delays).containsExactly(4000L)
-    }
+            val capability = resumeResponse.remediations[0].capabilities.get<IdxPollRemediationCapability>()!!
+            val delays = mutableListOf<Long>()
+            capability.delayFunction = { delays += it }
+            val pollResult = capability.poll(flow) as OAuth2ClientResult.Success<IdxResponse>
+
+            assertThat(pollResult.result.isLoginSuccessful).isTrue()
+            assertThat(delays).containsExactly(4000L, 8000L)
+        }
+
+    @Test fun testRemediationPollWithChange(): Unit =
+        runBlocking {
+            networkRule.enqueue(path("/oauth2/default/v1/interact")) { response ->
+                response.testBodyFromFile("client/interactResponse.json")
+            }
+            networkRule.enqueue(path("/idp/idx/introspect")) { response ->
+                response.testBodyFromFile("client/challengePollRemediationResponse.json")
+            }
+            networkRule.enqueue(path("/idp/idx/challenge/poll")) { response ->
+                response.testBodyFromFile("client/selectAuthenticatorAuthenticateRemediationResponse.json")
+            }
+
+            val flow = InteractionCodeFlow().apply { start(testUri) }
+            val resumeResult = flow.resume() as OAuth2ClientResult.Success<IdxResponse>
+            val resumeResponse = resumeResult.result
+
+            val capability = resumeResponse.remediations[0].capabilities.get<IdxPollRemediationCapability>()!!
+            val delays = mutableListOf<Long>()
+            capability.delayFunction = { delays += it }
+            val pollResult = capability.poll(flow) as OAuth2ClientResult.Success<IdxResponse>
+
+            assertThat(
+                pollResult.result.remediations
+                    .first()
+                    .name
+            ).isEqualTo("select-authenticator-authenticate")
+            assertThat(delays).containsExactly(4000L)
+        }
 }

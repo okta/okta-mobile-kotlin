@@ -25,9 +25,10 @@ import sample.okta.android.legacy.databinding.RowDashboardClaimBinding
 import sample.okta.android.legacy.util.BaseFragment
 import sample.okta.android.legacy.util.inflateBinding
 
-internal class LegacyDashboardFragment : BaseFragment<FragmentDashboardBinding>(
-    FragmentDashboardBinding::inflate
-) {
+internal class LegacyDashboardFragment :
+    BaseFragment<FragmentDashboardBinding>(
+        FragmentDashboardBinding::inflate
+    ) {
     private val viewModel by viewModels<LegacyDashboardViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -35,7 +36,10 @@ internal class LegacyDashboardFragment : BaseFragment<FragmentDashboardBinding>(
         viewModel.registerCallback(requireActivity())
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+    override fun onViewCreated(
+        view: View,
+        savedInstanceState: Bundle?,
+    ) {
         viewModel.tokenLiveData.observe(viewLifecycleOwner) { token ->
             binding.tokenType.text = "Bearer"
             binding.expiresIn.text = token.expiresIn.toString()

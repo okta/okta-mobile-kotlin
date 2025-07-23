@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,16 +22,19 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 
 internal class DateTest {
-    private val json = Json {
-        ignoreUnknownKeys = true
-    }
+    private val json =
+        Json {
+            ignoreUnknownKeys = true
+        }
 
-    @Test fun testDecode() {
+    @Test
+    fun testDecode() {
         val date = json.decodeFromString(DateSerializer, "\"2021-05-21T16:41:22.000Z\"")
         assertThat(date).isNotNull()
     }
 
-    @Test fun testEncode() {
+    @Test
+    fun testEncode() {
         val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US)
         val date = simpleDateFormat.parse("2021-05-21T16:41:22.000Z")!!
         val json = json.encodeToString(DateSerializer, date)

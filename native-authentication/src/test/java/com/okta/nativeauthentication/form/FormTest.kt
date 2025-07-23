@@ -23,10 +23,11 @@ import org.mockito.kotlin.mock
 internal class FormTest {
     @Test fun testFormBuilderCreatesForm() {
         val builder = Form.Builder()
-        val element = Element.Label.Builder(
-            remediation = null,
-            text = "Example",
-        )
+        val element =
+            Element.Label.Builder(
+                remediation = null,
+                text = "Example"
+            )
         builder.elements += element
         val form = builder.build(emptyList())
         assertThat(form.elements).hasSize(1)
@@ -35,13 +36,15 @@ internal class FormTest {
 
     @Test fun testFormBuilderTransformsForm() {
         val builder = Form.Builder()
-        val transformer = FormTransformer {
-            val element = Element.Label.Builder(
-                remediation = null,
-                text = "Example",
-            )
-            elements += element
-        }
+        val transformer =
+            FormTransformer {
+                val element =
+                    Element.Label.Builder(
+                        remediation = null,
+                        text = "Example"
+                    )
+                elements += element
+            }
         val form = builder.build(listOf(transformer))
         assertThat(form.elements).hasSize(1)
         assertThat((form.elements[0] as Element.Label).text).isEqualTo("Example")
@@ -51,15 +54,16 @@ internal class FormTest {
         val builder = Form.Builder()
         val remediation = mock<IdxRemediation>()
         val idxField = mock<IdxRemediation.Form.Field>()
-        val element = Element.TextInput.Builder(
-            remediation = remediation,
-            idxField = idxField,
-            label = "Example",
-            isSecret = false,
-            isRequired = true,
-            errorMessage = "",
-            value = "",
-        )
+        val element =
+            Element.TextInput.Builder(
+                remediation = remediation,
+                idxField = idxField,
+                label = "Example",
+                isSecret = false,
+                isRequired = true,
+                errorMessage = "",
+                value = ""
+            )
         builder.elements += element
         val form = builder.build(emptyList())
         (form.elements[0] as Element.TextInput).value = "something"
@@ -73,15 +77,16 @@ internal class FormTest {
         val builder = Form.Builder()
         val remediation = mock<IdxRemediation>()
         val idxField = mock<IdxRemediation.Form.Field>()
-        val loadingElement = Element.TextInput.Builder(
-            remediation = remediation,
-            idxField = idxField,
-            label = "Example",
-            isSecret = false,
-            isRequired = true,
-            errorMessage = "",
-            value = "",
-        )
+        val loadingElement =
+            Element.TextInput.Builder(
+                remediation = remediation,
+                idxField = idxField,
+                label = "Example",
+                isSecret = false,
+                isRequired = true,
+                errorMessage = "",
+                value = ""
+            )
         builder.elements += loadingElement
         val form = builder.build(emptyList())
         val (formIsValid, updatedForm) = form.validate(remediation)

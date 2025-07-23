@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,12 +39,13 @@ class RequestMiddlewareTest {
     @get:Rule val networkRule = NetworkRule()
 
     @Test fun testAsJsonRequest() {
-        val remediation = createRemediation(
-            listOf(
-                createField(name = "first", value = "apple"),
-                createField(name = "second", value = "orange"),
+        val remediation =
+            createRemediation(
+                listOf(
+                    createField(name = "first", value = "apple"),
+                    createField(name = "second", value = "orange")
+                )
             )
-        )
         val request = remediation.asJsonRequest(networkRule.createClient())
         assertThat(request.url).isEqualTo("https://test.okta.com/idp/idx/identify".toHttpUrl())
         assertThat(request.method).isEqualTo("POST")
@@ -56,12 +57,13 @@ class RequestMiddlewareTest {
     }
 
     @Test fun testAsFormRequest() {
-        val remediation = createRemediation(
-            listOf(
-                createField(name = "first", value = "apple"),
-                createField(name = "second", value = "orange"),
+        val remediation =
+            createRemediation(
+                listOf(
+                    createField(name = "first", value = "apple"),
+                    createField(name = "second", value = "orange")
+                )
             )
-        )
         val request = remediation.asFormRequest()
         assertThat(request.url).isEqualTo("https://test.okta.com/idp/idx/identify".toHttpUrl())
         assertThat(request.method).isEqualTo("POST")
@@ -71,120 +73,153 @@ class RequestMiddlewareTest {
         assertThat(request.body?.contentType()).isEqualTo("application/x-www-form-urlencoded".toMediaType())
     }
 
-    @Test fun testTokenRequestFromInteractionCode(): Unit = runBlocking {
-        val flowContext = InteractionCodeFlowContext(codeVerifier = "123456", interactionHandle = "234567", state = "345678", redirectUrl = "test.okta.com/login", nonce = "456789", maxAge = null)
-        val request = tokenRequestFromInteractionCode(networkRule.createClient(), flowContext, "654321")
-        assertThat(request.url.toString()).endsWith("/oauth2/default/v1/token")
-        assertThat(request.method).isEqualTo("POST")
-        val buffer = Buffer()
-        request.body?.writeTo(buffer)
-        assertThat(buffer.readUtf8()).isEqualTo("grant_type=interaction_code&client_id=test&interaction_code=654321&code_verifier=123456")
-        assertThat(request.body?.contentType()).isEqualTo("application/x-www-form-urlencoded".toMediaType())
-    }
+    @Test fun testTokenRequestFromInteractionCode(): Unit =
+        runBlocking {
+            val flowContext = InteractionCodeFlowContext(codeVerifier = "123456", interactionHandle = "234567", state = "345678", redirectUrl = "test.okta.com/login", nonce = "456789", maxAge = null)
+            val request = tokenRequestFromInteractionCode(networkRule.createClient(), flowContext, "654321")
+            assertThat(request.url.toString()).endsWith("/oauth2/default/v1/token")
+            assertThat(request.method).isEqualTo("POST")
+            val buffer = Buffer()
+            request.body?.writeTo(buffer)
+            assertThat(buffer.readUtf8()).isEqualTo("grant_type=interaction_code&client_id=test&interaction_code=654321&code_verifier=123456")
+            assertThat(request.body?.contentType()).isEqualTo("application/x-www-form-urlencoded".toMediaType())
+        }
 
-    @Test fun testIntrospectRequest(): Unit = runBlocking {
-        val flowContext = InteractionCodeFlowContext(codeVerifier = "123456", interactionHandle = "234567", state = "345678", redirectUrl = "test.okta.com/login", nonce = "456789", maxAge = null)
-        val request = introspectRequest(networkRule.createClient(), flowContext)
-        assertThat(request.url.toString()).endsWith("/idp/idx/introspect")
-        assertThat(request.method).isEqualTo("POST")
-        val buffer = Buffer()
-        request.body?.writeTo(buffer)
-        assertThat(buffer.readUtf8()).isEqualTo("""{"interactionHandle":"234567"}""")
-        assertThat(request.body?.contentType()).isEqualTo("application/ion+json; okta-version=1.0.0; charset=utf-8".toMediaType())
-    }
+    @Test fun testIntrospectRequest(): Unit =
+        runBlocking {
+            val flowContext = InteractionCodeFlowContext(codeVerifier = "123456", interactionHandle = "234567", state = "345678", redirectUrl = "test.okta.com/login", nonce = "456789", maxAge = null)
+            val request = introspectRequest(networkRule.createClient(), flowContext)
+            assertThat(request.url.toString()).endsWith("/idp/idx/introspect")
+            assertThat(request.method).isEqualTo("POST")
+            val buffer = Buffer()
+            request.body?.writeTo(buffer)
+            assertThat(buffer.readUtf8()).isEqualTo("""{"interactionHandle":"234567"}""")
+            assertThat(request.body?.contentType()).isEqualTo("application/ion+json; okta-version=1.0.0; charset=utf-8".toMediaType())
+        }
 
-    @Test fun testInteractContext(): Unit = runBlocking {
-        val interactContext = InteractContext.create(networkRule.createClient(), "test.okta.com/login", codeVerifier = "asdfasdf", state = "randomGen", nonce = "exampleNonce")!!
-        assertThat(interactContext.codeVerifier).isEqualTo("asdfasdf")
-        assertThat(interactContext.state).isEqualTo("randomGen")
-        assertThat(interactContext.nonce).isEqualTo("exampleNonce")
-        assertThat(interactContext.maxAge).isNull()
-        val request = interactContext.request
-        assertThat(request.url.toString()).endsWith("/oauth2/default/v1/interact")
-        assertThat(request.method).isEqualTo("POST")
-        val buffer = Buffer()
-        request.body?.writeTo(buffer)
-        assertThat(buffer.readUtf8()).isEqualTo("client_id=test&scope=openid%20email%20profile%20offline_access&code_challenge=JBP7NwmwWTnwTPLpL30Il_wllvmtC4qeqFXHv-uq6JI&code_challenge_method=S256&redirect_uri=test.okta.com%2Flogin&state=randomGen&nonce=exampleNonce")
-        assertThat(request.body?.contentType()).isEqualTo("application/x-www-form-urlencoded".toMediaType())
-    }
+    @Test fun testInteractContext(): Unit =
+        runBlocking {
+            val interactContext = InteractContext.create(networkRule.createClient(), "test.okta.com/login", codeVerifier = "asdfasdf", state = "randomGen", nonce = "exampleNonce")!!
+            assertThat(interactContext.codeVerifier).isEqualTo("asdfasdf")
+            assertThat(interactContext.state).isEqualTo("randomGen")
+            assertThat(interactContext.nonce).isEqualTo("exampleNonce")
+            assertThat(interactContext.maxAge).isNull()
+            val request = interactContext.request
+            assertThat(request.url.toString()).endsWith("/oauth2/default/v1/interact")
+            assertThat(request.method).isEqualTo("POST")
+            val buffer = Buffer()
+            request.body?.writeTo(buffer)
+            assertThat(
+                buffer.readUtf8()
+            ).isEqualTo(
+                "client_id=test&scope=openid%20email%20profile%20offline_access&code_challenge=JBP7NwmwWTnwTPLpL30Il_wllvmtC4qeqFXHv-uq6JI&code_challenge_method=S256&redirect_uri=test.okta.com%2Flogin&state=randomGen&nonce=exampleNonce"
+            )
+            assertThat(request.body?.contentType()).isEqualTo("application/x-www-form-urlencoded".toMediaType())
+        }
 
     @Test
-    fun `InteractContext with org auth server appends oauth to path`() = runTest {
-        val exampleUrl = "https://example.com".toHttpUrl()
-        val endpoints = mockk<OidcEndpoints> {
-            every { issuer } returns exampleUrl
+    fun `InteractContext with org auth server appends oauth to path`() =
+        runTest {
+            val exampleUrl = "https://example.com".toHttpUrl()
+            val endpoints =
+                mockk<OidcEndpoints> {
+                    every { issuer } returns exampleUrl
+                }
+            val oAuth2Client =
+                OAuth2Client.create(
+                    OidcConfiguration(
+                        issuer = exampleUrl.toString(),
+                        clientId = "test",
+                        defaultScope = "openid email profile offline_access"
+                    ),
+                    endpoints
+                )
+
+            val interactContext = InteractContext.create(oAuth2Client, "test.okta.com/login", codeVerifier = "asdfasdf", state = "randomGen", nonce = "exampleNonce")!!
+            assertThat(interactContext.codeVerifier).isEqualTo("asdfasdf")
+            assertThat(interactContext.state).isEqualTo("randomGen")
+            assertThat(interactContext.nonce).isEqualTo("exampleNonce")
+            assertThat(interactContext.maxAge).isNull()
+            val request = interactContext.request
+            assertThat(request.url.toString()).endsWith("/oauth2/v1/interact")
+            assertThat(request.method).isEqualTo("POST")
+            val buffer = Buffer()
+            request.body?.writeTo(buffer)
+            assertThat(
+                buffer.readUtf8()
+            ).isEqualTo(
+                "client_id=test&scope=openid%20email%20profile%20offline_access&code_challenge=JBP7NwmwWTnwTPLpL30Il_wllvmtC4qeqFXHv-uq6JI&code_challenge_method=S256&redirect_uri=test.okta.com%2Flogin&state=randomGen&nonce=exampleNonce"
+            )
+            assertThat(request.body?.contentType()).isEqualTo("application/x-www-form-urlencoded".toMediaType())
         }
-        val oAuth2Client = OAuth2Client.create(
-            OidcConfiguration(
-                issuer = exampleUrl.toString(),
-                clientId = "test",
-                defaultScope = "openid email profile offline_access"
-            ),
-            endpoints
-        )
 
-        val interactContext = InteractContext.create(oAuth2Client, "test.okta.com/login", codeVerifier = "asdfasdf", state = "randomGen", nonce = "exampleNonce")!!
-        assertThat(interactContext.codeVerifier).isEqualTo("asdfasdf")
-        assertThat(interactContext.state).isEqualTo("randomGen")
-        assertThat(interactContext.nonce).isEqualTo("exampleNonce")
-        assertThat(interactContext.maxAge).isNull()
-        val request = interactContext.request
-        assertThat(request.url.toString()).endsWith("/oauth2/v1/interact")
-        assertThat(request.method).isEqualTo("POST")
-        val buffer = Buffer()
-        request.body?.writeTo(buffer)
-        assertThat(buffer.readUtf8()).isEqualTo("client_id=test&scope=openid%20email%20profile%20offline_access&code_challenge=JBP7NwmwWTnwTPLpL30Il_wllvmtC4qeqFXHv-uq6JI&code_challenge_method=S256&redirect_uri=test.okta.com%2Flogin&state=randomGen&nonce=exampleNonce")
-        assertThat(request.body?.contentType()).isEqualTo("application/x-www-form-urlencoded".toMediaType())
-    }
-
-    @Test fun testInteractContextReturnsNullWhenNoEndpointsExist(): Unit = runBlocking {
-        networkRule.enqueue(path(".well-known/openid-configuration")) { response ->
-            response.socketPolicy = SocketPolicy.DISCONNECT_AT_START
+    @Test fun testInteractContextReturnsNullWhenNoEndpointsExist(): Unit =
+        runBlocking {
+            networkRule.enqueue(path(".well-known/openid-configuration")) { response ->
+                response.socketPolicy = SocketPolicy.DISCONNECT_AT_START
+            }
+            val interactContext =
+                InteractContext.create(
+                    OAuth2Client.createFromConfiguration(networkRule.configuration),
+                    "test.okta.com/login",
+                    codeVerifier = "asdfasdf",
+                    state = "randomGen"
+                )
+            assertThat(interactContext).isNull()
         }
-        val interactContext = InteractContext.create(
-            OAuth2Client.createFromConfiguration(networkRule.configuration),
-            "test.okta.com/login", codeVerifier = "asdfasdf", state = "randomGen"
-        )
-        assertThat(interactContext).isNull()
-    }
 
-    @Test fun testInteractContextWithExtraParameters(): Unit = runBlocking {
-        val extraParameters = mapOf(Pair("recovery_token", "secret"))
-        val interactContext = InteractContext.create(networkRule.createClient(), "test.okta.com/login", extraParameters, codeVerifier = "asdfasdf", state = "randomGen", nonce = "exampleNonce")!!
-        assertThat(interactContext.codeVerifier).isEqualTo("asdfasdf")
-        assertThat(interactContext.state).isEqualTo("randomGen")
-        val request = interactContext.request
-        assertThat(request.url.toString()).endsWith("/oauth2/default/v1/interact")
-        assertThat(request.method).isEqualTo("POST")
-        val buffer = Buffer()
-        request.body?.writeTo(buffer)
-        assertThat(buffer.readUtf8()).isEqualTo("client_id=test&scope=openid%20email%20profile%20offline_access&code_challenge=JBP7NwmwWTnwTPLpL30Il_wllvmtC4qeqFXHv-uq6JI&code_challenge_method=S256&redirect_uri=test.okta.com%2Flogin&state=randomGen&nonce=exampleNonce&recovery_token=secret")
-        assertThat(request.body?.contentType()).isEqualTo("application/x-www-form-urlencoded".toMediaType())
-    }
+    @Test fun testInteractContextWithExtraParameters(): Unit =
+        runBlocking {
+            val extraParameters = mapOf(Pair("recovery_token", "secret"))
+            val interactContext = InteractContext.create(networkRule.createClient(), "test.okta.com/login", extraParameters, codeVerifier = "asdfasdf", state = "randomGen", nonce = "exampleNonce")!!
+            assertThat(interactContext.codeVerifier).isEqualTo("asdfasdf")
+            assertThat(interactContext.state).isEqualTo("randomGen")
+            val request = interactContext.request
+            assertThat(request.url.toString()).endsWith("/oauth2/default/v1/interact")
+            assertThat(request.method).isEqualTo("POST")
+            val buffer = Buffer()
+            request.body?.writeTo(buffer)
+            assertThat(
+                buffer.readUtf8()
+            ).isEqualTo(
+                "client_id=test&scope=openid%20email%20profile%20offline_access&code_challenge=JBP7NwmwWTnwTPLpL30Il_wllvmtC4qeqFXHv-uq6JI&code_challenge_method=S256&redirect_uri=test.okta.com%2Flogin&state=randomGen&nonce=exampleNonce&recovery_token=secret"
+            )
+            assertThat(request.body?.contentType()).isEqualTo("application/x-www-form-urlencoded".toMediaType())
+        }
 
-    @Test fun testInteractContextWithMaxAge(): Unit = runBlocking {
-        val extraParameters = mapOf(Pair("max_age", "5"))
-        val interactContext = InteractContext.create(networkRule.createClient(), "test.okta.com/login", extraParameters, codeVerifier = "asdfasdf", state = "randomGen", nonce = "exampleNonce")!!
-        assertThat(interactContext.maxAge).isEqualTo(5)
-        val request = interactContext.request
-        assertThat(request.url.toString()).endsWith("/oauth2/default/v1/interact")
-        assertThat(request.method).isEqualTo("POST")
-        val buffer = Buffer()
-        request.body?.writeTo(buffer)
-        assertThat(buffer.readUtf8()).isEqualTo("client_id=test&scope=openid%20email%20profile%20offline_access&code_challenge=JBP7NwmwWTnwTPLpL30Il_wllvmtC4qeqFXHv-uq6JI&code_challenge_method=S256&redirect_uri=test.okta.com%2Flogin&state=randomGen&nonce=exampleNonce&max_age=5")
-        assertThat(request.body?.contentType()).isEqualTo("application/x-www-form-urlencoded".toMediaType())
-    }
+    @Test fun testInteractContextWithMaxAge(): Unit =
+        runBlocking {
+            val extraParameters = mapOf(Pair("max_age", "5"))
+            val interactContext = InteractContext.create(networkRule.createClient(), "test.okta.com/login", extraParameters, codeVerifier = "asdfasdf", state = "randomGen", nonce = "exampleNonce")!!
+            assertThat(interactContext.maxAge).isEqualTo(5)
+            val request = interactContext.request
+            assertThat(request.url.toString()).endsWith("/oauth2/default/v1/interact")
+            assertThat(request.method).isEqualTo("POST")
+            val buffer = Buffer()
+            request.body?.writeTo(buffer)
+            assertThat(
+                buffer.readUtf8()
+            ).isEqualTo(
+                "client_id=test&scope=openid%20email%20profile%20offline_access&code_challenge=JBP7NwmwWTnwTPLpL30Il_wllvmtC4qeqFXHv-uq6JI&code_challenge_method=S256&redirect_uri=test.okta.com%2Flogin&state=randomGen&nonce=exampleNonce&max_age=5"
+            )
+            assertThat(request.body?.contentType()).isEqualTo("application/x-www-form-urlencoded".toMediaType())
+        }
 
-    @Test fun testInteractContextWithMalformedMaxAge(): Unit = runBlocking {
-        val extraParameters = mapOf(Pair("max_age", "abcd"))
-        val interactContext = InteractContext.create(networkRule.createClient(), "test.okta.com/login", extraParameters, codeVerifier = "asdfasdf", state = "randomGen", nonce = "exampleNonce")!!
-        assertThat(interactContext.maxAge).isNull()
-        val request = interactContext.request
-        assertThat(request.url.toString()).endsWith("/oauth2/default/v1/interact")
-        assertThat(request.method).isEqualTo("POST")
-        val buffer = Buffer()
-        request.body?.writeTo(buffer)
-        assertThat(buffer.readUtf8()).isEqualTo("client_id=test&scope=openid%20email%20profile%20offline_access&code_challenge=JBP7NwmwWTnwTPLpL30Il_wllvmtC4qeqFXHv-uq6JI&code_challenge_method=S256&redirect_uri=test.okta.com%2Flogin&state=randomGen&nonce=exampleNonce&max_age=abcd")
-        assertThat(request.body?.contentType()).isEqualTo("application/x-www-form-urlencoded".toMediaType())
-    }
+    @Test fun testInteractContextWithMalformedMaxAge(): Unit =
+        runBlocking {
+            val extraParameters = mapOf(Pair("max_age", "abcd"))
+            val interactContext = InteractContext.create(networkRule.createClient(), "test.okta.com/login", extraParameters, codeVerifier = "asdfasdf", state = "randomGen", nonce = "exampleNonce")!!
+            assertThat(interactContext.maxAge).isNull()
+            val request = interactContext.request
+            assertThat(request.url.toString()).endsWith("/oauth2/default/v1/interact")
+            assertThat(request.method).isEqualTo("POST")
+            val buffer = Buffer()
+            request.body?.writeTo(buffer)
+            assertThat(
+                buffer.readUtf8()
+            ).isEqualTo(
+                "client_id=test&scope=openid%20email%20profile%20offline_access&code_challenge=JBP7NwmwWTnwTPLpL30Il_wllvmtC4qeqFXHv-uq6JI&code_challenge_method=S256&redirect_uri=test.okta.com%2Flogin&state=randomGen&nonce=exampleNonce&max_age=abcd"
+            )
+            assertThat(request.body?.contentType()).isEqualTo("application/x-www-form-urlencoded".toMediaType())
+        }
 }

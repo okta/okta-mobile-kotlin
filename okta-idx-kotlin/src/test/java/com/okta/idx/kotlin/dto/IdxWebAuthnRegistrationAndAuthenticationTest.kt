@@ -1,5 +1,5 @@
 /*
- * Copyright 2025-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,20 +33,21 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class IdxWebAuthnRegistrationAndAuthenticationTest {
-
     private val base64UrlString = "Pj8-Pw"
     private val base64String = "Pj8+Pw=="
     private val simpleB64String = "c2lnbmF0dXJl"
 
     private fun createChallengeRemediation(
         hasCapability: Boolean = true,
-        formFields: List<String> = listOf(
-            "authenticatorData",
-            "clientData",
-            "signatureData"
-        )
+        formFields: List<String> =
+            listOf(
+                "authenticatorData",
+                "clientData",
+                "signatureData"
+            ),
     ): IdxRemediation {
-        val challengeData = """
+        val challengeData =
+            """
             "challengeData": {
                 "challenge": "7lnfbItamo2HerI_cLsjFH7t9ubvh89r",
                 "userVerification": "preferred",
@@ -54,53 +55,59 @@ class IdxWebAuthnRegistrationAndAuthenticationTest {
                     "appid": "https://test.test.com"
                 }
             }
-        """.trimIndent()
+            """.trimIndent()
 
-        val capabilities = if (hasCapability) {
-            setOf(IdxWebAuthnAuthenticationCapability(challengeData))
-        } else {
-            emptySet()
-        }
+        val capabilities =
+            if (hasCapability) {
+                setOf(IdxWebAuthnAuthenticationCapability(challengeData))
+            } else {
+                emptySet()
+            }
 
-        val authenticator = IdxAuthenticator(
-            key = "test-authenticator",
-            displayName = "Test Authenticator",
-            type = IdxAuthenticator.Kind.SECURITY_KEY,
-            methods = listOf(IdxAuthenticator.Method.WEB_AUTHN),
-            state = IdxAuthenticator.State.ENROLLING,
-            capabilities = IdxCapabilityCollection(capabilities),
-            id = "fakeId",
-            methodNames = listOf("webauthn"),
-        )
+        val authenticator =
+            IdxAuthenticator(
+                key = "test-authenticator",
+                displayName = "Test Authenticator",
+                type = IdxAuthenticator.Kind.SECURITY_KEY,
+                methods = listOf(IdxAuthenticator.Method.WEB_AUTHN),
+                state = IdxAuthenticator.State.ENROLLING,
+                capabilities = IdxCapabilityCollection(capabilities),
+                id = "fakeId",
+                methodNames = listOf("webauthn")
+            )
 
-        val fields = formFields.map { fieldName ->
+        val fields =
+            formFields.map { fieldName ->
+                IdxRemediation.Form.Field(
+                    name = fieldName,
+                    isMutable = true,
+                    label = fieldName,
+                    type = "string",
+                    isRequired = false,
+                    isSecret = false,
+                    form = null,
+                    options = emptyList(),
+                    messages = IdxMessageCollection(emptyList()),
+                    authenticator = null,
+                    isVisible = false,
+                    _value = ""
+                )
+            }
+        val credentialField =
             IdxRemediation.Form.Field(
-                name = fieldName, isMutable = true,
-                label = fieldName,
+                name = "credentials",
+                isMutable = true,
+                label = "credentials",
                 type = "string",
                 isRequired = false,
                 isSecret = false,
-                form = null,
+                form = IdxRemediation.Form(fields),
                 options = emptyList(),
                 messages = IdxMessageCollection(emptyList()),
                 authenticator = null,
                 isVisible = false,
                 _value = ""
             )
-        }
-        val credentialField = IdxRemediation.Form.Field(
-            name = "credentials", isMutable = true,
-            label = "credentials",
-            type = "string",
-            isRequired = false,
-            isSecret = false,
-            form = IdxRemediation.Form(fields),
-            options = emptyList(),
-            messages = IdxMessageCollection(emptyList()),
-            authenticator = null,
-            isVisible = false,
-            _value = ""
-        )
 
         return IdxRemediation(
             type = IdxRemediation.Type.CHALLENGE_AUTHENTICATOR,
@@ -114,31 +121,34 @@ class IdxWebAuthnRegistrationAndAuthenticationTest {
         )
     }
 
-    private val authenticator = IdxAuthenticator(
-        key = "test-authenticator",
-        displayName = "Test Authenticator",
-        type = IdxAuthenticator.Kind.SECURITY_KEY,
-        methods = listOf(IdxAuthenticator.Method.WEB_AUTHN),
-        state = IdxAuthenticator.State.ENROLLING,
-        capabilities = IdxCapabilityCollection(setOf(IdxWebAuthnRegistrationCapability("activationData"))),
-        id = "fakeId",
-        methodNames = listOf("webauthn"),
-    )
+    private val authenticator =
+        IdxAuthenticator(
+            key = "test-authenticator",
+            displayName = "Test Authenticator",
+            type = IdxAuthenticator.Kind.SECURITY_KEY,
+            methods = listOf(IdxAuthenticator.Method.WEB_AUTHN),
+            state = IdxAuthenticator.State.ENROLLING,
+            capabilities = IdxCapabilityCollection(setOf(IdxWebAuthnRegistrationCapability("activationData"))),
+            id = "fakeId",
+            methodNames = listOf("webauthn")
+        )
 
-    private val remediationEmptyForm = IdxRemediation(
-        type = IdxRemediation.Type.UNKNOWN,
-        name = "test",
-        form = IdxRemediation.Form(emptyList()),
-        authenticators = IdxAuthenticatorCollection(listOf(authenticator)),
-        capabilities = IdxCapabilityCollection(emptySet()),
-        method = "method",
-        href = "https://test.okta.com/idp/idx/identify".toHttpUrl(),
-        accepts = null
-    )
+    private val remediationEmptyForm =
+        IdxRemediation(
+            type = IdxRemediation.Type.UNKNOWN,
+            name = "test",
+            form = IdxRemediation.Form(emptyList()),
+            authenticators = IdxAuthenticatorCollection(listOf(authenticator)),
+            capabilities = IdxCapabilityCollection(emptySet()),
+            method = "method",
+            href = "https://test.okta.com/idp/idx/identify".toHttpUrl(),
+            accepts = null
+        )
 
     private val attestationValue = "attestation-object"
     private val clientDataValue = "client-data-json"
-    private val registrationResponseJson = """
+    private val registrationResponseJson =
+        """
 {
   "rawId": "fakeRawId",
   "authenticatorAttachment": "platform",
@@ -161,7 +171,7 @@ class IdxWebAuthnRegistrationAndAuthenticationTest {
     }
   }
 }
-    """.trimIndent()
+        """.trimIndent()
 
     private inline fun <reified Capability : IdxAuthenticator.Capability> IdxAuthenticatorCollection.capability(): Capability? {
         val authenticator = firstOrNull { it.capabilities.get<Capability>() != null } ?: return null
@@ -171,36 +181,38 @@ class IdxWebAuthnRegistrationAndAuthenticationTest {
     @Test
     fun `withRegistrationResponse sets attestation and clientData fields`() {
         // arrange
-        val clientDataField = IdxRemediation.Form.Field(
-            name = "clientData",
-            label = null,
-            type = "string",
-            _value = null,
-            isVisible = true,
-            isMutable = true,
-            isRequired = false,
-            isSecret = false,
-            form = null,
-            options = null,
-            messages = IdxMessageCollection(emptyList()),
-            authenticator = null
-        )
+        val clientDataField =
+            IdxRemediation.Form.Field(
+                name = "clientData",
+                label = null,
+                type = "string",
+                _value = null,
+                isVisible = true,
+                isMutable = true,
+                isRequired = false,
+                isSecret = false,
+                form = null,
+                options = null,
+                messages = IdxMessageCollection(emptyList()),
+                authenticator = null
+            )
 
         val attestationValueField = clientDataField.copy(name = "attestation")
         val credentialField = clientDataField.copy(name = "credentials", form = IdxRemediation.Form(listOf(attestationValueField, clientDataField)))
 
         val form = IdxRemediation.Form(listOf(credentialField))
 
-        val remediation = IdxRemediation(
-            type = IdxRemediation.Type.UNKNOWN,
-            name = "test",
-            form = form,
-            authenticators = IdxAuthenticatorCollection(listOf(authenticator)),
-            capabilities = IdxCapabilityCollection(emptySet()),
-            method = "method",
-            href = "https://test.okta.com/idp/idx/identify".toHttpUrl(),
-            accepts = null
-        )
+        val remediation =
+            IdxRemediation(
+                type = IdxRemediation.Type.UNKNOWN,
+                name = "test",
+                form = form,
+                authenticators = IdxAuthenticatorCollection(listOf(authenticator)),
+                capabilities = IdxCapabilityCollection(emptySet()),
+                method = "method",
+                href = "https://test.okta.com/idp/idx/identify".toHttpUrl(),
+                accepts = null
+            )
 
         val capability = requireNotNull(remediation.authenticators.capability<IdxWebAuthnRegistrationCapability>())
 
@@ -216,16 +228,17 @@ class IdxWebAuthnRegistrationAndAuthenticationTest {
     fun `withRegistrationResponse throws if attestation field missing`() {
         // arrange
         val form = IdxRemediation.Form(emptyList())
-        val remediation = IdxRemediation(
-            type = IdxRemediation.Type.UNKNOWN,
-            name = "test",
-            form = form,
-            authenticators = IdxAuthenticatorCollection(listOf(authenticator)),
-            capabilities = IdxCapabilityCollection(emptySet()),
-            method = "method",
-            href = "https://test.okta.com/idp/idx/identify".toHttpUrl(),
-            accepts = null
-        )
+        val remediation =
+            IdxRemediation(
+                type = IdxRemediation.Type.UNKNOWN,
+                name = "test",
+                form = form,
+                authenticators = IdxAuthenticatorCollection(listOf(authenticator)),
+                capabilities = IdxCapabilityCollection(emptySet()),
+                method = "method",
+                href = "https://test.okta.com/idp/idx/identify".toHttpUrl(),
+                accepts = null
+            )
         val capability = requireNotNull(remediation.authenticators.capability<IdxWebAuthnRegistrationCapability>())
 
         // act
@@ -240,32 +253,34 @@ class IdxWebAuthnRegistrationAndAuthenticationTest {
     @Test
     fun `withRegistrationResponse throws if clientData field missing`() {
         // arrange
-        val attestationValueField = IdxRemediation.Form.Field(
-            name = "attestation",
-            label = null,
-            type = "string",
-            _value = null,
-            isVisible = true,
-            isMutable = true,
-            isRequired = false,
-            isSecret = false,
-            form = null,
-            options = null,
-            messages = IdxMessageCollection(emptyList()),
-            authenticator = null
-        )
+        val attestationValueField =
+            IdxRemediation.Form.Field(
+                name = "attestation",
+                label = null,
+                type = "string",
+                _value = null,
+                isVisible = true,
+                isMutable = true,
+                isRequired = false,
+                isSecret = false,
+                form = null,
+                options = null,
+                messages = IdxMessageCollection(emptyList()),
+                authenticator = null
+            )
 
         val credentialField = attestationValueField.copy(name = "credentials", form = IdxRemediation.Form(listOf(attestationValueField)))
-        val remediation = IdxRemediation(
-            type = IdxRemediation.Type.UNKNOWN,
-            name = "test",
-            form = IdxRemediation.Form(listOf(credentialField)),
-            authenticators = IdxAuthenticatorCollection(listOf(authenticator)),
-            capabilities = IdxCapabilityCollection(emptySet()),
-            method = "method",
-            href = "https://test.okta.com/idp/idx/identify".toHttpUrl(),
-            accepts = null
-        )
+        val remediation =
+            IdxRemediation(
+                type = IdxRemediation.Type.UNKNOWN,
+                name = "test",
+                form = IdxRemediation.Form(listOf(credentialField)),
+                authenticators = IdxAuthenticatorCollection(listOf(authenticator)),
+                capabilities = IdxCapabilityCollection(emptySet()),
+                method = "method",
+                href = "https://test.okta.com/idp/idx/identify".toHttpUrl(),
+                accepts = null
+            )
         val capability = requireNotNull(remediation.authenticators.capability<IdxWebAuthnRegistrationCapability>())
 
         // act
@@ -310,9 +325,11 @@ class IdxWebAuthnRegistrationAndAuthenticationTest {
     @Test
     fun `withRegistrationResponse throws if registrationResponseJson is missing attestationObject field`() {
         // arrange
-        val json = JSONObject(registrationResponseJson).apply {
-            getJSONObject("response").remove("attestationObject")
-        }.toString()
+        val json =
+            JSONObject(registrationResponseJson)
+                .apply {
+                    getJSONObject("response").remove("attestationObject")
+                }.toString()
         val capability = IdxWebAuthnRegistrationCapability("activationData")
 
         // act
@@ -327,9 +344,11 @@ class IdxWebAuthnRegistrationAndAuthenticationTest {
     @Test
     fun `withRegistrationResponse throws if registrationResponseJson is missing clientDataJSON field`() {
         // arrange
-        val json = JSONObject(registrationResponseJson).apply {
-            getJSONObject("response").remove("clientDataJSON")
-        }.toString()
+        val json =
+            JSONObject(registrationResponseJson)
+                .apply {
+                    getJSONObject("response").remove("clientDataJSON")
+                }.toString()
         val capability = IdxWebAuthnRegistrationCapability("activationData")
 
         // act
@@ -344,9 +363,11 @@ class IdxWebAuthnRegistrationAndAuthenticationTest {
     @Test
     fun `withRegistrationResponse throws if attestationObject field is blank`() {
         // arrange
-        val json = JSONObject(registrationResponseJson).apply {
-            getJSONObject("response").put("attestationObject", " ")
-        }.toString()
+        val json =
+            JSONObject(registrationResponseJson)
+                .apply {
+                    getJSONObject("response").put("attestationObject", " ")
+                }.toString()
         val capability = IdxWebAuthnRegistrationCapability("activationData")
 
         // act
@@ -361,9 +382,11 @@ class IdxWebAuthnRegistrationAndAuthenticationTest {
     @Test
     fun `withRegistrationResponse throws if clientDataJSON field is blank`() {
         // arrange
-        val json = JSONObject(registrationResponseJson).apply {
-            getJSONObject("response").put("clientDataJSON", " ")
-        }.toString()
+        val json =
+            JSONObject(registrationResponseJson)
+                .apply {
+                    getJSONObject("response").put("clientDataJSON", " ")
+                }.toString()
         val capability = IdxWebAuthnRegistrationCapability("activationData")
 
         // act
@@ -379,16 +402,17 @@ class IdxWebAuthnRegistrationAndAuthenticationTest {
     fun `withRegistrationResponse throws if remediation does not have webauthn capability`() {
         // arrange
         val form = IdxRemediation.Form(emptyList())
-        val remediation = IdxRemediation(
-            type = IdxRemediation.Type.UNKNOWN,
-            name = "test",
-            form = form,
-            authenticators = IdxAuthenticatorCollection(listOf()),
-            capabilities = IdxCapabilityCollection(emptySet()),
-            method = "method",
-            href = "https://test.okta.com/idp/idx/identify".toHttpUrl(),
-            accepts = null
-        )
+        val remediation =
+            IdxRemediation(
+                type = IdxRemediation.Type.UNKNOWN,
+                name = "test",
+                form = form,
+                authenticators = IdxAuthenticatorCollection(listOf()),
+                capabilities = IdxCapabilityCollection(emptySet()),
+                method = "method",
+                href = "https://test.okta.com/idp/idx/identify".toHttpUrl(),
+                accepts = null
+            )
         val capability = IdxWebAuthnRegistrationCapability("activationData")
 
         // act
@@ -404,7 +428,8 @@ class IdxWebAuthnRegistrationAndAuthenticationTest {
     fun `withAuthenticationResponseJson succeeds with valid Base64Url data`() {
         // arrange
         val remediation = createChallengeRemediation()
-        val authResponseJson = """
+        val authResponseJson =
+            """
             {
               "response": {
                 "clientDataJson": "$base64UrlString",
@@ -412,7 +437,7 @@ class IdxWebAuthnRegistrationAndAuthenticationTest {
                 "signature": "$base64UrlString"
               }
             }
-        """.trimIndent()
+            """.trimIndent()
         val capability = requireNotNull(remediation.authenticators.capability<IdxWebAuthnAuthenticationCapability>())
 
         // act
@@ -428,7 +453,8 @@ class IdxWebAuthnRegistrationAndAuthenticationTest {
     fun `withAuthenticationResponseJson succeeds with valid standard Base64 data`() {
         // arrange
         val remediation = createChallengeRemediation()
-        val authResponseJson = """
+        val authResponseJson =
+            """
             {
               "response": {
                 "clientDataJson": "$simpleB64String",
@@ -436,7 +462,7 @@ class IdxWebAuthnRegistrationAndAuthenticationTest {
                 "signature": "$simpleB64String"
               }
             }
-        """.trimIndent()
+            """.trimIndent()
         val capability = requireNotNull(remediation.authenticators.capability<IdxWebAuthnAuthenticationCapability>())
 
         // act
@@ -452,7 +478,8 @@ class IdxWebAuthnRegistrationAndAuthenticationTest {
     fun `withAuthenticationResponseJson succeeds with valid clientDataJSON standard Base64 data`() {
         // arrange
         val remediation = createChallengeRemediation()
-        val authResponseJson = """
+        val authResponseJson =
+            """
             {
               "response": {
                 "clientDataJSON": "$simpleB64String",
@@ -460,7 +487,7 @@ class IdxWebAuthnRegistrationAndAuthenticationTest {
                 "signature": "$simpleB64String"
               }
             }
-        """.trimIndent()
+            """.trimIndent()
         val capability = requireNotNull(remediation.authenticators.capability<IdxWebAuthnAuthenticationCapability>())
 
         // act
@@ -491,7 +518,8 @@ class IdxWebAuthnRegistrationAndAuthenticationTest {
     fun `withAuthenticationResponseJson fails when clientDataJson is missing from response`() {
         // arrange
         val remediation = createChallengeRemediation()
-        val authResponseJson = """
+        val authResponseJson =
+            """
             {
               "response": {
                 "clientDataJson": "",
@@ -499,7 +527,7 @@ class IdxWebAuthnRegistrationAndAuthenticationTest {
                 "signature": "data"
               }
             }
-        """.trimIndent()
+            """.trimIndent()
         val capability = requireNotNull(remediation.authenticators.capability<IdxWebAuthnAuthenticationCapability>())
 
         // act
@@ -514,7 +542,8 @@ class IdxWebAuthnRegistrationAndAuthenticationTest {
     fun `withAuthenticationResponseJson fails when authenticatorData is missing from response`() {
         // arrange
         val remediation = createChallengeRemediation()
-        val authResponseJson = """
+        val authResponseJson =
+            """
             {
               "response": {
                 "clientDataJson": "data",
@@ -522,7 +551,7 @@ class IdxWebAuthnRegistrationAndAuthenticationTest {
                 "signature": "data"
               }
             }
-        """.trimIndent()
+            """.trimIndent()
         val capability = requireNotNull(remediation.authenticators.capability<IdxWebAuthnAuthenticationCapability>())
 
         // act
@@ -537,7 +566,8 @@ class IdxWebAuthnRegistrationAndAuthenticationTest {
     fun `withAuthenticationResponseJson fails when signature is missing from response`() {
         // arrange
         val remediation = createChallengeRemediation()
-        val authResponseJson = """
+        val authResponseJson =
+            """
             {
               "response": {
                 "clientDataJson": "data",
@@ -545,7 +575,7 @@ class IdxWebAuthnRegistrationAndAuthenticationTest {
                 "signature" : ""
               }
             }
-        """.trimIndent()
+            """.trimIndent()
         val capability = requireNotNull(remediation.authenticators.capability<IdxWebAuthnAuthenticationCapability>())
 
         // act
@@ -560,7 +590,8 @@ class IdxWebAuthnRegistrationAndAuthenticationTest {
     fun `withAuthenticationResponseJson fails when form field is missing`() {
         // arrange
         val remediation = createChallengeRemediation(formFields = listOf("credentials.clientData", "credentials.signatureData"))
-        val authResponseJson = """
+        val authResponseJson =
+            """
             {
               "response": {
                 "clientDataJson": "$simpleB64String",
@@ -568,7 +599,7 @@ class IdxWebAuthnRegistrationAndAuthenticationTest {
                 "signature": "$simpleB64String"
               }
             }
-        """.trimIndent()
+            """.trimIndent()
         val capability = requireNotNull(remediation.authenticators.capability<IdxWebAuthnAuthenticationCapability>())
 
         // act
@@ -598,7 +629,8 @@ class IdxWebAuthnRegistrationAndAuthenticationTest {
     fun `withAuthenticationResponseJson from a remediation that does not contain userHandle form, expect remediation form has no userHandle`() {
         // arrange
         val remediation = createChallengeRemediation()
-        val authResponseJson = """
+        val authResponseJson =
+            """
             {
               "response": {
                 "clientDataJSON": "$simpleB64String",
@@ -607,7 +639,7 @@ class IdxWebAuthnRegistrationAndAuthenticationTest {
                 "userHandle": "testHandle"
               }
             }
-        """.trimIndent()
+            """.trimIndent()
         val capability = requireNotNull(remediation.authenticators.capability<IdxWebAuthnAuthenticationCapability>())
 
         // act
@@ -624,7 +656,8 @@ class IdxWebAuthnRegistrationAndAuthenticationTest {
     fun `withAuthenticationResponseJson from a remediation that has userHandle form, expect remediation form has userHandle`() {
         // arrange
         val userHandle = "testUserHandle"
-        val authResponseJson = """
+        val authResponseJson =
+            """
             {
               "response": {
                 "clientDataJSON": "$simpleB64String",
@@ -633,7 +666,7 @@ class IdxWebAuthnRegistrationAndAuthenticationTest {
                 "userHandle": "$userHandle"
               }
             }
-        """.trimIndent()
+            """.trimIndent()
         val json = Json { ignoreUnknownKeys = true }
         val response = json.decodeFromString<Response>(stringFromResources("dto/webauthnautofill.json"))
         val idxResponse = response.toIdxResponse(json)
@@ -653,7 +686,8 @@ class IdxWebAuthnRegistrationAndAuthenticationTest {
     @Test
     fun `withAuthenticationResponseJson from a remediation that has userHandle but auth response does not, expect remediation form has no userHandle`() {
         // arrange
-        val authResponseJson = """
+        val authResponseJson =
+            """
             {
               "response": {
                 "clientDataJSON": "$simpleB64String",
@@ -661,7 +695,7 @@ class IdxWebAuthnRegistrationAndAuthenticationTest {
                 "signature": "$simpleB64String"
               }
             }
-        """.trimIndent()
+            """.trimIndent()
         val json = Json { ignoreUnknownKeys = true }
         val response = json.decodeFromString<Response>(stringFromResources("dto/webauthnautofill.json"))
         val idxResponse = response.toIdxResponse(json)
@@ -682,7 +716,8 @@ class IdxWebAuthnRegistrationAndAuthenticationTest {
     fun `withAuthenticationResponseJson fails with invalid Base64 data`() {
         // arrange
         val remediation = createChallengeRemediation()
-        val authResponseJson = """
+        val authResponseJson =
+            """
             {
               "response": {
                 "clientDataJson": "$simpleB64String",
@@ -690,7 +725,7 @@ class IdxWebAuthnRegistrationAndAuthenticationTest {
                 "signature": "$simpleB64String"
               }
             }
-        """.trimIndent()
+            """.trimIndent()
         val capability = requireNotNull(remediation.authenticators.capability<IdxWebAuthnAuthenticationCapability>())
 
         // act
@@ -714,7 +749,5 @@ class IdxWebAuthnRegistrationAndAuthenticationTest {
         messages: IdxMessageCollection = this.messages,
         authenticator: IdxAuthenticator? = this.authenticator,
         isVisible: Boolean = this.isVisible,
-    ): IdxRemediation.Form.Field {
-        return IdxRemediation.Form.Field(name, label, type, value, isMutable, isRequired, isSecret, form, options, messages, authenticator, isVisible)
-    }
+    ): IdxRemediation.Form.Field = IdxRemediation.Form.Field(name, label, type, value, isMutable, isRequired, isSecret, form, options, messages, authenticator, isVisible)
 }

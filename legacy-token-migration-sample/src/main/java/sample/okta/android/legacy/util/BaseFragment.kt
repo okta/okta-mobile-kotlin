@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,26 +26,26 @@ abstract class BaseFragment<B : ViewBinding>(
     private val bindingFactory: (
         inflater: LayoutInflater,
         container: ViewGroup?,
-        attachToParent: Boolean
-    ) -> B
+        attachToParent: Boolean,
+    ) -> B,
 ) : Fragment() {
-    private var _binding: B? = null
+    private var bindingBacking: B? = null
 
     // This property is only valid between onCreateView and
     // onDestroyView.
-    protected val binding get() = _binding!!
+    protected val binding get() = bindingBacking!!
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?
+        savedInstanceState: Bundle?,
     ): View? {
-        _binding = bindingFactory(inflater, container, false)
+        bindingBacking = bindingFactory(inflater, container, false)
         return binding.root
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
-        _binding = null
+        bindingBacking = null
     }
 }

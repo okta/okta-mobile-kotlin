@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ sealed interface DynamicAuthField {
         val isRequired: Boolean,
         val isSecure: Boolean,
         val errorMessage: String?,
-        private val valueUpdater: (String) -> Unit
+        private val valueUpdater: (String) -> Unit,
     ) : DynamicAuthField {
         private val _errorsLiveData = MutableLiveData(errorMessage ?: "")
         val errorsLiveData: LiveData<String> = _errorsLiveData
@@ -44,13 +44,12 @@ sealed interface DynamicAuthField {
                 valueUpdater(value)
             }
 
-        override fun validate(): Boolean {
-            return if (isRequired) {
+        override fun validate(): Boolean =
+            if (isRequired) {
                 _errorsLiveData.emitValidation { value.isNotEmpty() }
             } else {
                 true
             }
-        }
     }
 
     /**
@@ -58,7 +57,7 @@ sealed interface DynamicAuthField {
      */
     data class CheckBox(
         val label: String,
-        private val valueUpdater: (Boolean) -> Unit
+        private val valueUpdater: (Boolean) -> Unit,
     ) : DynamicAuthField {
         var value: Boolean = false
             set(value) {
@@ -98,20 +97,21 @@ sealed interface DynamicAuthField {
                 value?.update(valueUpdater) ?: valueUpdater(null)
             }
 
-        override fun validate(): Boolean {
-            return if (isRequired) {
-                val nestedFieldsAreValid: Boolean = options.flatMap { option ->
-                    option.fields.map { field ->
-                        field.validate()
-                    }
-                }.reduce { acc, b ->
-                    acc && b
-                }
+        override fun validate(): Boolean =
+            if (isRequired) {
+                val nestedFieldsAreValid: Boolean =
+                    options
+                        .flatMap { option ->
+                            option.fields.map { field ->
+                                field.validate()
+                            }
+                        }.reduce { acc, b ->
+                            acc && b
+                        }
                 _errorsLiveData.emitValidation { option != null } && nestedFieldsAreValid
             } else {
                 true
             }
-        }
     }
 
     /**
@@ -119,7 +119,7 @@ sealed interface DynamicAuthField {
      */
     data class Action(
         val label: String,
-        val onClick: (activity: Activity) -> Unit
+        val onClick: (activity: Activity) -> Unit,
     ) : DynamicAuthField
 
     /**
@@ -138,7 +138,5 @@ sealed interface DynamicAuthField {
         val label: String,
     ) : DynamicAuthField
 
-    fun validate(): Boolean {
-        return true
-    }
+    fun validate(): Boolean = true
 }

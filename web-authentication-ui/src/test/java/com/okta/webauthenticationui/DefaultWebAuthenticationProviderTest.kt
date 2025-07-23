@@ -92,14 +92,15 @@ class DefaultWebAuthenticationProviderTest {
         installCustomTabsProvider("com.android.chrome.beta")
         installCustomTabsProvider("my.custom.preferred.browser")
         installCustomTabsProvider("com.android.chrome")
-        val eventHandler = object : EventHandler {
-            override fun onEvent(event: Event) {
-                if (event is CustomizeBrowserEvent) {
-                    event.preferredBrowsers.clear()
-                    event.preferredBrowsers.add("my.custom.preferred.browser")
+        val eventHandler =
+            object : EventHandler {
+                override fun onEvent(event: Event) {
+                    if (event is CustomizeBrowserEvent) {
+                        event.preferredBrowsers.clear()
+                        event.preferredBrowsers.add("my.custom.preferred.browser")
+                    }
                 }
             }
-        }
         val webAuthenticationProvider = DefaultWebAuthenticationProvider(EventCoordinator(eventHandler))
         val activity = Robolectric.buildActivity(Activity::class.java)
         assertThat(webAuthenticationProvider.launch(activity.get(), "https://example.com/not_used".toHttpUrl())).isNull()
@@ -120,10 +121,11 @@ class DefaultWebAuthenticationProviderTest {
     // Copyright 2019 Google Inc. All Rights Reserved.
     // https://chromium.googlesource.com/custom-tabs-client/+/refs/heads/main/customtabs/junit/src/android/support/customtabs/trusted/TwaProviderPickerTest.java
     private fun installBrowser(packageName: String) {
-        val intent = Intent()
-            .setData(Uri.parse("http://"))
-            .setAction(Intent.ACTION_VIEW)
-            .addCategory(Intent.CATEGORY_BROWSABLE)
+        val intent =
+            Intent()
+                .setData(Uri.parse("http://"))
+                .setAction(Intent.ACTION_VIEW)
+                .addCategory(Intent.CATEGORY_BROWSABLE)
         val resolveInfo = ResolveInfo()
         resolveInfo.activityInfo = ActivityInfo()
         resolveInfo.activityInfo.packageName = packageName

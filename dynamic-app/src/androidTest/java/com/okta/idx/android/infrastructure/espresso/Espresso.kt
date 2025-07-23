@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ fun authenticatorViewInteraction(authenticatorTitle: String): ViewInteraction {
             allOf(
                 withText(authenticatorTitle),
                 withParent(withId(R.id.radio_group)),
-                withEffectiveVisibility(ViewMatchers.Visibility.VISIBLE),
+                withEffectiveVisibility(ViewMatchers.Visibility.VISIBLE)
             )
         )
     )
@@ -87,13 +87,19 @@ fun scrollToToBottom() {
     assertThat(appViews.scrollToEnd(20, 5)).isTrue()
 }
 
-fun fillInEditText(resourceId: String, text: String) {
+fun fillInEditText(
+    resourceId: String,
+    text: String,
+) {
     val uiDevice = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
     val selector = UiSelector().resourceId(resourceId)
     assertThat(uiDevice.findObject(selector).setText(text)).isTrue()
 }
 
-fun clickButtonWithText(text: String, timeout: Long? = null) {
+fun clickButtonWithText(
+    text: String,
+    timeout: Long? = null,
+) {
     val uiDevice = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
     val selector = UiSelector().text(text)
     timeout?.let {
@@ -102,7 +108,10 @@ fun clickButtonWithText(text: String, timeout: Long? = null) {
     assertThat(uiDevice.findObject(selector).click()).isTrue()
 }
 
-fun clickButtonWithTextMatching(text: String, timeout: Long? = null) {
+fun clickButtonWithTextMatching(
+    text: String,
+    timeout: Long? = null,
+) {
     val uiDevice = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
     val selector = UiSelector().textMatches(text)
     timeout?.let {
@@ -114,6 +123,7 @@ fun clickButtonWithTextMatching(text: String, timeout: Long? = null) {
 fun <T> first(matcher: Matcher<T>): Matcher<T>? {
     return object : BaseMatcher<T>() {
         var isFirst = true
+
         override fun matches(item: Any): Boolean {
             if (isFirst && matcher.matches(item)) {
                 isFirst = false

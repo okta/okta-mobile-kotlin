@@ -1,5 +1,5 @@
 /*
- * Copyright 2024-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import java.util.UUID
 
 @InternalAuthFoundationApi
 class DeviceTokenProvider(
-    private val aesEncryptionHandler: AesEncryptionHandler = AesEncryptionHandler()
+    private val aesEncryptionHandler: AesEncryptionHandler = AesEncryptionHandler(),
 ) {
     companion object {
         const val PREFERENCE_NAME = "com.okta.idx.client.deviceToken"
@@ -41,7 +41,10 @@ class DeviceTokenProvider(
     private val context by lazy { ApplicationContextHolder.appContext }
 
     suspend fun getDeviceToken(): String {
-        val encryptedDeviceToken = context.dataStore.data.firstOrNull()?.get(PREFERENCE_KEY)
+        val encryptedDeviceToken =
+            context.dataStore.data
+                .firstOrNull()
+                ?.get(PREFERENCE_KEY)
         return encryptedDeviceToken?.let {
             aesEncryptionHandler.decryptString(it).getOrNull()
         } ?: run {
@@ -51,19 +54,19 @@ class DeviceTokenProvider(
         }
     }
 
-    private fun getLegacyDeviceToken(): String? {
-        return try {
+    private fun getLegacyDeviceToken(): String? =
+        try {
             val legacyDeviceTokenProvider = LegacyDeviceTokenProvider(context)
             if (legacyDeviceTokenProvider.containsDeviceToken()) {
                 legacyDeviceTokenProvider.deviceToken
-            } else null
+            } else {
+                null
+            }
         } catch (e: Exception) {
             null
         }
-    }
 
-    private fun createNewDeviceToken(): String =
-        UUID.randomUUID().toString().filter { it.isLetterOrDigit() }
+    private fun createNewDeviceToken(): String = UUID.randomUUID().toString().filter { it.isLetterOrDigit() }
 
     private suspend fun setDeviceToken(deviceToken: String) =
         context.dataStore.edit { preferences ->

@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,8 +23,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 typealias RequestMatcher = (request: OktaRecordedRequest) -> Boolean
 
 object RequestMatchers {
-    fun path(path: String): RequestMatcher {
-        return { request ->
+    fun path(path: String): RequestMatcher =
+        { request ->
             var requestPath = request.path
             val queryIndex = requestPath?.indexOf("?") ?: -1
             if (queryIndex > -1) {
@@ -33,10 +33,9 @@ object RequestMatchers {
             }
             requestPath?.endsWith(path) ?: false
         }
-    }
 
-    fun query(query: String): RequestMatcher {
-        return { request ->
+    fun query(query: String): RequestMatcher =
+        { request ->
             val requestPath = request.path
             val queryIndex = requestPath?.indexOf("?") ?: -1
             if (queryIndex > -1) {
@@ -45,37 +44,37 @@ object RequestMatchers {
                 false
             }
         }
-    }
 
-    fun method(method: String): RequestMatcher {
-        return { request -> request.method == method }
-    }
+    fun method(method: String): RequestMatcher = { request -> request.method == method }
 
-    fun body(body: String): RequestMatcher {
-        return { request ->
+    fun body(body: String): RequestMatcher =
+        { request ->
             val actual = request.bodyText
             actual == body
         }
-    }
 
-    fun bodyContaining(partial: String): RequestMatcher {
-        return { request ->
+    fun bodyContaining(partial: String): RequestMatcher =
+        { request ->
             val actual = request.bodyText
             actual.contains(partial)
         }
-    }
 
-    fun header(key: String, value: String): RequestMatcher {
-        return { request ->
+    fun header(
+        key: String,
+        value: String,
+    ): RequestMatcher =
+        { request ->
             val actual = request.headers[key]
             actual == value
         }
-    }
 
     private val objectMapper: ObjectMapper = ObjectMapper()
 
-    fun bodyWithJsonPath(path: String, matcher: (JsonNode) -> Boolean): RequestMatcher {
-        return { request ->
+    fun bodyWithJsonPath(
+        path: String,
+        matcher: (JsonNode) -> Boolean,
+    ): RequestMatcher =
+        { request ->
             try {
                 val rootNode = objectMapper.readTree(request.bodyText)
                 matcher(rootNode.at(path))
@@ -85,11 +84,9 @@ object RequestMatchers {
                 false
             }
         }
-    }
 
-    fun composite(vararg matchers: RequestMatcher): RequestMatcher {
-        return { request ->
+    fun composite(vararg matchers: RequestMatcher): RequestMatcher =
+        { request ->
             matchers.all { it(request) }
         }
-    }
 }

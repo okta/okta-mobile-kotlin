@@ -36,75 +36,77 @@ internal class SignInTitleTransformerTest {
 
     private val idxResponseFactory = IdxResponseFactory(networkRule)
 
-    private fun getFormFromJson(json: String): Form = runBlocking {
-        val responseTransformer: suspend (resultProducer: suspend (InteractionCodeFlow) -> OAuth2ClientResult<IdxResponse>) -> Unit = {
-            throw AssertionError("Not expected")
+    private fun getFormFromJson(json: String): Form =
+        runBlocking {
+            val responseTransformer: suspend (resultProducer: suspend (InteractionCodeFlow) -> OAuth2ClientResult<IdxResponse>) -> Unit = {
+                throw AssertionError("Not expected")
+            }
+            val formBuilder = RealIdxResponseTransformer().transform(responseTransformer, idxResponseFactory.fromJson(json)) { _, _ -> }
+            formBuilder.build(listOf(SignInTitleTransformer()))
         }
-        val formBuilder = RealIdxResponseTransformer().transform(responseTransformer, idxResponseFactory.fromJson(json)) { _, _ -> }
-        formBuilder.build(listOf(SignInTitleTransformer()))
-    }
 
     @Test fun testSignInTitleTransformerAddsTitleToIdentifyRemediation() {
-        val form = getFormFromJson(
-            """
-            {
-              "version": "1.0.0",
-              "stateHandle": "029ZAB",
-              "expiresAt": "2021-05-21T16:41:22.000Z",
-              "intent": "LOGIN",
-              "remediation": {
-                "type": "array",
-                "value": [
-                  {
-                    "rel": [
-                      "create-form"
-                    ],
-                    "name": "identify",
-                    "href": "https://foo.oktapreview.com/idp/idx/identify",
-                    "method": "POST",
-                    "produces": "application/ion+json; okta-version=1.0.0",
+        val form =
+            getFormFromJson(
+                """
+                {
+                  "version": "1.0.0",
+                  "stateHandle": "029ZAB",
+                  "expiresAt": "2021-05-21T16:41:22.000Z",
+                  "intent": "LOGIN",
+                  "remediation": {
+                    "type": "array",
                     "value": [
                       {
-                        "name": "identifier",
-                        "label": "Username"
-                      },
-                      {
-                        "name": "credentials",
-                        "type": "object",
-                        "form": {
-                          "value": [
-                            {
-                              "name": "passcode",
-                              "label": "Password",
-                              "secret": true
-                            }
-                          ]
-                        },
-                        "required": true
-                      },
-                      {
-                        "name": "stateHandle",
-                        "required": true,
-                        "value": "029ZAB",
-                        "visible": false,
-                        "mutable": false
+                        "rel": [
+                          "create-form"
+                        ],
+                        "name": "identify",
+                        "href": "https://foo.oktapreview.com/idp/idx/identify",
+                        "method": "POST",
+                        "produces": "application/ion+json; okta-version=1.0.0",
+                        "value": [
+                          {
+                            "name": "identifier",
+                            "label": "Username"
+                          },
+                          {
+                            "name": "credentials",
+                            "type": "object",
+                            "form": {
+                              "value": [
+                                {
+                                  "name": "passcode",
+                                  "label": "Password",
+                                  "secret": true
+                                }
+                              ]
+                            },
+                            "required": true
+                          },
+                          {
+                            "name": "stateHandle",
+                            "required": true,
+                            "value": "029ZAB",
+                            "visible": false,
+                            "mutable": false
+                          }
+                        ],
+                        "accepts": "application/json; okta-version=1.0.0"
                       }
-                    ],
-                    "accepts": "application/json; okta-version=1.0.0"
+                    ]
+                  },
+                  "app": {
+                    "type": "object",
+                    "value": {
+                      "name": "oidc_client",
+                      "label": "OIE Android Sample",
+                      "id": "0oal2s4yhspmifyt65d6"
+                    }
                   }
-                ]
-              },
-              "app": {
-                "type": "object",
-                "value": {
-                  "name": "oidc_client",
-                  "label": "OIE Android Sample",
-                  "id": "0oal2s4yhspmifyt65d6"
                 }
-              }
-            }
-            """.trimIndent()
-        )
+                """.trimIndent()
+            )
         assertThat(form.elements).hasSize(4)
         assertThat((form.elements[0] as Element.Label).text).isEqualTo("Sign In")
         assertThat((form.elements[1] as Element.TextInput).label).isEqualTo("Username")
@@ -113,44 +115,45 @@ internal class SignInTitleTransformerTest {
     }
 
     @Test fun testSignInTitleTransformerDoesNotAddTitleToOtherRemediation() {
-        val form = getFormFromJson(
-            """
-            {
-              "version": "1.0.0",
-              "stateHandle": "029ZAB",
-              "expiresAt": "2021-05-21T16:41:22.000Z",
-              "intent": "LOGIN",
-              "remediation": {
-                "type": "array",
-                "value": [
-                  {
-                    "rel": ["create-form"],
-                    "name": "select-enroll-profile",
-                    "href": "https://jnewstrom-test.okta.com/idp/idx/enroll",
-                    "method": "POST",
-                    "produces": "application/ion+json; okta-version=1.0.0",
-                    "value": [{
-                        "name": "stateHandle",
-                        "required": true,
-                        "value": "02.id.bEOo8f7nf7ml0kBpaHgL5Mu69UbyyeZQwFgwIrld",
-                        "visible": false,
-                        "mutable": false
-                    }],
-                    "accepts": "application/json; okta-version=1.0.0"
+        val form =
+            getFormFromJson(
+                """
+                {
+                  "version": "1.0.0",
+                  "stateHandle": "029ZAB",
+                  "expiresAt": "2021-05-21T16:41:22.000Z",
+                  "intent": "LOGIN",
+                  "remediation": {
+                    "type": "array",
+                    "value": [
+                      {
+                        "rel": ["create-form"],
+                        "name": "select-enroll-profile",
+                        "href": "https://jnewstrom-test.okta.com/idp/idx/enroll",
+                        "method": "POST",
+                        "produces": "application/ion+json; okta-version=1.0.0",
+                        "value": [{
+                            "name": "stateHandle",
+                            "required": true,
+                            "value": "02.id.bEOo8f7nf7ml0kBpaHgL5Mu69UbyyeZQwFgwIrld",
+                            "visible": false,
+                            "mutable": false
+                        }],
+                        "accepts": "application/json; okta-version=1.0.0"
+                      }
+                    ]
+                  },
+                  "app": {
+                    "type": "object",
+                    "value": {
+                      "name": "oidc_client",
+                      "label": "OIE Android Sample",
+                      "id": "0oal2s4yhspmifyt65d6"
+                    }
                   }
-                ]
-              },
-              "app": {
-                "type": "object",
-                "value": {
-                  "name": "oidc_client",
-                  "label": "OIE Android Sample",
-                  "id": "0oal2s4yhspmifyt65d6"
                 }
-              }
-            }
-            """.trimIndent()
-        )
+                """.trimIndent()
+            )
         assertThat(form.elements).hasSize(1)
         assertThat((form.elements[0] as Element.Action).text).isEqualTo("Sign Up")
     }

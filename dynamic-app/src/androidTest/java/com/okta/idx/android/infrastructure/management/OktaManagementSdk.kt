@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,11 @@ import com.okta.sdk.client.Clients
 import com.okta.sdk.resource.client.ApiClient
 
 object OktaManagementSdk {
-    val client: ApiClient = Clients.builder()
-        .setClientId(EndToEndCredentials["/managementSdk/clientId"])
-        .setOrgUrl(EndToEndCredentials["/managementSdk/orgUrl"])
-        .setClientCredentials { EndToEndCredentials["/managementSdk/token"] }
-        .build()
+    val client: ApiClient =
+        Clients
+            .builder()
+            .setClientId(EndToEndCredentials["/managementSdk/clientId"])
+            .setOrgUrl(EndToEndCredentials["/managementSdk/orgUrl"])
+            .setClientCredentials { EndToEndCredentials["/managementSdk/token"] }
+            .build()
 }

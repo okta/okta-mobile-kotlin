@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -81,16 +81,17 @@ internal fun Form.toIdxRemediation(
         }
     }
 
-    val remediation = IdxRemediation(
-        type = remediationType,
-        name = name,
-        form = form,
-        authenticators = IdxAuthenticatorCollection(authenticatorsList),
-        capabilities = IdxCapabilityCollection(capabilities),
-        method = method,
-        href = href,
-        accepts = accepts,
-    )
+    val remediation =
+        IdxRemediation(
+            type = remediationType,
+            name = name,
+            form = form,
+            authenticators = IdxAuthenticatorCollection(authenticatorsList),
+            capabilities = IdxCapabilityCollection(capabilities),
+            method = method,
+            href = href,
+            accepts = accepts
+        )
 
     toIdxPollRemediationCapability(remediation)?.let { capabilities += it }
 
@@ -105,7 +106,7 @@ private fun Form.toIdxIdpCapability(): IdxIdpCapability? {
         return IdxIdpCapability(
             id = id,
             name = name,
-            redirectUrl = href,
+            redirectUrl = href
         )
     }
     return null
@@ -121,7 +122,7 @@ private fun Form.toIdxPollRemediationCapability(remediation: IdxRemediation): Id
 private fun FormValue.toIdxField(
     json: Json,
     parsingContext: ParsingContext?,
-    parentFormValue: FormValue?
+    parentFormValue: FormValue?,
 ): IdxRemediation.Form.Field {
     // Fields default to visible, except there are circumstances where
     // fields (such as `id`) don't properly include a `visible: false`. As a result,
@@ -156,12 +157,12 @@ private fun FormValue.toIdxField(
         form = (form ?: valueAsForm)?.value?.toForm(json, parsingContext, this),
         options = options?.map { it.toIdxField(json, parsingContext, this) },
         messages = IdxMessageCollection(messages?.value?.map { it.toIdxMessage() } ?: emptyList()),
-        authenticator = parsingContext.authenticatorFor(relatesTo),
+        authenticator = parsingContext.authenticatorFor(relatesTo)
     )
 }
 
-private fun String.toRemediationType(): IdxRemediation.Type {
-    return when (this) {
+private fun String.toRemediationType(): IdxRemediation.Type =
+    when (this) {
         "issue" -> IdxRemediation.Type.ISSUE
         "identify" -> IdxRemediation.Type.IDENTIFY
         "identify-recovery" -> IdxRemediation.Type.IDENTIFY_RECOVERY
@@ -208,7 +209,6 @@ private fun String.toRemediationType(): IdxRemediation.Type {
         "challenge-webauthn-autofillui-authenticator" -> IdxRemediation.Type.CHALLENGE_WEBAUTHN_AUTOFILLUI_AUTHENTICATOR
         else -> IdxRemediation.Type.UNKNOWN
     }
-}
 
 private fun List<FormValue>?.toForm(
     json: Json,
@@ -232,14 +232,15 @@ private fun List<FormValue>?.toForm(
  * @return The data in Base64 format.
  * @throws IllegalArgumentException if the string is not a valid Base64 string.
  */
-internal fun convertBase64UrltoBase64(data: String): Result<String> = runCatching {
-    Base64.getDecoder().decode(data)
-    Result.success(data) // already a valid Base64 string
-}.getOrElse {
+internal fun convertBase64UrltoBase64(data: String): Result<String> =
     runCatching {
-        val base64UrlData = Base64.getUrlDecoder().decode(data)
-        Result.success(Base64.getEncoder().encodeToString(base64UrlData))
+        Base64.getDecoder().decode(data)
+        Result.success(data) // already a valid Base64 string
     }.getOrElse {
-        Result.failure(it)
+        runCatching {
+            val base64UrlData = Base64.getUrlDecoder().decode(data)
+            Result.success(Base64.getEncoder().encodeToString(base64UrlData))
+        }.getOrElse {
+            Result.failure(it)
+        }
     }
-}

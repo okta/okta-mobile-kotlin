@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,29 +36,30 @@ import java.util.Locale
 internal object HttpUrlSerializer : KSerializer<HttpUrl> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("HttpUrl", PrimitiveKind.STRING)
 
-    override fun deserialize(decoder: Decoder): HttpUrl {
-        return decoder.decodeString().toHttpUrl()
-    }
+    override fun deserialize(decoder: Decoder): HttpUrl = decoder.decodeString().toHttpUrl()
 
-    override fun serialize(encoder: Encoder, value: HttpUrl) {
+    override fun serialize(
+        encoder: Encoder,
+        value: HttpUrl,
+    ) {
         encoder.encodeString(value.toString())
     }
 }
 
 internal object DateSerializer : KSerializer<Date> {
-    private val simpleDateFormat = object : ThreadLocal<SimpleDateFormat>() {
-        override fun initialValue(): SimpleDateFormat {
-            return SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US)
+    private val simpleDateFormat =
+        object : ThreadLocal<SimpleDateFormat>() {
+            override fun initialValue(): SimpleDateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US)
         }
-    }
 
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("Date", PrimitiveKind.STRING)
 
-    override fun deserialize(decoder: Decoder): Date {
-        return simpleDateFormat.get()!!.parse(decoder.decodeString())!!
-    }
+    override fun deserialize(decoder: Decoder): Date = simpleDateFormat.get()!!.parse(decoder.decodeString())!!
 
-    override fun serialize(encoder: Encoder, value: Date) {
+    override fun serialize(
+        encoder: Encoder,
+        value: Date,
+    ) {
         encoder.encodeString(simpleDateFormat.get()!!.format(value))
     }
 }
@@ -195,7 +196,7 @@ internal data class Message(
 ) {
     @Serializable
     internal data class Localization(
-        val key: String
+        val key: String,
     )
 }
 

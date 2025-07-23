@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,28 +36,32 @@ import java.net.Proxy
 import kotlin.coroutines.EmptyCoroutineContext
 
 class NetworkRule : TestRule {
-    override fun apply(base: Statement, description: Description): Statement {
-        return MockWebServerStatement(base, OktaMockWebServer.dispatcher, description)
-    }
+    override fun apply(
+        base: Statement,
+        description: Description,
+    ): Statement = MockWebServerStatement(base, OktaMockWebServer.dispatcher, description)
 
-    fun enqueue(vararg requestMatcher: RequestMatcher, responseFactory: (MockResponse) -> Unit) {
+    fun enqueue(
+        vararg requestMatcher: RequestMatcher,
+        responseFactory: (MockResponse) -> Unit,
+    ) {
         OktaMockWebServer.dispatcher.enqueue(*requestMatcher) { response ->
             responseFactory(response)
         }
     }
 
-    fun mockedUrl(): HttpUrl {
-        return OktaMockWebServer.mockWebServer.url("")
-    }
+    fun mockedUrl(): HttpUrl = OktaMockWebServer.mockWebServer.url("")
 
     fun okHttpClient(): OkHttpClient {
         val clientBuilder = OkHttpClient.Builder()
         // This prevents Charles proxy from messing our mock responses.
         clientBuilder.proxy(Proxy.NO_PROXY)
 
-        val handshakeCertificates = HandshakeCertificates.Builder()
-            .addTrustedCertificate(OktaMockWebServer.localhostCertificate.certificate)
-            .build()
+        val handshakeCertificates =
+            HandshakeCertificates
+                .Builder()
+                .addTrustedCertificate(OktaMockWebServer.localhostCertificate.certificate)
+                .build()
         clientBuilder.sslSocketFactory(
             handshakeCertificates.sslSocketFactory(),
             handshakeCertificates.trustManager
@@ -78,7 +82,7 @@ class NetworkRule : TestRule {
         OidcConfiguration(
             issuer = urlBuilder.encodedPath("/oauth2/default").build().toString(),
             clientId = "test",
-            defaultScope = "openid email profile offline_access",
+            defaultScope = "openid email profile offline_access"
         )
     }
 
@@ -104,26 +108,28 @@ class NetworkRule : TestRule {
     }
 
     fun createClient(): OAuth2Client {
-        val endpoints = OidcEndpoints(
-            issuer = urlBuilder.encodedPath("/oauth2/default").build(),
-            authorizationEndpoint = urlBuilder.encodedPath("/oauth2/default/v1/authorize").build(),
-            tokenEndpoint = urlBuilder.encodedPath("/oauth2/default/v1/token").build(),
-            userInfoEndpoint = urlBuilder.encodedPath("/oauth2/default/v1/userinfo").build(),
-            jwksUri = null,
-            introspectionEndpoint = urlBuilder.encodedPath("/oauth2/default/v1/introspect").build(),
-            revocationEndpoint = urlBuilder.encodedPath("/oauth2/default/v1/revoke").build(),
-            endSessionEndpoint = urlBuilder.encodedPath("/oauth2/default/v1/logout").build(),
-            deviceAuthorizationEndpoint = null,
-        )
+        val endpoints =
+            OidcEndpoints(
+                issuer = urlBuilder.encodedPath("/oauth2/default").build(),
+                authorizationEndpoint = urlBuilder.encodedPath("/oauth2/default/v1/authorize").build(),
+                tokenEndpoint = urlBuilder.encodedPath("/oauth2/default/v1/token").build(),
+                userInfoEndpoint = urlBuilder.encodedPath("/oauth2/default/v1/userinfo").build(),
+                jwksUri = null,
+                introspectionEndpoint = urlBuilder.encodedPath("/oauth2/default/v1/introspect").build(),
+                revocationEndpoint = urlBuilder.encodedPath("/oauth2/default/v1/revoke").build(),
+                endSessionEndpoint = urlBuilder.encodedPath("/oauth2/default/v1/logout").build(),
+                deviceAuthorizationEndpoint = null
+            )
         return OAuth2Client.create(configuration, endpoints)
     }
 }
 
 private class NoOpCache : Cache {
-    override fun set(key: String, value: String) {
+    override fun set(
+        key: String,
+        value: String,
+    ) {
     }
 
-    override fun get(key: String): String? {
-        return null
-    }
+    override fun get(key: String): String? = null
 }

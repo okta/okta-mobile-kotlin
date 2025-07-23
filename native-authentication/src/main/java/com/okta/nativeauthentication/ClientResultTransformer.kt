@@ -33,9 +33,7 @@ internal class ClientResultTransformer(
     private val formFactory: FormFactory,
     private val responseTransformer: IdxResponseTransformer,
 ) {
-    suspend fun transformAndEmit(
-        resultProducer: suspend (InteractionCodeFlow) -> OAuth2ClientResult<IdxResponse>,
-    ) {
+    suspend fun transformAndEmit(resultProducer: suspend (InteractionCodeFlow) -> OAuth2ClientResult<IdxResponse>) {
         formFactory.emit(LoadingFormBuilder.create())
 
         when (val result = resultProducer(interactionCodeFlow)) {

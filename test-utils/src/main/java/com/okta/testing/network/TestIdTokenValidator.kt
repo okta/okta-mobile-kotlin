@@ -22,10 +22,15 @@ import com.okta.authfoundation.jwt.Jwt
 class TestIdTokenValidator : IdTokenValidator {
     @Volatile lateinit var lastIdToken: Jwt
         private set
+
     @Volatile lateinit var lastIdTokenParameters: IdTokenValidator.Parameters
         private set
 
-    override suspend fun validate(client: OAuth2Client, idToken: Jwt, parameters: IdTokenValidator.Parameters) {
+    override suspend fun validate(
+        client: OAuth2Client,
+        idToken: Jwt,
+        parameters: IdTokenValidator.Parameters,
+    ) {
         lastIdToken = idToken
         lastIdTokenParameters = parameters
     }

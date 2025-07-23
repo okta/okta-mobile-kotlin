@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,18 +25,27 @@ import okhttp3.Request
 class LockUser {
     @Before("@lockUser") fun lockUser() {
         val client = OkHttpClient()
-        val url = BuildConfig.ISSUER.toHttpUrl().newBuilder().addPathSegments("v1/token").build()
-        val formBody = FormBody.Builder()
-            .add("client_id", BuildConfig.CLIENT_ID)
-            .add("scope", "openid email profile offline_access")
-            .add("grant_type", "password")
-            .add("username", SharedState.a18NProfile!!.emailAddress)
-            .add("password", "wrong for locking user out.")
-            .build()
-        val request = Request.Builder()
-            .url(url)
-            .post(formBody)
-            .build()
+        val url =
+            BuildConfig.ISSUER
+                .toHttpUrl()
+                .newBuilder()
+                .addPathSegments("v1/token")
+                .build()
+        val formBody =
+            FormBody
+                .Builder()
+                .add("client_id", BuildConfig.CLIENT_ID)
+                .add("scope", "openid email profile offline_access")
+                .add("grant_type", "password")
+                .add("username", SharedState.a18NProfile!!.emailAddress)
+                .add("password", "wrong for locking user out.")
+                .build()
+        val request =
+            Request
+                .Builder()
+                .url(url)
+                .post(formBody)
+                .build()
 
         repeat(3) { client.newCall(request).execute() }
     }

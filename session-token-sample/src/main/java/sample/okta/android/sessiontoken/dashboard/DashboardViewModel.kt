@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,7 +55,10 @@ internal class DashboardViewModel : ViewModel() {
         }
     }
 
-    fun revoke(buttonId: Int, tokenType: RevokeTokenType) {
+    fun revoke(
+        buttonId: Int,
+        tokenType: RevokeTokenType,
+    ) {
         performRequest(buttonId) { credential ->
             when (credential.revokeToken(tokenType)) {
                 is OAuth2ClientResult.Error -> {
@@ -82,7 +85,10 @@ internal class DashboardViewModel : ViewModel() {
         }
     }
 
-    private fun performRequest(buttonId: Int, performer: suspend (Credential) -> RequestState) {
+    private fun performRequest(
+        buttonId: Int,
+        performer: suspend (Credential) -> RequestState,
+    ) {
         if (lastRequestJob?.isActive == true) {
             // Re-enable the button, so it's not permanently disabled.
             _requestStateLiveData.value = RequestState.Result("")
@@ -93,9 +99,10 @@ internal class DashboardViewModel : ViewModel() {
         val credential = credential
         _requestStateLiveData.value = RequestState.Loading
 
-        lastRequestJob = viewModelScope.launch {
-            _requestStateLiveData.postValue(performer(credential))
-        }
+        lastRequestJob =
+            viewModelScope.launch {
+                _requestStateLiveData.postValue(performer(credential))
+            }
     }
 
     private suspend fun getUserInfo() {
@@ -112,12 +119,18 @@ internal class DashboardViewModel : ViewModel() {
 
     sealed interface CredentialState {
         data object LoggedOut : CredentialState
-        data class Loaded(val credential: Credential) : CredentialState
+
+        data class Loaded(
+            val credential: Credential,
+        ) : CredentialState
     }
 
     sealed class RequestState {
         object Loading : RequestState()
-        data class Result(val text: String) : RequestState()
+
+        data class Result(
+            val text: String,
+        ) : RequestState()
     }
 
     fun deleteCredential() {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,9 @@ sealed class DynamicAuthState {
         val messages: List<String>,
     ) : DynamicAuthState()
 
-    data class Error(val message: String) : DynamicAuthState()
+    data class Error(
+        val message: String,
+    ) : DynamicAuthState()
 
     object Tokens : DynamicAuthState()
 }

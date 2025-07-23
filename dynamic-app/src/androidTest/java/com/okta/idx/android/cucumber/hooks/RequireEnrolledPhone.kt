@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,13 +28,14 @@ class RequireEnrolledPhone {
         Assert.assertNotNull(SharedState.a18NProfile)
         Assert.assertNotNull(SharedState.user)
         val userFactorApi = UserFactorApi(OktaManagementSdk.client)
-        val smsUserFactor: SmsUserFactor = SmsUserFactor().apply {
-            setProfile(
-                SmsUserFactorProfile()
-                    .phoneNumber(SharedState.a18NProfile!!.phoneNumber)
-            )
-            factorType(FactorType.SMS)
-        }
+        val smsUserFactor: SmsUserFactor =
+            SmsUserFactor().apply {
+                setProfile(
+                    SmsUserFactorProfile()
+                        .phoneNumber(SharedState.a18NProfile!!.phoneNumber)
+                )
+                factorType(FactorType.SMS)
+            }
         userFactorApi.enrollFactor(SharedState.user!!.id, smsUserFactor, false, null, null, true)
     }
 }

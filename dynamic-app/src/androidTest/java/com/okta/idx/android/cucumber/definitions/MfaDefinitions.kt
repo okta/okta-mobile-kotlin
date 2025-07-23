@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,7 @@ import io.cucumber.java.en.Then
 import io.cucumber.java.en.When
 import org.hamcrest.CoreMatchers.anyOf
 
+@Suppress("ktlint:standard:function-naming")
 class MfaDefinitions {
     @When("^she fills in her correct username for mfa$")
     fun she_fills_in_her_correct_username_for_mfa() {

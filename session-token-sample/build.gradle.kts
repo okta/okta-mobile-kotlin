@@ -1,14 +1,17 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.util.Properties
 
 plugins {
     id("com.android.application")
     kotlin("android")
     id("androidx.navigation.safeargs.kotlin")
+    id("spotless")
 }
 
-val oktaProperties = Properties().apply {
-    rootProject.file("okta.properties").inputStream().use { load(it) }
-}
+val oktaProperties =
+    Properties().apply {
+        rootProject.file("okta.properties").inputStream().use { load(it) }
+    }
 
 android {
     namespace = "sample.okta.android.sessiontoken"
@@ -39,8 +42,10 @@ android {
         targetCompatibility = TARGET_COMPATIBILITY
     }
 
-    kotlinOptions {
-        jvmTarget = JVM_TARGET
+    kotlin {
+        compilerOptions {
+            jvmTarget = JvmTarget.fromTarget(JVM_TARGET)
+        }
     }
 
     buildFeatures {

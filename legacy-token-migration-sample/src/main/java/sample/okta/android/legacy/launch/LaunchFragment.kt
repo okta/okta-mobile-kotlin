@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,12 +28,16 @@ import sample.okta.android.legacy.SampleWebAuthClientHelper
 import sample.okta.android.legacy.databinding.FragmentLaunchBinding
 import sample.okta.android.legacy.util.BaseFragment
 
-internal class LaunchFragment : BaseFragment<FragmentLaunchBinding>(
-    FragmentLaunchBinding::inflate
-) {
+internal class LaunchFragment :
+    BaseFragment<FragmentLaunchBinding>(
+        FragmentLaunchBinding::inflate
+    ) {
     private val viewModel by viewModels<LaunchViewModel>()
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+    override fun onViewCreated(
+        view: View,
+        savedInstanceState: Bundle?,
+    ) {
         super.onViewCreated(view, savedInstanceState)
 
         updateDashboardButtonVisibility()
@@ -55,9 +59,10 @@ internal class LaunchFragment : BaseFragment<FragmentLaunchBinding>(
 
     private fun updateDashboardButtonVisibility() {
         lifecycleScope.launch {
-            val token = withContext(Dispatchers.Default) {
-                SampleWebAuthClientHelper.webAuthClient.sessionClient.tokens
-            }
+            val token =
+                withContext(Dispatchers.Default) {
+                    SampleWebAuthClientHelper.webAuthClient.sessionClient.tokens
+                }
             if (token != null) {
                 binding.loggedInTextView.visibility = View.VISIBLE
                 binding.legacyDashboardButton.visibility = View.VISIBLE
