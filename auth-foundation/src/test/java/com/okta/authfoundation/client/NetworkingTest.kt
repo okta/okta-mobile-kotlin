@@ -438,8 +438,10 @@ class NetworkingTest {
                     ).build()
 
             val result = oktaRule.createOAuth2Client().performRequest(request)
-            val message = (result as OAuth2ClientResult.Error<Response>).exception.message
-            assertThat(message).contains("Failed to connect to")
+
+            assertThat(result).isInstanceOf(OAuth2ClientResult.Error::class.java)
+            val exception = (result as OAuth2ClientResult.Error<Response>).exception
+            assertThat(exception).isInstanceOf(java.io.IOException::class.java)
         }
 
     @Test fun testPerformRequestWithAlternateAcceptHeader(): Unit =

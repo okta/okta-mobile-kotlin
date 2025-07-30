@@ -92,7 +92,6 @@ dependencies {
     implementation(libs.lifecycle.viewmodel.ktx)
     implementation(libs.lifecycle.livedata.ktx)
     implementation(libs.lifecycle.runtime.ktx)
-    implementation(libs.lifecycle.java8)
     implementation(libs.material)
     implementation(libs.coroutines.android)
     implementation(libs.okhttp.core)

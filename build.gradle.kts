@@ -3,8 +3,19 @@ import org.jetbrains.dokka.gradle.DokkaTaskPartial
 import java.net.URI
 
 buildscript {
+    configurations.all {
+        resolutionStrategy {
+            force(libs.bcprov.jdk18on)
+            force(libs.bcpkix.jdk18on)
+            force(libs.bcutil.jdk18on)
+        }
+    }
+
     dependencies {
         classpath(libs.gradle.maven.publish)
+        classpath(libs.bcprov.jdk18on)
+        classpath(libs.bcpkix.jdk18on)
+        classpath(libs.bcutil.jdk18on)
     }
 }
 
