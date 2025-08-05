@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,12 +26,16 @@ import sample.okta.android.sessiontoken.databinding.RowDashboardClaimBinding
 import sample.okta.android.sessiontoken.util.BaseFragment
 import sample.okta.android.sessiontoken.util.inflateBinding
 
-internal class DashboardFragment : BaseFragment<FragmentDashboardBinding>(
-    FragmentDashboardBinding::inflate
-) {
+internal class DashboardFragment :
+    BaseFragment<FragmentDashboardBinding>(
+        FragmentDashboardBinding::inflate
+    ) {
     private val viewModel by viewModels<DashboardViewModel>()
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+    override fun onViewCreated(
+        view: View,
+        savedInstanceState: Bundle?,
+    ) {
         viewModel.credentialLiveData.observe(viewLifecycleOwner) { credentialState ->
             when (credentialState) {
                 is DashboardViewModel.CredentialState.LoggedOut -> {

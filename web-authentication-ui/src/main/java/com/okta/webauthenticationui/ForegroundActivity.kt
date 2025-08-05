@@ -30,11 +30,12 @@ internal class ForegroundActivity : AppCompatActivity() {
         private const val ACTION_REDIRECT =
             "com.okta.webauthenticationui.ForegroundActivity.redirect"
 
-        fun createIntent(context: Context): Intent {
-            return Intent(context, ForegroundActivity::class.java)
-        }
+        fun createIntent(context: Context): Intent = Intent(context, ForegroundActivity::class.java)
 
-        fun redirectIntent(context: Context, uri: Uri?): Intent {
+        fun redirectIntent(
+            context: Context,
+            uri: Uri?,
+        ): Intent {
             val intent = Intent(context, ForegroundActivity::class.java)
             intent.action = ACTION_REDIRECT
             intent.data = uri
@@ -101,23 +102,24 @@ internal class ForegroundActivity : AppCompatActivity() {
         viewModel.flowCancelled()
     }
 
-    private val stateObserver = Observer<ForegroundViewModel.State> { state ->
-        when (state) {
-            ForegroundViewModel.State.Error -> {
-                finish()
-            }
+    private val stateObserver =
+        Observer<ForegroundViewModel.State> { state ->
+            when (state) {
+                ForegroundViewModel.State.Error -> {
+                    finish()
+                }
 
-            is ForegroundViewModel.State.LaunchBrowser -> {
-                viewModel.launchBrowser(this, state.urlString)
-            }
+                is ForegroundViewModel.State.LaunchBrowser -> {
+                    viewModel.launchBrowser(this, state.urlString)
+                }
 
-            ForegroundViewModel.State.AwaitingInitialization -> {
-                // Idle, nothing to do.
-            }
+                ForegroundViewModel.State.AwaitingInitialization -> {
+                    // Idle, nothing to do.
+                }
 
-            ForegroundViewModel.State.AwaitingBrowserCallback -> {
-                // Idle, nothing to do.
+                ForegroundViewModel.State.AwaitingBrowserCallback -> {
+                    // Idle, nothing to do.
+                }
             }
         }
-    }
 }

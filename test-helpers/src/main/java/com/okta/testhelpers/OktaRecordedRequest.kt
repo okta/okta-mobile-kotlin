@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,9 @@ import okhttp3.HttpUrl
 import okhttp3.mockwebserver.RecordedRequest
 import java.util.concurrent.atomic.AtomicReference
 
-class OktaRecordedRequest(private val recordedRequest: RecordedRequest) {
+class OktaRecordedRequest(
+    private val recordedRequest: RecordedRequest,
+) {
     private val _bodyText = AtomicReference<String?>()
 
     val method: String? = recordedRequest.method
@@ -41,12 +43,14 @@ class OktaRecordedRequest(private val recordedRequest: RecordedRequest) {
         }
 
     fun queryParameterValues(name: String): List<String?> {
-        val url = HttpUrl.Builder()
-            .scheme("https")
-            .host("example.com")
-            .encodedPath(path.substringBefore("?"))
-            .encodedQuery(path.substringAfter("?"))
-            .build()
+        val url =
+            HttpUrl
+                .Builder()
+                .scheme("https")
+                .host("example.com")
+                .encodedPath(path.substringBefore("?"))
+                .encodedQuery(path.substringAfter("?"))
+                .build()
         return url.queryParameterValues(name)
     }
 }

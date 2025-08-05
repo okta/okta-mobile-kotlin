@@ -268,7 +268,7 @@ public final class com/okta/authfoundation/client/OidcConfiguration {
 	public final fun getOkHttpClientFactory ()Lkotlin/jvm/functions/Function0;
 }
 
-public synthetic class com/okta/authfoundation/client/OidcConfiguration$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+public final synthetic class com/okta/authfoundation/client/OidcConfiguration$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
 	public static final field INSTANCE Lcom/okta/authfoundation/client/OidcConfiguration$$serializer;
 	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
 	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lcom/okta/authfoundation/client/OidcConfiguration;
@@ -276,6 +276,7 @@ public synthetic class com/okta/authfoundation/client/OidcConfiguration$$seriali
 	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
 	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lcom/okta/authfoundation/client/OidcConfiguration;)V
 	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
 }
 
 public final class com/okta/authfoundation/client/OidcConfiguration$Companion {
@@ -543,7 +544,7 @@ public final class com/okta/authfoundation/credential/Token {
 	public fun hashCode ()I
 }
 
-public synthetic class com/okta/authfoundation/credential/Token$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+public final synthetic class com/okta/authfoundation/credential/Token$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
 	public static final field INSTANCE Lcom/okta/authfoundation/credential/Token$$serializer;
 	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
 	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lcom/okta/authfoundation/credential/Token;
@@ -551,6 +552,7 @@ public synthetic class com/okta/authfoundation/credential/Token$$serializer : ko
 	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
 	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lcom/okta/authfoundation/credential/Token;)V
 	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
 }
 
 public final class com/okta/authfoundation/credential/Token$Companion {
@@ -582,6 +584,7 @@ public final class com/okta/authfoundation/credential/TokenDbRecoveryUtil {
 public abstract interface class com/okta/authfoundation/credential/TokenEncryptionHandler {
 	public static final field Companion Lcom/okta/authfoundation/credential/TokenEncryptionHandler$Companion;
 	public abstract fun decrypt ([BLjava/util/Map;Lcom/okta/authfoundation/credential/Credential$Security;Landroidx/biometric/BiometricPrompt$PromptInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun decrypt$default (Lcom/okta/authfoundation/credential/TokenEncryptionHandler;[BLjava/util/Map;Lcom/okta/authfoundation/credential/Credential$Security;Landroidx/biometric/BiometricPrompt$PromptInfo;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public abstract fun encrypt (Lcom/okta/authfoundation/credential/Token;Lcom/okta/authfoundation/credential/Credential$Security;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun generateKey (Lcom/okta/authfoundation/credential/Credential$Security;)V
 }
@@ -604,8 +607,10 @@ public final class com/okta/authfoundation/credential/TokenEncryptionHandler$Enc
 
 public abstract interface class com/okta/authfoundation/credential/TokenStorage {
 	public abstract fun add (Lcom/okta/authfoundation/credential/Token;Lcom/okta/authfoundation/credential/Token$Metadata;Lcom/okta/authfoundation/credential/Credential$Security;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun add$default (Lcom/okta/authfoundation/credential/TokenStorage;Lcom/okta/authfoundation/credential/Token;Lcom/okta/authfoundation/credential/Token$Metadata;Lcom/okta/authfoundation/credential/Credential$Security;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public abstract fun allIds (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun getToken (Ljava/lang/String;Landroidx/biometric/BiometricPrompt$PromptInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun getToken$default (Lcom/okta/authfoundation/credential/TokenStorage;Ljava/lang/String;Landroidx/biometric/BiometricPrompt$PromptInfo;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public abstract fun metadata (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun remove (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun replace (Lcom/okta/authfoundation/credential/Token;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;

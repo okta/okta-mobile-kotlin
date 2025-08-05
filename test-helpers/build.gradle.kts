@@ -1,6 +1,9 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     id("com.android.library")
     kotlin("android")
+    id("spotless")
 }
 
 android {
@@ -15,13 +18,6 @@ android {
 
     namespace = "com.okta.testhelpers"
 
-    buildTypes {
-        release {
-            isMinifyEnabled = false
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-        }
-    }
-
     packaging {
         resources.excludes.add("META-INF/*")
     }
@@ -32,9 +28,11 @@ android {
         targetCompatibility = TARGET_COMPATIBILITY
     }
 
-    kotlinOptions {
-        jvmTarget = JVM_TARGET
-        freeCompilerArgs += listOf("-Xopt-in=kotlin.RequiresOptIn")
+    kotlin {
+        compilerOptions {
+            jvmTarget = JvmTarget.fromTarget(JVM_TARGET)
+            freeCompilerArgs.add("-opt-in=kotlin.RequiresOptIn")
+        }
     }
 }
 

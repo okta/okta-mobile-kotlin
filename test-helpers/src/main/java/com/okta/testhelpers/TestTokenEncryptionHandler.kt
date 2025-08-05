@@ -1,5 +1,5 @@
 /*
- * Copyright 2024-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ class TestTokenEncryptionHandler : TokenEncryptionHandler {
 
     override suspend fun encrypt(
         token: Token,
-        security: Credential.Security
+        security: Credential.Security,
     ): TokenEncryptionHandler.EncryptionResult {
         val serializedToken = Json.encodeToString(Token.serializer(), token)
         return TokenEncryptionHandler.EncryptionResult(serializedToken.toByteArray(), emptyMap())
@@ -38,7 +38,7 @@ class TestTokenEncryptionHandler : TokenEncryptionHandler {
         encryptedToken: ByteArray,
         encryptionExtras: Map<String, String>,
         security: Credential.Security,
-        promptInfo: BiometricPrompt.PromptInfo?
+        promptInfo: BiometricPrompt.PromptInfo?,
     ): Token {
         val serializedToken = encryptedToken.decodeToString()
         val token = Json.decodeFromString(Token.serializer(), serializedToken)

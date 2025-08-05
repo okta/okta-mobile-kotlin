@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,17 +38,19 @@ class OktaMockWebServer {
         baseUrl = mockWebServer.url("")
     }
 
-    private fun localhostCertificate(): HeldCertificate {
-        return HeldCertificate.Builder()
+    private fun localhostCertificate(): HeldCertificate =
+        HeldCertificate
+            .Builder()
             .addSubjectAlternativeName("localhost")
             .commonName("Test Fixture")
             .build()
-    }
 
     private fun sslSocketFactory(localhostCertificate: HeldCertificate): SSLSocketFactory {
-        val serverCertificates = HandshakeCertificates.Builder()
-            .heldCertificate(localhostCertificate)
-            .build()
+        val serverCertificates =
+            HandshakeCertificates
+                .Builder()
+                .heldCertificate(localhostCertificate)
+                .build()
         return serverCertificates.sslSocketFactory()
     }
 
@@ -57,9 +59,11 @@ class OktaMockWebServer {
         // This prevents Charles proxy from messing up our mock responses.
         clientBuilder.proxy(Proxy.NO_PROXY)
 
-        val handshakeCertificates = HandshakeCertificates.Builder()
-            .addTrustedCertificate(localhostCertificate.certificate)
-            .build()
+        val handshakeCertificates =
+            HandshakeCertificates
+                .Builder()
+                .addTrustedCertificate(localhostCertificate.certificate)
+                .build()
         clientBuilder.sslSocketFactory(
             handshakeCertificates.sslSocketFactory(),
             handshakeCertificates.trustManager

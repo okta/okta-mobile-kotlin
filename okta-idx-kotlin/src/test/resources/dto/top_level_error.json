@@ -1,0 +1,164 @@
+{
+  "version": "1.0.0",
+  "stateHandle": "02MBcg1YCpB3SxK93qaYSUVSKjCwLwg3Eq4x7eyaej",
+  "expiresAt": "2021-09-28T18:01:36.000Z",
+  "intent": "LOGIN",
+  "remediation": {
+    "type": "array",
+    "value": [
+      {
+        "rel": [
+          "create-form"
+        ],
+        "name": "identify",
+        "href": "https://foo.okta.com/idp/idx/identify",
+        "method": "POST",
+        "produces": "application/ion+json; okta-version=1.0.0",
+        "value": [
+          {
+            "name": "identifier",
+            "label": "Username"
+          },
+          {
+            "name": "credentials",
+            "type": "object",
+            "form": {
+              "value": [
+                {
+                  "name": "passcode",
+                  "label": "Password",
+                  "secret": true
+                }
+              ]
+            },
+            "required": true
+          },
+          {
+            "name": "rememberMe",
+            "type": "boolean",
+            "label": "Remember this device"
+          },
+          {
+            "name": "stateHandle",
+            "required": true,
+            "value": "02MBcg1YCpB3SxK93qaYSUVSKjCwLwg3Eq4x7eyaej",
+            "visible": false,
+            "mutable": false
+          }
+        ],
+        "accepts": "application/json; okta-version=1.0.0"
+      },
+      {
+        "rel": [
+          "create-form"
+        ],
+        "name": "select-enroll-profile",
+        "href": "https://foo.okta.com/idp/idx/enroll",
+        "method": "POST",
+        "produces": "application/ion+json; okta-version=1.0.0",
+        "value": [
+          {
+            "name": "stateHandle",
+            "required": true,
+            "value": "02MBcg1YCpB3SxK93qaYSUVSKjCwLwg3Eq4x7eyaej",
+            "visible": false,
+            "mutable": false
+          }
+        ],
+        "accepts": "application/json; okta-version=1.0.0"
+      },
+      {
+        "name": "redirect-idp",
+        "type": "FACEBOOK",
+        "idp": {
+          "id": "0oatlasbh36tzzZAl5d6",
+          "name": "FB IdP"
+        },
+        "href": "https://foo.okta.com/oauth2/aust7xpsyjG7o8LZN5d6/v1/authorize?client_id=0oauaifdh0dynIvL85d6&request_uri=urn:okta:b2E0cVFJU2VIRzJFY2xNOTJZS1g2VERoQm9GUFJRVjNYZjRoek9sT3JxRTowb2F0bGFzYmgzNnR6elpBbDVkNg",
+        "method": "GET"
+      },
+      {
+        "name": "redirect-idp",
+        "type": "GOOGLE",
+        "idp": {
+          "id": "0oatl99t0d78zieD75d6",
+          "name": "Google IdP"
+        },
+        "href": "https://foo.okta.com/oauth2/aust7xpsyjG7o8LZN5d6/v1/authorize?client_id=0oauaifdh0dynIvL85d6&request_uri=urn:okta:b2E0cVFJU2VIRzJFY2xNOTJZS1g2VERoQm9GUFJRVjNYZjRoek9sT3JxRTowb2F0bDk5dDBkNzh6aWVENzVkNg",
+        "method": "GET"
+      }
+    ]
+  },
+  "messages": {
+    "type": "array",
+    "value": [
+      {
+        "message": "Authentication failed",
+        "i18n": {
+          "key": "errors.E0000004"
+        },
+        "class": "ERROR"
+      }
+    ]
+  },
+  "currentAuthenticator": {
+    "type": "object",
+    "value": {
+      "recover": {
+        "rel": [
+          "create-form"
+        ],
+        "name": "recover",
+        "href": "https://foo.okta.com/idp/idx/recover",
+        "method": "POST",
+        "produces": "application/ion+json; okta-version=1.0.0",
+        "value": [
+          {
+            "name": "stateHandle",
+            "required": true,
+            "value": "02MBcg1YCpB3SxK93qaYSUVSKjCwLwg3Eq4x7eyaej",
+            "visible": false,
+            "mutable": false
+          }
+        ],
+        "accepts": "application/json; okta-version=1.0.0"
+      },
+      "type": "password",
+      "key": "okta_password",
+      "id": "auttbu5xw6OaPx1fF5d6",
+      "displayName": "Password",
+      "methods": [
+        {
+          "type": "password"
+        }
+      ]
+    }
+  },
+  "cancel": {
+    "rel": [
+      "create-form"
+    ],
+    "name": "cancel",
+    "href": "https://foo.okta.com/idp/idx/cancel",
+    "method": "POST",
+    "produces": "application/ion+json; okta-version=1.0.0",
+    "value": [
+      {
+        "name": "stateHandle",
+        "required": true,
+        "value": "02MBcg1YCpB3SxK93qaYSUVSKjCwLwg3Eq4x7eyaej",
+        "visible": false,
+        "mutable": false
+      }
+    ],
+    "accepts": "application/json; okta-version=1.0.0"
+  },
+  "app": {
+    "type": "object",
+    "value": {
+      "name": "oidc_client",
+      "label": "IdxSample",
+      "id": "0oauaifdh0dynIvL85d6"
+    }
+  }
+}

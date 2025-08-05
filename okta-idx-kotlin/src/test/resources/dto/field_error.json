@@ -1,0 +1,135 @@
+{
+  "version": "1.0.0",
+  "stateHandle": "02MBcg1YCpB3SxK93qaYSUVSKjCwLwg3Eq4x7eyaej",
+  "expiresAt": "2021-09-28T18:02:00.000Z",
+  "intent": "LOGIN",
+  "remediation": {
+    "type": "array",
+    "value": [
+      {
+        "rel": [
+          "create-form"
+        ],
+        "name": "enroll-profile",
+        "href": "https://foo.okta.com/idp/idx/enroll/new",
+        "method": "POST",
+        "produces": "application/ion+json; okta-version=1.0.0",
+        "value": [
+          {
+            "name": "userProfile",
+            "form": {
+              "value": [
+                {
+                  "name": "firstName",
+                  "label": "First name",
+                  "required": true,
+                  "minLength": 1,
+                  "maxLength": 50
+                },
+                {
+                  "name": "lastName",
+                  "label": "Last name",
+                  "required": true,
+                  "minLength": 1,
+                  "maxLength": 50
+                },
+                {
+                  "name": "email",
+                  "label": "Email",
+                  "required": true,
+                  "value": "jaynewstrom+1@gmail.com",
+                  "messages": {
+                    "type": "array",
+                    "value": [
+                      {
+                        "message": "'Email' must be in the form of an email address",
+                        "i18n": {
+                          "key": "registration.error.invalidLoginEmail",
+                          "params": [
+                            "Email"
+                          ]
+                        },
+                        "class": "ERROR"
+                      },
+                      {
+                        "message": "Provided value for property 'Email' does not match required pattern",
+                        "i18n": {
+                          "key": "registration.error.doesNotMatchPattern",
+                          "params": [
+                            "Email"
+                          ]
+                        },
+                        "class": "ERROR"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "name": "random",
+                  "label": "Random",
+                  "required": false,
+                  "minLength": 1,
+                  "maxLength": 100
+                }
+              ]
+            }
+          },
+          {
+            "name": "stateHandle",
+            "required": true,
+            "value": "02MBcg1YCpB3SxK93qaYSUVSKjCwLwg3Eq4x7eyaej",
+            "visible": false,
+            "mutable": false
+          }
+        ],
+        "accepts": "application/json; okta-version=1.0.0"
+      },
+      {
+        "rel": [
+          "create-form"
+        ],
+        "name": "select-identify",
+        "href": "https://foo.okta.com/idp/idx/identify/select",
+        "method": "POST",
+        "produces": "application/ion+json; okta-version=1.0.0",
+        "value": [
+          {
+            "name": "stateHandle",
+            "required": true,
+            "value": "02MBcg1YCpB3SxK93qaYSUVSKjCwLwg3Eq4x7eyaej",
+            "visible": false,
+            "mutable": false
+          }
+        ],
+        "accepts": "application/json; okta-version=1.0.0"
+      }
+    ]
+  },
+  "cancel": {
+    "rel": [
+      "create-form"
+    ],
+    "name": "cancel",
+    "href": "https://foo.okta.com/idp/idx/cancel",
+    "method": "POST",
+    "produces": "application/ion+json; okta-version=1.0.0",
+    "value": [
+      {
+        "name": "stateHandle",
+        "required": true,
+        "value": "02MBcg1YCpB3SxK93qaYSUVSKjCwLwg3Eq4x7eyaej",
+        "visible": false,
+        "mutable": false
+      }
+    ],
+    "accepts": "application/json; okta-version=1.0.0"
+  },
+  "app": {
+    "type": "object",
+    "value": {
+      "name": "oidc_client",
+      "label": "IdxSample",
+      "id": "0oauaifdh0dynIvL85d6"
+    }
+  }
+}

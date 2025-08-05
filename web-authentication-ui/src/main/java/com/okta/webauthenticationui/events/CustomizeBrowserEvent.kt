@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,11 +32,10 @@ class CustomizeBrowserEvent internal constructor(
      * See [PackageManager.queryIntentServices] for additional details.
      */
     var queryIntentServicesFlags: Int = 0,
-
     /**
      * The list of browser package names to prefer when selecting which Chrome Custom Tabs intent service is used.
      */
-    val preferredBrowsers: MutableList<String> = mutableListOf(CHROME_STABLE, CHROME_SYSTEM, CHROME_BETA)
+    val preferredBrowsers: MutableList<String> = mutableListOf(CHROME_STABLE, CHROME_SYSTEM, CHROME_BETA),
 ) : Event {
     private companion object {
         private const val CHROME_STABLE = "com.android.chrome"

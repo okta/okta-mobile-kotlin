@@ -18,6 +18,12 @@ package com.okta.webauthenticationui
 import okhttp3.HttpUrl
 
 internal sealed class RedirectInitializationResult<T> {
-    class Success<T>(val url: HttpUrl, val flowContext: T) : RedirectInitializationResult<T>()
-    class Error<T>(val exception: Exception) : RedirectInitializationResult<T>()
+    class Success<T>(
+        val url: HttpUrl,
+        val flowContext: T,
+    ) : RedirectInitializationResult<T>()
+
+    class Error<T>(
+        val exception: Exception,
+    ) : RedirectInitializationResult<T>()
 }

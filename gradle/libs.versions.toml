@@ -4,59 +4,69 @@ androidxAnnotation = "1.9.1"
 androidxBiometric = "1.1.0"
 androidxBrowser = "1.8.0"
 androidxConstraintlayout = "2.2.1"
-androidxDatastorePreferences = "1.1.6"
-androidxSqlite = "2.5.1"
+androidxDatastorePreferences = "1.1.7"
+androidxSqlite = "2.5.2"
+authFoundation = "2.0.3"
 androidxTest = "1.6.1"
 androidxTestRunner = "1.6.2"
 androidxTestExt = "1.2.1"
 androidxTestOrchestrator = "1.5.1"
 androidxTextUiautomator = "2.3.0"
-androidGradlePlugin = "8.10.0"
-appcompat = "1.7.0"
-bouncycastle = "1.80"
+androidGradlePlugin = "8.11.1"
+appcompat = "1.7.1"
+bouncycastle = "1.81"
+commonsIo = "2.20.0"
 coreLibraryDesugaring = "2.1.5"
 coreKtx = "1.16.0"
-coroutines = "1.10.1"
+coroutines = "1.10.2"
 dokkaBase = "2.0.0"
+cucumberAndroid = "7.18.1"
+dokka = "2.0.0"
 espresso = "3.6.1"
-gradleMavenPublish = "0.25.2"
-jackson = "2.18.3"
-jsoup = "1.17.2"
+gradleMavenPublish = "0.34.0"
+jackson = "2.19.2"
+json = "20250517"
+jsoup = "1.21.1"
 junit = "4.13.2"
-kotlin = "2.1.20"
-kotlinBinaryCompatibility = "0.17.0"
-kotlinSerialization = "1.8.1"
-leakcanary = "2.12"
-lifecycle = "2.9.0"
+kotlin = "2.2.0"
+kotlinBinaryCompatibility = "0.18.1"
+kotlinSerialization = "1.9.0"
+leakcanary = "2.14"
+lifecycle = "2.9.2"
 material = "1.12.0"
-mockitoCore = "5.12.0"
-mockitoKotlin = "4.0.0"
-mockk = "1.14.2"
-navigation = "2.9.0"
+mockitoCore = "5.18.0"
+mockitoKotlin = "6.0.0"
+mockk = "1.14.5"
+navigation = "2.9.2"
 okhttp = "4.12.0"
-okio = "3.10.2"
+okio = "3.15.0"
 oktaAuthn = "3.0.0"
 oktaLegacyOidc = "1.3.4"
-oktaManagement = "14.0.0"
-robolectric = "4.14.1"
-room = "2.7.1"
+oktaManagement = "23.0.1"
+robolectric = "4.15.1"
+room = "2.7.2"
 securityCrypto = "1.0.0"
-snakeyaml = "2.3"
-spotless = "7.0.3"
-sqlcipherAndroid = "4.8.0"
+snakeyaml = "2.4"
+spotless = "7.1.0"
+sqlcipherAndroid = "4.9.0"
 timber = "5.0.1"
 truth = "1.4.4"
-turbine = "1.2.0"
+turbine = "1.2.1"
 
-sonarqubeGradlePlugin = "6.0.1.5171"
+sonarqubeGradlePlugin = "6.2.0.5505"
 dokkaGradlePlugin = "2.0.0"
 detektGradlePlugin = "1.23.8"
-googleServicesGradlePlugin = "4.4.2"
-googleFirebaseCrashlyticsGradlePlugin = "3.0.3"
+googleServicesGradlePlugin = "4.4.3"
+googleFirebaseCrashlyticsGradlePlugin = "3.0.5"
 koverGradlePlugin = "0.9.1"
-ksp = "2.1.20-1.0.32" # prefix with kotlin version.
-safeArgs = "2.9.0"
-compatibilityValidator = "0.17.0"
+ksp = "2.2.0-2.0.2" # prefix with kotlin version.
+safeArgs = "2.9.2"
+compatibilityValidator = "0.18.1"
+androidxCredentials = "1.5.0"
+woodstoxCore = "7.1.1"
+
+protobufJava = "4.31.1"
+netty = "4.1.119.Final"
 
 [libraries]
 androidx-activity-ktx = { module = "androidx.activity:activity-ktx", version.ref = "androidxActivity" }
@@ -76,9 +86,14 @@ androidx-test-runner = { module = "androidx.test:runner", version.ref = "android
 androidx-test-rules = { module = "androidx.test:rules", version.ref = "androidxTest" }
 androidx-test-uiautomator = { module = "androidx.test.uiautomator:uiautomator", version.ref = "androidxTextUiautomator" }
 
+androidx-credentials-credentials = { module = "androidx.credentials:credentials", version.ref = "androidxCredentials" }
+androidx-credentials-play-services-auth = { module = "androidx.credentials:credentials-play-services-auth", version.ref = "androidxCredentials" }
+
 app-compat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
 
 bcprov-jdk18on = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bouncycastle" }
+
+commons-io = { module = "commons-io:commons-io", version.ref = "commonsIo" }
 
 core-library-desugaring = { module = "com.android.tools:desugar_jdk_libs", version.ref = "coreLibraryDesugaring" }
 
@@ -90,6 +105,12 @@ coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", ve
 
 dokka-base = { module = "org.jetbrains.dokka:dokka-base", version.ref = "dokkaBase" }
 dokka-core = { module = "org.jetbrains.dokka:dokka-core", version.ref = "dokkaBase" }
+cucumber-android = { module = "io.cucumber:cucumber-android", version.ref = "cucumberAndroid" }
+
+desugar-libs = { module = "com.android.tools:desugar_jdk_libs", version.ref = "coreLibraryDesugaring" }
+
+dokka-gradle-plugin = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version.ref = "dokka" }
+
 espresso-core = { module = "androidx.test.espresso:espresso-core", version.ref = "espresso" }
 espresso-contrib = { module = "androidx.test.espresso:espresso-contrib", version.ref = "espresso" }
 espresso-intents = { module = "androidx.test.espresso:espresso-intents", version.ref = "espresso" }
@@ -160,6 +181,18 @@ timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
 truth = { module = "com.google.truth:truth", version.ref = "truth" }
 turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
 
+woodstox-core = { module = "com.fasterxml.woodstox:woodstox-core", version.ref = "woodstoxCore"}
+
+netty-common = { module = "io.netty:netty-common", version.ref = "netty" }
+netty-codec-http = { module = "io.netty:netty-codec-http", version.ref = "netty" }
+netty-codec-http2 = { module = "io.netty:netty-codec-http2", version.ref = "netty" }
+netty-handler = { module = "io.netty:netty-handler", version.ref = "netty" }
+
+protobuf-java = { module = "com.google.protobuf:protobuf-java", version.ref = "protobufJava" }
+
+okta-auth-foundation = { module = "com.okta.kotlin:auth-foundation", version.ref = "authFoundation" }
+
+json = { module = "org.json:json", version.ref = "json" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }
@@ -175,5 +208,6 @@ google-services = { id = "com.google.gms.google-services", version.ref = "google
 google-crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "googleFirebaseCrashlyticsGradlePlugin" }
 androidx-navigation-safeargs = { id = "androidx.navigation.safeargs.kotlin", version.ref = "safeArgs" }
 kotlinx-binary-compatibility-validator = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version.ref = "compatibilityValidator" }
+androidx-room = { id = "androidx.room", version.ref = "room" }
 
 [bundles]

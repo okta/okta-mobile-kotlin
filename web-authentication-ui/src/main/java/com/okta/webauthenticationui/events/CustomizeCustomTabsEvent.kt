@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,6 @@ class CustomizeCustomTabsEvent internal constructor(
      * The context being used to launch the Chrome Custom Tabs.
      */
     val context: Context,
-
     /**
      * The [CustomTabsIntent.Builder] reference available for mutation to customize the Chrome Custom Tabs before being displayed to
      * the user.

@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     id("com.android.library")
     id("com.google.devtools.ksp")
@@ -8,22 +10,23 @@ plugins {
     kotlin("plugin.serialization") version libs.versions.kotlin.get()
     id("com.vanniktech.maven.publish.base")
     id("binary-compatibility-validator")
+    id("androidx.room")
 }
 
 android {
     namespace = "com.okta.authfoundation"
     compileSdk = COMPILE_SDK
 
+    room {
+        generateKotlin = true
+        schemaDirectory("$projectDir/schemas")
+    }
+
     defaultConfig {
         minSdk = MIN_SDK
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
-
-        ksp {
-            arg("room.generateKotlin", "true")
-            arg("room.schemaLocation", "$projectDir/schemas")
-        }
 
         buildConfigField("String", "SDK_VERSION", "\"okta-auth-foundation-kotlin/$AUTH_FOUNDATION_VERSION\"")
     }
@@ -41,9 +44,11 @@ android {
         targetCompatibility = TARGET_COMPATIBILITY
     }
 
-    kotlinOptions {
-        jvmTarget = JVM_TARGET
-        freeCompilerArgs += listOf("-Xopt-in=kotlin.RequiresOptIn", "-Xopt-in=com.okta.authfoundation.InternalAuthFoundationApi")
+    kotlin {
+        compilerOptions {
+            jvmTarget = JvmTarget.fromTarget(JVM_TARGET)
+            freeCompilerArgs.addAll(listOf("-opt-in=kotlin.RequiresOptIn", "-opt-in=com.okta.authfoundation.InternalAuthFoundationApi"))
+        }
     }
 
     buildFeatures {

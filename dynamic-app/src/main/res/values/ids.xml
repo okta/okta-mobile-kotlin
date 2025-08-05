@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="claim" type="id"/>
+    <item name="option" type="id"/>
+    <item name="nested_content" type="id"/>
+</resources>

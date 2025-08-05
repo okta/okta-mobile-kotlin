@@ -66,7 +66,10 @@ internal class LegacyDashboardViewModel : ViewModel() {
                         _userInfoLiveData.postValue(result.raw.asMap())
                     }
 
-                    override fun onError(error: String?, exception: AuthorizationException?) {
+                    override fun onError(
+                        error: String?,
+                        exception: AuthorizationException?,
+                    ) {
                         _userInfoLiveData.postValue(emptyMap())
                     }
                 }
@@ -89,7 +92,10 @@ internal class LegacyDashboardViewModel : ViewModel() {
                     _requestStateLiveData.postValue(RequestState.Result("Sign out cancelled."))
                 }
 
-                override fun onError(msg: String?, exception: AuthorizationException?) {
+                override fun onError(
+                    msg: String?,
+                    exception: AuthorizationException?,
+                ) {
                     _requestStateLiveData.postValue(RequestState.Result("Failed to sign out."))
                 }
             },
@@ -97,13 +103,17 @@ internal class LegacyDashboardViewModel : ViewModel() {
         )
     }
 
-    fun revoke(buttonId: Int, revokeRefreshToken: Boolean) {
+    fun revoke(
+        buttonId: Int,
+        revokeRefreshToken: Boolean,
+    ) {
         performRequest(buttonId) {
-            val token = if (revokeRefreshToken) {
-                token.refreshToken
-            } else {
-                token.accessToken
-            }
+            val token =
+                if (revokeRefreshToken) {
+                    token.refreshToken
+                } else {
+                    token.accessToken
+                }
             SampleWebAuthClientHelper.webAuthClient.sessionClient.revokeToken(
                 token,
                 object : RequestCallback<Boolean, AuthorizationException> {
@@ -111,7 +121,10 @@ internal class LegacyDashboardViewModel : ViewModel() {
                         _requestStateLiveData.postValue(RequestState.Result("Token revoked."))
                     }
 
-                    override fun onError(error: String?, exception: AuthorizationException?) {
+                    override fun onError(
+                        error: String?,
+                        exception: AuthorizationException?,
+                    ) {
                         _requestStateLiveData.postValue(RequestState.Result("Failed to revoke token."))
                     }
                 }
@@ -129,7 +142,10 @@ internal class LegacyDashboardViewModel : ViewModel() {
                         _requestStateLiveData.postValue(RequestState.Result("Token refreshed."))
                     }
 
-                    override fun onError(error: String?, exception: AuthorizationException?) {
+                    override fun onError(
+                        error: String?,
+                        exception: AuthorizationException?,
+                    ) {
                         _requestStateLiveData.postValue(RequestState.Result("Failed to refresh token."))
                     }
                 }
@@ -152,7 +168,10 @@ internal class LegacyDashboardViewModel : ViewModel() {
         }
     }
 
-    private fun performRequest(buttonId: Int, performer: suspend () -> Unit) {
+    private fun performRequest(
+        buttonId: Int,
+        performer: suspend () -> Unit,
+    ) {
         if (lastRequestJob?.isActive == true) {
             // Re-enable the button, so it's not permanently disabled.
             _requestStateLiveData.value = RequestState.Result("")
@@ -162,16 +181,20 @@ internal class LegacyDashboardViewModel : ViewModel() {
 
         _requestStateLiveData.value = RequestState.Loading
 
-        lastRequestJob = viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                performer()
+        lastRequestJob =
+            viewModelScope.launch {
+                withContext(Dispatchers.IO) {
+                    performer()
+                }
             }
-        }
     }
 
     sealed class RequestState {
         object Loading : RequestState()
-        data class Result(val text: String) : RequestState()
+
+        data class Result(
+            val text: String,
+        ) : RequestState()
     }
 }
 

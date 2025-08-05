@@ -30,23 +30,23 @@ abstract class BaseFragment<B : ViewBinding>(
     ) -> B,
 ) : Fragment() {
     @Suppress("ktlint:standard:backing-property-naming")
-    private var _binding: B? = null
+    private var bindingBacking: B? = null
 
     // This property is only valid between onCreateView and
     // onDestroyView.
-    protected val binding get() = _binding!!
+    protected val binding get() = bindingBacking!!
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View? {
-        _binding = bindingFactory(inflater, container, false)
+        bindingBacking = bindingFactory(inflater, container, false)
         return binding.root
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
-        _binding = null
+        bindingBacking = null
     }
 }

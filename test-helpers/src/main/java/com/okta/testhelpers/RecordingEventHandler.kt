@@ -22,7 +22,8 @@ import java.util.Collections
 class RecordingEventHandler(
     private val list: MutableList<Any> = Collections.synchronizedList(mutableListOf<Any>()),
     private val nestedEventHandlers: MutableList<EventHandler> = Collections.synchronizedList(mutableListOf()),
-) : EventHandler, List<Any> by list {
+) : EventHandler,
+    List<Any> by list {
     override fun onEvent(event: Event) {
         for (eventHandler in nestedEventHandlers) {
             eventHandler.onEvent(event)

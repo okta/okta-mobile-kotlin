@@ -27,7 +27,9 @@ import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
 import okhttp3.HttpUrl.Companion.toHttpUrl
 
-internal class ForegroundViewModel(private val savedStateHandle: SavedStateHandle) : ViewModel() {
+internal class ForegroundViewModel(
+    private val savedStateHandle: SavedStateHandle,
+) : ViewModel() {
     companion object {
         // Needs to be inside the companion object due to the tests. Since this is accessed in init, we'd either need to pass it in the
         // constructor, or make it static. Since it's for tests only, making it static was the easier solution, which is why I chose
@@ -40,10 +42,15 @@ internal class ForegroundViewModel(private val savedStateHandle: SavedStateHandl
     sealed class State : Parcelable {
         @Parcelize
         object AwaitingInitialization : State()
+
         @Parcelize
         object Error : State()
+
         @Parcelize
-        class LaunchBrowser(val urlString: String) : State()
+        class LaunchBrowser(
+            val urlString: String,
+        ) : State()
+
         @Parcelize
         object AwaitingBrowserCallback : State()
     }
@@ -66,7 +73,10 @@ internal class ForegroundViewModel(private val savedStateHandle: SavedStateHandl
         }
     }
 
-    fun launchBrowser(activity: Activity, urlString: String) {
+    fun launchBrowser(
+        activity: Activity,
+        urlString: String,
+    ) {
         savedStateHandle[LIVE_DATA_KEY] = State.AwaitingBrowserCallback
         if (!redirectCoordinator.launchWebAuthenticationProvider(activity, urlString.toHttpUrl())) {
             activity.finish()

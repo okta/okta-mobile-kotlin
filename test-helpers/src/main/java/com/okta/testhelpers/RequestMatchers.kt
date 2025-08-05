@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,13 +18,18 @@ package com.okta.testhelpers
 typealias RequestMatcher = (request: OktaRecordedRequest) -> Boolean
 
 object RequestMatchers {
-    fun header(key: String, value: String): RequestMatcher {
-        return { request ->
+    fun header(
+        key: String,
+        value: String,
+    ): RequestMatcher =
+        { request ->
             request.headers[key] == value
         }
-    }
 
-    fun doesNotContainHeaderWithValue(key: String, value: String): RequestMatcher {
+    fun doesNotContainHeaderWithValue(
+        key: String,
+        value: String,
+    ): RequestMatcher {
         return matcher@{ request ->
             for (v in request.headers.values(key)) {
                 if (v == value) {
@@ -35,20 +40,18 @@ object RequestMatchers {
         }
     }
 
-    fun not(requestMatcher: RequestMatcher): RequestMatcher {
-        return { request ->
+    fun not(requestMatcher: RequestMatcher): RequestMatcher =
+        { request ->
             !requestMatcher.invoke(request)
         }
-    }
 
-    fun doesNotContainHeader(key: String): RequestMatcher {
-        return { request ->
+    fun doesNotContainHeader(key: String): RequestMatcher =
+        { request ->
             !request.headers.names().contains(key)
         }
-    }
 
-    fun path(path: String): RequestMatcher {
-        return { request ->
+    fun path(path: String): RequestMatcher =
+        { request ->
             var requestPath = request.path
             val queryIndex = requestPath.indexOf("?")
             if (queryIndex > -1) {
@@ -57,10 +60,9 @@ object RequestMatchers {
             }
             requestPath.endsWith(path)
         }
-    }
 
-    fun query(query: String): RequestMatcher {
-        return { request ->
+    fun query(query: String): RequestMatcher =
+        { request ->
             val requestPath = request.path
             val queryIndex = requestPath.indexOf("?")
             if (queryIndex > -1) {
@@ -69,34 +71,39 @@ object RequestMatchers {
                 false
             }
         }
-    }
 
-    fun query(name: String, value: String): RequestMatcher = { request ->
-        request.path.substringAfter("?")
-            .split("&")
-            .associate { Pair(it.substringBefore("="), it.substringAfter("=")) }[name] == value
-    }
+    fun query(
+        name: String,
+        value: String,
+    ): RequestMatcher =
+        { request ->
+            request.path
+                .substringAfter("?")
+                .split("&")
+                .associate { Pair(it.substringBefore("="), it.substringAfter("=")) }[name] == value
+        }
 
-    fun method(method: String): RequestMatcher {
-        return { request -> request.method == method }
-    }
+    fun method(method: String): RequestMatcher = { request -> request.method == method }
 
-    fun body(body: String): RequestMatcher {
-        return { request ->
+    fun body(body: String): RequestMatcher =
+        { request ->
             val actual = request.bodyText
             actual == body
         }
-    }
 
-    fun bodyPart(name: String, value: String): RequestMatcher = { request ->
-        request.bodyText.substringAfter("?")
-            .split("&")
-            .associate { Pair(it.substringBefore("="), it.substringAfter("=")) }[name] == value
-    }
+    fun bodyPart(
+        name: String,
+        value: String,
+    ): RequestMatcher =
+        { request ->
+            request.bodyText
+                .substringAfter("?")
+                .split("&")
+                .associate { Pair(it.substringBefore("="), it.substringAfter("=")) }[name] == value
+        }
 
-    fun composite(vararg matchers: RequestMatcher): RequestMatcher {
-        return { request ->
+    fun composite(vararg matchers: RequestMatcher): RequestMatcher =
+        { request ->
             matchers.all { it(request) }
         }
-    }
 }

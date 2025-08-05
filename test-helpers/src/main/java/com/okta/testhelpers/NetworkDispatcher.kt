@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,10 @@ class NetworkDispatcher : Dispatcher() {
         enqueuedResponses = ConcurrentLinkedQueue()
     }
 
-    fun enqueue(vararg requestMatcher: RequestMatcher, responseFactory: (MockResponse) -> Unit) {
+    fun enqueue(
+        vararg requestMatcher: RequestMatcher,
+        responseFactory: (MockResponse) -> Unit,
+    ) {
         enqueuedResponses.add(
             Entry(composite(*requestMatcher)) {
                 val response = MockResponse()
@@ -40,7 +43,10 @@ class NetworkDispatcher : Dispatcher() {
         )
     }
 
-    fun enqueue(vararg requestMatcher: RequestMatcher, responseFactory: (OktaRecordedRequest, MockResponse) -> Unit) {
+    fun enqueue(
+        vararg requestMatcher: RequestMatcher,
+        responseFactory: (OktaRecordedRequest, MockResponse) -> Unit,
+    ) {
         enqueuedResponses.add(
             Entry(composite(*requestMatcher)) {
                 val response = MockResponse()
@@ -55,15 +61,14 @@ class NetworkDispatcher : Dispatcher() {
         enqueuedResponses.clear()
     }
 
-    fun numberRemainingInQueue(): Int {
-        return enqueuedResponses.size
-    }
+    fun numberRemainingInQueue(): Int = enqueuedResponses.size
 
     override fun dispatch(request: RecordedRequest): MockResponse {
         val oktaRequest = OktaRecordedRequest(request)
-        val matchedEntry = enqueuedResponses.first { entry ->
-            entry.requestMatcher(oktaRequest)
-        }
+        val matchedEntry =
+            enqueuedResponses.first { entry ->
+                entry.requestMatcher(oktaRequest)
+            }
 
         matchedEntry?.let { capturedEntry ->
             enqueuedResponses.remove(capturedEntry)
@@ -74,6 +79,11 @@ class NetworkDispatcher : Dispatcher() {
     }
 }
 
-private class Entry(val requestMatcher: RequestMatcher, val responseFactory: (OktaRecordedRequest) -> MockResponse)
+private class Entry(
+    val requestMatcher: RequestMatcher,
+    val responseFactory: (OktaRecordedRequest) -> MockResponse,
+)
 
-internal class RequestNotFoundException(message: String) : Exception(message)
+internal class RequestNotFoundException(
+    message: String,
+) : Exception(message)

@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     id("com.android.library")
     id("org.jetbrains.dokka")
@@ -32,9 +34,12 @@ android {
         sourceCompatibility = SOURCE_COMPATIBILITY
         targetCompatibility = TARGET_COMPATIBILITY
     }
-    kotlinOptions {
-        jvmTarget = JVM_TARGET
-        freeCompilerArgs += listOf("-Xopt-in=com.okta.authfoundation.InternalAuthFoundationApi")
+
+    kotlin {
+        compilerOptions {
+            jvmTarget = JvmTarget.fromTarget(JVM_TARGET)
+            freeCompilerArgs.add("-opt-in=com.okta.authfoundation.InternalAuthFoundationApi")
+        }
     }
 
     buildFeatures {

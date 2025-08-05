@@ -24,18 +24,22 @@ internal object SampleWebAuthClientHelper {
     lateinit var webAuthClient: WebAuthClient
 
     fun initialize(context: Context) {
-        val config = OIDCConfig.Builder()
-            .clientId(BuildConfig.CLIENT_ID)
-            .redirectUri(BuildConfig.LEGACY_SIGN_IN_REDIRECT_URI)
-            .endSessionRedirectUri(BuildConfig.LEGACY_SIGN_OUT_REDIRECT_URI)
-            .scopes("openid", "profile", "offline_access")
-            .discoveryUri(BuildConfig.ISSUER)
-            .create()
+        val config =
+            OIDCConfig
+                .Builder()
+                .clientId(BuildConfig.CLIENT_ID)
+                .redirectUri(BuildConfig.LEGACY_SIGN_IN_REDIRECT_URI)
+                .endSessionRedirectUri(BuildConfig.LEGACY_SIGN_OUT_REDIRECT_URI)
+                .scopes("openid", "profile", "offline_access")
+                .discoveryUri(BuildConfig.ISSUER)
+                .create()
 
-        webAuthClient = Okta.WebAuthBuilder()
-            .withConfig(config)
-            .withContext(context)
-            .setRequireHardwareBackedKeyStore(false)
-            .create()
+        webAuthClient =
+            Okta
+                .WebAuthBuilder()
+                .withConfig(config)
+                .withContext(context)
+                .setRequireHardwareBackedKeyStore(false)
+                .create()
     }
 }

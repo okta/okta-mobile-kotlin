@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,14 +35,21 @@ class SessionTokenViewModel : ViewModel() {
     private val _state = MutableLiveData<SessionTokenState>(SessionTokenState.Idle)
     val state: LiveData<SessionTokenState> = _state
 
-    fun login(username: String, password: String) {
+    fun login(
+        username: String,
+        password: String,
+    ) {
         viewModelScope.launch(Dispatchers.IO) {
             _state.postValue(SessionTokenState.Loading)
 
             try {
-                val orgUrl = BuildConfig.ISSUER.toHttpUrl().newBuilder()
-                    .encodedPath("/")
-                    .build().toString()
+                val orgUrl =
+                    BuildConfig.ISSUER
+                        .toHttpUrl()
+                        .newBuilder()
+                        .encodedPath("/")
+                        .build()
+                        .toString()
                 val authenticationClient = AuthenticationClients.builder().setOrgUrl(orgUrl).build()
                 authenticationClient.authenticate(
                     username,
@@ -85,7 +92,12 @@ class SessionTokenViewModel : ViewModel() {
 
 sealed class SessionTokenState {
     object Idle : SessionTokenState()
+
     object Loading : SessionTokenState()
-    data class Error(val message: String) : SessionTokenState()
+
+    data class Error(
+        val message: String,
+    ) : SessionTokenState()
+
     object Token : SessionTokenState()
 }

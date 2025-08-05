@@ -1,5 +1,5 @@
 /*
- * Copyright 2024-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,9 +22,14 @@ import com.okta.authfoundation.events.Event
  */
 sealed interface ForegroundActivityEvent : Event {
     data object OnCreate : ForegroundActivityEvent
+
     data object OnNewIntent : ForegroundActivityEvent
+
     data object OnResume : ForegroundActivityEvent
+
     data object OnPause : ForegroundActivityEvent
+
     data object OnDestroy : ForegroundActivityEvent
+
     data object OnBackPressed : ForegroundActivityEvent
 }
