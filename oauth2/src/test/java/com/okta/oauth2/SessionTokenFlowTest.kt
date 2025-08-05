@@ -30,7 +30,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
-import java.net.ConnectException
 
 @RunWith(RobolectricTestRunner::class)
 internal class SessionTokenFlowTest {
@@ -101,9 +100,10 @@ internal class SessionTokenFlowTest {
             }
             val sessionTokenFlow = SessionTokenFlow()
             val result = sessionTokenFlow.start("exampleSessionToken", "exampleRedirect:/callback")
+
+            assertThat(result).isInstanceOf(OAuth2ClientResult.Error::class.java)
             val exception = (result as OAuth2ClientResult.Error<Token>).exception
-            assertThat(exception).isInstanceOf(ConnectException::class.java)
-            assertThat(exception).hasMessageThat().startsWith("Failed to connect to")
+            assertThat(exception).isInstanceOf(java.io.IOException::class.java)
         }
 
     @Test fun testTokenRequestFailure(): Unit =

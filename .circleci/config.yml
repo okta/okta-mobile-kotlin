@@ -1,0 +1,88 @@
+version: 2.1
+
+orbs:
+  android: circleci/android@3.1.0
+  path-filtering: circleci/path-filtering@2.0.2
+
+jobs:
+  unit-test:
+    executor:
+      name: android/android_docker
+      tag: 2025.04.1
+    environment:
+      GRADLE_OPTS: '
+      -Dorg.gradle.jvmargs="-Xmx3g -XX:+HeapDumpOnOutOfMemoryError"
+      -Dorg.gradle.daemon=false
+      -Dorg.gradle.workers.max=3
+      -Dkotlin.incremental=false'
+    steps:
+      - checkout
+      - android/restore_gradle_cache
+      - android/run_tests:
+          test_command: ./gradlew testDebugUnitTest --no-daemon
+      - android/save_gradle_cache
+      - run:
+          name: Save test results
+          command: |
+            mkdir -p ~/test-results/junit/
+            find . -type f -regex ".*/build/test-results/.*xml" -exec cp {} ~/test-results/junit/ \;
+          when: always
+      - store_test_results:
+          path: ~/test-results
+      - store_artifacts:
+          path: ~/test-results/junit
+
+  build:
+    executor:
+      name: android/android_docker
+      tag: 2025.04.1
+    steps:
+      - checkout
+      - android/restore_gradle_cache
+      - run:
+          name: Generate Debug Keystore
+          command: |
+            mkdir -p ~/.android/
+            keytool -genkey -v -keystore ~/.android/debug.keystore \
+              -alias androiddebugkey -keyalg RSA -keysize 2048 -validity 10000 \
+              -storepass android -keypass android \
+              -dname "CN=Android Debug,O=Android,C=US"
+      - run:
+          name: Build Debug APK
+          command: ./gradlew assembleDebug --no-daemon
+      - android/save_gradle_cache
+      - store_artifacts:
+          path: app/build/outputs/apk/debug/
+          destination: apks
+
+  spotless-check:
+    executor:
+      name: android/android_docker
+      tag: 2025.04.1
+    steps:
+      - checkout
+      - android/restore_gradle_cache
+      - run:
+          name: Run Spotless Check
+          command: ./gradlew spotlessCheck --no-daemon
+      - android/save_gradle_cache
+
+  api-check:
+    executor:
+      name: android/android_docker
+      tag: 2025.04.1
+    steps:
+      - checkout
+      - android/restore_gradle_cache
+      - run:
+          name: Run API Check
+          command: ./gradlew apiCheck --no-daemon
+      - android/save_gradle_cache
+
+workflows:
+  test-and-build:
+    jobs:
+      - unit-test
+      - build
+      - spotless-check
+      - api-check
