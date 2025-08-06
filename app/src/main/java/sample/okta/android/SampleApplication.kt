@@ -19,8 +19,10 @@ import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
 import com.okta.authfoundation.AuthFoundation
+import com.okta.authfoundation.AuthFoundationDefaults
 import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.credential.TokenDbRecoveryUtil
+import okhttp3.Cache
 import timber.log.Timber
 
 class SampleApplication : Application() {
@@ -35,6 +37,20 @@ class SampleApplication : Application() {
         context = this
 
         Timber.plant(Timber.DebugTree())
+        AuthFoundationDefaults.cacheFactory = {
+            object : com.okta.authfoundation.client.Cache {
+                val map = mutableMapOf<String, String>()
+                override fun set(key: String, value: String) {
+                    Timber.d("Setting cache key: $key, value: $value")
+                    map[key] = value
+                }
+
+                override fun get(key: String): String? {
+                    Timber.d("Getting cache key: $key")
+                    return map[key]
+                }
+            }
+        }
 
         AuthFoundation.initializeAndroidContext(this)
         OidcConfiguration.default =
