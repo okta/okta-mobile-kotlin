@@ -70,5 +70,5 @@ fun releaseVersion(project: Project): String = when (project.name) {
 }
 
 fun parseScheme(uri: String?): String {
-    return uri?.split("://")?.firstOrNull() ?: ""
+    return uri?.split(":/")?.firstOrNull() ?: ""
 }
