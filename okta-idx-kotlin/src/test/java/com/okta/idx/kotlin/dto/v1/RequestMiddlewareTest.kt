@@ -112,7 +112,7 @@ class RequestMiddlewareTest {
             assertThat(
                 buffer.readUtf8()
             ).isEqualTo(
-                "client_id=test&scope=openid%20email%20profile%20offline_access&code_challenge=JBP7NwmwWTnwTPLpL30Il_wllvmtC4qeqFXHv-uq6JI&code_challenge_method=S256&redirect_uri=test.okta.com%2Flogin&state=randomGen&nonce=exampleNonce"
+                "client_id=test&scope=openid+email+profile+offline_access&code_challenge=JBP7NwmwWTnwTPLpL30Il_wllvmtC4qeqFXHv-uq6JI&code_challenge_method=S256&redirect_uri=test.okta.com%2Flogin&state=randomGen&nonce=exampleNonce"
             )
             assertThat(request.body?.contentType()).isEqualTo("application/x-www-form-urlencoded".toMediaType())
         }
@@ -148,7 +148,7 @@ class RequestMiddlewareTest {
             assertThat(
                 buffer.readUtf8()
             ).isEqualTo(
-                "client_id=test&scope=openid%20email%20profile%20offline_access&code_challenge=JBP7NwmwWTnwTPLpL30Il_wllvmtC4qeqFXHv-uq6JI&code_challenge_method=S256&redirect_uri=test.okta.com%2Flogin&state=randomGen&nonce=exampleNonce"
+                "client_id=test&scope=openid+email+profile+offline_access&code_challenge=JBP7NwmwWTnwTPLpL30Il_wllvmtC4qeqFXHv-uq6JI&code_challenge_method=S256&redirect_uri=test.okta.com%2Flogin&state=randomGen&nonce=exampleNonce"
             )
             assertThat(request.body?.contentType()).isEqualTo("application/x-www-form-urlencoded".toMediaType())
         }
@@ -182,7 +182,7 @@ class RequestMiddlewareTest {
             assertThat(
                 buffer.readUtf8()
             ).isEqualTo(
-                "client_id=test&scope=openid%20email%20profile%20offline_access&code_challenge=JBP7NwmwWTnwTPLpL30Il_wllvmtC4qeqFXHv-uq6JI&code_challenge_method=S256&redirect_uri=test.okta.com%2Flogin&state=randomGen&nonce=exampleNonce&recovery_token=secret"
+                "client_id=test&scope=openid+email+profile+offline_access&code_challenge=JBP7NwmwWTnwTPLpL30Il_wllvmtC4qeqFXHv-uq6JI&code_challenge_method=S256&redirect_uri=test.okta.com%2Flogin&state=randomGen&nonce=exampleNonce&recovery_token=secret"
             )
             assertThat(request.body?.contentType()).isEqualTo("application/x-www-form-urlencoded".toMediaType())
         }
@@ -200,7 +200,7 @@ class RequestMiddlewareTest {
             assertThat(
                 buffer.readUtf8()
             ).isEqualTo(
-                "client_id=test&scope=openid%20email%20profile%20offline_access&code_challenge=JBP7NwmwWTnwTPLpL30Il_wllvmtC4qeqFXHv-uq6JI&code_challenge_method=S256&redirect_uri=test.okta.com%2Flogin&state=randomGen&nonce=exampleNonce&max_age=5"
+                "client_id=test&scope=openid+email+profile+offline_access&code_challenge=JBP7NwmwWTnwTPLpL30Il_wllvmtC4qeqFXHv-uq6JI&code_challenge_method=S256&redirect_uri=test.okta.com%2Flogin&state=randomGen&nonce=exampleNonce&max_age=5"
             )
             assertThat(request.body?.contentType()).isEqualTo("application/x-www-form-urlencoded".toMediaType())
         }
@@ -218,7 +218,7 @@ class RequestMiddlewareTest {
             assertThat(
                 buffer.readUtf8()
             ).isEqualTo(
-                "client_id=test&scope=openid%20email%20profile%20offline_access&code_challenge=JBP7NwmwWTnwTPLpL30Il_wllvmtC4qeqFXHv-uq6JI&code_challenge_method=S256&redirect_uri=test.okta.com%2Flogin&state=randomGen&nonce=exampleNonce&max_age=abcd"
+                "client_id=test&scope=openid+email+profile+offline_access&code_challenge=JBP7NwmwWTnwTPLpL30Il_wllvmtC4qeqFXHv-uq6JI&code_challenge_method=S256&redirect_uri=test.okta.com%2Flogin&state=randomGen&nonce=exampleNonce&max_age=abcd"
             )
             assertThat(request.body?.contentType()).isEqualTo("application/x-www-form-urlencoded".toMediaType())
         }

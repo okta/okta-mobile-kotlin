@@ -23,7 +23,7 @@ import org.robolectric.RobolectricTestRunner
 
 @RunWith(RobolectricTestRunner::class)
 class SdkVersionsRegistryTest {
-    private val defaultAndroidVersion = 21
+    private val defaultAndroidVersion = 23
 
     @Before fun reset() {
         SdkVersionsRegistry.reset()
