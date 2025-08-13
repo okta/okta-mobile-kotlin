@@ -43,7 +43,7 @@ class OktaRule(
     private val accessTokenValidator: AccessTokenValidator = AccessTokenValidator { _, _, _ -> },
     private val deviceSecretValidator: DeviceSecretValidator = DeviceSecretValidator { _, _, _ -> },
 ) : TestRule {
-    private val mockWebServer: OktaMockWebServer = OktaMockWebServer()
+    val mockWebServer: OktaMockWebServer = OktaMockWebServer()
 
     val mockWebServerDispatcher: NetworkDispatcher = mockWebServer.dispatcher
 

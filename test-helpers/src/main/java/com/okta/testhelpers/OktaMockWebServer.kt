@@ -70,4 +70,8 @@ class OktaMockWebServer {
         )
         return clientBuilder.build()
     }
+
+    fun close() {
+        mockWebServer.close()
+    }
 }

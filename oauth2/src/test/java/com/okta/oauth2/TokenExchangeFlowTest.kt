@@ -15,6 +15,7 @@
  */
 package com.okta.oauth2
 
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
 import com.okta.authfoundation.client.OAuth2ClientResult
 import com.okta.authfoundation.credential.Token
@@ -25,7 +26,9 @@ import com.okta.testhelpers.RequestMatchers.path
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
 
+@RunWith(AndroidJUnit4::class)
 class TokenExchangeFlowTest {
     @get:Rule val oktaRule = OktaRule()
 
@@ -48,7 +51,7 @@ class TokenExchangeFlowTest {
                 method("POST"),
                 path("/oauth2/default/v1/token"),
                 body(
-                    "audience=api%3A%2F%2Fdefault&subject_token_type=urn%3Aietf%3Aparams%3Aoauth%3Atoken-type%3Aid_token&subject_token=foo&actor_token_type=urn%3Ax-oath%3Aparams%3Aoauth%3Atoken-type%3Adevice-secret&actor_token=bar&client_id=unit_test_client_id&grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Atoken-exchange&scope=openid%20email%20profile%20offline_access"
+                    "audience=api%3A%2F%2Fdefault&subject_token_type=urn%3Aietf%3Aparams%3Aoauth%3Atoken-type%3Aid_token&subject_token=foo&actor_token_type=urn%3Ax-oath%3Aparams%3Aoauth%3Atoken-type%3Adevice-secret&actor_token=bar&client_id=unit_test_client_id&grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Atoken-exchange&scope=openid+email+profile+offline_access"
                 )
             ) { response ->
                 response.setResponseCode(503)
@@ -66,7 +69,7 @@ class TokenExchangeFlowTest {
                 method("POST"),
                 path("/oauth2/default/v1/token"),
                 body(
-                    "audience=api%3A%2F%2Fdefault&subject_token_type=urn%3Aietf%3Aparams%3Aoauth%3Atoken-type%3Aid_token&subject_token=foo&actor_token_type=urn%3Ax-oath%3Aparams%3Aoauth%3Atoken-type%3Adevice-secret&actor_token=bar&client_id=unit_test_client_id&grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Atoken-exchange&scope=openid%20email%20profile%20offline_access"
+                    "audience=api%3A%2F%2Fdefault&subject_token_type=urn%3Aietf%3Aparams%3Aoauth%3Atoken-type%3Aid_token&subject_token=foo&actor_token_type=urn%3Ax-oath%3Aparams%3Aoauth%3Atoken-type%3Adevice-secret&actor_token=bar&client_id=unit_test_client_id&grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Atoken-exchange&scope=openid+email+profile+offline_access"
                 )
             ) { response ->
                 val body =
@@ -96,7 +99,7 @@ class TokenExchangeFlowTest {
                 method("POST"),
                 path("/oauth2/default/v1/token"),
                 body(
-                    "audience=non_default_audience&subject_token_type=urn%3Aietf%3Aparams%3Aoauth%3Atoken-type%3Aid_token&subject_token=foo&actor_token_type=urn%3Ax-oath%3Aparams%3Aoauth%3Atoken-type%3Adevice-secret&actor_token=bar&client_id=unit_test_client_id&grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Atoken-exchange&scope=openid%20profile%20custom_for_test"
+                    "audience=non_default_audience&subject_token_type=urn%3Aietf%3Aparams%3Aoauth%3Atoken-type%3Aid_token&subject_token=foo&actor_token_type=urn%3Ax-oath%3Aparams%3Aoauth%3Atoken-type%3Adevice-secret&actor_token=bar&client_id=unit_test_client_id&grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Atoken-exchange&scope=openid+profile+custom_for_test"
                 )
             ) { response ->
                 val body =
