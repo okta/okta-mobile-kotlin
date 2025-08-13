@@ -1,138 +1,297 @@
 <!doctype html>
-<html>
+<html class="no-js">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
     <title>com.okta.authfoundation.credential</title>
-<link href="../../images/logo-icon.svg" rel="icon" type="image/svg">
-    <script>var pathToRoot = "../../";</script>    <script>const storage = localStorage.getItem("dokka-dark-mode")
-const savedDarkMode = storage ? JSON.parse(storage) : false
-if(savedDarkMode === true){
-    document.getElementsByTagName("html")[0].classList.add("theme-dark")
-}</script>
+<link href="../../images/logo-icon.svg" rel="icon" type="image/svg">    <script>var pathToRoot = "../../";</script>
+    <script>document.documentElement.classList.replace("no-js","js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+    if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    } else {
+        const savedDarkMode = JSON.parse(storage)
+        if(savedDarkMode === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    }
+    </script>
+<script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async></script>
 <script type="text/javascript" src="../../scripts/sourceset_dependencies.js" async></script>
 <link href="../../styles/style.css" rel="Stylesheet">
-<link href="../../styles/jetbrains-mono.css" rel="Stylesheet">
 <link href="../../styles/main.css" rel="Stylesheet">
 <link href="../../styles/prism.css" rel="Stylesheet">
 <link href="../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../styles/font-jb-sans-auto.css" rel="Stylesheet">
+<link href="../../ui-kit/ui-kit.min.css" rel="Stylesheet">
 <script type="text/javascript" src="../../scripts/clipboard.js" async></script>
 <script type="text/javascript" src="../../scripts/navigation-loader.js" async></script>
 <script type="text/javascript" src="../../scripts/platform-content-handler.js" async></script>
 <script type="text/javascript" src="../../scripts/main.js" defer></script>
-<script type="text/javascript" src="../../scripts/prism.js" async></script></head>
+<script type="text/javascript" src="../../scripts/prism.js" async></script>
+<script type="text/javascript" src="../../ui-kit/ui-kit.min.js" defer></script>
+<script type="text/javascript" src="../../scripts/symbol-parameters-wrapper_deferred.js" defer></script></head>
 <body>
-<div class="navigation-wrapper" id="navigation-wrapper">
-    <div id="leftToggler"><span class="icon-toggler"></span></div>
-    <div class="library-name">
-<a href="../../index.html">
-<span>okta-mobile-kotlin</span>            </a>    </div>
-    <div>1.0.0
-    </div>
-    <div class="pull-right d-flex">
-        <button id="theme-toggle-button"><span id="theme-toggle"></span></button>
-        <div id="searchBar"></div>
-    </div>
-</div>
-<div id="container">
-    <div id="leftColumn">
-        <div id="sideMenu"></div>
-    </div>
-    <div id="main">
-<div class="main-content" id="content" pageids="auth-foundation::com.okta.authfoundation.credential////PointingToDeclaration//1152495213">
-  <div class="breadcrumbs"><a href="../index.html">auth-foundation</a><span class="delimiter">/</span><a href="index.html">com.okta.authfoundation.credential</a></div>
+    <div class="root">
+    <nav class="navigation theme-dark" id="navigation-wrapper">
+<a class="library-name--link" href="../../index.html">
+                    Okta Mobile Kotlin SDK
+            </a>        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle" type="button">Toggle table of contents
+        </button>
+        <div class="navigation-controls--break ui-kit_mobile-only"></div>
+        <div class="library-version" id="library-version">
+        </div>
+        <div class="navigation-controls">
+        <div class="filter-section filter-section_loading" id="filter-section">
+                <button class="platform-tag platform-selector jvm-like" data-active="" data-filter=":auth-foundation/release">androidJvm</button>
+            <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
+                <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox" data-role="dropdown-toggle" aria-controls="platform-tags-listbox" aria-haspopup="listbox" aria-expanded="false" aria-label="Toggle source sets"></button>
+                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox">
+                    <div class="dropdown--header"><span>Platform filter</span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close platform filter">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                        <li role="option" class="dropdown--option platform-selector-option jvm-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":auth-foundation/release" data-filter=":auth-foundation/release">
+                                <span class="checkbox--icon"></span>
+                                androidJvm
+                            </label>
+                        </li>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </div>
+            <button class="navigation-controls--btn navigation-controls--btn_theme" id="theme-toggle-button" type="button">Switch theme
+            </button>
+            <div class="navigation-controls--btn navigation-controls--btn_search" id="searchBar" role="button">Search in
+                API
+            </div>
+        </div>
+    </nav>
+        <div id="container">
+            <div class="sidebar" id="leftColumn">
+                <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
+                    <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list" data-role="dropdown-listbox">
+                        <div class="dropdown--header">
+                            <span>
+                                    Okta Mobile Kotlin SDK
+                            </span>
+                            <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
+                                <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                            </button>
+                        </div>
+                        <div class="sidebar--inner" id="sideMenu"></div>
+                    </ul>
+                    <div class="dropdown--overlay"></div>
+                </div>
+            </div>
+            <div id="main">
+<div class="main-content" data-page-type="package" id="content" pageids="auth-foundation::com.okta.authfoundation.credential////PointingToDeclaration//-1123210767">
+  <div class="breadcrumbs"><a href="../index.html">auth-foundation</a><span class="delimiter">/</span><span class="current">com.okta.authfoundation.credential</span></div>
   <div class="cover ">
-    <h1 class="cover"><span><span>Package</span></span> <span>com.</span><wbr><span>okta.</span><wbr><span>authfoundation.</span><wbr><span>credential</span></h1>
+    <h1 class="cover"><span><span>Package-level</span></span> <span><span>declarations</span></span></h1>
   </div>
   <div class="tabbedcontent">
-    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="Types">Types</button></div>
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="TYPE">Types</button></div>
     <div class="tabs-section-body">
-      <h2 class="">Types</h2>
-      <div class="table" data-togglable="Types"><a data-name="-867060867%2FClasslikes%2F1152495213" anchor-label="Credential" id="-867060867%2FClasslikes%2F1152495213" data-filterable-set=":auth-foundation:dokkaHtmlPartial/release"></a>
-        <div class="table-row" data-filterable-current=":auth-foundation:dokkaHtmlPartial/release" data-filterable-set=":auth-foundation:dokkaHtmlPartial/release">
-          <div class="main-subrow keyValue ">
-            <div class=""><span class="inline-flex">
-                <div><a href="-credential/index.html"><span><span>Credential</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-867060867%2FClasslikes%2F1152495213"></span>
-                  <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
-                </span></span></div>
-            <div>
-              <div class="title">
-                <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-depenent-content" data-active="" data-togglable=":auth-foundation:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">class </span><a href="-credential/index.html">Credential</a><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><div class="brief "><p class="paragraph">Convenience object that wraps a <a href="-token/index.html">Token</a>, providing methods and properties for interacting with credential resources.</p></div></div></div>
+      <div data-togglable="TYPE">
+        <h2 class="">Types</h2>
+        <div class="table"><a data-name="-602053299%2FClasslikes%2F-1123210767" anchor-label="BiometricInvocationException" id="-602053299%2FClasslikes%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
+          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-biometric-invocation-exception/index.html"><span>Biometric</span><wbr><span>Invocation</span><wbr><span><span>Exception</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-602053299%2FClasslikes%2F-1123210767"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">class </span><a href="-biometric-invocation-exception/index.html">BiometricInvocationException</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>message<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></span></span><span class="token punctuation">)</span> : <a href="https://developer.android.com/reference/kotlin/java/lang/IllegalStateException.html">IllegalStateException</a></div><div class="brief "><p class="paragraph">Thrown when fetching a <a href="-credential/index.html">Credential</a> with Biometric security using a synchronous <a href="-credential/index.html">Credential</a> function. Biometric <a href="-credential/index.html">Credential</a>s should only be fetched using Async functions in <a href="-credential/index.html">Credential</a>.</p></div></div></div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-<a data-name="-1324123240%2FClasslikes%2F1152495213" anchor-label="CredentialDataSource" id="-1324123240%2FClasslikes%2F1152495213" data-filterable-set=":auth-foundation:dokkaHtmlPartial/release"></a>
-        <div class="table-row" data-filterable-current=":auth-foundation:dokkaHtmlPartial/release" data-filterable-set=":auth-foundation:dokkaHtmlPartial/release">
-          <div class="main-subrow keyValue ">
-            <div class=""><span class="inline-flex">
-                <div><a href="-credential-data-source/index.html"><span>Credential</span><wbr><span>Data</span><wbr><span><span>Source</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1324123240%2FClasslikes%2F1152495213"></span>
-                  <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
-                </span></span></div>
-            <div>
-              <div class="title">
-                <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-depenent-content" data-active="" data-togglable=":auth-foundation:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">class </span><a href="-credential-data-source/index.html">CredentialDataSource</a><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><div class="brief "><p class="paragraph">Responsible for managing <a href="-credential/index.html">Credential</a> instances.</p></div></div></div>
+<a data-name="-867060867%2FClasslikes%2F-1123210767" anchor-label="Credential" id="-867060867%2FClasslikes%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
+          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-credential/index.html"><span><span>Credential</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-867060867%2FClasslikes%2F-1123210767"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">class </span><a href="-credential/index.html">Credential</a></div><div class="brief "><p class="paragraph">Convenience object that wraps a <a href="-token/index.html">Token</a>, providing methods and properties for interacting with credential resources.</p></div></div></div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-<a data-name="210650625%2FClasslikes%2F1152495213" anchor-label="RevokeTokenType" id="210650625%2FClasslikes%2F1152495213" data-filterable-set=":auth-foundation:dokkaHtmlPartial/release"></a>
-        <div class="table-row" data-filterable-current=":auth-foundation:dokkaHtmlPartial/release" data-filterable-set=":auth-foundation:dokkaHtmlPartial/release">
-          <div class="main-subrow keyValue ">
-            <div class=""><span class="inline-flex">
-                <div><a href="-revoke-token-type/index.html"><span>Revoke</span><wbr><span>Token</span><wbr><span><span>Type</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="210650625%2FClasslikes%2F1152495213"></span>
-                  <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
-                </span></span></div>
-            <div>
-              <div class="title">
-                <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-depenent-content" data-active="" data-togglable=":auth-foundation:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">enum </span><a href="-revoke-token-type/index.html">RevokeTokenType</a> : <a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-enum/index.html">Enum</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="-revoke-token-type/index.html">RevokeTokenType</a><span class="token operator">&gt; </span><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><div class="brief "><p class="paragraph">The possible token types that can be revoked.</p></div></div></div>
+<a data-name="-1324123240%2FClasslikes%2F-1123210767" anchor-label="CredentialDataSource" id="-1324123240%2FClasslikes%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
+          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-credential-data-source/index.html"><span>Credential</span><wbr><span>Data</span><wbr><span><span>Source</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1324123240%2FClasslikes%2F-1123210767"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">class </span><a href="-credential-data-source/index.html">CredentialDataSource</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">storage<span class="token operator">: </span><a href="-token-storage/index.html">TokenStorage</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-<a data-name="-918895947%2FClasslikes%2F1152495213" anchor-label="Token" id="-918895947%2FClasslikes%2F1152495213" data-filterable-set=":auth-foundation:dokkaHtmlPartial/release"></a>
-        <div class="table-row" data-filterable-current=":auth-foundation:dokkaHtmlPartial/release" data-filterable-set=":auth-foundation:dokkaHtmlPartial/release">
-          <div class="main-subrow keyValue ">
-            <div class=""><span class="inline-flex">
-                <div><a href="-token/index.html"><span><span>Token</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-918895947%2FClasslikes%2F1152495213"></span>
-                  <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
-                </span></span></div>
-            <div>
-              <div class="title">
-                <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-depenent-content" data-active="" data-togglable=":auth-foundation:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">class </span><a href="-token/index.html">Token</a><span class="token punctuation">(</span><span class="parameters wrapped"><span class="parameter indented">&nbsp;&nbsp;&nbsp;&nbsp;<span class="token keyword">val </span>tokenType<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter indented">&nbsp;&nbsp;&nbsp;&nbsp;<span class="token keyword">val </span>expiresIn<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter indented">&nbsp;&nbsp;&nbsp;&nbsp;<span class="token keyword">val </span>accessToken<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter indented">&nbsp;&nbsp;&nbsp;&nbsp;<span class="token keyword">val </span>scope<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span><span class="token punctuation">, </span></span><span class="parameter indented">&nbsp;&nbsp;&nbsp;&nbsp;<span class="token keyword">val </span>refreshToken<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span><span class="token punctuation">, </span></span><span class="parameter indented">&nbsp;&nbsp;&nbsp;&nbsp;<span class="token keyword">val </span>idToken<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span><span class="token punctuation">, </span></span><span class="parameter indented">&nbsp;&nbsp;&nbsp;&nbsp;<span class="token keyword">val </span>deviceSecret<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span><span class="token punctuation">, </span></span><span class="parameter indented">&nbsp;&nbsp;&nbsp;&nbsp;<span class="token keyword">val </span>issuedTokenType<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></span></span><span class="token punctuation">)</span><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><div class="brief "><p class="paragraph">Token information representing a user's access to a resource server, including access token, refresh token, and other related information.</p></div></div></div>
+<a data-name="971873663%2FClasslikes%2F-1123210767" anchor-label="DefaultTokenEncryptionHandler" id="971873663%2FClasslikes%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
+          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-default-token-encryption-handler/index.html"><span>Default</span><wbr><span>Token</span><wbr><span>Encryption</span><wbr><span><span>Handler</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="971873663%2FClasslikes%2F-1123210767"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">class </span><a href="-default-token-encryption-handler/index.html">DefaultTokenEncryptionHandler</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">keyStore<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/security/KeyStore.html">KeyStore</a><span class="token operator"> = </span>AndroidKeystoreUtil.keyStore<span class="token punctuation">, </span></span><span class="parameter ">keyPairGenerator<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/security/KeyPairGenerator.html">KeyPairGenerator</a><span class="token operator"> = </span>AndroidKeystoreUtil.getRsaKeyPairGenerator()</span></span><span class="token punctuation">)</span> : <a href="-token-encryption-handler/index.html">TokenEncryptionHandler</a></div></div></div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-<a data-name="-1429962958%2FClasslikes%2F1152495213" anchor-label="TokenStorage" id="-1429962958%2FClasslikes%2F1152495213" data-filterable-set=":auth-foundation:dokkaHtmlPartial/release"></a>
-        <div class="table-row" data-filterable-current=":auth-foundation:dokkaHtmlPartial/release" data-filterable-set=":auth-foundation:dokkaHtmlPartial/release">
-          <div class="main-subrow keyValue ">
-            <div class=""><span class="inline-flex">
-                <div><a href="-token-storage/index.html"><span>Token</span><wbr><span><span>Storage</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1429962958%2FClasslikes%2F1152495213"></span>
-                  <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
-                </span></span></div>
-            <div>
-              <div class="title">
-                <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-depenent-content" data-active="" data-togglable=":auth-foundation:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-token-storage/index.html">TokenStorage</a><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><div class="brief "><p class="paragraph">Interface used to customize the way tokens are stored, updated, and removed throughout the lifecycle of an application.</p></div></div></div>
+<a data-name="-1065490775%2FClasslikes%2F-1123210767" anchor-label="LegacyTokenStorage" id="-1065490775%2FClasslikes%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
+          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-legacy-token-storage/index.html"><span>Legacy</span><wbr><span>Token</span><wbr><span><span>Storage</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1065490775%2FClasslikes%2F-1123210767"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-legacy-token-storage/index.html">LegacyTokenStorage</a></div><div class="brief "><p class="paragraph">Legacy interface used to customize the way tokens are stored, updated, and removed throughout the lifecycle of an application. See <a href="-token-storage/index.html">TokenStorage</a> for the current version.</p></div></div></div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-<a data-name="-912165221%2FClasslikes%2F1152495213" anchor-label="TokenType" id="-912165221%2FClasslikes%2F1152495213" data-filterable-set=":auth-foundation:dokkaHtmlPartial/release"></a>
-        <div class="table-row" data-filterable-current=":auth-foundation:dokkaHtmlPartial/release" data-filterable-set=":auth-foundation:dokkaHtmlPartial/release">
-          <div class="main-subrow keyValue ">
-            <div class=""><span class="inline-flex">
-                <div><a href="-token-type/index.html"><span>Token</span><wbr><span><span>Type</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-912165221%2FClasslikes%2F1152495213"></span>
-                  <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
-                </span></span></div>
-            <div>
-              <div class="title">
-                <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-depenent-content" data-active="" data-togglable=":auth-foundation:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">enum </span><a href="-token-type/index.html">TokenType</a> : <a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-enum/index.html">Enum</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="-token-type/index.html">TokenType</a><span class="token operator">&gt; </span><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><div class="brief "><p class="paragraph">The type of token an operation should be used with.</p></div></div></div>
+<a data-name="-1474541024%2FClasslikes%2F-1123210767" anchor-label="RevokeAllException" id="-1474541024%2FClasslikes%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
+          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-revoke-all-exception/index.html"><span>Revoke</span><wbr><span>All</span><wbr><span><span>Exception</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1474541024%2FClasslikes%2F-1123210767"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">class </span><a href="-revoke-all-exception/index.html">RevokeAllException</a> : <a href="https://developer.android.com/reference/kotlin/java/lang/Exception.html">Exception</a></div><div class="brief "><p class="paragraph">The exception in <a href="../com.okta.authfoundation.client/-o-auth2-client-result/-error/index.html">OAuth2ClientResult.Error</a> when a call to <a href="-credential/revoke-all-tokens.html">Credential.revokeAllTokens</a> fails.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="210650625%2FClasslikes%2F-1123210767" anchor-label="RevokeTokenType" id="210650625%2FClasslikes%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
+          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-revoke-token-type/index.html"><span>Revoke</span><wbr><span>Token</span><wbr><span><span>Type</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="210650625%2FClasslikes%2F-1123210767"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">enum </span><a href="-revoke-token-type/index.html">RevokeTokenType</a> : <a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-enum/index.html">Enum</a><span class="token operator">&lt;</span><a href="-revoke-token-type/index.html">RevokeTokenType</a><span class="token operator">&gt; </span></div><div class="brief "><p class="paragraph">The possible token types that can be revoked.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-677228137%2FClasslikes%2F-1123210767" anchor-label="RoomTokenStorage" id="-677228137%2FClasslikes%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
+          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-room-token-storage/index.html"><span>Room</span><wbr><span>Token</span><wbr><span><span>Storage</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-677228137%2FClasslikes%2F-1123210767"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">class </span><a href="-room-token-storage/index.html">RoomTokenStorage</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">tokenDatabase<span class="token operator">: </span><a href="../com.okta.authfoundation.credential.storage/-token-database/index.html">TokenDatabase</a><span class="token punctuation">, </span></span><span class="parameter ">tokenEncryptionHandler<span class="token operator">: </span><a href="-token-encryption-handler/index.html">TokenEncryptionHandler</a></span></span><span class="token punctuation">)</span> : <a href="-token-storage/index.html">TokenStorage</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-918895947%2FClasslikes%2F-1123210767" anchor-label="Token" id="-918895947%2FClasslikes%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
+          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-token/index.html"><span><span>Token</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-918895947%2FClasslikes%2F-1123210767"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><span data-unresolved-link="kotlinx.serialization/Serializable///PointingToDeclaration/"><span class="token annotation builtin">Serializable</span></span></div></div><span class="token keyword">class </span><a href="-token/index.html">Token</a></div><div class="brief "><p class="paragraph">Token information representing a user's access to a resource server, including access token, refresh token, and other related information.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="910862432%2FClasslikes%2F-1123210767" anchor-label="TokenDbRecoveryUtil" id="910862432%2FClasslikes%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
+          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-token-db-recovery-util/index.html"><span>Token</span><wbr><span>Db</span><wbr><span>Recovery</span><wbr><span><span>Util</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="910862432%2FClasslikes%2F-1123210767"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">object </span><a href="-token-db-recovery-util/index.html">TokenDbRecoveryUtil</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1626355174%2FClasslikes%2F-1123210767" anchor-label="TokenEncryptionHandler" id="1626355174%2FClasslikes%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
+          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-token-encryption-handler/index.html"><span>Token</span><wbr><span>Encryption</span><wbr><span><span>Handler</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1626355174%2FClasslikes%2F-1123210767"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-token-encryption-handler/index.html">TokenEncryptionHandler</a></div><div class="brief "><p class="paragraph">Interface for defining how <a href="-token/index.html">Token</a>s are encrypted before storing in <a href="-room-token-storage/index.html">RoomTokenStorage</a>, the default implementation of <a href="-token-storage/index.html">TokenStorage</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1429962958%2FClasslikes%2F-1123210767" anchor-label="TokenStorage" id="-1429962958%2FClasslikes%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
+          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-token-storage/index.html"><span>Token</span><wbr><span><span>Storage</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1429962958%2FClasslikes%2F-1123210767"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-token-storage/index.html">TokenStorage</a></div><div class="brief "><p class="paragraph">Interface used to customize the way tokens are stored, updated, and removed throughout the lifecycle of an application.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-912165221%2FClasslikes%2F-1123210767" anchor-label="TokenType" id="-912165221%2FClasslikes%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
+          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-token-type/index.html"><span>Token</span><wbr><span><span>Type</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-912165221%2FClasslikes%2F-1123210767"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">enum </span><a href="-token-type/index.html">TokenType</a> : <a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-enum/index.html">Enum</a><span class="token operator">&lt;</span><a href="-token-type/index.html">TokenType</a><span class="token operator">&gt; </span></div><div class="brief "><p class="paragraph">The type of token an operation should be used with.</p></div></div></div>
+                </div>
               </div>
             </div>
           </div>
@@ -141,10 +300,18 @@ if(savedDarkMode === true){
     </div>
   </div>
 </div>
-        <div class="footer"><span class="go-to-top-icon"><a href="#content" id="go-to-top-link"></a></span><span>© 2022 Copyright</span><span class="pull-right"><span>Generated by </span><a href="https://github.com/Kotlin/dokka"><span>dokka</span><span class="padded-icon"></span></a></span>
+    <div class="footer">
+        <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
+        <span>© 2025 Copyright</span>
+        <span class="pull-right">
+            <span>Generated by </span>
+            <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
+                <span>dokka</span>
+            </a>
+        </span>
+    </div>
+            </div>
         </div>
     </div>
-</div>
-
-</body></html>
-
+</body>
+</html>

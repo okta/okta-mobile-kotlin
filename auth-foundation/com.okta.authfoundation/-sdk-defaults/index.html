@@ -1,0 +1,318 @@
+<!doctype html>
+<html class="no-js">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>SdkDefaults</title>
+<link href="../../../images/logo-icon.svg" rel="icon" type="image/svg">    <script>var pathToRoot = "../../../";</script>
+    <script>document.documentElement.classList.replace("no-js","js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+    if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    } else {
+        const savedDarkMode = JSON.parse(storage)
+        if(savedDarkMode === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    }
+    </script>
+<script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async></script>
+<script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async></script>
+<link href="../../../styles/style.css" rel="Stylesheet">
+<link href="../../../styles/main.css" rel="Stylesheet">
+<link href="../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../styles/font-jb-sans-auto.css" rel="Stylesheet">
+<link href="../../../ui-kit/ui-kit.min.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../scripts/clipboard.js" async></script>
+<script type="text/javascript" src="../../../scripts/navigation-loader.js" async></script>
+<script type="text/javascript" src="../../../scripts/platform-content-handler.js" async></script>
+<script type="text/javascript" src="../../../scripts/main.js" defer></script>
+<script type="text/javascript" src="../../../scripts/prism.js" async></script>
+<script type="text/javascript" src="../../../ui-kit/ui-kit.min.js" defer></script>
+<script type="text/javascript" src="../../../scripts/symbol-parameters-wrapper_deferred.js" defer></script></head>
+<body>
+    <div class="root">
+    <nav class="navigation theme-dark" id="navigation-wrapper">
+<a class="library-name--link" href="../../../index.html">
+                    Okta Mobile Kotlin SDK
+            </a>        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle" type="button">Toggle table of contents
+        </button>
+        <div class="navigation-controls--break ui-kit_mobile-only"></div>
+        <div class="library-version" id="library-version">
+        </div>
+        <div class="navigation-controls">
+        <div class="filter-section filter-section_loading" id="filter-section">
+                <button class="platform-tag platform-selector jvm-like" data-active="" data-filter=":auth-foundation/release">androidJvm</button>
+            <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
+                <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox" data-role="dropdown-toggle" aria-controls="platform-tags-listbox" aria-haspopup="listbox" aria-expanded="false" aria-label="Toggle source sets"></button>
+                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox">
+                    <div class="dropdown--header"><span>Platform filter</span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close platform filter">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                        <li role="option" class="dropdown--option platform-selector-option jvm-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":auth-foundation/release" data-filter=":auth-foundation/release">
+                                <span class="checkbox--icon"></span>
+                                androidJvm
+                            </label>
+                        </li>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </div>
+            <button class="navigation-controls--btn navigation-controls--btn_theme" id="theme-toggle-button" type="button">Switch theme
+            </button>
+            <div class="navigation-controls--btn navigation-controls--btn_search" id="searchBar" role="button">Search in
+                API
+            </div>
+        </div>
+    </nav>
+        <div id="container">
+            <div class="sidebar" id="leftColumn">
+                <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
+                    <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list" data-role="dropdown-listbox">
+                        <div class="dropdown--header">
+                            <span>
+                                    Okta Mobile Kotlin SDK
+                            </span>
+                            <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
+                                <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                            </button>
+                        </div>
+                        <div class="sidebar--inner" id="sideMenu"></div>
+                    </ul>
+                    <div class="dropdown--overlay"></div>
+                </div>
+            </div>
+            <div id="main">
+<div class="main-content" data-page-type="classlike" id="content" pageids="auth-foundation::com.okta.authfoundation/SdkDefaults///PointingToDeclaration//-1123210767">
+  <div class="breadcrumbs"><a href="../../index.html">auth-foundation</a><span class="delimiter">/</span><a href="../index.html">com.okta.authfoundation</a><span class="delimiter">/</span><span class="current">SdkDefaults</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span>Sdk</span><wbr><span><span>Defaults</span></span></h1>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">object </span><a href="index.html">SdkDefaults</a></div></div></div>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="PROPERTY">
+        <h2 class="">Properties</h2>
+        <div class="table"><a data-name="-1438921015%2FProperties%2F-1123210767" anchor-label="getAccessTokenValidator" id="-1438921015%2FProperties%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
+          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get-access-token-validator.html"><span>get</span><wbr><span>Access</span><wbr><span>Token</span><wbr><span><span>Validator</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1438921015%2FProperties%2F-1123210767"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">var </span><a href="get-access-token-validator.html">getAccessTokenValidator</a><span class="token operator">: </span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="../../com.okta.authfoundation.client/-access-token-validator/index.html">AccessTokenValidator</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-270976290%2FProperties%2F-1123210767" anchor-label="getCacheFactory" id="-270976290%2FProperties%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
+          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get-cache-factory.html"><span>get</span><wbr><span>Cache</span><wbr><span><span>Factory</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-270976290%2FProperties%2F-1123210767"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">var </span><a href="get-cache-factory.html">getCacheFactory</a><span class="token operator">: </span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><span class="token keyword">suspend </span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="../../com.okta.authfoundation.client/-cache/index.html">Cache</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1258817094%2FProperties%2F-1123210767" anchor-label="getClock" id="1258817094%2FProperties%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
+          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get-clock.html"><span>get</span><wbr><span><span>Clock</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1258817094%2FProperties%2F-1123210767"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">var </span><a href="get-clock.html">getClock</a><span class="token operator">: </span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="../../com.okta.authfoundation.client/-oidc-clock/index.html">OidcClock</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-2010101866%2FProperties%2F-1123210767" anchor-label="getComputeDispatcher" id="-2010101866%2FProperties%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
+          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get-compute-dispatcher.html"><span>get</span><wbr><span>Compute</span><wbr><span><span>Dispatcher</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2010101866%2FProperties%2F-1123210767"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">var </span><a href="get-compute-dispatcher.html">getComputeDispatcher</a><span class="token operator">: </span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.coroutines/-coroutine-context/index.html">CoroutineContext</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="846552541%2FProperties%2F-1123210767" anchor-label="getCookieJar" id="846552541%2FProperties%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
+          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get-cookie-jar.html"><span>get</span><wbr><span>Cookie</span><wbr><span><span>Jar</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="846552541%2FProperties%2F-1123210767"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">var </span><a href="get-cookie-jar.html">getCookieJar</a><span class="token operator">: </span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><span data-unresolved-link="okhttp3/CookieJar///PointingToDeclaration/">CookieJar</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-326184760%2FProperties%2F-1123210767" anchor-label="getDeviceSecretValidator" id="-326184760%2FProperties%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
+          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get-device-secret-validator.html"><span>get</span><wbr><span>Device</span><wbr><span>Secret</span><wbr><span><span>Validator</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-326184760%2FProperties%2F-1123210767"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">var </span><a href="get-device-secret-validator.html">getDeviceSecretValidator</a><span class="token operator">: </span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="../../com.okta.authfoundation.client/-device-secret-validator/index.html">DeviceSecretValidator</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1834323696%2FProperties%2F-1123210767" anchor-label="getEventCoordinator" id="-1834323696%2FProperties%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
+          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get-event-coordinator.html"><span>get</span><wbr><span>Event</span><wbr><span><span>Coordinator</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1834323696%2FProperties%2F-1123210767"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">var </span><a href="get-event-coordinator.html">getEventCoordinator</a><span class="token operator">: </span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="../../com.okta.authfoundation.events/-event-coordinator/index.html">EventCoordinator</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-313633870%2FProperties%2F-1123210767" anchor-label="getIdTokenValidator" id="-313633870%2FProperties%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
+          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get-id-token-validator.html"><span>get</span><wbr><span>Id</span><wbr><span>Token</span><wbr><span><span>Validator</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-313633870%2FProperties%2F-1123210767"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">var </span><a href="get-id-token-validator.html">getIdTokenValidator</a><span class="token operator">: </span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="../../com.okta.authfoundation.client/-id-token-validator/index.html">IdTokenValidator</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-2059962055%2FProperties%2F-1123210767" anchor-label="getIoDispatcher" id="-2059962055%2FProperties%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
+          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get-io-dispatcher.html"><span>get</span><wbr><span>Io</span><wbr><span><span>Dispatcher</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2059962055%2FProperties%2F-1123210767"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">var </span><a href="get-io-dispatcher.html">getIoDispatcher</a><span class="token operator">: </span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.coroutines/-coroutine-context/index.html">CoroutineContext</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="2077659634%2FProperties%2F-1123210767" anchor-label="getLoginCancellationDebounceTime" id="2077659634%2FProperties%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
+          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get-login-cancellation-debounce-time.html"><span>get</span><wbr><span>Login</span><wbr><span>Cancellation</span><wbr><span>Debounce</span><wbr><span><span>Time</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2077659634%2FProperties%2F-1123210767"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">var </span><a href="get-login-cancellation-debounce-time.html">getLoginCancellationDebounceTime</a><span class="token operator">: </span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.time/-duration/index.html">Duration</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1136521753%2FProperties%2F-1123210767" anchor-label="getOkHttpClientFactory" id="1136521753%2FProperties%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
+          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get-ok-http-client-factory.html"><span>get</span><wbr><span>Ok</span><wbr><span>Http</span><wbr><span>Client</span><wbr><span><span>Factory</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1136521753%2FProperties%2F-1123210767"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">var </span><a href="get-ok-http-client-factory.html">getOkHttpClientFactory</a><span class="token operator">: </span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><span data-unresolved-link="okhttp3/Call.Factory///PointingToDeclaration/">Call.Factory</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="597622840%2FProperties%2F-1123210767" anchor-label="getTokenEncryptionHandler" id="597622840%2FProperties%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
+          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get-token-encryption-handler.html"><span>get</span><wbr><span>Token</span><wbr><span>Encryption</span><wbr><span><span>Handler</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="597622840%2FProperties%2F-1123210767"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">var </span><a href="get-token-encryption-handler.html">getTokenEncryptionHandler</a><span class="token operator">: </span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="../../com.okta.authfoundation.credential/-token-encryption-handler/index.html">TokenEncryptionHandler</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-400497940%2FProperties%2F-1123210767" anchor-label="getTokenStorageFactory" id="-400497940%2FProperties%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
+          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get-token-storage-factory.html"><span>get</span><wbr><span>Token</span><wbr><span>Storage</span><wbr><span><span>Factory</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-400497940%2FProperties%2F-1123210767"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">var </span><a href="get-token-storage-factory.html">getTokenStorageFactory</a><span class="token operator">: </span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><span class="token keyword">suspend </span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="../../com.okta.authfoundation.credential/-token-storage/index.html">TokenStorage</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    <div class="footer">
+        <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
+        <span>© 2025 Copyright</span>
+        <span class="pull-right">
+            <span>Generated by </span>
+            <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
+                <span>dokka</span>
+            </a>
+        </span>
+    </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
