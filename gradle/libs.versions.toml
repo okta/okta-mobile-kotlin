@@ -21,7 +21,6 @@ coreKtx = "1.16.0"
 coroutines = "1.10.2"
 dokkaBase = "2.0.0"
 cucumberAndroid = "7.18.1"
-dokka = "2.0.0"
 espresso = "3.7.0"
 gradleMavenPublish = "0.34.0"
 jackson = "2.19.2"
@@ -48,16 +47,15 @@ room = "2.7.2"
 securityCrypto = "1.1.0"
 snakeyaml = "2.4"
 spotless = "7.2.1"
-sqlcipherAndroid = "4.9.0"
+sqlcipherAndroid = "4.10.0"
 timber = "5.0.1"
 truth = "1.4.4"
 turbine = "1.2.1"
 
 sonarqubeGradlePlugin = "6.2.0.5505"
-dokkaGradlePlugin = "2.0.0"
 detektGradlePlugin = "1.23.8"
 googleServicesGradlePlugin = "4.4.3"
-googleFirebaseCrashlyticsGradlePlugin = "3.0.5"
+googleFirebaseCrashlyticsGradlePlugin = "3.0.6"
 koverGradlePlugin = "0.9.1"
 ksp = "2.2.0-2.0.2" # prefix with kotlin version.
 safeArgs = "2.9.3"
@@ -69,6 +67,7 @@ protobufJava = "4.31.1"
 netty = "4.1.119.Final"
 
 [libraries]
+android-documentation-plugin = { module = "org.jetbrains.dokka:android-documentation-plugin", version.ref = "dokkaBase" }
 androidx-activity-ktx = { module = "androidx.activity:activity-ktx", version.ref = "androidxActivity" }
 androidx-annotation = { module = "androidx.annotation:annotation", version.ref = "androidxAnnotation" }
 androidx-biometric = { module = "androidx.biometric:biometric", version.ref = "androidxBiometric" }
@@ -110,8 +109,6 @@ dokka-core = { module = "org.jetbrains.dokka:dokka-core", version.ref = "dokkaBa
 cucumber-android = { module = "io.cucumber:cucumber-android", version.ref = "cucumberAndroid" }
 
 desugar-libs = { module = "com.android.tools:desugar_jdk_libs", version.ref = "coreLibraryDesugaring" }
-
-dokka-gradle-plugin = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version.ref = "dokka" }
 
 espresso-core = { module = "androidx.test.espresso:espresso-core", version.ref = "espresso" }
 espresso-contrib = { module = "androidx.test.espresso:espresso-contrib", version.ref = "espresso" }
@@ -199,7 +196,7 @@ json = { module = "org.json:json", version.ref = "json" }
 android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }
 android-library = { id = "com.android.library", version.ref = "androidGradlePlugin" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
-dokka = { id = "org.jetbrains.dokka", version.ref = "dokkaGradlePlugin" }
+dokka = { id = "org.jetbrains.dokka", version.ref = "dokkaBase" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "koverGradlePlugin" }
 sonarqube = { id = "org.sonarqube", version.ref = "sonarqubeGradlePlugin" }

@@ -1,0 +1,44 @@
+name: Deploy docs with Dokka
+
+on:
+  push:
+    tags:
+      - '*'
+  pull_request:
+
+env:
+  GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4g -Dorg.gradle.daemon=false -Dkotlin.incremental=false"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+      pages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: 17
+
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v3
+
+      - name: Build docs
+        run: ./gradlew dokkaGeneratePublicationHtml
+
+      - name: Publish To Maven Local
+        run: ./gradlew publishToMavenLocal
+
+      - name: Deploy to Github Pages
+        # Only runs on tag pushes
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs/build/dokka/html

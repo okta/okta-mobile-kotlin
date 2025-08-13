@@ -4,10 +4,10 @@ plugins {
     id("com.android.library")
     id("com.google.devtools.ksp")
     id("kotlin-parcelize")
-    id("org.jetbrains.dokka")
     id("spotless")
     id("binary-compatibility-validator")
     kotlin("android")
+    alias(libs.plugins.dokka)
     id("com.vanniktech.maven.publish.base")
     kotlin("plugin.serialization") version libs.versions.kotlin.get()
 }
@@ -48,6 +48,10 @@ android {
     buildFeatures {
         buildConfig = true
     }
+}
+
+apiValidation {
+    ignoredClasses.add("com.okta.idx.kotlin.BuildConfig")
 }
 
 dependencies {

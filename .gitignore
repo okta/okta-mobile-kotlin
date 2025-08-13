@@ -9,4 +9,3 @@ build/
 .cxx
 local.properties
 e2eCredentials.yaml
-/docs
