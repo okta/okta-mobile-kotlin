@@ -10,7 +10,7 @@ import io.ktor.client.engine.android.Android
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.cache.HttpCache
 import io.ktor.client.plugins.cookies.HttpCookies
-import io.ktor.client.plugins.timeout
+import io.ktor.client.plugins.expectSuccess
 import io.ktor.client.request.forms.FormDataContent
 import io.ktor.client.request.request
 import io.ktor.client.request.setBody
@@ -61,6 +61,9 @@ class KtorHttpExecutor(
     override suspend fun execute(request: ApiRequest): Result<ApiResponse> = runCatching {
 
         val response: HttpResponse = httpClient.request {
+
+            expectSuccess = false
+
             method = HttpMethod.parse(request.method().name)
 
             url {

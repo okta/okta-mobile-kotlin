@@ -79,22 +79,37 @@ public abstract class com/okta/authfoundation/GrantType {
 
 public final class com/okta/authfoundation/GrantType$AuthorizationCode : com/okta/authfoundation/GrantType {
 	public static final field INSTANCE Lcom/okta/authfoundation/GrantType$AuthorizationCode;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class com/okta/authfoundation/GrantType$DeviceCode : com/okta/authfoundation/GrantType {
 	public static final field INSTANCE Lcom/okta/authfoundation/GrantType$DeviceCode;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class com/okta/authfoundation/GrantType$JwtBearer : com/okta/authfoundation/GrantType {
 	public static final field INSTANCE Lcom/okta/authfoundation/GrantType$JwtBearer;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class com/okta/authfoundation/GrantType$Oob : com/okta/authfoundation/GrantType {
 	public static final field INSTANCE Lcom/okta/authfoundation/GrantType$Oob;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class com/okta/authfoundation/GrantType$OobMfa : com/okta/authfoundation/GrantType {
 	public static final field INSTANCE Lcom/okta/authfoundation/GrantType$OobMfa;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class com/okta/authfoundation/GrantType$Other : com/okta/authfoundation/GrantType {
@@ -110,30 +125,51 @@ public final class com/okta/authfoundation/GrantType$Other : com/okta/authfounda
 
 public final class com/okta/authfoundation/GrantType$Otp : com/okta/authfoundation/GrantType {
 	public static final field INSTANCE Lcom/okta/authfoundation/GrantType$Otp;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class com/okta/authfoundation/GrantType$OtpMfa : com/okta/authfoundation/GrantType {
 	public static final field INSTANCE Lcom/okta/authfoundation/GrantType$OtpMfa;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class com/okta/authfoundation/GrantType$Password : com/okta/authfoundation/GrantType {
 	public static final field INSTANCE Lcom/okta/authfoundation/GrantType$Password;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class com/okta/authfoundation/GrantType$RefreshToken : com/okta/authfoundation/GrantType {
 	public static final field INSTANCE Lcom/okta/authfoundation/GrantType$RefreshToken;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class com/okta/authfoundation/GrantType$TokenExchange : com/okta/authfoundation/GrantType {
 	public static final field INSTANCE Lcom/okta/authfoundation/GrantType$TokenExchange;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class com/okta/authfoundation/GrantType$WebAuthn : com/okta/authfoundation/GrantType {
 	public static final field INSTANCE Lcom/okta/authfoundation/GrantType$WebAuthn;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class com/okta/authfoundation/GrantType$WebAuthnMfa : com/okta/authfoundation/GrantType {
 	public static final field INSTANCE Lcom/okta/authfoundation/GrantType$WebAuthnMfa;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
 }
 
 public abstract interface annotation class com/okta/authfoundation/InternalAuthFoundationApi : java/lang/annotation/Annotation {
