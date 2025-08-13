@@ -2,10 +2,10 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     id("com.android.library")
-    id("org.jetbrains.dokka")
     id("binary-compatibility-validator")
     id("spotless")
     kotlin("android")
+    alias(libs.plugins.dokka)
     kotlin("plugin.serialization") version libs.versions.kotlin.get()
     id("com.vanniktech.maven.publish.base")
 }

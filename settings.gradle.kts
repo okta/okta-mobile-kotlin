@@ -15,6 +15,7 @@ dependencyResolutionManagement {
 }
 rootProject.name = "okta-mobile-kotlin"
 
+include(":docs")
 include(":app")
 include(":auth-foundation")
 include(":bom")

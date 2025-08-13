@@ -23,7 +23,7 @@ plugins {
     alias(libs.plugins.android.application).apply(false)
     alias(libs.plugins.android.library).apply(false)
     alias(libs.plugins.kotlin.android).apply(false)
-    alias(libs.plugins.dokka).apply(true)
+    alias(libs.plugins.dokka).apply(false)
     alias(libs.plugins.sonarqube).apply(true)
     alias(libs.plugins.kover).apply(false)
     alias(libs.plugins.compose.compiler).apply(false)
@@ -58,29 +58,6 @@ allprojects {
 }
 
 subprojects {
-    tasks.withType<DokkaTaskPartial>().configureEach {
-        dokkaSourceSets.configureEach {
-            jdkVersion.set(11)
-            suppressInheritedMembers.set(true)
-
-            perPackageOption {
-                matchingRegex.set(".*\\.internal.*")
-                suppress.set(true)
-            }
-            if (project.file("Module.md").exists()) {
-                includes.from(project.file("Module.md"))
-            }
-            externalDocumentationLink {
-                url.set(URI.create("https://square.github.io/okio/3.x/okio/").toURL())
-                packageListUrl.set(URI.create("https://square.github.io/okio/3.x/okio/okio/package-list").toURL())
-            }
-            externalDocumentationLink {
-                url.set(URI.create("https://kotlin.github.io/kotlinx.serialization/").toURL())
-                packageListUrl.set(URI.create("https://kotlin.github.io/kotlinx.serialization/package-list").toURL())
-            }
-        }
-    }
-
     plugins.withId("com.vanniktech.maven.publish.base") {
         configure<MavenPublishBaseExtension> {
             val snapshot = project.properties["snapshot"]?.toString()?.toBoolean() ?: false
@@ -130,8 +107,4 @@ subprojects {
             }
         }
     }
-}
-
-tasks.dokkaHtmlMultiModule.configure {
-    outputDirectory.set(file("${rootDir}/docs"))
 }
