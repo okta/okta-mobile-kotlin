@@ -23,6 +23,18 @@ import io.ktor.http.Url
 class DirectAuthenticationFlowBuilder private constructor() {
 
     /**
+     * The ID of the authorization server to use for the authentication flow.
+     *
+     * This value identifies which authorization server will issue the tokens. For more information,
+     * see the guide on [Okta Authorization Servers](https://developer.okta.com/docs/concepts/auth-servers/).
+     *
+     * Defaults to an empty string, which specifies the org authorization server. To use a
+     * custom authorization server, set this to its ID or use `"default"` for the default
+     * custom authorization server.
+     */
+    var authorizationServerId: String = ""
+
+    /**
      * The client secret of the application.
      *
      * This is an optional parameter and may not be required for all OAuth 2.0 flows,
@@ -130,6 +142,7 @@ class DirectAuthenticationFlowBuilder private constructor() {
                         issuerUrl,
                         clientId,
                         scope,
+                        builder.authorizationServerId,
                         builder.clientSecret,
                         builder.supportedGrantType,
                         builder.acrValues,
