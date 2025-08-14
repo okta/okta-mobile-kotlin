@@ -15,8 +15,7 @@ This SDK consists of several different libraries, each with detailed documentati
 - [AuthFoundation](auth-foundation) -- Common classes for managing credentials and used as a foundation for other libraries.
 - [OktaOAuth2](oauth2) -- OAuth2 authentication capabilities for authenticating users.
 - [WebAuthenticationUI](web-authentication-ui) -- Authenticate users using web-based OIDC flows.
-
-The use of this SDK enables you to build or support a myriad of different authentication flows and approaches.
+- [OktaIdx](okta-idx-kotlin/README.md) -- Okta's Identity Engine support using Okta's IDX API for native browserless authentication.
 
 ## Support Policy
 
