@@ -1,6 +1,7 @@
 version: 2.1
 
 orbs:
+  general-platform-helpers: okta/general-platform-helpers@1.9.4
   android: circleci/android@3.1.0
   path-filtering: circleci/path-filtering@2.0.2
 
@@ -31,7 +32,18 @@ jobs:
           path: ~/test-results
       - store_artifacts:
           path: ~/test-results/junit
-
+  snyk-scan:
+    executor:
+      name: android/android_docker
+      tag: 2025.04.1
+    steps:
+      - checkout
+      - general-platform-helpers/step-load-dependencies
+      - general-platform-helpers/step-run-snyk-monitor:
+          scan-all-projects: false
+          skip-unresolved: false
+          run-on-non-main: true
+          additional-arguments: "--configuration-matching=implementation"
   build:
     executor:
       name: android/android_docker
@@ -86,3 +98,4 @@ workflows:
       - build
       - spotless-check
       - api-check
+      - snyk-scan
