@@ -27,7 +27,7 @@ jackson = "2.19.2"
 json = "20250517"
 jsoup = "1.21.1"
 junit = "4.13.2"
-kotlin = "2.2.0"
+kotlin = "2.2.10"
 kotlinBinaryCompatibility = "0.18.1"
 kotlinSerialization = "1.9.0"
 leakcanary = "2.14"
@@ -57,7 +57,7 @@ detektGradlePlugin = "1.23.8"
 googleServicesGradlePlugin = "4.4.3"
 googleFirebaseCrashlyticsGradlePlugin = "3.0.6"
 koverGradlePlugin = "0.9.1"
-ksp = "2.2.0-2.0.2" # prefix with kotlin version.
+ksp = "2.2.10-2.0.2" # prefix with kotlin version.
 safeArgs = "2.9.3"
 compatibilityValidator = "0.18.1"
 androidxCredentials = "1.5.0"
@@ -107,8 +107,6 @@ coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", ve
 dokka-base = { module = "org.jetbrains.dokka:dokka-base", version.ref = "dokkaBase" }
 dokka-core = { module = "org.jetbrains.dokka:dokka-core", version.ref = "dokkaBase" }
 cucumber-android = { module = "io.cucumber:cucumber-android", version.ref = "cucumberAndroid" }
-
-desugar-libs = { module = "com.android.tools:desugar_jdk_libs", version.ref = "coreLibraryDesugaring" }
 
 espresso-core = { module = "androidx.test.espresso:espresso-core", version.ref = "espresso" }
 espresso-contrib = { module = "androidx.test.espresso:espresso-contrib", version.ref = "espresso" }
