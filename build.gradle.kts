@@ -45,6 +45,7 @@ allprojects {
             force(libs.netty.handler)
             force(libs.protobuf.java)
             force(libs.woodstox.core)
+            force(libs.commons.lang3)
         }
     }
 
