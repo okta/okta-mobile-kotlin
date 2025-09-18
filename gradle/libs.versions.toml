@@ -29,6 +29,7 @@ espresso = "3.7.0"
 googleFirebaseCrashlyticsGradlePlugin = "3.0.6"
 googleServicesGradlePlugin = "4.4.3"
 gradleMavenPublish = "0.34.0"
+hamcrest = "3.0"
 jackson = "2.20.0"
 json = "20250517"
 jsoup = "1.21.2"
@@ -40,7 +41,7 @@ koverGradlePlugin = "0.9.1"
 ksp = "2.2.20-2.0.3" # prefix with kotlin version.
 ktorClient = "3.3.0"
 leakcanary = "2.14"
-lifecycle = "2.9.3"
+lifecycle = "2.9.4"
 material = "1.13.0"
 mockitoCore = "5.19.0"
 mockitoKotlin = "6.0.0"
@@ -104,6 +105,7 @@ espresso-contrib = { module = "androidx.test.espresso:espresso-contrib", version
 espresso-core = { module = "androidx.test.espresso:espresso-core", version.ref = "espresso" }
 espresso-intents = { module = "androidx.test.espresso:espresso-intents", version.ref = "espresso" }
 gradle-maven-publish = { module = "com.vanniktech:gradle-maven-publish-plugin", version.ref = "gradleMavenPublish" }
+hamcrest = { module = "org.hamcrest:hamcrest", version.ref = "hamcrest" }
 jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson" }
 jackson-yaml = { module = "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml", version.ref = "jackson" }
 json = { module = "org.json:json", version.ref = "json" }
@@ -122,6 +124,11 @@ ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktorCli
 ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktorClient" }
 ktor-client-java = { module = "io.ktor:ktor-client-java", version.ref = "ktorClient" }
 ktor-client-js = { module = "io.ktor:ktor-client-js", version.ref = "ktorClient" }
+ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktorClient" }
+ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktorClient" }
+
+ktor-client-mock = { module = "io.ktor:ktor-client-mock" , version.ref = "ktorClient" }
+ktor-client-mock-jvm = { module = "io.ktor:ktor-client-mock-jvm" , version.ref = "ktorClient" }
 ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktorClient" }
 
 leakcanary-android = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanary" }
@@ -131,8 +138,10 @@ lifecycle-viewmodel-ktx = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx
 material = { module = "com.google.android.material:material", version.ref = "material" }
 mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockitoCore" }
 mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version.ref = "mockitoKotlin" }
+mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 mockk-agent = { module = "io.mockk:mockk-agent", version.ref = "mockk" }
 mockk-android = { module = "io.mockk:mockk-android", version.ref = "mockk" }
+mockwebserver3 = { module = "com.squareup.okhttp3:mockwebserver3", version.ref = "okhttp" }
 navigation-fragment-ktx = { module = "androidx.navigation:navigation-fragment-ktx", version.ref = "navigation" }
 navigation-safe-args-plugin = { module = "androidx.navigation:navigation-safe-args-gradle-plugin", version.ref = "navigation" }
 navigation-ui-ktx = { module = "androidx.navigation:navigation-ui-ktx", version.ref = "navigation" }
