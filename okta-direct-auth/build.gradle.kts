@@ -66,7 +66,19 @@ kotlin {
 
         commonTest {
             dependencies {
+                implementation(libs.ktor.client.mock)
                 implementation(libs.kotlin.test)
+            }
+        }
+
+        getByName("androidHostTest") {
+            dependencies {
+                implementation(libs.coroutines.test)
+                implementation(libs.junit)
+                implementation(libs.mockk)
+                implementation(libs.hamcrest)
+                implementation(libs.ktor.client.mock.jvm)
+                implementation(project(":auth-foundation"))
             }
         }
 

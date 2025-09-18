@@ -33,6 +33,28 @@ jobs:
           path: ~/test-results
       - store_artifacts:
           path: ~/test-results/junit
+  unit-test-android-host:
+    executor: &android_executor
+      name: android/android_docker
+      tag: 2025.09.1
+      resource_class: xlarge
+    environment: &gradle_opts_environment
+    steps:
+      - checkout
+      - android/restore_gradle_cache
+      - android/run_tests:
+          test_command: ./gradlew :okta-direct-auth:testAndroidHostTest --no-daemon
+      - android/save_gradle_cache
+      - run:
+          name: Save test results
+          command: |
+            mkdir -p ~/test-results/junit/
+            find . -type f -regex ".*/build/test-results/.*xml" -exec cp {} ~/test-results/junit/ \;
+          when: always
+      - store_test_results:
+          path: ~/test-results
+      - store_artifacts:
+          path: ~/test-results/junit
   snyk-scan:
     executor: *android_executor
     steps:
@@ -92,6 +114,7 @@ workflows:
   test-and-build:
     jobs:
       - unit-test
+      - unit-test-android-host
       - build
       - spotless-check
       - api-check
