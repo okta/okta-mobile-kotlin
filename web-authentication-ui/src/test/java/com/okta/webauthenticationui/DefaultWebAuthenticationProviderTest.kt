@@ -42,7 +42,8 @@ import org.robolectric.shadows.ShadowResolveInfo
 
 @RunWith(RobolectricTestRunner::class)
 class DefaultWebAuthenticationProviderTest {
-    @Test fun testLaunch() {
+    @Test
+    fun testLaunch() {
         val activity = Robolectric.buildActivity(Activity::class.java)
         val webAuthenticationProvider = DefaultWebAuthenticationProvider(EventCoordinator(emptyList()))
         assertThat(webAuthenticationProvider.launch(activity.get(), "https://example.com/not_used".toHttpUrl())).isNull()
@@ -54,7 +55,8 @@ class DefaultWebAuthenticationProviderTest {
         assertThat(cctActivity.`package`).isNull()
     }
 
-    @Test fun testLaunchCallsEventHandler() {
+    @Test
+    fun testLaunchCallsEventHandler() {
         val activity = Robolectric.buildActivity(Activity::class.java)
         val eventHandler = RecordingEventHandler()
         val webAuthenticationProvider = DefaultWebAuthenticationProvider(EventCoordinator(eventHandler))
@@ -71,7 +73,8 @@ class DefaultWebAuthenticationProviderTest {
         assertThat((eventHandler[1] as CustomizeBrowserEvent).queryIntentServicesFlags).isEqualTo(0)
     }
 
-    @Test fun testLaunchWithEnabledBrowsers() {
+    @Test
+    fun testLaunchWithEnabledBrowsers() {
         installCustomTabsProvider("com.android.chrome.beta")
         installCustomTabsProvider("com.android.chrome")
         ShadowResolveInfo.newResolveInfo(
@@ -88,7 +91,8 @@ class DefaultWebAuthenticationProviderTest {
         assertThat(cctActivity.`package`).isEqualTo("com.android.chrome")
     }
 
-    @Test fun testLaunchWithPreferredBrowsers() {
+    @Test
+    fun testLaunchWithPreferredBrowsers() {
         installCustomTabsProvider("com.android.chrome.beta")
         installCustomTabsProvider("my.custom.preferred.browser")
         installCustomTabsProvider("com.android.chrome")
@@ -110,12 +114,28 @@ class DefaultWebAuthenticationProviderTest {
         assertThat(cctActivity.`package`).isEqualTo("my.custom.preferred.browser")
     }
 
-    @Test fun testLaunchCausesActivityNotFound() {
+    @Test
+    fun testLaunchCausesActivityNotFound() {
         shadowOf(RuntimeEnvironment.getApplication()).checkActivities(true)
         val activity = Robolectric.buildActivity(Activity::class.java)
         val webAuthenticationProvider = DefaultWebAuthenticationProvider(EventCoordinator(emptyList()))
         val exception = webAuthenticationProvider.launch(activity.get(), "https://example.com/not_used".toHttpUrl())
         assertThat(exception).isInstanceOf(ActivityNotFoundException::class.java)
+    }
+
+    @Test
+    fun testLaunchWithCustomTabsProviderThatIsAlsoBrowser() {
+        installCustomTabsProvider("my.custom.simpleCustomTabProvider", false)
+        installCustomTabsProvider("my.custom.browserCustomTabProvider")
+
+        val activity = Robolectric.buildActivity(Activity::class.java)
+        val webAuthenticationProvider = DefaultWebAuthenticationProvider(EventCoordinator(emptyList()))
+
+        assertThat(webAuthenticationProvider.launch(activity.get(), "https://example.com/not_used".toHttpUrl())).isNull()
+        val activityShadow = shadowOf(activity.get())
+        val cctActivity = activityShadow.nextStartedActivity
+        assertThat(cctActivity.action).isEqualTo("android.intent.action.VIEW")
+        assertThat(cctActivity.`package`).isEqualTo("my.custom.browserCustomTabProvider")
     }
 
     // Copyright 2019 Google Inc. All Rights Reserved.
@@ -126,6 +146,7 @@ class DefaultWebAuthenticationProviderTest {
                 .setData(Uri.parse("http://"))
                 .setAction(Intent.ACTION_VIEW)
                 .addCategory(Intent.CATEGORY_BROWSABLE)
+                .setPackage(packageName)
         val resolveInfo = ResolveInfo()
         resolveInfo.activityInfo = ActivityInfo()
         resolveInfo.activityInfo.packageName = packageName
@@ -134,8 +155,10 @@ class DefaultWebAuthenticationProviderTest {
         packageManager.addResolveInfoForIntent(intent, resolveInfo)
     }
 
-    private fun installCustomTabsProvider(packageName: String) {
-        installBrowser(packageName)
+    private fun installCustomTabsProvider(packageName: String, installAsBrowser: Boolean = true) {
+        if (installAsBrowser) {
+            installBrowser(packageName)
+        }
         val intent = Intent().setAction(CustomTabsService.ACTION_CUSTOM_TABS_CONNECTION)
         val resolveInfo = ResolveInfo()
         resolveInfo.serviceInfo = ServiceInfo()
