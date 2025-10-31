@@ -24,5 +24,14 @@ enum class OobChannel(val value: String) {
      * Specifies that the OOB challenge should be delivered via a voice call
      * to the user's registered phone number.
      */
-    VOICE("voice"),
+    VOICE("voice");
+
+    internal companion object {
+        fun fromString(oobChannel: String): OobChannel = when (oobChannel) {
+            PUSH.value -> PUSH
+            SMS.value -> SMS
+            VOICE.value -> VOICE
+            else -> throw IllegalArgumentException("Unknown OOB channel: $oobChannel")
+        }
+    }
 }
