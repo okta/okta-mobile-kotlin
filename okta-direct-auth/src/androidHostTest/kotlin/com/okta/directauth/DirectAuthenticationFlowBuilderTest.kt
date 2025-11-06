@@ -1,5 +1,6 @@
 package com.okta.directauth
 
+import com.okta.authfoundation.ChallengeGrantType
 import com.okta.authfoundation.GrantType
 import com.okta.authfoundation.api.http.ApiExecutor
 import com.okta.authfoundation.api.http.ApiRequest
@@ -32,7 +33,10 @@ class DirectAuthenticationFlowBuilderTest {
         assertThat(context.authorizationServerId, equalTo(""))
         assertThat(context.clientSecret, equalTo(""))
         assertThat(context.directAuthenticationIntent, equalTo(DirectAuthenticationIntent.SIGN_IN))
-        assertThat(context.grantTypes, equalTo(listOf(GrantType.Password, GrantType.Oob, GrantType.Otp, GrantType.OobMfa, GrantType.OtpMfa, GrantType.WebAuthn, GrantType.WebAuthnMfa)))
+        assertThat(
+            context.grantTypes,
+            equalTo(listOf(GrantType.Password, GrantType.Oob, GrantType.Otp, ChallengeGrantType.OobMfa, ChallengeGrantType.OtpMfa, GrantType.WebAuthn, ChallengeGrantType.WebAuthnMfa))
+        )
         assertThat(context.acrValues, equalTo(emptyList()))
         assertThat(context.additionalParameters, equalTo(emptyMap()))
     }

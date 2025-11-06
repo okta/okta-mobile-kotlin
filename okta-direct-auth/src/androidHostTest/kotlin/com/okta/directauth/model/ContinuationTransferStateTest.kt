@@ -1,5 +1,6 @@
 package com.okta.directauth.model
 
+import com.okta.authfoundation.ChallengeGrantType
 import com.okta.authfoundation.GrantType
 import com.okta.authfoundation.api.http.log.AuthFoundationLogger
 import com.okta.authfoundation.api.http.log.LogLevel
@@ -68,6 +69,7 @@ class ContinuationTransferStateTest {
             channel = OobChannel.PUSH,
             bindingMethod = BindingMethod.TRANSFER,
             bindingCode = "test_binding_code",
+            null,
         )
     }
 
@@ -94,7 +96,7 @@ class ContinuationTransferStateTest {
     @Test
     fun `proceed returns Authenticated with a mfa context`() {
         val context = createDirectAuthenticationContext(KtorHttpExecutor(HttpClient(tokenResponseMockEngine)))
-        val mfaContext = MfaContext(mfaToken = "test_mfa_token", supportedChallengeTypes = listOf(GrantType.OobMfa))
+        val mfaContext = MfaContext(mfaToken = "test_mfa_token", supportedChallengeTypes = listOf(ChallengeGrantType.OobMfa))
         val transferState = Continuation.Transfer(bindingContext, context, mfaContext)
 
         val result = runBlocking { transferState.proceed() }

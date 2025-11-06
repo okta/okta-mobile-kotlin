@@ -1,5 +1,6 @@
 package com.okta.directauth.model
 
+import com.okta.authfoundation.ChallengeGrantType
 import com.okta.authfoundation.GrantType
 import com.okta.authfoundation.api.http.ApiRequest
 import com.okta.authfoundation.api.http.log.AuthFoundationLogger
@@ -59,10 +60,11 @@ class ContinuationPromptStateTest {
             channel = OobChannel.PUSH,
             bindingMethod = BindingMethod.NONE,
             bindingCode = null,
+            challengeType = null,
         )
         mfaContext = MfaContext(
             mfaToken = "test_mfa_token",
-            supportedChallengeTypes = listOf(GrantType.OobMfa),
+            supportedChallengeTypes = listOf(ChallengeGrantType.OobMfa),
         )
     }
 
