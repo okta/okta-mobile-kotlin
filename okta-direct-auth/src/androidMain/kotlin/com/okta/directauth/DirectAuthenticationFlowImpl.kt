@@ -2,7 +2,7 @@ package com.okta.directauth
 
 import com.okta.directauth.api.DirectAuthenticationFlow
 import com.okta.directauth.http.DirectAuthOobAuthenticateRequest
-import com.okta.directauth.http.DirectAuthRequest
+import com.okta.directauth.http.DirectAuthStartRequest
 import com.okta.directauth.http.DirectAuthTokenRequest
 import com.okta.directauth.http.EXCEPTION
 import com.okta.directauth.http.oobResponseAsState
@@ -16,7 +16,7 @@ import kotlinx.coroutines.flow.asStateFlow
 
 internal class DirectAuthenticationFlowImpl(internal val context: DirectAuthenticationContext) : DirectAuthenticationFlow {
 
-    private fun PrimaryFactor.startRequest(loginHint: String): DirectAuthRequest =
+    private fun PrimaryFactor.startRequest(loginHint: String): DirectAuthStartRequest =
         when (this) {
             is PrimaryFactor.Password -> DirectAuthTokenRequest.Password(context, loginHint, password)
             is PrimaryFactor.Oob -> DirectAuthOobAuthenticateRequest(context, loginHint, channel)
