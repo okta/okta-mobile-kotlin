@@ -37,7 +37,7 @@ class ResourceOwnerFlowTest {
             oktaRule.enqueue(
                 method("POST"),
                 path("/oauth2/default/v1/token"),
-                body("username=foo&password=bar&client_id=unit_test_client_id&grant_type=password&scope=openid%20email%20profile%20offline_access")
+                body("username=foo&password=bar&client_id=unit_test_client_id&grant_type=password&scope=openid+email+profile+offline_access")
             ) { response ->
                 response.testBodyFromFile("$mockPrefix/token.json")
             }
@@ -61,7 +61,7 @@ class ResourceOwnerFlowTest {
             oktaRule.enqueue(
                 method("POST"),
                 path("/oauth2/default/v1/token"),
-                body("username=foo&password=bar&client_id=unit_test_client_id&grant_type=password&scope=openid%20custom")
+                body("username=foo&password=bar&client_id=unit_test_client_id&grant_type=password&scope=openid+custom")
             ) { response ->
                 response.testBodyFromFile("$mockPrefix/token.json")
             }
