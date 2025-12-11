@@ -54,6 +54,7 @@ kotlin {
             dependencies {
                 implementation(libs.kotlin.stdlib)
                 implementation(libs.ktor.client.core)
+                implementation(libs.ktor.client.logging)
             }
         }
 
@@ -61,6 +62,7 @@ kotlin {
             dependencies {
                 implementation(project(":auth-foundation"))
                 implementation(libs.kotlin.serialization.json)
+                implementation(libs.ktor.client.okhttp)
                 implementation(libs.ktor.client.android)
                 implementation(libs.ktor.client.content.negotiation)
             }

@@ -6,7 +6,7 @@ import com.okta.authfoundation.api.http.ApiRequest
 import com.okta.authfoundation.api.http.ApiRequestBody
 import com.okta.authfoundation.api.http.ApiResponse
 import io.ktor.client.HttpClient
-import io.ktor.client.engine.android.Android
+import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.cache.HttpCache
 import io.ktor.client.plugins.cookies.HttpCookies
@@ -48,7 +48,7 @@ import io.ktor.util.toMap
  * and can be replaced by configuring your own [HttpClient] instance.
  */
 class KtorHttpExecutor(
-    val httpClient: HttpClient = HttpClient(Android) {
+    val httpClient: HttpClient = HttpClient(OkHttp) {
         install(HttpTimeout) {
             requestTimeoutMillis = 15_000L // 15 seconds
             connectTimeoutMillis = 10_000L // 10 seconds
@@ -76,7 +76,9 @@ class KtorHttpExecutor(
             when (request) {
                 is ApiFormRequest -> {
                     contentType(ContentType.parse(request.contentType()))
-                    setBody(FormDataContent(Parameters.build { appendAll(request.formParameters()) }))
+                    val parameters = request.formParameters()
+                    println(parameters)
+                    setBody(FormDataContent(Parameters.build { appendAll(parameters) }))
                 }
 
                 is ApiRequestBody -> {

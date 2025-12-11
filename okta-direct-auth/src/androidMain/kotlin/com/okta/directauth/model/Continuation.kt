@@ -52,8 +52,8 @@ sealed class Continuation(internal val context: DirectAuthenticationContext, int
             withTimeout(bindingContext.expiresIn * 1000L) {
                 while (isActive) {
                     val request = mfaContext?.let {
-                        DirectAuthTokenRequest.OobMfa(context, bindingContext.oobCode, it, bindingContext.bindingCode)
-                    } ?: DirectAuthTokenRequest.Oob(context, bindingContext.oobCode, bindingContext.bindingCode)
+                        DirectAuthTokenRequest.OobMfa(context, bindingContext.oobCode, it)
+                    } ?: DirectAuthTokenRequest.Oob(context, bindingContext.oobCode)
 
                     val response = context.apiExecutor.execute(request).getOrThrow()
                     val currentState = response.tokenResponseAsState(context)

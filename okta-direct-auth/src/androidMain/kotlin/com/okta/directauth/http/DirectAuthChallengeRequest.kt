@@ -29,8 +29,8 @@ internal class DirectAuthChallengeRequest(
     override fun formParameters(): Map<String, List<String>> = buildMap {
         if (context.clientSecret.isNotBlank()) put("client_secret", listOf(context.clientSecret))
         put("client_id", listOf(context.clientId))
-        put("mfa_token", mfaContext.mfaToken)
-        put("challenge_types_supported", challengeTypesSupported.joinToString(" ") { it.value })
+        put("mfa_token", listOf(mfaContext.mfaToken))
+        put("challenge_types_supported", listOf(challengeTypesSupported.joinToString(" ") { it.value }))
         oobChannel?.let { put("channel_hint", listOf(it.value)) }
     }
 }

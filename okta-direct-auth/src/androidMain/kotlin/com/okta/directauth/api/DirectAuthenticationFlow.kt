@@ -30,4 +30,9 @@ interface DirectAuthenticationFlow {
      * @return The [DirectAuthenticationState] of the flow
      */
     suspend fun start(loginHint: String, primaryFactor: PrimaryFactor): DirectAuthenticationState
+
+    /**
+     * Resets the direct authentication flow
+     */
+    fun reset(): DirectAuthenticationState
 }

@@ -40,4 +40,9 @@ internal class DirectAuthenticationFlowImpl(internal val context: DirectAuthenti
 
         return result
     }
+
+    override fun reset(): DirectAuthenticationState {
+        context.authenticationStateFlow.value = DirectAuthenticationState.Idle
+        return DirectAuthenticationState.Idle
+    }
 }
