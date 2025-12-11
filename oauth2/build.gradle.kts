@@ -71,4 +71,5 @@ dependencies {
     testImplementation(libs.robolectric)
     testImplementation(libs.bcprov.jdk18on)
     testImplementation(project(":test-helpers"))
+    testImplementation(libs.androidx.test.ext.junit)
 }

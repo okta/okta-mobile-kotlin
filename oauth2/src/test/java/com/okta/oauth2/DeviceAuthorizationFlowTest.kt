@@ -15,6 +15,7 @@
  */
 package com.okta.oauth2
 
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
 import com.okta.authfoundation.client.OAuth2ClientResult
 import com.okta.authfoundation.client.OidcEndpoints
@@ -29,9 +30,11 @@ import kotlinx.coroutines.runBlocking
 import okhttp3.HttpUrl
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
 import org.mockito.kotlin.mock
 import java.util.concurrent.atomic.AtomicInteger
 
+@RunWith(AndroidJUnit4::class)
 class DeviceAuthorizationFlowTest {
     private val mockPrefix = "test_responses"
     private val successBody =
@@ -63,7 +66,7 @@ class DeviceAuthorizationFlowTest {
                 method("POST"),
                 path("/oauth2/default/v1/device/authorize"),
                 bodyPart("client_id", "unit_test_client_id"),
-                bodyPart("scope", "openid%20email%20profile%20offline_access")
+                bodyPart("scope", "openid+email+profile+offline_access")
             ) { response ->
                 response.setBody(minimalBody)
             }
@@ -106,7 +109,7 @@ class DeviceAuthorizationFlowTest {
                 method("POST"),
                 path("/oauth2/default/v1/device/authorize"),
                 bodyPart("client_id", "unit_test_client_id"),
-                bodyPart("scope", "openid%20email%20profile%20offline_access")
+                bodyPart("scope", "openid+email+profile+offline_access")
             ) { response ->
                 response.setBody(successBody)
             }
@@ -128,7 +131,7 @@ class DeviceAuthorizationFlowTest {
                 method("POST"),
                 path("/oauth2/default/v1/device/authorize"),
                 bodyPart("client_id", "unit_test_client_id"),
-                bodyPart("scope", "openid%20email%20profile%20offline_access%20custom%3Aread"),
+                bodyPart("scope", "openid+email+profile+offline_access+custom%3Aread"),
                 bodyPart("foo", "bar")
             ) { response ->
                 response.setBody(successBody)
@@ -151,7 +154,7 @@ class DeviceAuthorizationFlowTest {
             oktaRule.enqueue(
                 method("POST"),
                 path("/oauth2/default/v1/device/authorize"),
-                body("client_id=unit_test_client_id&scope=openid%20email%20profile%20offline_access")
+                body("client_id=unit_test_client_id&scope=openid+email+profile+offline_access")
             ) { response ->
                 response.setResponseCode(500)
             }

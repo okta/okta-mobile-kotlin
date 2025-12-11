@@ -9,6 +9,7 @@ const val WEB_AUTHENTICATION_UI_VERSION = "2.0.4"
 const val LEGACY_TOKEN_MIGRATION_VERSION = "2.0.4"
 const val IDX_KOTLIN_VERSION = "3.1.0"
 const val IDX_NATIVE_AUTH_VERSION = "3.1.0"
+const val DIRECT_AUTH_VERSION = "0.0.1"
 const val MIN_SDK = 23
 const val COMPILE_SDK = 36
 const val TARGET_SDK = 36
@@ -32,6 +33,7 @@ enum class Modules(val moduleName: String) {
     OAUTH2("oauth2"),
     LEGACY_TOKEN_MIGRATION("legacy-token-migration"),
     IDX_KOTLIN("okta-idx-kotlin"),
+    DIRECT_AUTH("okta-direct-auth"),
     BOM("bom"),
 }
 
@@ -42,6 +44,7 @@ fun pomName(project: Project): String = when (project.name) {
     Modules.LEGACY_TOKEN_MIGRATION.moduleName -> "Okta Mobile Kotlin - Legacy Token Migration"
     Modules.BOM.moduleName -> "Okta Mobile Kotlin - Bill of Materials"
     Modules.IDX_KOTLIN.moduleName -> "Okta Mobile Kotlin - IDX Android"
+    Modules.DIRECT_AUTH.moduleName -> "Okta Mobile Kotlin - Direct Auth"
     else -> throw IllegalArgumentException("Unknown module ${project.name}")
 }
 
@@ -66,6 +69,7 @@ fun releaseVersion(project: Project): String = when (project.name) {
     Modules.LEGACY_TOKEN_MIGRATION.moduleName -> LEGACY_TOKEN_MIGRATION_VERSION
     Modules.BOM.moduleName -> BOM_VERSION
     Modules.IDX_KOTLIN.moduleName -> IDX_KOTLIN_VERSION
+    Modules.DIRECT_AUTH.moduleName -> DIRECT_AUTH_VERSION
     else -> throw IllegalArgumentException("Unknown module ${project.name}")
 }
 
