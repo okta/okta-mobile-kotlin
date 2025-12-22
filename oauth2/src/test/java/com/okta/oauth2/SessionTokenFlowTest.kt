@@ -15,6 +15,7 @@
  */
 package com.okta.oauth2
 
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
 import com.okta.authfoundation.client.OAuth2ClientResult
 import com.okta.authfoundation.credential.Token
@@ -25,13 +26,11 @@ import com.okta.testhelpers.RequestMatchers.path
 import com.okta.testhelpers.RequestMatchers.query
 import com.okta.testhelpers.testBodyFromFile
 import kotlinx.coroutines.runBlocking
-import okhttp3.mockwebserver.SocketPolicy
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.robolectric.RobolectricTestRunner
 
-@RunWith(RobolectricTestRunner::class)
+@RunWith(AndroidJUnit4::class)
 internal class SessionTokenFlowTest {
     private val mockPrefix = "test_responses"
 
@@ -92,12 +91,7 @@ internal class SessionTokenFlowTest {
 
     @Test fun testAuthorizationRequestFailure(): Unit =
         runBlocking {
-            oktaRule.enqueue(
-                method("GET"),
-                path("/oauth2/default/v1/authorize")
-            ) { response ->
-                response.socketPolicy = SocketPolicy.DISCONNECT_AFTER_REQUEST
-            }
+            oktaRule.mockWebServer.close()
             val sessionTokenFlow = SessionTokenFlow()
             val result = sessionTokenFlow.start("exampleSessionToken", "exampleRedirect:/callback")
 

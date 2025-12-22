@@ -72,6 +72,70 @@ public final class com/okta/authfoundation/BiometricExceptionDetails$OnAuthentic
 	public fun toString ()Ljava/lang/String;
 }
 
+public abstract class com/okta/authfoundation/GrantType {
+	public synthetic fun <init> (Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getValue ()Ljava/lang/String;
+}
+
+public final class com/okta/authfoundation/GrantType$AuthorizationCode : com/okta/authfoundation/GrantType {
+	public static final field INSTANCE Lcom/okta/authfoundation/GrantType$AuthorizationCode;
+}
+
+public final class com/okta/authfoundation/GrantType$DeviceCode : com/okta/authfoundation/GrantType {
+	public static final field INSTANCE Lcom/okta/authfoundation/GrantType$DeviceCode;
+}
+
+public final class com/okta/authfoundation/GrantType$JwtBearer : com/okta/authfoundation/GrantType {
+	public static final field INSTANCE Lcom/okta/authfoundation/GrantType$JwtBearer;
+}
+
+public final class com/okta/authfoundation/GrantType$Oob : com/okta/authfoundation/GrantType {
+	public static final field INSTANCE Lcom/okta/authfoundation/GrantType$Oob;
+}
+
+public final class com/okta/authfoundation/GrantType$OobMfa : com/okta/authfoundation/GrantType {
+	public static final field INSTANCE Lcom/okta/authfoundation/GrantType$OobMfa;
+}
+
+public final class com/okta/authfoundation/GrantType$Other : com/okta/authfoundation/GrantType {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lcom/okta/authfoundation/GrantType$Other;
+	public static synthetic fun copy$default (Lcom/okta/authfoundation/GrantType$Other;Ljava/lang/String;ILjava/lang/Object;)Lcom/okta/authfoundation/GrantType$Other;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getType ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/okta/authfoundation/GrantType$Otp : com/okta/authfoundation/GrantType {
+	public static final field INSTANCE Lcom/okta/authfoundation/GrantType$Otp;
+}
+
+public final class com/okta/authfoundation/GrantType$OtpMfa : com/okta/authfoundation/GrantType {
+	public static final field INSTANCE Lcom/okta/authfoundation/GrantType$OtpMfa;
+}
+
+public final class com/okta/authfoundation/GrantType$Password : com/okta/authfoundation/GrantType {
+	public static final field INSTANCE Lcom/okta/authfoundation/GrantType$Password;
+}
+
+public final class com/okta/authfoundation/GrantType$RefreshToken : com/okta/authfoundation/GrantType {
+	public static final field INSTANCE Lcom/okta/authfoundation/GrantType$RefreshToken;
+}
+
+public final class com/okta/authfoundation/GrantType$TokenExchange : com/okta/authfoundation/GrantType {
+	public static final field INSTANCE Lcom/okta/authfoundation/GrantType$TokenExchange;
+}
+
+public final class com/okta/authfoundation/GrantType$WebAuthn : com/okta/authfoundation/GrantType {
+	public static final field INSTANCE Lcom/okta/authfoundation/GrantType$WebAuthn;
+}
+
+public final class com/okta/authfoundation/GrantType$WebAuthnMfa : com/okta/authfoundation/GrantType {
+	public static final field INSTANCE Lcom/okta/authfoundation/GrantType$WebAuthnMfa;
+}
+
 public abstract interface annotation class com/okta/authfoundation/InternalAuthFoundationApi : java/lang/annotation/Annotation {
 }
 
@@ -103,6 +167,78 @@ public final class com/okta/authfoundation/SdkDefaults {
 	public final fun setGetOkHttpClientFactory (Lkotlin/jvm/functions/Function0;)V
 	public final fun setGetTokenEncryptionHandler (Lkotlin/jvm/functions/Function0;)V
 	public final fun setGetTokenStorageFactory (Lkotlin/jvm/functions/Function0;)V
+}
+
+public abstract interface class com/okta/authfoundation/api/http/ApiExecutor {
+	public abstract fun execute-gIAlu-s (Lcom/okta/authfoundation/api/http/ApiRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public abstract interface class com/okta/authfoundation/api/http/ApiFormRequest : com/okta/authfoundation/api/http/ApiRequest {
+	public abstract fun contentType ()Ljava/lang/String;
+	public abstract fun formParameters ()Ljava/util/Map;
+}
+
+public final class com/okta/authfoundation/api/http/ApiFormRequest$DefaultImpls {
+	public static fun query (Lcom/okta/authfoundation/api/http/ApiFormRequest;)Ljava/util/Map;
+}
+
+public abstract interface class com/okta/authfoundation/api/http/ApiRequest {
+	public abstract fun headers ()Ljava/util/Map;
+	public abstract fun method ()Lcom/okta/authfoundation/api/http/ApiRequestMethod;
+	public fun query ()Ljava/util/Map;
+	public abstract fun url ()Ljava/lang/String;
+}
+
+public final class com/okta/authfoundation/api/http/ApiRequest$DefaultImpls {
+	public static fun query (Lcom/okta/authfoundation/api/http/ApiRequest;)Ljava/util/Map;
+}
+
+public abstract interface class com/okta/authfoundation/api/http/ApiRequestBody : com/okta/authfoundation/api/http/ApiRequest {
+	public abstract fun body ()[B
+	public abstract fun contentType ()Ljava/lang/String;
+}
+
+public final class com/okta/authfoundation/api/http/ApiRequestBody$DefaultImpls {
+	public static fun query (Lcom/okta/authfoundation/api/http/ApiRequestBody;)Ljava/util/Map;
+}
+
+public final class com/okta/authfoundation/api/http/ApiRequestMethod : java/lang/Enum {
+	public static final field DELETE Lcom/okta/authfoundation/api/http/ApiRequestMethod;
+	public static final field GET Lcom/okta/authfoundation/api/http/ApiRequestMethod;
+	public static final field HEAD Lcom/okta/authfoundation/api/http/ApiRequestMethod;
+	public static final field PATCH Lcom/okta/authfoundation/api/http/ApiRequestMethod;
+	public static final field POST Lcom/okta/authfoundation/api/http/ApiRequestMethod;
+	public static final field PUT Lcom/okta/authfoundation/api/http/ApiRequestMethod;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lcom/okta/authfoundation/api/http/ApiRequestMethod;
+	public static fun values ()[Lcom/okta/authfoundation/api/http/ApiRequestMethod;
+}
+
+public abstract interface class com/okta/authfoundation/api/http/ApiResponse {
+	public abstract fun getBody ()[B
+	public abstract fun getContentLength ()J
+	public abstract fun getContentType ()Ljava/lang/String;
+	public abstract fun getHeaders ()Ljava/util/Map;
+	public abstract fun getStatusCode ()I
+}
+
+public abstract interface class com/okta/authfoundation/api/http/log/AuthFoundationLogger {
+	public abstract fun write (Ljava/lang/String;Ljava/lang/Throwable;Lcom/okta/authfoundation/api/http/log/LogLevel;)V
+	public static synthetic fun write$default (Lcom/okta/authfoundation/api/http/log/AuthFoundationLogger;Ljava/lang/String;Ljava/lang/Throwable;Lcom/okta/authfoundation/api/http/log/LogLevel;ILjava/lang/Object;)V
+}
+
+public final class com/okta/authfoundation/api/http/log/AuthFoundationLogger$DefaultImpls {
+	public static synthetic fun write$default (Lcom/okta/authfoundation/api/http/log/AuthFoundationLogger;Ljava/lang/String;Ljava/lang/Throwable;Lcom/okta/authfoundation/api/http/log/LogLevel;ILjava/lang/Object;)V
+}
+
+public final class com/okta/authfoundation/api/http/log/LogLevel : java/lang/Enum {
+	public static final field DEBUG Lcom/okta/authfoundation/api/http/log/LogLevel;
+	public static final field ERROR Lcom/okta/authfoundation/api/http/log/LogLevel;
+	public static final field INFO Lcom/okta/authfoundation/api/http/log/LogLevel;
+	public static final field WARN Lcom/okta/authfoundation/api/http/log/LogLevel;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lcom/okta/authfoundation/api/http/log/LogLevel;
+	public static fun values ()[Lcom/okta/authfoundation/api/http/log/LogLevel;
 }
 
 public abstract interface class com/okta/authfoundation/claims/ClaimsProvider {
