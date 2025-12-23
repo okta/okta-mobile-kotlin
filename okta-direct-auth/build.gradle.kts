@@ -59,14 +59,26 @@ kotlin {
             dependencies {
                 implementation(project(":auth-foundation"))
                 implementation(libs.kotlin.serialization.json)
-                implementation(libs.ktor.client.android)
+                implementation(libs.ktor.client.okhttp)
                 implementation(libs.ktor.client.content.negotiation)
             }
         }
 
         commonTest {
             dependencies {
+                implementation(libs.ktor.client.mock)
                 implementation(libs.kotlin.test)
+            }
+        }
+
+        getByName("androidHostTest") {
+            dependencies {
+                implementation(libs.coroutines.test)
+                implementation(libs.junit)
+                implementation(libs.mockk)
+                implementation(libs.hamcrest)
+                implementation(libs.ktor.client.mock.jvm)
+                implementation(project(":auth-foundation"))
             }
         }
 
