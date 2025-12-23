@@ -27,8 +27,14 @@ interface DirectAuthenticationFlow {
      * @param loginHint A hint to the authorization server about the user's identity,
      *  such as a username or email address.
      * @param primaryFactor The initial authentication factor to use (e.g., a [PrimaryFactor.Password]).
-     * @return A [Result] containing the [DirectAuthenticationState] of the flow on success,
-     *  or an exception on failure.
+     * @return The [DirectAuthenticationState] of the flow
      */
-    suspend fun start(loginHint: String, primaryFactor: PrimaryFactor): Result<DirectAuthenticationState>
+    suspend fun start(loginHint: String, primaryFactor: PrimaryFactor): DirectAuthenticationState
+
+    /**
+     * Resets the direct authentication flow
+     *
+     * @return The [DirectAuthenticationState] of the flow
+     */
+    fun reset(): DirectAuthenticationState
 }
