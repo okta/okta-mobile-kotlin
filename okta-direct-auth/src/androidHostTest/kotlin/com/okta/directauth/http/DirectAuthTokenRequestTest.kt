@@ -95,6 +95,28 @@ class DirectAuthTokenRequestTest {
     }
 
     @Test
+    fun passwordRequest_buildsRequestWithRecoveryIntent() {
+        val recoveryContext = context.copy(directAuthenticationIntent = DirectAuthenticationIntent.RECOVERY, scope = listOf("okta.myAccount.password.manage"))
+        val request = DirectAuthTokenRequest.Password(
+            context = recoveryContext,
+            username = "test_user",
+            password = "test_password"
+        )
+
+        assertCommonProperties(request)
+
+        val formParameters = request.formParameters()
+        assertThat(formParameters["client_id"], equalTo(listOf("test_client_id")))
+        assertThat(formParameters["client_secret"], equalTo(listOf("test_client_secret")))
+        assertThat(formParameters["scope"], equalTo(listOf("okta.myAccount.password.manage")))
+        assertThat(formParameters["prompt"], equalTo(listOf("recover_authenticator")))
+        assertThat(formParameters["grant_types_supported"], equalTo(listOf("${GrantType.Password.value} ${GrantType.Otp.value}")))
+        assertThat(formParameters["grant_type"], equalTo(listOf(GrantType.Password.value)))
+        assertThat(formParameters["username"], equalTo(listOf("test_user")))
+        assertThat(formParameters["password"], equalTo(listOf("test_password")))
+    }
+
+    @Test
     fun otpRequest_buildsRequestWithCorrectParameters() {
         val request = DirectAuthTokenRequest.Otp(
             context = context,

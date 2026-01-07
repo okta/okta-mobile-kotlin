@@ -7,12 +7,19 @@ import com.okta.authfoundation.ChallengeGrantType
 import com.okta.directauth.DirectAuthenticationFlowBuilder
 import com.okta.directauth.api.DirectAuthenticationFlow
 import com.okta.directauth.app.BuildConfig
+import com.okta.directauth.app.http.MyAccountReplacePasswordRequest
 import com.okta.directauth.app.model.AuthMethod
+import com.okta.directauth.app.model.OktaErrorResponse
+import com.okta.directauth.http.KtorHttpExecutor
 import com.okta.directauth.model.Continuation
+import com.okta.directauth.model.DirectAuthenticationIntent
 import com.okta.directauth.model.DirectAuthenticationState
 import com.okta.directauth.model.PrimaryFactor
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
 
 /**
  * Main ViewModel that manages the Direct Authentication flow.
@@ -34,8 +41,53 @@ class MainViewModel : ViewModel() {
 
     private val scopes = listOf("openid", "profile", "email")
 
+    private val ssprScope = listOf("okta.myAccount.password.manage")
+
+    private val _authIntent = MutableStateFlow(DirectAuthenticationIntent.SIGN_IN)
+
+    private val apiExecutor = KtorHttpExecutor()
+
+    private val json = Json {
+        encodeDefaults = true
+        ignoreUnknownKeys = true
+        coerceInputValues = true
+        explicitNulls = false
+    }
+
     /**
-     * The Direct Authentication SDK flow instance.
+     * The intent of the authentication.
+     *
+     * This is used to differentiate which token is returned based on the intent of the user action. If it is for password recovery
+     * then a token with the password.manage scope is returned for the application to use for password recovery.
+     */
+    val authIntent = _authIntent.asStateFlow()
+
+    private val _passwordChangeResult = MutableStateFlow<PasswordChangeResult>(PasswordChangeResult.Idle)
+
+    /**
+     * The result of the password change operation.
+     *
+     * This StateFlow emits the result of password change attempts:
+     * - Idle: No password change operation in progress
+     * - Success: Password was changed successfully
+     * - Error: Password change failed with an error message
+     */
+    val passwordChangeResult = _passwordChangeResult.asStateFlow()
+
+    /**
+     * Sealed class representing the result of a password change operation.
+     */
+    sealed class PasswordChangeResult {
+        object Idle : PasswordChangeResult()
+        object Success : PasswordChangeResult()
+        sealed class Error : PasswordChangeResult() {
+            data class OktaApiError(val oktaErrorResponse: OktaErrorResponse, val statusCode: Int) : Error()
+            data class NetworkError(val message: String) : Error()
+        }
+    }
+
+    /**
+     * The Direct Authentication SDK flow instance to sign in.
      *
      * This provides access to:
      * - authenticationState: StateFlow of the current authentication state
@@ -44,6 +96,18 @@ class MainViewModel : ViewModel() {
      */
     val directAuth: DirectAuthenticationFlow = DirectAuthenticationFlowBuilder.create(BuildConfig.ISSUER, BuildConfig.CLIENT_ID, scopes) {
         authorizationServerId = BuildConfig.AUTHORIZATION_SERVER_ID
+    }.getOrThrow()
+
+    /**
+     * The Direct Authentication SDK flow instance to use with myAccount API for password recovery.
+     *
+     * This provides access to:
+     * - authenticationState: StateFlow of the current authentication state
+     * - start(): Initiates authentication with a username and factor
+     * - reset(): Resets the authentication flow to idle state
+     */
+    val directAuthSspr: DirectAuthenticationFlow = DirectAuthenticationFlowBuilder.create(BuildConfig.ISSUER, BuildConfig.CLIENT_ID, ssprScope) {
+        directAuthenticationIntent = DirectAuthenticationIntent.RECOVERY
     }.getOrThrow()
 
     /**
@@ -66,8 +130,11 @@ class MainViewModel : ViewModel() {
     fun signIn(username: String, password: String, authMethod: AuthMethod): Job {
         Log.i(TAG, "signIn() called - username: $username, authMethod: ${authMethod.label}")
         return viewModelScope.launch {
-            Log.d(TAG, "Starting authentication with ${authMethod.label}")
-            directAuth.start(username, authMethod.asFactor(password))
+            Log.d(TAG, "Starting authentication with ${authMethod.label} and intent: ${authIntent.value}")
+            when (authIntent.value) {
+                DirectAuthenticationIntent.SIGN_IN -> directAuth.start(username, authMethod.asFactor(password))
+                DirectAuthenticationIntent.RECOVERY -> directAuthSspr.start(username, authMethod.asFactor(password))
+            }
         }
     }
 
@@ -176,6 +243,84 @@ class MainViewModel : ViewModel() {
      */
     fun reset() {
         Log.i(TAG, "reset() called - resetting authentication flow to idle state")
+        _authIntent.value = DirectAuthenticationIntent.SIGN_IN
+        _passwordChangeResult.value = PasswordChangeResult.Idle
         directAuth.reset()
+        directAuthSspr.reset()
+    }
+
+    fun forgotPassword() {
+        Log.i(TAG, "forgotPassword() called")
+        _authIntent.value = DirectAuthenticationIntent.RECOVERY
+    }
+
+    /**
+     * Changes the user's password using the Okta myAccount API.
+     *
+     * This is used in the self-service password recovery (SSPR) flow after the user has
+     * authenticated with the okta.myAccount.password.manage scope.
+     *
+     * @param accessToken The access token with okta.myAccount.password.manage scope
+     * @param newPassword The new password to set for the user
+     * @return Job representing the password change operation
+     */
+    fun changePassword(accessToken: String, newPassword: String): Job {
+        Log.i(TAG, "changePassword() called")
+        _passwordChangeResult.value = PasswordChangeResult.Idle
+        return viewModelScope.launch {
+            Log.d(TAG, "Executing password change request")
+            try {
+                val request = MyAccountReplacePasswordRequest(
+                    issuerUrl = BuildConfig.ISSUER,
+                    accessToken = accessToken,
+                    newPassword = newPassword
+                )
+
+                apiExecutor.execute(request).fold(
+                    onSuccess = { response ->
+                        if (response.statusCode == 200) {
+                            Log.i(TAG, "Password changed successfully")
+                            _passwordChangeResult.value = PasswordChangeResult.Success
+                        } else {
+                            val oktaError = runCatching {
+                                response.body?.takeIf { it.isNotEmpty() }?.let { byteArray ->
+                                    val errorJsonString = byteArray.toString(Charsets.UTF_8)
+                                    json.decodeFromString<OktaErrorResponse>(errorJsonString)
+                                }
+                            }.getOrElse {
+                                Log.e(TAG, "Failed to parse error response", it)
+                                return@fold
+                            }
+
+                            if (oktaError != null) {
+                                Log.e(TAG, "Password change failed (status: ${response.statusCode}): ${oktaError.errorSummary}")
+                                _passwordChangeResult.value = PasswordChangeResult.Error.OktaApiError(oktaError, response.statusCode)
+                            } else {
+                                val errorMessage = "Password change failed (status: ${response.statusCode})"
+                                Log.e(TAG, errorMessage)
+                                _passwordChangeResult.value = PasswordChangeResult.Error.NetworkError(errorMessage)
+                            }
+                        }
+                    },
+                    onFailure = { error ->
+                        val errorMessage = error.message ?: "Unknown error occurred"
+                        Log.e(TAG, "Password change failed with error: $errorMessage", error)
+                        _passwordChangeResult.value = PasswordChangeResult.Error.NetworkError(errorMessage)
+                    }
+                )
+            } catch (e: Exception) {
+                val errorMessage = e.message ?: "An unexpected error occurred"
+                Log.e(TAG, "Password change encountered exception: $errorMessage", e)
+                _passwordChangeResult.value = PasswordChangeResult.Error.NetworkError(errorMessage)
+            }
+        }
+    }
+
+    /**
+     * Dismisses the current password change error by resetting the result state to Idle.
+     * This allows the user to retry the password change after an error.
+     */
+    fun dismissPasswordChangeError() {
+        _passwordChangeResult.value = PasswordChangeResult.Idle
     }
 }

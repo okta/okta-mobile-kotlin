@@ -55,7 +55,7 @@ private const val TAG = "SelectAuthenticatorScreen"
  * @param T The type of AuthMethod (must extend AuthMethod)
  * @param username The username being authenticated. Displayed on screen.
  * @param supportedAuthenticators List of available authentication methods to choose from.
- * @param onBackToSignIn Callback invoked when user wants to return to username entry.
+ * @param backToSignIn Callback invoked when user wants to return to username entry.
  * @param onAuthenticatorSelected Callback invoked when user selects an authentication method.
  *                                Parameters: (username: String, selectedMethod: T)
  */
@@ -63,7 +63,7 @@ private const val TAG = "SelectAuthenticatorScreen"
 fun <T : AuthMethod> SelectAuthenticatorScreen(
     username: String,
     supportedAuthenticators: List<T>,
-    onBackToSignIn: () -> Unit,
+    backToSignIn: () -> Unit,
     onAuthenticatorSelected: (String, T) -> Unit
 ) {
     LaunchedEffect(Unit) {
@@ -141,7 +141,7 @@ fun <T : AuthMethod> SelectAuthenticatorScreen(
             color = MaterialTheme.colorScheme.primary,
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable(onClick = onBackToSignIn),
+                .clickable(onClick = backToSignIn),
             textAlign = TextAlign.Start,
         )
     }
@@ -154,7 +154,7 @@ fun SelectAuthenticatorScreenPreview() {
         SelectAuthenticatorScreen(
             username = "test.user@example.com",
             supportedAuthenticators = listOf(AuthMethod.Password, AuthMethod.Mfa.OktaVerify),
-            onBackToSignIn = {},
+            backToSignIn = {},
             onAuthenticatorSelected = { _, _ -> }
         )
     }
