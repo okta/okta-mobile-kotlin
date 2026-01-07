@@ -19,16 +19,26 @@ import com.okta.directauth.app.ui.theme.DirectAuthAppTheme
 import io.jsonwebtoken.Jwts
 
 @Composable
-fun AuthenticatedScreen(token: String?, onSignOut: () -> Unit) {
-    val idTokenJwt = token?.let { token ->
-        // Suppose to validate the jws with the public keys in the jwks url oauth2/v1/keys.
-        // However in this example we convert the jws to jwt so jjwt can parse it as unsecured.
-        val (header, body, _) = token.split(".")
-        val unsecureHeader = String(Base64.decode(header, URL_SAFE)).replace("RS256", "none").replace("ES256", "none")
-        Base64.encodeToString(unsecureHeader.toByteArray(), URL_SAFE or NO_WRAP or NO_PADDING) + "." + body + "."
-    } ?: ""
+fun AuthenticatedScreen(idToken: String, onSignOut: () -> Unit) {
 
-    val payload = Jwts.parser().unsecured().build().parseUnsecuredClaims(idTokenJwt).payload
+    val displayText = if (idToken.isBlank()) {
+        "Empty id token, openid scope must be included in the request"
+    } else {
+        val idTokenJwt = idToken.let { token ->
+            // Suppose to validate the jws with the public keys in the jwks url oauth2/v1/keys.
+            // However in this example we convert the jws to jwt so jjwt can parse it as unsecured.
+            val (header, body, _) = token.split(".")
+            val unsecureHeader = String(Base64.decode(header, URL_SAFE)).replace("RS256", "none").replace("ES256", "none")
+            Base64.encodeToString(unsecureHeader.toByteArray(), URL_SAFE or NO_WRAP or NO_PADDING) + "." + body + "."
+        }
+        val payload = Jwts.parser().unsecured().build().parseUnsecuredClaims(idTokenJwt).payload
+        StringBuilder().apply {
+            appendLine("iss: ${payload.get("iss", String::class.java)}")
+            appendLine("sub: ${payload.get("sub", String::class.java)}")
+            appendLine("name: ${payload.get("name", String::class.java)}")
+            appendLine("email: ${payload.get("email", String::class.java)}")
+        }.toString()
+    }
 
     Column(modifier = Modifier.padding(16.dp)) {
         LazyColumn(
@@ -43,10 +53,7 @@ fun AuthenticatedScreen(token: String?, onSignOut: () -> Unit) {
                         .padding(vertical = 4.dp)
                 ) {
                     Column(modifier = Modifier.padding(8.dp)) {
-                        Text(text = "iss: ${payload.get("iss", String::class.java)}")
-                        Text(text = "sub: ${payload.get("sub", String::class.java)}")
-                        Text(text = "name: ${payload.get("name", String::class.java)}")
-                        Text(text = "email: ${payload.get("email", String::class.java)}")
+                        Text(displayText)
                     }
                 }
             }

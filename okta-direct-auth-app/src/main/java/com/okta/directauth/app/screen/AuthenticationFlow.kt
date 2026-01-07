@@ -7,6 +7,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import com.okta.directauth.app.model.AuthMethod
+import com.okta.directauth.app.model.AuthMethod.Mfa
 import com.okta.directauth.app.model.AuthScreen
 import com.okta.directauth.app.storage.AppStorage
 import com.okta.directauth.app.viewModel.AuthenticationFlowViewModel
@@ -17,7 +18,7 @@ import kotlinx.coroutines.launch
 fun AuthenticationFlow(
     mainView: MainViewModel,
     authenticationViewModel: AuthenticationFlowViewModel,
-    supportedAuthenticators: List<AuthMethod> = listOf(AuthMethod.Password, AuthMethod.Mfa.OktaVerify, AuthMethod.Mfa.Otp, AuthMethod.Mfa.Passkeys, AuthMethod.Mfa.Sms, AuthMethod.Mfa.Voice),
+    supportedAuthenticators: List<AuthMethod>,
 ) {
     val state by authenticationViewModel.uiState.collectAsState()
     val context = LocalContext.current
@@ -37,19 +38,28 @@ fun AuthenticationFlow(
         }
 
         is AuthScreen.SelectAuthenticator -> SelectAuthenticatorScreen(
-            savedUsername,
-            supportedAuthenticators,
-            { authenticationViewModel.reset(savedUsername) },
-            { username, authMethod ->
+            username = savedUsername,
+            supportedAuthenticators = supportedAuthenticators,
+            backToSignIn = {
+                mainView.reset()
+                authenticationViewModel.reset(currentState.username)
+            },
+            onAuthenticatorSelected = { username, authMethod ->
                 authenticationViewModel.onAuthenticatorSelected(username, authMethod, null)
             }
         )
 
         is AuthScreen.PasswordAuthenticator -> PasswordScreen(
             username = currentState.username,
-            backToSignIn = { authenticationViewModel.reset(currentState.username) },
+            backToSignIn = {
+                mainView.reset()
+                authenticationViewModel.reset(currentState.username)
+            },
             verifyWithSomethingElse = { authenticationViewModel.selectAuthenticator(currentState.username) },
-            forgotPassword = { /* TODO */ },
+            forgotPassword = {
+                mainView.forgotPassword()
+                authenticationViewModel.selectAuthenticator(currentState.username)
+            },
         ) { password ->
             mainView.signIn(currentState.username, password, AuthMethod.Password)
         }
@@ -58,7 +68,10 @@ fun AuthenticationFlow(
             title = "Get a push notification",
             buttonText = "Send push",
             username = currentState.username,
-            backToSignIn = { authenticationViewModel.reset(currentState.username) },
+            backToSignIn = {
+                mainView.reset()
+                authenticationViewModel.reset(currentState.username)
+            },
             verifyWithSomethingElse = { authenticationViewModel.selectAuthenticator(currentState.username, currentState.mfaRequired) },
         ) {
             if (currentState.mfaRequired != null) {
@@ -78,7 +91,10 @@ fun AuthenticationFlow(
 
         is AuthScreen.Passkeys -> PasskeysScreen(
             currentState.username,
-            backToSignIn = { authenticationViewModel.reset(currentState.username) },
+            backToSignIn = {
+                mainView.reset()
+                authenticationViewModel.reset(currentState.username)
+            },
             verifyWithSomethingElse = { authenticationViewModel.selectAuthenticator(currentState.username, currentState.mfaRequired) },
         )
 
@@ -161,16 +177,23 @@ fun AuthenticationFlow(
             }
 
         is AuthScreen.MfaRequired -> {
-            val mfaMethods = listOf(AuthMethod.Mfa.OktaVerify, AuthMethod.Mfa.Otp, AuthMethod.Mfa.Passkeys, AuthMethod.Mfa.Sms, AuthMethod.Mfa.Voice)
+            val mfaMethods = listOf(Mfa.OktaVerify, Mfa.Otp, Mfa.Passkeys, Mfa.Sms, Mfa.Voice)
             // filter out the auth method used by initial authentication
             val authMethods = authenticationViewModel.selectedAuthMethod.value?.let { exclude ->
-                mfaMethods.filter { it.label != exclude.label }
+                val excludedLabels = when (exclude) {
+                    is Mfa.Sms, is Mfa.Voice -> setOf(Mfa.Sms.label, Mfa.Voice.label)
+                    else -> setOf(exclude.label)
+                }
+                mfaMethods.filter { it.label !in excludedLabels }
             } ?: mfaMethods
 
             SelectAuthenticatorScreen(
                 username = currentState.username,
                 supportedAuthenticators = authMethods,
-                onBackToSignIn = { authenticationViewModel.reset(currentState.username) }
+                backToSignIn = {
+                    mainView.reset()
+                    authenticationViewModel.reset(currentState.username)
+                },
             ) { username, mfaMethod ->
                 authenticationViewModel.onAuthenticatorSelected(username, mfaMethod, currentState.mfaRequired)
             }
@@ -191,7 +214,10 @@ private fun CodeEntryScreenWrapper(
 ) {
     CodeEntryScreen(
         username = username,
-        backToSignIn = { authenticationViewModel.reset(username) },
+        backToSignIn = {
+            mainView.reset()
+            authenticationViewModel.reset(username)
+        },
         verifyWithSomethingElse = { authenticationViewModel.selectAuthenticator(username, mfaRequired) },
     ) { code ->
         if (mfaRequired != null) {

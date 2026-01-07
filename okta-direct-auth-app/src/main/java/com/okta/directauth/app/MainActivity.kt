@@ -1,6 +1,7 @@
 package com.okta.directauth.app
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
@@ -30,6 +31,15 @@ import com.okta.directauth.app.viewModel.MainViewModel
 import com.okta.directauth.model.Continuation
 import com.okta.directauth.model.DirectAuthenticationError
 import com.okta.directauth.model.DirectAuthenticationState
+import com.okta.directauth.app.model.AuthMethod.Mfa.OktaVerify
+import com.okta.directauth.app.model.AuthMethod.Mfa.Otp
+import com.okta.directauth.app.model.AuthMethod.Mfa.Passkeys
+import com.okta.directauth.app.model.AuthMethod.Mfa.Sms
+import com.okta.directauth.app.model.AuthMethod.Mfa.Voice
+import com.okta.directauth.app.model.AuthMethod.Password
+import com.okta.directauth.app.screen.PasswordChangeScreen
+import com.okta.directauth.app.screen.PasswordChangeSuccessScreen
+import com.okta.directauth.model.DirectAuthenticationIntent
 
 class MainActivity : ComponentActivity() {
     private val viewModel: MainViewModel by viewModels()
@@ -40,29 +50,36 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             DirectAuthAppTheme {
-                val state by viewModel.directAuth.authenticationState.collectAsState()
-                var displayedState by remember { mutableStateOf(state) }
-                val authState by authenticationFlowViewModel.uiState.collectAsState()
+                val intent = viewModel.authIntent.collectAsState()
                 val selectAuthMethod by authenticationFlowViewModel.selectedAuthMethod.collectAsState()
                 val username by authenticationFlowViewModel.username.collectAsState()
 
-                BackHandler(enabled = authState !is AuthScreen.UsernameInput) {
-                    authenticationFlowViewModel.goBack()
+                val authStateFlow = if (intent.value == DirectAuthenticationIntent.RECOVERY) {
+                    viewModel.directAuthSspr.authenticationState
+                } else {
+                    viewModel.directAuth.authenticationState
                 }
+                val signInState by authStateFlow.collectAsState()
+                val passwordChangeResult by viewModel.passwordChangeResult.collectAsState()
 
-                LaunchedEffect(state) {
-                    if (state is DirectAuthenticationState.MfaRequired) {
+                Log.d("MainActivity", "State: $signInState - Intent: $intent")
+                var displayedState by remember { mutableStateOf(signInState) }
+
+                BackHandler(enabled = true) { authenticationFlowViewModel.goBack() }
+
+                LaunchedEffect(signInState) {
+                    if (signInState is DirectAuthenticationState.MfaRequired) {
                         authenticationFlowViewModel.setInitialState(
-                            AuthScreen.MfaRequired(authenticationFlowViewModel.username.value, state as DirectAuthenticationState.MfaRequired)
+                            AuthScreen.MfaRequired(authenticationFlowViewModel.username.value, signInState as DirectAuthenticationState.MfaRequired)
                         )
                     }
 
-                    if (state is Continuation.OobPending) {
+                    if (signInState is Continuation.OobPending) {
                         authenticationFlowViewModel.codeSent()
                     }
 
-                    if (state !is DirectAuthenticationState.AuthorizationPending) {
-                        displayedState = state
+                    if (signInState !is DirectAuthenticationState.AuthorizationPending) {
+                        displayedState = signInState
                     }
                 }
 
@@ -87,8 +104,9 @@ class MainActivity : ComponentActivity() {
                             // Out-of-Band authentication polling (SMS, Voice, Push)
                             is Continuation.OobPending -> {
                                 when (selectAuthMethod) {
-                                    AuthMethod.Mfa.Sms, AuthMethod.Mfa.Voice -> {
-                                        AuthenticationFlow(viewModel, authenticationFlowViewModel)
+                                    Sms, Voice -> {
+                                        val supportedAuthenticators: List<AuthMethod> = listOf(Password, OktaVerify, Otp, Passkeys, Sms, Voice)
+                                        AuthenticationFlow(viewModel, authenticationFlowViewModel, supportedAuthenticators)
                                     }
 
                                     else -> {
@@ -124,25 +142,62 @@ class MainActivity : ComponentActivity() {
                             is Continuation.WebAuthn -> TODO()
 
                             // Authentication error occurred - display error message
-                            is DirectAuthenticationError -> ErrorScreen(currentState.asString(), viewModel::reset)
+                            is DirectAuthenticationError -> ErrorScreen(currentState.asString()) {
+                                viewModel.reset()
+                                authenticationFlowViewModel.setInitialState(AuthScreen.UsernameInput(""))
+                            }
 
-                            // Successfully authenticated - display token and sign-out option
-                            is DirectAuthenticationState.Authenticated -> AuthenticatedScreen(
-                                token = currentState.token.idToken,
-                                onSignOut = {
-                                    viewModel.reset()
-                                    authenticationFlowViewModel.setInitialState(AuthScreen.UsernameInput(""))
+                            // Successfully authenticated - display the idToken and sign-out option
+                            is DirectAuthenticationState.Authenticated -> when (intent.value) {
+                                DirectAuthenticationIntent.SIGN_IN -> AuthenticatedScreen(
+                                    idToken = currentState.token.idToken ?: "",
+                                    onSignOut = {
+                                        viewModel.reset()
+                                        authenticationFlowViewModel.setInitialState(AuthScreen.UsernameInput(""))
+                                    }
+                                )
+
+                                DirectAuthenticationIntent.RECOVERY -> {
+                                    when (passwordChangeResult) {
+                                        is MainViewModel.PasswordChangeResult.Success -> {
+                                            PasswordChangeSuccessScreen(
+                                                username = username,
+                                                onBackToSignIn = {
+                                                    viewModel.reset()
+                                                    authenticationFlowViewModel.setInitialState(AuthScreen.UsernameInput(""))
+                                                }
+                                            )
+                                        }
+                                        else -> {
+                                            PasswordChangeScreen(
+                                                username = username,
+                                                backToSignIn = {
+                                                    viewModel.reset()
+                                                    authenticationFlowViewModel.setInitialState(AuthScreen.UsernameInput(""))
+                                                },
+                                                passwordChangeResult = passwordChangeResult,
+                                                onDismissError = { viewModel.dismissPasswordChangeError() },
+                                                next = { newPassword ->
+                                                    viewModel.changePassword(currentState.token.accessToken, newPassword)
+                                                }
+                                            )
+                                        }
+                                    }
                                 }
-                            )
+                            }
 
                             // Initial authentication flow states - username then select authenticator to use.
                             DirectAuthenticationState.Canceled,
                             DirectAuthenticationState.Idle,
-                            is DirectAuthenticationState.MfaRequired -> AuthenticationFlow(viewModel, authenticationFlowViewModel)
-
-                            else -> {
-                                // Do nothing for states that shouldn't update the UI, such as AuthorizationPending
+                            is DirectAuthenticationState.MfaRequired -> {
+                                val supportedAuthenticators: List<AuthMethod> = listOf(Password, OktaVerify, Otp, Passkeys, Sms, Voice)
+                                AuthenticationFlow(
+                                    viewModel, authenticationFlowViewModel,
+                                    if (intent.value == DirectAuthenticationIntent.RECOVERY) supportedAuthenticators.filterNot { it == Password } else supportedAuthenticators
+                                )
                             }
+
+                            is DirectAuthenticationState.AuthorizationPending -> Unit // Do nothing. This example does not use this state to update UI
                         }
                     }
                 }

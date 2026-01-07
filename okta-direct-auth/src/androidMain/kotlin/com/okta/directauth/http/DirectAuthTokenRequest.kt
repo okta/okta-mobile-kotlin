@@ -4,6 +4,7 @@ import com.okta.authfoundation.ChallengeGrantType
 import com.okta.authfoundation.GrantType
 import com.okta.authfoundation.api.http.ApiRequestMethod
 import com.okta.directauth.model.DirectAuthenticationContext
+import com.okta.directauth.model.DirectAuthenticationIntent
 import com.okta.directauth.model.MfaContext
 
 sealed class DirectAuthTokenRequest(internal val context: DirectAuthenticationContext) : DirectAuthStartRequest {
@@ -22,6 +23,9 @@ sealed class DirectAuthTokenRequest(internal val context: DirectAuthenticationCo
 
     internal fun DirectAuthenticationContext.formParameters(): Map<String, List<String>> = buildMap {
         put("client_id", listOf(clientId))
+        if (directAuthenticationIntent == DirectAuthenticationIntent.RECOVERY) {
+            put("prompt", listOf("recover_authenticator"))
+        }
         put("scope", listOf(scope.joinToString(" ")))
         put("grant_types_supported", listOf(grantTypes.joinToString(" ") { it.value }))
     }
