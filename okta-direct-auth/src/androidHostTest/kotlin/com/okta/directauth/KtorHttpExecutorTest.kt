@@ -43,7 +43,7 @@ class KtorHttpExecutorTest {
 
     @Test
     fun testGetRequest() = runTest {
-        val mockEngine = MockEngine { request ->
+        val mockEngine = MockEngine {
             respond(
                 content = ByteReadChannel("""{"key":"value"}"""),
                 status = HttpStatusCode.OK,
@@ -72,7 +72,7 @@ class KtorHttpExecutorTest {
 
     @Test
     fun testPostWithFormParameters() = runTest {
-        val mockEngine = MockEngine { request ->
+        val mockEngine = MockEngine {
             respond(
                 content = ByteReadChannel(""),
                 status = HttpStatusCode.Created,
@@ -109,7 +109,7 @@ class KtorHttpExecutorTest {
     @Test
     fun testPostWithRawBody() = runTest {
         // arrange
-        val mockEngine = MockEngine { request -> respond(content = "", status = HttpStatusCode.OK) }
+        val mockEngine = MockEngine { respond(content = "", status = HttpStatusCode.OK) }
         ktorHttpExecutor = KtorHttpExecutor(HttpClient(mockEngine) { install(HttpTimeout) })
 
         val jsonBody = """{"id":123}"""
@@ -159,7 +159,7 @@ class KtorHttpExecutorTest {
 
     @Test
     fun testFollowRedirectsFalse() = runTest {
-        val mockEngine = MockEngine { request ->
+        val mockEngine = MockEngine {
             respond("", HttpStatusCode.Found, headersOf(HttpHeaders.Location, "/new-location"))
         }
         ktorHttpExecutor = KtorHttpExecutor(HttpClient(mockEngine) {
@@ -183,7 +183,7 @@ class KtorHttpExecutorTest {
     @Test
     fun testServerErrorReturnsSuccessResultWithErrorResponse() = runTest {
         // arrange
-        val mockEngine = MockEngine { request ->
+        val mockEngine = MockEngine {
             respond(
                 content = ByteReadChannel("Internal Error"),
                 status = HttpStatusCode.InternalServerError,
@@ -228,7 +228,7 @@ class KtorHttpExecutorTest {
     @Test
     fun testTimeoutReturnsFailureResult() = runTest {
         // arrange
-        val mockEngine = MockEngine { request ->
+        val mockEngine = MockEngine {
             delay(2000)
             respond("", HttpStatusCode.OK, headersOf(HttpHeaders.ContentType, "application/json"))
         }
@@ -285,7 +285,7 @@ class KtorHttpExecutorTest {
     @Test
     fun testPutRequest() = runTest {
         // arrange
-        val mockEngine = MockEngine { request ->
+        val mockEngine = MockEngine {
             respond(content = """{"status":"updated"}""", status = HttpStatusCode.OK)
         }
         ktorHttpExecutor = KtorHttpExecutor(HttpClient(mockEngine) { install(HttpTimeout) })
@@ -315,7 +315,7 @@ class KtorHttpExecutorTest {
     @Test
     fun testDeleteRequest() = runTest {
         // arrange
-        val mockEngine = MockEngine { request ->
+        val mockEngine = MockEngine {
             respond(content = "", status = HttpStatusCode.NoContent)
         }
         ktorHttpExecutor = KtorHttpExecutor(HttpClient(mockEngine) { install(HttpTimeout) })
@@ -339,7 +339,7 @@ class KtorHttpExecutorTest {
     @Test
     fun testPatchRequest() = runTest {
         // arrange
-        val mockEngine = MockEngine { request ->
+        val mockEngine = MockEngine {
             respond(content = """{"status":"patched"}""", status = HttpStatusCode.OK)
         }
         ktorHttpExecutor = KtorHttpExecutor(HttpClient(mockEngine) { install(HttpTimeout) })

@@ -5,11 +5,13 @@ import com.okta.authfoundation.api.http.ApiExecutor
 import com.okta.authfoundation.api.http.log.AuthFoundationLogger
 import com.okta.authfoundation.client.OidcClock
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.serialization.json.Json
 
 internal data class DirectAuthenticationContext(
     val issuerUrl: String,
     val clientId: String,
     val scope: List<String>,
+    val authorizationServerId: String,
     val clientSecret: String,
     val grantTypes: List<GrantType>,
     val acrValues: List<String>,
@@ -19,5 +21,12 @@ internal data class DirectAuthenticationContext(
     val clock: OidcClock,
     val additionalParameters: Map<String, String>,
 ) {
+    val json = Json {
+        encodeDefaults = true
+        ignoreUnknownKeys = true
+        coerceInputValues = true
+        explicitNulls = false
+    }
+
     val authenticationStateFlow: MutableStateFlow<DirectAuthenticationState> = MutableStateFlow(DirectAuthenticationState.Idle)
 }
