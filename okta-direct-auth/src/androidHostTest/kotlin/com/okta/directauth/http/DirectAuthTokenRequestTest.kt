@@ -9,6 +9,7 @@ import com.okta.directauth.emptyResponseMockEngine
 import com.okta.directauth.emptyResponseOkMockEngine
 import com.okta.directauth.internalServerErrorMockEngine
 import com.okta.directauth.invalidMfaRequiredMockEngine
+import com.okta.directauth.malformedJsonClientMockEngine
 import com.okta.directauth.malformedJsonErrorCodeMockEngine
 import com.okta.directauth.malformedJsonErrorMockEngine
 import com.okta.directauth.malformedJsonOkMockEngine
@@ -130,7 +131,7 @@ class DirectAuthTokenRequestTest {
         val request = DirectAuthTokenRequest.Oob(
             context = context,
             oobCode = "test_oob_code",
-            bindingCode = "test_binding_code"
+            bindingCode = "95"
         )
 
         assertCommonProperties(request)
@@ -138,7 +139,7 @@ class DirectAuthTokenRequestTest {
         val formParameters = request.formParameters()
         assertThat(formParameters["grant_type"], equalTo(listOf(GrantType.Oob.value)))
         assertThat(formParameters["oob_code"], equalTo(listOf("test_oob_code")))
-        assertThat(formParameters["binding_code"], equalTo(listOf("test_binding_code")))
+        assertThat(formParameters["binding_code"], equalTo(listOf("95")))
     }
 
     @Test
@@ -390,6 +391,19 @@ class DirectAuthTokenRequestTest {
     fun request_malformedJsonInHttpOkStatus() = runTest {
         val request = DirectAuthTokenRequest.Password(context, "test_user", "test_password")
         val apiResponse = KtorHttpExecutor(HttpClient(malformedJsonOkMockEngine)).execute(request).getOrThrow()
+        val directAuthState = apiResponse.tokenResponseAsState(context)
+
+        assertThat(directAuthState, instanceOf(InternalError::class.java))
+        val error = directAuthState as InternalError
+        assertThat(error.errorCode, equalTo(UNKNOWN_ERROR))
+        assertThat(error.description, containsString("Unexpected JSON token at offset"))
+        assertThat(error.throwable, instanceOf(SerializationException::class.java))
+    }
+
+    @Test
+    fun request_malformedJsonInClientErrorStatus() = runTest {
+        val request = DirectAuthTokenRequest.Password(context, "test_user", "test_password")
+        val apiResponse = KtorHttpExecutor(HttpClient(malformedJsonClientMockEngine)).execute(request).getOrThrow()
         val directAuthState = apiResponse.tokenResponseAsState(context)
 
         assertThat(directAuthState, instanceOf(InternalError::class.java))

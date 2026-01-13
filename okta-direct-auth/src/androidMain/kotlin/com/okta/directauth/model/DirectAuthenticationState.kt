@@ -22,10 +22,17 @@ sealed interface DirectAuthenticationState {
     data object Idle : DirectAuthenticationState
 
     /**
+     * The authentication flow has been canceled
+     */
+    data object Canceled : DirectAuthenticationState
+
+    /**
      * This state indicates that the authentication process is still pending and awaiting user action.
      * Such as waiting for the user to complete an out-of-band (OOB) authentication step.
+     *
+     * @param timestamp The time in milliseconds when the authorization became pending.
      */
-    data object AuthorizationPending : DirectAuthenticationState
+    class AuthorizationPending internal constructor(val timestamp: Long) : DirectAuthenticationState
 
     /**
      * This state indicates that the user has been authenticated and tokens have been issued.
@@ -50,7 +57,7 @@ sealed interface DirectAuthenticationState {
          * @param secondaryFactor The secondary [SecondaryFactor] to use for MFA (e.g., [PrimaryFactor.Otp], [PrimaryFactor.WebAuthn], etc.).
          * @return The next [DirectAuthenticationState] in the flow.
          */
-        suspend fun resume(secondaryFactor: SecondaryFactor): Result<DirectAuthenticationState> {
+        suspend fun resume(secondaryFactor: SecondaryFactor): DirectAuthenticationState {
             TODO("Not yet implemented")
         }
     }

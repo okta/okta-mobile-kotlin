@@ -4,7 +4,6 @@ import com.okta.authfoundation.GrantType
 import com.okta.authfoundation.api.http.ApiRequestMethod
 import com.okta.directauth.model.DirectAuthenticationContext
 import com.okta.directauth.model.MfaContext
-import com.okta.directauth.model.PrimaryFactor
 
 sealed class DirectAuthTokenRequest(internal val context: DirectAuthenticationContext) : DirectAuthRequest {
 
@@ -79,7 +78,7 @@ sealed class DirectAuthTokenRequest(internal val context: DirectAuthenticationCo
             if (context.clientSecret.isNotBlank()) put("client_secret", listOf(context.clientSecret))
             put("grant_type", listOf(GrantType.Oob.value))
             put("oob_code", listOf(oobCode))
-            bindingCode?.takeIf { it.isNotBlank() }?.let { put("binding_code", listOf(it)) }
+            bindingCode?.let { put("binding_code", listOf(it)) }
         }
     }
 

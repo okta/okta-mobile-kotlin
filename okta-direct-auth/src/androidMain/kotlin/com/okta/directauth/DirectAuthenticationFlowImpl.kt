@@ -5,6 +5,7 @@ import com.okta.directauth.http.DirectAuthOobAuthenticateRequest
 import com.okta.directauth.http.DirectAuthRequest
 import com.okta.directauth.http.DirectAuthTokenRequest
 import com.okta.directauth.http.EXCEPTION
+import com.okta.directauth.http.oobResponseAsState
 import com.okta.directauth.http.tokenResponseAsState
 import com.okta.directauth.model.DirectAuthenticationContext
 import com.okta.directauth.model.DirectAuthenticationError.InternalError
@@ -18,7 +19,7 @@ internal class DirectAuthenticationFlowImpl(internal val context: DirectAuthenti
     private fun PrimaryFactor.startRequest(loginHint: String): DirectAuthRequest =
         when (this) {
             is PrimaryFactor.Password -> DirectAuthTokenRequest.Password(context, loginHint, password)
-            is PrimaryFactor.Oob -> TODO("/oauth2/v1/oob-authenticate")
+            is PrimaryFactor.Oob -> DirectAuthOobAuthenticateRequest(context, loginHint, channel)
             is PrimaryFactor.Otp -> DirectAuthTokenRequest.Otp(context, loginHint, passCode)
             PrimaryFactor.WebAuthn -> TODO("/oauth2/v1/primary-authenticate")
         }
@@ -31,7 +32,7 @@ internal class DirectAuthenticationFlowImpl(internal val context: DirectAuthenti
             val response = context.apiExecutor.execute(request).getOrThrow()
             when (request) {
                 is DirectAuthTokenRequest -> response.tokenResponseAsState(context)
-                is DirectAuthOobAuthenticateRequest -> TODO("/oauth2/v1/oob-authenticate")
+                is DirectAuthOobAuthenticateRequest -> response.oobResponseAsState(context)
             }
         }.getOrElse { InternalError(EXCEPTION, it.message, it) }
 
