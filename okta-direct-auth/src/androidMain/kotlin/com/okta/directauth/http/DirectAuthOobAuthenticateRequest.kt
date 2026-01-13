@@ -4,7 +4,7 @@ import com.okta.authfoundation.api.http.ApiRequestMethod
 import com.okta.directauth.model.DirectAuthenticationContext
 import com.okta.directauth.model.OobChannel
 
-internal class DirectAuthOobAuthenticateRequest(internal val context: DirectAuthenticationContext, val loginHint: String, val oobChannel: OobChannel) : DirectAuthRequest {
+internal class DirectAuthOobAuthenticateRequest(internal val context: DirectAuthenticationContext, val loginHint: String, val oobChannel: OobChannel) : DirectAuthStartRequest {
 
     private val path = if (context.authorizationServerId.isBlank()) "/oauth2/v1/oob-authenticate" else "/oauth2/${context.authorizationServerId}/v1/oob-authenticate"
 
