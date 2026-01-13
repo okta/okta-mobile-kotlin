@@ -1,12 +1,20 @@
 package com.okta.directauth.http
 
+import com.okta.authfoundation.ChallengeGrantType
+import com.okta.authfoundation.GrantType
 import com.okta.authfoundation.api.http.ApiRequestMethod
 import com.okta.directauth.model.DirectAuthenticationContext
+import com.okta.directauth.model.MfaContext
 import com.okta.directauth.model.OobChannel
+import org.slf4j.MDC.put
 
-internal class DirectAuthOobAuthenticateRequest(internal val context: DirectAuthenticationContext, val loginHint: String, val oobChannel: OobChannel) : DirectAuthStartRequest {
-
-    private val path = if (context.authorizationServerId.isBlank()) "/oauth2/v1/oob-authenticate" else "/oauth2/${context.authorizationServerId}/v1/oob-authenticate"
+internal class DirectAuthChallengeRequest(
+    internal val context: DirectAuthenticationContext,
+    private val mfaContext: MfaContext,
+    private val challengeTypesSupported: List<ChallengeGrantType>,
+    private val oobChannel: OobChannel?
+) : DirectAuthRequest {
+    private val path = if (context.authorizationServerId.isBlank()) "/oauth2/v1/challenge" else "/oauth2/${context.authorizationServerId}/v1/challenge"
 
     override fun url(): String = context.issuerUrl.trimEnd('/') + path
 
@@ -21,7 +29,8 @@ internal class DirectAuthOobAuthenticateRequest(internal val context: DirectAuth
     override fun formParameters(): Map<String, List<String>> = buildMap {
         if (context.clientSecret.isNotBlank()) put("client_secret", listOf(context.clientSecret))
         put("client_id", listOf(context.clientId))
-        put("login_hint", listOf(loginHint))
-        put("channel_hint", listOf(oobChannel.value))
+        put("mfa_token", listOf(mfaContext.mfaToken))
+        put("challenge_types_supported", listOf(challengeTypesSupported.joinToString(" ") { it.value }))
+        oobChannel?.let { put("channel_hint", listOf(it.value)) }
     }
 }
