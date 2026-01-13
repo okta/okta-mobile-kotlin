@@ -4,8 +4,6 @@ import com.okta.authfoundation.GrantType
 import com.okta.authfoundation.api.http.ApiRequestMethod
 import com.okta.directauth.model.DirectAuthenticationContext
 import com.okta.directauth.model.MfaContext
-import com.okta.directauth.model.PrimaryFactor
-import org.slf4j.MDC.put
 
 sealed class DirectAuthTokenRequest(internal val context: DirectAuthenticationContext) : DirectAuthRequest {
 

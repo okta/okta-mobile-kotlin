@@ -8,6 +8,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withTimeout
 import kotlin.coroutines.cancellation.CancellationException
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * Represents a state in the Direct Authentication flow where further action is required to proceed.
@@ -49,7 +50,7 @@ sealed class Continuation(internal val context: DirectAuthenticationContext, int
      */
     internal suspend fun poll(bindingContext: BindingContext, context: DirectAuthenticationContext, mfaContext: MfaContext?): DirectAuthenticationState {
         val state = runCatching {
-            withTimeout(bindingContext.expiresIn * 1000L) {
+            withTimeout(bindingContext.expiresIn.seconds) {
                 while (isActive) {
                     val request = mfaContext?.let {
                         DirectAuthTokenRequest.OobMfa(context, bindingContext.oobCode, it)
@@ -64,7 +65,7 @@ sealed class Continuation(internal val context: DirectAuthenticationContext, int
 
                     // if delay interval is not specified then default to 5 seconds
                     val interval = bindingContext.interval ?: 5
-                    delay(interval * 1000L)
+                    delay(interval.seconds)
                 }
                 // This is reached if the loop exits due to the job being canceled
                 DirectAuthenticationState.Canceled
