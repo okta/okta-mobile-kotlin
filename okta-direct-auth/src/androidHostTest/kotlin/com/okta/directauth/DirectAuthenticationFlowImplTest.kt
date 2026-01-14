@@ -1,7 +1,7 @@
 package com.okta.directauth
 
 import com.okta.directauth.http.KtorHttpExecutor
-import com.okta.directauth.model.Continuation
+import com.okta.directauth.model.DirectAuthContinuation
 import com.okta.directauth.model.PrimaryFactor
 import com.okta.directauth.model.DirectAuthenticationError
 import com.okta.directauth.model.DirectAuthenticationState
@@ -84,8 +84,8 @@ class DirectAuthenticationFlowImplTest {
 
         val state = flow.start("test_user", PrimaryFactor.Oob(OobChannel.PUSH))
 
-        assertThat(state, instanceOf(Continuation.OobPending::class.java))
-        val oobState = state as Continuation.OobPending
+        assertThat(state, instanceOf(DirectAuthContinuation.OobPending::class.java))
+        val oobState = state as DirectAuthContinuation.OobPending
         assertThat(oobState.bindingContext.oobCode, equalTo("example_oob_code"))
         assertThat(oobState.bindingContext.channel, equalTo(OobChannel.PUSH))
         assertThat(oobState.bindingContext.expiresIn, equalTo(120))

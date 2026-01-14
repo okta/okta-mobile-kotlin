@@ -28,7 +28,7 @@ import com.okta.directauth.app.screen.asString
 import com.okta.directauth.app.ui.theme.DirectAuthAppTheme
 import com.okta.directauth.app.viewModel.AuthenticationFlowViewModel
 import com.okta.directauth.app.viewModel.MainViewModel
-import com.okta.directauth.model.Continuation
+import com.okta.directauth.model.DirectAuthContinuation
 import com.okta.directauth.model.DirectAuthenticationError
 import com.okta.directauth.model.DirectAuthenticationState
 import com.okta.directauth.app.model.AuthMethod.Mfa.OktaVerify
@@ -74,7 +74,7 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
-                    if (signInState is Continuation.OobPending) {
+                    if (signInState is DirectAuthContinuation.OobPending) {
                         authenticationFlowViewModel.codeSent()
                     }
 
@@ -102,7 +102,7 @@ class MainActivity : ComponentActivity() {
                          */
                         when (currentState) {
                             // Out-of-Band authentication polling (SMS, Voice, Push)
-                            is Continuation.OobPending -> {
+                            is DirectAuthContinuation.OobPending -> {
                                 when (selectAuthMethod) {
                                     Sms, Voice -> {
                                         val supportedAuthenticators: List<AuthMethod> = listOf(Password, OktaVerify, Otp, Passkeys, Sms, Voice)
@@ -121,7 +121,7 @@ class MainActivity : ComponentActivity() {
                             }
 
                             // Server requires additional input during authentication (e.g., OTP code)
-                            is Continuation.Prompt -> CodeEntryScreen(
+                            is DirectAuthContinuation.Prompt -> CodeEntryScreen(
                                 username = username,
                                 backToSignIn = viewModel::reset,
                                 verifyWithSomethingElse = null,
@@ -130,7 +130,7 @@ class MainActivity : ComponentActivity() {
                             }
 
                             // Device transfer authentication (e.g., authenticate via Okta Verify)
-                            is Continuation.Transfer -> OobPollingScreen(
+                            is DirectAuthContinuation.Transfer -> OobPollingScreen(
                                 message = "Please verify the code on your other device",
                                 bindingCode = currentState.bindingCode,
                                 countdownSeconds = currentState.expirationInSeconds,
@@ -139,7 +139,7 @@ class MainActivity : ComponentActivity() {
                             )
 
                             // Passkey/WebAuthn authentication (not yet implemented)
-                            is Continuation.WebAuthn -> TODO()
+                            is DirectAuthContinuation.WebAuthn -> TODO()
 
                             // Authentication error occurred - display error message
                             is DirectAuthenticationError -> ErrorScreen(currentState.asString()) {
