@@ -15,18 +15,20 @@ const val SERVER_ERROR_JSON = """{"errorCode":"E00000","errorSummary":"Internal 
 const val MFA_REQUIRED_JSON = """{"error":"mfa_required","error_description":"MFA is required for this transaction.","mfa_token":"example_mfa_token"}"""
 const val INVALID_MFA_REQUIRED_JSON = """{"error":"mfa_required","error_description":"MFA is required for this transaction."}"""
 const val UNKNOWN_JSON_TYPE = """{"unknown_json_type":"bad response"}"""
-const val OOB_AUTHENTICATE_PUSH_RESPONSE_JSON = """{"oob_code":"example_oob_code","channel":"push","binding_method":"none","expires_in":120,"interval":5}"""
+const val OOB_AUTHENTICATE_PUSH_RESPONSE_JSON =
+    """{"challenge_type":"http://auth0.com/oauth/grant-type/mfa-oob","oob_code":"example_oob_code","channel":"push","binding_method":"none","expires_in":120,"interval":5}"""
 const val OOB_AUTHENTICATE_SMS_RESPONSE_JSON = """{"oob_code":"example_oob_code","channel":"sms","binding_method":"prompt","expires_in":120}"""
 const val OOB_AUTHENTICATE_VOICE_RESPONSE_JSON = """{"oob_code":"example_oob_code","channel":"voice","binding_method":"prompt","expires_in":120}"""
-const val OOB_AUTHENTICATE_TRANSFER_RESPONSE_JSON = """{"oob_code":"example_oob_code","channel":"push","binding_method":"transfer","binding_code":"95","expires_in":120,"interval":5}"""
+const val OOB_AUTHENTICATE_TRANSFER_RESPONSE_JSON = """{"challenge_type":"http://auth0.com/oauth/grant-type/mfa-oob","oob_code":"example_oob_code","channel":"push","binding_method":"transfer","binding_code":"95","expires_in":120,"interval":5}"""
 const val OOB_AUTHENTICATE_TRANSFER_NO_BINDING_CODE_RESPONSE_JSON = """{"oob_code":"example_oob_code","channel":"push","binding_method":"transfer","expires_in":120,"interval":5}"""
+const val CHALLENGE_OTP_RESPONSE_JSON = """{"challenge_type":"http://auth0.com/oauth/grant-type/mfa-otp"}"""
+const val CHALLENGE_WEBAUTHN_RESPONSE_JSON = """{"challengeType":"urn:okta:params:oauth:grant-type:webauthn","publicKey":{}} """
 
 // email is not a unsupported channel
 const val OOB_AUTHENTICATE_EMAIL_RESPONSE_JSON = """{"oob_code":"example_oob_code","channel":"email","binding_method":"prompt","expires_in":120}"""
 const val OOB_AUTHENTICATE_INVALID_BINDING_RESPONSE_JSON = """{"oob_code":"example_oob_code","channel":"push","binding_method":"bluetooth","expires_in":120}"""
 
 const val OOB_AUTHENTICATE_OAUTH2_ERROR_JSON = """{"error":"invalid_request","error_description":"abc is not a valid channel hint"}"""
-
 
 // Malformed JSON with trailing comma
 const val MALFORMED_JSON = """{"access_token": "token","token_type": "Bearer",}"""
@@ -94,3 +96,7 @@ val oobAuthenticateEmailResponseMockEngine = createMockEngine(OOB_AUTHENTICATE_E
 val oobAuthenticateInvalidBindingResponseMockEngine = createMockEngine(OOB_AUTHENTICATE_INVALID_BINDING_RESPONSE_JSON, HttpStatusCode.OK)
 
 val oobAuthenticateOauth2ErrorMockEngine = createMockEngine(OOB_AUTHENTICATE_OAUTH2_ERROR_JSON, HttpStatusCode.BadRequest)
+
+val challengeOtpResponseMockEngine = createMockEngine(CHALLENGE_OTP_RESPONSE_JSON, HttpStatusCode.OK)
+
+val challengeWebAuthnResponseMockEngine = createMockEngine(CHALLENGE_WEBAUTHN_RESPONSE_JSON, HttpStatusCode.OK)

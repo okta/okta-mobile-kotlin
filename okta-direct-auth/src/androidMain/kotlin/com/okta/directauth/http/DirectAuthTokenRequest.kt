@@ -1,11 +1,13 @@
 package com.okta.directauth.http
 
+import com.okta.authfoundation.ChallengeGrantType
 import com.okta.authfoundation.GrantType
 import com.okta.authfoundation.api.http.ApiRequestMethod
 import com.okta.directauth.model.DirectAuthenticationContext
+import com.okta.directauth.model.DirectAuthenticationIntent
 import com.okta.directauth.model.MfaContext
 
-sealed class DirectAuthTokenRequest(internal val context: DirectAuthenticationContext) : DirectAuthRequest {
+sealed class DirectAuthTokenRequest(internal val context: DirectAuthenticationContext) : DirectAuthStartRequest {
 
     private val path = if (context.authorizationServerId.isBlank()) "/oauth2/v1/token" else "/oauth2/${context.authorizationServerId}/v1/token"
 
@@ -21,6 +23,9 @@ sealed class DirectAuthTokenRequest(internal val context: DirectAuthenticationCo
 
     internal fun DirectAuthenticationContext.formParameters(): Map<String, List<String>> = buildMap {
         put("client_id", listOf(clientId))
+        if (directAuthenticationIntent == DirectAuthenticationIntent.RECOVERY) {
+            put("prompt", listOf("recover_authenticator"))
+        }
         put("scope", listOf(scope.joinToString(" ")))
         put("grant_types_supported", listOf(grantTypes.joinToString(" ") { it.value }))
     }
@@ -62,7 +67,7 @@ sealed class DirectAuthTokenRequest(internal val context: DirectAuthenticationCo
         override fun formParameters(): Map<String, List<String>> = buildMap {
             putAll(context.formParameters())
             if (context.clientSecret.isNotBlank()) put("client_secret", listOf(context.clientSecret))
-            put("grant_type", listOf(GrantType.OtpMfa.value))
+            put("grant_type", listOf(ChallengeGrantType.OtpMfa.value))
             put("mfa_token", listOf(mfaContext.mfaToken))
             put("otp", listOf(otp))
         }
@@ -91,7 +96,7 @@ sealed class DirectAuthTokenRequest(internal val context: DirectAuthenticationCo
         override fun formParameters(): Map<String, List<String>> = buildMap {
             putAll(context.formParameters())
             if (context.clientSecret.isNotBlank()) put("client_secret", listOf(context.clientSecret))
-            put("grant_type", listOf(GrantType.OobMfa.value))
+            put("grant_type", listOf(ChallengeGrantType.OobMfa.value))
             put("mfa_token", listOf(mfaContext.mfaToken))
             put("oob_code", listOf(oobCode))
             bindingCode?.takeIf { it.isNotBlank() }?.let { put("binding_code", listOf(it)) }
@@ -123,7 +128,7 @@ sealed class DirectAuthTokenRequest(internal val context: DirectAuthenticationCo
         override fun formParameters(): Map<String, List<String>> = buildMap {
             putAll(context.formParameters())
             put("mfa_token", listOf(mfaContext.mfaToken))
-            put("grant_type", listOf(GrantType.WebAuthnMfa.value))
+            put("grant_type", listOf(ChallengeGrantType.WebAuthnMfa.value))
             put("authenticatorData", listOf(authenticatorData))
             put("clientDataJSON", listOf(clientDataJson))
             put("signature", listOf(signature))

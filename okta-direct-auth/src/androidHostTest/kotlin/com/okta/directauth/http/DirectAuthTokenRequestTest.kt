@@ -1,5 +1,6 @@
 package com.okta.directauth.http
 
+import com.okta.authfoundation.ChallengeGrantType
 import com.okta.authfoundation.GrantType
 import com.okta.authfoundation.api.http.ApiRequestMethod
 import com.okta.authfoundation.api.http.log.AuthFoundationLogger
@@ -41,7 +42,7 @@ import kotlin.jvm.java
 class DirectAuthTokenRequestTest {
     private lateinit var context: DirectAuthenticationContext
 
-    private val supportedGrantTypes = listOf(GrantType.Password, GrantType.Oob, GrantType.Otp, GrantType.OobMfa, GrantType.OtpMfa, GrantType.WebAuthn, GrantType.WebAuthnMfa)
+    private val supportedGrantTypes = listOf(GrantType.Password, GrantType.Oob, GrantType.Otp, ChallengeGrantType.OobMfa, ChallengeGrantType.OtpMfa, GrantType.WebAuthn, ChallengeGrantType.WebAuthnMfa)
 
     @Before
     fun setUp() {
@@ -94,6 +95,28 @@ class DirectAuthTokenRequestTest {
     }
 
     @Test
+    fun passwordRequest_buildsRequestWithRecoveryIntent() {
+        val recoveryContext = context.copy(directAuthenticationIntent = DirectAuthenticationIntent.RECOVERY, scope = listOf("okta.myAccount.password.manage"))
+        val request = DirectAuthTokenRequest.Password(
+            context = recoveryContext,
+            username = "test_user",
+            password = "test_password"
+        )
+
+        assertCommonProperties(request)
+
+        val formParameters = request.formParameters()
+        assertThat(formParameters["client_id"], equalTo(listOf("test_client_id")))
+        assertThat(formParameters["client_secret"], equalTo(listOf("test_client_secret")))
+        assertThat(formParameters["scope"], equalTo(listOf("okta.myAccount.password.manage")))
+        assertThat(formParameters["prompt"], equalTo(listOf("recover_authenticator")))
+        assertThat(formParameters["grant_types_supported"], equalTo(listOf("${GrantType.Password.value} ${GrantType.Otp.value}")))
+        assertThat(formParameters["grant_type"], equalTo(listOf(GrantType.Password.value)))
+        assertThat(formParameters["username"], equalTo(listOf("test_user")))
+        assertThat(formParameters["password"], equalTo(listOf("test_password")))
+    }
+
+    @Test
     fun otpRequest_buildsRequestWithCorrectParameters() {
         val request = DirectAuthTokenRequest.Otp(
             context = context,
@@ -115,13 +138,13 @@ class DirectAuthTokenRequestTest {
         val request = DirectAuthTokenRequest.MfaOtp(
             context = context,
             otp = "123456",
-            mfaContext = mfaContext
+            mfaContext = mfaContext,
         )
 
         assertCommonProperties(request)
 
         val formParameters = request.formParameters()
-        assertThat(formParameters["grant_type"], equalTo(listOf(GrantType.OtpMfa.value)))
+        assertThat(formParameters["grant_type"], equalTo(listOf(ChallengeGrantType.OtpMfa.value)))
         assertThat(formParameters["mfa_token"], equalTo(listOf("test_mfa_token")))
         assertThat(formParameters["otp"], equalTo(listOf("123456")))
     }
@@ -155,7 +178,7 @@ class DirectAuthTokenRequestTest {
         assertCommonProperties(request)
 
         val formParameters = request.formParameters()
-        assertThat(formParameters["grant_type"], equalTo(listOf(GrantType.OobMfa.value)))
+        assertThat(formParameters["grant_type"], equalTo(listOf(ChallengeGrantType.OobMfa.value)))
         assertThat(formParameters["mfa_token"], equalTo(listOf("test_mfa_token")))
         assertThat(formParameters["oob_code"], equalTo(listOf("test_oob_code")))
         assertThat(formParameters["binding_code"], equalTo(listOf("test_binding_code")))
@@ -193,7 +216,7 @@ class DirectAuthTokenRequestTest {
         assertCommonProperties(request)
 
         val formParameters = request.formParameters()
-        assertThat(formParameters["grant_type"], equalTo(listOf(GrantType.WebAuthnMfa.value)))
+        assertThat(formParameters["grant_type"], equalTo(listOf(ChallengeGrantType.WebAuthnMfa.value)))
         assertThat(formParameters["mfa_token"], equalTo(listOf("test_mfa_token")))
         assertThat(formParameters["authenticatorData"], equalTo(listOf("test_authenticator_data")))
         assertThat(formParameters["clientDataJSON"], equalTo(listOf("test_client_data_json")))

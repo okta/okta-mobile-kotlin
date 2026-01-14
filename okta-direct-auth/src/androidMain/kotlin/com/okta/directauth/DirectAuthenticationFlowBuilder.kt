@@ -1,5 +1,6 @@
 package com.okta.directauth
 
+import com.okta.authfoundation.ChallengeGrantType
 import com.okta.authfoundation.GrantType
 import com.okta.authfoundation.api.http.ApiExecutor
 import com.okta.authfoundation.api.http.log.AuthFoundationLogger
@@ -61,7 +62,7 @@ class DirectAuthenticationFlowBuilder private constructor() {
      * This list informs the authorization server about the authentication methods the client can handle,
      * such as passwords, OTP, or OOB (out-of-band) factors.
      */
-    var supportedGrantType = listOf(GrantType.Password, GrantType.Oob, GrantType.Otp, GrantType.OobMfa, GrantType.OtpMfa, GrantType.WebAuthn, GrantType.WebAuthnMfa)
+    var supportedGrantType = listOf(GrantType.Password, GrantType.Oob, GrantType.Otp, ChallengeGrantType.OobMfa, ChallengeGrantType.OtpMfa, GrantType.WebAuthn, ChallengeGrantType.WebAuthnMfa)
 
     /**
      * A list of Authentication Context Class Reference values.
