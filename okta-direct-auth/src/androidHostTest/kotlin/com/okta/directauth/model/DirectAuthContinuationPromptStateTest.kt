@@ -20,7 +20,7 @@ import com.okta.authfoundation.GrantType
 import com.okta.authfoundation.api.http.KtorHttpExecutor
 import com.okta.authfoundation.api.http.log.AuthFoundationLogger
 import com.okta.authfoundation.api.http.log.LogLevel
-import com.okta.directauth.http.UNKNOWN_ERROR
+import com.okta.directauth.http.EXCEPTION
 import com.okta.directauth.malformedJsonOkMockEngine
 import com.okta.directauth.model.DirectAuthenticationError.InternalError
 import com.okta.directauth.model.DirectAuthenticationState.Authenticated
@@ -145,7 +145,7 @@ class DirectAuthContinuationPromptStateTest {
 
         assertThat(result, instanceOf(InternalError::class.java))
         val error = result as InternalError
-        assertThat(error.errorCode, equalTo(UNKNOWN_ERROR))
+        assertThat(error.errorCode, equalTo(EXCEPTION))
         assertThat(error.description, containsString("Unexpected JSON token at offset"))
         assertThat(error.throwable, instanceOf(SerializationException::class.java))
     }

@@ -20,6 +20,7 @@ import com.okta.authfoundation.api.http.ApiRequestMethod
 import com.okta.authfoundation.api.http.KtorHttpExecutor
 import com.okta.authfoundation.api.http.log.AuthFoundationLogger
 import com.okta.authfoundation.api.http.log.LogLevel
+import com.okta.directauth.http.handlers.OobStepHandler
 import com.okta.directauth.model.BindingMethod
 import com.okta.directauth.model.DirectAuthContinuation
 import com.okta.directauth.model.DirectAuthenticationContext
@@ -46,7 +47,6 @@ import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Before
 import org.junit.Test
-import kotlin.jvm.java
 
 class DirectAuthOobAuthenticateRequestTest {
     private lateinit var context: DirectAuthenticationContext
@@ -128,175 +128,164 @@ class DirectAuthOobAuthenticateRequestTest {
     }
 
     @Test
-    fun oobAuthenticateRequest_returnsPollStateWhenUsingPushChannel() =
-        runTest {
-            val request = DirectAuthOobAuthenticateRequest(context, "test_user", OobChannel.PUSH)
-            val apiResponse = KtorHttpExecutor(HttpClient(oobAuthenticatePushResponseMockEngine)).execute(request).getOrThrow()
+    fun oobAuthenticateRequest_returnsPollStateWhenUsingPushChannel() = runTest {
+        val request = DirectAuthOobAuthenticateRequest(context, "test_user", OobChannel.PUSH)
+        val testContext = context.copy(apiExecutor = KtorHttpExecutor(HttpClient(oobAuthenticatePushResponseMockEngine)))
 
-            val state = apiResponse.oobResponseAsState(context)
+        val state = OobStepHandler(request, testContext).process()
 
-            assertThat(state, instanceOf(DirectAuthContinuation.OobPending::class.java))
-            val oobState = state as DirectAuthContinuation.OobPending
-            assertThat(oobState.bindingContext.oobCode, equalTo("example_oob_code"))
-            assertThat(oobState.bindingContext.channel, equalTo(OobChannel.PUSH))
-            assertThat(oobState.bindingContext.expiresIn, equalTo(120))
-            assertThat(oobState.bindingContext.interval, equalTo(5))
-            assertThat(oobState.bindingContext.bindingMethod, equalTo(BindingMethod.NONE))
-            assertThat(oobState.bindingContext.bindingCode, nullValue())
-        }
-
-    @Test
-    fun oobAuthenticateRequest_returnsPromptStateWhenUsingSmsChannel() =
-        runTest {
-            val request = DirectAuthOobAuthenticateRequest(context, "test_user", OobChannel.SMS)
-            val apiResponse = KtorHttpExecutor(HttpClient(oobAuthenticateSmsResponseMockEngine)).execute(request).getOrThrow()
-
-            val state = apiResponse.oobResponseAsState(context)
-
-            assertThat(state, instanceOf(DirectAuthContinuation.Prompt::class.java))
-            val oobState = state as DirectAuthContinuation.Prompt
-            assertThat(oobState.bindingContext.oobCode, equalTo("example_oob_code"))
-            assertThat(oobState.bindingContext.channel, equalTo(OobChannel.SMS))
-            assertThat(oobState.bindingContext.expiresIn, equalTo(120))
-            assertThat(oobState.bindingContext.interval, nullValue())
-            assertThat(oobState.bindingContext.bindingMethod, equalTo(BindingMethod.PROMPT))
-            assertThat(oobState.bindingContext.bindingCode, nullValue())
-        }
+        assertThat(state, instanceOf(DirectAuthContinuation.OobPending::class.java))
+        val oobState = state as DirectAuthContinuation.OobPending
+        assertThat(oobState.bindingContext.oobCode, equalTo("example_oob_code"))
+        assertThat(oobState.bindingContext.channel, equalTo(OobChannel.PUSH))
+        assertThat(oobState.bindingContext.expiresIn, equalTo(120))
+        assertThat(oobState.bindingContext.interval, equalTo(5))
+        assertThat(oobState.bindingContext.bindingMethod, equalTo(BindingMethod.NONE))
+        assertThat(oobState.bindingContext.bindingCode, nullValue())
+    }
 
     @Test
-    fun oobAuthenticateRequest_returnsPromptStateWhenUsingVoiceChannel() =
-        runTest {
-            val request = DirectAuthOobAuthenticateRequest(context, "test_user", OobChannel.VOICE)
-            val apiResponse = KtorHttpExecutor(HttpClient(oobAuthenticateVoiceResponseMockEngine)).execute(request).getOrThrow()
+    fun oobAuthenticateRequest_returnsPromptStateWhenUsingSmsChannel() = runTest {
+        val request = DirectAuthOobAuthenticateRequest(context, "test_user", OobChannel.SMS)
+        val testContext = context.copy(apiExecutor = KtorHttpExecutor(HttpClient(oobAuthenticateSmsResponseMockEngine)))
 
-            val state = apiResponse.oobResponseAsState(context)
+        val state = OobStepHandler(request, testContext).process()
 
-            assertThat(state, instanceOf(DirectAuthContinuation.Prompt::class.java))
-            val oobState = state as DirectAuthContinuation.Prompt
-            assertThat(oobState.bindingContext.oobCode, equalTo("example_oob_code"))
-            assertThat(oobState.bindingContext.channel, equalTo(OobChannel.VOICE))
-            assertThat(oobState.bindingContext.expiresIn, equalTo(120))
-            assertThat(oobState.bindingContext.interval, nullValue())
-            assertThat(oobState.bindingContext.bindingMethod, equalTo(BindingMethod.PROMPT))
-            assertThat(oobState.bindingContext.bindingCode, nullValue())
-        }
-
-    @Test
-    fun oobAuthenticateRequest_returnsTransferStateWhenUsingPushWithNumberChallenge() =
-        runTest {
-            val request = DirectAuthOobAuthenticateRequest(context, "test_user", OobChannel.PUSH)
-            val apiResponse = KtorHttpExecutor(HttpClient(oobAuthenticateTransferResponseMockEngine)).execute(request).getOrThrow()
-
-            val state = apiResponse.oobResponseAsState(context)
-
-            assertThat(state, instanceOf(DirectAuthContinuation.Transfer::class.java))
-            val oobState = state as DirectAuthContinuation.Transfer
-            assertThat(oobState.bindingContext.oobCode, equalTo("example_oob_code"))
-            assertThat(oobState.bindingContext.channel, equalTo(OobChannel.PUSH))
-            assertThat(oobState.bindingContext.expiresIn, equalTo(120))
-            assertThat(oobState.bindingContext.interval, equalTo(5))
-            assertThat(oobState.bindingContext.bindingMethod, equalTo(BindingMethod.TRANSFER))
-            assertThat(oobState.bindingContext.bindingCode, equalTo("95"))
-        }
+        assertThat(state, instanceOf(DirectAuthContinuation.Prompt::class.java))
+        val oobState = state as DirectAuthContinuation.Prompt
+        assertThat(oobState.bindingContext.oobCode, equalTo("example_oob_code"))
+        assertThat(oobState.bindingContext.channel, equalTo(OobChannel.SMS))
+        assertThat(oobState.bindingContext.expiresIn, equalTo(120))
+        assertThat(oobState.bindingContext.interval, nullValue())
+        assertThat(oobState.bindingContext.bindingMethod, equalTo(BindingMethod.PROMPT))
+        assertThat(oobState.bindingContext.bindingCode, nullValue())
+    }
 
     @Test
-    fun oobAuthenticateRequest_returnsInternalErrorWhenBindingCodeIsMissing() =
-        runTest {
-            val request = DirectAuthOobAuthenticateRequest(context, "test_user", OobChannel.PUSH)
-            val apiResponse = KtorHttpExecutor(HttpClient(oobAuthenticateTransferNoBindingCodeResponseMockEngine)).execute(request).getOrThrow()
+    fun oobAuthenticateRequest_returnsPromptStateWhenUsingVoiceChannel() = runTest {
+        val request = DirectAuthOobAuthenticateRequest(context, "test_user", OobChannel.VOICE)
+        val testContext = context.copy(apiExecutor = KtorHttpExecutor(HttpClient(oobAuthenticateVoiceResponseMockEngine)))
 
-            val state = apiResponse.oobResponseAsState(context)
+        val state = OobStepHandler(request, testContext).process()
 
-            assertThat(state, instanceOf(DirectAuthenticationError.InternalError::class.java))
-            val errorState = state as DirectAuthenticationError.InternalError
-            assertThat(errorState.errorCode, equalTo(UNKNOWN_ERROR))
-            assertThat(errorState.description, equalTo("binding_method: transfer without binding_code"))
-        }
-
-    @Test
-    fun oobAuthenticateRequest_returnsInternalErrorStateWhenUnsupportedChannelReturned() =
-        runTest {
-            val request = DirectAuthOobAuthenticateRequest(context, "test_user", OobChannel.SMS)
-            val apiResponse = KtorHttpExecutor(HttpClient(oobAuthenticateEmailResponseMockEngine)).execute(request).getOrThrow()
-
-            val state = apiResponse.oobResponseAsState(context)
-
-            assertThat(state, instanceOf(DirectAuthenticationError.InternalError::class.java))
-            val oobState = state as DirectAuthenticationError.InternalError
-            assertThat(oobState.errorCode, equalTo(UNKNOWN_ERROR))
-            assertThat(oobState.description, equalTo("Unknown OOB channel: email"))
-        }
+        assertThat(state, instanceOf(DirectAuthContinuation.Prompt::class.java))
+        val oobState = state as DirectAuthContinuation.Prompt
+        assertThat(oobState.bindingContext.oobCode, equalTo("example_oob_code"))
+        assertThat(oobState.bindingContext.channel, equalTo(OobChannel.VOICE))
+        assertThat(oobState.bindingContext.expiresIn, equalTo(120))
+        assertThat(oobState.bindingContext.interval, nullValue())
+        assertThat(oobState.bindingContext.bindingMethod, equalTo(BindingMethod.PROMPT))
+        assertThat(oobState.bindingContext.bindingCode, nullValue())
+    }
 
     @Test
-    fun oobAuthenticateRequest_returnsInternalErrorStateWhenUnsupportedBindingMethodReturned() =
-        runTest {
-            val request = DirectAuthOobAuthenticateRequest(context, "test_user", OobChannel.SMS)
-            val apiResponse = KtorHttpExecutor(HttpClient(oobAuthenticateInvalidBindingResponseMockEngine)).execute(request).getOrThrow()
+    fun oobAuthenticateRequest_returnsTransferStateWhenUsingPushWithNumberChallenge() = runTest {
+        val request = DirectAuthOobAuthenticateRequest(context, "test_user", OobChannel.PUSH)
+        val testContext = context.copy(apiExecutor = KtorHttpExecutor(HttpClient(oobAuthenticateTransferResponseMockEngine)))
 
-            val state = apiResponse.oobResponseAsState(context)
+        val state = OobStepHandler(request, testContext).process()
 
-            assertThat(state, instanceOf(DirectAuthenticationError.InternalError::class.java))
-            val oobState = state as DirectAuthenticationError.InternalError
-            assertThat(oobState.errorCode, equalTo(UNKNOWN_ERROR))
-            assertThat(oobState.description, equalTo("Unknown binding method: bluetooth"))
-        }
-
-    @Test
-    fun oobAuthenticateRequest_returnsOauth2ErrorStateOnApiError() =
-        runTest {
-            val request = DirectAuthOobAuthenticateRequest(context, "test_user", OobChannel.PUSH)
-            val apiResponse = KtorHttpExecutor(HttpClient(oobAuthenticateOauth2ErrorMockEngine)).execute(request).getOrThrow()
-
-            val state = apiResponse.oobResponseAsState(context)
-
-            assertThat(state, instanceOf(DirectAuthenticationError.HttpError.Oauth2Error::class.java))
-            val errorState = state as DirectAuthenticationError.HttpError.Oauth2Error
-            assertThat(errorState.error, equalTo("invalid_request"))
-            assertThat(errorState.errorDescription, equalTo("abc is not a valid channel hint"))
-        }
+        assertThat(state, instanceOf(DirectAuthContinuation.Transfer::class.java))
+        val oobState = state as DirectAuthContinuation.Transfer
+        assertThat(oobState.bindingContext.oobCode, equalTo("example_oob_code"))
+        assertThat(oobState.bindingContext.channel, equalTo(OobChannel.PUSH))
+        assertThat(oobState.bindingContext.expiresIn, equalTo(120))
+        assertThat(oobState.bindingContext.interval, equalTo(5))
+        assertThat(oobState.bindingContext.bindingMethod, equalTo(BindingMethod.TRANSFER))
+        assertThat(oobState.bindingContext.bindingCode, equalTo("95"))
+    }
 
     @Test
-    fun oobAuthenticateRequest_returnsApiErrorStateOnServerError() =
-        runTest {
-            val request = DirectAuthOobAuthenticateRequest(context, "test_user", OobChannel.PUSH)
-            val apiResponse = KtorHttpExecutor(HttpClient(serverErrorMockEngine)).execute(request).getOrThrow()
+    fun oobAuthenticateRequest_returnsInternalErrorWhenBindingCodeIsMissing() = runTest {
+        val request = DirectAuthOobAuthenticateRequest(context, "test_user", OobChannel.PUSH)
+        val testContext = context.copy(apiExecutor = KtorHttpExecutor(HttpClient(oobAuthenticateTransferNoBindingCodeResponseMockEngine)))
 
-            val state = apiResponse.oobResponseAsState(context)
+        val state = OobStepHandler(request, testContext).process()
 
-            assertThat(state, instanceOf(DirectAuthenticationError.HttpError.ApiError::class.java))
-            val errorState = state as DirectAuthenticationError.HttpError.ApiError
-            assertThat(errorState.errorCode, equalTo("E00000"))
-            assertThat(errorState.errorSummary, equalTo("Internal Server Error"))
-            assertThat(errorState.httpStatusCode, equalTo(HttpStatusCode.InternalServerError))
-        }
+        assertThat(state, instanceOf(DirectAuthenticationError.InternalError::class.java))
+        val errorState = state as DirectAuthenticationError.InternalError
+        assertThat(errorState.errorCode, equalTo(EXCEPTION))
+        assertThat(errorState.description, equalTo("binding_method: transfer without binding_code"))
+    }
 
     @Test
-    fun oobAuthenticateRequest_returnsInternalErrorOnUnsupportedContentType() =
-        runTest {
-            val request = DirectAuthOobAuthenticateRequest(context, "test_user", OobChannel.PUSH)
-            val apiResponse = KtorHttpExecutor(HttpClient(notJsonMockEngine)).execute(request).getOrThrow()
+    fun oobAuthenticateRequest_returnsInternalErrorStateWhenUnsupportedChannelReturned() = runTest {
+        val request = DirectAuthOobAuthenticateRequest(context, "test_user", OobChannel.SMS)
+        val testContext = context.copy(apiExecutor = KtorHttpExecutor(HttpClient(oobAuthenticateEmailResponseMockEngine)))
 
-            val state = apiResponse.oobResponseAsState(context)
+        val state = OobStepHandler(request, testContext).process()
 
-            assertThat(state, instanceOf(DirectAuthenticationError.InternalError::class.java))
-            val error = state as DirectAuthenticationError.InternalError
-            assertThat(error.errorCode, equalTo(UNSUPPORTED_CONTENT_TYPE))
-            assertThat(error.throwable, instanceOf(IllegalStateException::class.java))
-            assertThat(error.throwable.message, equalTo("Unsupported content type: text/plain"))
-        }
+        assertThat(state, instanceOf(DirectAuthenticationError.InternalError::class.java))
+        val oobState = state as DirectAuthenticationError.InternalError
+        assertThat(oobState.errorCode, equalTo(EXCEPTION))
+        assertThat(oobState.description, equalTo("Unknown OOB channel: email"))
+    }
 
     @Test
-    fun oobAuthenticateRequest_unparseableClientErrorResponse() =
-        runTest {
-            val request = DirectAuthOobAuthenticateRequest(context, "test_user", OobChannel.PUSH)
+    fun oobAuthenticateRequest_returnsInternalErrorStateWhenUnsupportedBindingMethodReturned() = runTest {
+        val request = DirectAuthOobAuthenticateRequest(context, "test_user", OobChannel.SMS)
+        val testContext = context.copy(apiExecutor = KtorHttpExecutor(HttpClient(oobAuthenticateInvalidBindingResponseMockEngine)))
 
-            val apiResponse = KtorHttpExecutor(HttpClient(unknownJsonTypeMockEngine)).execute(request).getOrThrow()
-            val directAuthState = apiResponse.tokenResponseAsState(context)
+        val state = OobStepHandler(request, testContext).process()
 
-            assertThat(directAuthState, instanceOf(DirectAuthenticationError.InternalError::class.java))
-            val error = directAuthState as DirectAuthenticationError.InternalError
-            assertThat(error.errorCode, equalTo(INVALID_RESPONSE))
-            assertThat(error.throwable, instanceOf(IllegalStateException::class.java))
-            assertThat(error.throwable.message, equalTo("No parsable error response body: HTTP ${HttpStatusCode.BadRequest}"))
-        }
+        assertThat(state, instanceOf(DirectAuthenticationError.InternalError::class.java))
+        val oobState = state as DirectAuthenticationError.InternalError
+        assertThat(oobState.errorCode, equalTo(EXCEPTION))
+        assertThat(oobState.description, equalTo("Unknown binding method: bluetooth"))
+    }
+
+    @Test
+    fun oobAuthenticateRequest_returnsOauth2ErrorStateOnApiError() = runTest {
+        val request = DirectAuthOobAuthenticateRequest(context, "test_user", OobChannel.PUSH)
+        val testContext = context.copy(apiExecutor = KtorHttpExecutor(HttpClient(oobAuthenticateOauth2ErrorMockEngine)))
+
+        val state = OobStepHandler(request, testContext).process()
+
+        assertThat(state, instanceOf(DirectAuthenticationError.HttpError.Oauth2Error::class.java))
+        val errorState = state as DirectAuthenticationError.HttpError.Oauth2Error
+        assertThat(errorState.error, equalTo("invalid_request"))
+        assertThat(errorState.errorDescription, equalTo("abc is not a valid channel hint"))
+    }
+
+    @Test
+    fun oobAuthenticateRequest_returnsApiErrorStateOnServerError() = runTest {
+        val request = DirectAuthOobAuthenticateRequest(context, "test_user", OobChannel.PUSH)
+        val testContext = context.copy(apiExecutor = KtorHttpExecutor(HttpClient(serverErrorMockEngine)))
+
+        val state = OobStepHandler(request, testContext).process()
+
+        assertThat(state, instanceOf(DirectAuthenticationError.HttpError.ApiError::class.java))
+        val errorState = state as DirectAuthenticationError.HttpError.ApiError
+        assertThat(errorState.errorCode, equalTo("E00000"))
+        assertThat(errorState.errorSummary, equalTo("Internal Server Error"))
+        assertThat(errorState.httpStatusCode, equalTo(HttpStatusCode.InternalServerError))
+    }
+
+    @Test
+    fun oobAuthenticateRequest_returnsInternalErrorOnUnsupportedContentType() = runTest {
+        val request = DirectAuthOobAuthenticateRequest(context, "test_user", OobChannel.PUSH)
+        val testContext = context.copy(apiExecutor = KtorHttpExecutor(HttpClient(notJsonMockEngine)))
+
+        val state = OobStepHandler(request, testContext).process()
+
+        assertThat(state, instanceOf(DirectAuthenticationError.InternalError::class.java))
+        val error = state as DirectAuthenticationError.InternalError
+        assertThat(error.errorCode, equalTo(UNSUPPORTED_CONTENT_TYPE))
+        assertThat(error.throwable, instanceOf(IllegalStateException::class.java))
+        assertThat(error.throwable.message, equalTo("Unsupported content type: text/plain"))
+    }
+
+    @Test
+    fun oobAuthenticateRequest_unparseableClientErrorResponse() = runTest {
+        val request = DirectAuthOobAuthenticateRequest(context, "test_user", OobChannel.PUSH)
+        val testContext = context.copy(apiExecutor = KtorHttpExecutor(HttpClient(unknownJsonTypeMockEngine)))
+
+        val state = OobStepHandler(request, testContext).process()
+
+        assertThat(state, instanceOf(DirectAuthenticationError.InternalError::class.java))
+        val error = state as DirectAuthenticationError.InternalError
+        assertThat(error.errorCode, equalTo(INVALID_RESPONSE))
+        assertThat(error.throwable, instanceOf(IllegalStateException::class.java))
+        assertThat(error.throwable.message, equalTo("No parsable error response body: HTTP ${HttpStatusCode.BadRequest}"))
+    }
 }

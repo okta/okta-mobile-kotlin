@@ -24,7 +24,6 @@ import com.okta.directauth.AUTHORIZATION_PENDING_JSON
 import com.okta.directauth.TOKEN_RESPONSE_JSON
 import com.okta.directauth.contentType
 import com.okta.directauth.http.EXCEPTION
-import com.okta.directauth.http.UNKNOWN_ERROR
 import com.okta.directauth.malformedJsonOkMockEngine
 import com.okta.directauth.model.DirectAuthenticationError.InternalError
 import com.okta.directauth.model.DirectAuthenticationState.Authenticated
@@ -35,6 +34,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
 import io.ktor.http.HttpStatusCode
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -131,20 +131,25 @@ class DirectAuthContinuationTransferStateTest {
     fun `proceed returns Authenticated after one pending response`() {
         val mockEngine = MockEngine.Queue()
         val collectedValues = mutableListOf<DirectAuthenticationState>()
+        val flowFinished = CompletableDeferred<Unit>()
 
         mockEngine.enqueue { respond(AUTHORIZATION_PENDING_JSON, HttpStatusCode.BadRequest, contentType) }
         mockEngine.enqueue { respond(TOKEN_RESPONSE_JSON, HttpStatusCode.OK, contentType) }
         val context = createDirectAuthenticationContext(apiExecutor = KtorHttpExecutor(HttpClient(mockEngine)))
         val transferState = DirectAuthContinuation.Transfer(bindingContext, context)
 
-        val job =
-            CoroutineScope(Dispatchers.Default).launch {
-                context.authenticationStateFlow.collect { value ->
-                    if (value !is DirectAuthenticationState.Idle) collectedValues.add(value)
-                }
+        val job = CoroutineScope(Dispatchers.Default).launch {
+            context.authenticationStateFlow.collect { value ->
+                if (value !is DirectAuthenticationState.Idle) collectedValues.add(value)
+                if (value is Authenticated) flowFinished.complete(Unit)
             }
+        }
 
-        val result = runBlocking { transferState.proceed() }
+        val result = runBlocking {
+            val proceedResult = transferState.proceed()
+            flowFinished.await()
+            proceedResult
+        }
 
         assertThat(result, instanceOf(Authenticated::class.java))
         assertThat(context.authenticationStateFlow.value, equalTo(result))
@@ -196,7 +201,7 @@ class DirectAuthContinuationTransferStateTest {
 
         assertThat(result, instanceOf(InternalError::class.java))
         val error = result as InternalError
-        assertThat(error.errorCode, equalTo(UNKNOWN_ERROR))
+        assertThat(error.errorCode, equalTo(EXCEPTION))
         assertThat(error.description, containsString("Unexpected JSON token at offset"))
         assertThat(error.throwable, instanceOf(SerializationException::class.java))
     }
