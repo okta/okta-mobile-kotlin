@@ -111,6 +111,7 @@ class WebAuthentication(
                     is OAuth2ClientResult.Success -> {
                         RedirectInitializationResult.Success(result.result.url, result.result)
                     }
+
                     is OAuth2ClientResult.Error -> {
                         RedirectInitializationResult.Error(result.exception)
                     }
@@ -122,6 +123,7 @@ class WebAuthentication(
                 is RedirectInitializationResult.Error -> {
                     return OAuth2ClientResult.Error(initializationResult.exception)
                 }
+
                 is RedirectInitializationResult.Success -> {
                     initializationResult.flowContext
                 }
@@ -132,6 +134,7 @@ class WebAuthentication(
                 is RedirectResult.Error -> {
                     return OAuth2ClientResult.Error(redirectResult.exception)
                 }
+
                 is RedirectResult.Redirect -> {
                     redirectResult.uri
                 }
@@ -161,6 +164,7 @@ class WebAuthentication(
                     is OAuth2ClientResult.Success -> {
                         RedirectInitializationResult.Success(result.result.url, result.result)
                     }
+
                     is OAuth2ClientResult.Error -> {
                         RedirectInitializationResult.Error(result.exception)
                     }
@@ -172,6 +176,7 @@ class WebAuthentication(
                 is RedirectInitializationResult.Error -> {
                     return OAuth2ClientResult.Error(initializationResult.exception)
                 }
+
                 is RedirectInitializationResult.Success -> {
                     initializationResult.flowContext
                 }
@@ -182,6 +187,7 @@ class WebAuthentication(
                 is RedirectResult.Error -> {
                     return OAuth2ClientResult.Error(redirectResult.exception)
                 }
+
                 is RedirectResult.Redirect -> {
                     redirectResult.uri
                 }

@@ -1,3 +1,18 @@
+/*
+ * Copyright 2022-Present Okta, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.okta.directauth.app.screen
 
 import androidx.compose.runtime.Composable
@@ -26,79 +41,102 @@ fun AuthenticationFlow(
     val savedUsername by appStorage.get("username").collectAsState(initial = "")
     val scope = rememberCoroutineScope()
     when (val currentState = state) {
-        is AuthScreen.UsernameInput -> UsernameScreen(savedUsername) { updatedUsername, rememberMe ->
-            scope.launch {
-                if (rememberMe) {
-                    if (updatedUsername != savedUsername) appStorage.save("username", updatedUsername)
+        is AuthScreen.UsernameInput -> {
+            UsernameScreen(
+                savedUsername = savedUsername,
+                onNext = { updatedUsername, rememberMe ->
+                    scope.launch {
+                        if (rememberMe) {
+                            if (updatedUsername != savedUsername) appStorage.save("username", updatedUsername)
+                        } else {
+                            appStorage.clear("username")
+                        }
+                    }
+                    authenticationViewModel.next(updatedUsername)
+                }
+            )
+        }
+
+        is AuthScreen.SelectAuthenticator -> {
+            SelectAuthenticatorScreen(
+                username = savedUsername,
+                supportedAuthenticators = supportedAuthenticators,
+                backToSignIn = {
+                    mainView.reset()
+                    authenticationViewModel.reset(currentState.username)
+                },
+                onSelectAuthenticator = { username, authMethod ->
+                    authenticationViewModel.onAuthenticatorSelected(username, authMethod, null)
+                }
+            )
+        }
+
+        is AuthScreen.PasswordAuthenticator -> {
+            PasswordScreen(
+                username = currentState.username,
+                backToSignIn = {
+                    mainView.reset()
+                    authenticationViewModel.reset(currentState.username)
+                },
+                verifyWithSomethingElse = { authenticationViewModel.selectAuthenticator(currentState.username) },
+                forgotPassword = {
+                    mainView.forgotPassword()
+                    authenticationViewModel.selectAuthenticator(currentState.username)
+                }
+            ) { password ->
+                mainView.signIn(currentState.username, password, AuthMethod.Password)
+            }
+        }
+
+        is AuthScreen.OktaVerify -> {
+            ChallengeScreen(
+                title = "Get a push notification",
+                buttonText = "Send push",
+                username = currentState.username,
+                backToSignIn = {
+                    mainView.reset()
+                    authenticationViewModel.reset(currentState.username)
+                },
+                verifyWithSomethingElse = { authenticationViewModel.selectAuthenticator(currentState.username, currentState.mfaRequired) },
+                onChallenge = {
+                    if (currentState.mfaRequired != null) {
+                        mainView.resume("", AuthMethod.Mfa.OktaVerify, currentState.mfaRequired)
+                    } else {
+                        mainView.signIn(currentState.username, "", AuthMethod.Mfa.OktaVerify)
+                    }
+                }
+            )
+        }
+
+        is AuthScreen.Otp -> {
+            CodeEntryScreen(
+                username = currentState.username,
+                backToSignIn = {
+                    mainView.reset()
+                    authenticationViewModel.reset(currentState.username)
+                },
+                verifyWithSomethingElse = { authenticationViewModel.selectAuthenticator(currentState.username, currentState.mfaRequired) }
+            ) { code ->
+                if (currentState.mfaRequired != null) {
+                    mainView.resume(code, AuthMethod.Mfa.Otp, currentState.mfaRequired)
                 } else {
-                    appStorage.clear("username")
+                    mainView.signIn(currentState.username, code, AuthMethod.Mfa.Otp)
                 }
             }
-            authenticationViewModel.next(updatedUsername)
         }
 
-        is AuthScreen.SelectAuthenticator -> SelectAuthenticatorScreen(
-            username = savedUsername,
-            supportedAuthenticators = supportedAuthenticators,
-            backToSignIn = {
-                mainView.reset()
-                authenticationViewModel.reset(currentState.username)
-            },
-            onAuthenticatorSelected = { username, authMethod ->
-                authenticationViewModel.onAuthenticatorSelected(username, authMethod, null)
-            }
-        )
-
-        is AuthScreen.PasswordAuthenticator -> PasswordScreen(
-            username = currentState.username,
-            backToSignIn = {
-                mainView.reset()
-                authenticationViewModel.reset(currentState.username)
-            },
-            verifyWithSomethingElse = { authenticationViewModel.selectAuthenticator(currentState.username) },
-            forgotPassword = {
-                mainView.forgotPassword()
-                authenticationViewModel.selectAuthenticator(currentState.username)
-            },
-        ) { password ->
-            mainView.signIn(currentState.username, password, AuthMethod.Password)
+        is AuthScreen.Passkeys -> {
+            PasskeysScreen(
+                currentState.username,
+                backToSignIn = {
+                    mainView.reset()
+                    authenticationViewModel.reset(currentState.username)
+                },
+                verifyWithSomethingElse = { authenticationViewModel.selectAuthenticator(currentState.username, currentState.mfaRequired) }
+            )
         }
 
-        is AuthScreen.OktaVerify -> ChallengeScreen(
-            title = "Get a push notification",
-            buttonText = "Send push",
-            username = currentState.username,
-            backToSignIn = {
-                mainView.reset()
-                authenticationViewModel.reset(currentState.username)
-            },
-            verifyWithSomethingElse = { authenticationViewModel.selectAuthenticator(currentState.username, currentState.mfaRequired) },
-        ) {
-            if (currentState.mfaRequired != null) {
-                mainView.resume("", AuthMethod.Mfa.OktaVerify, currentState.mfaRequired)
-            } else {
-                mainView.signIn(currentState.username, "", AuthMethod.Mfa.OktaVerify)
-            }
-        }
-
-        is AuthScreen.Otp -> CodeEntryScreenWrapper(
-            username = currentState.username,
-            mfaRequired = currentState.mfaRequired,
-            authMethod = AuthMethod.Mfa.Otp,
-            authenticationViewModel = authenticationViewModel,
-            mainView = mainView
-        )
-
-        is AuthScreen.Passkeys -> PasskeysScreen(
-            currentState.username,
-            backToSignIn = {
-                mainView.reset()
-                authenticationViewModel.reset(currentState.username)
-            },
-            verifyWithSomethingElse = { authenticationViewModel.selectAuthenticator(currentState.username, currentState.mfaRequired) },
-        )
-
-        is AuthScreen.Sms ->
+        is AuthScreen.Sms -> {
             if (currentState.codeSent) {
                 CodeEntryScreen(
                     username = currentState.username,
@@ -108,7 +146,7 @@ fun AuthenticationFlow(
                             currentState.username,
                             currentState.mfaRequired
                         )
-                    },
+                    }
                 ) { code ->
                     if (currentState.mfaRequired != null) {
                         mainView.resume(code, AuthMethod.Mfa.Sms, currentState.mfaRequired)
@@ -128,16 +166,18 @@ fun AuthenticationFlow(
                             currentState.mfaRequired
                         )
                     },
-                ) {
-                    if (currentState.mfaRequired != null) {
-                        mainView.resume("", AuthMethod.Mfa.Sms, currentState.mfaRequired)
-                    } else {
-                        mainView.signIn(currentState.username, "", AuthMethod.Mfa.Sms)
+                    onChallenge = {
+                        if (currentState.mfaRequired != null) {
+                            mainView.resume("", AuthMethod.Mfa.Sms, currentState.mfaRequired)
+                        } else {
+                            mainView.signIn(currentState.username, "", AuthMethod.Mfa.Sms)
+                        }
                     }
-                }
+                )
             }
+        }
 
-        is AuthScreen.Voice ->
+        is AuthScreen.Voice -> {
             if (currentState.codeSent) {
                 CodeEntryScreen(
                     username = currentState.username,
@@ -147,7 +187,7 @@ fun AuthenticationFlow(
                             currentState.username,
                             currentState.mfaRequired
                         )
-                    },
+                    }
                 ) { code ->
                     if (currentState.mfaRequired != null) {
                         mainView.resume(code, AuthMethod.Mfa.Voice, currentState.mfaRequired)
@@ -167,25 +207,29 @@ fun AuthenticationFlow(
                             currentState.mfaRequired
                         )
                     },
-                ) {
-                    if (currentState.mfaRequired != null) {
-                        mainView.resume("", AuthMethod.Mfa.Voice, currentState.mfaRequired)
-                    } else {
-                        mainView.signIn(currentState.username, "", AuthMethod.Mfa.Voice)
+                    onChallenge = {
+                        if (currentState.mfaRequired != null) {
+                            mainView.resume("", AuthMethod.Mfa.Voice, currentState.mfaRequired)
+                        } else {
+                            mainView.signIn(currentState.username, "", AuthMethod.Mfa.Voice)
+                        }
                     }
-                }
+                )
             }
+        }
 
         is AuthScreen.MfaRequired -> {
             val mfaMethods = listOf(Mfa.OktaVerify, Mfa.Otp, Mfa.Passkeys, Mfa.Sms, Mfa.Voice)
             // filter out the auth method used by initial authentication
-            val authMethods = authenticationViewModel.selectedAuthMethod.value?.let { exclude ->
-                val excludedLabels = when (exclude) {
-                    is Mfa.Sms, is Mfa.Voice -> setOf(Mfa.Sms.label, Mfa.Voice.label)
-                    else -> setOf(exclude.label)
-                }
-                mfaMethods.filter { it.label !in excludedLabels }
-            } ?: mfaMethods
+            val authMethods =
+                authenticationViewModel.selectedAuthMethod.value?.let { exclude ->
+                    val excludedLabels =
+                        when (exclude) {
+                            is Mfa.Sms, is Mfa.Voice -> setOf(Mfa.Sms.label, Mfa.Voice.label)
+                            else -> setOf(exclude.label)
+                        }
+                    mfaMethods.filter { it.label !in excludedLabels }
+                } ?: mfaMethods
 
             SelectAuthenticatorScreen(
                 username = currentState.username,
@@ -194,36 +238,10 @@ fun AuthenticationFlow(
                     mainView.reset()
                     authenticationViewModel.reset(currentState.username)
                 },
-            ) { username, mfaMethod ->
-                authenticationViewModel.onAuthenticatorSelected(username, mfaMethod, currentState.mfaRequired)
-            }
-        }
-    }
-}
-
-/**
- * Wrapper composable for CodeEntryScreen (OTP, SMS, Voice).
- */
-@Composable
-private fun CodeEntryScreenWrapper(
-    username: String,
-    mfaRequired: com.okta.directauth.model.DirectAuthenticationState.MfaRequired?,
-    authMethod: AuthMethod.Mfa,
-    authenticationViewModel: AuthenticationFlowViewModel,
-    mainView: MainViewModel
-) {
-    CodeEntryScreen(
-        username = username,
-        backToSignIn = {
-            mainView.reset()
-            authenticationViewModel.reset(username)
-        },
-        verifyWithSomethingElse = { authenticationViewModel.selectAuthenticator(username, mfaRequired) },
-    ) { code ->
-        if (mfaRequired != null) {
-            mainView.resume(code, authMethod, mfaRequired)
-        } else {
-            mainView.signIn(username, code, authMethod)
+                onSelectAuthenticator = { username, mfaMethod ->
+                    authenticationViewModel.onAuthenticatorSelected(username, mfaMethod, currentState.mfaRequired)
+                }
+            )
         }
     }
 }

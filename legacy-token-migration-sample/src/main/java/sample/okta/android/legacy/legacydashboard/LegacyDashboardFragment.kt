@@ -88,6 +88,7 @@ internal class LegacyDashboardFragment :
                 LegacyDashboardViewModel.RequestState.Loading -> {
                     button?.isEnabled = false
                 }
+
                 is LegacyDashboardViewModel.RequestState.Result -> {
                     button?.isEnabled = true
                     binding.lastRequestInfo.text = state.text

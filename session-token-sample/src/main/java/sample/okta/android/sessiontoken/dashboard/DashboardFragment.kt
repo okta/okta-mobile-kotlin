@@ -41,6 +41,7 @@ internal class DashboardFragment :
                 is DashboardViewModel.CredentialState.LoggedOut -> {
                     findNavController().navigate(DashboardFragmentDirections.dashboardToLogin())
                 }
+
                 is DashboardViewModel.CredentialState.Loaded -> {
                     val credential = credentialState.credential
                     val token = credential.token ?: return@observe
@@ -90,6 +91,7 @@ internal class DashboardFragment :
                 DashboardViewModel.RequestState.Loading -> {
                     button?.isEnabled = false
                 }
+
                 is DashboardViewModel.RequestState.Result -> {
                     button?.isEnabled = true
                     binding.lastRequestInfo.text = state.text

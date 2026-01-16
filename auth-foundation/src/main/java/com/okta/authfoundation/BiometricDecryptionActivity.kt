@@ -83,7 +83,10 @@ class BiometricDecryptionActivity : AppCompatActivity() {
 
                 override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
                     when (val action = biometricAction) {
-                        is BiometricAction.Unlock -> action.continuation.resume(Unit)
+                        is BiometricAction.Unlock -> {
+                            action.continuation.resume(Unit)
+                        }
+
                         is BiometricAction.Decrypt -> {
                             result.cryptoObject?.cipher?.let { cipher ->
                                 val decryptedData = cipher.doFinal(action.encryptedData)

@@ -202,6 +202,7 @@ class NativeAuthenticationClientTest {
                                 assertThat((elements[0] as Element.Label).text).isEqualTo("Fake Label")
                                 (elements[2] as Element.Action).onClick(form)
                             }
+
                             3 -> {
                                 networkRule.enqueue(path("/idp/idx/identify")) { response ->
                                     response.testBodyFromFile("SuccessWithInteractionCodeResponse.json")
@@ -237,6 +238,7 @@ class NativeAuthenticationClientTest {
                                 assertThat((elements[0] as Element.Label).text).isEqualTo("Fake Label")
                                 (elements[2] as Element.Action).onClick(form)
                             }
+
                             3 -> {
                                 networkRule.enqueue(path("/oauth2/v1/token")) { response ->
                                     response.testBodyFromFile("TokenResponse.json")

@@ -3,7 +3,6 @@ import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.androidx.navigation.safeargs)
     id("spotless")
 }
@@ -21,6 +20,13 @@ android {
         }
 
     defaultConfig {
+        manifestPlaceholders +=
+            mapOf(
+                "oktaIdxRedirectScheme" to parseScheme(localProperties.getProperty("signInRedirectUri", "")),
+                "oktaIdxEmailHost" to localProperties.getProperty("emailRedirectHost", ""),
+                "oktaIdxEmailPrefix" to localProperties.getProperty("emailRedirectPrefix", "")
+            )
+        testInstrumentationRunnerArguments += mapOf()
         applicationId = "com.okta.idx.android"
         minSdk = MIN_SDK
         targetSdk = TARGET_SDK
@@ -31,26 +37,15 @@ android {
         buildConfigField("String", "CLIENT_ID", "\"${localProperties.getProperty("clientId", "")}\"")
         buildConfigField("String", "REDIRECT_URI", "\"${localProperties.getProperty("signInRedirectUri", "")}\"")
 
-        manifestPlaceholders +=
-            mapOf(
-                "oktaIdxRedirectScheme" to parseScheme(localProperties.getProperty("signInRedirectUri", "")),
-                "oktaIdxEmailHost" to localProperties.getProperty("emailRedirectHost", ""),
-                "oktaIdxEmailPrefix" to localProperties.getProperty("emailRedirectPrefix", "")
-            )
-
         testInstrumentationRunner = "io.cucumber.android.runner.CucumberAndroidJUnitRunner"
-        testInstrumentationRunnerArguments +=
-            mapOf(
-                "cucumberUseAndroidJUnitRunner" to (findProperty("cucumberUseAndroidJUnitRunner") as? String ?: "false")
-            )
     }
 
     sourceSets {
         getByName("androidTest") {
-            java.srcDirs("src/sharedTest/java")
+            java.directories.add("src/sharedTest/java")
         }
         getByName("test") {
-            java.srcDirs("src/sharedTest/java")
+            java.directories.add("src/sharedTest/java")
         }
     }
 
@@ -72,12 +67,6 @@ android {
         targetCompatibility = TARGET_COMPATIBILITY
     }
 
-    kotlin {
-        compilerOptions {
-            jvmTarget = JvmTarget.fromTarget(JVM_TARGET)
-        }
-    }
-
     buildFeatures {
         viewBinding = true
         buildConfig = true
@@ -93,6 +82,12 @@ android {
     testOptions {
         animationsDisabled = true
         execution = "ANDROIDX_TEST_ORCHESTRATOR"
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget = JvmTarget.fromTarget(JVM_TARGET)
     }
 }
 

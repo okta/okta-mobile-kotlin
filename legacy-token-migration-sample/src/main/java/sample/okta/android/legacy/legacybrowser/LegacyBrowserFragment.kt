@@ -51,11 +51,14 @@ class LegacyBrowserFragment :
                     binding.errorTextView.visibility = View.VISIBLE
                     binding.errorTextView.text = state.message
                 }
+
                 BrowserState.Idle -> {
                 }
+
                 BrowserState.Token -> {
                     findNavController().navigate(LegacyBrowserFragmentDirections.legacyBrowserToDashboard())
                 }
+
                 BrowserState.Loading -> {
                     binding.progressBar.visibility = View.VISIBLE
                 }

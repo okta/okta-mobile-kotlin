@@ -44,6 +44,7 @@ internal class ClientResultTransformer(
                     }
                 )
             }
+
             is OAuth2ClientResult.Success -> {
                 val response = result.result
                 if (response.isLoginSuccessful) {
@@ -82,6 +83,7 @@ internal class ClientResultTransformer(
                     }
                 )
             }
+
             is OAuth2ClientResult.Success -> {
                 formFactory.emit(LabelFormBuilder.create("Complete"))
 

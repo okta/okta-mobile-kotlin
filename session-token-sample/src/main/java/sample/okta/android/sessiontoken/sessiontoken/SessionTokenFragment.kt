@@ -55,11 +55,14 @@ internal class SessionTokenFragment :
                     binding.errorTextView.visibility = View.VISIBLE
                     binding.errorTextView.text = state.message
                 }
+
                 SessionTokenState.Idle -> {
                 }
+
                 SessionTokenState.Token -> {
                     findNavController().navigate(SessionTokenFragmentDirections.sessionTokenToDashboard())
                 }
+
                 SessionTokenState.Loading -> {
                     binding.login.isEnabled = false
                 }

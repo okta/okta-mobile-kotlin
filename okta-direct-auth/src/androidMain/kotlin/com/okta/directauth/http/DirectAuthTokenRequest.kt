@@ -1,3 +1,18 @@
+/*
+ * Copyright 2022-Present Okta, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.okta.directauth.http
 
 import com.okta.authfoundation.ChallengeGrantType
@@ -7,8 +22,9 @@ import com.okta.directauth.model.DirectAuthenticationContext
 import com.okta.directauth.model.DirectAuthenticationIntent
 import com.okta.directauth.model.MfaContext
 
-sealed class DirectAuthTokenRequest(internal val context: DirectAuthenticationContext) : DirectAuthStartRequest {
-
+sealed class DirectAuthTokenRequest(
+    internal val context: DirectAuthenticationContext,
+) : DirectAuthStartRequest {
     private val path = if (context.authorizationServerId.isBlank()) "/oauth2/v1/token" else "/oauth2/${context.authorizationServerId}/v1/token"
 
     override fun url(): String = context.issuerUrl.trimEnd('/') + path
@@ -21,27 +37,29 @@ sealed class DirectAuthTokenRequest(internal val context: DirectAuthenticationCo
 
     override fun query(): Map<String, String>? = context.additionalParameters.takeIf { it.isNotEmpty() }
 
-    internal fun DirectAuthenticationContext.formParameters(): Map<String, List<String>> = buildMap {
-        put("client_id", listOf(clientId))
-        if (directAuthenticationIntent == DirectAuthenticationIntent.RECOVERY) {
-            put("prompt", listOf("recover_authenticator"))
+    internal fun DirectAuthenticationContext.formParameters(): Map<String, List<String>> =
+        buildMap {
+            put("client_id", listOf(clientId))
+            if (directAuthenticationIntent == DirectAuthenticationIntent.RECOVERY) {
+                put("prompt", listOf("recover_authenticator"))
+            }
+            put("scope", listOf(scope.joinToString(" ")))
+            put("grant_types_supported", listOf(grantTypes.joinToString(" ") { it.value }))
         }
-        put("scope", listOf(scope.joinToString(" ")))
-        put("grant_types_supported", listOf(grantTypes.joinToString(" ") { it.value }))
-    }
 
     class Password internal constructor(
         context: DirectAuthenticationContext,
         private val username: String,
         private val password: String,
     ) : DirectAuthTokenRequest(context) {
-        override fun formParameters(): Map<String, List<String>> = buildMap {
-            putAll(context.formParameters())
-            if (context.clientSecret.isNotBlank()) put("client_secret", listOf(context.clientSecret))
-            put("grant_type", listOf(GrantType.Password.value))
-            put("username", listOf(username))
-            put("password", listOf(password))
-        }
+        override fun formParameters(): Map<String, List<String>> =
+            buildMap {
+                putAll(context.formParameters())
+                if (context.clientSecret.isNotBlank()) put("client_secret", listOf(context.clientSecret))
+                put("grant_type", listOf(GrantType.Password.value))
+                put("username", listOf(username))
+                put("password", listOf(password))
+            }
     }
 
     class Otp internal constructor(
@@ -49,14 +67,14 @@ sealed class DirectAuthTokenRequest(internal val context: DirectAuthenticationCo
         private val loginHint: String,
         private val otp: String,
     ) : DirectAuthTokenRequest(context) {
-        override fun formParameters(): Map<String, List<String>> = buildMap {
-            putAll(context.formParameters())
-            if (context.clientSecret.isNotBlank()) put("client_secret", listOf(context.clientSecret))
-            put("grant_type", listOf(GrantType.Otp.value))
-            put("login_hint", listOf(loginHint))
-            put("otp", listOf(otp))
-
-        }
+        override fun formParameters(): Map<String, List<String>> =
+            buildMap {
+                putAll(context.formParameters())
+                if (context.clientSecret.isNotBlank()) put("client_secret", listOf(context.clientSecret))
+                put("grant_type", listOf(GrantType.Otp.value))
+                put("login_hint", listOf(loginHint))
+                put("otp", listOf(otp))
+            }
     }
 
     class MfaOtp internal constructor(
@@ -64,13 +82,14 @@ sealed class DirectAuthTokenRequest(internal val context: DirectAuthenticationCo
         private val otp: String,
         private val mfaContext: MfaContext,
     ) : DirectAuthTokenRequest(context) {
-        override fun formParameters(): Map<String, List<String>> = buildMap {
-            putAll(context.formParameters())
-            if (context.clientSecret.isNotBlank()) put("client_secret", listOf(context.clientSecret))
-            put("grant_type", listOf(ChallengeGrantType.OtpMfa.value))
-            put("mfa_token", listOf(mfaContext.mfaToken))
-            put("otp", listOf(otp))
-        }
+        override fun formParameters(): Map<String, List<String>> =
+            buildMap {
+                putAll(context.formParameters())
+                if (context.clientSecret.isNotBlank()) put("client_secret", listOf(context.clientSecret))
+                put("grant_type", listOf(ChallengeGrantType.OtpMfa.value))
+                put("mfa_token", listOf(mfaContext.mfaToken))
+                put("otp", listOf(otp))
+            }
     }
 
     class Oob internal constructor(
@@ -78,13 +97,14 @@ sealed class DirectAuthTokenRequest(internal val context: DirectAuthenticationCo
         private val oobCode: String,
         private val bindingCode: String? = null,
     ) : DirectAuthTokenRequest(context) {
-        override fun formParameters(): Map<String, List<String>> = buildMap {
-            putAll(context.formParameters())
-            if (context.clientSecret.isNotBlank()) put("client_secret", listOf(context.clientSecret))
-            put("grant_type", listOf(GrantType.Oob.value))
-            put("oob_code", listOf(oobCode))
-            bindingCode?.let { put("binding_code", listOf(it)) }
-        }
+        override fun formParameters(): Map<String, List<String>> =
+            buildMap {
+                putAll(context.formParameters())
+                if (context.clientSecret.isNotBlank()) put("client_secret", listOf(context.clientSecret))
+                put("grant_type", listOf(GrantType.Oob.value))
+                put("oob_code", listOf(oobCode))
+                bindingCode?.let { put("binding_code", listOf(it)) }
+            }
     }
 
     class OobMfa internal constructor(
@@ -93,14 +113,15 @@ sealed class DirectAuthTokenRequest(internal val context: DirectAuthenticationCo
         private val mfaContext: MfaContext,
         private val bindingCode: String? = null,
     ) : DirectAuthTokenRequest(context) {
-        override fun formParameters(): Map<String, List<String>> = buildMap {
-            putAll(context.formParameters())
-            if (context.clientSecret.isNotBlank()) put("client_secret", listOf(context.clientSecret))
-            put("grant_type", listOf(ChallengeGrantType.OobMfa.value))
-            put("mfa_token", listOf(mfaContext.mfaToken))
-            put("oob_code", listOf(oobCode))
-            bindingCode?.takeIf { it.isNotBlank() }?.let { put("binding_code", listOf(it)) }
-        }
+        override fun formParameters(): Map<String, List<String>> =
+            buildMap {
+                putAll(context.formParameters())
+                if (context.clientSecret.isNotBlank()) put("client_secret", listOf(context.clientSecret))
+                put("grant_type", listOf(ChallengeGrantType.OobMfa.value))
+                put("mfa_token", listOf(mfaContext.mfaToken))
+                put("oob_code", listOf(oobCode))
+                bindingCode?.takeIf { it.isNotBlank() }?.let { put("binding_code", listOf(it)) }
+            }
     }
 
     class WebAuthn internal constructor(
@@ -109,13 +130,14 @@ sealed class DirectAuthTokenRequest(internal val context: DirectAuthenticationCo
         private val clientDataJson: String,
         private val signature: String,
     ) : DirectAuthTokenRequest(context) {
-        override fun formParameters(): Map<String, List<String>> = buildMap {
-            putAll(context.formParameters())
-            put("grant_type", listOf(GrantType.WebAuthn.value))
-            put("authenticatorData", listOf(authenticatorData))
-            put("clientDataJSON", listOf(clientDataJson))
-            put("signature", listOf(signature))
-        }
+        override fun formParameters(): Map<String, List<String>> =
+            buildMap {
+                putAll(context.formParameters())
+                put("grant_type", listOf(GrantType.WebAuthn.value))
+                put("authenticatorData", listOf(authenticatorData))
+                put("clientDataJSON", listOf(clientDataJson))
+                put("signature", listOf(signature))
+            }
     }
 
     class WebAuthnMfa internal constructor(
@@ -125,13 +147,14 @@ sealed class DirectAuthTokenRequest(internal val context: DirectAuthenticationCo
         private val clientDataJson: String,
         private val signature: String,
     ) : DirectAuthTokenRequest(context) {
-        override fun formParameters(): Map<String, List<String>> = buildMap {
-            putAll(context.formParameters())
-            put("mfa_token", listOf(mfaContext.mfaToken))
-            put("grant_type", listOf(ChallengeGrantType.WebAuthnMfa.value))
-            put("authenticatorData", listOf(authenticatorData))
-            put("clientDataJSON", listOf(clientDataJson))
-            put("signature", listOf(signature))
-        }
+        override fun formParameters(): Map<String, List<String>> =
+            buildMap {
+                putAll(context.formParameters())
+                put("mfa_token", listOf(mfaContext.mfaToken))
+                put("grant_type", listOf(ChallengeGrantType.WebAuthnMfa.value))
+                put("authenticatorData", listOf(authenticatorData))
+                put("clientDataJSON", listOf(clientDataJson))
+                put("signature", listOf(signature))
+            }
     }
 }

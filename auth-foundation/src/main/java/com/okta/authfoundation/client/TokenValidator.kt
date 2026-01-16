@@ -49,6 +49,7 @@ internal class TokenValidator(
                             throw IdTokenValidator.Error("Invalid id_token signature", IdTokenValidator.Error.INVALID_JWT_SIGNATURE)
                         }
                     }
+
                     is OAuth2ClientResult.Error -> {
                         throw jwksResult.exception
                     }

@@ -3,7 +3,6 @@ import java.util.Properties
 
 plugins {
     id("com.android.application")
-    kotlin("android")
     id("androidx.navigation.safeargs.kotlin")
     id("spotless")
 }
@@ -42,12 +41,6 @@ android {
         targetCompatibility = TARGET_COMPATIBILITY
     }
 
-    kotlin {
-        compilerOptions {
-            jvmTarget = JvmTarget.fromTarget(JVM_TARGET)
-        }
-    }
-
     buildFeatures {
         viewBinding = true
         buildConfig = true
@@ -56,6 +49,12 @@ android {
     packaging {
         resources.excludes.add("META-INF/*")
         resources.pickFirsts.add("META-INF/okta/version.properties")
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget = JvmTarget.fromTarget(JVM_TARGET)
     }
 }
 

@@ -85,6 +85,7 @@ internal class DashboardViewModel(
                 is OAuth2ClientResult.Error -> {
                     RequestState.Result("Failed to revoke token.")
                 }
+
                 is OAuth2ClientResult.Success -> {
                     RequestState.Result("Token Revoked.")
                 }
@@ -98,6 +99,7 @@ internal class DashboardViewModel(
                 is OAuth2ClientResult.Error -> {
                     RequestState.Result("Failed to refresh token.")
                 }
+
                 is OAuth2ClientResult.Success -> {
                     _credentialLiveData.value = CredentialState.Loaded(credential) // Update the UI.
                     RequestState.Result("Token Refreshed.")
@@ -115,6 +117,7 @@ internal class DashboardViewModel(
                 is OAuth2ClientResult.Error -> {
                     RequestState.Result("Failed to introspect token.")
                 }
+
                 is OAuth2ClientResult.Success -> {
                     val successResult = result.result
                     if (successResult is OidcIntrospectInfo.Active) {
@@ -142,6 +145,7 @@ internal class DashboardViewModel(
                     Timber.e(result.exception, "Failed to start logout flow.")
                     _requestStateLiveData.value = RequestState.Result("Logout failed.")
                 }
+
                 is OAuth2ClientResult.Success -> {
                     credential.delete()
                     _requestStateLiveData.value = RequestState.Result("Logout successful!")
@@ -184,6 +188,7 @@ internal class DashboardViewModel(
                 Timber.e(userInfoResult.exception, "Failed to fetch user info.")
                 _userInfoLiveData.postValue(emptyMap())
             }
+
             is OAuth2ClientResult.Success -> {
                 _userInfoLiveData.postValue(userInfoResult.result.deserializeClaims(JsonObject.serializer()).asMap())
             }

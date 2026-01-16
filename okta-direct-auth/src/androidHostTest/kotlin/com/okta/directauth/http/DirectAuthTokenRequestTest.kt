@@ -1,3 +1,18 @@
+/*
+ * Copyright 2022-Present Okta, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.okta.directauth.http
 
 import com.okta.authfoundation.ChallengeGrantType
@@ -46,24 +61,30 @@ class DirectAuthTokenRequestTest {
 
     @Before
     fun setUp() {
-        context = DirectAuthenticationContext(
-            issuerUrl = "https://example.okta.com",
-            clientId = "test_client_id",
-            scope = listOf("openid", "email", "profile", "offline_access"),
-            authorizationServerId = "",
-            clientSecret = "test_client_secret",
-            grantTypes = listOf(GrantType.Password, GrantType.Otp),
-            acrValues = emptyList(),
-            directAuthenticationIntent = DirectAuthenticationIntent.SIGN_IN,
-            apiExecutor = KtorHttpExecutor(),
-            logger = object : AuthFoundationLogger {
-                override fun write(message: String, tr: Throwable?, logLevel: LogLevel) {
-                    // No-op logger for tests
-                }
-            },
-            clock = { 1654041600 }, // 2022-06-01
-            additionalParameters = mapOf("custom_param" to "custom_value")
-        )
+        context =
+            DirectAuthenticationContext(
+                issuerUrl = "https://example.okta.com",
+                clientId = "test_client_id",
+                scope = listOf("openid", "email", "profile", "offline_access"),
+                authorizationServerId = "",
+                clientSecret = "test_client_secret",
+                grantTypes = listOf(GrantType.Password, GrantType.Otp),
+                acrValues = emptyList(),
+                directAuthenticationIntent = DirectAuthenticationIntent.SIGN_IN,
+                apiExecutor = KtorHttpExecutor(),
+                logger =
+                    object : AuthFoundationLogger {
+                        override fun write(
+                            message: String,
+                            tr: Throwable?,
+                            logLevel: LogLevel,
+                        ) {
+                            // No-op logger for tests
+                        }
+                    },
+                clock = { 1654041600 }, // 2022-06-01
+                additionalParameters = mapOf("custom_param" to "custom_value")
+            )
     }
 
     private fun assertCommonProperties(request: DirectAuthTokenRequest) {
@@ -76,11 +97,12 @@ class DirectAuthTokenRequestTest {
 
     @Test
     fun passwordRequest_buildsRequestWithCorrectParameters() {
-        val request = DirectAuthTokenRequest.Password(
-            context = context,
-            username = "test_user",
-            password = "test_password"
-        )
+        val request =
+            DirectAuthTokenRequest.Password(
+                context = context,
+                username = "test_user",
+                password = "test_password"
+            )
 
         assertCommonProperties(request)
 
@@ -97,11 +119,12 @@ class DirectAuthTokenRequestTest {
     @Test
     fun passwordRequest_buildsRequestWithRecoveryIntent() {
         val recoveryContext = context.copy(directAuthenticationIntent = DirectAuthenticationIntent.RECOVERY, scope = listOf("okta.myAccount.password.manage"))
-        val request = DirectAuthTokenRequest.Password(
-            context = recoveryContext,
-            username = "test_user",
-            password = "test_password"
-        )
+        val request =
+            DirectAuthTokenRequest.Password(
+                context = recoveryContext,
+                username = "test_user",
+                password = "test_password"
+            )
 
         assertCommonProperties(request)
 
@@ -118,11 +141,12 @@ class DirectAuthTokenRequestTest {
 
     @Test
     fun otpRequest_buildsRequestWithCorrectParameters() {
-        val request = DirectAuthTokenRequest.Otp(
-            context = context,
-            loginHint = "test_user",
-            otp = "123456"
-        )
+        val request =
+            DirectAuthTokenRequest.Otp(
+                context = context,
+                loginHint = "test_user",
+                otp = "123456"
+            )
 
         assertCommonProperties(request)
 
@@ -135,11 +159,12 @@ class DirectAuthTokenRequestTest {
     @Test
     fun mfaOtpRequest_buildsRequestWithCorrectParameters() {
         val mfaContext = MfaContext(supportedGrantTypes, "test_mfa_token")
-        val request = DirectAuthTokenRequest.MfaOtp(
-            context = context,
-            otp = "123456",
-            mfaContext = mfaContext,
-        )
+        val request =
+            DirectAuthTokenRequest.MfaOtp(
+                context = context,
+                otp = "123456",
+                mfaContext = mfaContext
+            )
 
         assertCommonProperties(request)
 
@@ -151,11 +176,12 @@ class DirectAuthTokenRequestTest {
 
     @Test
     fun oobRequest_buildsRequestWithCorrectParameters() {
-        val request = DirectAuthTokenRequest.Oob(
-            context = context,
-            oobCode = "test_oob_code",
-            bindingCode = "95"
-        )
+        val request =
+            DirectAuthTokenRequest.Oob(
+                context = context,
+                oobCode = "test_oob_code",
+                bindingCode = "95"
+            )
 
         assertCommonProperties(request)
 
@@ -168,12 +194,13 @@ class DirectAuthTokenRequestTest {
     @Test
     fun oobMfaRequest_buildsRequestWithCorrectParameters() {
         val mfaContext = MfaContext(supportedGrantTypes, "test_mfa_token")
-        val request = DirectAuthTokenRequest.OobMfa(
-            context = context,
-            oobCode = "test_oob_code",
-            mfaContext = mfaContext,
-            bindingCode = "test_binding_code"
-        )
+        val request =
+            DirectAuthTokenRequest.OobMfa(
+                context = context,
+                oobCode = "test_oob_code",
+                mfaContext = mfaContext,
+                bindingCode = "test_binding_code"
+            )
 
         assertCommonProperties(request)
 
@@ -186,12 +213,13 @@ class DirectAuthTokenRequestTest {
 
     @Test
     fun webAuthnRequest_buildsRequestWithCorrectParameters() {
-        val request = DirectAuthTokenRequest.WebAuthn(
-            context = context,
-            authenticatorData = "test_authenticator_data",
-            clientDataJson = "test_client_data_json",
-            signature = "test_signature"
-        )
+        val request =
+            DirectAuthTokenRequest.WebAuthn(
+                context = context,
+                authenticatorData = "test_authenticator_data",
+                clientDataJson = "test_client_data_json",
+                signature = "test_signature"
+            )
 
         assertCommonProperties(request)
 
@@ -205,13 +233,14 @@ class DirectAuthTokenRequestTest {
     @Test
     fun webAuthnMfaRequest_buildsRequestWithCorrectParameters() {
         val mfaContext = MfaContext(supportedGrantTypes, "test_mfa_token")
-        val request = DirectAuthTokenRequest.WebAuthnMfa(
-            context = context,
-            mfaContext = mfaContext,
-            authenticatorData = "test_authenticator_data",
-            clientDataJson = "test_client_data_json",
-            signature = "test_signature"
-        )
+        val request =
+            DirectAuthTokenRequest.WebAuthnMfa(
+                context = context,
+                mfaContext = mfaContext,
+                authenticatorData = "test_authenticator_data",
+                clientDataJson = "test_client_data_json",
+                signature = "test_signature"
+            )
 
         assertCommonProperties(request)
 
@@ -225,240 +254,256 @@ class DirectAuthTokenRequestTest {
 
     @Test
     fun request_usesAuthorizationServerIdInUrlPath() {
-        val customAuthServerContext = DirectAuthenticationContext(
-            issuerUrl = "https://example.okta.com",
-            clientId = "test_client_id",
-            scope = listOf("openid", "email", "profile", "offline_access"),
-            authorizationServerId = "default", // Custom Authorization Server ID
-            clientSecret = "test_client_secret",
-            grantTypes = listOf(GrantType.Password, GrantType.Otp),
-            acrValues = emptyList(),
-            directAuthenticationIntent = DirectAuthenticationIntent.SIGN_IN,
-            apiExecutor = KtorHttpExecutor(),
-            logger = context.logger,
-            clock = { 1654041600 },
-            additionalParameters = emptyMap()
-        )
+        val customAuthServerContext =
+            DirectAuthenticationContext(
+                issuerUrl = "https://example.okta.com",
+                clientId = "test_client_id",
+                scope = listOf("openid", "email", "profile", "offline_access"),
+                authorizationServerId = "default", // Custom Authorization Server ID
+                clientSecret = "test_client_secret",
+                grantTypes = listOf(GrantType.Password, GrantType.Otp),
+                acrValues = emptyList(),
+                directAuthenticationIntent = DirectAuthenticationIntent.SIGN_IN,
+                apiExecutor = KtorHttpExecutor(),
+                logger = context.logger,
+                clock = { 1654041600 },
+                additionalParameters = emptyMap()
+            )
 
-        val request = DirectAuthTokenRequest.Password(
-            context = customAuthServerContext,
-            username = "test_user",
-            password = "test_password"
-        )
+        val request =
+            DirectAuthTokenRequest.Password(
+                context = customAuthServerContext,
+                username = "test_user",
+                password = "test_password"
+            )
 
         assertThat(request.url(), equalTo("https://example.okta.com/oauth2/default/v1/token"))
     }
 
     @Test
-    fun request_parsesTokenResponse() = runTest {
-        val request = DirectAuthTokenRequest.Password(context, "test_user", "test_password")
+    fun request_parsesTokenResponse() =
+        runTest {
+            val request = DirectAuthTokenRequest.Password(context, "test_user", "test_password")
 
-        val apiResponse = KtorHttpExecutor(HttpClient(tokenResponseMockEngine)).execute(request).getOrThrow()
-        val directAuthState = apiResponse.tokenResponseAsState(context)
+            val apiResponse = KtorHttpExecutor(HttpClient(tokenResponseMockEngine)).execute(request).getOrThrow()
+            val directAuthState = apiResponse.tokenResponseAsState(context)
 
-        assertThat(request.url(), equalTo("https://example.okta.com/oauth2/v1/token"))
-        assertThat(directAuthState, instanceOf(DirectAuthenticationState.Authenticated::class.java))
-        val token = (directAuthState as DirectAuthenticationState.Authenticated).token
-        assertThat(token.accessToken, equalTo("example_access_token"))
-    }
-
-    @Test
-    fun request_parsesOAuth2ErrorResponse() = runTest {
-        val request = DirectAuthTokenRequest.Password(context, "test_user", "test_password")
-
-        val apiResponse = KtorHttpExecutor(HttpClient(oAuth2ErrorMockEngine)).execute(request).getOrThrow()
-        val directAuthState = apiResponse.tokenResponseAsState(context)
-
-        assertThat(directAuthState, instanceOf(HttpError.Oauth2Error::class.java))
-        val apiError = (directAuthState as HttpError.Oauth2Error)
-        assertThat(apiError.error, equalTo("invalid_grant"))
-        assertThat(apiError.errorDescription, equalTo("The password was invalid."))
-        assertThat(apiError.httpStatusCode, equalTo(HttpStatusCode.BadRequest))
-    }
+            assertThat(request.url(), equalTo("https://example.okta.com/oauth2/v1/token"))
+            assertThat(directAuthState, instanceOf(DirectAuthenticationState.Authenticated::class.java))
+            val token = (directAuthState as DirectAuthenticationState.Authenticated).token
+            assertThat(token.accessToken, equalTo("example_access_token"))
+        }
 
     @Test
-    fun request_handlesServerError() = runTest {
-        val request = DirectAuthTokenRequest.Password(context, "test_user", "test_password")
+    fun request_parsesOAuth2ErrorResponse() =
+        runTest {
+            val request = DirectAuthTokenRequest.Password(context, "test_user", "test_password")
 
-        val apiResponse = KtorHttpExecutor(HttpClient(serverErrorMockEngine)).execute(request).getOrThrow()
-        val directAuthState = apiResponse.tokenResponseAsState(context)
+            val apiResponse = KtorHttpExecutor(HttpClient(oAuth2ErrorMockEngine)).execute(request).getOrThrow()
+            val directAuthState = apiResponse.tokenResponseAsState(context)
 
-        assertThat(directAuthState, instanceOf(HttpError.ApiError::class.java))
-        val apiError = (directAuthState as HttpError.ApiError)
-        assertThat(apiError.errorCode, equalTo("E00000"))
-        assertThat(apiError.errorSummary, equalTo("Internal Server Error"))
-        assertThat(apiError.httpStatusCode, equalTo(HttpStatusCode.InternalServerError))
-    }
-
-    @Test
-    fun request_parsesMfaRequiredResponse() = runTest {
-        val request = DirectAuthTokenRequest.Password(context, "test_user", "test_password")
-
-        val apiResponse = KtorHttpExecutor(HttpClient(mfaRequiredMockEngine)).execute(request).getOrThrow()
-        val directAuthState = apiResponse.tokenResponseAsState(context)
-
-        assertThat(directAuthState, instanceOf(DirectAuthenticationState.MfaRequired::class.java))
-        val mfaRequired = directAuthState as DirectAuthenticationState.MfaRequired
-        assertThat(mfaRequired.mfaContext.mfaToken, equalTo("example_mfa_token"))
-    }
+            assertThat(directAuthState, instanceOf(HttpError.Oauth2Error::class.java))
+            val apiError = (directAuthState as HttpError.Oauth2Error)
+            assertThat(apiError.error, equalTo("invalid_grant"))
+            assertThat(apiError.errorDescription, equalTo("The password was invalid."))
+            assertThat(apiError.httpStatusCode, equalTo(HttpStatusCode.BadRequest))
+        }
 
     @Test
-    fun request_parsesMfaRequiredResponseWithoutMfaToken() = runTest {
-        val request = DirectAuthTokenRequest.Password(context, "test_user", "test_password")
+    fun request_handlesServerError() =
+        runTest {
+            val request = DirectAuthTokenRequest.Password(context, "test_user", "test_password")
 
-        val apiResponse = KtorHttpExecutor(HttpClient(invalidMfaRequiredMockEngine)).execute(request).getOrThrow()
-        val directAuthState = apiResponse.tokenResponseAsState(context)
+            val apiResponse = KtorHttpExecutor(HttpClient(serverErrorMockEngine)).execute(request).getOrThrow()
+            val directAuthState = apiResponse.tokenResponseAsState(context)
 
-
-        assertThat(directAuthState, instanceOf(InternalError::class.java))
-        val error = directAuthState as InternalError
-        assertThat(error.errorCode, equalTo(INVALID_RESPONSE))
-        assertThat(error.throwable, instanceOf(IllegalStateException::class.java))
-        assertThat(error.throwable.message, equalTo("No mfa_token found in body: HTTP ${HttpStatusCode.BadRequest}"))
-    }
-
-    @Test
-    fun request_parsesAuthorizationPendingResponse() = runTest {
-
-        val request = DirectAuthTokenRequest.Oob(context, "test_oob_code")
-
-        val apiResponse = KtorHttpExecutor(HttpClient(authorizationPendingMockEngine)).execute(request).getOrThrow()
-        val directAuthState = apiResponse.tokenResponseAsState(context)
-
-        assertThat(directAuthState, instanceOf(DirectAuthenticationState.AuthorizationPending::class.java))
-    }
+            assertThat(directAuthState, instanceOf(HttpError.ApiError::class.java))
+            val apiError = (directAuthState as HttpError.ApiError)
+            assertThat(apiError.errorCode, equalTo("E00000"))
+            assertThat(apiError.errorSummary, equalTo("Internal Server Error"))
+            assertThat(apiError.httpStatusCode, equalTo(HttpStatusCode.InternalServerError))
+        }
 
     @Test
-    fun request_handlesUnsupportedContentType() = runTest {
-        val request = DirectAuthTokenRequest.Password(context, "test_user", "test_password")
+    fun request_parsesMfaRequiredResponse() =
+        runTest {
+            val request = DirectAuthTokenRequest.Password(context, "test_user", "test_password")
 
-        val apiResponse = KtorHttpExecutor(HttpClient(notJsonMockEngine)).execute(request).getOrThrow()
-        val directAuthState = apiResponse.tokenResponseAsState(context)
+            val apiResponse = KtorHttpExecutor(HttpClient(mfaRequiredMockEngine)).execute(request).getOrThrow()
+            val directAuthState = apiResponse.tokenResponseAsState(context)
 
-        assertThat(directAuthState, instanceOf(InternalError::class.java))
-        val error = directAuthState as InternalError
-        assertThat(error.errorCode, equalTo(UNSUPPORTED_CONTENT_TYPE))
-        assertThat(error.throwable, instanceOf(IllegalStateException::class.java))
-        assertThat(error.throwable.message, equalTo("Unsupported content type: text/plain"))
-    }
-
-    @Test
-    fun request_handlesUnexpectedStatusCode() = runTest {
-        val request = DirectAuthTokenRequest.Password(context, "test_user", "test_password")
-
-        val apiResponse = KtorHttpExecutor(HttpClient(unexpectedStatusCodeMockEngine)).execute(request).getOrThrow()
-        val directAuthState = apiResponse.tokenResponseAsState(context)
-
-        assertThat(directAuthState, instanceOf(InternalError::class.java))
-        val error = directAuthState as InternalError
-        assertThat(error.errorCode, equalTo(UNEXPECTED_HTTP_STATUS))
-        assertThat(error.throwable, instanceOf(IllegalStateException::class.java))
-        assertThat(error.throwable.message, equalTo("Unexpected HTTP Status Code: ${HttpStatusCode.Found}"))
-    }
+            assertThat(directAuthState, instanceOf(DirectAuthenticationState.MfaRequired::class.java))
+            val mfaRequired = directAuthState as DirectAuthenticationState.MfaRequired
+            assertThat(mfaRequired.mfaContext.mfaToken, equalTo("example_mfa_token"))
+        }
 
     @Test
-    fun request_unparseableClientErrorResponse() = runTest {
-        val request = DirectAuthTokenRequest.Password(context, "test_user", "test_password")
+    fun request_parsesMfaRequiredResponseWithoutMfaToken() =
+        runTest {
+            val request = DirectAuthTokenRequest.Password(context, "test_user", "test_password")
 
-        val apiResponse = KtorHttpExecutor(HttpClient(unknownJsonTypeMockEngine)).execute(request).getOrThrow()
-        val directAuthState = apiResponse.tokenResponseAsState(context)
+            val apiResponse = KtorHttpExecutor(HttpClient(invalidMfaRequiredMockEngine)).execute(request).getOrThrow()
+            val directAuthState = apiResponse.tokenResponseAsState(context)
 
-        assertThat(directAuthState, instanceOf(InternalError::class.java))
-        val error = directAuthState as InternalError
-        assertThat(error.errorCode, equalTo(INVALID_RESPONSE))
-        assertThat(error.throwable, instanceOf(IllegalStateException::class.java))
-        assertThat(error.throwable.message, equalTo("No parsable error response body: HTTP ${HttpStatusCode.BadRequest}"))
-    }
-
-    @Test
-    fun request_unparseableServerErrorResponse() = runTest {
-        val request = DirectAuthTokenRequest.Password(context, "test_user", "test_password")
-
-        val apiResponse = KtorHttpExecutor(HttpClient(internalServerErrorMockEngine)).execute(request).getOrThrow()
-        val directAuthState = apiResponse.tokenResponseAsState(context)
-
-        assertThat(directAuthState, instanceOf(InternalError::class.java))
-        val error = directAuthState as InternalError
-        assertThat(error.errorCode, equalTo(INVALID_RESPONSE))
-        assertThat(error.throwable, instanceOf(IllegalStateException::class.java))
-        assertThat(error.throwable.message, equalTo("No parsable error response body: HTTP ${HttpStatusCode.InternalServerError}"))
-    }
+            assertThat(directAuthState, instanceOf(InternalError::class.java))
+            val error = directAuthState as InternalError
+            assertThat(error.errorCode, equalTo(INVALID_RESPONSE))
+            assertThat(error.throwable, instanceOf(IllegalStateException::class.java))
+            assertThat(error.throwable.message, equalTo("No mfa_token found in body: HTTP ${HttpStatusCode.BadRequest}"))
+        }
 
     @Test
-    fun request_emptyErrorResponse() = runTest {
-        val request = DirectAuthTokenRequest.Password(context, "test_user", "test_password")
-        val apiResponse = KtorHttpExecutor(HttpClient(emptyResponseMockEngine)).execute(request).getOrThrow()
-        val directAuthState = apiResponse.tokenResponseAsState(context)
+    fun request_parsesAuthorizationPendingResponse() =
+        runTest {
+            val request = DirectAuthTokenRequest.Oob(context, "test_oob_code")
 
-        assertThat(directAuthState, instanceOf(InternalError::class.java))
-        val error = directAuthState as InternalError
-        assertThat(error.errorCode, equalTo(INVALID_RESPONSE))
-        assertThat(error.throwable, instanceOf(IllegalStateException::class.java))
-        assertThat(error.throwable.message, equalTo("No parsable error response body: HTTP ${HttpStatusCode.BadRequest}"))
-    }
+            val apiResponse = KtorHttpExecutor(HttpClient(authorizationPendingMockEngine)).execute(request).getOrThrow()
+            val directAuthState = apiResponse.tokenResponseAsState(context)
+
+            assertThat(directAuthState, instanceOf(DirectAuthenticationState.AuthorizationPending::class.java))
+        }
 
     @Test
-    fun request_emptySuccessResponse() = runTest {
-        val request = DirectAuthTokenRequest.Password(context, "test_user", "test_password")
-        val apiResponse = KtorHttpExecutor(HttpClient(emptyResponseOkMockEngine)).execute(request).getOrThrow()
-        val directAuthState = apiResponse.tokenResponseAsState(context)
+    fun request_handlesUnsupportedContentType() =
+        runTest {
+            val request = DirectAuthTokenRequest.Password(context, "test_user", "test_password")
 
-        assertThat(directAuthState, instanceOf(InternalError::class.java))
-        val error = directAuthState as InternalError
-        assertThat(error.errorCode, equalTo(INVALID_RESPONSE))
-        assertThat(error.throwable, instanceOf(IllegalStateException::class.java))
-        assertThat(error.throwable.message, equalTo("Empty response body: HTTP ${HttpStatusCode.OK}"))
-    }
+            val apiResponse = KtorHttpExecutor(HttpClient(notJsonMockEngine)).execute(request).getOrThrow()
+            val directAuthState = apiResponse.tokenResponseAsState(context)
 
-    @Test
-    fun request_malformedJsonInHttpOkStatus() = runTest {
-        val request = DirectAuthTokenRequest.Password(context, "test_user", "test_password")
-        val apiResponse = KtorHttpExecutor(HttpClient(malformedJsonOkMockEngine)).execute(request).getOrThrow()
-        val directAuthState = apiResponse.tokenResponseAsState(context)
-
-        assertThat(directAuthState, instanceOf(InternalError::class.java))
-        val error = directAuthState as InternalError
-        assertThat(error.errorCode, equalTo(UNKNOWN_ERROR))
-        assertThat(error.description, containsString("Unexpected JSON token at offset"))
-        assertThat(error.throwable, instanceOf(SerializationException::class.java))
-    }
+            assertThat(directAuthState, instanceOf(InternalError::class.java))
+            val error = directAuthState as InternalError
+            assertThat(error.errorCode, equalTo(UNSUPPORTED_CONTENT_TYPE))
+            assertThat(error.throwable, instanceOf(IllegalStateException::class.java))
+            assertThat(error.throwable.message, equalTo("Unsupported content type: text/plain"))
+        }
 
     @Test
-    fun request_malformedJsonInClientErrorStatus() = runTest {
-        val request = DirectAuthTokenRequest.Password(context, "test_user", "test_password")
-        val apiResponse = KtorHttpExecutor(HttpClient(malformedJsonClientMockEngine)).execute(request).getOrThrow()
-        val directAuthState = apiResponse.tokenResponseAsState(context)
+    fun request_handlesUnexpectedStatusCode() =
+        runTest {
+            val request = DirectAuthTokenRequest.Password(context, "test_user", "test_password")
 
-        assertThat(directAuthState, instanceOf(InternalError::class.java))
-        val error = directAuthState as InternalError
-        assertThat(error.errorCode, equalTo(UNKNOWN_ERROR))
-        assertThat(error.description, containsString("Unexpected JSON token at offset"))
-        assertThat(error.throwable, instanceOf(SerializationException::class.java))
-    }
+            val apiResponse = KtorHttpExecutor(HttpClient(unexpectedStatusCodeMockEngine)).execute(request).getOrThrow()
+            val directAuthState = apiResponse.tokenResponseAsState(context)
 
-    @Test
-    fun request_malformedJsonInDirectAuthenticationErrorResponse() = runTest {
-        val request = DirectAuthTokenRequest.Password(context, "test_user", "test_password")
-        val apiResponse = KtorHttpExecutor(HttpClient(malformedJsonErrorMockEngine)).execute(request).getOrThrow()
-        val directAuthState = apiResponse.tokenResponseAsState(context)
-
-        assertThat(directAuthState, instanceOf(InternalError::class.java))
-        val error = directAuthState as InternalError
-        assertThat(error.errorCode, equalTo(UNKNOWN_ERROR))
-        assertThat(error.description, containsString("Unexpected JSON token at offset"))
-        assertThat(error.throwable, instanceOf(SerializationException::class.java))
-    }
+            assertThat(directAuthState, instanceOf(InternalError::class.java))
+            val error = directAuthState as InternalError
+            assertThat(error.errorCode, equalTo(UNEXPECTED_HTTP_STATUS))
+            assertThat(error.throwable, instanceOf(IllegalStateException::class.java))
+            assertThat(error.throwable.message, equalTo("Unexpected HTTP Status Code: ${HttpStatusCode.Found}"))
+        }
 
     @Test
-    fun request_malFormedJsonInErrorResponse() = runTest {
-        val request = DirectAuthTokenRequest.Password(context, "test_user", "test_password")
-        val apiResponse = KtorHttpExecutor(HttpClient(malformedJsonErrorCodeMockEngine)).execute(request).getOrThrow()
-        val directAuthState = apiResponse.tokenResponseAsState(context)
+    fun request_unparseableClientErrorResponse() =
+        runTest {
+            val request = DirectAuthTokenRequest.Password(context, "test_user", "test_password")
 
-        assertThat(directAuthState, instanceOf(InternalError::class.java))
-        val error = directAuthState as InternalError
-        assertThat(error.errorCode, equalTo(UNKNOWN_ERROR))
-        assertThat(error.description, containsString("Unexpected JSON token at offset"))
-        assertThat(error.throwable, instanceOf(SerializationException::class.java))
-    }
+            val apiResponse = KtorHttpExecutor(HttpClient(unknownJsonTypeMockEngine)).execute(request).getOrThrow()
+            val directAuthState = apiResponse.tokenResponseAsState(context)
+
+            assertThat(directAuthState, instanceOf(InternalError::class.java))
+            val error = directAuthState as InternalError
+            assertThat(error.errorCode, equalTo(INVALID_RESPONSE))
+            assertThat(error.throwable, instanceOf(IllegalStateException::class.java))
+            assertThat(error.throwable.message, equalTo("No parsable error response body: HTTP ${HttpStatusCode.BadRequest}"))
+        }
+
+    @Test
+    fun request_unparseableServerErrorResponse() =
+        runTest {
+            val request = DirectAuthTokenRequest.Password(context, "test_user", "test_password")
+
+            val apiResponse = KtorHttpExecutor(HttpClient(internalServerErrorMockEngine)).execute(request).getOrThrow()
+            val directAuthState = apiResponse.tokenResponseAsState(context)
+
+            assertThat(directAuthState, instanceOf(InternalError::class.java))
+            val error = directAuthState as InternalError
+            assertThat(error.errorCode, equalTo(INVALID_RESPONSE))
+            assertThat(error.throwable, instanceOf(IllegalStateException::class.java))
+            assertThat(error.throwable.message, equalTo("No parsable error response body: HTTP ${HttpStatusCode.InternalServerError}"))
+        }
+
+    @Test
+    fun request_emptyErrorResponse() =
+        runTest {
+            val request = DirectAuthTokenRequest.Password(context, "test_user", "test_password")
+            val apiResponse = KtorHttpExecutor(HttpClient(emptyResponseMockEngine)).execute(request).getOrThrow()
+            val directAuthState = apiResponse.tokenResponseAsState(context)
+
+            assertThat(directAuthState, instanceOf(InternalError::class.java))
+            val error = directAuthState as InternalError
+            assertThat(error.errorCode, equalTo(INVALID_RESPONSE))
+            assertThat(error.throwable, instanceOf(IllegalStateException::class.java))
+            assertThat(error.throwable.message, equalTo("No parsable error response body: HTTP ${HttpStatusCode.BadRequest}"))
+        }
+
+    @Test
+    fun request_emptySuccessResponse() =
+        runTest {
+            val request = DirectAuthTokenRequest.Password(context, "test_user", "test_password")
+            val apiResponse = KtorHttpExecutor(HttpClient(emptyResponseOkMockEngine)).execute(request).getOrThrow()
+            val directAuthState = apiResponse.tokenResponseAsState(context)
+
+            assertThat(directAuthState, instanceOf(InternalError::class.java))
+            val error = directAuthState as InternalError
+            assertThat(error.errorCode, equalTo(INVALID_RESPONSE))
+            assertThat(error.throwable, instanceOf(IllegalStateException::class.java))
+            assertThat(error.throwable.message, equalTo("Empty response body: HTTP ${HttpStatusCode.OK}"))
+        }
+
+    @Test
+    fun request_malformedJsonInHttpOkStatus() =
+        runTest {
+            val request = DirectAuthTokenRequest.Password(context, "test_user", "test_password")
+            val apiResponse = KtorHttpExecutor(HttpClient(malformedJsonOkMockEngine)).execute(request).getOrThrow()
+            val directAuthState = apiResponse.tokenResponseAsState(context)
+
+            assertThat(directAuthState, instanceOf(InternalError::class.java))
+            val error = directAuthState as InternalError
+            assertThat(error.errorCode, equalTo(UNKNOWN_ERROR))
+            assertThat(error.description, containsString("Unexpected JSON token at offset"))
+            assertThat(error.throwable, instanceOf(SerializationException::class.java))
+        }
+
+    @Test
+    fun request_malformedJsonInClientErrorStatus() =
+        runTest {
+            val request = DirectAuthTokenRequest.Password(context, "test_user", "test_password")
+            val apiResponse = KtorHttpExecutor(HttpClient(malformedJsonClientMockEngine)).execute(request).getOrThrow()
+            val directAuthState = apiResponse.tokenResponseAsState(context)
+
+            assertThat(directAuthState, instanceOf(InternalError::class.java))
+            val error = directAuthState as InternalError
+            assertThat(error.errorCode, equalTo(UNKNOWN_ERROR))
+            assertThat(error.description, containsString("Unexpected JSON token at offset"))
+            assertThat(error.throwable, instanceOf(SerializationException::class.java))
+        }
+
+    @Test
+    fun request_malformedJsonInDirectAuthenticationErrorResponse() =
+        runTest {
+            val request = DirectAuthTokenRequest.Password(context, "test_user", "test_password")
+            val apiResponse = KtorHttpExecutor(HttpClient(malformedJsonErrorMockEngine)).execute(request).getOrThrow()
+            val directAuthState = apiResponse.tokenResponseAsState(context)
+
+            assertThat(directAuthState, instanceOf(InternalError::class.java))
+            val error = directAuthState as InternalError
+            assertThat(error.errorCode, equalTo(UNKNOWN_ERROR))
+            assertThat(error.description, containsString("Unexpected JSON token at offset"))
+            assertThat(error.throwable, instanceOf(SerializationException::class.java))
+        }
+
+    @Test
+    fun request_malFormedJsonInErrorResponse() =
+        runTest {
+            val request = DirectAuthTokenRequest.Password(context, "test_user", "test_password")
+            val apiResponse = KtorHttpExecutor(HttpClient(malformedJsonErrorCodeMockEngine)).execute(request).getOrThrow()
+            val directAuthState = apiResponse.tokenResponseAsState(context)
+
+            assertThat(directAuthState, instanceOf(InternalError::class.java))
+            val error = directAuthState as InternalError
+            assertThat(error.errorCode, equalTo(UNKNOWN_ERROR))
+            assertThat(error.description, containsString("Unexpected JSON token at offset"))
+            assertThat(error.throwable, instanceOf(SerializationException::class.java))
+        }
 }

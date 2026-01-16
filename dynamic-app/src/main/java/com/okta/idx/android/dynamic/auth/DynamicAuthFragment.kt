@@ -77,12 +77,15 @@ internal class DynamicAuthFragment :
                         binding.formContent.addView(field.createView())
                     }
                 }
+
                 is DynamicAuthState.Error -> {
                     addErrorView()
                 }
+
                 DynamicAuthState.Loading -> {
                     addLoadingView()
                 }
+
                 // If login is success, update the `TokenViewModel` and switch to `DashboardFragment`.
                 DynamicAuthState.Tokens -> {
                     findNavController().navigate(DynamicAuthFragmentDirections.dynamicAuthToDashboard())
@@ -149,6 +152,7 @@ internal class DynamicAuthFragment :
 
                 textBinding.root
             }
+
             // Render checkboxes.
             is DynamicAuthField.CheckBox -> {
                 val actionBinding = binding.formContent.inflateBinding(FormCheckBoxBinding::inflate)
@@ -159,6 +163,7 @@ internal class DynamicAuthFragment :
                 }
                 actionBinding.root
             }
+
             // Render actions as buttons.
             is DynamicAuthField.Action -> {
                 val actionBinding = binding.formContent.inflateBinding(FormActionPrimaryBinding::inflate)
@@ -166,6 +171,7 @@ internal class DynamicAuthFragment :
                 actionBinding.button.setOnClickListener { onClick(requireActivity()) }
                 actionBinding.root
             }
+
             // Render radio groups for authenticator selection.
             is DynamicAuthField.Options -> {
                 fun showSelectedContent(group: RadioGroup) {
@@ -212,6 +218,7 @@ internal class DynamicAuthFragment :
                 showSelectedContent(optionsBinding.radioGroup)
                 optionsBinding.root
             }
+
             // Render image for authenticator QR code.
             is DynamicAuthField.Image -> {
                 val imageBinding = binding.formContent.inflateBinding(FormImageBinding::inflate)
@@ -228,6 +235,7 @@ internal class DynamicAuthFragment :
                 }
                 imageBinding.root
             }
+
             // Render labels.
             is DynamicAuthField.Label -> {
                 val binding = binding.formContent.inflateBinding(FormLabelBinding::inflate)

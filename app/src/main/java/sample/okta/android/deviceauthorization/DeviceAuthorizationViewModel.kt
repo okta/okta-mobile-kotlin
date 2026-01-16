@@ -43,6 +43,7 @@ internal class DeviceAuthorizationViewModel : ViewModel() {
                     Timber.e(result.exception, "Failed to start device authorization flow.")
                     _state.value = DeviceAuthorizationState.Error("An error occurred.")
                 }
+
                 is OAuth2ClientResult.Success -> {
                     _state.value = DeviceAuthorizationState.Polling(result.result.userCode, result.result.verificationUri)
                     resume(deviceAuthorizationFlow, result.result)
@@ -60,6 +61,7 @@ internal class DeviceAuthorizationViewModel : ViewModel() {
                 Timber.e(result.exception, "Failed to resume device authorization flow.")
                 _state.value = DeviceAuthorizationState.Error("An error occurred.")
             }
+
             is OAuth2ClientResult.Success -> {
                 val credential = Credential.store(token = result.result)
                 Credential.setDefaultAsync(credential)

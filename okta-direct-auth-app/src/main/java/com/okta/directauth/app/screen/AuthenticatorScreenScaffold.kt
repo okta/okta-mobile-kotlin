@@ -1,3 +1,18 @@
+/*
+ * Copyright 2022-Present Okta, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.okta.directauth.app.screen
 
 import androidx.compose.foundation.Image
@@ -27,14 +42,16 @@ fun AuthenticatorScreenScaffold(
     username: String,
     backToSignIn: () -> Unit,
     verifyWithSomethingElse: (() -> Unit)?,
+    modifier: Modifier = Modifier,
     forgotPassword: @Composable (() -> Unit)? = null,
-    content: @Composable (() -> Unit)
+    content: @Composable (() -> Unit),
 ) {
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Image(
             painter = painterResource(id = R.drawable.ic_launcher_foreground),
@@ -46,7 +63,7 @@ fun AuthenticatorScreenScaffold(
         Spacer(modifier = Modifier.height(Dimens.spaceMedium))
         Text(
             text = title,
-            fontWeight = FontWeight.Bold,
+            fontWeight = FontWeight.Bold
         )
         Text(text = username)
         Spacer(modifier = Modifier.height(Dimens.spaceMedium))
@@ -54,22 +71,24 @@ fun AuthenticatorScreenScaffold(
         Spacer(modifier = Modifier.height(Dimens.spaceMedium))
         Column(
             modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.Start,
+            horizontalAlignment = Alignment.Start
         ) {
             forgotPassword?.invoke()
             if (verifyWithSomethingElse != null) {
                 Text(
                     text = stringResource(id = R.string.verify_with_something_else),
                     color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier
-                        .clickable(onClick = verifyWithSomethingElse)
+                    modifier =
+                        Modifier
+                            .clickable(onClick = verifyWithSomethingElse)
                 )
             }
             Text(
                 text = stringResource(id = R.string.back_to_sign_in),
                 color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier
-                    .clickable(onClick = backToSignIn)
+                modifier =
+                    Modifier
+                        .clickable(onClick = backToSignIn)
             )
         }
     }

@@ -1,3 +1,18 @@
+/*
+ * Copyright 2022-Present Okta, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.okta.directauth.model
 
 import com.okta.authfoundation.ChallengeGrantType
@@ -25,7 +40,6 @@ import kotlin.coroutines.cancellation.CancellationException
  * problems (e.g., network failures, response parsing errors).
  */
 sealed interface DirectAuthenticationState {
-
     /**
      * The initial state of the authentication flow, before any action has been taken.
      */
@@ -42,14 +56,18 @@ sealed interface DirectAuthenticationState {
      *
      * @param timestamp The time in milliseconds when the authorization became pending.
      */
-    class AuthorizationPending internal constructor(val timestamp: Long) : DirectAuthenticationState
+    class AuthorizationPending internal constructor(
+        val timestamp: Long,
+    ) : DirectAuthenticationState
 
     /**
      * This state indicates that the user has been authenticated and tokens have been issued.
      *
      * @param token The [Token] containing the access, refresh, and ID tokens.
      */
-    class Authenticated internal constructor(val token: Token) : DirectAuthenticationState
+    class Authenticated internal constructor(
+        val token: Token,
+    ) : DirectAuthenticationState
 
     /**
      * The authentication flow requires an additional factor to complete.
@@ -60,8 +78,10 @@ sealed interface DirectAuthenticationState {
      * @param context The [DirectAuthenticationContext] associated with this state.
      * @param mfaContext The context required to continue the MFA flow.
      */
-    class MfaRequired internal constructor(private val context: DirectAuthenticationContext, internal val mfaContext: MfaContext) : DirectAuthenticationState {
-
+    class MfaRequired internal constructor(
+        private val context: DirectAuthenticationContext,
+        internal val mfaContext: MfaContext,
+    ) : DirectAuthenticationState {
         /**
          * Initiates an interactive multi-factor authentication (MFA) challenge.
          *
@@ -79,18 +99,22 @@ sealed interface DirectAuthenticationState {
          * while waiting for the user to complete the challenge, or an error state if the challenge
          * could not be initiated.
          */
-        suspend fun challenge(secondaryFactor: SecondaryFactor, challengeTypesSupported: List<ChallengeGrantType> = listOf(WebAuthnMfa, OobMfa, OtpMfa)): DirectAuthenticationState {
-            val result = runCatching {
-                val channel = if (secondaryFactor is PrimaryFactor.Oob) secondaryFactor.channel else null
-                val request = DirectAuthChallengeRequest(context, mfaContext, challengeTypesSupported, channel)
-                val response = context.apiExecutor.execute(request).getOrThrow()
-                response.challengeResponseAsState(context, mfaContext)
-            }.getOrElse {
-                when (it) {
-                    is CancellationException -> Canceled
-                    else -> DirectAuthenticationError.InternalError(EXCEPTION, it.message, it)
+        suspend fun challenge(
+            secondaryFactor: SecondaryFactor,
+            challengeTypesSupported: List<ChallengeGrantType> = listOf(WebAuthnMfa, OobMfa, OtpMfa),
+        ): DirectAuthenticationState {
+            val result =
+                runCatching {
+                    val channel = if (secondaryFactor is PrimaryFactor.Oob) secondaryFactor.channel else null
+                    val request = DirectAuthChallengeRequest(context, mfaContext, challengeTypesSupported, channel)
+                    val response = context.apiExecutor.execute(request).getOrThrow()
+                    response.challengeResponseAsState(context, mfaContext)
+                }.getOrElse {
+                    when (it) {
+                        is CancellationException -> Canceled
+                        else -> DirectAuthenticationError.InternalError(EXCEPTION, it.message, it)
+                    }
                 }
-            }
             context.authenticationStateFlow.value = result
             return result
         }
@@ -111,23 +135,29 @@ sealed interface DirectAuthenticationState {
          * @return The next [DirectAuthenticationState] in the flow, which could be [Authenticated],
          *   [AuthorizationPending], or an error state.
          */
-        suspend fun resume(secondaryFactor: SecondaryFactor, challengeTypesSupported: List<ChallengeGrantType> = listOf(WebAuthnMfa, OobMfa, OtpMfa)): DirectAuthenticationState {
-            val result = runCatching {
-                when (secondaryFactor) {
-                    is PrimaryFactor.Otp -> {
-                        val request = DirectAuthTokenRequest.MfaOtp(context.copy(grantTypes = challengeTypesSupported), secondaryFactor.passCode, mfaContext)
-                        val response = context.apiExecutor.execute(request).getOrThrow()
-                        response.tokenResponseAsState(context)
-                    }
+        suspend fun resume(
+            secondaryFactor: SecondaryFactor,
+            challengeTypesSupported: List<ChallengeGrantType> = listOf(WebAuthnMfa, OobMfa, OtpMfa),
+        ): DirectAuthenticationState {
+            val result =
+                runCatching {
+                    when (secondaryFactor) {
+                        is PrimaryFactor.Otp -> {
+                            val request = DirectAuthTokenRequest.MfaOtp(context.copy(grantTypes = challengeTypesSupported), secondaryFactor.passCode, mfaContext)
+                            val response = context.apiExecutor.execute(request).getOrThrow()
+                            response.tokenResponseAsState(context)
+                        }
 
-                    is PrimaryFactor.Oob, PrimaryFactor.WebAuthn -> challenge(secondaryFactor, challengeTypesSupported)
+                        is PrimaryFactor.Oob, PrimaryFactor.WebAuthn -> {
+                            challenge(secondaryFactor, challengeTypesSupported)
+                        }
+                    }
+                }.getOrElse {
+                    when (it) {
+                        is CancellationException -> Canceled
+                        else -> DirectAuthenticationError.InternalError(EXCEPTION, it.message, it)
+                    }
                 }
-            }.getOrElse {
-                when (it) {
-                    is CancellationException -> Canceled
-                    else -> DirectAuthenticationError.InternalError(EXCEPTION, it.message, it)
-                }
-            }
             context.authenticationStateFlow.value = result
             return result
         }

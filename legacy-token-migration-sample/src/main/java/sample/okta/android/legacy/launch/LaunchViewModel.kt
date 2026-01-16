@@ -41,12 +41,15 @@ internal class LaunchViewModel : ViewModel() {
                 is LegacyTokenMigration.Result.Error -> {
                     Timber.d(result.exception, "Token migration failed.")
                 }
+
                 LegacyTokenMigration.Result.MissingLegacyToken -> {
                     Timber.d("No token to migrate.")
                 }
+
                 is LegacyTokenMigration.Result.PreviouslyMigrated -> {
                     Timber.d("Token previously migrated.")
                 }
+
                 is LegacyTokenMigration.Result.SuccessfullyMigrated -> {
                     _migratedLiveData.value = Unit // Update the UI.
                 }

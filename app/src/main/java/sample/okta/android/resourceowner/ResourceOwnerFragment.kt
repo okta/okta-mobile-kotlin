@@ -53,11 +53,14 @@ internal class ResourceOwnerFragment :
                 is ResourceOwnerState.Error -> {
                     binding.errorTextView.text = state.message
                 }
+
                 ResourceOwnerState.Idle -> {
                 }
+
                 ResourceOwnerState.Token -> {
                     findNavController().navigate(ResourceOwnerFragmentDirections.resourceOwnerToDashboard())
                 }
+
                 ResourceOwnerState.Loading -> {
                     binding.login.isEnabled = false
                 }

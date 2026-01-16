@@ -1,3 +1,18 @@
+/*
+ * Copyright 2022-Present Okta, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.okta.directauth.app.screen
 
 import android.util.Log
@@ -79,7 +94,8 @@ fun PasswordScreen(
     backToSignIn: () -> Unit,
     verifyWithSomethingElse: () -> Unit,
     forgotPassword: () -> Unit,
-    next: (String) -> Job
+    modifier: Modifier = Modifier,
+    next: (String) -> Job,
 ) {
     LaunchedEffect(Unit) {
         Log.i(TAG, "PasswordScreen displayed - username: $username")
@@ -106,21 +122,22 @@ fun PasswordScreen(
             Text(
                 text = stringResource(id = R.string.forgot_password),
                 color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier
-                    .clickable(
-                        enabled = !jobState.isActive,
-                        onClick = forgotPassword,
-                    )
+                modifier =
+                    Modifier
+                        .clickable(
+                            enabled = !jobState.isActive,
+                            onClick = forgotPassword
+                        )
             )
         }
     ) {
         Column(
             modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.Start,
+            horizontalAlignment = Alignment.Start
         ) {
             Text(
                 text = "Password",
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.Bold
             )
             OutlinedTextField(
                 value = password,
@@ -130,32 +147,36 @@ fun PasswordScreen(
                 isError = showError,
                 enabled = !jobState.isActive,
                 trailingIcon = {
-                    val image = if (passwordVisible)
-                        Icons.Filled.Visibility
-                    else Icons.Filled.VisibilityOff
+                    val image =
+                        if (passwordVisible) {
+                            Icons.Filled.Visibility
+                        } else {
+                            Icons.Filled.VisibilityOff
+                        }
 
                     val description = if (passwordVisible) "Hide password" else "Show password"
 
                     IconButton(
                         onClick = { passwordVisible = !passwordVisible },
-                        enabled = !jobState.isActive,
+                        enabled = !jobState.isActive
                     ) {
                         Icon(imageVector = image, description)
                     }
                 },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                keyboardActions = KeyboardActions(
-                    onDone = {
-                        password.validateNotBlank(
-                            onError = { showError = true },
-                            onSuccess = {
-                                focusManager.clearFocus()
-                                jobState.addJob(next(it))
-                            }
-                        )
-                    }
-                )
+                keyboardActions =
+                    KeyboardActions(
+                        onDone = {
+                            password.validateNotBlank(
+                                onError = { showError = true },
+                                onSuccess = {
+                                    focusManager.clearFocus()
+                                    jobState.addJob(next(it))
+                                }
+                            )
+                        }
+                    )
             )
             if (showError) {
                 Text(BLANK_FIELD_ERROR, color = Color.Red)
@@ -172,7 +193,7 @@ fun PasswordScreen(
                 )
             },
             enabled = !jobState.isActive,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth()
         ) {
             Text(text = "Next")
         }
@@ -181,14 +202,14 @@ fun PasswordScreen(
 
 @PreviewLightDark
 @Composable
-fun PasswordScreenPreview() {
+private fun PasswordScreenPreview() {
     DirectAuthAppTheme {
         PasswordScreen(
             username = "user1@okta.com",
             backToSignIn = {},
             verifyWithSomethingElse = {},
             forgotPassword = {},
-            next = { Job().apply { complete() }}
+            next = { Job().apply { complete() } }
         )
     }
 }

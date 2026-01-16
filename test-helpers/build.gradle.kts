@@ -2,7 +2,6 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     id("com.android.library")
-    kotlin("android")
     id("spotless")
 }
 
@@ -27,12 +26,12 @@ android {
         sourceCompatibility = SOURCE_COMPATIBILITY
         targetCompatibility = TARGET_COMPATIBILITY
     }
+}
 
-    kotlin {
-        compilerOptions {
-            jvmTarget = JvmTarget.fromTarget(JVM_TARGET)
-            freeCompilerArgs.add("-opt-in=kotlin.RequiresOptIn")
-        }
+kotlin {
+    compilerOptions {
+        jvmTarget = JvmTarget.fromTarget(JVM_TARGET)
+        freeCompilerArgs.add("-opt-in=kotlin.RequiresOptIn")
     }
 }
 

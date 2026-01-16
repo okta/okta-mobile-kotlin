@@ -2,7 +2,6 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     id("com.android.library")
-    kotlin("android")
     id("spotless")
 }
 
@@ -27,13 +26,6 @@ android {
         targetCompatibility = TARGET_COMPATIBILITY
     }
 
-    kotlin {
-        compilerOptions {
-            jvmTarget = JvmTarget.fromTarget(JVM_TARGET)
-            freeCompilerArgs.add("-opt-in=com.okta.authfoundation.InternalAuthFoundationApi")
-        }
-    }
-
     buildFeatures {
         buildConfig = false
     }
@@ -42,6 +34,13 @@ android {
         resources {
             excludes += "META-INF/*"
         }
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget = JvmTarget.fromTarget(JVM_TARGET)
+        freeCompilerArgs.add("-opt-in=com.okta.authfoundation.InternalAuthFoundationApi")
     }
 }
 

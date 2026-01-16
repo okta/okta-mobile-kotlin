@@ -41,6 +41,7 @@ class BrowserViewModel : ViewModel() {
                     Timber.e(result.exception, "Failed to login.")
                     _state.value = BrowserState.Error("Failed to login.")
                 }
+
                 is OAuth2ClientResult.Success -> {
                     val credential = Credential.store(token = result.result)
                     Credential.setDefaultAsync(credential)

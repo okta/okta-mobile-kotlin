@@ -1,3 +1,18 @@
+/*
+ * Copyright 2022-Present Okta, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.okta.directauth.app.screen
 
 import android.util.Log
@@ -66,12 +81,12 @@ private const val TAG = "OobPollingScreen"
  */
 @Composable
 fun OobPollingScreen(
-    modifier: Modifier = Modifier,
     message: String,
+    onCancel: () -> Unit,
+    modifier: Modifier = Modifier,
     bindingCode: String? = null,
     countdownSeconds: Int? = null,
     pollAction: (() -> Job?)? = null,
-    onCancel: () -> Unit,
 ) {
     var remainingTime by remember(countdownSeconds) { mutableIntStateOf(countdownSeconds ?: 0) }
     var pollingJob by remember { mutableStateOf<Job?>(null) }
@@ -90,10 +105,11 @@ fun OobPollingScreen(
 
     Scaffold(modifier = modifier.fillMaxSize()) { innerPadding ->
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .padding(16.dp),
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .padding(16.dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -130,21 +146,21 @@ fun OobPollingScreen(
 
 @PreviewLightDark
 @Composable
-fun OobPollingScreenPreview() {
+private fun OobPollingScreenPreview() {
     DirectAuthAppTheme {
-        OobPollingScreen(message = "Polling for result...", countdownSeconds = 60, onCancel = {}, pollAction = { null })
+        OobPollingScreen(message = "Polling for result...", onCancel = {}, countdownSeconds = 60, pollAction = { null })
     }
 }
 
 @PreviewLightDark
 @Composable
-fun OobPollingScreenWithBindingCodePreview() {
+private fun OobPollingScreenWithBindingCodePreview() {
     DirectAuthAppTheme {
         OobPollingScreen(
             message = "Please verify the code on your other device",
+            onCancel = {},
             bindingCode = "123456",
             countdownSeconds = 60,
-            onCancel = {},
             pollAction = { null }
         )
     }

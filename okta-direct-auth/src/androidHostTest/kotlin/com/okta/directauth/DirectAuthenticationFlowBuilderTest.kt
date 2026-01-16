@@ -1,3 +1,18 @@
+/*
+ * Copyright 2022-Present Okta, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.okta.directauth
 
 import com.okta.authfoundation.ChallengeGrantType
@@ -48,28 +63,33 @@ class DirectAuthenticationFlowBuilderTest {
         val customIntent = DirectAuthenticationIntent.RECOVERY
         val customGrantTypes = listOf(GrantType.Password)
         val customAcrValues = listOf("phr", "phrh")
-        val customApiExecutor = object : ApiExecutor {
-            override suspend fun execute(request: ApiRequest): Result<ApiResponse> {
-                throw NotImplementedError()
+        val customApiExecutor =
+            object : ApiExecutor {
+                override suspend fun execute(request: ApiRequest): Result<ApiResponse> = throw NotImplementedError()
             }
-        }
-        val customLogger = object : AuthFoundationLogger {
-            override fun write(message: String, tr: Throwable?, logLevel: LogLevel) {}
-        }
+        val customLogger =
+            object : AuthFoundationLogger {
+                override fun write(
+                    message: String,
+                    tr: Throwable?,
+                    logLevel: LogLevel,
+                ) {}
+            }
         val customClock = OidcClock { 123456L }
         val customParams = mapOf("custom" to "value")
 
-        val result = DirectAuthenticationFlowBuilder.create(issuerUrl, clientId, scope) {
-            authorizationServerId = customAuthServerId
-            clientSecret = customClientSecret
-            directAuthenticationIntent = customIntent
-            supportedGrantType = customGrantTypes
-            acrValues = customAcrValues
-            apiExecutor = customApiExecutor
-            logger = customLogger
-            clock = customClock
-            additionalParameter = customParams
-        }
+        val result =
+            DirectAuthenticationFlowBuilder.create(issuerUrl, clientId, scope) {
+                authorizationServerId = customAuthServerId
+                clientSecret = customClientSecret
+                directAuthenticationIntent = customIntent
+                supportedGrantType = customGrantTypes
+                acrValues = customAcrValues
+                apiExecutor = customApiExecutor
+                logger = customLogger
+                clock = customClock
+                additionalParameter = customParams
+            }
 
         assertThat(result.isSuccess, equalTo(true))
 

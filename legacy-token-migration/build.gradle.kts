@@ -1,11 +1,13 @@
+
+import com.android.build.api.variant.AndroidTest
+import com.android.build.api.variant.UnitTest
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     id("com.android.library")
+    alias(libs.plugins.dokka)
     id("binary-compatibility-validator")
     id("spotless")
-    kotlin("android")
-    alias(libs.plugins.dokka)
     id("com.vanniktech.maven.publish.base")
 }
 
@@ -32,20 +34,20 @@ android {
         sourceCompatibility = SOURCE_COMPATIBILITY
         targetCompatibility = TARGET_COMPATIBILITY
     }
+}
 
-    kotlin {
-        compilerOptions {
-            jvmTarget = JvmTarget.fromTarget(JVM_TARGET)
-            freeCompilerArgs.addAll(listOf("-opt-in=kotlin.RequiresOptIn", "-opt-in=com.okta.authfoundation.InternalAuthFoundationApi"))
+kotlin {
+    compilerOptions {
+        jvmTarget = JvmTarget.fromTarget(JVM_TARGET)
+        freeCompilerArgs.addAll(listOf("-opt-in=kotlin.RequiresOptIn", "-opt-in=com.okta.authfoundation.InternalAuthFoundationApi"))
+    }
+}
+
+androidComponents {
+    onVariants { variant ->
+        if (variant is AndroidTest || variant is UnitTest) {
+            variant.manifestPlaceholders.put("appAuthRedirectScheme", "unitTest")
         }
-    }
-
-    testVariants.all {
-        mergedFlavor.manifestPlaceholders["appAuthRedirectScheme"] = "unitTest"
-    }
-
-    unitTestVariants.all {
-        mergedFlavor.manifestPlaceholders["appAuthRedirectScheme"] = "unitTest"
     }
 }
 

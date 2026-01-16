@@ -24,7 +24,7 @@ import org.hamcrest.CoreMatchers.not
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.After
 import org.junit.Before
-import kotlin.test.Test
+import org.junit.Test
 
 class AuthFoundationDefaultsTest {
     private lateinit var defaultSdkState: DefaultSdkState

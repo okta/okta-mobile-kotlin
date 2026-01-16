@@ -1,3 +1,18 @@
+/*
+ * Copyright 2022-Present Okta, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.okta.directauth.model
 
 import com.okta.directauth.http.DirectAuthTokenRequest
@@ -25,8 +40,10 @@ import kotlin.time.Duration.Companion.seconds
  * @param mfaContext An optional context for MFA flows, which may be present if the continuation
  * is part of a multi-factor sequence.
  */
-sealed class DirectAuthContinuation(internal val context: DirectAuthenticationContext, internal val mfaContext: MfaContext? = null) : DirectAuthenticationState {
-
+sealed class DirectAuthContinuation(
+    internal val context: DirectAuthenticationContext,
+    internal val mfaContext: MfaContext? = null,
+) : DirectAuthenticationState {
     /**
      * Shared implementation for polling an out-of-band (OOB) authentication endpoint.
      *
@@ -48,35 +65,41 @@ sealed class DirectAuthContinuation(internal val context: DirectAuthenticationCo
      * @param mfaContext An optional context for MFA flows.
      * @return The final [DirectAuthenticationState] after the polling completes, is canceled, or fails.
      */
-    internal suspend fun poll(bindingContext: BindingContext, context: DirectAuthenticationContext, mfaContext: MfaContext?): DirectAuthenticationState {
-        val state = runCatching {
-            withTimeout(bindingContext.expiresIn.seconds) {
-                while (isActive) {
-                    val request = mfaContext?.let {
-                        DirectAuthTokenRequest.OobMfa(context, bindingContext.oobCode, it)
-                    } ?: DirectAuthTokenRequest.Oob(context, bindingContext.oobCode)
+    internal suspend fun poll(
+        bindingContext: BindingContext,
+        context: DirectAuthenticationContext,
+        mfaContext: MfaContext?,
+    ): DirectAuthenticationState {
+        val state =
+            runCatching {
+                withTimeout(bindingContext.expiresIn.seconds) {
+                    while (isActive) {
+                        val request =
+                            mfaContext?.let {
+                                DirectAuthTokenRequest.OobMfa(context, bindingContext.oobCode, it)
+                            } ?: DirectAuthTokenRequest.Oob(context, bindingContext.oobCode)
 
-                    val response = context.apiExecutor.execute(request).getOrThrow()
-                    val currentState = response.tokenResponseAsState(context)
+                        val response = context.apiExecutor.execute(request).getOrThrow()
+                        val currentState = response.tokenResponseAsState(context)
 
-                    context.authenticationStateFlow.value = currentState
+                        context.authenticationStateFlow.value = currentState
 
-                    if (currentState !is DirectAuthenticationState.AuthorizationPending) return@withTimeout currentState
+                        if (currentState !is DirectAuthenticationState.AuthorizationPending) return@withTimeout currentState
 
-                    // if delay interval is not specified then default to 5 seconds
-                    val interval = bindingContext.interval ?: 5
-                    delay(interval.seconds)
+                        // if delay interval is not specified then default to 5 seconds
+                        val interval = bindingContext.interval ?: 5
+                        delay(interval.seconds)
+                    }
+                    // This is reached if the loop exits due to the job being canceled
+                    DirectAuthenticationState.Canceled
                 }
-                // This is reached if the loop exits due to the job being canceled
-                DirectAuthenticationState.Canceled
+            }.getOrElse {
+                when (it) {
+                    is TimeoutCancellationException -> DirectAuthenticationError.InternalError(EXCEPTION, "Polling timed out after ${bindingContext.expiresIn} seconds.", it)
+                    is CancellationException -> DirectAuthenticationState.Canceled
+                    else -> DirectAuthenticationError.InternalError(EXCEPTION, it.message, it)
+                }
             }
-        }.getOrElse {
-            when (it) {
-                is TimeoutCancellationException -> DirectAuthenticationError.InternalError(EXCEPTION, "Polling timed out after ${bindingContext.expiresIn} seconds.", it)
-                is CancellationException -> DirectAuthenticationState.Canceled
-                else -> DirectAuthenticationError.InternalError(EXCEPTION, it.message, it)
-            }
-        }
         context.authenticationStateFlow.value = state
         return state
     }
@@ -91,7 +114,11 @@ sealed class DirectAuthContinuation(internal val context: DirectAuthenticationCo
      * @param context The [DirectAuthenticationContext] associated with this state.
      * @param mfaContext An optional context for MFA flows.
      */
-    class WebAuthn internal constructor(val challengeData: String, context: DirectAuthenticationContext, mfaContext: MfaContext? = null) : DirectAuthContinuation(context, mfaContext) {
+    class WebAuthn internal constructor(
+        val challengeData: String,
+        context: DirectAuthenticationContext,
+        mfaContext: MfaContext? = null,
+    ) : DirectAuthContinuation(context, mfaContext) {
         /**
          * Proceeds with the authentication flow with the response from the WebAuthn/passkey ceremony.
          *
@@ -111,8 +138,11 @@ sealed class DirectAuthContinuation(internal val context: DirectAuthenticationCo
      * @param context The [DirectAuthenticationContext] associated with this state.
      * @param mfaContext An optional context for MFA flows.
      */
-    class Prompt internal constructor(internal val bindingContext: BindingContext, context: DirectAuthenticationContext, mfaContext: MfaContext? = null) : DirectAuthContinuation(context, mfaContext) {
-
+    class Prompt internal constructor(
+        internal val bindingContext: BindingContext,
+        context: DirectAuthenticationContext,
+        mfaContext: MfaContext? = null,
+    ) : DirectAuthContinuation(context, mfaContext) {
         /**
          * The number of seconds until the OOB challenge expires.
          */
@@ -125,15 +155,17 @@ sealed class DirectAuthContinuation(internal val context: DirectAuthenticationCo
          * @return The next [DirectAuthenticationState] in the flow.
          */
         suspend fun proceed(code: String): DirectAuthenticationState {
-            val request = mfaContext?.let {
-                DirectAuthTokenRequest.OobMfa(context, bindingContext.oobCode, it, code)
-            } ?: DirectAuthTokenRequest.Oob(context, bindingContext.oobCode, code)
+            val request =
+                mfaContext?.let {
+                    DirectAuthTokenRequest.OobMfa(context, bindingContext.oobCode, it, code)
+                } ?: DirectAuthTokenRequest.Oob(context, bindingContext.oobCode, code)
 
             val result = context.apiExecutor.execute(request)
-            val state = result.fold(
-                onSuccess = { it.tokenResponseAsState(context) },
-                onFailure = { DirectAuthenticationError.InternalError(EXCEPTION, it.message, it) }
-            )
+            val state =
+                result.fold(
+                    onSuccess = { it.tokenResponseAsState(context) },
+                    onFailure = { DirectAuthenticationError.InternalError(EXCEPTION, it.message, it) }
+                )
             context.authenticationStateFlow.value = state
             return state
         }
@@ -153,7 +185,6 @@ sealed class DirectAuthContinuation(internal val context: DirectAuthenticationCo
         context: DirectAuthenticationContext,
         mfaContext: MfaContext? = null,
     ) : DirectAuthContinuation(context, mfaContext) {
-
         /** The number of seconds until the OOB challenge expires. */
         val expirationInSeconds: Int = bindingContext.expiresIn
 
@@ -187,7 +218,6 @@ sealed class DirectAuthContinuation(internal val context: DirectAuthenticationCo
         context: DirectAuthenticationContext,
         mfaContext: MfaContext? = null,
     ) : DirectAuthContinuation(context, mfaContext) {
-
         /** The number of seconds until the OOB challenge expires. */
         val expirationInSeconds: Int = bindingContext.expiresIn
 

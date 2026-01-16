@@ -42,6 +42,7 @@ internal class ResourceOwnerViewModel : ViewModel() {
                     Timber.e(result.exception, "Failed to start resource owner flow.")
                     _state.value = ResourceOwnerState.Error("An error occurred.")
                 }
+
                 is OAuth2ClientResult.Success -> {
                     val credential = Credential.store(token = result.result)
                     Credential.setDefaultAsync(credential)

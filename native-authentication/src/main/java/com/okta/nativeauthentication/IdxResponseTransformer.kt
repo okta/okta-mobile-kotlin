@@ -84,6 +84,7 @@ internal class RealIdxResponseTransformer : IdxResponseTransformer {
                 }
                 result
             }
+
             // Options represent multiple choice items like authenticators or security questions and can be nested.
             !options.isNullOrEmpty() -> {
                 options?.let { options ->
@@ -112,6 +113,7 @@ internal class RealIdxResponseTransformer : IdxResponseTransformer {
                     listOf(elementBuilder)
                 } ?: emptyList()
             }
+
             // Simple text field.
             (type == "string") -> {
                 val elementBuilder =
@@ -126,6 +128,7 @@ internal class RealIdxResponseTransformer : IdxResponseTransformer {
                     )
                 listOf(elementBuilder)
             }
+
             else -> {
                 emptyList()
             }
@@ -138,19 +141,43 @@ internal class RealIdxResponseTransformer : IdxResponseTransformer {
 
         val title =
             when (type) {
-                IdxRemediation.Type.SKIP -> "Skip"
-                IdxRemediation.Type.ENROLL_PROFILE, IdxRemediation.Type.SELECT_ENROLL_PROFILE -> "Sign Up"
-                IdxRemediation.Type.SELECT_IDENTIFY, IdxRemediation.Type.IDENTIFY -> "Sign In"
-                IdxRemediation.Type.SELECT_AUTHENTICATOR_AUTHENTICATE, IdxRemediation.Type.SELECT_AUTHENTICATOR_ENROLL -> "Choose"
-                IdxRemediation.Type.LAUNCH_AUTHENTICATOR -> "Launch Authenticator"
-                IdxRemediation.Type.CANCEL -> "Restart"
-                IdxRemediation.Type.UNLOCK_ACCOUNT -> "Unlock Account"
+                IdxRemediation.Type.SKIP -> {
+                    "Skip"
+                }
+
+                IdxRemediation.Type.ENROLL_PROFILE, IdxRemediation.Type.SELECT_ENROLL_PROFILE -> {
+                    "Sign Up"
+                }
+
+                IdxRemediation.Type.SELECT_IDENTIFY, IdxRemediation.Type.IDENTIFY -> {
+                    "Sign In"
+                }
+
+                IdxRemediation.Type.SELECT_AUTHENTICATOR_AUTHENTICATE, IdxRemediation.Type.SELECT_AUTHENTICATOR_ENROLL -> {
+                    "Choose"
+                }
+
+                IdxRemediation.Type.LAUNCH_AUTHENTICATOR -> {
+                    "Launch Authenticator"
+                }
+
+                IdxRemediation.Type.CANCEL -> {
+                    "Restart"
+                }
+
+                IdxRemediation.Type.UNLOCK_ACCOUNT -> {
+                    "Unlock Account"
+                }
+
                 IdxRemediation.Type.REDIRECT_IDP -> {
                     capabilities.get<IdxIdpCapability>()?.let { capability ->
                         "Login with ${capability.name}"
                     } ?: "Social Login"
                 }
-                else -> "Continue"
+
+                else -> {
+                    "Continue"
+                }
             }
 
         val builder =

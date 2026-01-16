@@ -2,10 +2,9 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     id("com.android.library")
+    alias(libs.plugins.dokka)
     id("binary-compatibility-validator")
     id("spotless")
-    kotlin("android")
-    alias(libs.plugins.dokka)
     kotlin("plugin.serialization") version libs.versions.kotlin.get()
     id("com.vanniktech.maven.publish.base")
 }
@@ -35,15 +34,15 @@ android {
         targetCompatibility = TARGET_COMPATIBILITY
     }
 
-    kotlin {
-        compilerOptions {
-            jvmTarget = JvmTarget.fromTarget(JVM_TARGET)
-            freeCompilerArgs.add("-opt-in=com.okta.authfoundation.InternalAuthFoundationApi")
-        }
-    }
-
     buildFeatures {
         buildConfig = true
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget = JvmTarget.fromTarget(JVM_TARGET)
+        freeCompilerArgs.add("-opt-in=com.okta.authfoundation.InternalAuthFoundationApi")
     }
 }
 

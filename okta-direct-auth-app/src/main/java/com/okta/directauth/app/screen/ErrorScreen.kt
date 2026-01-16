@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-Present Okta, Inc.
+ * Copyright 2022-Present Okta, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ import java.io.StringWriter
 fun ErrorScreen(
     error: String,
     onBack: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     Column(
         modifier = Modifier.fillMaxSize()
@@ -48,18 +49,20 @@ fun ErrorScreen(
         Text(
             text = error,
             fontFamily = FontFamily.Monospace,
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1.0f)
-                .padding(16.dp)
-                .verticalScroll(scrollState),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .weight(1.0f)
+                    .padding(16.dp)
+                    .verticalScroll(scrollState)
         )
 
         Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            contentAlignment = Alignment.Center,
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+            contentAlignment = Alignment.Center
         ) {
             Button(onClick = onBack) {
                 Text(text = "Go Back")
@@ -68,8 +71,8 @@ fun ErrorScreen(
     }
 }
 
-internal fun DirectAuthenticationError.asString(): String {
-    return when (this) {
+internal fun DirectAuthenticationError.asString(): String =
+    when (this) {
         is DirectAuthenticationError.HttpError.ApiError -> {
             """ 
             Http API Error
@@ -95,12 +98,11 @@ internal fun DirectAuthenticationError.asString(): String {
             stringWriter.toString()
         }
     }
-}
 
 @PreviewLightDark
 @Composable
-fun ErrorScreenPreview() {
+private fun ErrorScreenPreview() {
     DirectAuthAppTheme {
-        ErrorScreen(error = "Error message") {}
+        ErrorScreen(error = "Error message", onBack = {})
     }
 }

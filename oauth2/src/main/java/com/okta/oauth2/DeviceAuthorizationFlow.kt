@@ -194,6 +194,7 @@ class DeviceAuthorizationFlow(
                         return tokenResult
                     }
                 }
+
                 is OAuth2ClientResult.Success -> {
                     return tokenResult
                 }
