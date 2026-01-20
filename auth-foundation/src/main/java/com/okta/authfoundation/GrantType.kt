@@ -80,25 +80,11 @@ sealed class GrantType(
     data object Otp : GrantType("urn:okta:params:oauth:grant-type:otp")
 
     /**
-     * A grant type for Multi-Factor Authentication (MFA) using One-Time Passcodes (OTP).
-     *
-     * @see [Okta MFA OTP](https://developer.okta.com/docs/guides/configure-direct-auth-grants/bmfaotp/main/#about-the-direct-authentication-grant)
-     */
-    data object OtpMfa : GrantType("http://auth0.com/oauth/grant-type/mfa-otp")
-
-    /**
      * A grant type for Out-of-Band (OOB) authentication, such as push notifications.
      *
      * @see [Okta Direct Authentication OOB](https://developer.okta.com/docs/reference/direct-auth/grant-types/#oob)
      */
     data object Oob : GrantType("urn:okta:params:oauth:grant-type:oob")
-
-    /**
-     * A grant type for Multi-Factor Authentication (MFA) using Out-of-Band (OOB) methods.
-     *
-     * @see [Okta MFA OOB](https://developer.okta.com/docs/guides/configure-direct-auth-grants/dmfaoobov/main/#direct-authentication-mfa-oob-okta-verify-push-flow)
-     */
-    data object OobMfa : GrantType("http://auth0.com/oauth/grant-type/mfa-oob")
 
     /**
      * A grant type for WebAuthn authentication.
@@ -108,13 +94,6 @@ sealed class GrantType(
     data object WebAuthn : GrantType("urn:okta:params:oauth:grant-type:webauthn")
 
     /**
-     * A grant type for Multi-Factor Authentication (MFA) using WebAuthn.
-     *
-     * @see [Okta MFA WebAuthn](https://developer.okta.com/docs/guides/configure-direct-auth-grants/bmfawebauthn/main/#about-the-direct-authentication-grant)
-     */
-    data object WebAuthnMfa : GrantType("urn:okta:params:oauth:grant-type:mfa-webauthn")
-
-    /**
      * A custom grant type not defined in the standard set.
      *
      * @param type The string representation of the custom grant type.
@@ -122,4 +101,35 @@ sealed class GrantType(
     data class Other(
         val type: String,
     ) : GrantType(type)
+}
+
+/**
+ * Represents specialized OAuth 2.0 grant types used for challenge-based authentication mechanisms,
+ * such as Multi-Factor Authentication (MFA) with Out-of-Band (OOB), One-Time Passcode (OTP), or WebAuthn.
+ *
+ * These grant types extend the standard set to support additional security requirements.
+ */
+sealed class ChallengeGrantType(
+    value: String,
+) : GrantType(value) {
+    /**
+     * A grant type for Multi-Factor Authentication (MFA) using Out-of-Band (OOB) methods.
+     *
+     * @see [Okta MFA OOB](https://developer.okta.com/docs/guides/configure-direct-auth-grants/bmfaotp/main/#about-the-direct-authentication-grant)
+     */
+    data object OobMfa : ChallengeGrantType("http://auth0.com/oauth/grant-type/mfa-oob")
+
+    /**
+     * A grant type for Multi-Factor Authentication (MFA) using One-Time Passcodes (OTP).
+     *
+     * @see [Okta MFA OTP](https://developer.okta.com/docs/guides/configure-direct-auth-grants/bmfaotp/main/#about-the-direct-authentication-grant)
+     */
+    data object OtpMfa : ChallengeGrantType("http://auth0.com/oauth/grant-type/mfa-otp")
+
+    /**
+     * A grant type for Multi-Factor Authentication (MFA) using WebAuthn.
+     *
+     * @see [Okta MFA WebAuthn](https://developer.okta.com/docs/guides/configure-direct-auth-grants/bmfawebauthn/main/#about-the-direct-authentication-grant)
+     */
+    data object WebAuthnMfa : ChallengeGrantType("urn:okta:params:oauth:grant-type:mfa-webauthn")
 }

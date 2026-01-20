@@ -125,11 +125,10 @@ sealed class Continuation(internal val context: DirectAuthenticationContext, int
          * @return The next [DirectAuthenticationState] in the flow.
          */
         suspend fun proceed(code: String): DirectAuthenticationState {
-            val request = if (mfaContext != null) {
-                DirectAuthTokenRequest.OobMfa(context, bindingContext.oobCode, mfaContext, code)
-            } else {
-                DirectAuthTokenRequest.Oob(context, bindingContext.oobCode, code)
-            }
+            val request = mfaContext?.let {
+                DirectAuthTokenRequest.OobMfa(context, bindingContext.oobCode, it, code)
+            } ?: DirectAuthTokenRequest.Oob(context, bindingContext.oobCode, code)
+
             val result = context.apiExecutor.execute(request)
             val state = result.fold(
                 onSuccess = { it.tokenResponseAsState(context) },
