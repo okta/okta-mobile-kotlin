@@ -32,3 +32,4 @@ include(":native-authentication")
 include(":test-utils")
 
 include(":okta-direct-auth")
+include(":okta-direct-auth-app")
