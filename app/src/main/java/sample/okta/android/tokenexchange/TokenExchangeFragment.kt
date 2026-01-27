@@ -49,11 +49,13 @@ internal class TokenExchangeFragment :
                     binding.errorTextView.visibility = View.VISIBLE
                     binding.tryAgainButton.visibility = View.VISIBLE
                 }
+
                 is TokenExchangeState.Token -> {
                     findNavController().navigate(
                         TokenExchangeFragmentDirections.tokenExchangeToDashboard(state.nameTagValue)
                     )
                 }
+
                 TokenExchangeState.Loading -> {
                     binding.progressBar.visibility = View.VISIBLE
                 }

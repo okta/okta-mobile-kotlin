@@ -3,7 +3,6 @@ import java.util.Properties
 
 plugins {
     id("com.android.application")
-    kotlin("android")
     id("androidx.navigation.safeargs.kotlin")
     id("spotless")
 }
@@ -37,10 +36,10 @@ android {
 
     sourceSets {
         getByName("androidTest") {
-            java.srcDirs("src/sharedTest/java")
+            java.directories.add("src/androidTest/java")
         }
         getByName("test") {
-            java.srcDirs("src/sharedTest/java")
+            java.directories.add("src/sharedTest/java")
         }
     }
 
@@ -57,12 +56,6 @@ android {
         targetCompatibility = TARGET_COMPATIBILITY
     }
 
-    kotlin {
-        compilerOptions {
-            jvmTarget = JvmTarget.fromTarget(JVM_TARGET)
-        }
-    }
-
     buildFeatures {
         viewBinding = true
         buildConfig = true
@@ -75,6 +68,12 @@ android {
     testOptions {
         animationsDisabled = true
         execution = "ANDROIDX_TEST_ORCHESTRATOR"
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget = JvmTarget.fromTarget(JVM_TARGET)
     }
 }
 

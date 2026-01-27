@@ -213,7 +213,9 @@ internal class DynamicAuthViewModel(
                     }
                 }
 
-                else -> throw UnsupportedOperationException("Unsupported credential type ${createCredentialResponse::class.java.name}")
+                else -> {
+                    throw UnsupportedOperationException("Unsupported credential type ${createCredentialResponse::class.java.name}")
+                }
             }
         }.getOrElse {
             Result.failure(it)
@@ -245,7 +247,9 @@ internal class DynamicAuthViewModel(
                     }
                 }
 
-                else -> throw IllegalStateException("Unsupported credential type ${credential::class.java.name}")
+                else -> {
+                    throw IllegalStateException("Unsupported credential type ${credential::class.java.name}")
+                }
             }
         }.getOrElse {
             Result.failure(it)
@@ -351,6 +355,7 @@ internal class DynamicAuthViewModel(
                 }
                 result
             }
+
             // Options represent multiple choice items like authenticators and can be nested.
             !options.isNullOrEmpty() -> {
                 options?.let { options ->
@@ -368,6 +373,7 @@ internal class DynamicAuthViewModel(
                     )
                 } ?: emptyList()
             }
+
             // Simple boolean field for checkbox.
             type == "boolean" -> {
                 listOf(
@@ -376,6 +382,7 @@ internal class DynamicAuthViewModel(
                     }
                 )
             }
+
             // Simple text field.
             type == "string" -> {
                 val displayMessages = messages.joinToString(separator = "\n") { it.message }
@@ -421,21 +428,47 @@ internal class DynamicAuthViewModel(
 
         val title =
             when (type) {
-                IdxRemediation.Type.SKIP -> "Skip"
-                IdxRemediation.Type.ENROLL_PROFILE, IdxRemediation.Type.SELECT_ENROLL_PROFILE -> "Sign Up"
-                IdxRemediation.Type.SELECT_IDENTIFY, IdxRemediation.Type.IDENTIFY -> "Sign In"
-                IdxRemediation.Type.SELECT_AUTHENTICATOR_AUTHENTICATE, IdxRemediation.Type.SELECT_AUTHENTICATOR_ENROLL -> "Choose"
-                IdxRemediation.Type.LAUNCH_AUTHENTICATOR -> "Launch Authenticator"
-                IdxRemediation.Type.CANCEL -> "Restart"
-                IdxRemediation.Type.UNLOCK_ACCOUNT -> "Unlock Account"
+                IdxRemediation.Type.SKIP -> {
+                    "Skip"
+                }
+
+                IdxRemediation.Type.ENROLL_PROFILE, IdxRemediation.Type.SELECT_ENROLL_PROFILE -> {
+                    "Sign Up"
+                }
+
+                IdxRemediation.Type.SELECT_IDENTIFY, IdxRemediation.Type.IDENTIFY -> {
+                    "Sign In"
+                }
+
+                IdxRemediation.Type.SELECT_AUTHENTICATOR_AUTHENTICATE, IdxRemediation.Type.SELECT_AUTHENTICATOR_ENROLL -> {
+                    "Choose"
+                }
+
+                IdxRemediation.Type.LAUNCH_AUTHENTICATOR -> {
+                    "Launch Authenticator"
+                }
+
+                IdxRemediation.Type.CANCEL -> {
+                    "Restart"
+                }
+
+                IdxRemediation.Type.UNLOCK_ACCOUNT -> {
+                    "Unlock Account"
+                }
+
                 IdxRemediation.Type.REDIRECT_IDP -> {
                     capabilities.get<IdxIdpCapability>()?.let { capability ->
                         "Login with ${capability.name}"
                     } ?: "Social Login"
                 }
 
-                IdxRemediation.Type.CHALLENGE_WEBAUTHN_AUTOFILLUI_AUTHENTICATOR -> "Use Passkey"
-                else -> "Continue"
+                IdxRemediation.Type.CHALLENGE_WEBAUTHN_AUTOFILLUI_AUTHENTICATOR -> {
+                    "Use Passkey"
+                }
+
+                else -> {
+                    "Continue"
+                }
             }
 
         return listOf(

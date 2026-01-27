@@ -1,3 +1,18 @@
+/*
+ * Copyright 2022-Present Okta, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.okta.directauth.app.screen
 
 import android.util.Log
@@ -80,7 +95,8 @@ fun PasswordChangeScreen(
     backToSignIn: () -> Unit,
     passwordChangeResult: MainViewModel.PasswordChangeResult,
     onDismissError: () -> Unit,
-    next: (String) -> Job
+    modifier: Modifier = Modifier,
+    next: (String) -> Job,
 ) {
     LaunchedEffect(Unit) {
         Log.i(TAG, "PasswordChangeScreen displayed - username: $username")
@@ -136,12 +152,12 @@ fun PasswordChangeScreen(
     ) {
         Column(
             modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.Start,
+            horizontalAlignment = Alignment.Start
         ) {
             // New Password Field
             Text(
                 text = "New Password",
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.Bold
             )
             OutlinedTextField(
                 value = newPassword,
@@ -154,21 +170,24 @@ fun PasswordChangeScreen(
                 isError = newPasswordError != null,
                 enabled = !jobState.isActive,
                 trailingIcon = {
-                    val image = if (newPasswordVisible)
-                        Icons.Filled.Visibility
-                    else Icons.Filled.VisibilityOff
+                    val image =
+                        if (newPasswordVisible) {
+                            Icons.Filled.Visibility
+                        } else {
+                            Icons.Filled.VisibilityOff
+                        }
 
                     val description = if (newPasswordVisible) "Hide password" else "Show password"
 
                     IconButton(
                         onClick = { newPasswordVisible = !newPasswordVisible },
-                        enabled = !jobState.isActive,
+                        enabled = !jobState.isActive
                     ) {
                         Icon(imageVector = image, description)
                     }
                 },
                 singleLine = true,
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
             )
             if (newPasswordError != null) {
                 Text(
@@ -182,7 +201,7 @@ fun PasswordChangeScreen(
             // Confirm Password Field
             Text(
                 text = "Confirm New Password",
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.Bold
             )
             OutlinedTextField(
                 value = confirmPassword,
@@ -195,24 +214,28 @@ fun PasswordChangeScreen(
                 isError = confirmPasswordError != null,
                 enabled = !jobState.isActive,
                 trailingIcon = {
-                    val image = if (confirmPasswordVisible)
-                        Icons.Filled.Visibility
-                    else Icons.Filled.VisibilityOff
+                    val image =
+                        if (confirmPasswordVisible) {
+                            Icons.Filled.Visibility
+                        } else {
+                            Icons.Filled.VisibilityOff
+                        }
 
                     val description = if (confirmPasswordVisible) "Hide password" else "Show password"
 
                     IconButton(
                         onClick = { confirmPasswordVisible = !confirmPasswordVisible },
-                        enabled = !jobState.isActive,
+                        enabled = !jobState.isActive
                     ) {
                         Icon(imageVector = image, description)
                     }
                 },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                keyboardActions = KeyboardActions(
-                    onDone = { validateAndSubmit() }
-                )
+                keyboardActions =
+                    KeyboardActions(
+                        onDone = { validateAndSubmit() }
+                    )
             )
             if (confirmPasswordError != null) {
                 Text(
@@ -227,7 +250,7 @@ fun PasswordChangeScreen(
         Button(
             onClick = { validateAndSubmit() },
             enabled = !jobState.isActive,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth()
         ) {
             Text(text = "Change Password")
         }
@@ -242,7 +265,9 @@ fun PasswordChangeScreen(
             )
         }
 
-        else -> Unit // No error dialog to show
+        else -> {
+            Unit
+        } // No error dialog to show
     }
 }
 
@@ -255,7 +280,7 @@ fun PasswordChangeScreen(
 @Composable
 fun PasswordChangeErrorDialog(
     error: MainViewModel.PasswordChangeResult.Error,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -377,7 +402,7 @@ fun PasswordChangeErrorDialog(
 
 @PreviewLightDark
 @Composable
-fun PasswordChangeScreenPreview() {
+private fun PasswordChangeScreenPreview() {
     DirectAuthAppTheme {
         PasswordChangeScreen(
             username = "user1@okta.com",
@@ -391,11 +416,11 @@ fun PasswordChangeScreenPreview() {
 
 @PreviewLightDark
 @Composable
-fun PasswordChangeErrorDialogPreview() {
+private fun PasswordChangeErrorDialogPreview() {
     DirectAuthAppTheme {
         PasswordChangeErrorDialog(
             MainViewModel.PasswordChangeResult.Error.NetworkError("network error"),
-            onDismiss = {},
+            onDismiss = {}
         )
     }
 }

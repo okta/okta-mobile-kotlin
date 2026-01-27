@@ -50,11 +50,15 @@ internal data class TokenEntity(
             biometricTimeout: Int?,
         ): Credential.Security =
             when (this) {
-                DEFAULT -> Credential.Security.Default(keyAlias)
+                DEFAULT -> {
+                    Credential.Security.Default(keyAlias)
+                }
+
                 BIO_ONLY -> {
                     if (biometricTimeout == null) throw IllegalStateException("BIO_ONLY TokenEntity stored without timeout")
                     Credential.Security.BiometricStrong(biometricTimeout, keyAlias)
                 }
+
                 BIO_AND_PIN -> {
                     if (biometricTimeout == null) throw IllegalStateException("BIO_AND_PIN TokenEntity stored without timeout")
                     Credential.Security.BiometricStrongOrDeviceCredential(biometricTimeout, keyAlias)

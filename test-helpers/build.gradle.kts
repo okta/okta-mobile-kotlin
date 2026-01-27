@@ -2,7 +2,6 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     id("com.android.library")
-    kotlin("android")
     id("spotless")
 }
 
@@ -13,7 +12,6 @@ android {
         minSdk = MIN_SDK
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        consumerProguardFiles("consumer-rules.pro")
     }
 
     namespace = "com.okta.testhelpers"
@@ -27,12 +25,12 @@ android {
         sourceCompatibility = SOURCE_COMPATIBILITY
         targetCompatibility = TARGET_COMPATIBILITY
     }
+}
 
-    kotlin {
-        compilerOptions {
-            jvmTarget = JvmTarget.fromTarget(JVM_TARGET)
-            freeCompilerArgs.add("-opt-in=kotlin.RequiresOptIn")
-        }
+kotlin {
+    compilerOptions {
+        jvmTarget = JvmTarget.fromTarget(JVM_TARGET)
+        freeCompilerArgs.add("-opt-in=kotlin.RequiresOptIn")
     }
 }
 

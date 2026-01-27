@@ -50,13 +50,16 @@ internal class DeviceAuthorizationFragment :
                     binding.errorTextView.text = state.message
                     binding.tryAgainButton.visibility = View.VISIBLE
                 }
+
                 is DeviceAuthorizationState.Polling -> {
                     binding.directionsTextView.visibility = View.VISIBLE
                     binding.directionsTextView.text = "To sign in, visit ${state.url} and enter ${state.code}"
                 }
+
                 DeviceAuthorizationState.Token -> {
                     findNavController().navigate(DeviceAuthorizationFragmentDirections.deviceAuthorizationToDashboard())
                 }
+
                 DeviceAuthorizationState.Loading -> {
                     binding.progressBar.visibility = View.VISIBLE
                 }

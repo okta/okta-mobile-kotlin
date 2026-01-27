@@ -46,6 +46,7 @@ internal class DashboardViewModel : ViewModel() {
                 is OAuth2ClientResult.Error -> {
                     Timber.e(result.exception, "User info request failed.")
                 }
+
                 is OAuth2ClientResult.Success -> {
                     val successResult = result.result
                     _userInfoLiveData.postValue(successResult.deserializeClaims(JsonObject.serializer()).asMap())
@@ -62,6 +63,7 @@ internal class DashboardViewModel : ViewModel() {
                 is OAuth2ClientResult.Error -> {
                     _logoutStateLiveData.postValue(LogoutState.Failed)
                 }
+
                 is OAuth2ClientResult.Success -> {
                     _logoutStateLiveData.postValue(LogoutState.Success)
                 }

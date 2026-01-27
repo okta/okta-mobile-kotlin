@@ -65,6 +65,7 @@ class SessionTokenFlow(
                 is OAuth2ClientResult.Error -> {
                     return OAuth2ClientResult.Error(startResult.exception)
                 }
+
                 is OAuth2ClientResult.Success -> {
                     startResult.result
                 }
@@ -81,6 +82,7 @@ class SessionTokenFlow(
                 is OAuth2ClientResult.Error -> {
                     return OAuth2ClientResult.Error(result.exception)
                 }
+
                 is OAuth2ClientResult.Success -> {
                     val locationHeader =
                         result.result.header("location")

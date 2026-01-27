@@ -1,3 +1,18 @@
+/*
+ * Copyright 2022-Present Okta, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.okta.directauth.app.screen
 
 import android.util.Log
@@ -64,7 +79,8 @@ private const val TAG = "UsernameScreen"
 @Composable
 fun UsernameScreen(
     savedUsername: String?,
-    onNext: (String, Boolean) -> Unit
+    onNext: (String, Boolean) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     LaunchedEffect(Unit) {
         Log.i(TAG, "UsernameScreen displayed - savedUsername: ${savedUsername?.let { "present" } ?: "none"}")
@@ -77,7 +93,7 @@ fun UsernameScreen(
 
     Column(
         modifier = Modifier.padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Image(
             painter = painterResource(id = R.drawable.ic_launcher_foreground),
@@ -92,7 +108,7 @@ fun UsernameScreen(
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.fillMaxWidth(),
-            textAlign = TextAlign.Center,
+            textAlign = TextAlign.Center
         )
         Spacer(modifier = Modifier.height(Dimens.spaceMedium))
         Text(
@@ -100,7 +116,7 @@ fun UsernameScreen(
             style = MaterialTheme.typography.bodyLarge,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.fillMaxWidth(),
-            textAlign = TextAlign.Start,
+            textAlign = TextAlign.Start
         )
         OutlinedTextField(
             value = username,
@@ -112,35 +128,37 @@ fun UsernameScreen(
             isError = usernameError != null,
             singleLine = true,
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-            keyboardActions = KeyboardActions(
-                onNext = {
-                    username.validateNotBlank(
-                        onError = { usernameError = BLANK_FIELD_ERROR },
-                        onSuccess = {
-                            focusManager.clearFocus()
-                            onNext(it, rememberMe)
-                        }
-                    )
-                }
-            )
+            keyboardActions =
+                KeyboardActions(
+                    onNext = {
+                        username.validateNotBlank(
+                            onError = { usernameError = BLANK_FIELD_ERROR },
+                            onSuccess = {
+                                focusManager.clearFocus()
+                                onNext(it, rememberMe)
+                            }
+                        )
+                    }
+                )
         )
         usernameError?.let {
             Text(
                 modifier = Modifier.align(Alignment.Start),
                 text = it,
                 color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodySmall,
+                style = MaterialTheme.typography.bodySmall
             )
         }
         Row(
-            modifier = Modifier
-                .align(Alignment.Start)
-                .offset(x = (-13).dp),
-            verticalAlignment = Alignment.CenterVertically,
+            modifier =
+                Modifier
+                    .align(Alignment.Start)
+                    .offset(x = (-13).dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Checkbox(
                 checked = rememberMe,
-                onCheckedChange = { rememberMe = it },
+                onCheckedChange = { rememberMe = it }
             )
             Text(text = stringResource(id = R.string.remember_me))
         }
@@ -152,7 +170,7 @@ fun UsernameScreen(
                     onSuccess = { onNext(it, rememberMe) }
                 )
             },
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth()
         ) {
             Text(text = "Next")
         }
@@ -161,8 +179,8 @@ fun UsernameScreen(
 
 @PreviewLightDark
 @Composable
-fun UsernameScreenPreview() {
+private fun UsernameScreenPreview() {
     DirectAuthAppTheme {
-        UsernameScreen(savedUsername = "") { _, _ -> }
+        UsernameScreen(savedUsername = "", onNext = { _, _ -> })
     }
 }

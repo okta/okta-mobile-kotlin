@@ -1,3 +1,18 @@
+/*
+ * Copyright 2022-Present Okta, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.okta.directauth
 
 import io.ktor.client.engine.mock.MockEngine
@@ -19,7 +34,8 @@ const val OOB_AUTHENTICATE_PUSH_RESPONSE_JSON =
     """{"challenge_type":"http://auth0.com/oauth/grant-type/mfa-oob","oob_code":"example_oob_code","channel":"push","binding_method":"none","expires_in":120,"interval":5}"""
 const val OOB_AUTHENTICATE_SMS_RESPONSE_JSON = """{"oob_code":"example_oob_code","channel":"sms","binding_method":"prompt","expires_in":120}"""
 const val OOB_AUTHENTICATE_VOICE_RESPONSE_JSON = """{"oob_code":"example_oob_code","channel":"voice","binding_method":"prompt","expires_in":120}"""
-const val OOB_AUTHENTICATE_TRANSFER_RESPONSE_JSON = """{"challenge_type":"http://auth0.com/oauth/grant-type/mfa-oob","oob_code":"example_oob_code","channel":"push","binding_method":"transfer","binding_code":"95","expires_in":120,"interval":5}"""
+const val OOB_AUTHENTICATE_TRANSFER_RESPONSE_JSON =
+    """{"challenge_type":"http://auth0.com/oauth/grant-type/mfa-oob","oob_code":"example_oob_code","channel":"push","binding_method":"transfer","binding_code":"95","expires_in":120,"interval":5}"""
 const val OOB_AUTHENTICATE_TRANSFER_NO_BINDING_CODE_RESPONSE_JSON = """{"oob_code":"example_oob_code","channel":"push","binding_method":"transfer","expires_in":120,"interval":5}"""
 const val CHALLENGE_OTP_RESPONSE_JSON = """{"challenge_type":"http://auth0.com/oauth/grant-type/mfa-otp"}"""
 const val CHALLENGE_WEBAUTHN_RESPONSE_JSON = """{"challengeType":"urn:okta:params:oauth:grant-type:webauthn","publicKey":{}} """
@@ -40,14 +56,15 @@ val contentType = headersOf("Content-Type", "application/json")
 fun createMockEngine(
     jsonResponse: String,
     httpStatusCode: HttpStatusCode,
-    headers: Headers = contentType
-): MockEngine = MockEngine {
-    respond(
-        content = ByteReadChannel(jsonResponse),
-        status = httpStatusCode,
-        headers = headers
-    )
-}
+    headers: Headers = contentType,
+): MockEngine =
+    MockEngine {
+        respond(
+            content = ByteReadChannel(jsonResponse),
+            status = httpStatusCode,
+            headers = headers
+        )
+    }
 
 val tokenResponseMockEngine = createMockEngine(TOKEN_RESPONSE_JSON, HttpStatusCode.OK)
 

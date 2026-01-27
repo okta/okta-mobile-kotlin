@@ -5,7 +5,6 @@ plugins {
     id("spotless")
     id("com.android.application")
     id("kotlin-parcelize")
-    kotlin("android")
     id("androidx.navigation.safeargs.kotlin")
 }
 
@@ -48,13 +47,6 @@ android {
         targetCompatibility = TARGET_COMPATIBILITY
     }
 
-    kotlin {
-        compilerOptions {
-            jvmTarget = JvmTarget.fromTarget(JVM_TARGET)
-            freeCompilerArgs.add("-opt-in=kotlin.RequiresOptIn")
-        }
-    }
-
     buildFeatures {
         viewBinding = true
         buildConfig = true
@@ -67,6 +59,13 @@ android {
     testOptions {
         animationsDisabled = true
         execution = "ANDROIDX_TEST_ORCHESTRATOR"
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget = JvmTarget.fromTarget(JVM_TARGET)
+        freeCompilerArgs.add("-opt-in=kotlin.RequiresOptIn")
     }
 }
 

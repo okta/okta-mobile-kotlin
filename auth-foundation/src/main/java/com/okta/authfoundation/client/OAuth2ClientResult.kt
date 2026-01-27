@@ -60,6 +60,7 @@ sealed class OAuth2ClientResult<T> {
             is Error -> {
                 throw exception
             }
+
             is Success -> {
                 return result
             }

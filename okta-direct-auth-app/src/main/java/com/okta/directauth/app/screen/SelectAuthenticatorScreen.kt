@@ -1,3 +1,18 @@
+/*
+ * Copyright 2022-Present Okta, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.okta.directauth.app.screen
 
 import android.util.Log
@@ -56,15 +71,16 @@ private const val TAG = "SelectAuthenticatorScreen"
  * @param username The username being authenticated. Displayed on screen.
  * @param supportedAuthenticators List of available authentication methods to choose from.
  * @param backToSignIn Callback invoked when user wants to return to username entry.
- * @param onAuthenticatorSelected Callback invoked when user selects an authentication method.
- *                                Parameters: (username: String, selectedMethod: T)
+ * @param onSelectAuthenticator Callback invoked when user selects an authentication method.
+ *                              Parameters: (username: String, selectedMethod: T)
  */
 @Composable
 fun <T : AuthMethod> SelectAuthenticatorScreen(
     username: String,
     supportedAuthenticators: List<T>,
     backToSignIn: () -> Unit,
-    onAuthenticatorSelected: (String, T) -> Unit
+    onSelectAuthenticator: (String, T) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     LaunchedEffect(Unit) {
         val methods = supportedAuthenticators.joinToString(", ") { it.label }
@@ -73,7 +89,7 @@ fun <T : AuthMethod> SelectAuthenticatorScreen(
 
     Column(
         modifier = Modifier.padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Image(
             painter = painterResource(id = R.drawable.ic_launcher_foreground),
@@ -89,7 +105,7 @@ fun <T : AuthMethod> SelectAuthenticatorScreen(
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.fillMaxWidth(),
-            textAlign = TextAlign.Center,
+            textAlign = TextAlign.Center
         )
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -97,7 +113,7 @@ fun <T : AuthMethod> SelectAuthenticatorScreen(
             text = username,
             style = MaterialTheme.typography.bodyLarge,
             modifier = Modifier.fillMaxWidth(),
-            textAlign = TextAlign.Center,
+            textAlign = TextAlign.Center
         )
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -105,7 +121,7 @@ fun <T : AuthMethod> SelectAuthenticatorScreen(
             text = "Select from the following options:",
             style = MaterialTheme.typography.bodyLarge,
             modifier = Modifier.fillMaxWidth(),
-            textAlign = TextAlign.Center,
+            textAlign = TextAlign.Center
         )
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -124,10 +140,10 @@ fun <T : AuthMethod> SelectAuthenticatorScreen(
                         text = method.label,
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Center,
+                        textAlign = TextAlign.Center
                     )
                     Button(onClick = {
-                        onAuthenticatorSelected(username, method)
+                        onSelectAuthenticator(username, method)
                     }) {
                         Text("Select")
                     }
@@ -139,23 +155,24 @@ fun <T : AuthMethod> SelectAuthenticatorScreen(
         Text(
             text = "Back to sign in",
             color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable(onClick = backToSignIn),
-            textAlign = TextAlign.Start,
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .clickable(onClick = backToSignIn),
+            textAlign = TextAlign.Start
         )
     }
 }
 
 @PreviewLightDark
 @Composable
-fun SelectAuthenticatorScreenPreview() {
+private fun SelectAuthenticatorScreenPreview() {
     DirectAuthAppTheme {
         SelectAuthenticatorScreen(
             username = "test.user@example.com",
             supportedAuthenticators = listOf(AuthMethod.Password, AuthMethod.Mfa.OktaVerify),
             backToSignIn = {},
-            onAuthenticatorSelected = { _, _ -> }
+            onSelectAuthenticator = { _, _ -> }
         )
     }
 }

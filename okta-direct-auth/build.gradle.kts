@@ -1,33 +1,35 @@
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.android.kotlin.multiplatform.library)
-    alias(libs.plugins.android.lint)
     alias(libs.plugins.dokka)
+    alias(libs.plugins.android.lint)
     alias(libs.plugins.kover)
     kotlin("plugin.serialization") version libs.versions.kotlin.get()
     id("maven-publish")
+    id("spotless")
 }
 
 // KMP androidLibrary does not generate BuildConfigs so we generate a BuildInfo.kt file instead.
-val generateBuildInfoTask = tasks.register("generateBuildInfo") {
-    description = "Generates BuildInfo.kt with the project version."
-    group = "build"
+val generateBuildInfoTask =
+    tasks.register("generateBuildInfo") {
+        description = "Generates BuildInfo.kt with the project version."
+        group = "build"
 
-    val outputDir = layout.buildDirectory.dir("generated/source/buildInfo/kotlin")
-    outputs.dir(outputDir)
+        val outputDir = layout.buildDirectory.dir("generated/source/buildInfo/kotlin")
+        outputs.dir(outputDir)
 
-    doLast {
-        val outputFile = outputDir.get().file("com/okta/directauth/BuildInfo.kt").asFile
-        outputFile.parentFile.mkdirs()
-        outputFile.writeText(
-            """
+        doLast {
+            val outputFile = outputDir.get().file("com/okta/directauth/BuildInfo.kt").asFile
+            outputFile.parentFile.mkdirs()
+            outputFile.writeText(
+                """
             |package com.okta.directauth
             |
             |internal const val SDK_VERSION: String = "okta-direct-auth-kotlin/$DIRECT_AUTH_VERSION"
-            """.trimMargin()
-        )
+                """.trimMargin()
+            )
+        }
     }
-}
 
 kotlin {
 

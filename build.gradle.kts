@@ -1,6 +1,4 @@
 import com.vanniktech.maven.publish.MavenPublishBaseExtension
-import org.jetbrains.dokka.gradle.DokkaTaskPartial
-import java.net.URI
 
 buildscript {
     configurations.all {
@@ -107,7 +105,7 @@ subprojects {
             version = releaseVersion(project).let { if (snapshot) "$it-SNAPSHOT" else it }
 
             if (plugins.hasPlugin("com.android.library")) {
-                configure(com.vanniktech.maven.publish.AndroidSingleVariantLibrary("release"))
+                configure(com.vanniktech.maven.publish.AndroidSingleVariantLibrary())
             }
         }
     }

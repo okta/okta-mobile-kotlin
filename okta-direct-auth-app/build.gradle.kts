@@ -1,12 +1,12 @@
+
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.util.Properties
-import kotlin.apply
 
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.compose.compiler)
     kotlin("plugin.serialization") version libs.versions.kotlin.get()
+    id("spotless")
 }
 
 android {
@@ -14,12 +14,13 @@ android {
     compileSdk {
         version = release(36)
     }
-    val localProperties = Properties().apply {
-        val localPropertiesFile = rootProject.file("local.properties")
-        if (localPropertiesFile.exists()) {
-            rootProject.file("local.properties").inputStream().use { load(it) }
+    val localProperties =
+        Properties().apply {
+            val localPropertiesFile = rootProject.file("local.properties")
+            if (localPropertiesFile.exists()) {
+                rootProject.file("local.properties").inputStream().use { load(it) }
+            }
         }
-    }
 
     defaultConfig {
         applicationId = "com.okta.directauth.app"
@@ -61,14 +62,16 @@ android {
         sourceCompatibility = SOURCE_COMPATIBILITY
         targetCompatibility = TARGET_COMPATIBILITY
     }
-    kotlin {
-        compilerOptions {
-            jvmTarget = JvmTarget.fromTarget(JVM_TARGET)
-        }
-    }
+
     buildFeatures {
         compose = true
         buildConfig = true
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget = JvmTarget.fromTarget(JVM_TARGET)
     }
 }
 

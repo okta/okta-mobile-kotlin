@@ -1,3 +1,18 @@
+/*
+ * Copyright 2022-Present Okta, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.okta.directauth.app.viewModel
 
 import androidx.lifecycle.ViewModel
@@ -107,7 +122,10 @@ class AuthenticationFlowViewModel : ViewModel() {
      * @param username The username being authenticated
      * @param mfaRequired Optional MFA state if MFA is required. If present, shows only MFA methods.
      */
-    fun selectAuthenticator(username: String, mfaRequired: DirectAuthenticationState.MfaRequired? = null) {
+    fun selectAuthenticator(
+        username: String,
+        mfaRequired: DirectAuthenticationState.MfaRequired? = null,
+    ) {
         if (mfaRequired != null) {
             _selectedAuthMethod.value = null
             _uiState.value = AuthScreen.MfaRequired(username, mfaRequired)
@@ -139,7 +157,11 @@ class AuthenticationFlowViewModel : ViewModel() {
      * @param authMethod The authentication method selected by the user
      * @param mfaRequired Optional MFA state if this is an MFA selection (null for primary auth)
      */
-    fun onAuthenticatorSelected(username: String, authMethod: AuthMethod, mfaRequired: DirectAuthenticationState.MfaRequired?) {
+    fun onAuthenticatorSelected(
+        username: String,
+        authMethod: AuthMethod,
+        mfaRequired: DirectAuthenticationState.MfaRequired?,
+    ) {
         _selectedAuthMethod.value = authMethod
         when (authMethod) {
             AuthMethod.Mfa.OktaVerify -> _uiState.value = AuthScreen.OktaVerify(username, mfaRequired)
@@ -168,19 +190,23 @@ class AuthenticationFlowViewModel : ViewModel() {
     fun codeSent() {
         when (val currentState = _uiState.value) {
             is AuthScreen.Sms -> {
-                _uiState.value = AuthScreen.Sms(
-                    username = currentState.username,
-                    mfaRequired = currentState.mfaRequired,
-                    codeSent = true,
-                )
+                _uiState.value =
+                    AuthScreen.Sms(
+                        username = currentState.username,
+                        mfaRequired = currentState.mfaRequired,
+                        codeSent = true
+                    )
             }
+
             is AuthScreen.Voice -> {
-                _uiState.value = AuthScreen.Voice(
-                    username = currentState.username,
-                    mfaRequired = currentState.mfaRequired,
-                    codeSent = true,
-                )
+                _uiState.value =
+                    AuthScreen.Voice(
+                        username = currentState.username,
+                        mfaRequired = currentState.mfaRequired,
+                        codeSent = true
+                    )
             }
+
             else -> {
                 // Do nothing
             }
@@ -206,7 +232,8 @@ class AuthenticationFlowViewModel : ViewModel() {
 
         when (val currentState = _uiState.value) {
             is AuthScreen.SelectAuthenticator,
-            is AuthScreen.MfaRequired -> {
+            is AuthScreen.MfaRequired,
+            -> {
                 _uiState.value = AuthScreen.UsernameInput(currentState.username)
             }
 
@@ -215,11 +242,14 @@ class AuthenticationFlowViewModel : ViewModel() {
             is AuthScreen.Otp,
             is AuthScreen.Passkeys,
             is AuthScreen.Sms,
-            is AuthScreen.Voice -> {
+            is AuthScreen.Voice,
+            -> {
                 _uiState.value = AuthScreen.SelectAuthenticator(currentState.username)
             }
 
-            is AuthScreen.UsernameInput -> Unit // Do nothing
+            is AuthScreen.UsernameInput -> {
+                Unit
+            } // Do nothing
         }
     }
 }

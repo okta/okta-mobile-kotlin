@@ -1,3 +1,18 @@
+/*
+ * Copyright 2022-Present Okta, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.okta.directauth.app
 
 import android.os.Bundle
@@ -18,28 +33,28 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.okta.directauth.app.model.AuthMethod
-import com.okta.directauth.app.model.AuthScreen
-import com.okta.directauth.app.screen.AuthenticatedScreen
-import com.okta.directauth.app.screen.AuthenticationFlow
-import com.okta.directauth.app.screen.CodeEntryScreen
-import com.okta.directauth.app.screen.ErrorScreen
-import com.okta.directauth.app.screen.OobPollingScreen
-import com.okta.directauth.app.screen.asString
-import com.okta.directauth.app.ui.theme.DirectAuthAppTheme
-import com.okta.directauth.app.viewModel.AuthenticationFlowViewModel
-import com.okta.directauth.app.viewModel.MainViewModel
-import com.okta.directauth.model.DirectAuthContinuation
-import com.okta.directauth.model.DirectAuthenticationError
-import com.okta.directauth.model.DirectAuthenticationState
 import com.okta.directauth.app.model.AuthMethod.Mfa.OktaVerify
 import com.okta.directauth.app.model.AuthMethod.Mfa.Otp
 import com.okta.directauth.app.model.AuthMethod.Mfa.Passkeys
 import com.okta.directauth.app.model.AuthMethod.Mfa.Sms
 import com.okta.directauth.app.model.AuthMethod.Mfa.Voice
 import com.okta.directauth.app.model.AuthMethod.Password
+import com.okta.directauth.app.model.AuthScreen
+import com.okta.directauth.app.screen.AuthenticatedScreen
+import com.okta.directauth.app.screen.AuthenticationFlow
+import com.okta.directauth.app.screen.CodeEntryScreen
+import com.okta.directauth.app.screen.ErrorScreen
+import com.okta.directauth.app.screen.OobPollingScreen
 import com.okta.directauth.app.screen.PasswordChangeScreen
 import com.okta.directauth.app.screen.PasswordChangeSuccessScreen
+import com.okta.directauth.app.screen.asString
+import com.okta.directauth.app.ui.theme.DirectAuthAppTheme
+import com.okta.directauth.app.viewModel.AuthenticationFlowViewModel
+import com.okta.directauth.app.viewModel.MainViewModel
+import com.okta.directauth.model.DirectAuthContinuation
+import com.okta.directauth.model.DirectAuthenticationError
 import com.okta.directauth.model.DirectAuthenticationIntent
+import com.okta.directauth.model.DirectAuthenticationState
 
 class MainActivity : ComponentActivity() {
     private val viewModel: MainViewModel by viewModels()
@@ -54,11 +69,12 @@ class MainActivity : ComponentActivity() {
                 val selectAuthMethod by authenticationFlowViewModel.selectedAuthMethod.collectAsState()
                 val username by authenticationFlowViewModel.username.collectAsState()
 
-                val authStateFlow = if (intent.value == DirectAuthenticationIntent.RECOVERY) {
-                    viewModel.directAuthSspr.authenticationState
-                } else {
-                    viewModel.directAuth.authenticationState
-                }
+                val authStateFlow =
+                    if (intent.value == DirectAuthenticationIntent.RECOVERY) {
+                        viewModel.directAuthSspr.authenticationState
+                    } else {
+                        viewModel.directAuth.authenticationState
+                    }
                 val signInState by authStateFlow.collectAsState()
                 val passwordChangeResult by viewModel.passwordChangeResult.collectAsState()
 
@@ -85,7 +101,7 @@ class MainActivity : ComponentActivity() {
 
                 Box(modifier = Modifier.statusBarsPadding()) {
                     Crossfade(targetState = displayedState) { currentState ->
-                        /**
+                        /*
                          * Main state machine for the authentication flow.
                          *
                          * This when-expression handles all possible authentication states and displays
@@ -112,75 +128,91 @@ class MainActivity : ComponentActivity() {
                                     else -> {
                                         OobPollingScreen(
                                             message = "Polling for OOB result...",
+                                            onCancel = viewModel::reset,
                                             countdownSeconds = currentState.expirationInSeconds,
-                                            pollAction = { viewModel.pendingOob(currentState) },
-                                            onCancel = viewModel::reset
+                                            pollAction = { viewModel.pendingOob(currentState) }
                                         )
                                     }
                                 }
                             }
 
                             // Server requires additional input during authentication (e.g., OTP code)
-                            is DirectAuthContinuation.Prompt -> CodeEntryScreen(
-                                username = username,
-                                backToSignIn = viewModel::reset,
-                                verifyWithSomethingElse = null,
-                            ) { code ->
-                                viewModel.prompt(currentState, code)
+                            is DirectAuthContinuation.Prompt -> {
+                                CodeEntryScreen(
+                                    username = username,
+                                    backToSignIn = viewModel::reset,
+                                    verifyWithSomethingElse = null
+                                ) { code ->
+                                    viewModel.prompt(currentState, code)
+                                }
                             }
 
                             // Device transfer authentication (e.g., authenticate via Okta Verify)
-                            is DirectAuthContinuation.Transfer -> OobPollingScreen(
-                                message = "Please verify the code on your other device",
-                                bindingCode = currentState.bindingCode,
-                                countdownSeconds = currentState.expirationInSeconds,
-                                pollAction = { viewModel.transfer(currentState) },
-                                onCancel = viewModel::reset
-                            )
-
-                            // Passkey/WebAuthn authentication (not yet implemented)
-                            is DirectAuthContinuation.WebAuthn -> TODO()
-
-                            // Authentication error occurred - display error message
-                            is DirectAuthenticationError -> ErrorScreen(currentState.asString()) {
-                                viewModel.reset()
-                                authenticationFlowViewModel.setInitialState(AuthScreen.UsernameInput(""))
+                            is DirectAuthContinuation.Transfer -> {
+                                OobPollingScreen(
+                                    message = "Please verify the code on your other device",
+                                    onCancel = viewModel::reset,
+                                    bindingCode = currentState.bindingCode,
+                                    countdownSeconds = currentState.expirationInSeconds,
+                                    pollAction = { viewModel.transfer(currentState) }
+                                )
                             }
 
-                            // Successfully authenticated - display the idToken and sign-out option
-                            is DirectAuthenticationState.Authenticated -> when (intent.value) {
-                                DirectAuthenticationIntent.SIGN_IN -> AuthenticatedScreen(
-                                    idToken = currentState.token.idToken ?: "",
-                                    onSignOut = {
+                            // Passkey/WebAuthn authentication (not yet implemented)
+                            is DirectAuthContinuation.WebAuthn -> {
+                                TODO()
+                            }
+
+                            // Authentication error occurred - display error message
+                            is DirectAuthenticationError -> {
+                                ErrorScreen(
+                                    error = currentState.asString(),
+                                    onBack = {
                                         viewModel.reset()
                                         authenticationFlowViewModel.setInitialState(AuthScreen.UsernameInput(""))
                                     }
                                 )
+                            }
 
-                                DirectAuthenticationIntent.RECOVERY -> {
-                                    when (passwordChangeResult) {
-                                        is MainViewModel.PasswordChangeResult.Success -> {
-                                            PasswordChangeSuccessScreen(
-                                                username = username,
-                                                onBackToSignIn = {
-                                                    viewModel.reset()
-                                                    authenticationFlowViewModel.setInitialState(AuthScreen.UsernameInput(""))
-                                                }
-                                            )
-                                        }
-                                        else -> {
-                                            PasswordChangeScreen(
-                                                username = username,
-                                                backToSignIn = {
-                                                    viewModel.reset()
-                                                    authenticationFlowViewModel.setInitialState(AuthScreen.UsernameInput(""))
-                                                },
-                                                passwordChangeResult = passwordChangeResult,
-                                                onDismissError = { viewModel.dismissPasswordChangeError() },
-                                                next = { newPassword ->
-                                                    viewModel.changePassword(currentState.token.accessToken, newPassword)
-                                                }
-                                            )
+                            // Successfully authenticated - display the idToken and sign-out option
+                            is DirectAuthenticationState.Authenticated -> {
+                                when (intent.value) {
+                                    DirectAuthenticationIntent.SIGN_IN -> {
+                                        AuthenticatedScreen(
+                                            idToken = currentState.token.idToken ?: "",
+                                            onSignOut = {
+                                                viewModel.reset()
+                                                authenticationFlowViewModel.setInitialState(AuthScreen.UsernameInput(""))
+                                            }
+                                        )
+                                    }
+
+                                    DirectAuthenticationIntent.RECOVERY -> {
+                                        when (passwordChangeResult) {
+                                            is MainViewModel.PasswordChangeResult.Success -> {
+                                                PasswordChangeSuccessScreen(
+                                                    username = username,
+                                                    onBackToSignIn = {
+                                                        viewModel.reset()
+                                                        authenticationFlowViewModel.setInitialState(AuthScreen.UsernameInput(""))
+                                                    }
+                                                )
+                                            }
+
+                                            else -> {
+                                                PasswordChangeScreen(
+                                                    username = username,
+                                                    backToSignIn = {
+                                                        viewModel.reset()
+                                                        authenticationFlowViewModel.setInitialState(AuthScreen.UsernameInput(""))
+                                                    },
+                                                    passwordChangeResult = passwordChangeResult,
+                                                    onDismissError = { viewModel.dismissPasswordChangeError() },
+                                                    next = { newPassword ->
+                                                        viewModel.changePassword(currentState.token.accessToken, newPassword)
+                                                    }
+                                                )
+                                            }
                                         }
                                     }
                                 }
@@ -189,15 +221,19 @@ class MainActivity : ComponentActivity() {
                             // Initial authentication flow states - username then select authenticator to use.
                             DirectAuthenticationState.Canceled,
                             DirectAuthenticationState.Idle,
-                            is DirectAuthenticationState.MfaRequired -> {
+                            is DirectAuthenticationState.MfaRequired,
+                            -> {
                                 val supportedAuthenticators: List<AuthMethod> = listOf(Password, OktaVerify, Otp, Passkeys, Sms, Voice)
                                 AuthenticationFlow(
-                                    viewModel, authenticationFlowViewModel,
+                                    viewModel,
+                                    authenticationFlowViewModel,
                                     if (intent.value == DirectAuthenticationIntent.RECOVERY) supportedAuthenticators.filterNot { it == Password } else supportedAuthenticators
                                 )
                             }
 
-                            is DirectAuthenticationState.AuthorizationPending -> Unit // Do nothing. This example does not use this state to update UI
+                            is DirectAuthenticationState.AuthorizationPending -> {
+                                Unit
+                            } // Do nothing. This example does not use this state to update UI
                         }
                     }
                 }

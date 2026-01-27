@@ -46,11 +46,14 @@ internal class BrowserFragment :
                     binding.errorTextView.visibility = View.VISIBLE
                     binding.errorTextView.text = state.message
                 }
+
                 BrowserState.Idle -> {
                 }
+
                 BrowserState.Token -> {
                     findNavController().navigate(BrowserFragmentDirections.browserToDashboard())
                 }
+
                 BrowserState.Loading -> {
                     binding.progressBar.visibility = View.VISIBLE
                 }

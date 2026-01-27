@@ -71,12 +71,15 @@ internal class DashboardFragment :
                     binding.signOutButton.isEnabled = true
                     Toast.makeText(requireContext(), "Logout failed.", Toast.LENGTH_LONG).show()
                 }
+
                 DashboardViewModel.LogoutState.Idle -> {
                     binding.signOutButton.isEnabled = true
                 }
+
                 DashboardViewModel.LogoutState.Loading -> {
                     binding.signOutButton.isEnabled = false
                 }
+
                 DashboardViewModel.LogoutState.Success -> {
                     viewModel.acknowledgeLogoutSuccess()
                     findNavController().navigate(DashboardFragmentDirections.dashboardToLogin())

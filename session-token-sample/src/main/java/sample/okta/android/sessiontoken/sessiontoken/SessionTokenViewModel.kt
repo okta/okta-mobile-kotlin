@@ -80,6 +80,7 @@ class SessionTokenViewModel : ViewModel() {
                     Timber.e(result.exception, "Failed to login.")
                     _state.value = SessionTokenState.Error("Failed to login.")
                 }
+
                 is OAuth2ClientResult.Success -> {
                     val credential = Credential.store(token = result.result)
                     Credential.setDefaultAsync(credential)

@@ -38,12 +38,15 @@ enum class TokenType {
             ACCESS_TOKEN -> {
                 "access_token"
             }
+
             REFRESH_TOKEN -> {
                 "refresh_token"
             }
+
             ID_TOKEN -> {
                 "id_token"
             }
+
             DEVICE_SECRET -> {
                 "device_secret"
             }

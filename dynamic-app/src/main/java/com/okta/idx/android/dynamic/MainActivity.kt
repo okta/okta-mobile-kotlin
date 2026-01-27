@@ -43,6 +43,7 @@ class MainActivity : AppCompatActivity() {
                     Timber.d("SocialRedirect intent data missing")
                 }
             }
+
             EMAIL_REDIRECT_ACTION -> {
                 intent.data?.let {
                     EmailRedirectCoordinator.listener?.invoke(it, this)

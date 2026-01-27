@@ -1,9 +1,26 @@
+/*
+ * Copyright 2022-Present Okta, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.okta.directauth.model
 
 /**
  * Error codes specific to Direct Authentication.
  */
-internal enum class DirectAuthenticationErrorCode(val code: String) {
+internal enum class DirectAuthenticationErrorCode(
+    val code: String,
+) {
     MFA_REQUIRED("mfa_required"), // Custom error code for MFA requirement
     AUTHORIZATION_PENDING("authorization_pending"), // Custom error code for authorization pending
     CONSENT_REQUIRED("consent_required"), // User need to consent to the scope of the request
@@ -18,24 +35,26 @@ internal enum class DirectAuthenticationErrorCode(val code: String) {
     UNSUPPORTED_GRANT_TYPE("unsupported_grant_type"),
     UNSUPPORTED_RESPONSE_TYPE("unsupported_response_type"),
     TEMPORARILY_UNAVAILABLE("temporarily_unavailable"),
-    SERVER_ERROR("server_error");
+    SERVER_ERROR("server_error"),
+    ;
 
     companion object {
-        fun fromString(value: String): DirectAuthenticationErrorCode = when (value) {
-            MFA_REQUIRED.code -> MFA_REQUIRED
-            AUTHORIZATION_PENDING.code -> AUTHORIZATION_PENDING
-            CONSENT_REQUIRED.code -> CONSENT_REQUIRED
-            ACCESS_DENIED.code -> ACCESS_DENIED
-            INVALID_GRANT.code -> INVALID_GRANT
-            INVALID_REQUEST.code -> INVALID_REQUEST
-            INVALID_SCOPE.code -> INVALID_SCOPE
-            INVALID_CLIENT.code -> INVALID_CLIENT
-            UNAUTHORIZED_CLIENT.code -> UNAUTHORIZED_CLIENT
-            UNSUPPORTED_GRANT_TYPE.code -> UNSUPPORTED_GRANT_TYPE
-            UNSUPPORTED_RESPONSE_TYPE.code -> UNSUPPORTED_RESPONSE_TYPE
-            TEMPORARILY_UNAVAILABLE.code -> TEMPORARILY_UNAVAILABLE
-            SERVER_ERROR.code -> SERVER_ERROR
-            else -> throw IllegalArgumentException("Unknown DirectAuthenticationErrorCode: $value")
-        }
+        fun fromString(value: String): DirectAuthenticationErrorCode =
+            when (value) {
+                MFA_REQUIRED.code -> MFA_REQUIRED
+                AUTHORIZATION_PENDING.code -> AUTHORIZATION_PENDING
+                CONSENT_REQUIRED.code -> CONSENT_REQUIRED
+                ACCESS_DENIED.code -> ACCESS_DENIED
+                INVALID_GRANT.code -> INVALID_GRANT
+                INVALID_REQUEST.code -> INVALID_REQUEST
+                INVALID_SCOPE.code -> INVALID_SCOPE
+                INVALID_CLIENT.code -> INVALID_CLIENT
+                UNAUTHORIZED_CLIENT.code -> UNAUTHORIZED_CLIENT
+                UNSUPPORTED_GRANT_TYPE.code -> UNSUPPORTED_GRANT_TYPE
+                UNSUPPORTED_RESPONSE_TYPE.code -> UNSUPPORTED_RESPONSE_TYPE
+                TEMPORARILY_UNAVAILABLE.code -> TEMPORARILY_UNAVAILABLE
+                SERVER_ERROR.code -> SERVER_ERROR
+                else -> throw IllegalArgumentException("Unknown DirectAuthenticationErrorCode: $value")
+            }
     }
 }

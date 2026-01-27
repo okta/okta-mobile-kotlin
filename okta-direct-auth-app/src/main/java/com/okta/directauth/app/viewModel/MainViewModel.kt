@@ -1,3 +1,18 @@
+/*
+ * Copyright 2022-Present Okta, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.okta.directauth.app.viewModel
 
 import android.util.Log
@@ -34,7 +49,6 @@ import kotlinx.serialization.json.Json
  * and exposes methods that UI screens can call to progress through the auth flow.
  */
 class MainViewModel : ViewModel() {
-
     companion object {
         private const val TAG = "MainViewModel"
     }
@@ -47,12 +61,13 @@ class MainViewModel : ViewModel() {
 
     private val apiExecutor = KtorHttpExecutor()
 
-    private val json = Json {
-        encodeDefaults = true
-        ignoreUnknownKeys = true
-        coerceInputValues = true
-        explicitNulls = false
-    }
+    private val json =
+        Json {
+            encodeDefaults = true
+            ignoreUnknownKeys = true
+            coerceInputValues = true
+            explicitNulls = false
+        }
 
     /**
      * The intent of the authentication.
@@ -79,10 +94,18 @@ class MainViewModel : ViewModel() {
      */
     sealed class PasswordChangeResult {
         object Idle : PasswordChangeResult()
+
         object Success : PasswordChangeResult()
+
         sealed class Error : PasswordChangeResult() {
-            data class OktaApiError(val oktaErrorResponse: OktaErrorResponse, val statusCode: Int) : Error()
-            data class NetworkError(val message: String) : Error()
+            data class OktaApiError(
+                val oktaErrorResponse: OktaErrorResponse,
+                val statusCode: Int,
+            ) : Error()
+
+            data class NetworkError(
+                val message: String,
+            ) : Error()
         }
     }
 
@@ -94,9 +117,11 @@ class MainViewModel : ViewModel() {
      * - start(): Initiates authentication with a username and factor
      * - reset(): Resets the authentication flow to idle state
      */
-    val directAuth: DirectAuthenticationFlow = DirectAuthenticationFlowBuilder.create(BuildConfig.ISSUER, BuildConfig.CLIENT_ID, scopes) {
-        authorizationServerId = BuildConfig.AUTHORIZATION_SERVER_ID
-    }.getOrThrow()
+    val directAuth: DirectAuthenticationFlow =
+        DirectAuthenticationFlowBuilder
+            .create(BuildConfig.ISSUER, BuildConfig.CLIENT_ID, scopes) {
+                authorizationServerId = BuildConfig.AUTHORIZATION_SERVER_ID
+            }.getOrThrow()
 
     /**
      * The Direct Authentication SDK flow instance to use with myAccount API for password recovery.
@@ -106,9 +131,11 @@ class MainViewModel : ViewModel() {
      * - start(): Initiates authentication with a username and factor
      * - reset(): Resets the authentication flow to idle state
      */
-    val directAuthSspr: DirectAuthenticationFlow = DirectAuthenticationFlowBuilder.create(BuildConfig.ISSUER, BuildConfig.CLIENT_ID, ssprScope) {
-        directAuthenticationIntent = DirectAuthenticationIntent.RECOVERY
-    }.getOrThrow()
+    val directAuthSspr: DirectAuthenticationFlow =
+        DirectAuthenticationFlowBuilder
+            .create(BuildConfig.ISSUER, BuildConfig.CLIENT_ID, ssprScope) {
+                directAuthenticationIntent = DirectAuthenticationIntent.RECOVERY
+            }.getOrThrow()
 
     /**
      * Initiates authentication with a username and authentication method.
@@ -127,7 +154,11 @@ class MainViewModel : ViewModel() {
      * @param authMethod The authentication method (Password, OTP, SMS, Voice, OktaVerify, Passkeys)
      * @return Job that can be cancelled if the user navigates away
      */
-    fun signIn(username: String, password: String, authMethod: AuthMethod): Job {
+    fun signIn(
+        username: String,
+        password: String,
+        authMethod: AuthMethod,
+    ): Job {
         Log.i(TAG, "signIn() called - username: $username, authMethod: ${authMethod.label}")
         return viewModelScope.launch {
             Log.d(TAG, "Starting authentication with ${authMethod.label} and intent: ${authIntent.value}")
@@ -156,14 +187,19 @@ class MainViewModel : ViewModel() {
      * @param mfaRequired The MfaRequired state that needs to be resumed
      * @return Job that can be cancelled if the user navigates away
      */
-    fun resume(otp: String, mfaMethod: AuthMethod.Mfa, mfaRequired: DirectAuthenticationState.MfaRequired): Job {
+    fun resume(
+        otp: String,
+        mfaMethod: AuthMethod.Mfa,
+        mfaRequired: DirectAuthenticationState.MfaRequired,
+    ): Job {
         Log.i(TAG, "resume() called - mfaMethod: ${mfaMethod.label}")
         val mfaFactor = mfaMethod.asFactor(otp)
-        val challengeGrantType = when (mfaFactor) {
-            is PrimaryFactor.Oob -> ChallengeGrantType.OobMfa
-            is PrimaryFactor.Otp -> ChallengeGrantType.OtpMfa
-            PrimaryFactor.WebAuthn -> ChallengeGrantType.WebAuthnMfa
-        }
+        val challengeGrantType =
+            when (mfaFactor) {
+                is PrimaryFactor.Oob -> ChallengeGrantType.OobMfa
+                is PrimaryFactor.Otp -> ChallengeGrantType.OtpMfa
+                PrimaryFactor.WebAuthn -> ChallengeGrantType.WebAuthnMfa
+            }
         Log.d(TAG, "Resuming MFA with ${mfaMethod.label}, challengeGrantType: $challengeGrantType")
         return viewModelScope.launch { mfaRequired.resume(mfaFactor, listOf(challengeGrantType)) }
     }
@@ -201,7 +237,10 @@ class MainViewModel : ViewModel() {
      * @param code The code entered by the user
      * @return Job representing the submission operation
      */
-    fun prompt(prompt: DirectAuthContinuation.Prompt, code: String): Job {
+    fun prompt(
+        prompt: DirectAuthContinuation.Prompt,
+        code: String,
+    ): Job {
         Log.i(TAG, "prompt() called - submitting code in response to server prompt")
         return viewModelScope.launch {
             Log.d(TAG, "Proceeding with prompt continuation")
@@ -264,17 +303,21 @@ class MainViewModel : ViewModel() {
      * @param newPassword The new password to set for the user
      * @return Job representing the password change operation
      */
-    fun changePassword(accessToken: String, newPassword: String): Job {
+    fun changePassword(
+        accessToken: String,
+        newPassword: String,
+    ): Job {
         Log.i(TAG, "changePassword() called")
         _passwordChangeResult.value = PasswordChangeResult.Idle
         return viewModelScope.launch {
             Log.d(TAG, "Executing password change request")
             try {
-                val request = MyAccountReplacePasswordRequest(
-                    issuerUrl = BuildConfig.ISSUER,
-                    accessToken = accessToken,
-                    newPassword = newPassword
-                )
+                val request =
+                    MyAccountReplacePasswordRequest(
+                        issuerUrl = BuildConfig.ISSUER,
+                        accessToken = accessToken,
+                        newPassword = newPassword
+                    )
 
                 apiExecutor.execute(request).fold(
                     onSuccess = { response ->
@@ -282,15 +325,16 @@ class MainViewModel : ViewModel() {
                             Log.i(TAG, "Password changed successfully")
                             _passwordChangeResult.value = PasswordChangeResult.Success
                         } else {
-                            val oktaError = runCatching {
-                                response.body?.takeIf { it.isNotEmpty() }?.let { byteArray ->
-                                    val errorJsonString = byteArray.toString(Charsets.UTF_8)
-                                    json.decodeFromString<OktaErrorResponse>(errorJsonString)
+                            val oktaError =
+                                runCatching {
+                                    response.body?.takeIf { it.isNotEmpty() }?.let { byteArray ->
+                                        val errorJsonString = byteArray.toString(Charsets.UTF_8)
+                                        json.decodeFromString<OktaErrorResponse>(errorJsonString)
+                                    }
+                                }.getOrElse {
+                                    Log.e(TAG, "Failed to parse error response", it)
+                                    return@fold
                                 }
-                            }.getOrElse {
-                                Log.e(TAG, "Failed to parse error response", it)
-                                return@fold
-                            }
 
                             if (oktaError != null) {
                                 Log.e(TAG, "Password change failed (status: ${response.statusCode}): ${oktaError.errorSummary}")

@@ -1,3 +1,18 @@
+/*
+ * Copyright 2022-Present Okta, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.okta.directauth
 
 import com.okta.authfoundation.ChallengeGrantType
@@ -22,7 +37,6 @@ import io.ktor.http.Url
  * An instance of this builder should be created using the [DirectAuthenticationFlow.create] factory method.
  */
 class DirectAuthenticationFlowBuilder private constructor() {
-
     /**
      * The ID of the authorization server to use for the authentication flow.
      *
@@ -125,36 +139,39 @@ class DirectAuthenticationFlowBuilder private constructor() {
             clientId: String,
             scope: List<String>,
             buildAction: (DirectAuthenticationFlowBuilder.() -> Unit)? = null,
-        ): Result<DirectAuthenticationFlow> = runCatching {
-            val builder = DirectAuthenticationFlowBuilder()
-            buildAction?.invoke(builder)
+        ): Result<DirectAuthenticationFlow> =
+            runCatching {
+                val builder = DirectAuthenticationFlowBuilder()
+                buildAction?.invoke(builder)
 
-            require(runCatching {
-                val url = Url(issuerUrl)
-                url.protocol == URLProtocol.HTTPS && url.host.isNotBlank()
-            }.getOrDefault(false)) { "issuerUrl must be a valid https URL." }
+                require(
+                    runCatching {
+                        val url = Url(issuerUrl)
+                        url.protocol == URLProtocol.HTTPS && url.host.isNotBlank()
+                    }.getOrDefault(false)
+                ) { "issuerUrl must be a valid https URL." }
 
-            require(clientId.isNotBlank()) { "clientId must be set and not empty." }
-            require(scope.isNotEmpty()) { "scope must be set and not empty." }
+                require(clientId.isNotBlank()) { "clientId must be set and not empty." }
+                require(scope.isNotEmpty()) { "scope must be set and not empty." }
 
-            Result.success(
-                DirectAuthenticationFlowImpl(
-                    DirectAuthenticationContext(
-                        issuerUrl,
-                        clientId,
-                        scope,
-                        builder.authorizationServerId,
-                        builder.clientSecret,
-                        builder.supportedGrantType,
-                        builder.acrValues,
-                        builder.directAuthenticationIntent,
-                        builder.apiExecutor,
-                        builder.logger,
-                        builder.clock,
-                        builder.additionalParameter,
+                Result.success(
+                    DirectAuthenticationFlowImpl(
+                        DirectAuthenticationContext(
+                            issuerUrl,
+                            clientId,
+                            scope,
+                            builder.authorizationServerId,
+                            builder.clientSecret,
+                            builder.supportedGrantType,
+                            builder.acrValues,
+                            builder.directAuthenticationIntent,
+                            builder.apiExecutor,
+                            builder.logger,
+                            builder.clock,
+                            builder.additionalParameter
+                        )
                     )
                 )
-            )
-        }.getOrElse { Result.failure(it) }
+            }.getOrElse { Result.failure(it) }
     }
 }

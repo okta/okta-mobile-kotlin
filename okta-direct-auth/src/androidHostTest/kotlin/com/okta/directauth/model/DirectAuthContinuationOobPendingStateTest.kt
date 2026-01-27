@@ -1,3 +1,18 @@
+/*
+ * Copyright 2022-Present Okta, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.okta.directauth.model
 
 import com.okta.authfoundation.ChallengeGrantType
@@ -41,8 +56,8 @@ import org.junit.Test
 class DirectAuthContinuationOobPendingStateTest {
     private lateinit var bindingContext: BindingContext
 
-    private fun createDirectAuthenticationContext(apiExecutor: KtorHttpExecutor): DirectAuthenticationContext {
-        return DirectAuthenticationContext(
+    private fun createDirectAuthenticationContext(apiExecutor: KtorHttpExecutor): DirectAuthenticationContext =
+        DirectAuthenticationContext(
             issuerUrl = "https://example.okta.com",
             clientId = "test_client_id",
             scope = listOf("openid", "email", "profile", "offline_access"),
@@ -52,27 +67,32 @@ class DirectAuthContinuationOobPendingStateTest {
             acrValues = emptyList(),
             directAuthenticationIntent = DirectAuthenticationIntent.SIGN_IN,
             apiExecutor = apiExecutor,
-            logger = object : AuthFoundationLogger {
-                override fun write(message: String, tr: Throwable?, logLevel: LogLevel) {
-                    // No-op logger for tests
-                }
-            },
+            logger =
+                object : AuthFoundationLogger {
+                    override fun write(
+                        message: String,
+                        tr: Throwable?,
+                        logLevel: LogLevel,
+                    ) {
+                        // No-op logger for tests
+                    }
+                },
             clock = { 1654041600 }, // 2022-06-01
             additionalParameters = mapOf("custom_param" to "custom_value")
         )
-    }
 
     @Before
     fun setUp() {
-        bindingContext = BindingContext(
-            oobCode = "test_oob_code",
-            expiresIn = 60, // 60 seconds
-            interval = 5, // 5 seconds
-            channel = OobChannel.PUSH,
-            bindingMethod = BindingMethod.NONE,
-            bindingCode = null,
-            challengeType = null,
-        )
+        bindingContext =
+            BindingContext(
+                oobCode = "test_oob_code",
+                expiresIn = 60, // 60 seconds
+                interval = 5, // 5 seconds
+                channel = OobChannel.PUSH,
+                bindingMethod = BindingMethod.NONE,
+                bindingCode = null,
+                challengeType = null
+            )
     }
 
     @Test
@@ -118,11 +138,12 @@ class DirectAuthContinuationOobPendingStateTest {
         val context = createDirectAuthenticationContext(apiExecutor = KtorHttpExecutor(HttpClient(mockEngine)))
         val oobState = DirectAuthContinuation.OobPending(bindingContext, context)
 
-        val job = CoroutineScope(Dispatchers.Default).launch {
-            context.authenticationStateFlow.collect { value ->
-                if (value !is DirectAuthenticationState.Idle) collectedValues.add(value)
+        val job =
+            CoroutineScope(Dispatchers.Default).launch {
+                context.authenticationStateFlow.collect { value ->
+                    if (value !is DirectAuthenticationState.Idle) collectedValues.add(value)
+                }
             }
-        }
 
         val result = runBlocking { oobState.proceed() }
 
@@ -155,25 +176,27 @@ class DirectAuthContinuationOobPendingStateTest {
     }
 
     @Test
-    fun `poll returns Canceled when coroutine is canceled`() = runTest {
-        val mockEngine = MockEngine.Queue()
-        mockEngine.enqueue { respond(AUTHORIZATION_PENDING_JSON, HttpStatusCode.BadRequest, contentType) }
-        mockEngine.enqueue { respond(AUTHORIZATION_PENDING_JSON, HttpStatusCode.BadRequest, contentType) }
+    fun `poll returns Canceled when coroutine is canceled`() =
+        runTest {
+            val mockEngine = MockEngine.Queue()
+            mockEngine.enqueue { respond(AUTHORIZATION_PENDING_JSON, HttpStatusCode.BadRequest, contentType) }
+            mockEngine.enqueue { respond(AUTHORIZATION_PENDING_JSON, HttpStatusCode.BadRequest, contentType) }
 
-        val context = createDirectAuthenticationContext(apiExecutor = KtorHttpExecutor(HttpClient(mockEngine)))
-        val oobState = DirectAuthContinuation.OobPending(bindingContext.copy(expiresIn = 3_600), context)
+            val context = createDirectAuthenticationContext(apiExecutor = KtorHttpExecutor(HttpClient(mockEngine)))
+            val oobState = DirectAuthContinuation.OobPending(bindingContext.copy(expiresIn = 3_600), context)
 
-        val pollJob = launch(Dispatchers.Default) {
-            assertThat(oobState.proceed(), instanceOf(DirectAuthenticationState.Canceled::class.java))
+            val pollJob =
+                launch(Dispatchers.Default) {
+                    assertThat(oobState.proceed(), instanceOf(DirectAuthenticationState.Canceled::class.java))
+                }
+
+            advanceUntilIdle()
+            pollJob.cancel()
+            advanceUntilIdle()
+
+            pollJob.join()
+            assertThat(context.authenticationStateFlow.value, instanceOf(DirectAuthenticationState.Canceled::class.java))
         }
-
-        advanceUntilIdle()
-        pollJob.cancel()
-        advanceUntilIdle()
-
-        pollJob.join()
-        assertThat(context.authenticationStateFlow.value, instanceOf(DirectAuthenticationState.Canceled::class.java))
-    }
 
     @Test
     fun `poll returns HttpError on API error`() {

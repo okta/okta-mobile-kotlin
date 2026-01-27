@@ -68,6 +68,7 @@ internal class DashboardFragment :
                     // Go back to login screen if no default credential is set
                     findNavController().navigate(DashboardFragmentDirections.dashboardToLogin())
                 }
+
                 is DashboardViewModel.CredentialState.Loaded -> {
                     val credential = credentialState.credential
                     lifecycleScope.launch {
@@ -157,6 +158,7 @@ internal class DashboardFragment :
                 DashboardViewModel.RequestState.Loading -> {
                     button?.isEnabled = false
                 }
+
                 is DashboardViewModel.RequestState.Result -> {
                     button?.isEnabled = true
                     binding.lastRequestInfo.text = state.text

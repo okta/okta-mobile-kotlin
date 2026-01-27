@@ -2,10 +2,9 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     id("com.android.library")
+    alias(libs.plugins.dokka)
     id("kotlin-parcelize")
     id("binary-compatibility-validator")
-    kotlin("android")
-    alias(libs.plugins.dokka)
     kotlin("plugin.serialization") version libs.versions.kotlin.get()
     id("com.vanniktech.maven.publish.base")
     id("spotless")
@@ -36,29 +35,28 @@ android {
         targetCompatibility = TARGET_COMPATIBILITY
     }
 
-    kotlin {
-        compilerOptions {
-            jvmTarget = JvmTarget.fromTarget(JVM_TARGET)
-            freeCompilerArgs.add("-opt-in=com.okta.authfoundation.InternalAuthFoundationApi")
-        }
-    }
-
     buildFeatures {
         buildConfig = true
-    }
-
-    testVariants.all {
-        mergedFlavor.manifestPlaceholders["webAuthenticationRedirectScheme"] = "unitTest"
-    }
-
-    unitTestVariants.all {
-        mergedFlavor.manifestPlaceholders["webAuthenticationRedirectScheme"] = "unitTest"
     }
 
     testOptions {
         unitTests {
             isIncludeAndroidResources = true
         }
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget = JvmTarget.fromTarget(JVM_TARGET)
+        freeCompilerArgs.add("-opt-in=com.okta.authfoundation.InternalAuthFoundationApi")
+    }
+}
+
+androidComponents {
+    onVariants { variant ->
+        variant.hostTests["UnitTest"]?.manifestPlaceholders?.put("webAuthenticationRedirectScheme", "unitTest")
+        variant.androidTest?.manifestPlaceholders?.put("webAuthenticationRedirectScheme", "unitTest")
     }
 }
 
