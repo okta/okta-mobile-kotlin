@@ -6,6 +6,7 @@ package com.okta.directauth.model
 internal enum class DirectAuthenticationErrorCode(val code: String) {
     MFA_REQUIRED("mfa_required"), // Custom error code for MFA requirement
     AUTHORIZATION_PENDING("authorization_pending"), // Custom error code for authorization pending
+    CONSENT_REQUIRED("consent_required"), // User need to consent to the scope of the request
 
     // following are standard OAuth2 error codes https://datatracker.ietf.org/doc/html/rfc6749#section-4.1.2.1
     ACCESS_DENIED("access_denied"),
@@ -23,6 +24,7 @@ internal enum class DirectAuthenticationErrorCode(val code: String) {
         fun fromString(value: String): DirectAuthenticationErrorCode = when (value) {
             MFA_REQUIRED.code -> MFA_REQUIRED
             AUTHORIZATION_PENDING.code -> AUTHORIZATION_PENDING
+            CONSENT_REQUIRED.code -> CONSENT_REQUIRED
             ACCESS_DENIED.code -> ACCESS_DENIED
             INVALID_GRANT.code -> INVALID_GRANT
             INVALID_REQUEST.code -> INVALID_REQUEST
