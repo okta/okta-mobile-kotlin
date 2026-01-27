@@ -11,7 +11,7 @@ import com.okta.directauth.app.http.MyAccountReplacePasswordRequest
 import com.okta.directauth.app.model.AuthMethod
 import com.okta.directauth.app.model.OktaErrorResponse
 import com.okta.directauth.http.KtorHttpExecutor
-import com.okta.directauth.model.Continuation
+import com.okta.directauth.model.DirectAuthContinuation
 import com.okta.directauth.model.DirectAuthenticationIntent
 import com.okta.directauth.model.DirectAuthenticationState
 import com.okta.directauth.model.PrimaryFactor
@@ -182,7 +182,7 @@ class MainViewModel : ViewModel() {
      * @param oobPending The OobPending continuation state to poll
      * @return Job representing the polling operation
      */
-    fun pendingOob(oobPending: Continuation.OobPending): Job {
+    fun pendingOob(oobPending: DirectAuthContinuation.OobPending): Job {
         Log.i(TAG, "pendingOob() called - polling for OOB completion (expires in ${oobPending.expirationInSeconds}s)")
         return viewModelScope.launch {
             Log.d(TAG, "Proceeding with OOB pending state")
@@ -201,7 +201,7 @@ class MainViewModel : ViewModel() {
      * @param code The code entered by the user
      * @return Job representing the submission operation
      */
-    fun prompt(prompt: Continuation.Prompt, code: String): Job {
+    fun prompt(prompt: DirectAuthContinuation.Prompt, code: String): Job {
         Log.i(TAG, "prompt() called - submitting code in response to server prompt")
         return viewModelScope.launch {
             Log.d(TAG, "Proceeding with prompt continuation")
@@ -222,7 +222,7 @@ class MainViewModel : ViewModel() {
      * @param transfer The Transfer continuation state
      * @return Job representing the transfer polling operation
      */
-    fun transfer(transfer: Continuation.Transfer): Job {
+    fun transfer(transfer: DirectAuthContinuation.Transfer): Job {
         Log.i(TAG, "transfer() called - initiating device transfer with binding code: ${transfer.bindingCode}")
         return viewModelScope.launch {
             Log.d(TAG, "Proceeding with transfer continuation (expires in ${transfer.expirationInSeconds}s)")

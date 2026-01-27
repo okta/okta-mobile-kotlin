@@ -15,7 +15,7 @@ import com.okta.directauth.http.model.OobAuthenticateResponse
 import com.okta.directauth.http.model.TokenResponse
 import com.okta.directauth.model.BindingContext
 import com.okta.directauth.model.BindingMethod
-import com.okta.directauth.model.Continuation
+import com.okta.directauth.model.DirectAuthContinuation
 import com.okta.directauth.model.DirectAuthenticationContext
 import com.okta.directauth.model.DirectAuthenticationError.HttpError.ApiError
 import com.okta.directauth.model.DirectAuthenticationError.HttpError.Oauth2Error
@@ -100,9 +100,9 @@ internal fun ApiResponse.oobResponseAsState(context: DirectAuthenticationContext
             null
         )
         return when (bindingContext.bindingMethod) {
-            BindingMethod.NONE -> Continuation.OobPending(bindingContext, context)
-            BindingMethod.PROMPT -> Continuation.Prompt(bindingContext, context)
-            BindingMethod.TRANSFER -> Continuation.Transfer(bindingContext, context)
+            BindingMethod.NONE -> DirectAuthContinuation.OobPending(bindingContext, context)
+            BindingMethod.PROMPT -> DirectAuthContinuation.Prompt(bindingContext, context)
+            BindingMethod.TRANSFER -> DirectAuthContinuation.Transfer(bindingContext, context)
         }
     }
 
@@ -144,9 +144,9 @@ internal fun ApiResponse.challengeResponseAsState(context: DirectAuthenticationC
         }
 
         return when (bindingContext.bindingMethod) {
-            BindingMethod.NONE -> Continuation.OobPending(bindingContext, context, mfaContext)
-            BindingMethod.PROMPT -> Continuation.Prompt(bindingContext, context, mfaContext)
-            BindingMethod.TRANSFER -> Continuation.Transfer(bindingContext, context, mfaContext)
+            BindingMethod.NONE -> DirectAuthContinuation.OobPending(bindingContext, context, mfaContext)
+            BindingMethod.PROMPT -> DirectAuthContinuation.Prompt(bindingContext, context, mfaContext)
+            BindingMethod.TRANSFER -> DirectAuthContinuation.Transfer(bindingContext, context, mfaContext)
         }
     }
 

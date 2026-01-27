@@ -17,7 +17,7 @@ import kotlin.coroutines.cancellation.CancellationException
  *
  * This sealed interface defines the possible outcomes after an authentication step. The flow can
  * either be complete, resulting in a [Authenticated] state, or require further user interaction,
- * such as in an [MfaRequired] state or [Continuation] state.
+ * such as in an [MfaRequired] state or [DirectAuthContinuation] state.
  *
  * In the case of a failure, the state will be an instance of [DirectAuthenticationError].
  * This can be an [DirectAuthenticationError.HttpError] for API-related issues (e.g., invalid

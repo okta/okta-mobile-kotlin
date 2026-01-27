@@ -5,7 +5,7 @@ import com.okta.authfoundation.api.http.ApiRequestMethod
 import com.okta.authfoundation.api.http.log.AuthFoundationLogger
 import com.okta.authfoundation.api.http.log.LogLevel
 import com.okta.directauth.model.BindingMethod
-import com.okta.directauth.model.Continuation
+import com.okta.directauth.model.DirectAuthContinuation
 import com.okta.directauth.model.DirectAuthenticationContext
 import com.okta.directauth.model.DirectAuthenticationError
 import com.okta.directauth.model.DirectAuthenticationIntent
@@ -109,8 +109,8 @@ class DirectAuthOobAuthenticateRequestTest {
 
         val state = apiResponse.oobResponseAsState(context)
 
-        assertThat(state, instanceOf(Continuation.OobPending::class.java))
-        val oobState = state as Continuation.OobPending
+        assertThat(state, instanceOf(DirectAuthContinuation.OobPending::class.java))
+        val oobState = state as DirectAuthContinuation.OobPending
         assertThat(oobState.bindingContext.oobCode, equalTo("example_oob_code"))
         assertThat(oobState.bindingContext.channel, equalTo(OobChannel.PUSH))
         assertThat(oobState.bindingContext.expiresIn, equalTo(120))
@@ -126,8 +126,8 @@ class DirectAuthOobAuthenticateRequestTest {
 
         val state = apiResponse.oobResponseAsState(context)
 
-        assertThat(state, instanceOf(Continuation.Prompt::class.java))
-        val oobState = state as Continuation.Prompt
+        assertThat(state, instanceOf(DirectAuthContinuation.Prompt::class.java))
+        val oobState = state as DirectAuthContinuation.Prompt
         assertThat(oobState.bindingContext.oobCode, equalTo("example_oob_code"))
         assertThat(oobState.bindingContext.channel, equalTo(OobChannel.SMS))
         assertThat(oobState.bindingContext.expiresIn, equalTo(120))
@@ -143,8 +143,8 @@ class DirectAuthOobAuthenticateRequestTest {
 
         val state = apiResponse.oobResponseAsState(context)
 
-        assertThat(state, instanceOf(Continuation.Prompt::class.java))
-        val oobState = state as Continuation.Prompt
+        assertThat(state, instanceOf(DirectAuthContinuation.Prompt::class.java))
+        val oobState = state as DirectAuthContinuation.Prompt
         assertThat(oobState.bindingContext.oobCode, equalTo("example_oob_code"))
         assertThat(oobState.bindingContext.channel, equalTo(OobChannel.VOICE))
         assertThat(oobState.bindingContext.expiresIn, equalTo(120))
@@ -160,8 +160,8 @@ class DirectAuthOobAuthenticateRequestTest {
 
         val state = apiResponse.oobResponseAsState(context)
 
-        assertThat(state, instanceOf(Continuation.Transfer::class.java))
-        val oobState = state as Continuation.Transfer
+        assertThat(state, instanceOf(DirectAuthContinuation.Transfer::class.java))
+        val oobState = state as DirectAuthContinuation.Transfer
         assertThat(oobState.bindingContext.oobCode, equalTo("example_oob_code"))
         assertThat(oobState.bindingContext.channel, equalTo(OobChannel.PUSH))
         assertThat(oobState.bindingContext.expiresIn, equalTo(120))

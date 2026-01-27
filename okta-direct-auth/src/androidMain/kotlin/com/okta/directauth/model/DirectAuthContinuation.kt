@@ -25,7 +25,7 @@ import kotlin.time.Duration.Companion.seconds
  * @param mfaContext An optional context for MFA flows, which may be present if the continuation
  * is part of a multi-factor sequence.
  */
-sealed class Continuation(internal val context: DirectAuthenticationContext, internal val mfaContext: MfaContext? = null) : DirectAuthenticationState {
+sealed class DirectAuthContinuation(internal val context: DirectAuthenticationContext, internal val mfaContext: MfaContext? = null) : DirectAuthenticationState {
 
     /**
      * Shared implementation for polling an out-of-band (OOB) authentication endpoint.
@@ -91,7 +91,7 @@ sealed class Continuation(internal val context: DirectAuthenticationContext, int
      * @param context The [DirectAuthenticationContext] associated with this state.
      * @param mfaContext An optional context for MFA flows.
      */
-    class WebAuthn internal constructor(val challengeData: String, context: DirectAuthenticationContext, mfaContext: MfaContext? = null) : Continuation(context, mfaContext) {
+    class WebAuthn internal constructor(val challengeData: String, context: DirectAuthenticationContext, mfaContext: MfaContext? = null) : DirectAuthContinuation(context, mfaContext) {
         /**
          * Proceeds with the authentication flow with the response from the WebAuthn/passkey ceremony.
          *
@@ -111,7 +111,7 @@ sealed class Continuation(internal val context: DirectAuthenticationContext, int
      * @param context The [DirectAuthenticationContext] associated with this state.
      * @param mfaContext An optional context for MFA flows.
      */
-    class Prompt internal constructor(internal val bindingContext: BindingContext, context: DirectAuthenticationContext, mfaContext: MfaContext? = null) : Continuation(context, mfaContext) {
+    class Prompt internal constructor(internal val bindingContext: BindingContext, context: DirectAuthenticationContext, mfaContext: MfaContext? = null) : DirectAuthContinuation(context, mfaContext) {
 
         /**
          * The number of seconds until the OOB challenge expires.
@@ -152,7 +152,7 @@ sealed class Continuation(internal val context: DirectAuthenticationContext, int
         internal val bindingContext: BindingContext,
         context: DirectAuthenticationContext,
         mfaContext: MfaContext? = null,
-    ) : Continuation(context, mfaContext) {
+    ) : DirectAuthContinuation(context, mfaContext) {
 
         /** The number of seconds until the OOB challenge expires. */
         val expirationInSeconds: Int = bindingContext.expiresIn
@@ -186,7 +186,7 @@ sealed class Continuation(internal val context: DirectAuthenticationContext, int
         internal val bindingContext: BindingContext,
         context: DirectAuthenticationContext,
         mfaContext: MfaContext? = null,
-    ) : Continuation(context, mfaContext) {
+    ) : DirectAuthContinuation(context, mfaContext) {
 
         /** The number of seconds until the OOB challenge expires. */
         val expirationInSeconds: Int = bindingContext.expiresIn

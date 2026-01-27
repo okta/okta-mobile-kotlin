@@ -13,7 +13,6 @@ import com.okta.directauth.tokenResponseMockEngine
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.runTest
 import org.hamcrest.CoreMatchers.instanceOf
 import org.hamcrest.MatcherAssert.assertThat
@@ -86,7 +85,7 @@ class DirectAuthenticationStateMfaRequiredTest {
 
         val result = mfaRequired.challenge(PrimaryFactor.Oob(OobChannel.PUSH))
 
-        assertThat(result, instanceOf(Continuation.OobPending::class.java))
+        assertThat(result, instanceOf(DirectAuthContinuation.OobPending::class.java))
     }
 
     @Test
@@ -96,7 +95,7 @@ class DirectAuthenticationStateMfaRequiredTest {
 
         val result = mfaRequired.challenge(PrimaryFactor.Oob(OobChannel.PUSH))
 
-        assertThat(result, instanceOf(Continuation.Transfer::class.java))
+        assertThat(result, instanceOf(DirectAuthContinuation.Transfer::class.java))
     }
 
     @Test
@@ -106,7 +105,7 @@ class DirectAuthenticationStateMfaRequiredTest {
 
         val result = mfaRequired.challenge(PrimaryFactor.Otp("passCode"))
 
-        assertThat(result, instanceOf(Continuation.Prompt::class.java))
+        assertThat(result, instanceOf(DirectAuthContinuation.Prompt::class.java))
     }
 
     @Test
@@ -117,7 +116,7 @@ class DirectAuthenticationStateMfaRequiredTest {
 
         val result = mfaRequired.resume(PrimaryFactor.WebAuthn)
 
-        assertThat(result, instanceOf(Continuation.WebAuthn::class.java))
+        assertThat(result, instanceOf(DirectAuthContinuation.WebAuthn::class.java))
     }
 
     @Test
@@ -151,7 +150,7 @@ class DirectAuthenticationStateMfaRequiredTest {
 
         val result = mfaRequired.resume(PrimaryFactor.Oob(OobChannel.PUSH))
 
-        assertThat(result, instanceOf(Continuation.OobPending::class.java))
+        assertThat(result, instanceOf(DirectAuthContinuation.OobPending::class.java))
     }
 
     @Test
@@ -161,7 +160,7 @@ class DirectAuthenticationStateMfaRequiredTest {
 
         val result = mfaRequired.resume(PrimaryFactor.Oob(OobChannel.PUSH))
 
-        assertThat(result, instanceOf(Continuation.Transfer::class.java))
+        assertThat(result, instanceOf(DirectAuthContinuation.Transfer::class.java))
     }
 
     @Test
@@ -182,6 +181,6 @@ class DirectAuthenticationStateMfaRequiredTest {
 
         val result = mfaRequired.resume(PrimaryFactor.WebAuthn)
 
-        assertThat(result, instanceOf(Continuation.WebAuthn::class.java))
+        assertThat(result, instanceOf(DirectAuthContinuation.WebAuthn::class.java))
     }
 }

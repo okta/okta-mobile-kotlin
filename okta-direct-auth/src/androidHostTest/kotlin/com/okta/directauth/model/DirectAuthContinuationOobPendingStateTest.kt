@@ -24,7 +24,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.TimeoutCancellationException
-import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -39,7 +38,7 @@ import org.junit.Before
 import org.junit.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class ContinuationOobPendingStateTest {
+class DirectAuthContinuationOobPendingStateTest {
     private lateinit var bindingContext: BindingContext
 
     private fun createDirectAuthenticationContext(apiExecutor: KtorHttpExecutor): DirectAuthenticationContext {
@@ -79,7 +78,7 @@ class ContinuationOobPendingStateTest {
     @Test
     fun `poll returns Authenticated on first attempt`() {
         val context = createDirectAuthenticationContext(KtorHttpExecutor(HttpClient(tokenResponseMockEngine)))
-        val oobState = Continuation.OobPending(bindingContext, context)
+        val oobState = DirectAuthContinuation.OobPending(bindingContext, context)
 
         val result = runBlocking { oobState.proceed() }
 
@@ -99,7 +98,7 @@ class ContinuationOobPendingStateTest {
     fun `poll returns Authenticated with a mfa context`() {
         val context = createDirectAuthenticationContext(KtorHttpExecutor(HttpClient(tokenResponseMockEngine)))
         val mfaContext = MfaContext(mfaToken = "test_mfa_token", supportedChallengeTypes = listOf(ChallengeGrantType.OobMfa))
-        val oobState = Continuation.OobPending(bindingContext, context, mfaContext)
+        val oobState = DirectAuthContinuation.OobPending(bindingContext, context, mfaContext)
 
         val result = runBlocking { oobState.proceed() }
 
@@ -117,7 +116,7 @@ class ContinuationOobPendingStateTest {
         mockEngine.enqueue { respond(AUTHORIZATION_PENDING_JSON, HttpStatusCode.BadRequest, contentType) }
         mockEngine.enqueue { respond(TOKEN_RESPONSE_JSON, HttpStatusCode.OK, contentType) }
         val context = createDirectAuthenticationContext(apiExecutor = KtorHttpExecutor(HttpClient(mockEngine)))
-        val oobState = Continuation.OobPending(bindingContext, context)
+        val oobState = DirectAuthContinuation.OobPending(bindingContext, context)
 
         val job = CoroutineScope(Dispatchers.Default).launch {
             context.authenticationStateFlow.collect { value ->
@@ -144,7 +143,7 @@ class ContinuationOobPendingStateTest {
         mockEngine.enqueue { respond(AUTHORIZATION_PENDING_JSON, HttpStatusCode.BadRequest, contentType) }
 
         val context = createDirectAuthenticationContext(apiExecutor = KtorHttpExecutor(HttpClient(mockEngine)))
-        val oobState = Continuation.OobPending(bindingContext.copy(expiresIn = 1), context)
+        val oobState = DirectAuthContinuation.OobPending(bindingContext.copy(expiresIn = 1), context)
 
         val result = runBlocking { oobState.proceed() }
 
@@ -162,7 +161,7 @@ class ContinuationOobPendingStateTest {
         mockEngine.enqueue { respond(AUTHORIZATION_PENDING_JSON, HttpStatusCode.BadRequest, contentType) }
 
         val context = createDirectAuthenticationContext(apiExecutor = KtorHttpExecutor(HttpClient(mockEngine)))
-        val oobState = Continuation.OobPending(bindingContext.copy(expiresIn = 3_600), context)
+        val oobState = DirectAuthContinuation.OobPending(bindingContext.copy(expiresIn = 3_600), context)
 
         val pollJob = launch(Dispatchers.Default) {
             assertThat(oobState.proceed(), instanceOf(DirectAuthenticationState.Canceled::class.java))
@@ -179,7 +178,7 @@ class ContinuationOobPendingStateTest {
     @Test
     fun `poll returns HttpError on API error`() {
         val context = createDirectAuthenticationContext(apiExecutor = KtorHttpExecutor(HttpClient(oAuth2ErrorMockEngine)))
-        val oobState = Continuation.OobPending(bindingContext, context)
+        val oobState = DirectAuthContinuation.OobPending(bindingContext, context)
 
         val result = runBlocking { oobState.proceed() }
 
@@ -192,7 +191,7 @@ class ContinuationOobPendingStateTest {
     @Test
     fun `poll returns InternalError`() {
         val context = createDirectAuthenticationContext(apiExecutor = KtorHttpExecutor(HttpClient(malformedJsonOkMockEngine)))
-        val oobState = Continuation.OobPending(bindingContext, context)
+        val oobState = DirectAuthContinuation.OobPending(bindingContext, context)
 
         val result = runBlocking { oobState.proceed() }
 
@@ -207,7 +206,7 @@ class ContinuationOobPendingStateTest {
     fun `poll returns InternalError on generic exception`() {
         val mockEngine = MockEngine { throw kotlinx.io.IOException("Simulated network failure") }
         val context = createDirectAuthenticationContext(apiExecutor = KtorHttpExecutor(HttpClient(mockEngine)))
-        val oobState = Continuation.OobPending(bindingContext, context)
+        val oobState = DirectAuthContinuation.OobPending(bindingContext, context)
 
         val result = runBlocking { oobState.proceed() }
 
