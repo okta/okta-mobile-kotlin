@@ -12,7 +12,6 @@ android {
         minSdk = MIN_SDK
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        consumerProguardFiles("consumer-rules.pro")
     }
 
     namespace = "com.okta.testhelpers"
