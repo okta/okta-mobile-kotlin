@@ -5,7 +5,7 @@ plugins {
     alias(libs.plugins.android.lint)
     alias(libs.plugins.kover)
     kotlin("plugin.serialization") version libs.versions.kotlin.get()
-    id("maven-publish")
+    id("com.vanniktech.maven.publish.base")
     id("spotless")
 }
 
