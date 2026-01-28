@@ -1,4 +1,8 @@
+import com.vanniktech.maven.publish.AndroidSingleVariantLibrary
+import com.vanniktech.maven.publish.JavadocJar
+import com.vanniktech.maven.publish.KotlinMultiplatform
 import com.vanniktech.maven.publish.MavenPublishBaseExtension
+import com.vanniktech.maven.publish.SourcesJar
 
 buildscript {
     configurations.all {
@@ -104,8 +108,25 @@ subprojects {
             group = "com.okta.kotlin"
             version = releaseVersion(project).let { if (snapshot) "$it-SNAPSHOT" else it }
 
-            if (plugins.hasPlugin("com.android.library")) {
-                configure(com.vanniktech.maven.publish.AndroidSingleVariantLibrary())
+            when {
+                plugins.hasPlugin("com.android.library") -> {
+                    configure(
+                        AndroidSingleVariantLibrary(
+                            variant = "release",
+                            sourcesJar = SourcesJar.Sources(),
+                            javadocJar = JavadocJar.Dokka("dokkaGenerateModuleHtml")
+                        )
+                    )
+                }
+
+                plugins.hasPlugin("org.jetbrains.kotlin.multiplatform") -> {
+                    configure(
+                        KotlinMultiplatform(
+                            javadocJar = JavadocJar.Dokka("dokkaGenerateModuleHtml"),
+                            sourcesJar = SourcesJar.Sources()
+                        )
+                    )
+                }
             }
         }
     }
