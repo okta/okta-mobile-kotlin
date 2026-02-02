@@ -20,6 +20,7 @@ import com.okta.authfoundation.GrantType
 import com.okta.authfoundation.api.http.ApiExecutor
 import com.okta.authfoundation.api.http.log.AuthFoundationLogger
 import com.okta.authfoundation.client.OidcClock
+import com.okta.directauth.DirectAuthenticationFlowBuilder.Companion.create
 import com.okta.directauth.api.DirectAuthenticationFlow
 import com.okta.directauth.http.KtorHttpExecutor
 import com.okta.directauth.log.AuthFoundationLoggerImpl
@@ -34,7 +35,7 @@ import io.ktor.http.Url
  * This class provides a fluent API for setting the necessary parameters for the
  * Direct Authentication flow, such as the issuer URL, client ID, and scopes.
  *
- * An instance of this builder should be created using the [DirectAuthenticationFlow.create] factory method.
+ * An instance of this builder should be created using the [create] factory method.
  */
 class DirectAuthenticationFlowBuilder private constructor() {
     /**

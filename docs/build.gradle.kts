@@ -10,6 +10,7 @@ dependencies {
     dokka(project(":oauth2"))
     dokka(project(":okta-idx-kotlin"))
     dokka(project(":web-authentication-ui"))
+    dokka(project(":okta-direct-auth"))
 }
 
 dokka {

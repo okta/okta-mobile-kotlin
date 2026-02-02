@@ -77,7 +77,7 @@ kotlin {
 
 dependencies {
     coreLibraryDesugaring(libs.core.library.desugaring)
-    implementation(project(":okta-direct-auth"))
+    implementation(libs.okta.direct.auth)
     implementation(project(":auth-foundation"))
     implementation(libs.core.ktx)
     implementation(libs.lifecycle.runtime.ktx)
