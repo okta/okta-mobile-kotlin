@@ -1,9 +1,10 @@
-name: Deploy docs with Dokka
+name: Component Release & Documentation
 
 on:
   push:
+    # Trigger only on component tags like 'my-lib@1.0.0'
     tags:
-      - '*'
+      - '*@*'
   pull_request:
 
 env:
@@ -20,6 +21,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Parse Tag Metadata
+        id: vars
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          TAG_NAME=${{ github.ref_name }}
+          echo "COMPONENT=$(echo $TAG_NAME | cut -d'@' -f1)" >> $GITHUB_OUTPUT
+          echo "VERSION=$(echo $TAG_NAME | cut -d'@' -f2)" >> $GITHUB_OUTPUT
+
       - name: Configure JDK
         uses: actions/setup-java@v4
         with:
@@ -29,11 +38,20 @@ jobs:
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v3
 
-      - name: Build docs
-        run: ./gradlew dokkaGeneratePublicationHtml
+      - name: Build docs and Publish Local
+        # If your Gradle project is a monorepo, you can target the specific subproject:
+        # run: ./gradlew :${{ steps.vars.outputs.COMPONENT }}:dokkaGeneratePublicationHtml
+        run: ./gradlew dokkaGeneratePublicationHtml publishToMavenLocal
 
-      - name: Publish To Maven Local
-        run: ./gradlew publishToMavenLocal
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref }}
+          name: "${{ steps.vars.outputs.COMPONENT }} v${{ steps.vars.outputs.VERSION }}"
+          generate_release_notes: true
+          # Optional: Attach the build artifacts or javadoc jars
+          # files: **/build/libs/*.jar
 
       - name: Deploy to Github Pages
         # Only runs on tag pushes
@@ -41,4 +59,9 @@ jobs:
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          # Path may change if you build docs per-module
           publish_dir: ./docs/build/dokka/html
+          # Keep history of old docs versions
+          keep_files: true
+          # Separate docs by component folder in the gh-pages branch
+          destination_dir: docs/${{ steps.vars.outputs.COMPONENT }}/${{ steps.vars.outputs.VERSION }}
