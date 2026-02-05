@@ -16,8 +16,8 @@
 package com.okta.authfoundation.client.internal
 
 import android.os.Build
-import com.okta.authfoundation.BuildConfig
 import com.okta.authfoundation.InternalAuthFoundationApi
+import com.okta.authfoundation.SDK_VERSION
 import java.util.Collections
 
 @InternalAuthFoundationApi
@@ -43,7 +43,7 @@ object SdkVersionsRegistry {
 
     internal fun reset() {
         sdkVersions.clear()
-        sdkVersions.add(BuildConfig.SDK_VERSION)
+        sdkVersions.add(SDK_VERSION)
         regenerateUserAgent()
     }
 }

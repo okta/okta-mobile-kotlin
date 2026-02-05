@@ -90,7 +90,7 @@ jobs:
       - checkout
       - android/restore_gradle_cache
       - android/run_tests:
-          test_command: ./gradlew :okta-direct-auth:testAndroidHostTest --no-daemon
+          test_command: ./gradlew :okta-direct-auth:testAndroidHostTest :auth-foundation:testAndroidHostTest --no-daemon
       - android/save_gradle_cache
       - run:
           name: Save test results

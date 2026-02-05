@@ -31,9 +31,11 @@ import com.okta.authfoundation.events.EventCoordinator
 import com.okta.authfoundation.events.EventHandler
 import com.okta.testhelpers.RecordingEventHandler
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import org.junit.After
 import org.junit.Before
+import org.junit.BeforeClass
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.security.InvalidAlgorithmParameterException
@@ -46,7 +48,16 @@ class SharedPreferencesTokenStorageTest {
     private lateinit var subject: SharedPreferencesTokenStorage
     private lateinit var eventHandler: RecordingEventHandler
 
-    @Before fun setup() {
+    companion object {
+        @BeforeClass
+        @JvmStatic
+        fun beforeClass() {
+            OidcConfiguration.default = OidcConfiguration("clientId", "defaultScope", "discoveryUrl")
+        }
+    }
+
+    @Before
+    fun setup() {
         eventHandler = RecordingEventHandler()
         val eventCoordinator = EventCoordinator(eventHandler)
         subject =
@@ -60,7 +71,8 @@ class SharedPreferencesTokenStorageTest {
         cleanup() // Cleanup before and after!
     }
 
-    @After fun cleanup() {
+    @After
+    fun cleanup() {
         runBlocking {
             try {
                 for (entry in subject.entries()) {
@@ -71,18 +83,21 @@ class SharedPreferencesTokenStorageTest {
         }
     }
 
-    @Test fun testEntriesWithNoExistingEntries(): Unit =
+    @Test
+    fun testEntriesWithNoExistingEntries(): Unit =
         runBlocking {
             assertThat(subject.entries()).isEmpty()
         }
 
-    @Test fun testAdd(): Unit =
+    @Test
+    fun testAdd(): Unit =
         runBlocking {
             subject.add("one")
             assertThat(subject.entries()).hasSize(1)
         }
 
-    @Test fun testRemove(): Unit =
+    @Test
+    fun testRemove(): Unit =
         runBlocking {
             subject.add("one")
             assertThat(subject.entries()).hasSize(1)
@@ -90,14 +105,16 @@ class SharedPreferencesTokenStorageTest {
             assertThat(subject.entries()).hasSize(0)
         }
 
-    @Test fun testRemoveNonExistingEntries(): Unit =
+    @Test
+    fun testRemoveNonExistingEntries(): Unit =
         runBlocking {
             assertThat(subject.entries()).hasSize(0)
             subject.remove("one")
             assertThat(subject.entries()).hasSize(0)
         }
 
-    @Test fun testReplace(): Unit =
+    @Test
+    fun testReplace(): Unit =
         runBlocking {
             subject.add("one")
             assertThat(subject.entries()).hasSize(1)
@@ -108,7 +125,8 @@ class SharedPreferencesTokenStorageTest {
             assertThat(entry.tags).containsEntry("foo", "bar")
         }
 
-    @Test fun testReplaceNonExistingEntries(): Unit =
+    @Test
+    fun testReplaceNonExistingEntries(): Unit =
         runBlocking {
             subject.add("one")
             assertThat(subject.entries()).hasSize(1)
@@ -119,8 +137,9 @@ class SharedPreferencesTokenStorageTest {
             assertThat(entry.tags).doesNotContainEntry("foo", "bar")
         }
 
-    @Test fun testTokenStorageAndRestoration(): Unit =
-        runBlocking {
+    @Test
+    fun testTokenStorageAndRestoration() =
+        runTest {
             subject.add("one")
             assertThat(subject.entries()).hasSize(1)
             val token =
@@ -143,7 +162,8 @@ class SharedPreferencesTokenStorageTest {
             assertThat(entry.tags).containsEntry("foo", "bar")
         }
 
-    @Test fun testInvalidKeyClearsSharedPreferencesAndIsInitializedWithoutError(): Unit =
+    @Test
+    fun testInvalidKeyClearsSharedPreferencesAndIsInitializedWithoutError(): Unit =
         runBlocking {
             subject.add("one")
             assertThat(subject.entries()).hasSize(1)
@@ -171,7 +191,8 @@ class SharedPreferencesTokenStorageTest {
             assertThat(subject.entries()).hasSize(1)
         }
 
-    @Test fun testCorruptEncryptedSharedPreferencesWithShouldClearStorageAndTryAgainSetToFalseShouldThrow() {
+    @Test
+    fun testCorruptEncryptedSharedPreferencesWithShouldClearStorageAndTryAgainSetToFalseShouldThrow() {
         corruptEncryptedSharedPreferences()
         val eventCoordinator =
             EventCoordinator(
@@ -197,7 +218,8 @@ class SharedPreferencesTokenStorageTest {
         }
     }
 
-    @Test fun testKeyGenParameterSpecIsUsed() {
+    @Test
+    fun testKeyGenParameterSpecIsUsed() {
         val spec =
             KeyGenParameterSpec
                 .Builder(
