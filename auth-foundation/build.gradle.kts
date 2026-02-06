@@ -148,9 +148,6 @@ dependencies {
     coreLibraryDesugaring(libs.core.library.desugaring)
 }
 
-
-
-
 apiValidation {
     ignoredClasses.add("com.okta.authfoundation.BuildInfo")
 }

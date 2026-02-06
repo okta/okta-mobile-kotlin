@@ -41,10 +41,11 @@ class BiometricDecryptionActivity : AppCompatActivity() {
 
         setContentView(
             FrameLayout(this).apply {
-                layoutParams = ViewGroup.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.MATCH_PARENT
-                )
+                layoutParams =
+                    ViewGroup.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT
+                    )
             }
         )
 
