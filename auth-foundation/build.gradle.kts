@@ -71,16 +71,24 @@ kotlin {
         }
     }
 
+    jvm()
+
     sourceSets {
         commonMain {
             kotlin.srcDir(generateBuildInfoTask)
 
             dependencies {
+                implementation(libs.ktor.client.core)
+                implementation(libs.ktor.client.content.negotiation)
+                implementation(libs.kotlinx.datetime)
             }
         }
 
         commonTest {
             dependencies {
+                implementation(libs.ktor.client.mock)
+                implementation(libs.kotlin.test)
+                implementation(libs.coroutines.test)
             }
         }
 
@@ -93,6 +101,7 @@ kotlin {
                 api(libs.okio.core)
                 api(libs.androidx.biometric)
 
+                implementation(libs.ktor.client.okhttp)
                 implementation(libs.lifecycle.viewmodel.ktx)
                 implementation(libs.androidx.activity.ktx)
                 implementation(libs.androidx.constraintlayout)
@@ -105,6 +114,12 @@ kotlin {
                 implementation(libs.room.runtime)
                 implementation(libs.room.ktx)
                 implementation(libs.sqlcipher.android)
+            }
+        }
+
+        jvmMain {
+            dependencies {
+                implementation(libs.ktor.client.cio)
             }
         }
 
@@ -150,6 +165,7 @@ room {
 
 dependencies {
     add("kspAndroid", libs.room.compiler)
+    add("kspJvm", libs.room.compiler)
     coreLibraryDesugaring(libs.core.library.desugaring)
 }
 

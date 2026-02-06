@@ -15,7 +15,7 @@
  */
 package com.okta.directauth
 
-import com.okta.directauth.http.KtorHttpExecutor
+import com.okta.authfoundation.api.http.KtorHttpExecutor
 import com.okta.directauth.model.DirectAuthContinuation
 import com.okta.directauth.model.DirectAuthenticationError
 import com.okta.directauth.model.DirectAuthenticationState

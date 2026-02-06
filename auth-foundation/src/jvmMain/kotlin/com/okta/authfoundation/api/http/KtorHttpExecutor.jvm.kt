@@ -13,24 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.okta.directauth.log
+package com.okta.authfoundation.api.http
 
-import android.util.Log
-import com.okta.authfoundation.api.http.log.AuthFoundationLogger
-import com.okta.authfoundation.api.http.log.LogLevel
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.cio.CIO
+import io.ktor.client.plugins.HttpTimeout
+import io.ktor.client.plugins.cache.HttpCache
+import io.ktor.client.plugins.cookies.HttpCookies
 
-class AuthFoundationLoggerImpl : AuthFoundationLogger {
-    override fun write(
-        message: String,
-        tr: Throwable?,
-        logLevel: LogLevel,
-    ) {
-        val tag = "DirectAuthentication"
-        when (logLevel) {
-            LogLevel.DEBUG -> Log.d(tag, message, tr)
-            LogLevel.INFO -> Log.i(tag, message, tr)
-            LogLevel.WARN -> Log.w(tag, message, tr)
-            LogLevel.ERROR -> Log.e(tag, message, tr)
+/**
+ * Returns a platform-specific [HttpClient] engine.
+ */
+actual fun getHttpClientEngine(): HttpClient {
+    return HttpClient(CIO) {
+        install(HttpTimeout) {
+            requestTimeoutMillis = REQUEST_TIMEOUT_MILLIS
+            connectTimeoutMillis = CONNECT_TIMEOUT_MILLIS
         }
+        install(HttpCookies)
+        install(HttpCache)
     }
 }

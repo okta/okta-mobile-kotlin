@@ -35,3 +35,11 @@ interface AuthFoundationLogger {
         logLevel: LogLevel = LogLevel.INFO,
     )
 }
+
+/**
+ * Returns a platform-specific default implementation of [AuthFoundationLogger].
+ *
+ * On Android, this returns a logger that writes to Android's Logcat.
+ * On JVM, this returns a logger that writes to standard output.
+ */
+expect fun getDefaultAuthFoundationLogger(): AuthFoundationLogger

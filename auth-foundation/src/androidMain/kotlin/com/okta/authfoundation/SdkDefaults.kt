@@ -33,8 +33,8 @@ import kotlinx.coroutines.Dispatchers
 import okhttp3.Call
 import okhttp3.CookieJar
 import okhttp3.OkHttpClient
-import java.time.Instant
 import kotlin.coroutines.CoroutineContext
+import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
@@ -44,7 +44,7 @@ object SdkDefaults {
     var getIoDispatcher: () -> CoroutineContext = { Dispatchers.IO }
     var getComputeDispatcher: () -> CoroutineContext = { Dispatchers.Default }
     var getEventCoordinator: () -> EventCoordinator = { EventCoordinator(emptyList()) }
-    var getClock: () -> OidcClock = { OidcClock { Instant.now().epochSecond } }
+    var getClock: () -> OidcClock = { OidcClock { Clock.System.now().epochSeconds } }
     var getIdTokenValidator: () -> IdTokenValidator = { DefaultIdTokenValidator() }
     var getAccessTokenValidator: () -> AccessTokenValidator = { DefaultAccessTokenValidator() }
     var getDeviceSecretValidator: () -> DeviceSecretValidator = { DefaultDeviceSecretValidator() }
