@@ -98,3 +98,69 @@ public final class com/okta/authfoundation/api/http/log/LogLevel : java/lang/Enu
 	public static fun values ()[Lcom/okta/authfoundation/api/http/log/LogLevel;
 }
 
+public abstract interface class com/okta/authfoundation/client/AuthClient {
+	public abstract fun getUserInfo-gIAlu-s (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun introspectToken-0E7RQCE (Lcom/okta/authfoundation/credential/TokenType;Lcom/okta/authfoundation/credential/TokenInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun jwks-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun refreshToken-gIAlu-s (Lcom/okta/authfoundation/credential/TokenInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun revokeToken-0E7RQCE (Lcom/okta/authfoundation/credential/RevokeTokenType;Lcom/okta/authfoundation/credential/TokenInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public abstract interface class com/okta/authfoundation/client/AuthFoundationCache {
+	public abstract fun clear (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun get (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun set (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class com/okta/authfoundation/client/InMemoryCache : com/okta/authfoundation/client/AuthFoundationCache {
+	public fun <init> ()V
+	public fun clear (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun get (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun set (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public abstract interface class com/okta/authfoundation/client/OidcClock {
+	public abstract fun currentTimeEpochSecond ()J
+}
+
+public abstract interface class com/okta/authfoundation/client/dto/IntrospectInfo {
+	public abstract fun getActive ()Z
+}
+
+public abstract interface class com/okta/authfoundation/client/dto/UserInfo {
+}
+
+public final class com/okta/authfoundation/credential/RevokeTokenType : java/lang/Enum {
+	public static final field ACCESS_TOKEN Lcom/okta/authfoundation/credential/RevokeTokenType;
+	public static final field DEVICE_SECRET Lcom/okta/authfoundation/credential/RevokeTokenType;
+	public static final field REFRESH_TOKEN Lcom/okta/authfoundation/credential/RevokeTokenType;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lcom/okta/authfoundation/credential/RevokeTokenType;
+	public static fun values ()[Lcom/okta/authfoundation/credential/RevokeTokenType;
+}
+
+public abstract interface class com/okta/authfoundation/credential/TokenInfo {
+	public abstract fun getAccessToken ()Ljava/lang/String;
+	public abstract fun getDeviceSecret ()Ljava/lang/String;
+	public abstract fun getExpiresIn ()I
+	public abstract fun getIdToken ()Ljava/lang/String;
+	public abstract fun getIssuedTokenType ()Ljava/lang/String;
+	public abstract fun getRefreshToken ()Ljava/lang/String;
+	public abstract fun getScope ()Ljava/lang/String;
+	public abstract fun getTokenType ()Ljava/lang/String;
+}
+
+public final class com/okta/authfoundation/credential/TokenType : java/lang/Enum {
+	public static final field ACCESS_TOKEN Lcom/okta/authfoundation/credential/TokenType;
+	public static final field DEVICE_SECRET Lcom/okta/authfoundation/credential/TokenType;
+	public static final field ID_TOKEN Lcom/okta/authfoundation/credential/TokenType;
+	public static final field REFRESH_TOKEN Lcom/okta/authfoundation/credential/TokenType;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public final fun toTokenTypeHint ()Ljava/lang/String;
+	public static fun valueOf (Ljava/lang/String;)Lcom/okta/authfoundation/credential/TokenType;
+	public static fun values ()[Lcom/okta/authfoundation/credential/TokenType;
+}
+
+public abstract interface class com/okta/authfoundation/jwt/JwksInfo {
+}
+

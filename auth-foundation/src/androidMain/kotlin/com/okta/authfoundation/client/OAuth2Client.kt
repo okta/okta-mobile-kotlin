@@ -208,7 +208,7 @@ class OAuth2Client private constructor(
                 .Builder()
                 .add("client_id", configuration.clientId)
                 .add("token", tokenString)
-                .add("token_type_hint", tokenType.toTokenTypeHint())
+                .add("token_type_hint", tokenType.hint)
                 .build()
 
         val request =

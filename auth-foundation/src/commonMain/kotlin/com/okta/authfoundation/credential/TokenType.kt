@@ -18,37 +18,18 @@ package com.okta.authfoundation.credential
 /**
  * The type of token an operation should be used with.
  */
-enum class TokenType {
+enum class TokenType(
+    val hint: String,
+) {
     /** Indicates the refresh token. */
-    REFRESH_TOKEN,
+    REFRESH_TOKEN("refresh_token"),
 
     /** Indicates the access token. */
-    ACCESS_TOKEN,
+    ACCESS_TOKEN("access_token"),
 
     /** Indicates the ID token. */
-    ID_TOKEN,
+    ID_TOKEN("id_token"),
 
     /** Indicates the device secret. */
-    DEVICE_SECRET,
-
-    ;
-
-    fun toTokenTypeHint(): String =
-        when (this) {
-            ACCESS_TOKEN -> {
-                "access_token"
-            }
-
-            REFRESH_TOKEN -> {
-                "refresh_token"
-            }
-
-            ID_TOKEN -> {
-                "id_token"
-            }
-
-            DEVICE_SECRET -> {
-                "device_secret"
-            }
-        }
+    DEVICE_SECRET("device_secret"),
 }
