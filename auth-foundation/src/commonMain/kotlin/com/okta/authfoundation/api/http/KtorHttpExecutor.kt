@@ -30,7 +30,14 @@ import io.ktor.http.takeFrom
 import io.ktor.util.appendAll
 import io.ktor.util.toMap
 
+/**
+ * The default timeout value for HTTP requests in milliseconds.
+ */
 const val REQUEST_TIMEOUT_MILLIS = 15_000L // 15 seconds
+
+/**
+ * The default timeout value for connecting to the server in milliseconds.
+ */
 const val CONNECT_TIMEOUT_MILLIS = 10_000L // 10 seconds
 
 /**

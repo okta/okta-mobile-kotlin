@@ -19,8 +19,8 @@ import com.okta.authfoundation.ChallengeGrantType
 import com.okta.authfoundation.GrantType
 import com.okta.authfoundation.api.http.ApiExecutor
 import com.okta.authfoundation.api.http.KtorHttpExecutor
-import com.okta.authfoundation.api.http.log.AuthFoundationLogger
-import com.okta.authfoundation.api.http.log.getDefaultAuthFoundationLogger
+import com.okta.authfoundation.api.log.AuthFoundationLogger
+import com.okta.authfoundation.api.log.getDefaultAuthFoundationLogger
 import com.okta.authfoundation.client.OidcClock
 import com.okta.directauth.DirectAuthenticationFlowBuilder.Companion.create
 import com.okta.directauth.api.DirectAuthenticationFlow
@@ -106,7 +106,7 @@ class DirectAuthenticationFlowBuilder private constructor() {
      * existing logging framework, such as Timber or a custom solution. It can also be
      * replaced with a mock implementation for testing purposes.
      *
-     * Defaults to an instance of [com.okta.authfoundation.api.http.log.AuthFoundationLoggerImpl] which logs to Android's Logcat.
+     * Defaults to an instance of [com.okta.authfoundation.api.log.AndroidAuthFoundationLogger] which logs to Android's Logcat.
      */
     var logger: AuthFoundationLogger = getDefaultAuthFoundationLogger()
 

@@ -77,7 +77,7 @@ kotlin {
 
 dependencies {
     coreLibraryDesugaring(libs.core.library.desugaring)
-    implementation(libs.okta.direct.auth)
+    implementation(project(":okta-direct-auth"))
     implementation(project(":auth-foundation"))
     implementation(libs.core.ktx)
     implementation(libs.lifecycle.runtime.ktx)
@@ -91,6 +91,7 @@ dependencies {
     implementation(libs.androidx.compose.animation)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.datastore.preferences)
+    implementation(libs.kotlin.serialization.json)
 
     implementation(libs.jjwt.api)
     runtimeOnly(libs.jjwt.impl)

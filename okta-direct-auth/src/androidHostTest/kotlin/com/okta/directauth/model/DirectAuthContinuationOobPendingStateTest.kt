@@ -18,8 +18,8 @@ package com.okta.directauth.model
 import com.okta.authfoundation.ChallengeGrantType
 import com.okta.authfoundation.GrantType
 import com.okta.authfoundation.api.http.KtorHttpExecutor
-import com.okta.authfoundation.api.http.log.AuthFoundationLogger
-import com.okta.authfoundation.api.http.log.LogLevel
+import com.okta.authfoundation.api.log.AuthFoundationLogger
+import com.okta.authfoundation.api.log.LogLevel
 import com.okta.directauth.AUTHORIZATION_PENDING_JSON
 import com.okta.directauth.TOKEN_RESPONSE_JSON
 import com.okta.directauth.contentType

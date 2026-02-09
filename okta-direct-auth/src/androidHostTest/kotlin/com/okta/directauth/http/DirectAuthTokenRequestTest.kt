@@ -19,8 +19,8 @@ import com.okta.authfoundation.ChallengeGrantType
 import com.okta.authfoundation.GrantType
 import com.okta.authfoundation.api.http.ApiRequestMethod
 import com.okta.authfoundation.api.http.KtorHttpExecutor
-import com.okta.authfoundation.api.http.log.AuthFoundationLogger
-import com.okta.authfoundation.api.http.log.LogLevel
+import com.okta.authfoundation.api.log.AuthFoundationLogger
+import com.okta.authfoundation.api.log.LogLevel
 import com.okta.directauth.authorizationPendingMockEngine
 import com.okta.directauth.emptyResponseMockEngine
 import com.okta.directauth.emptyResponseOkMockEngine

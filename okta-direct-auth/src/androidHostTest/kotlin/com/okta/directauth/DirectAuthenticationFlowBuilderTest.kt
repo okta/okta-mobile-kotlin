@@ -20,8 +20,8 @@ import com.okta.authfoundation.GrantType
 import com.okta.authfoundation.api.http.ApiExecutor
 import com.okta.authfoundation.api.http.ApiRequest
 import com.okta.authfoundation.api.http.ApiResponse
-import com.okta.authfoundation.api.http.log.AuthFoundationLogger
-import com.okta.authfoundation.api.http.log.LogLevel
+import com.okta.authfoundation.api.log.AuthFoundationLogger
+import com.okta.authfoundation.api.log.LogLevel
 import com.okta.authfoundation.client.OidcClock
 import com.okta.directauth.model.DirectAuthenticationIntent
 import org.hamcrest.CoreMatchers.equalTo

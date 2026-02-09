@@ -44,6 +44,7 @@ dependencies {
     api(libs.junit)
     api(libs.okhttp.mock.web.server)
 
+    implementation(libs.kotlin.serialization.json)
     implementation(libs.okio.jvm)
     implementation(libs.okhttp.tls)
     implementation(libs.mockk.android)

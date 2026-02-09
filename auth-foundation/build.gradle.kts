@@ -81,6 +81,7 @@ kotlin {
                 implementation(libs.ktor.client.core)
                 implementation(libs.ktor.client.content.negotiation)
                 implementation(libs.kotlinx.datetime)
+                implementation(libs.kotlin.serialization.json)
             }
         }
 
@@ -97,7 +98,6 @@ kotlin {
                 api(libs.kotlin.stdlib)
                 api(libs.okhttp.core)
                 api(libs.coroutines.core)
-                api(libs.kotlin.serialization.json)
                 api(libs.okio.core)
                 api(libs.androidx.biometric)
 
@@ -108,7 +108,6 @@ kotlin {
                 implementation(libs.androidx.datastore.preferences)
                 implementation(libs.androidx.sqlite)
                 implementation(libs.app.compat)
-                implementation(libs.okio.jvm)
                 implementation(libs.kotlin.serialization.okio)
                 implementation(libs.security.crypto)
                 implementation(libs.room.runtime)
@@ -139,6 +138,7 @@ kotlin {
                 implementation(libs.bcprov.jdk18on)
                 implementation(libs.room.testing)
                 implementation(libs.turbine)
+                implementation(libs.hamcrest)
                 implementation(project(":test-helpers"))
             }
         }

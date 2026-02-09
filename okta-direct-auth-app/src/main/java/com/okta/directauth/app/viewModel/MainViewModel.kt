@@ -19,13 +19,13 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.okta.authfoundation.ChallengeGrantType
+import com.okta.authfoundation.api.http.KtorHttpExecutor
 import com.okta.directauth.DirectAuthenticationFlowBuilder
 import com.okta.directauth.api.DirectAuthenticationFlow
 import com.okta.directauth.app.BuildConfig
 import com.okta.directauth.app.http.MyAccountReplacePasswordRequest
 import com.okta.directauth.app.model.AuthMethod
 import com.okta.directauth.app.model.OktaErrorResponse
-import com.okta.directauth.http.KtorHttpExecutor
 import com.okta.directauth.model.DirectAuthContinuation
 import com.okta.directauth.model.DirectAuthenticationIntent
 import com.okta.directauth.model.DirectAuthenticationState
