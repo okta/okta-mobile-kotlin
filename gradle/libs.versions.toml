@@ -14,6 +14,7 @@ androidxTestRunner = "1.7.0"
 androidxTextUiautomator = "2.3.0"
 androidGradlePlugin = "9.0.0"
 appcompat = "1.7.1"
+oktaBom = "2.0.5"
 authFoundation = "2.0.3"
 bouncycastle = "1.83"
 commonsIo = "2.21.0"
@@ -161,6 +162,7 @@ okhttp-mock-web-server = { module = "com.squareup.okhttp3:mockwebserver", versio
 okhttp-tls = { module = "com.squareup.okhttp3:okhttp-tls", version.ref = "okhttp" }
 okio-core = { module = "com.squareup.okio:okio", version.ref = "okio" }
 okio-jvm = { module = "com.squareup.okio:okio-jvm", version.ref = "okio" }
+okta-bom = { module = "com.okta.kotlin:bom", version.ref = "oktaBom" }
 okta-auth-foundation = { module = "com.okta.kotlin:auth-foundation", version.ref = "authFoundation" }
 okta-authn-api = { module = "com.okta.authn.sdk:okta-authn-sdk-api", version.ref = "oktaAuthn" }
 okta-authn-impl = { module = "com.okta.authn.sdk:okta-authn-sdk-impl", version.ref = "oktaAuthn" }

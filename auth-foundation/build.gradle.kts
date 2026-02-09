@@ -42,6 +42,11 @@ kotlin {
         // Enable Android resources processing
         experimentalProperties["android.experimental.kmp.enableAndroidResources"] = true
 
+        optimization {
+            consumerKeepRules.publish = true
+            consumerKeepRules.files.add(project.file("consumer-rules.pro"))
+        }
+
         withHostTestBuilder {
             sourceSetTreeName = "test"
         }
