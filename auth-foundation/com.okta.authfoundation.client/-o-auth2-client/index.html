@@ -1,42 +1,39 @@
 <!doctype html>
-<html class="no-js">
+<html class="no-js" lang="en">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
     <title>OAuth2Client</title>
-<link href="../../../images/logo-icon.svg" rel="icon" type="image/svg">    <script>var pathToRoot = "../../../";</script>
-    <script>document.documentElement.classList.replace("no-js","js");</script>
+<link href="../../../images/logo-icon.svg" rel="icon" type="image/svg"><script>var pathToRoot = "../../../";</script>
+    <script>document.documentElement.classList.replace("no-js", "js");</script>
     <script>const storage = localStorage.getItem("dokka-dark-mode")
-    if (storage == null) {
+      if (storage == null) {
         const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
         if (osDarkSchemePreferred === true) {
-            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
         }
-    } else {
+      } else {
         const savedDarkMode = JSON.parse(storage)
-        if(savedDarkMode === true) {
-            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        if (savedDarkMode === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
         }
-    }
+      }
     </script>
-<script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async></script>
 <script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async></script>
 <link href="../../../styles/style.css" rel="Stylesheet">
 <link href="../../../styles/main.css" rel="Stylesheet">
 <link href="../../../styles/prism.css" rel="Stylesheet">
 <link href="../../../styles/logo-styles.css" rel="Stylesheet">
-<link href="../../../styles/font-jb-sans-auto.css" rel="Stylesheet">
 <link href="../../../ui-kit/ui-kit.min.css" rel="Stylesheet">
-<script type="text/javascript" src="../../../scripts/clipboard.js" async></script>
+<script type="text/javascript" src="../../../scripts/safe-local-storage_blocking.js"></script>
 <script type="text/javascript" src="../../../scripts/navigation-loader.js" async></script>
 <script type="text/javascript" src="../../../scripts/platform-content-handler.js" async></script>
 <script type="text/javascript" src="../../../scripts/main.js" defer></script>
 <script type="text/javascript" src="../../../scripts/prism.js" async></script>
-<script type="text/javascript" src="../../../ui-kit/ui-kit.min.js" defer></script>
-<script type="text/javascript" src="../../../scripts/symbol-parameters-wrapper_deferred.js" defer></script></head>
+<script type="text/javascript" src="../../../ui-kit/ui-kit.min.js" defer></script></head>
 <body>
-    <div class="root">
-    <nav class="navigation theme-dark" id="navigation-wrapper">
-<a class="library-name--link" href="../../../index.html">
+<div class="root">
+    <header class="navigation theme-dark" id="navigation-wrapper" role="banner">
+<a class="library-name--link" href="../../../index.html" tabindex="1">
                     Okta Mobile Kotlin SDK
             </a>        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle" type="button">Toggle table of contents
         </button>
@@ -44,74 +41,76 @@
         <div class="library-version" id="library-version">
         </div>
         <div class="navigation-controls">
-        <div class="filter-section filter-section_loading" id="filter-section">
-                <button class="platform-tag platform-selector jvm-like" data-active="" data-filter=":auth-foundation/release">androidJvm</button>
+        <ul class="filter-section filter-section_loading" id="filter-section" aria-label="Target filter">
+                <button class="platform-tag platform-selector jvm-like" data-active="" aria-pressed="true" data-filter=":auth-foundation/androidMain">android</button>
             <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
                 <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox" data-role="dropdown-toggle" aria-controls="platform-tags-listbox" aria-haspopup="listbox" aria-expanded="false" aria-label="Toggle source sets"></button>
-                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox">
-                    <div class="dropdown--header"><span>Platform filter</span>
-                        <button class="button" data-role="dropdown-toggle" aria-label="Close platform filter">
+                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox" aria-label="Target filter">
+                    <div class="dropdown--header"><span>Target filter</span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close target filter">
                             <i class="ui-kit-icon ui-kit-icon_cross"></i>
                         </button>
                     </div>
                         <li role="option" class="dropdown--option platform-selector-option jvm-like" tabindex="0">
                             <label class="checkbox">
-                                <input type="checkbox" class="checkbox--input" id=":auth-foundation/release" data-filter=":auth-foundation/release">
+                                <input type="checkbox" class="checkbox--input" id=":auth-foundation/androidMain" data-filter=":auth-foundation/androidMain">
                                 <span class="checkbox--icon"></span>
-                                androidJvm
+                                android
                             </label>
                         </li>
                 </ul>
                 <div class="dropdown--overlay"></div>
             </div>
-        </div>
+        </ul>
             <button class="navigation-controls--btn navigation-controls--btn_theme" id="theme-toggle-button" type="button">Switch theme
             </button>
             <div class="navigation-controls--btn navigation-controls--btn_search" id="searchBar" role="button">Search in
                 API
             </div>
         </div>
-    </nav>
-        <div id="container">
-            <div class="sidebar" id="leftColumn">
-                <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
-                    <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list" data-role="dropdown-listbox">
-                        <div class="dropdown--header">
+    </header>
+    <div id="container">
+        <nav id="leftColumn" class="sidebar" data-item-type="SECTION" data-item-config="{&quot;defaultSize&quot;: 280, &quot;minSize&quot;: 200, &quot;maxSize&quot;: 400}">
+            <a class="toc--skip-link" href="#main">Skip to content</a>
+            <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
+                <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list" data-role="dropdown-listbox" aria-label="Table of contents">
+                    <div class="dropdown--header">
                             <span>
                                     Okta Mobile Kotlin SDK
                             </span>
-                            <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
-                                <i class="ui-kit-icon ui-kit-icon_cross"></i>
-                            </button>
-                        </div>
-                        <div class="sidebar--inner" id="sideMenu"></div>
-                    </ul>
-                    <div class="dropdown--overlay"></div>
-                </div>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                    <div class="sidebar--inner" id="sideMenu"></div>
+                </ul>
+                <div class="dropdown--overlay"></div>
             </div>
-            <div id="main">
-<div class="main-content" data-page-type="classlike" id="content" pageids="auth-foundation::com.okta.authfoundation.client/OAuth2Client///PointingToDeclaration//-1123210767">
+        </nav>
+        <div id="resizer" class="resizer" data-item-type="BAR"></div>
+        <div id="main" data-item-type="SECTION" role="main">
+<div class="main-content" data-page-type="classlike" id="content" pageids="auth-foundation::com.okta.authfoundation.client/OAuth2Client///PointingToDeclaration//606929609">
   <div class="breadcrumbs"><a href="../../index.html">auth-foundation</a><span class="delimiter">/</span><a href="../index.html">com.okta.authfoundation.client</a><span class="delimiter">/</span><span class="current">OAuth2Client</span></div>
   <div class="cover ">
     <h1 class="cover"><span><span>OAuth2Client</span></span></h1>
-    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">class </span><a href="index.html">OAuth2Client</a></div><p class="paragraph">The client used for interacting with an Okta Authorization Server.</p><p class="paragraph">This is for low level access, and it's typically preferred to use a <a href="../../com.okta.authfoundation.credential/-credential/index.html">Credential</a>, which streamlines usage.</p><p class="paragraph"><a href="https://developer.okta.com/docs/reference/api/oidc">Okta Developer Docs</a></p></div></div>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">class </span><a href="index.html">OAuth2Client</a></div><p class="paragraph">The client used for interacting with an Okta Authorization Server.</p><p class="paragraph">This is for low level access, and it's typically preferred to use a <a href="../../com.okta.authfoundation.credential/-credential/index.html">Credential</a>, which streamlines usage.</p><p class="paragraph"><a href="https://developer.okta.com/docs/reference/api/oidc">Okta Developer Docs</a></p></div></div>
   </div>
   <div class="tabbedcontent">
     <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button><button class="section-tab" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION,EXTENSION_PROPERTY,EXTENSION_FUNCTION">Members &amp; Extensions</button></div>
     <div class="tabs-section-body">
       <div data-togglable="TYPE">
-        <h2 class="">Types</h2>
-        <div class="table"><a data-name="880789988%2FClasslikes%2F-1123210767" anchor-label="Companion" id="880789988%2FClasslikes%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
-          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+        <h2 class="tableheader">Types</h2>
+        <div class="table"><a data-name="880789988%2FClasslikes%2F606929609" anchor-label="Companion" id="880789988%2FClasslikes%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-companion/index.html"><span><span>Companion</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="880789988%2FClasslikes%2F-1123210767"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="880789988%2FClasslikes%2F606929609"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">object </span><a href="-companion/index.html">Companion</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">object </span><a href="-companion/index.html">Companion</a></div></div></div>
                 </div>
               </div>
             </div>
@@ -119,18 +118,18 @@
         </div>
       </div>
       <div data-togglable="PROPERTY">
-        <h2 class="">Properties</h2>
-        <div class="table"><a data-name="121271399%2FProperties%2F-1123210767" anchor-label="configuration" id="121271399%2FProperties%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
-          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+        <h2 class="tableheader">Properties</h2>
+        <div class="table"><a data-name="121271399%2FProperties%2F606929609" anchor-label="configuration" id="121271399%2FProperties%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="configuration.html"><span><span>configuration</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="121271399%2FProperties%2F-1123210767"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="121271399%2FProperties%2F606929609"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="configuration.html">configuration</a><span class="token operator">: </span><a href="../-oidc-configuration/index.html">OidcConfiguration</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="configuration.html">configuration</a><span class="token operator">: </span><a href="../-oidc-configuration/index.html">OidcConfiguration</a></div></div></div>
                 </div>
               </div>
             </div>
@@ -138,138 +137,138 @@
         </div>
       </div>
       <div data-togglable="FUNCTION">
-        <h2 class="">Functions</h2>
-        <div class="table"><a data-name="-2076543520%2FFunctions%2F-1123210767" anchor-label="endpointNotAvailableError" id="-2076543520%2FFunctions%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
-          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+        <h2 class="tableheader">Functions</h2>
+        <div class="table"><a data-name="-2076543520%2FFunctions%2F606929609" anchor-label="endpointNotAvailableError" id="-2076543520%2FFunctions%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="endpoint-not-available-error.html"><span>endpoint</span><wbr><span>Not</span><wbr><span>Available</span><wbr><span><span>Error</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2076543520%2FFunctions%2F-1123210767"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2076543520%2FFunctions%2F606929609"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">fun </span><span class="token operator">&lt;</span><a href="endpoint-not-available-error.html">T</a><span class="token operator">&gt; </span><a href="endpoint-not-available-error.html"><span class="token function">endpointNotAvailableError</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-o-auth2-client-result/-error/index.html">OAuth2ClientResult.Error</a><span class="token operator">&lt;</span><a href="endpoint-not-available-error.html">T</a><span class="token operator">&gt;</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">fun </span><span class="token operator">&lt;</span><a href="endpoint-not-available-error.html">T</a><span class="token operator">&gt; </span><a href="endpoint-not-available-error.html"><span class="token function">endpointNotAvailableError</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-o-auth2-client-result/-error/index.html">OAuth2ClientResult.Error</a><span class="token operator">&lt;</span><a href="endpoint-not-available-error.html">T</a><span class="token operator">&gt;</span></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-1183554443%2FFunctions%2F-1123210767" anchor-label="endpointsOrNull" id="-1183554443%2FFunctions%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
-          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+<a data-name="-1183554443%2FFunctions%2F606929609" anchor-label="endpointsOrNull" id="-1183554443%2FFunctions%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="endpoints-or-null.html"><span>endpoints</span><wbr><span>Or</span><wbr><span><span>Null</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1183554443%2FFunctions%2F-1123210767"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1183554443%2FFunctions%2F606929609"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="endpoints-or-null.html"><span class="token function">endpointsOrNull</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-oidc-endpoints/index.html">OidcEndpoints</a><span class="token operator">?</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="endpoints-or-null.html"><span class="token function">endpointsOrNull</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-oidc-endpoints/index.html">OidcEndpoints</a><span class="token operator">?</span></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="1638512854%2FFunctions%2F-1123210767" anchor-label="getUserInfo" id="1638512854%2FFunctions%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
-          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+<a data-name="1638512854%2FFunctions%2F606929609" anchor-label="getUserInfo" id="1638512854%2FFunctions%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="get-user-info.html"><span>get</span><wbr><span>User</span><wbr><span><span>Info</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1638512854%2FFunctions%2F-1123210767"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1638512854%2FFunctions%2F606929609"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="get-user-info.html"><span class="token function">getUserInfo</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">accessToken<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-o-auth2-client-result/index.html">OAuth2ClientResult</a><span class="token operator">&lt;</span><a href="../../com.okta.authfoundation.client.dto/-oidc-user-info/index.html">OidcUserInfo</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Performs the OIDC User Info call, which returns claims associated with the supplied <code class="lang-kotlin">accessToken</code>.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="get-user-info.html"><span class="token function">getUserInfo</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">accessToken<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-o-auth2-client-result/index.html">OAuth2ClientResult</a><span class="token operator">&lt;</span><a href="../../com.okta.authfoundation.client.dto/-oidc-user-info/index.html">OidcUserInfo</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Performs the OIDC User Info call, which returns claims associated with the supplied <code class="lang-kotlin">accessToken</code>.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="2019683976%2FFunctions%2F-1123210767" anchor-label="introspectToken" id="2019683976%2FFunctions%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
-          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+<a data-name="2019683976%2FFunctions%2F606929609" anchor-label="introspectToken" id="2019683976%2FFunctions%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="introspect-token.html"><span>introspect</span><wbr><span><span>Token</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2019683976%2FFunctions%2F-1123210767"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2019683976%2FFunctions%2F606929609"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="introspect-token.html"><span class="token function">introspectToken</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">tokenType<span class="token operator">: </span><a href="../../com.okta.authfoundation.credential/-token-type/index.html">TokenType</a><span class="token punctuation">, </span></span><span class="parameter ">token<span class="token operator">: </span><a href="../../com.okta.authfoundation.credential/-token/index.html">Token</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-o-auth2-client-result/index.html">OAuth2ClientResult</a><span class="token operator">&lt;</span><a href="../../com.okta.authfoundation.client.dto/-oidc-introspect-info/index.html">OidcIntrospectInfo</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Performs a call to the Authorization Server to validate the specified <a href="../../com.okta.authfoundation.credential/-token-type/index.html">TokenType</a>.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="introspect-token.html"><span class="token function">introspectToken</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">tokenType<span class="token operator">: </span><a href="../../com.okta.authfoundation.credential/-token-type/index.html">TokenType</a><span class="token punctuation">, </span></span><span class="parameter ">token<span class="token operator">: </span><a href="../../com.okta.authfoundation.credential/-token/index.html">Token</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-o-auth2-client-result/index.html">OAuth2ClientResult</a><span class="token operator">&lt;</span><a href="../../com.okta.authfoundation.client.dto/-oidc-introspect-info/index.html">OidcIntrospectInfo</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Performs a call to the Authorization Server to validate the specified <a href="../../com.okta.authfoundation.credential/-token-type/index.html">TokenType</a>.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="1227105544%2FFunctions%2F-1123210767" anchor-label="jwks" id="1227105544%2FFunctions%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
-          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+<a data-name="1227105544%2FFunctions%2F606929609" anchor-label="jwks" id="1227105544%2FFunctions%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="jwks.html"><span><span>jwks</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1227105544%2FFunctions%2F-1123210767"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1227105544%2FFunctions%2F606929609"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="jwks.html"><span class="token function">jwks</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-o-auth2-client-result/index.html">OAuth2ClientResult</a><span class="token operator">&lt;</span><a href="../../com.okta.authfoundation.jwt/-jwks/index.html">Jwks</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Performs a call to the Authorization Server to fetch <a href="../../com.okta.authfoundation.jwt/-jwks/index.html">Jwks</a>.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="jwks.html"><span class="token function">jwks</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-o-auth2-client-result/index.html">OAuth2ClientResult</a><span class="token operator">&lt;</span><a href="../../com.okta.authfoundation.jwt/-jwks/index.html">Jwks</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Performs a call to the Authorization Server to fetch <a href="../../com.okta.authfoundation.jwt/-jwks/index.html">Jwks</a>.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-1658837341%2FFunctions%2F-1123210767" anchor-label="performRequest" id="-1658837341%2FFunctions%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
-          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+<a data-name="-1658837341%2FFunctions%2F606929609" anchor-label="performRequest" id="-1658837341%2FFunctions%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
+          <div class="table-row table-row_content" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../../com.okta.authfoundation.client.internal/perform-request.html"><span>perform</span><wbr><span><span>Request</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1658837341%2FFunctions%2F-1123210767"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1658837341%2FFunctions%2F606929609"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="index.html">OAuth2Client</a><span class="token punctuation">.</span><a href="../../com.okta.authfoundation.client.internal/perform-request.html"><span class="token function">performRequest</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">request<span class="token operator">: </span><span data-unresolved-link="okhttp3/Request///PointingToDeclaration/">Request</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-o-auth2-client-result/index.html">OAuth2ClientResult</a><span class="token operator">&lt;</span><span data-unresolved-link="okhttp3/Response///PointingToDeclaration/">Response</span><span class="token operator">&gt;</span></div><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><span class="token operator">&lt;</span><a href="../../com.okta.authfoundation.client.internal/perform-request.html">Raw</a><span class="token punctuation">, </span><a href="../../com.okta.authfoundation.client.internal/perform-request.html">Dto</a><span class="token operator">&gt; </span><a href="index.html">OAuth2Client</a><span class="token punctuation">.</span><a href="../../com.okta.authfoundation.client.internal/perform-request.html"><span class="token function">performRequest</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">deserializationStrategy<span class="token operator">: </span><span data-unresolved-link="kotlinx.serialization/DeserializationStrategy///PointingToDeclaration/">DeserializationStrategy</span><span class="token operator">&lt;</span><a href="../../com.okta.authfoundation.client.internal/perform-request.html">Raw</a><span class="token operator">&gt;</span><span class="token punctuation">, </span></span><span class="parameter ">request<span class="token operator">: </span><span data-unresolved-link="okhttp3/Request///PointingToDeclaration/">Request</span><span class="token punctuation">, </span></span><span class="parameter ">shouldAttemptJsonDeserialization<span class="token operator">: </span><span class="token punctuation">(</span><span data-unresolved-link="okhttp3/Response///PointingToDeclaration/">Response</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span>{ it.isSuccessful }<span class="token punctuation">, </span></span><span class="parameter ">responseMapper<span class="token operator">: </span><span class="token punctuation">(</span><a href="../../com.okta.authfoundation.client.internal/perform-request.html">Raw</a><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="../../com.okta.authfoundation.client.internal/perform-request.html">Dto</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-o-auth2-client-result/index.html">OAuth2ClientResult</a><span class="token operator">&lt;</span><a href="../../com.okta.authfoundation.client.internal/perform-request.html">Dto</a><span class="token operator">&gt;</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="index.html">OAuth2Client</a><span class="token punctuation">.</span><a href="../../com.okta.authfoundation.client.internal/perform-request.html"><span class="token function">performRequest</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">request<span class="token operator">: </span><span data-unresolved-link="okhttp3/Request///PointingToDeclaration/">Request</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-o-auth2-client-result/index.html">OAuth2ClientResult</a><span class="token operator">&lt;</span><span data-unresolved-link="okhttp3/Response///PointingToDeclaration/">Response</span><span class="token operator">&gt;</span></div><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><span class="token operator">&lt;</span><a href="../../com.okta.authfoundation.client.internal/perform-request.html">Raw</a><span class="token punctuation">, </span><a href="../../com.okta.authfoundation.client.internal/perform-request.html">Dto</a><span class="token operator">&gt; </span><a href="index.html">OAuth2Client</a><span class="token punctuation">.</span><a href="../../com.okta.authfoundation.client.internal/perform-request.html"><span class="token function">performRequest</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">deserializationStrategy<span class="token operator">: </span><span data-unresolved-link="kotlinx.serialization/DeserializationStrategy///PointingToDeclaration/">DeserializationStrategy</span><span class="token operator">&lt;</span><a href="../../com.okta.authfoundation.client.internal/perform-request.html">Raw</a><span class="token operator">&gt;</span><span class="token punctuation">, </span></span><span class="parameter ">request<span class="token operator">: </span><span data-unresolved-link="okhttp3/Request///PointingToDeclaration/">Request</span><span class="token punctuation">, </span></span><span class="parameter ">shouldAttemptJsonDeserialization<span class="token operator">: </span><span class="token punctuation">(</span><span data-unresolved-link="okhttp3/Response///PointingToDeclaration/">Response</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span>{ it.isSuccessful }<span class="token punctuation">, </span></span><span class="parameter ">responseMapper<span class="token operator">: </span><span class="token punctuation">(</span><a href="../../com.okta.authfoundation.client.internal/perform-request.html">Raw</a><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="../../com.okta.authfoundation.client.internal/perform-request.html">Dto</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-o-auth2-client-result/index.html">OAuth2ClientResult</a><span class="token operator">&lt;</span><a href="../../com.okta.authfoundation.client.internal/perform-request.html">Dto</a><span class="token operator">&gt;</span></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-1584208958%2FFunctions%2F-1123210767" anchor-label="refreshToken" id="-1584208958%2FFunctions%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
-          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+<a data-name="-1584208958%2FFunctions%2F606929609" anchor-label="refreshToken" id="-1584208958%2FFunctions%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="refresh-token.html"><span>refresh</span><wbr><span><span>Token</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1584208958%2FFunctions%2F-1123210767"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1584208958%2FFunctions%2F606929609"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="refresh-token.html"><span class="token function">refreshToken</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">token<span class="token operator">: </span><a href="../../com.okta.authfoundation.credential/-token/index.html">Token</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-o-auth2-client-result/index.html">OAuth2ClientResult</a><span class="token operator">&lt;</span><a href="../../com.okta.authfoundation.credential/-token/index.html">Token</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Attempt to refresh the token.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="refresh-token.html"><span class="token function">refreshToken</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">token<span class="token operator">: </span><a href="../../com.okta.authfoundation.credential/-token/index.html">Token</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-o-auth2-client-result/index.html">OAuth2ClientResult</a><span class="token operator">&lt;</span><a href="../../com.okta.authfoundation.credential/-token/index.html">Token</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Attempt to refresh the token.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="1596157033%2FFunctions%2F-1123210767" anchor-label="revokeToken" id="1596157033%2FFunctions%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
-          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+<a data-name="1596157033%2FFunctions%2F606929609" anchor-label="revokeToken" id="1596157033%2FFunctions%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="revoke-token.html"><span>revoke</span><wbr><span><span>Token</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1596157033%2FFunctions%2F-1123210767"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1596157033%2FFunctions%2F606929609"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="revoke-token.html"><span class="token function">revokeToken</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">revokeTokenType<span class="token operator">: </span><a href="../../com.okta.authfoundation.credential/-revoke-token-type/index.html">RevokeTokenType</a><span class="token punctuation">, </span></span><span class="parameter ">token<span class="token operator">: </span><a href="../../com.okta.authfoundation.credential/-token/index.html">Token</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-o-auth2-client-result/index.html">OAuth2ClientResult</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-unit/index.html">Unit</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Attempt to revoke the specified token.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="revoke-token.html"><span class="token function">revokeToken</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">revokeTokenType<span class="token operator">: </span><a href="../../com.okta.authfoundation.credential/-revoke-token-type/index.html">RevokeTokenType</a><span class="token punctuation">, </span></span><span class="parameter ">token<span class="token operator">: </span><a href="../../com.okta.authfoundation.credential/-token/index.html">Token</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-o-auth2-client-result/index.html">OAuth2ClientResult</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-unit/index.html">Unit</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Attempt to revoke the specified token.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-1728604166%2FFunctions%2F-1123210767" anchor-label="tokenRequest" id="-1728604166%2FFunctions%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
-          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+<a data-name="-1728604166%2FFunctions%2F606929609" anchor-label="tokenRequest" id="-1728604166%2FFunctions%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="token-request.html"><span>token</span><wbr><span><span>Request</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1728604166%2FFunctions%2F-1123210767"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1728604166%2FFunctions%2F606929609"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="token-request.html"><span class="token function">tokenRequest</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">request<span class="token operator">: </span><span data-unresolved-link="okhttp3/Request///PointingToDeclaration/">Request</span><span class="token punctuation">, </span></span><span class="parameter ">nonce<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span><span class="token operator"> = </span>null<span class="token punctuation">, </span></span><span class="parameter ">maxAge<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator">?</span><span class="token operator"> = </span>null<span class="token punctuation">, </span></span><span class="parameter ">requestToken<span class="token operator">: </span><a href="../../com.okta.authfoundation.credential/-token/index.html">Token</a><span class="token operator">?</span><span class="token operator"> = </span>null</span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-o-auth2-client-result/index.html">OAuth2ClientResult</a><span class="token operator">&lt;</span><a href="../../com.okta.authfoundation.credential/-token/index.html">Token</a><span class="token operator">&gt;</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="token-request.html"><span class="token function">tokenRequest</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">request<span class="token operator">: </span><span data-unresolved-link="okhttp3/Request///PointingToDeclaration/">Request</span><span class="token punctuation">, </span></span><span class="parameter ">nonce<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span><span class="token operator"> = </span>null<span class="token punctuation">, </span></span><span class="parameter ">maxAge<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator">?</span><span class="token operator"> = </span>null<span class="token punctuation">, </span></span><span class="parameter ">requestToken<span class="token operator">: </span><a href="../../com.okta.authfoundation.credential/-token/index.html">Token</a><span class="token operator">?</span><span class="token operator"> = </span>null</span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-o-auth2-client-result/index.html">OAuth2ClientResult</a><span class="token operator">&lt;</span><a href="../../com.okta.authfoundation.credential/-token/index.html">Token</a><span class="token operator">&gt;</span></div></div></div>
                 </div>
               </div>
             </div>
@@ -280,17 +279,21 @@
   </div>
 </div>
     <div class="footer">
-        <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
-        <span>© 2025 Copyright</span>
-        <span class="pull-right">
-            <span>Generated by </span>
-            <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
-                <span>dokka</span>
-            </a>
-        </span>
-    </div>
+        <div class="footer--container">
+            <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
+            <div class="footer--content">
+                <div>
+                    <span>Generated by </span>
+                    <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
+                        Dokka
+                    </a>
+                    <div>© 2026 Copyright</div>
+                </div>
             </div>
         </div>
     </div>
+        </div>
+    </div>
+</div>
 </body>
 </html>

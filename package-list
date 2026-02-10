@@ -1,12 +1,10 @@
 $dokka.format:html-v1
 $dokka.linkExtension:html
-$dokka.location:com.okta.authfoundation.credential.storage/TokenDatabase_Impl///PointingToDeclaration/auth-foundation/com.okta.authfoundation.credential.storage/[android-jvm]-token-database_-impl/index.html
-$dokka.location:com.okta.authfoundation.credential.storage/TokenDatabase_Impl/TokenDatabase_Impl/#/PointingToDeclaration/auth-foundation/com.okta.authfoundation.credential.storage/[android-jvm]-token-database_-impl/-token-database_-impl.html
-$dokka.location:com.okta.authfoundation.credential.storage/TokenDatabase_Impl/clearAllTables/#/PointingToDeclaration/auth-foundation/com.okta.authfoundation.credential.storage/[android-jvm]-token-database_-impl/clear-all-tables.html
-$dokka.location:com.okta.authfoundation.credential.storage/TokenDatabase_Impl/createAutoMigrations/#kotlin.collections.Map[kotlin.reflect.KClass[androidx.room.migration.AutoMigrationSpec],androidx.room.migration.AutoMigrationSpec]/PointingToDeclaration/auth-foundation/com.okta.authfoundation.credential.storage/[android-jvm]-token-database_-impl/create-auto-migrations.html
-$dokka.location:com.okta.authfoundation.credential.storage/TokenDatabase_Impl/getRequiredAutoMigrationSpecClasses/#/PointingToDeclaration/auth-foundation/com.okta.authfoundation.credential.storage/[android-jvm]-token-database_-impl/get-required-auto-migration-spec-classes.html
+
 module:auth-foundation
 com.okta.authfoundation
+com.okta.authfoundation.api.http
+com.okta.authfoundation.api.http.log
 com.okta.authfoundation.claims
 com.okta.authfoundation.client
 com.okta.authfoundation.client.dto
@@ -24,6 +22,13 @@ module:legacy-token-migration
 com.okta.legacytokenmigration
 module:oauth2
 com.okta.oauth2
+module:okta-direct-auth
+com.okta.directauth
+com.okta.directauth.api
+com.okta.directauth.http
+com.okta.directauth.http.model
+com.okta.directauth.log
+com.okta.directauth.model
 module:okta-idx-kotlin
 com.okta.authfoundation.client
 com.okta.idx.kotlin.client

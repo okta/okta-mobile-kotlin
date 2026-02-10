@@ -1,42 +1,39 @@
 <!doctype html>
-<html class="no-js">
+<html class="no-js" lang="en">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
     <title>com.okta.authfoundation.credential.events</title>
-<link href="../../images/logo-icon.svg" rel="icon" type="image/svg">    <script>var pathToRoot = "../../";</script>
-    <script>document.documentElement.classList.replace("no-js","js");</script>
+<link href="../../images/logo-icon.svg" rel="icon" type="image/svg"><script>var pathToRoot = "../../";</script>
+    <script>document.documentElement.classList.replace("no-js", "js");</script>
     <script>const storage = localStorage.getItem("dokka-dark-mode")
-    if (storage == null) {
+      if (storage == null) {
         const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
         if (osDarkSchemePreferred === true) {
-            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
         }
-    } else {
+      } else {
         const savedDarkMode = JSON.parse(storage)
-        if(savedDarkMode === true) {
-            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        if (savedDarkMode === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
         }
-    }
+      }
     </script>
-<script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async></script>
 <script type="text/javascript" src="../../scripts/sourceset_dependencies.js" async></script>
 <link href="../../styles/style.css" rel="Stylesheet">
 <link href="../../styles/main.css" rel="Stylesheet">
 <link href="../../styles/prism.css" rel="Stylesheet">
 <link href="../../styles/logo-styles.css" rel="Stylesheet">
-<link href="../../styles/font-jb-sans-auto.css" rel="Stylesheet">
 <link href="../../ui-kit/ui-kit.min.css" rel="Stylesheet">
-<script type="text/javascript" src="../../scripts/clipboard.js" async></script>
+<script type="text/javascript" src="../../scripts/safe-local-storage_blocking.js"></script>
 <script type="text/javascript" src="../../scripts/navigation-loader.js" async></script>
 <script type="text/javascript" src="../../scripts/platform-content-handler.js" async></script>
 <script type="text/javascript" src="../../scripts/main.js" defer></script>
 <script type="text/javascript" src="../../scripts/prism.js" async></script>
-<script type="text/javascript" src="../../ui-kit/ui-kit.min.js" defer></script>
-<script type="text/javascript" src="../../scripts/symbol-parameters-wrapper_deferred.js" defer></script></head>
+<script type="text/javascript" src="../../ui-kit/ui-kit.min.js" defer></script></head>
 <body>
-    <div class="root">
-    <nav class="navigation theme-dark" id="navigation-wrapper">
-<a class="library-name--link" href="../../index.html">
+<div class="root">
+    <header class="navigation theme-dark" id="navigation-wrapper" role="banner">
+<a class="library-name--link" href="../../index.html" tabindex="1">
                     Okta Mobile Kotlin SDK
             </a>        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle" type="button">Toggle table of contents
         </button>
@@ -44,53 +41,55 @@
         <div class="library-version" id="library-version">
         </div>
         <div class="navigation-controls">
-        <div class="filter-section filter-section_loading" id="filter-section">
-                <button class="platform-tag platform-selector jvm-like" data-active="" data-filter=":auth-foundation/release">androidJvm</button>
+        <ul class="filter-section filter-section_loading" id="filter-section" aria-label="Target filter">
+                <button class="platform-tag platform-selector jvm-like" data-active="" aria-pressed="true" data-filter=":auth-foundation/androidMain">android</button>
             <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
                 <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox" data-role="dropdown-toggle" aria-controls="platform-tags-listbox" aria-haspopup="listbox" aria-expanded="false" aria-label="Toggle source sets"></button>
-                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox">
-                    <div class="dropdown--header"><span>Platform filter</span>
-                        <button class="button" data-role="dropdown-toggle" aria-label="Close platform filter">
+                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox" aria-label="Target filter">
+                    <div class="dropdown--header"><span>Target filter</span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close target filter">
                             <i class="ui-kit-icon ui-kit-icon_cross"></i>
                         </button>
                     </div>
                         <li role="option" class="dropdown--option platform-selector-option jvm-like" tabindex="0">
                             <label class="checkbox">
-                                <input type="checkbox" class="checkbox--input" id=":auth-foundation/release" data-filter=":auth-foundation/release">
+                                <input type="checkbox" class="checkbox--input" id=":auth-foundation/androidMain" data-filter=":auth-foundation/androidMain">
                                 <span class="checkbox--icon"></span>
-                                androidJvm
+                                android
                             </label>
                         </li>
                 </ul>
                 <div class="dropdown--overlay"></div>
             </div>
-        </div>
+        </ul>
             <button class="navigation-controls--btn navigation-controls--btn_theme" id="theme-toggle-button" type="button">Switch theme
             </button>
             <div class="navigation-controls--btn navigation-controls--btn_search" id="searchBar" role="button">Search in
                 API
             </div>
         </div>
-    </nav>
-        <div id="container">
-            <div class="sidebar" id="leftColumn">
-                <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
-                    <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list" data-role="dropdown-listbox">
-                        <div class="dropdown--header">
+    </header>
+    <div id="container">
+        <nav id="leftColumn" class="sidebar" data-item-type="SECTION" data-item-config="{&quot;defaultSize&quot;: 280, &quot;minSize&quot;: 200, &quot;maxSize&quot;: 400}">
+            <a class="toc--skip-link" href="#main">Skip to content</a>
+            <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
+                <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list" data-role="dropdown-listbox" aria-label="Table of contents">
+                    <div class="dropdown--header">
                             <span>
                                     Okta Mobile Kotlin SDK
                             </span>
-                            <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
-                                <i class="ui-kit-icon ui-kit-icon_cross"></i>
-                            </button>
-                        </div>
-                        <div class="sidebar--inner" id="sideMenu"></div>
-                    </ul>
-                    <div class="dropdown--overlay"></div>
-                </div>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                    <div class="sidebar--inner" id="sideMenu"></div>
+                </ul>
+                <div class="dropdown--overlay"></div>
             </div>
-            <div id="main">
-<div class="main-content" data-page-type="package" id="content" pageids="auth-foundation::com.okta.authfoundation.credential.events////PointingToDeclaration//-1123210767">
+        </nav>
+        <div id="resizer" class="resizer" data-item-type="BAR"></div>
+        <div id="main" data-item-type="SECTION" role="main">
+<div class="main-content" data-page-type="package" id="content" pageids="auth-foundation::com.okta.authfoundation.credential.events////PointingToDeclaration//606929609">
   <div class="breadcrumbs"><a href="../index.html">auth-foundation</a><span class="delimiter">/</span><span class="current">com.okta.authfoundation.credential.events</span></div>
   <div class="cover ">
     <h1 class="cover"><span><span>Package-level</span></span> <span><span>declarations</span></span></h1>
@@ -99,138 +98,138 @@
     <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="TYPE">Types</button></div>
     <div class="tabs-section-body">
       <div data-togglable="TYPE">
-        <h2 class="">Types</h2>
-        <div class="table"><a data-name="1091907935%2FClasslikes%2F-1123210767" anchor-label="BiometricKeyInvalidatedEvent" id="1091907935%2FClasslikes%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
-          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+        <h2 class="tableheader">Types</h2>
+        <div class="table"><a data-name="1091907935%2FClasslikes%2F606929609" anchor-label="BiometricKeyInvalidatedEvent" id="1091907935%2FClasslikes%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-biometric-key-invalidated-event/index.html"><span>Biometric</span><wbr><span>Key</span><wbr><span>Invalidated</span><wbr><span><span>Event</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1091907935%2FClasslikes%2F-1123210767"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1091907935%2FClasslikes%2F606929609"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">class </span><a href="-biometric-key-invalidated-event/index.html">BiometricKeyInvalidatedEvent</a> : <a href="../com.okta.authfoundation.events/-event/index.html">Event</a></div><div class="brief "><p class="paragraph">Emitted when <a href="https://developer.android.com/reference/kotlin/android/security/keystore/KeyPermanentlyInvalidatedException.html">KeyPermanentlyInvalidatedException</a> is thrown when trying to use an invalidated biometric key while fetching a <a href="../com.okta.authfoundation.credential/-token/index.html">Token</a>.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">class </span><a href="-biometric-key-invalidated-event/index.html">BiometricKeyInvalidatedEvent</a> : <a href="../com.okta.authfoundation.events/-event/index.html">Event</a></div><div class="brief "><p class="paragraph">Emitted when <a href="https://developer.android.com/reference/kotlin/android/security/keystore/KeyPermanentlyInvalidatedException.html">KeyPermanentlyInvalidatedException</a> is thrown when trying to use an invalidated biometric key while fetching a <a href="../com.okta.authfoundation.credential/-token/index.html">Token</a>.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="2006946693%2FClasslikes%2F-1123210767" anchor-label="BiometricTokenInvalidatedEvent" id="2006946693%2FClasslikes%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
-          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+<a data-name="2006946693%2FClasslikes%2F606929609" anchor-label="BiometricTokenInvalidatedEvent" id="2006946693%2FClasslikes%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-biometric-token-invalidated-event/index.html"><span>Biometric</span><wbr><span>Token</span><wbr><span>Invalidated</span><wbr><span><span>Event</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2006946693%2FClasslikes%2F-1123210767"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2006946693%2FClasslikes%2F606929609"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">class </span><a href="-biometric-token-invalidated-event/index.html">BiometricTokenInvalidatedEvent</a> : <a href="../com.okta.authfoundation.events/-event/index.html">Event</a></div><div class="brief "><p class="paragraph">Emitted when the key of a biometric secured <a href="https://developer.android.com/reference/kotlin/android/media/session/MediaSession.Token.html">Token</a> is invalidated.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">class </span><a href="-biometric-token-invalidated-event/index.html">BiometricTokenInvalidatedEvent</a> : <a href="../com.okta.authfoundation.events/-event/index.html">Event</a></div><div class="brief "><p class="paragraph">Emitted when the key of a biometric secured <a href="https://developer.android.com/reference/kotlin/android/media/session/MediaSession.Token.html">Token</a> is invalidated.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="1012894382%2FClasslikes%2F-1123210767" anchor-label="CredentialCreatedEvent" id="1012894382%2FClasslikes%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
-          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+<a data-name="1012894382%2FClasslikes%2F606929609" anchor-label="CredentialCreatedEvent" id="1012894382%2FClasslikes%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-credential-created-event/index.html"><span>Credential</span><wbr><span>Created</span><wbr><span><span>Event</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1012894382%2FClasslikes%2F-1123210767"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1012894382%2FClasslikes%2F606929609"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">class </span><a href="-credential-created-event/index.html">CredentialCreatedEvent</a> : <a href="../com.okta.authfoundation.events/-event/index.html">Event</a></div><div class="brief "><p class="paragraph">Emitted via <a href="../com.okta.authfoundation.events/-event-handler/on-event.html">EventHandler.onEvent</a> when a <a href="../com.okta.authfoundation.credential/-credential/index.html">Credential</a> has been created via a <a href="../com.okta.authfoundation.credential/-credential-data-source/create-credential.html">CredentialDataSource.createCredential</a> call.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">class </span><a href="-credential-created-event/index.html">CredentialCreatedEvent</a> : <a href="../com.okta.authfoundation.events/-event/index.html">Event</a></div><div class="brief "><p class="paragraph">Emitted via <a href="../com.okta.authfoundation.events/-event-handler/on-event.html">EventHandler.onEvent</a> when a <a href="../com.okta.authfoundation.credential/-credential/index.html">Credential</a> has been created via a <a href="../com.okta.authfoundation.credential/-credential-data-source/create-credential.html">CredentialDataSource.createCredential</a> call.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="759025695%2FClasslikes%2F-1123210767" anchor-label="CredentialDeletedEvent" id="759025695%2FClasslikes%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
-          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+<a data-name="759025695%2FClasslikes%2F606929609" anchor-label="CredentialDeletedEvent" id="759025695%2FClasslikes%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-credential-deleted-event/index.html"><span>Credential</span><wbr><span>Deleted</span><wbr><span><span>Event</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="759025695%2FClasslikes%2F-1123210767"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="759025695%2FClasslikes%2F606929609"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">class </span><a href="-credential-deleted-event/index.html">CredentialDeletedEvent</a> : <a href="../com.okta.authfoundation.events/-event/index.html">Event</a></div><div class="brief "><p class="paragraph">Emitted via <a href="../com.okta.authfoundation.events/-event-handler/on-event.html">EventHandler.onEvent</a> when a <a href="../com.okta.authfoundation.credential/-credential/index.html">Credential</a> has been deleted via a <a href="../com.okta.authfoundation.credential/-credential/delete.html">Credential.delete</a> call.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">class </span><a href="-credential-deleted-event/index.html">CredentialDeletedEvent</a> : <a href="../com.okta.authfoundation.events/-event/index.html">Event</a></div><div class="brief "><p class="paragraph">Emitted via <a href="../com.okta.authfoundation.events/-event-handler/on-event.html">EventHandler.onEvent</a> when a <a href="../com.okta.authfoundation.credential/-credential/index.html">Credential</a> has been deleted via a <a href="../com.okta.authfoundation.credential/-credential/delete.html">Credential.delete</a> call.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="682016943%2FClasslikes%2F-1123210767" anchor-label="CredentialStoredAfterRemovedEvent" id="682016943%2FClasslikes%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
-          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+<a data-name="682016943%2FClasslikes%2F606929609" anchor-label="CredentialStoredAfterRemovedEvent" id="682016943%2FClasslikes%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-credential-stored-after-removed-event/index.html"><span>Credential</span><wbr><span>Stored</span><wbr><span>After</span><wbr><span>Removed</span><wbr><span><span>Event</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="682016943%2FClasslikes%2F-1123210767"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="682016943%2FClasslikes%2F606929609"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">class </span><a href="-credential-stored-after-removed-event/index.html">CredentialStoredAfterRemovedEvent</a> : <a href="../com.okta.authfoundation.events/-event/index.html">Event</a></div><div class="brief "><p class="paragraph">Emitted via <a href="../com.okta.authfoundation.events/-event-handler/on-event.html">EventHandler.onEvent</a> when a <a href="../../auth-foundation/com.okta.authfoundation.credential/-credential/replace-token.html">Credential.replaceToken</a> was invoked after a <a href="../com.okta.authfoundation.credential/-credential/delete.html">Credential.delete</a> call.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">class </span><a href="-credential-stored-after-removed-event/index.html">CredentialStoredAfterRemovedEvent</a> : <a href="../com.okta.authfoundation.events/-event/index.html">Event</a></div><div class="brief "><p class="paragraph">Emitted via <a href="../com.okta.authfoundation.events/-event-handler/on-event.html">EventHandler.onEvent</a> when a <a href="../../auth-foundation/com.okta.authfoundation.credential/-credential/replace-token.html">Credential.replaceToken</a> was invoked after a <a href="../com.okta.authfoundation.credential/-credential/delete.html">Credential.delete</a> call.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-1493770581%2FClasslikes%2F-1123210767" anchor-label="CredentialStoredEvent" id="-1493770581%2FClasslikes%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
-          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+<a data-name="-1493770581%2FClasslikes%2F606929609" anchor-label="CredentialStoredEvent" id="-1493770581%2FClasslikes%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-credential-stored-event/index.html"><span>Credential</span><wbr><span>Stored</span><wbr><span><span>Event</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1493770581%2FClasslikes%2F-1123210767"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1493770581%2FClasslikes%2F606929609"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">class </span><a href="-credential-stored-event/index.html">CredentialStoredEvent</a> : <a href="../com.okta.authfoundation.events/-event/index.html">Event</a></div><div class="brief "><p class="paragraph">Emitted via <a href="../com.okta.authfoundation.events/-event-handler/on-event.html">EventHandler.onEvent</a> after a <a href="../com.okta.authfoundation.credential/-credential/index.html">Credential</a> is updated due to a <a href="../../auth-foundation/com.okta.authfoundation.credential/-credential/replace-token.html">Credential.replaceToken</a> invocation.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">class </span><a href="-credential-stored-event/index.html">CredentialStoredEvent</a> : <a href="../com.okta.authfoundation.events/-event/index.html">Event</a></div><div class="brief "><p class="paragraph">Emitted via <a href="../com.okta.authfoundation.events/-event-handler/on-event.html">EventHandler.onEvent</a> after a <a href="../com.okta.authfoundation.credential/-credential/index.html">Credential</a> is updated due to a <a href="../../auth-foundation/com.okta.authfoundation.credential/-credential/replace-token.html">Credential.replaceToken</a> invocation.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="1628311661%2FClasslikes%2F-1123210767" anchor-label="DefaultCredentialChangedEvent" id="1628311661%2FClasslikes%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
-          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+<a data-name="1628311661%2FClasslikes%2F606929609" anchor-label="DefaultCredentialChangedEvent" id="1628311661%2FClasslikes%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-default-credential-changed-event/index.html"><span>Default</span><wbr><span>Credential</span><wbr><span>Changed</span><wbr><span><span>Event</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1628311661%2FClasslikes%2F-1123210767"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1628311661%2FClasslikes%2F606929609"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">class </span><a href="-default-credential-changed-event/index.html">DefaultCredentialChangedEvent</a> : <a href="../com.okta.authfoundation.events/-event/index.html">Event</a></div><div class="brief "><p class="paragraph">Emitted via <a href="../com.okta.authfoundation.events/-event-handler/on-event.html">EventHandler.onEvent</a> when the default <a href="../com.okta.authfoundation.credential/-credential/index.html">Credential</a> is changed.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">class </span><a href="-default-credential-changed-event/index.html">DefaultCredentialChangedEvent</a> : <a href="../com.okta.authfoundation.events/-event/index.html">Event</a></div><div class="brief "><p class="paragraph">Emitted via <a href="../com.okta.authfoundation.events/-event-handler/on-event.html">EventHandler.onEvent</a> when the default <a href="../com.okta.authfoundation.credential/-credential/index.html">Credential</a> is changed.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-171976250%2FClasslikes%2F-1123210767" anchor-label="NoAccessTokenAvailableEvent" id="-171976250%2FClasslikes%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
-          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+<a data-name="-171976250%2FClasslikes%2F606929609" anchor-label="NoAccessTokenAvailableEvent" id="-171976250%2FClasslikes%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-no-access-token-available-event/index.html"><span>No</span><wbr><span>Access</span><wbr><span>Token</span><wbr><span>Available</span><wbr><span><span>Event</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-171976250%2FClasslikes%2F-1123210767"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-171976250%2FClasslikes%2F606929609"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">class </span><a href="-no-access-token-available-event/index.html">NoAccessTokenAvailableEvent</a> : <a href="../com.okta.authfoundation.events/-event/index.html">Event</a></div><div class="brief "><p class="paragraph">Emitted via <a href="../com.okta.authfoundation.events/-event-handler/on-event.html">EventHandler.onEvent</a> when the <span data-unresolved-link="okhttp3/Interceptor/intercept/#okhttp3.Interceptor.Chain/PointingToDeclaration/">Interceptor.intercept</span> from a <a href="../com.okta.authfoundation.credential/-credential/access-token-interceptor.html">Credential.accessTokenInterceptor</a> call has been called, but no valid access token exists.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">class </span><a href="-no-access-token-available-event/index.html">NoAccessTokenAvailableEvent</a> : <a href="../com.okta.authfoundation.events/-event/index.html">Event</a></div><div class="brief "><p class="paragraph">Emitted via <a href="../com.okta.authfoundation.events/-event-handler/on-event.html">EventHandler.onEvent</a> when the <span data-unresolved-link="okhttp3/Interceptor/intercept/#okhttp3.Interceptor.Chain/PointingToDeclaration/">Interceptor.intercept</span> from a <a href="../com.okta.authfoundation.credential/-credential/access-token-interceptor.html">Credential.accessTokenInterceptor</a> call has been called, but no valid access token exists.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="442966847%2FClasslikes%2F-1123210767" anchor-label="TokenStorageAccessErrorEvent" id="442966847%2FClasslikes%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
-          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+<a data-name="442966847%2FClasslikes%2F606929609" anchor-label="TokenStorageAccessErrorEvent" id="442966847%2FClasslikes%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-token-storage-access-error-event/index.html"><span>Token</span><wbr><span>Storage</span><wbr><span>Access</span><wbr><span>Error</span><wbr><span><span>Event</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="442966847%2FClasslikes%2F-1123210767"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="442966847%2FClasslikes%2F606929609"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">class </span><a href="-token-storage-access-error-event/index.html">TokenStorageAccessErrorEvent</a> : <a href="../com.okta.authfoundation.events/-event/index.html">Event</a></div><div class="brief "><p class="paragraph">Emitted via <a href="../com.okta.authfoundation.events/-event-handler/on-event.html">EventHandler.onEvent</a> when a <a href="../com.okta.authfoundation.credential/-token-storage/index.html">TokenStorage</a> call causes an exception.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">class </span><a href="-token-storage-access-error-event/index.html">TokenStorageAccessErrorEvent</a> : <a href="../com.okta.authfoundation.events/-event/index.html">Event</a></div><div class="brief "><p class="paragraph">Emitted via <a href="../com.okta.authfoundation.events/-event-handler/on-event.html">EventHandler.onEvent</a> when a <a href="../com.okta.authfoundation.credential/-token-storage/index.html">TokenStorage</a> call causes an exception.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -241,17 +240,21 @@
   </div>
 </div>
     <div class="footer">
-        <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
-        <span>© 2025 Copyright</span>
-        <span class="pull-right">
-            <span>Generated by </span>
-            <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
-                <span>dokka</span>
-            </a>
-        </span>
-    </div>
+        <div class="footer--container">
+            <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
+            <div class="footer--content">
+                <div>
+                    <span>Generated by </span>
+                    <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
+                        Dokka
+                    </a>
+                    <div>© 2026 Copyright</div>
+                </div>
             </div>
         </div>
     </div>
+        </div>
+    </div>
+</div>
 </body>
 </html>

@@ -1,42 +1,39 @@
 <!doctype html>
-<html class="no-js">
+<html class="no-js" lang="en">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
     <title>ClaimsProvider</title>
-<link href="../../../images/logo-icon.svg" rel="icon" type="image/svg">    <script>var pathToRoot = "../../../";</script>
-    <script>document.documentElement.classList.replace("no-js","js");</script>
+<link href="../../../images/logo-icon.svg" rel="icon" type="image/svg"><script>var pathToRoot = "../../../";</script>
+    <script>document.documentElement.classList.replace("no-js", "js");</script>
     <script>const storage = localStorage.getItem("dokka-dark-mode")
-    if (storage == null) {
+      if (storage == null) {
         const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
         if (osDarkSchemePreferred === true) {
-            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
         }
-    } else {
+      } else {
         const savedDarkMode = JSON.parse(storage)
-        if(savedDarkMode === true) {
-            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        if (savedDarkMode === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
         }
-    }
+      }
     </script>
-<script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async></script>
 <script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async></script>
 <link href="../../../styles/style.css" rel="Stylesheet">
 <link href="../../../styles/main.css" rel="Stylesheet">
 <link href="../../../styles/prism.css" rel="Stylesheet">
 <link href="../../../styles/logo-styles.css" rel="Stylesheet">
-<link href="../../../styles/font-jb-sans-auto.css" rel="Stylesheet">
 <link href="../../../ui-kit/ui-kit.min.css" rel="Stylesheet">
-<script type="text/javascript" src="../../../scripts/clipboard.js" async></script>
+<script type="text/javascript" src="../../../scripts/safe-local-storage_blocking.js"></script>
 <script type="text/javascript" src="../../../scripts/navigation-loader.js" async></script>
 <script type="text/javascript" src="../../../scripts/platform-content-handler.js" async></script>
 <script type="text/javascript" src="../../../scripts/main.js" defer></script>
 <script type="text/javascript" src="../../../scripts/prism.js" async></script>
-<script type="text/javascript" src="../../../ui-kit/ui-kit.min.js" defer></script>
-<script type="text/javascript" src="../../../scripts/symbol-parameters-wrapper_deferred.js" defer></script></head>
+<script type="text/javascript" src="../../../ui-kit/ui-kit.min.js" defer></script></head>
 <body>
-    <div class="root">
-    <nav class="navigation theme-dark" id="navigation-wrapper">
-<a class="library-name--link" href="../../../index.html">
+<div class="root">
+    <header class="navigation theme-dark" id="navigation-wrapper" role="banner">
+<a class="library-name--link" href="../../../index.html" tabindex="1">
                     Okta Mobile Kotlin SDK
             </a>        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle" type="button">Toggle table of contents
         </button>
@@ -44,434 +41,436 @@
         <div class="library-version" id="library-version">
         </div>
         <div class="navigation-controls">
-        <div class="filter-section filter-section_loading" id="filter-section">
-                <button class="platform-tag platform-selector jvm-like" data-active="" data-filter=":auth-foundation/release">androidJvm</button>
+        <ul class="filter-section filter-section_loading" id="filter-section" aria-label="Target filter">
+                <button class="platform-tag platform-selector jvm-like" data-active="" aria-pressed="true" data-filter=":auth-foundation/androidMain">android</button>
             <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
                 <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox" data-role="dropdown-toggle" aria-controls="platform-tags-listbox" aria-haspopup="listbox" aria-expanded="false" aria-label="Toggle source sets"></button>
-                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox">
-                    <div class="dropdown--header"><span>Platform filter</span>
-                        <button class="button" data-role="dropdown-toggle" aria-label="Close platform filter">
+                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox" aria-label="Target filter">
+                    <div class="dropdown--header"><span>Target filter</span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close target filter">
                             <i class="ui-kit-icon ui-kit-icon_cross"></i>
                         </button>
                     </div>
                         <li role="option" class="dropdown--option platform-selector-option jvm-like" tabindex="0">
                             <label class="checkbox">
-                                <input type="checkbox" class="checkbox--input" id=":auth-foundation/release" data-filter=":auth-foundation/release">
+                                <input type="checkbox" class="checkbox--input" id=":auth-foundation/androidMain" data-filter=":auth-foundation/androidMain">
                                 <span class="checkbox--icon"></span>
-                                androidJvm
+                                android
                             </label>
                         </li>
                 </ul>
                 <div class="dropdown--overlay"></div>
             </div>
-        </div>
+        </ul>
             <button class="navigation-controls--btn navigation-controls--btn_theme" id="theme-toggle-button" type="button">Switch theme
             </button>
             <div class="navigation-controls--btn navigation-controls--btn_search" id="searchBar" role="button">Search in
                 API
             </div>
         </div>
-    </nav>
-        <div id="container">
-            <div class="sidebar" id="leftColumn">
-                <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
-                    <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list" data-role="dropdown-listbox">
-                        <div class="dropdown--header">
+    </header>
+    <div id="container">
+        <nav id="leftColumn" class="sidebar" data-item-type="SECTION" data-item-config="{&quot;defaultSize&quot;: 280, &quot;minSize&quot;: 200, &quot;maxSize&quot;: 400}">
+            <a class="toc--skip-link" href="#main">Skip to content</a>
+            <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
+                <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list" data-role="dropdown-listbox" aria-label="Table of contents">
+                    <div class="dropdown--header">
                             <span>
                                     Okta Mobile Kotlin SDK
                             </span>
-                            <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
-                                <i class="ui-kit-icon ui-kit-icon_cross"></i>
-                            </button>
-                        </div>
-                        <div class="sidebar--inner" id="sideMenu"></div>
-                    </ul>
-                    <div class="dropdown--overlay"></div>
-                </div>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                    <div class="sidebar--inner" id="sideMenu"></div>
+                </ul>
+                <div class="dropdown--overlay"></div>
             </div>
-            <div id="main">
-<div class="main-content" data-page-type="classlike" id="content" pageids="auth-foundation::com.okta.authfoundation.claims/ClaimsProvider///PointingToDeclaration//-1123210767">
+        </nav>
+        <div id="resizer" class="resizer" data-item-type="BAR"></div>
+        <div id="main" data-item-type="SECTION" role="main">
+<div class="main-content" data-page-type="classlike" id="content" pageids="auth-foundation::com.okta.authfoundation.claims/ClaimsProvider///PointingToDeclaration//606929609">
   <div class="breadcrumbs"><a href="../../index.html">auth-foundation</a><span class="delimiter">/</span><a href="../index.html">com.okta.authfoundation.claims</a><span class="delimiter">/</span><span class="current">ClaimsProvider</span></div>
   <div class="cover ">
     <h1 class="cover"><span>Claims</span><wbr><span><span>Provider</span></span></h1>
-    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">interface </span><a href="index.html">ClaimsProvider</a></div><p class="paragraph">Used by classes that contains OAuth2 claims.</p><p class="paragraph">This provides common conveniences for interacting with information within those claims.</p><h4 class="">Inheritors</h4><div class="table"><div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../../com.okta.authfoundation.client.dto/-oidc-introspect-info/-active/index.html">Active</a></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../../com.okta.authfoundation.client.dto/-oidc-user-info/index.html">OidcUserInfo</a></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../../com.okta.authfoundation.jwt/-jwt/index.html">Jwt</a></div></span></div><div></div></div></div></div></div></div>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">interface </span><a href="index.html">ClaimsProvider</a></div><p class="paragraph">Used by classes that contains OAuth2 claims.</p><p class="paragraph">This provides common conveniences for interacting with information within those claims.</p><h4 class="tableheader">Inheritors</h4><div class="table"><div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../../com.okta.authfoundation.client.dto/-oidc-introspect-info/-active/index.html">Active</a></div></span></div><div></div></div></div><div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../../com.okta.authfoundation.client.dto/-oidc-user-info/index.html">OidcUserInfo</a></div></span></div><div></div></div></div><div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../../com.okta.authfoundation.jwt/-jwt/index.html">Jwt</a></div></span></div><div></div></div></div></div></div></div>
   </div>
   <div class="tabbedcontent">
     <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button><button class="section-tab" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION,EXTENSION_PROPERTY,EXTENSION_FUNCTION">Members &amp; Extensions</button></div>
     <div class="tabs-section-body">
       <div data-togglable="EXTENSION_PROPERTY">
-        <h2 class="">Properties</h2>
-        <div class="table"><a data-name="282716923%2FProperties%2F-1123210767" anchor-label="active" id="282716923%2FProperties%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
-          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+        <h2 class="tableheader">Properties</h2>
+        <div class="table"><a data-name="282716923%2FProperties%2F606929609" anchor-label="active" id="282716923%2FProperties%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../active.html"><span><span>active</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="282716923%2FProperties%2F-1123210767"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="282716923%2FProperties%2F606929609"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="index.html">ClaimsProvider</a><span class="token punctuation">.</span><a href="../active.html">active</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">Indicates whether the token is active or not.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="index.html">ClaimsProvider</a><span class="token punctuation">.</span><a href="../active.html">active</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">Indicates whether the token is active or not.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-770684167%2FProperties%2F-1123210767" anchor-label="audience" id="-770684167%2FProperties%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
-          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+<a data-name="-770684167%2FProperties%2F606929609" anchor-label="audience" id="-770684167%2FProperties%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../audience.html"><span><span>audience</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-770684167%2FProperties%2F-1123210767"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-770684167%2FProperties%2F606929609"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="index.html">ClaimsProvider</a><span class="token punctuation">.</span><a href="../audience.html">audience</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">The audience of the token.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="index.html">ClaimsProvider</a><span class="token punctuation">.</span><a href="../audience.html">audience</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">The audience of the token.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-51593781%2FProperties%2F-1123210767" anchor-label="authContextClassReference" id="-51593781%2FProperties%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
-          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+<a data-name="-51593781%2FProperties%2F606929609" anchor-label="authContextClassReference" id="-51593781%2FProperties%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../auth-context-class-reference.html"><span>auth</span><wbr><span>Context</span><wbr><span>Class</span><wbr><span><span>Reference</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-51593781%2FProperties%2F-1123210767"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-51593781%2FProperties%2F606929609"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="index.html">ClaimsProvider</a><span class="token punctuation">.</span><a href="../auth-context-class-reference.html">authContextClassReference</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">The <code class="lang-kotlin">acr</code> claim, Authentication Context Class Reference, associated with the token.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="index.html">ClaimsProvider</a><span class="token punctuation">.</span><a href="../auth-context-class-reference.html">authContextClassReference</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">The <code class="lang-kotlin">acr</code> claim, Authentication Context Class Reference, associated with the token.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="632740278%2FProperties%2F-1123210767" anchor-label="authMethodsReference" id="632740278%2FProperties%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
-          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+<a data-name="632740278%2FProperties%2F606929609" anchor-label="authMethodsReference" id="632740278%2FProperties%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../auth-methods-reference.html"><span>auth</span><wbr><span>Methods</span><wbr><span><span>Reference</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="632740278%2FProperties%2F-1123210767"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="632740278%2FProperties%2F606929609"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="index.html">ClaimsProvider</a><span class="token punctuation">.</span><a href="../auth-methods-reference.html">authMethodsReference</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">&gt;</span><span class="token operator">?</span></div><div class="brief "><p class="paragraph">The <code class="lang-kotlin">amr</code> claim, Authentication Methods References, associated with the token.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="index.html">ClaimsProvider</a><span class="token punctuation">.</span><a href="../auth-methods-reference.html">authMethodsReference</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">&gt;</span><span class="token operator">?</span></div><div class="brief "><p class="paragraph">The <code class="lang-kotlin">amr</code> claim, Authentication Methods References, associated with the token.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-234238533%2FProperties%2F-1123210767" anchor-label="clientId" id="-234238533%2FProperties%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
-          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+<a data-name="-234238533%2FProperties%2F606929609" anchor-label="clientId" id="-234238533%2FProperties%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../client-id.html"><span>client</span><wbr><span><span>Id</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-234238533%2FProperties%2F-1123210767"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-234238533%2FProperties%2F606929609"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="index.html">ClaimsProvider</a><span class="token punctuation">.</span><a href="../client-id.html">clientId</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">The ID of the client associated with the token.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="index.html">ClaimsProvider</a><span class="token punctuation">.</span><a href="../client-id.html">clientId</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">The ID of the client associated with the token.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="1656644934%2FProperties%2F-1123210767" anchor-label="deviceId" id="1656644934%2FProperties%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
-          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+<a data-name="1656644934%2FProperties%2F606929609" anchor-label="deviceId" id="1656644934%2FProperties%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../device-id.html"><span>device</span><wbr><span><span>Id</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1656644934%2FProperties%2F-1123210767"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1656644934%2FProperties%2F606929609"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="index.html">ClaimsProvider</a><span class="token punctuation">.</span><a href="../device-id.html">deviceId</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">The ID of the device associated with the token.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="index.html">ClaimsProvider</a><span class="token punctuation">.</span><a href="../device-id.html">deviceId</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">The ID of the device associated with the token.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="1574575981%2FProperties%2F-1123210767" anchor-label="email" id="1574575981%2FProperties%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
-          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+<a data-name="1574575981%2FProperties%2F606929609" anchor-label="email" id="1574575981%2FProperties%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../email.html"><span><span>email</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1574575981%2FProperties%2F-1123210767"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1574575981%2FProperties%2F606929609"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="index.html">ClaimsProvider</a><span class="token punctuation">.</span><a href="../email.html">email</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">The user's email address.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="index.html">ClaimsProvider</a><span class="token punctuation">.</span><a href="../email.html">email</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">The user's email address.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-1502813295%2FProperties%2F-1123210767" anchor-label="expirationTime" id="-1502813295%2FProperties%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
-          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+<a data-name="-1502813295%2FProperties%2F606929609" anchor-label="expirationTime" id="-1502813295%2FProperties%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../expiration-time.html"><span>expiration</span><wbr><span><span>Time</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1502813295%2FProperties%2F-1123210767"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1502813295%2FProperties%2F606929609"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="index.html">ClaimsProvider</a><span class="token punctuation">.</span><a href="../expiration-time.html">expirationTime</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">The expiration time of the token in seconds since January 1, 1970 UTC.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="index.html">ClaimsProvider</a><span class="token punctuation">.</span><a href="../expiration-time.html">expirationTime</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">The expiration time of the token in seconds since January 1, 1970 UTC.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="1919043652%2FProperties%2F-1123210767" anchor-label="familyName" id="1919043652%2FProperties%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
-          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+<a data-name="1919043652%2FProperties%2F606929609" anchor-label="familyName" id="1919043652%2FProperties%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../family-name.html"><span>family</span><wbr><span><span>Name</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1919043652%2FProperties%2F-1123210767"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1919043652%2FProperties%2F606929609"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="index.html">ClaimsProvider</a><span class="token punctuation">.</span><a href="../family-name.html">familyName</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">The person's family, or last, name.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="index.html">ClaimsProvider</a><span class="token punctuation">.</span><a href="../family-name.html">familyName</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">The person's family, or last, name.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="1696730742%2FProperties%2F-1123210767" anchor-label="gender" id="1696730742%2FProperties%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
-          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+<a data-name="1696730742%2FProperties%2F606929609" anchor-label="gender" id="1696730742%2FProperties%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../gender.html"><span><span>gender</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1696730742%2FProperties%2F-1123210767"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1696730742%2FProperties%2F606929609"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="index.html">ClaimsProvider</a><span class="token punctuation">.</span><a href="../gender.html">gender</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">The user's gender.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="index.html">ClaimsProvider</a><span class="token punctuation">.</span><a href="../gender.html">gender</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">The user's gender.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="798090105%2FProperties%2F-1123210767" anchor-label="givenName" id="798090105%2FProperties%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
-          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+<a data-name="798090105%2FProperties%2F606929609" anchor-label="givenName" id="798090105%2FProperties%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../given-name.html"><span>given</span><wbr><span><span>Name</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="798090105%2FProperties%2F-1123210767"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="798090105%2FProperties%2F606929609"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="index.html">ClaimsProvider</a><span class="token punctuation">.</span><a href="../given-name.html">givenName</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">The person's given, or first, name.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="index.html">ClaimsProvider</a><span class="token punctuation">.</span><a href="../given-name.html">givenName</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">The person's given, or first, name.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="523237811%2FProperties%2F-1123210767" anchor-label="issuedAt" id="523237811%2FProperties%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
-          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+<a data-name="523237811%2FProperties%2F606929609" anchor-label="issuedAt" id="523237811%2FProperties%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../issued-at.html"><span>issued</span><wbr><span><span>At</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="523237811%2FProperties%2F-1123210767"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="523237811%2FProperties%2F606929609"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="index.html">ClaimsProvider</a><span class="token punctuation">.</span><a href="../issued-at.html">issuedAt</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">The issuing time of the token in seconds since January 1, 1970 UTC.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="index.html">ClaimsProvider</a><span class="token punctuation">.</span><a href="../issued-at.html">issuedAt</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">The issuing time of the token in seconds since January 1, 1970 UTC.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="2027287662%2FProperties%2F-1123210767" anchor-label="issuer" id="2027287662%2FProperties%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
-          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+<a data-name="2027287662%2FProperties%2F606929609" anchor-label="issuer" id="2027287662%2FProperties%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../issuer.html"><span><span>issuer</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2027287662%2FProperties%2F-1123210767"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2027287662%2FProperties%2F606929609"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="index.html">ClaimsProvider</a><span class="token punctuation">.</span><a href="../issuer.html">issuer</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">The issuer of the token.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="index.html">ClaimsProvider</a><span class="token punctuation">.</span><a href="../issuer.html">issuer</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">The issuer of the token.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-874995821%2FProperties%2F-1123210767" anchor-label="jwtId" id="-874995821%2FProperties%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
-          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+<a data-name="-874995821%2FProperties%2F606929609" anchor-label="jwtId" id="-874995821%2FProperties%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../jwt-id.html"><span>jwt</span><wbr><span><span>Id</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-874995821%2FProperties%2F-1123210767"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-874995821%2FProperties%2F606929609"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="index.html">ClaimsProvider</a><span class="token punctuation">.</span><a href="../jwt-id.html">jwtId</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">The identifier of the token.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="index.html">ClaimsProvider</a><span class="token punctuation">.</span><a href="../jwt-id.html">jwtId</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">The identifier of the token.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-828279499%2FProperties%2F-1123210767" anchor-label="middleName" id="-828279499%2FProperties%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
-          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+<a data-name="-828279499%2FProperties%2F606929609" anchor-label="middleName" id="-828279499%2FProperties%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../middle-name.html"><span>middle</span><wbr><span><span>Name</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-828279499%2FProperties%2F-1123210767"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-828279499%2FProperties%2F606929609"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="index.html">ClaimsProvider</a><span class="token punctuation">.</span><a href="../middle-name.html">middleName</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">The person's middle name.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="index.html">ClaimsProvider</a><span class="token punctuation">.</span><a href="../middle-name.html">middleName</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">The person's middle name.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="322325312%2FProperties%2F-1123210767" anchor-label="name" id="322325312%2FProperties%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
-          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+<a data-name="322325312%2FProperties%2F606929609" anchor-label="name" id="322325312%2FProperties%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../name.html"><span><span>name</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="322325312%2FProperties%2F-1123210767"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="322325312%2FProperties%2F606929609"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="index.html">ClaimsProvider</a><span class="token punctuation">.</span><a href="../name.html">name</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">The full name of the resource.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="index.html">ClaimsProvider</a><span class="token punctuation">.</span><a href="../name.html">name</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">The full name of the resource.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="469877219%2FProperties%2F-1123210767" anchor-label="nickname" id="469877219%2FProperties%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
-          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+<a data-name="469877219%2FProperties%2F606929609" anchor-label="nickname" id="469877219%2FProperties%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../nickname.html"><span><span>nickname</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="469877219%2FProperties%2F-1123210767"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="469877219%2FProperties%2F606929609"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="index.html">ClaimsProvider</a><span class="token punctuation">.</span><a href="../nickname.html">nickname</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">The person's nickname.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="index.html">ClaimsProvider</a><span class="token punctuation">.</span><a href="../nickname.html">nickname</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">The person's nickname.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="75747459%2FProperties%2F-1123210767" anchor-label="notBefore" id="75747459%2FProperties%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
-          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+<a data-name="75747459%2FProperties%2F606929609" anchor-label="notBefore" id="75747459%2FProperties%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../not-before.html"><span>not</span><wbr><span><span>Before</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="75747459%2FProperties%2F-1123210767"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="75747459%2FProperties%2F606929609"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="index.html">ClaimsProvider</a><span class="token punctuation">.</span><a href="../not-before.html">notBefore</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">Identifies the time (a timestamp in seconds since January 1, 1970 UTC) before which the token must not be accepted for processing.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="index.html">ClaimsProvider</a><span class="token punctuation">.</span><a href="../not-before.html">notBefore</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">Identifies the time (a timestamp in seconds since January 1, 1970 UTC) before which the token must not be accepted for processing.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-403670168%2FProperties%2F-1123210767" anchor-label="phoneNumber" id="-403670168%2FProperties%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
-          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+<a data-name="-403670168%2FProperties%2F606929609" anchor-label="phoneNumber" id="-403670168%2FProperties%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../phone-number.html"><span>phone</span><wbr><span><span>Number</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-403670168%2FProperties%2F-1123210767"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-403670168%2FProperties%2F606929609"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="index.html">ClaimsProvider</a><span class="token punctuation">.</span><a href="../phone-number.html">phoneNumber</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">The user's phone number.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="index.html">ClaimsProvider</a><span class="token punctuation">.</span><a href="../phone-number.html">phoneNumber</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">The user's phone number.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-1931940088%2FProperties%2F-1123210767" anchor-label="preferredUsername" id="-1931940088%2FProperties%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
-          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+<a data-name="-1931940088%2FProperties%2F606929609" anchor-label="preferredUsername" id="-1931940088%2FProperties%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../preferred-username.html"><span>preferred</span><wbr><span><span>Username</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1931940088%2FProperties%2F-1123210767"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1931940088%2FProperties%2F606929609"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="index.html">ClaimsProvider</a><span class="token punctuation">.</span><a href="../preferred-username.html">preferredUsername</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">The person's preferred username.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="index.html">ClaimsProvider</a><span class="token punctuation">.</span><a href="../preferred-username.html">preferredUsername</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">The person's preferred username.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="1702258725%2FProperties%2F-1123210767" anchor-label="scope" id="1702258725%2FProperties%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
-          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+<a data-name="1702258725%2FProperties%2F606929609" anchor-label="scope" id="1702258725%2FProperties%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../scope.html"><span><span>scope</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1702258725%2FProperties%2F-1123210767"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1702258725%2FProperties%2F606929609"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="index.html">ClaimsProvider</a><span class="token punctuation">.</span><a href="../scope.html">scope</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">A space-delimited list of scopes.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="index.html">ClaimsProvider</a><span class="token punctuation">.</span><a href="../scope.html">scope</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">A space-delimited list of scopes.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-46648963%2FProperties%2F-1123210767" anchor-label="subject" id="-46648963%2FProperties%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
-          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+<a data-name="-46648963%2FProperties%2F606929609" anchor-label="subject" id="-46648963%2FProperties%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../subject.html"><span><span>subject</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-46648963%2FProperties%2F-1123210767"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-46648963%2FProperties%2F606929609"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="index.html">ClaimsProvider</a><span class="token punctuation">.</span><a href="../subject.html">subject</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">The subject of the resource, if available.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="index.html">ClaimsProvider</a><span class="token punctuation">.</span><a href="../subject.html">subject</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">The subject of the resource, if available.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-395216796%2FProperties%2F-1123210767" anchor-label="tokenType" id="-395216796%2FProperties%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
-          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+<a data-name="-395216796%2FProperties%2F606929609" anchor-label="tokenType" id="-395216796%2FProperties%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../token-type.html"><span>token</span><wbr><span><span>Type</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-395216796%2FProperties%2F-1123210767"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-395216796%2FProperties%2F606929609"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="index.html">ClaimsProvider</a><span class="token punctuation">.</span><a href="../token-type.html">tokenType</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">The type of token. The value is always Bearer.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="index.html">ClaimsProvider</a><span class="token punctuation">.</span><a href="../token-type.html">tokenType</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">The type of token. The value is always Bearer.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="504048187%2FProperties%2F-1123210767" anchor-label="userId" id="504048187%2FProperties%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
-          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+<a data-name="504048187%2FProperties%2F606929609" anchor-label="userId" id="504048187%2FProperties%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../user-id.html"><span>user</span><wbr><span><span>Id</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="504048187%2FProperties%2F-1123210767"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="504048187%2FProperties%2F606929609"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="index.html">ClaimsProvider</a><span class="token punctuation">.</span><a href="../user-id.html">userId</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">The user ID. This parameter is returned only if the token is an access token and the subject is an end user.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="index.html">ClaimsProvider</a><span class="token punctuation">.</span><a href="../user-id.html">userId</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">The user ID. This parameter is returned only if the token is an access token and the subject is an end user.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-1056082869%2FProperties%2F-1123210767" anchor-label="username" id="-1056082869%2FProperties%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
-          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+<a data-name="-1056082869%2FProperties%2F606929609" anchor-label="username" id="-1056082869%2FProperties%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../username.html"><span><span>username</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1056082869%2FProperties%2F-1123210767"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1056082869%2FProperties%2F606929609"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="index.html">ClaimsProvider</a><span class="token punctuation">.</span><a href="../username.html">username</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">The username associated with the token.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="index.html">ClaimsProvider</a><span class="token punctuation">.</span><a href="../username.html">username</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">The username associated with the token.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -479,48 +478,48 @@
         </div>
       </div>
       <div data-togglable="FUNCTION">
-        <h2 class="">Functions</h2>
-        <div class="table"><a data-name="-354874777%2FFunctions%2F-1123210767" anchor-label="availableClaims" id="-354874777%2FFunctions%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
-          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+        <h2 class="tableheader">Functions</h2>
+        <div class="table"><a data-name="-354874777%2FFunctions%2F606929609" anchor-label="availableClaims" id="-354874777%2FFunctions%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="available-claims.html"><span>available</span><wbr><span><span>Claims</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-354874777%2FFunctions%2F-1123210767"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-354874777%2FFunctions%2F606929609"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">fun </span><a href="available-claims.html"><span class="token function">availableClaims</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-set/index.html">Set</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">List all claims present in the claims data.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">fun </span><a href="available-claims.html"><span class="token function">availableClaims</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-set/index.html">Set</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">List all claims present in the claims data.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-2060531190%2FFunctions%2F-1123210767" anchor-label="deserializeClaim" id="-2060531190%2FFunctions%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
-          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+<a data-name="-2060531190%2FFunctions%2F606929609" anchor-label="deserializeClaim" id="-2060531190%2FFunctions%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="deserialize-claim.html"><span>deserialize</span><wbr><span><span>Claim</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2060531190%2FFunctions%2F-1123210767"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2060531190%2FFunctions%2F606929609"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">fun </span><span class="token operator">&lt;</span><a href="deserialize-claim.html">T</a><span class="token operator">&gt; </span><a href="deserialize-claim.html"><span class="token function">deserializeClaim</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">claim<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">deserializationStrategy<span class="token operator">: </span><span data-unresolved-link="kotlinx.serialization/DeserializationStrategy///PointingToDeclaration/">DeserializationStrategy</span><span class="token operator">&lt;</span><a href="deserialize-claim.html">T</a><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="deserialize-claim.html">T</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">Deserialize a specific claim from the claims data in a type safe way.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">fun </span><span class="token operator">&lt;</span><a href="deserialize-claim.html">T</a><span class="token operator">&gt; </span><a href="deserialize-claim.html"><span class="token function">deserializeClaim</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">claim<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">deserializationStrategy<span class="token operator">: </span><span data-unresolved-link="kotlinx.serialization/DeserializationStrategy///PointingToDeclaration/">DeserializationStrategy</span><span class="token operator">&lt;</span><a href="deserialize-claim.html">T</a><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="deserialize-claim.html">T</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">Deserialize a specific claim from the claims data in a type safe way.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-2060082710%2FFunctions%2F-1123210767" anchor-label="deserializeClaims" id="-2060082710%2FFunctions%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
-          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+<a data-name="-2060082710%2FFunctions%2F606929609" anchor-label="deserializeClaims" id="-2060082710%2FFunctions%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="deserialize-claims.html"><span>deserialize</span><wbr><span><span>Claims</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2060082710%2FFunctions%2F-1123210767"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2060082710%2FFunctions%2F606929609"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">fun </span><span class="token operator">&lt;</span><a href="deserialize-claims.html">T</a><span class="token operator">&gt; </span><a href="deserialize-claims.html"><span class="token function">deserializeClaims</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">deserializationStrategy<span class="token operator">: </span><span data-unresolved-link="kotlinx.serialization/DeserializationStrategy///PointingToDeclaration/">DeserializationStrategy</span><span class="token operator">&lt;</span><a href="deserialize-claims.html">T</a><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="deserialize-claims.html">T</a></div><div class="brief "><p class="paragraph">Used to get access to the claims data in a type safe way.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">fun </span><span class="token operator">&lt;</span><a href="deserialize-claims.html">T</a><span class="token operator">&gt; </span><a href="deserialize-claims.html"><span class="token function">deserializeClaims</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">deserializationStrategy<span class="token operator">: </span><span data-unresolved-link="kotlinx.serialization/DeserializationStrategy///PointingToDeclaration/">DeserializationStrategy</span><span class="token operator">&lt;</span><a href="deserialize-claims.html">T</a><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="deserialize-claims.html">T</a></div><div class="brief "><p class="paragraph">Used to get access to the claims data in a type safe way.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -531,17 +530,21 @@
   </div>
 </div>
     <div class="footer">
-        <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
-        <span>© 2025 Copyright</span>
-        <span class="pull-right">
-            <span>Generated by </span>
-            <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
-                <span>dokka</span>
-            </a>
-        </span>
-    </div>
+        <div class="footer--container">
+            <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
+            <div class="footer--content">
+                <div>
+                    <span>Generated by </span>
+                    <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
+                        Dokka
+                    </a>
+                    <div>© 2026 Copyright</div>
+                </div>
             </div>
         </div>
     </div>
+        </div>
+    </div>
+</div>
 </body>
 </html>

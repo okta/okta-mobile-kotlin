@@ -1,42 +1,39 @@
 <!doctype html>
-<html class="no-js">
+<html class="no-js" lang="en">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
     <title>Companion</title>
-<link href="../../../../images/logo-icon.svg" rel="icon" type="image/svg">    <script>var pathToRoot = "../../../../";</script>
-    <script>document.documentElement.classList.replace("no-js","js");</script>
+<link href="../../../../images/logo-icon.svg" rel="icon" type="image/svg"><script>var pathToRoot = "../../../../";</script>
+    <script>document.documentElement.classList.replace("no-js", "js");</script>
     <script>const storage = localStorage.getItem("dokka-dark-mode")
-    if (storage == null) {
+      if (storage == null) {
         const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
         if (osDarkSchemePreferred === true) {
-            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
         }
-    } else {
+      } else {
         const savedDarkMode = JSON.parse(storage)
-        if(savedDarkMode === true) {
-            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        if (savedDarkMode === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
         }
-    }
+      }
     </script>
-<script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async></script>
 <script type="text/javascript" src="../../../../scripts/sourceset_dependencies.js" async></script>
 <link href="../../../../styles/style.css" rel="Stylesheet">
 <link href="../../../../styles/main.css" rel="Stylesheet">
 <link href="../../../../styles/prism.css" rel="Stylesheet">
 <link href="../../../../styles/logo-styles.css" rel="Stylesheet">
-<link href="../../../../styles/font-jb-sans-auto.css" rel="Stylesheet">
 <link href="../../../../ui-kit/ui-kit.min.css" rel="Stylesheet">
-<script type="text/javascript" src="../../../../scripts/clipboard.js" async></script>
+<script type="text/javascript" src="../../../../scripts/safe-local-storage_blocking.js"></script>
 <script type="text/javascript" src="../../../../scripts/navigation-loader.js" async></script>
 <script type="text/javascript" src="../../../../scripts/platform-content-handler.js" async></script>
 <script type="text/javascript" src="../../../../scripts/main.js" defer></script>
 <script type="text/javascript" src="../../../../scripts/prism.js" async></script>
-<script type="text/javascript" src="../../../../ui-kit/ui-kit.min.js" defer></script>
-<script type="text/javascript" src="../../../../scripts/symbol-parameters-wrapper_deferred.js" defer></script></head>
+<script type="text/javascript" src="../../../../ui-kit/ui-kit.min.js" defer></script></head>
 <body>
-    <div class="root">
-    <nav class="navigation theme-dark" id="navigation-wrapper">
-<a class="library-name--link" href="../../../../index.html">
+<div class="root">
+    <header class="navigation theme-dark" id="navigation-wrapper" role="banner">
+<a class="library-name--link" href="../../../../index.html" tabindex="1">
                     Okta Mobile Kotlin SDK
             </a>        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle" type="button">Toggle table of contents
         </button>
@@ -44,89 +41,91 @@
         <div class="library-version" id="library-version">
         </div>
         <div class="navigation-controls">
-        <div class="filter-section filter-section_loading" id="filter-section">
-                <button class="platform-tag platform-selector jvm-like" data-active="" data-filter=":auth-foundation/release">androidJvm</button>
+        <ul class="filter-section filter-section_loading" id="filter-section" aria-label="Target filter">
+                <button class="platform-tag platform-selector jvm-like" data-active="" aria-pressed="true" data-filter=":auth-foundation/androidMain">android</button>
             <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
                 <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox" data-role="dropdown-toggle" aria-controls="platform-tags-listbox" aria-haspopup="listbox" aria-expanded="false" aria-label="Toggle source sets"></button>
-                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox">
-                    <div class="dropdown--header"><span>Platform filter</span>
-                        <button class="button" data-role="dropdown-toggle" aria-label="Close platform filter">
+                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox" aria-label="Target filter">
+                    <div class="dropdown--header"><span>Target filter</span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close target filter">
                             <i class="ui-kit-icon ui-kit-icon_cross"></i>
                         </button>
                     </div>
                         <li role="option" class="dropdown--option platform-selector-option jvm-like" tabindex="0">
                             <label class="checkbox">
-                                <input type="checkbox" class="checkbox--input" id=":auth-foundation/release" data-filter=":auth-foundation/release">
+                                <input type="checkbox" class="checkbox--input" id=":auth-foundation/androidMain" data-filter=":auth-foundation/androidMain">
                                 <span class="checkbox--icon"></span>
-                                androidJvm
+                                android
                             </label>
                         </li>
                 </ul>
                 <div class="dropdown--overlay"></div>
             </div>
-        </div>
+        </ul>
             <button class="navigation-controls--btn navigation-controls--btn_theme" id="theme-toggle-button" type="button">Switch theme
             </button>
             <div class="navigation-controls--btn navigation-controls--btn_search" id="searchBar" role="button">Search in
                 API
             </div>
         </div>
-    </nav>
-        <div id="container">
-            <div class="sidebar" id="leftColumn">
-                <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
-                    <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list" data-role="dropdown-listbox">
-                        <div class="dropdown--header">
+    </header>
+    <div id="container">
+        <nav id="leftColumn" class="sidebar" data-item-type="SECTION" data-item-config="{&quot;defaultSize&quot;: 280, &quot;minSize&quot;: 200, &quot;maxSize&quot;: 400}">
+            <a class="toc--skip-link" href="#main">Skip to content</a>
+            <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
+                <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list" data-role="dropdown-listbox" aria-label="Table of contents">
+                    <div class="dropdown--header">
                             <span>
                                     Okta Mobile Kotlin SDK
                             </span>
-                            <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
-                                <i class="ui-kit-icon ui-kit-icon_cross"></i>
-                            </button>
-                        </div>
-                        <div class="sidebar--inner" id="sideMenu"></div>
-                    </ul>
-                    <div class="dropdown--overlay"></div>
-                </div>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                    <div class="sidebar--inner" id="sideMenu"></div>
+                </ul>
+                <div class="dropdown--overlay"></div>
             </div>
-            <div id="main">
-<div class="main-content" data-page-type="classlike" id="content" pageids="auth-foundation::com.okta.authfoundation.credential/Credential.Companion///PointingToDeclaration//-1123210767">
+        </nav>
+        <div id="resizer" class="resizer" data-item-type="BAR"></div>
+        <div id="main" data-item-type="SECTION" role="main">
+<div class="main-content" data-page-type="classlike" id="content" pageids="auth-foundation::com.okta.authfoundation.credential/Credential.Companion///PointingToDeclaration//606929609">
   <div class="breadcrumbs"><a href="../../../index.html">auth-foundation</a><span class="delimiter">/</span><a href="../../index.html">com.okta.authfoundation.credential</a><span class="delimiter">/</span><a href="../index.html">Credential</a><span class="delimiter">/</span><span class="current">Companion</span></div>
   <div class="cover ">
     <h1 class="cover"><span><span>Companion</span></span></h1>
-    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">object </span><a href="index.html">Companion</a></div></div></div>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">object </span><a href="index.html">Companion</a></div></div></div>
   </div>
   <div class="tabbedcontent">
     <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
     <div class="tabs-section-body">
       <div data-togglable="PROPERTY">
-        <h2 class="">Properties</h2>
-        <div class="table"><a data-name="504122089%2FProperties%2F-1123210767" anchor-label="allIds" id="504122089%2FProperties%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
-          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+        <h2 class="tableheader">Properties</h2>
+        <div class="table"><a data-name="504122089%2FProperties%2F606929609" anchor-label="allIds" id="504122089%2FProperties%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="all-ids.html"><span>all</span><wbr><span><span>Ids</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="504122089%2FProperties%2F-1123210767"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="504122089%2FProperties%2F606929609"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="all-ids.html">allIds</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Returns IDs of all available <a href="../index.html">Credential</a> objects in storage.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="all-ids.html">allIds</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Returns IDs of all available <a href="../index.html">Credential</a> objects in storage.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="1358970969%2FProperties%2F-1123210767" anchor-label="default" id="1358970969%2FProperties%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
-          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+<a data-name="1358970969%2FProperties%2F606929609" anchor-label="default" id="1358970969%2FProperties%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="default.html"><span><span>default</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1358970969%2FProperties%2F-1123210767"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1358970969%2FProperties%2F606929609"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">var </span><a href="default.html">default</a><span class="token operator">: </span><a href="../index.html">Credential</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">The default <a href="../index.html">Credential</a>. This is null if no default <a href="../index.html">Credential</a> exists, and it can be set to null to unset the default <a href="../index.html">Credential</a>.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">var </span><a href="default.html">default</a><span class="token operator">: </span><a href="../index.html">Credential</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">The default <a href="../index.html">Credential</a>. This is null if no default <a href="../index.html">Credential</a> exists, and it can be set to null to unset the default <a href="../index.html">Credential</a>.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -134,198 +133,198 @@
         </div>
       </div>
       <div data-togglable="FUNCTION">
-        <h2 class="">Functions</h2>
-        <div class="table"><a data-name="1341170997%2FFunctions%2F-1123210767" anchor-label="allIdsAsync" id="1341170997%2FFunctions%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
-          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+        <h2 class="tableheader">Functions</h2>
+        <div class="table"><a data-name="1341170997%2FFunctions%2F606929609" anchor-label="allIdsAsync" id="1341170997%2FFunctions%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="all-ids-async.html"><span>all</span><wbr><span>Ids</span><wbr><span><span>Async</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1341170997%2FFunctions%2F-1123210767"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1341170997%2FFunctions%2F606929609"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="all-ids-async.html"><span class="token function">allIdsAsync</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Returns IDs of all available <a href="../index.html">Credential</a> objects in storage.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="all-ids-async.html"><span class="token function">allIdsAsync</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Returns IDs of all available <a href="../index.html">Credential</a> objects in storage.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-995378863%2FFunctions%2F-1123210767" anchor-label="find" id="-995378863%2FFunctions%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
-          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+<a data-name="-995378863%2FFunctions%2F606929609" anchor-label="find" id="-995378863%2FFunctions%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="find.html"><span><span>find</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-995378863%2FFunctions%2F-1123210767"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-995378863%2FFunctions%2F606929609"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="find.html"><span class="token function">find</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">promptInfo<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/androidx/biometric/BiometricPrompt.PromptInfo.html">BiometricPrompt.PromptInfo</a><span class="token operator">?</span><span class="token operator"> = </span>Security.promptInfo<span class="token punctuation">, </span></span><span class="parameter ">where<span class="token operator">: </span><span class="token punctuation">(</span><a href="../../-token/-metadata/index.html">Token.Metadata</a><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><a href="../index.html">Credential</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Return all <a href="../index.html">Credential</a> objects matching the given <a href="find.html">where</a> expression. The <a href="find.html">where</a> expression is supplied with <a href="../../-token/-metadata/index.html">Token.Metadata</a> and should return true for cases where the user wants to fetch <a href="../index.html">Credential</a> with given <a href="../../-token/-metadata/index.html">Token.Metadata</a>.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="find.html"><span class="token function">find</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">promptInfo<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/androidx/biometric/BiometricPrompt.PromptInfo.html">BiometricPrompt.PromptInfo</a><span class="token operator">?</span><span class="token operator"> = </span>Security.promptInfo<span class="token punctuation">, </span></span><span class="parameter ">where<span class="token operator">: </span><span class="token punctuation">(</span><a href="../../-token/-metadata/index.html">Token.Metadata</a><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><a href="../index.html">Credential</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Return all <a href="../index.html">Credential</a> objects matching the given <a href="find.html">where</a> expression. The <a href="find.html">where</a> expression is supplied with <a href="../../-token/-metadata/index.html">Token.Metadata</a> and should return true for cases where the user wants to fetch <a href="../index.html">Credential</a> with given <a href="../../-token/-metadata/index.html">Token.Metadata</a>.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="574595969%2FFunctions%2F-1123210767" anchor-label="findAsync" id="574595969%2FFunctions%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
-          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+<a data-name="574595969%2FFunctions%2F606929609" anchor-label="findAsync" id="574595969%2FFunctions%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="find-async.html"><span>find</span><wbr><span><span>Async</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="574595969%2FFunctions%2F-1123210767"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="574595969%2FFunctions%2F606929609"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="find-async.html"><span class="token function">findAsync</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">promptInfo<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/androidx/biometric/BiometricPrompt.PromptInfo.html">BiometricPrompt.PromptInfo</a><span class="token operator">?</span><span class="token operator"> = </span>Security.promptInfo<span class="token punctuation">, </span></span><span class="parameter ">where<span class="token operator">: </span><span class="token punctuation">(</span><a href="../../-token/-metadata/index.html">Token.Metadata</a><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><a href="../index.html">Credential</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Return all <a href="../index.html">Credential</a> objects matching the given <a href="find-async.html">where</a> expression. The <a href="find-async.html">where</a> expression is supplied with <a href="../../-token/-metadata/index.html">Token.Metadata</a> and should return true for cases where the user wants to fetch <a href="../index.html">Credential</a> with given <a href="../../-token/-metadata/index.html">Token.Metadata</a>.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="find-async.html"><span class="token function">findAsync</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">promptInfo<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/androidx/biometric/BiometricPrompt.PromptInfo.html">BiometricPrompt.PromptInfo</a><span class="token operator">?</span><span class="token operator"> = </span>Security.promptInfo<span class="token punctuation">, </span></span><span class="parameter ">where<span class="token operator">: </span><span class="token punctuation">(</span><a href="../../-token/-metadata/index.html">Token.Metadata</a><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><a href="../index.html">Credential</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Return all <a href="../index.html">Credential</a> objects matching the given <a href="find-async.html">where</a> expression. The <a href="find-async.html">where</a> expression is supplied with <a href="../../-token/-metadata/index.html">Token.Metadata</a> and should return true for cases where the user wants to fetch <a href="../index.html">Credential</a> with given <a href="../../-token/-metadata/index.html">Token.Metadata</a>.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-190420887%2FFunctions%2F-1123210767" anchor-label="getDefaultAsync" id="-190420887%2FFunctions%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
-          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+<a data-name="-190420887%2FFunctions%2F606929609" anchor-label="getDefaultAsync" id="-190420887%2FFunctions%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="get-default-async.html"><span>get</span><wbr><span>Default</span><wbr><span><span>Async</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-190420887%2FFunctions%2F-1123210767"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-190420887%2FFunctions%2F606929609"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="get-default-async.html"><span class="token function">getDefaultAsync</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../index.html">Credential</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">Returns the default <a href="../index.html">Credential</a>, or null if no default <a href="../index.html">Credential</a> exists.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="get-default-async.html"><span class="token function">getDefaultAsync</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../index.html">Credential</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">Returns the default <a href="../index.html">Credential</a>, or null if no default <a href="../index.html">Credential</a> exists.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-1320906413%2FFunctions%2F-1123210767" anchor-label="metadata" id="-1320906413%2FFunctions%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
-          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+<a data-name="-1320906413%2FFunctions%2F606929609" anchor-label="metadata" id="-1320906413%2FFunctions%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="metadata.html"><span><span>metadata</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1320906413%2FFunctions%2F-1123210767"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1320906413%2FFunctions%2F606929609"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="metadata.html"><span class="token function">metadata</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">id<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../-token/-metadata/index.html">Token.Metadata</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">Returns <a href="../../-token/-metadata/index.html">Token.Metadata</a> of <a href="../index.html">Credential</a> with specified <a href="metadata.html">id</a>.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="metadata.html"><span class="token function">metadata</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">id<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../-token/-metadata/index.html">Token.Metadata</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">Returns <a href="../../-token/-metadata/index.html">Token.Metadata</a> of <a href="../index.html">Credential</a> with specified <a href="metadata.html">id</a>.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-1314922409%2FFunctions%2F-1123210767" anchor-label="metadataAsync" id="-1314922409%2FFunctions%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
-          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+<a data-name="-1314922409%2FFunctions%2F606929609" anchor-label="metadataAsync" id="-1314922409%2FFunctions%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="metadata-async.html"><span>metadata</span><wbr><span><span>Async</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1314922409%2FFunctions%2F-1123210767"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1314922409%2FFunctions%2F606929609"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="metadata-async.html"><span class="token function">metadataAsync</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">id<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../-token/-metadata/index.html">Token.Metadata</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">Returns <a href="../../-token/-metadata/index.html">Token.Metadata</a> of <a href="../index.html">Credential</a> with specified <a href="metadata-async.html">id</a>.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="metadata-async.html"><span class="token function">metadataAsync</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">id<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../-token/-metadata/index.html">Token.Metadata</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">Returns <a href="../../-token/-metadata/index.html">Token.Metadata</a> of <a href="../index.html">Credential</a> with specified <a href="metadata-async.html">id</a>.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-1291198415%2FFunctions%2F-1123210767" anchor-label="setDefaultAsync" id="-1291198415%2FFunctions%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
-          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+<a data-name="-1291198415%2FFunctions%2F606929609" anchor-label="setDefaultAsync" id="-1291198415%2FFunctions%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="set-default-async.html"><span>set</span><wbr><span>Default</span><wbr><span><span>Async</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1291198415%2FFunctions%2F-1123210767"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1291198415%2FFunctions%2F606929609"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="set-default-async.html"><span class="token function">setDefaultAsync</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">credential<span class="token operator">: </span><a href="../index.html">Credential</a><span class="token operator">?</span></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Sets the default <a href="../index.html">Credential</a> to provided <a href="set-default-async.html">credential</a>. Unsets the default <a href="../index.html">Credential</a> if <a href="set-default-async.html">credential</a> is null.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="set-default-async.html"><span class="token function">setDefaultAsync</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">credential<span class="token operator">: </span><a href="../index.html">Credential</a><span class="token operator">?</span></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Sets the default <a href="../index.html">Credential</a> to provided <a href="set-default-async.html">credential</a>. Unsets the default <a href="../index.html">Credential</a> if <a href="set-default-async.html">credential</a> is null.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="369058553%2FFunctions%2F-1123210767" anchor-label="setMetadata" id="369058553%2FFunctions%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
-          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+<a data-name="369058553%2FFunctions%2F606929609" anchor-label="setMetadata" id="369058553%2FFunctions%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="set-metadata.html"><span>set</span><wbr><span><span>Metadata</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="369058553%2FFunctions%2F-1123210767"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="369058553%2FFunctions%2F606929609"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="set-metadata.html"><span class="token function">setMetadata</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">metadata<span class="token operator">: </span><a href="../../-token/-metadata/index.html">Token.Metadata</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Sets the <a href="../../-token/-metadata/index.html">Token.Metadata</a> of <a href="../../-token/index.html">Token</a> with specified <a href="../../-token/-metadata/id.html">Token.Metadata.id</a>.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="set-metadata.html"><span class="token function">setMetadata</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">metadata<span class="token operator">: </span><a href="../../-token/-metadata/index.html">Token.Metadata</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Sets the <a href="../../-token/-metadata/index.html">Token.Metadata</a> of <a href="../../-token/index.html">Token</a> with specified <a href="../../-token/-metadata/id.html">Token.Metadata.id</a>.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-460726995%2FFunctions%2F-1123210767" anchor-label="setMetadataAsync" id="-460726995%2FFunctions%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
-          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+<a data-name="-460726995%2FFunctions%2F606929609" anchor-label="setMetadataAsync" id="-460726995%2FFunctions%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="set-metadata-async.html"><span>set</span><wbr><span>Metadata</span><wbr><span><span>Async</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-460726995%2FFunctions%2F-1123210767"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-460726995%2FFunctions%2F606929609"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="set-metadata-async.html"><span class="token function">setMetadataAsync</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">metadata<span class="token operator">: </span><a href="../../-token/-metadata/index.html">Token.Metadata</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Sets the <a href="../../-token/-metadata/index.html">Token.Metadata</a> of <a href="../../-token/index.html">Token</a> with specified <a href="../../-token/-metadata/id.html">Token.Metadata.id</a>.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="set-metadata-async.html"><span class="token function">setMetadataAsync</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">metadata<span class="token operator">: </span><a href="../../-token/-metadata/index.html">Token.Metadata</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Sets the <a href="../../-token/-metadata/index.html">Token.Metadata</a> of <a href="../../-token/index.html">Token</a> with specified <a href="../../-token/-metadata/id.html">Token.Metadata.id</a>.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="678399767%2FFunctions%2F-1123210767" anchor-label="store" id="678399767%2FFunctions%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
-          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+<a data-name="678399767%2FFunctions%2F606929609" anchor-label="store" id="678399767%2FFunctions%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="store.html"><span><span>store</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="678399767%2FFunctions%2F-1123210767"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="678399767%2FFunctions%2F606929609"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="store.html"><span class="token function">store</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">token<span class="token operator">: </span><a href="../../-token/index.html">Token</a><span class="token punctuation">, </span></span><span class="parameter ">tags<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-map/index.html">Map</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">&gt;</span><span class="token operator"> = </span>emptyMap()<span class="token punctuation">, </span></span><span class="parameter ">security<span class="token operator">: </span><a href="../-security/index.html">Credential.Security</a><span class="token operator"> = </span>Security.standard</span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../index.html">Credential</a></div><div class="brief "><p class="paragraph">Store a <a href="../../-token/index.html">Token</a> with optional <a href="store.html">tags</a> and <a href="store.html">security</a> options. Return the <a href="../index.html">Credential</a> object associated with the stored <a href="../../-token/index.html">Token</a></p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="store.html"><span class="token function">store</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">token<span class="token operator">: </span><a href="../../-token/index.html">Token</a><span class="token punctuation">, </span></span><span class="parameter ">tags<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-map/index.html">Map</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">&gt;</span><span class="token operator"> = </span>emptyMap()<span class="token punctuation">, </span></span><span class="parameter ">security<span class="token operator">: </span><a href="../-security/index.html">Credential.Security</a><span class="token operator"> = </span>Security.standard</span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../index.html">Credential</a></div><div class="brief "><p class="paragraph">Store a <a href="../../-token/index.html">Token</a> with optional <a href="store.html">tags</a> and <a href="store.html">security</a> options. Return the <a href="../index.html">Credential</a> object associated with the stored <a href="../../-token/index.html">Token</a></p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-1782470805%2FFunctions%2F-1123210767" anchor-label="storeAsync" id="-1782470805%2FFunctions%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
-          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+<a data-name="-1782470805%2FFunctions%2F606929609" anchor-label="storeAsync" id="-1782470805%2FFunctions%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="store-async.html"><span>store</span><wbr><span><span>Async</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1782470805%2FFunctions%2F-1123210767"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1782470805%2FFunctions%2F606929609"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="store-async.html"><span class="token function">storeAsync</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">token<span class="token operator">: </span><a href="../../-token/index.html">Token</a><span class="token punctuation">, </span></span><span class="parameter ">tags<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-map/index.html">Map</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">&gt;</span><span class="token operator"> = </span>emptyMap()<span class="token punctuation">, </span></span><span class="parameter ">security<span class="token operator">: </span><a href="../-security/index.html">Credential.Security</a><span class="token operator"> = </span>Security.standard</span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../index.html">Credential</a></div><div class="brief "><p class="paragraph">Store a <a href="../../-token/index.html">Token</a> with optional <a href="store-async.html">tags</a> and <a href="store-async.html">security</a> options. Return the <a href="../index.html">Credential</a> object associated with the stored <a href="../../-token/index.html">Token</a></p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="store-async.html"><span class="token function">storeAsync</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">token<span class="token operator">: </span><a href="../../-token/index.html">Token</a><span class="token punctuation">, </span></span><span class="parameter ">tags<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-map/index.html">Map</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">&gt;</span><span class="token operator"> = </span>emptyMap()<span class="token punctuation">, </span></span><span class="parameter ">security<span class="token operator">: </span><a href="../-security/index.html">Credential.Security</a><span class="token operator"> = </span>Security.standard</span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../index.html">Credential</a></div><div class="brief "><p class="paragraph">Store a <a href="../../-token/index.html">Token</a> with optional <a href="store-async.html">tags</a> and <a href="store-async.html">security</a> options. Return the <a href="../index.html">Credential</a> object associated with the stored <a href="../../-token/index.html">Token</a></p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-2091182155%2FFunctions%2F-1123210767" anchor-label="with" id="-2091182155%2FFunctions%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
-          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+<a data-name="-2091182155%2FFunctions%2F606929609" anchor-label="with" id="-2091182155%2FFunctions%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="with.html"><span><span>with</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2091182155%2FFunctions%2F-1123210767"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2091182155%2FFunctions%2F606929609"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="with.html"><span class="token function">with</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">id<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">promptInfo<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/androidx/biometric/BiometricPrompt.PromptInfo.html">BiometricPrompt.PromptInfo</a><span class="token operator">?</span><span class="token operator"> = </span>Security.promptInfo</span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../index.html">Credential</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">Return the <a href="../index.html">Credential</a> associated with the given <a href="with.html">id</a>.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="with.html"><span class="token function">with</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">id<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">promptInfo<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/androidx/biometric/BiometricPrompt.PromptInfo.html">BiometricPrompt.PromptInfo</a><span class="token operator">?</span><span class="token operator"> = </span>Security.promptInfo</span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../index.html">Credential</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">Return the <a href="../index.html">Credential</a> associated with the given <a href="with.html">id</a>.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="435254591%2FFunctions%2F-1123210767" anchor-label="withAsync" id="435254591%2FFunctions%2F-1123210767" data-filterable-set=":auth-foundation/release"></a>
-          <div class="table-row" data-filterable-current=":auth-foundation/release" data-filterable-set=":auth-foundation/release">
+<a data-name="435254591%2FFunctions%2F606929609" anchor-label="withAsync" id="435254591%2FFunctions%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="with-async.html"><span>with</span><wbr><span><span>Async</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="435254591%2FFunctions%2F-1123210767"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="435254591%2FFunctions%2F606929609"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/release"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="with-async.html"><span class="token function">withAsync</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">id<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">promptInfo<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/androidx/biometric/BiometricPrompt.PromptInfo.html">BiometricPrompt.PromptInfo</a><span class="token operator">?</span><span class="token operator"> = </span>Security.promptInfo</span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../index.html">Credential</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">Return the <a href="../index.html">Credential</a> associated with the given <a href="with-async.html">id</a>.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="with-async.html"><span class="token function">withAsync</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">id<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">promptInfo<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/androidx/biometric/BiometricPrompt.PromptInfo.html">BiometricPrompt.PromptInfo</a><span class="token operator">?</span><span class="token operator"> = </span>Security.promptInfo</span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../index.html">Credential</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">Return the <a href="../index.html">Credential</a> associated with the given <a href="with-async.html">id</a>.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -336,17 +335,21 @@
   </div>
 </div>
     <div class="footer">
-        <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
-        <span>© 2025 Copyright</span>
-        <span class="pull-right">
-            <span>Generated by </span>
-            <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
-                <span>dokka</span>
-            </a>
-        </span>
-    </div>
+        <div class="footer--container">
+            <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
+            <div class="footer--content">
+                <div>
+                    <span>Generated by </span>
+                    <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
+                        Dokka
+                    </a>
+                    <div>© 2026 Copyright</div>
+                </div>
             </div>
         </div>
     </div>
+        </div>
+    </div>
+</div>
 </body>
 </html>
