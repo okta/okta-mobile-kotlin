@@ -24,8 +24,8 @@ import io.ktor.client.plugins.cookies.HttpCookies
 /**
  * Returns a platform-specific [HttpClient] engine.
  */
-actual fun getHttpClientEngine(): HttpClient {
-    return HttpClient(CIO) {
+actual fun getHttpClientEngine(): HttpClient =
+    HttpClient(CIO) {
         install(HttpTimeout) {
             requestTimeoutMillis = REQUEST_TIMEOUT_MILLIS
             connectTimeoutMillis = CONNECT_TIMEOUT_MILLIS
@@ -33,4 +33,3 @@ actual fun getHttpClientEngine(): HttpClient {
         install(HttpCookies)
         install(HttpCache)
     }
-}

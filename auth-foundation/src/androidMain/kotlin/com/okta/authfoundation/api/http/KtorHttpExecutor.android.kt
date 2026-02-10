@@ -21,8 +21,8 @@ import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.cache.HttpCache
 import io.ktor.client.plugins.cookies.HttpCookies
 
-actual fun getHttpClientEngine(): HttpClient {
-    return HttpClient(OkHttp) {
+actual fun getHttpClientEngine(): HttpClient =
+    HttpClient(OkHttp) {
         install(HttpTimeout) {
             requestTimeoutMillis = REQUEST_TIMEOUT_MILLIS
             connectTimeoutMillis = CONNECT_TIMEOUT_MILLIS
@@ -30,4 +30,3 @@ actual fun getHttpClientEngine(): HttpClient {
         install(HttpCookies)
         install(HttpCache)
     }
-}

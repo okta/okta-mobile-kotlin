@@ -116,6 +116,7 @@ class DirectAuthenticationFlowBuilder private constructor() {
      * This defaults to a clock that returns the current time in epoch seconds.
      */
     var clock: OidcClock = OidcClock { Clock.System.now().epochSeconds }
+
     /**
      * Any additional query string parameters you would like to supply to the authorization server for all requests from this flow.
      *

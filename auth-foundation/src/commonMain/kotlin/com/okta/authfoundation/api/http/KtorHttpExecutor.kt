@@ -30,7 +30,6 @@ import io.ktor.http.takeFrom
 import io.ktor.util.appendAll
 import io.ktor.util.toMap
 
-
 const val REQUEST_TIMEOUT_MILLIS = 15_000L // 15 seconds
 const val CONNECT_TIMEOUT_MILLIS = 10_000L // 10 seconds
 
