@@ -18,7 +18,6 @@ package com.okta.directauth.app.http
 import com.okta.authfoundation.api.http.ApiRequestBody
 import com.okta.authfoundation.api.http.ApiRequestMethod
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 @Serializable

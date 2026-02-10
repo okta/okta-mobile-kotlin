@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.okta.directauth
+package com.okta.api.http
 
 import com.okta.authfoundation.api.http.ApiFormRequest
 import com.okta.authfoundation.api.http.ApiRequest
 import com.okta.authfoundation.api.http.ApiRequestBody
 import com.okta.authfoundation.api.http.ApiRequestMethod
-import com.okta.directauth.http.KtorHttpExecutor
+import com.okta.authfoundation.api.http.KtorHttpExecutor
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
@@ -45,7 +45,6 @@ import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.After
 import org.junit.Test
-import java.net.ConnectException
 
 class KtorHttpExecutorTest {
     private var ktorHttpExecutor = KtorHttpExecutor(HttpClient { install(HttpTimeout) })
@@ -275,7 +274,11 @@ class KtorHttpExecutorTest {
     fun testNetworkErrorReturnsFailureResult() =
         runTest {
             // arrange
-            ktorHttpExecutor = KtorHttpExecutor(HttpClient { install(HttpTimeout) })
+            val mockEngine =
+                MockEngine {
+                    error("Connection refused")
+                }
+            ktorHttpExecutor = KtorHttpExecutor(HttpClient(mockEngine) { install(HttpTimeout) })
 
             val request =
                 object : ApiRequest {
@@ -291,7 +294,7 @@ class KtorHttpExecutorTest {
 
             // assert
             assertThat(result.isFailure, `is`(true))
-            assertThat(result.exceptionOrNull(), instanceOf(ConnectException::class.java))
+            assertThat(result.exceptionOrNull(), instanceOf(IllegalStateException::class.java))
         }
 
     @Test

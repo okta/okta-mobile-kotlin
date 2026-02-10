@@ -13,18 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.okta.directauth.http
+package com.okta.authfoundation.api.http
 
-import com.okta.authfoundation.api.http.ApiExecutor
-import com.okta.authfoundation.api.http.ApiFormRequest
-import com.okta.authfoundation.api.http.ApiRequest
-import com.okta.authfoundation.api.http.ApiRequestBody
-import com.okta.authfoundation.api.http.ApiResponse
 import io.ktor.client.HttpClient
-import io.ktor.client.engine.okhttp.OkHttp
-import io.ktor.client.plugins.HttpTimeout
-import io.ktor.client.plugins.cache.HttpCache
-import io.ktor.client.plugins.cookies.HttpCookies
 import io.ktor.client.request.forms.FormDataContent
 import io.ktor.client.request.request
 import io.ktor.client.request.setBody
@@ -39,6 +30,14 @@ import io.ktor.http.takeFrom
 import io.ktor.util.appendAll
 import io.ktor.util.toMap
 
+const val REQUEST_TIMEOUT_MILLIS = 15_000L // 15 seconds
+const val CONNECT_TIMEOUT_MILLIS = 10_000L // 10 seconds
+
+/**
+ * Returns a platform-specific [HttpClient] engine.
+ */
+expect fun getHttpClientEngine(): HttpClient
+
 /**
  * An [ApiExecutor] implementation that uses Ktor for making HTTP requests.
  *
@@ -52,8 +51,8 @@ import io.ktor.util.toMap
  * information on configuring Ktor clients.
  *
  * @param httpClient The Ktor [HttpClient] to use for network requests. By default, a client
- * is created using the `OkHttp` engine with `HttpTimeout`, `HttpCookies`, and `HttpCache`
- * plugins installed.
+ * is created using the `expect method getHttpClientEngine()` with `OkHttp` engine with `HttpTimeout`, `HttpCookies`, and `HttpCache`
+ * plugins installed for Android.
  *
  * The timeout values can be adjusted in the default client by modifying the values in the
  * `HttpTimeout` configuration block.
@@ -62,15 +61,7 @@ import io.ktor.util.toMap
  * and can be replaced by configuring your own [HttpClient] instance.
  */
 class KtorHttpExecutor(
-    val httpClient: HttpClient =
-        HttpClient(OkHttp) {
-            install(HttpTimeout) {
-                requestTimeoutMillis = 15_000L // 15 seconds
-                connectTimeoutMillis = 10_000L // 10 seconds
-            }
-            install(HttpCookies)
-            install(HttpCache)
-        },
+    val httpClient: HttpClient = getHttpClientEngine(),
 ) : ApiExecutor {
     override suspend fun execute(request: ApiRequest): Result<ApiResponse> =
         runCatching {
@@ -102,7 +93,7 @@ class KtorHttpExecutor(
 
             object : ApiResponse {
                 override val statusCode: Int = response.status.value
-                override val body: ByteArray? = bodyBytes
+                override val body: ByteArray = bodyBytes
                 override val headers: Map<String, List<String>> = response.headers.toMap()
                 override val contentLength: Long = response.contentLength() ?: -1L
                 override val contentType: String = response.contentType()?.toString() ?: ""

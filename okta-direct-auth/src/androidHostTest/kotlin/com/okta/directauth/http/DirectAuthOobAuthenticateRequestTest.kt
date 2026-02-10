@@ -17,6 +17,7 @@ package com.okta.directauth.http
 
 import com.okta.authfoundation.GrantType
 import com.okta.authfoundation.api.http.ApiRequestMethod
+import com.okta.authfoundation.api.http.KtorHttpExecutor
 import com.okta.authfoundation.api.http.log.AuthFoundationLogger
 import com.okta.authfoundation.api.http.log.LogLevel
 import com.okta.directauth.model.BindingMethod

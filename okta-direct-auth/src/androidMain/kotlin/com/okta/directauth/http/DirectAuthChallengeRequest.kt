@@ -16,12 +16,10 @@
 package com.okta.directauth.http
 
 import com.okta.authfoundation.ChallengeGrantType
-import com.okta.authfoundation.GrantType
 import com.okta.authfoundation.api.http.ApiRequestMethod
 import com.okta.directauth.model.DirectAuthenticationContext
 import com.okta.directauth.model.MfaContext
 import com.okta.directauth.model.OobChannel
-import org.slf4j.MDC.put
 
 internal class DirectAuthChallengeRequest(
     internal val context: DirectAuthenticationContext,

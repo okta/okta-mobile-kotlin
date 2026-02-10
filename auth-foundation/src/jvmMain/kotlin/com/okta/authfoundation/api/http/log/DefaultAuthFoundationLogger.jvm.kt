@@ -13,24 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.okta.directauth.log
+package com.okta.authfoundation.api.http.log
 
-import android.util.Log
-import com.okta.authfoundation.api.http.log.AuthFoundationLogger
-import com.okta.authfoundation.api.http.log.LogLevel
+/**
+ * Returns a default [AuthFoundationLogger] implementation for JVM that writes to standard output.
+ */
+actual fun getDefaultAuthFoundationLogger(): AuthFoundationLogger = JvmAuthFoundationLogger()
 
-class AuthFoundationLoggerImpl : AuthFoundationLogger {
+/**
+ * A JVM implementation of [AuthFoundationLogger] that writes logs to standard output.
+ *
+ * @param tag The tag to prefix log messages with. Defaults to "AuthFoundation".
+ */
+class JvmAuthFoundationLogger(
+    private val tag: String = "AuthFoundation",
+) : AuthFoundationLogger {
     override fun write(
         message: String,
         tr: Throwable?,
         logLevel: LogLevel,
     ) {
-        val tag = "DirectAuthentication"
-        when (logLevel) {
-            LogLevel.DEBUG -> Log.d(tag, message, tr)
-            LogLevel.INFO -> Log.i(tag, message, tr)
-            LogLevel.WARN -> Log.w(tag, message, tr)
-            LogLevel.ERROR -> Log.e(tag, message, tr)
-        }
+        val level = logLevel.name.padEnd(5)
+        println("$level [$tag] $message")
+        tr?.printStackTrace()
     }
 }

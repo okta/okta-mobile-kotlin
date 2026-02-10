@@ -18,16 +18,17 @@ package com.okta.directauth
 import com.okta.authfoundation.ChallengeGrantType
 import com.okta.authfoundation.GrantType
 import com.okta.authfoundation.api.http.ApiExecutor
+import com.okta.authfoundation.api.http.KtorHttpExecutor
 import com.okta.authfoundation.api.http.log.AuthFoundationLogger
+import com.okta.authfoundation.api.http.log.getDefaultAuthFoundationLogger
 import com.okta.authfoundation.client.OidcClock
 import com.okta.directauth.DirectAuthenticationFlowBuilder.Companion.create
 import com.okta.directauth.api.DirectAuthenticationFlow
-import com.okta.directauth.http.KtorHttpExecutor
-import com.okta.directauth.log.AuthFoundationLoggerImpl
 import com.okta.directauth.model.DirectAuthenticationContext
 import com.okta.directauth.model.DirectAuthenticationIntent
 import io.ktor.http.URLProtocol
 import io.ktor.http.Url
+import kotlin.time.Clock
 
 /**
  * A builder used to configure and create an instance of [DirectAuthenticationFlow].
@@ -105,16 +106,16 @@ class DirectAuthenticationFlowBuilder private constructor() {
      * existing logging framework, such as Timber or a custom solution. It can also be
      * replaced with a mock implementation for testing purposes.
      *
-     * Defaults to an instance of [AuthFoundationLoggerImpl] which logs to Android's Logcat.
+     * Defaults to an instance of [com.okta.authfoundation.api.http.log.AuthFoundationLoggerImpl] which logs to Android's Logcat.
      */
-    var logger: AuthFoundationLogger = AuthFoundationLoggerImpl()
+    var logger: AuthFoundationLogger = getDefaultAuthFoundationLogger()
 
     /**
      * The clock used for time-sensitive operations.
      *
      * This defaults to a clock that returns the current time in epoch seconds.
      */
-    var clock: OidcClock = OidcClock { System.currentTimeMillis() / 1000 }
+    var clock: OidcClock = OidcClock { Clock.System.now().epochSeconds }
 
     /**
      * Any additional query string parameters you would like to supply to the authorization server for all requests from this flow.

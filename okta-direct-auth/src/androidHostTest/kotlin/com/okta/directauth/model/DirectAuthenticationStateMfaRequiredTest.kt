@@ -17,11 +17,11 @@ package com.okta.directauth.model
 
 import com.okta.authfoundation.GrantType
 import com.okta.authfoundation.api.http.ApiExecutor
+import com.okta.authfoundation.api.http.KtorHttpExecutor
 import com.okta.authfoundation.api.http.log.AuthFoundationLogger
 import com.okta.authfoundation.api.http.log.LogLevel
 import com.okta.directauth.challengeOtpResponseMockEngine
 import com.okta.directauth.challengeWebAuthnResponseMockEngine
-import com.okta.directauth.http.KtorHttpExecutor
 import com.okta.directauth.oobAuthenticatePushResponseMockEngine
 import com.okta.directauth.oobAuthenticateTransferResponseMockEngine
 import com.okta.directauth.tokenResponseMockEngine
