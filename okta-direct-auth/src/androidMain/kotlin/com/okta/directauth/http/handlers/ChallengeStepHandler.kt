@@ -1,3 +1,18 @@
+/*
+ * Copyright 2022-Present Okta, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.okta.directauth.http.handlers
 
 import com.okta.authfoundation.ChallengeGrantType.OobMfa
@@ -22,52 +37,64 @@ import com.okta.directauth.model.OobChannel
 import io.ktor.http.HttpStatusCode
 import kotlin.coroutines.cancellation.CancellationException
 
-internal class ChallengeStepHandler(override val request: DirectAuthChallengeRequest, override val context: DirectAuthenticationContext, val mfaContext: MfaContext) : StepHandler {
-    override suspend fun process(): DirectAuthenticationState = runCatching {
-        val apiResponse = context.apiExecutor.execute(request).getOrThrow()
+internal class ChallengeStepHandler(
+    override val request: DirectAuthChallengeRequest,
+    override val context: DirectAuthenticationContext,
+    val mfaContext: MfaContext,
+) : StepHandler {
+    override suspend fun process(): DirectAuthenticationState =
+        runCatching {
+            val apiResponse = context.apiExecutor.execute(request).getOrThrow()
 
-        if (apiResponse.contentType != "application/json") {
-            return InternalError(UNSUPPORTED_CONTENT_TYPE, null, IllegalStateException("Unsupported content type: ${apiResponse.contentType}"))
-        }
+            if (apiResponse.contentType != "application/json") {
+                return InternalError(UNSUPPORTED_CONTENT_TYPE, null, IllegalStateException("Unsupported content type: ${apiResponse.contentType}"))
+            }
 
-        val httpStatusCode = HttpStatusCode.fromValue(apiResponse.statusCode)
+            val httpStatusCode = HttpStatusCode.fromValue(apiResponse.statusCode)
 
-        if (httpStatusCode == HttpStatusCode.OK) {
-            val response = apiResponse.body?.takeIf { it.isNotEmpty() } ?: return InternalError(INVALID_RESPONSE, null, IllegalStateException("Empty response body: HTTP $httpStatusCode"))
-            val challengeResponse = context.json.decodeFromString<ChallengeResponse>(response.toString(Charsets.UTF_8))
+            if (httpStatusCode == HttpStatusCode.OK) {
+                val response = apiResponse.body?.takeIf { it.isNotEmpty() } ?: return InternalError(INVALID_RESPONSE, null, IllegalStateException("Empty response body: HTTP $httpStatusCode"))
+                val challengeResponse = context.json.decodeFromString<ChallengeResponse>(response.toString(Charsets.UTF_8))
 
-            val challengeType = challengeResponse.challengeType.asChallengeGrantType()
-            val bindingContext = with(challengeResponse) {
-                when (challengeType) {
-                    OobMfa -> {
-                        val oobChannel = OobChannel.fromString(requireNotNull(channel))
-                        val bindingMethod = BindingMethod.fromString(requireNotNull(bindingMethod))
-                        if (bindingMethod == BindingMethod.TRANSFER) requireNotNull(bindingCode)
-                        if (oobChannel == OobChannel.PUSH) requireNotNull(interval)
+                val challengeType = challengeResponse.challengeType.asChallengeGrantType()
+                val bindingContext =
+                    with(challengeResponse) {
+                        when (challengeType) {
+                            OobMfa -> {
+                                val oobChannel = OobChannel.fromString(requireNotNull(channel))
+                                val bindingMethod = BindingMethod.fromString(requireNotNull(bindingMethod))
+                                if (bindingMethod == BindingMethod.TRANSFER) requireNotNull(bindingCode)
+                                if (oobChannel == OobChannel.PUSH) requireNotNull(interval)
 
-                        BindingContext(requireNotNull(oobCode), requireNotNull(expiresIn), interval, oobChannel, bindingMethod, bindingCode, challengeType)
+                                BindingContext(requireNotNull(oobCode), requireNotNull(expiresIn), interval, oobChannel, bindingMethod, bindingCode, challengeType)
+                            }
+
+                            OtpMfa -> {
+                                BindingContext(challengeType, BindingMethod.PROMPT)
+                            }
+
+                            WebAuthnMfa -> {
+                                TODO("https://oktainc.atlassian.net/browse/OKTA-1054126")
+                            }
+                        }
                     }
 
-                    OtpMfa -> BindingContext(challengeType, BindingMethod.PROMPT)
-
-                    WebAuthnMfa -> TODO("https://oktainc.atlassian.net/browse/OKTA-1054126")
+                return when (bindingContext.bindingMethod) {
+                    BindingMethod.NONE -> DirectAuthContinuation.OobPending(bindingContext, context, mfaContext)
+                    BindingMethod.PROMPT -> DirectAuthContinuation.Prompt(bindingContext, context, mfaContext)
+                    BindingMethod.TRANSFER -> DirectAuthContinuation.Transfer(bindingContext, context, mfaContext)
                 }
             }
 
-            return when (bindingContext.bindingMethod) {
-                BindingMethod.NONE -> DirectAuthContinuation.OobPending(bindingContext, context, mfaContext)
-                BindingMethod.PROMPT -> DirectAuthContinuation.Prompt(bindingContext, context, mfaContext)
-                BindingMethod.TRANSFER -> DirectAuthContinuation.Transfer(bindingContext, context, mfaContext)
+            return apiResponse.handleErrorResponse(context, httpStatusCode) { apiError ->
+                val errorCode = DirectAuthenticationErrorCode.fromString(apiError.error)
+                Oauth2Error(errorCode.code, httpStatusCode, apiError.errorDescription)
+            }
+        }.getOrElse {
+            if (it is CancellationException) {
+                Canceled
+            } else {
+                InternalError(EXCEPTION, it.message, it)
             }
         }
-
-        return apiResponse.handleErrorResponse(context, httpStatusCode) { apiError ->
-            val errorCode = DirectAuthenticationErrorCode.fromString(apiError.error)
-            Oauth2Error(errorCode.code, httpStatusCode, apiError.errorDescription)
-        }
-
-    }.getOrElse {
-        if (it is CancellationException) Canceled
-        else InternalError(EXCEPTION, it.message, it)
-    }
 }

@@ -30,8 +30,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlin.coroutines.cancellation.CancellationException
 
-internal class DirectAuthenticationFlowImpl(internal val context: DirectAuthenticationContext) : DirectAuthenticationFlow {
-
+internal class DirectAuthenticationFlowImpl(
+    internal val context: DirectAuthenticationContext,
+) : DirectAuthenticationFlow {
     private fun PrimaryFactor.startRequest(loginHint: String): StepHandler =
         when (this) {
             is PrimaryFactor.Password -> TokenStepHandler(DirectAuthTokenRequest.Password(context, loginHint, password), context)
@@ -42,11 +43,18 @@ internal class DirectAuthenticationFlowImpl(internal val context: DirectAuthenti
 
     override val authenticationState: StateFlow<DirectAuthenticationState> = context.authenticationStateFlow.asStateFlow()
 
-    override suspend fun start(loginHint: String, primaryFactor: PrimaryFactor): DirectAuthenticationState {
-        val result = runCatching { primaryFactor.startRequest(loginHint).process() }.getOrElse {
-            if (it is CancellationException) DirectAuthenticationState.Canceled
-            else DirectAuthenticationError.InternalError(EXCEPTION, it.message, it)
-        }
+    override suspend fun start(
+        loginHint: String,
+        primaryFactor: PrimaryFactor,
+    ): DirectAuthenticationState {
+        val result =
+            runCatching { primaryFactor.startRequest(loginHint).process() }.getOrElse {
+                if (it is CancellationException) {
+                    DirectAuthenticationState.Canceled
+                } else {
+                    DirectAuthenticationError.InternalError(EXCEPTION, it.message, it)
+                }
+            }
         context.authenticationStateFlow.value = result
         return result
     }

@@ -138,18 +138,20 @@ class DirectAuthContinuationTransferStateTest {
         val context = createDirectAuthenticationContext(apiExecutor = KtorHttpExecutor(HttpClient(mockEngine)))
         val transferState = DirectAuthContinuation.Transfer(bindingContext, context)
 
-        val job = CoroutineScope(Dispatchers.Default).launch {
-            context.authenticationStateFlow.collect { value ->
-                if (value !is DirectAuthenticationState.Idle) collectedValues.add(value)
-                if (value is Authenticated) flowFinished.complete(Unit)
+        val job =
+            CoroutineScope(Dispatchers.Default).launch {
+                context.authenticationStateFlow.collect { value ->
+                    if (value !is DirectAuthenticationState.Idle) collectedValues.add(value)
+                    if (value is Authenticated) flowFinished.complete(Unit)
+                }
             }
-        }
 
-        val result = runBlocking {
-            val proceedResult = transferState.proceed()
-            flowFinished.await()
-            proceedResult
-        }
+        val result =
+            runBlocking {
+                val proceedResult = transferState.proceed()
+                flowFinished.await()
+                proceedResult
+            }
 
         assertThat(result, instanceOf(Authenticated::class.java))
         assertThat(context.authenticationStateFlow.value, equalTo(result))

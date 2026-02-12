@@ -100,14 +100,21 @@ sealed interface DirectAuthenticationState {
          * while waiting for the user to complete the challenge, or an error state if the challenge
          * could not be initiated.
          */
-        suspend fun challenge(secondaryFactor: SecondaryFactor, challengeTypesSupported: List<ChallengeGrantType> = listOf(WebAuthnMfa, OobMfa, OtpMfa)): DirectAuthenticationState {
+        suspend fun challenge(
+            secondaryFactor: SecondaryFactor,
+            challengeTypesSupported: List<ChallengeGrantType> = listOf(WebAuthnMfa, OobMfa, OtpMfa),
+        ): DirectAuthenticationState {
             val channel = if (secondaryFactor is PrimaryFactor.Oob) secondaryFactor.channel else null
             val request = DirectAuthChallengeRequest(context, mfaContext, challengeTypesSupported, channel)
 
-            val result = runCatching { ChallengeStepHandler(request, context, mfaContext).process() }.getOrElse {
-                if (it is CancellationException) Canceled
-                else InternalError(EXCEPTION, it.message, it)
-            }
+            val result =
+                runCatching { ChallengeStepHandler(request, context, mfaContext).process() }.getOrElse {
+                    if (it is CancellationException) {
+                        Canceled
+                    } else {
+                        InternalError(EXCEPTION, it.message, it)
+                    }
+                }
             context.authenticationStateFlow.value = result
             return result
         }
@@ -128,22 +135,29 @@ sealed interface DirectAuthenticationState {
          * @return The next [DirectAuthenticationState] in the flow, which could be [Authenticated],
          *   [AuthorizationPending], or an error state.
          */
-        suspend fun resume(secondaryFactor: SecondaryFactor, challengeTypesSupported: List<ChallengeGrantType> = listOf(WebAuthnMfa, OobMfa, OtpMfa)): DirectAuthenticationState {
-            val result = runCatching {
-                when (secondaryFactor) {
-                    is PrimaryFactor.Otp -> {
-                        val request = DirectAuthTokenRequest.MfaOtp(context.copy(grantTypes = challengeTypesSupported), secondaryFactor.passCode, mfaContext)
-                        TokenStepHandler(request, context).process()
-                    }
+        suspend fun resume(
+            secondaryFactor: SecondaryFactor,
+            challengeTypesSupported: List<ChallengeGrantType> = listOf(WebAuthnMfa, OobMfa, OtpMfa),
+        ): DirectAuthenticationState {
+            val result =
+                runCatching {
+                    when (secondaryFactor) {
+                        is PrimaryFactor.Otp -> {
+                            val request = DirectAuthTokenRequest.MfaOtp(context.copy(grantTypes = challengeTypesSupported), secondaryFactor.passCode, mfaContext)
+                            TokenStepHandler(request, context).process()
+                        }
 
-                    is PrimaryFactor.Oob, PrimaryFactor.WebAuthn -> {
-                        challenge(secondaryFactor, challengeTypesSupported)
+                        is PrimaryFactor.Oob, PrimaryFactor.WebAuthn -> {
+                            challenge(secondaryFactor, challengeTypesSupported)
+                        }
+                    }
+                }.getOrElse {
+                    if (it is CancellationException) {
+                        Canceled
+                    } else {
+                        InternalError(EXCEPTION, it.message, it)
                     }
                 }
-            }.getOrElse {
-                if (it is CancellationException) Canceled
-                else InternalError(EXCEPTION, it.message, it)
-            }
             context.authenticationStateFlow.value = result
             return result
         }

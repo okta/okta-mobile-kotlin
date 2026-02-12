@@ -79,15 +79,15 @@ sealed class DirectAuthContinuation(
                                 DirectAuthTokenRequest.OobMfa(context, bindingContext.oobCode, it)
                             } ?: DirectAuthTokenRequest.Oob(context, bindingContext.oobCode)
 
-                    val currentState = TokenStepHandler(request, context).process()
+                        val currentState = TokenStepHandler(request, context).process()
 
                         if (currentState !is DirectAuthenticationState.AuthorizationPending) return@withTimeout currentState
 
-                    context.authenticationStateFlow.value = currentState
-                    // if delay interval is not specified then default to 5 seconds
-                    val interval = bindingContext.interval ?: 5
-                    delay(interval.seconds)
-                }
+                        context.authenticationStateFlow.value = currentState
+                        // if delay interval is not specified then default to 5 seconds
+                        val interval = bindingContext.interval ?: 5
+                        delay(interval.seconds)
+                    }
                     // This is reached if the loop exits due to the job being canceled
                     DirectAuthenticationState.Canceled
                 }
@@ -158,10 +158,14 @@ sealed class DirectAuthContinuation(
                     DirectAuthTokenRequest.OobMfa(context, bindingContext.oobCode, it, code)
                 } ?: DirectAuthTokenRequest.Oob(context, bindingContext.oobCode, code)
 
-            val result = runCatching { TokenStepHandler(request, context).process() }.getOrElse {
-                if (it is CancellationException) DirectAuthenticationState.Canceled
-                else DirectAuthenticationError.InternalError(EXCEPTION, it.message, it)
-            }
+            val result =
+                runCatching { TokenStepHandler(request, context).process() }.getOrElse {
+                    if (it is CancellationException) {
+                        DirectAuthenticationState.Canceled
+                    } else {
+                        DirectAuthenticationError.InternalError(EXCEPTION, it.message, it)
+                    }
+                }
             context.authenticationStateFlow.value = result
             return result
         }
