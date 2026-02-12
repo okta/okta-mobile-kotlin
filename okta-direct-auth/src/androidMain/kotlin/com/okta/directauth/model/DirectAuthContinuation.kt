@@ -17,7 +17,7 @@ package com.okta.directauth.model
 
 import com.okta.directauth.http.DirectAuthTokenRequest
 import com.okta.directauth.http.EXCEPTION
-import com.okta.directauth.http.tokenResponseAsState
+import com.okta.directauth.http.handlers.TokenStepHandler
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -79,13 +79,11 @@ sealed class DirectAuthContinuation(
                                 DirectAuthTokenRequest.OobMfa(context, bindingContext.oobCode, it)
                             } ?: DirectAuthTokenRequest.Oob(context, bindingContext.oobCode)
 
-                        val response = context.apiExecutor.execute(request).getOrThrow()
-                        val currentState = response.tokenResponseAsState(context)
-
-                        context.authenticationStateFlow.value = currentState
+                        val currentState = TokenStepHandler(request, context).process()
 
                         if (currentState !is DirectAuthenticationState.AuthorizationPending) return@withTimeout currentState
 
+                        context.authenticationStateFlow.value = currentState
                         // if delay interval is not specified then default to 5 seconds
                         val interval = bindingContext.interval ?: 5
                         delay(interval.seconds)
@@ -160,14 +158,16 @@ sealed class DirectAuthContinuation(
                     DirectAuthTokenRequest.OobMfa(context, bindingContext.oobCode, it, code)
                 } ?: DirectAuthTokenRequest.Oob(context, bindingContext.oobCode, code)
 
-            val result = context.apiExecutor.execute(request)
-            val state =
-                result.fold(
-                    onSuccess = { it.tokenResponseAsState(context) },
-                    onFailure = { DirectAuthenticationError.InternalError(EXCEPTION, it.message, it) }
-                )
-            context.authenticationStateFlow.value = state
-            return state
+            val result =
+                runCatching { TokenStepHandler(request, context).process() }.getOrElse {
+                    if (it is CancellationException) {
+                        DirectAuthenticationState.Canceled
+                    } else {
+                        DirectAuthenticationError.InternalError(EXCEPTION, it.message, it)
+                    }
+                }
+            context.authenticationStateFlow.value = result
+            return result
         }
     }
 

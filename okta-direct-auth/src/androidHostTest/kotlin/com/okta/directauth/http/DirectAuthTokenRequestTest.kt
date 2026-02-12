@@ -24,6 +24,7 @@ import com.okta.authfoundation.api.http.log.LogLevel
 import com.okta.directauth.authorizationPendingMockEngine
 import com.okta.directauth.emptyResponseMockEngine
 import com.okta.directauth.emptyResponseOkMockEngine
+import com.okta.directauth.http.handlers.TokenStepHandler
 import com.okta.directauth.internalServerErrorMockEngine
 import com.okta.directauth.invalidMfaRequiredMockEngine
 import com.okta.directauth.malformedJsonClientMockEngine
@@ -53,7 +54,6 @@ import org.hamcrest.CoreMatchers.instanceOf
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Before
 import org.junit.Test
-import kotlin.jvm.java
 
 class DirectAuthTokenRequestTest {
     private lateinit var context: DirectAuthenticationContext
@@ -285,9 +285,9 @@ class DirectAuthTokenRequestTest {
     fun request_parsesTokenResponse() =
         runTest {
             val request = DirectAuthTokenRequest.Password(context, "test_user", "test_password")
+            val testContext = context.copy(apiExecutor = KtorHttpExecutor(HttpClient(tokenResponseMockEngine)))
 
-            val apiResponse = KtorHttpExecutor(HttpClient(tokenResponseMockEngine)).execute(request).getOrThrow()
-            val directAuthState = apiResponse.tokenResponseAsState(context)
+            val directAuthState = TokenStepHandler(request, testContext).process()
 
             assertThat(request.url(), equalTo("https://example.okta.com/oauth2/v1/token"))
             assertThat(directAuthState, instanceOf(DirectAuthenticationState.Authenticated::class.java))
@@ -299,9 +299,9 @@ class DirectAuthTokenRequestTest {
     fun request_parsesOAuth2ErrorResponse() =
         runTest {
             val request = DirectAuthTokenRequest.Password(context, "test_user", "test_password")
+            val testContext = context.copy(apiExecutor = KtorHttpExecutor(HttpClient(oAuth2ErrorMockEngine)))
 
-            val apiResponse = KtorHttpExecutor(HttpClient(oAuth2ErrorMockEngine)).execute(request).getOrThrow()
-            val directAuthState = apiResponse.tokenResponseAsState(context)
+            val directAuthState = TokenStepHandler(request, testContext).process()
 
             assertThat(directAuthState, instanceOf(HttpError.Oauth2Error::class.java))
             val apiError = (directAuthState as HttpError.Oauth2Error)
@@ -314,9 +314,9 @@ class DirectAuthTokenRequestTest {
     fun request_handlesServerError() =
         runTest {
             val request = DirectAuthTokenRequest.Password(context, "test_user", "test_password")
+            val testContext = context.copy(apiExecutor = KtorHttpExecutor(HttpClient(serverErrorMockEngine)))
 
-            val apiResponse = KtorHttpExecutor(HttpClient(serverErrorMockEngine)).execute(request).getOrThrow()
-            val directAuthState = apiResponse.tokenResponseAsState(context)
+            val directAuthState = TokenStepHandler(request, testContext).process()
 
             assertThat(directAuthState, instanceOf(HttpError.ApiError::class.java))
             val apiError = (directAuthState as HttpError.ApiError)
@@ -329,9 +329,9 @@ class DirectAuthTokenRequestTest {
     fun request_parsesMfaRequiredResponse() =
         runTest {
             val request = DirectAuthTokenRequest.Password(context, "test_user", "test_password")
+            val testContext = context.copy(apiExecutor = KtorHttpExecutor(HttpClient(mfaRequiredMockEngine)))
 
-            val apiResponse = KtorHttpExecutor(HttpClient(mfaRequiredMockEngine)).execute(request).getOrThrow()
-            val directAuthState = apiResponse.tokenResponseAsState(context)
+            val directAuthState = TokenStepHandler(request, testContext).process()
 
             assertThat(directAuthState, instanceOf(DirectAuthenticationState.MfaRequired::class.java))
             val mfaRequired = directAuthState as DirectAuthenticationState.MfaRequired
@@ -342,9 +342,9 @@ class DirectAuthTokenRequestTest {
     fun request_parsesMfaRequiredResponseWithoutMfaToken() =
         runTest {
             val request = DirectAuthTokenRequest.Password(context, "test_user", "test_password")
+            val testContext = context.copy(apiExecutor = KtorHttpExecutor(HttpClient(invalidMfaRequiredMockEngine)))
 
-            val apiResponse = KtorHttpExecutor(HttpClient(invalidMfaRequiredMockEngine)).execute(request).getOrThrow()
-            val directAuthState = apiResponse.tokenResponseAsState(context)
+            val directAuthState = TokenStepHandler(request, testContext).process()
 
             assertThat(directAuthState, instanceOf(InternalError::class.java))
             val error = directAuthState as InternalError
@@ -357,9 +357,9 @@ class DirectAuthTokenRequestTest {
     fun request_parsesAuthorizationPendingResponse() =
         runTest {
             val request = DirectAuthTokenRequest.Oob(context, "test_oob_code")
+            val testContext = context.copy(apiExecutor = KtorHttpExecutor(HttpClient(authorizationPendingMockEngine)))
 
-            val apiResponse = KtorHttpExecutor(HttpClient(authorizationPendingMockEngine)).execute(request).getOrThrow()
-            val directAuthState = apiResponse.tokenResponseAsState(context)
+            val directAuthState = TokenStepHandler(request, testContext).process()
 
             assertThat(directAuthState, instanceOf(DirectAuthenticationState.AuthorizationPending::class.java))
         }
@@ -368,9 +368,9 @@ class DirectAuthTokenRequestTest {
     fun request_handlesUnsupportedContentType() =
         runTest {
             val request = DirectAuthTokenRequest.Password(context, "test_user", "test_password")
+            val testContext = context.copy(apiExecutor = KtorHttpExecutor(HttpClient(notJsonMockEngine)))
 
-            val apiResponse = KtorHttpExecutor(HttpClient(notJsonMockEngine)).execute(request).getOrThrow()
-            val directAuthState = apiResponse.tokenResponseAsState(context)
+            val directAuthState = TokenStepHandler(request, testContext).process()
 
             assertThat(directAuthState, instanceOf(InternalError::class.java))
             val error = directAuthState as InternalError
@@ -383,9 +383,9 @@ class DirectAuthTokenRequestTest {
     fun request_handlesUnexpectedStatusCode() =
         runTest {
             val request = DirectAuthTokenRequest.Password(context, "test_user", "test_password")
+            val testContext = context.copy(apiExecutor = KtorHttpExecutor(HttpClient(unexpectedStatusCodeMockEngine)))
 
-            val apiResponse = KtorHttpExecutor(HttpClient(unexpectedStatusCodeMockEngine)).execute(request).getOrThrow()
-            val directAuthState = apiResponse.tokenResponseAsState(context)
+            val directAuthState = TokenStepHandler(request, testContext).process()
 
             assertThat(directAuthState, instanceOf(InternalError::class.java))
             val error = directAuthState as InternalError
@@ -398,9 +398,9 @@ class DirectAuthTokenRequestTest {
     fun request_unparseableClientErrorResponse() =
         runTest {
             val request = DirectAuthTokenRequest.Password(context, "test_user", "test_password")
+            val testContext = context.copy(apiExecutor = KtorHttpExecutor(HttpClient(unknownJsonTypeMockEngine)))
 
-            val apiResponse = KtorHttpExecutor(HttpClient(unknownJsonTypeMockEngine)).execute(request).getOrThrow()
-            val directAuthState = apiResponse.tokenResponseAsState(context)
+            val directAuthState = TokenStepHandler(request, testContext).process()
 
             assertThat(directAuthState, instanceOf(InternalError::class.java))
             val error = directAuthState as InternalError
@@ -413,9 +413,9 @@ class DirectAuthTokenRequestTest {
     fun request_unparseableServerErrorResponse() =
         runTest {
             val request = DirectAuthTokenRequest.Password(context, "test_user", "test_password")
+            val testContext = context.copy(apiExecutor = KtorHttpExecutor(HttpClient(internalServerErrorMockEngine)))
 
-            val apiResponse = KtorHttpExecutor(HttpClient(internalServerErrorMockEngine)).execute(request).getOrThrow()
-            val directAuthState = apiResponse.tokenResponseAsState(context)
+            val directAuthState = TokenStepHandler(request, testContext).process()
 
             assertThat(directAuthState, instanceOf(InternalError::class.java))
             val error = directAuthState as InternalError
@@ -428,8 +428,9 @@ class DirectAuthTokenRequestTest {
     fun request_emptyErrorResponse() =
         runTest {
             val request = DirectAuthTokenRequest.Password(context, "test_user", "test_password")
-            val apiResponse = KtorHttpExecutor(HttpClient(emptyResponseMockEngine)).execute(request).getOrThrow()
-            val directAuthState = apiResponse.tokenResponseAsState(context)
+            val testContext = context.copy(apiExecutor = KtorHttpExecutor(HttpClient(emptyResponseMockEngine)))
+
+            val directAuthState = TokenStepHandler(request, testContext).process()
 
             assertThat(directAuthState, instanceOf(InternalError::class.java))
             val error = directAuthState as InternalError
@@ -442,8 +443,9 @@ class DirectAuthTokenRequestTest {
     fun request_emptySuccessResponse() =
         runTest {
             val request = DirectAuthTokenRequest.Password(context, "test_user", "test_password")
-            val apiResponse = KtorHttpExecutor(HttpClient(emptyResponseOkMockEngine)).execute(request).getOrThrow()
-            val directAuthState = apiResponse.tokenResponseAsState(context)
+            val testContext = context.copy(apiExecutor = KtorHttpExecutor(HttpClient(emptyResponseOkMockEngine)))
+
+            val directAuthState = TokenStepHandler(request, testContext).process()
 
             assertThat(directAuthState, instanceOf(InternalError::class.java))
             val error = directAuthState as InternalError
@@ -456,12 +458,13 @@ class DirectAuthTokenRequestTest {
     fun request_malformedJsonInHttpOkStatus() =
         runTest {
             val request = DirectAuthTokenRequest.Password(context, "test_user", "test_password")
-            val apiResponse = KtorHttpExecutor(HttpClient(malformedJsonOkMockEngine)).execute(request).getOrThrow()
-            val directAuthState = apiResponse.tokenResponseAsState(context)
+            val testContext = context.copy(apiExecutor = KtorHttpExecutor(HttpClient(malformedJsonOkMockEngine)))
+
+            val directAuthState = TokenStepHandler(request, testContext).process()
 
             assertThat(directAuthState, instanceOf(InternalError::class.java))
             val error = directAuthState as InternalError
-            assertThat(error.errorCode, equalTo(UNKNOWN_ERROR))
+            assertThat(error.errorCode, equalTo(EXCEPTION))
             assertThat(error.description, containsString("Unexpected JSON token at offset"))
             assertThat(error.throwable, instanceOf(SerializationException::class.java))
         }
@@ -470,12 +473,13 @@ class DirectAuthTokenRequestTest {
     fun request_malformedJsonInClientErrorStatus() =
         runTest {
             val request = DirectAuthTokenRequest.Password(context, "test_user", "test_password")
-            val apiResponse = KtorHttpExecutor(HttpClient(malformedJsonClientMockEngine)).execute(request).getOrThrow()
-            val directAuthState = apiResponse.tokenResponseAsState(context)
+            val testContext = context.copy(apiExecutor = KtorHttpExecutor(HttpClient(malformedJsonClientMockEngine)))
+
+            val directAuthState = TokenStepHandler(request, testContext).process()
 
             assertThat(directAuthState, instanceOf(InternalError::class.java))
             val error = directAuthState as InternalError
-            assertThat(error.errorCode, equalTo(UNKNOWN_ERROR))
+            assertThat(error.errorCode, equalTo(EXCEPTION))
             assertThat(error.description, containsString("Unexpected JSON token at offset"))
             assertThat(error.throwable, instanceOf(SerializationException::class.java))
         }
@@ -484,12 +488,13 @@ class DirectAuthTokenRequestTest {
     fun request_malformedJsonInDirectAuthenticationErrorResponse() =
         runTest {
             val request = DirectAuthTokenRequest.Password(context, "test_user", "test_password")
-            val apiResponse = KtorHttpExecutor(HttpClient(malformedJsonErrorMockEngine)).execute(request).getOrThrow()
-            val directAuthState = apiResponse.tokenResponseAsState(context)
+            val testContext = context.copy(apiExecutor = KtorHttpExecutor(HttpClient(malformedJsonErrorMockEngine)))
+
+            val directAuthState = TokenStepHandler(request, testContext).process()
 
             assertThat(directAuthState, instanceOf(InternalError::class.java))
             val error = directAuthState as InternalError
-            assertThat(error.errorCode, equalTo(UNKNOWN_ERROR))
+            assertThat(error.errorCode, equalTo(EXCEPTION))
             assertThat(error.description, containsString("Unexpected JSON token at offset"))
             assertThat(error.throwable, instanceOf(SerializationException::class.java))
         }
@@ -498,12 +503,13 @@ class DirectAuthTokenRequestTest {
     fun request_malFormedJsonInErrorResponse() =
         runTest {
             val request = DirectAuthTokenRequest.Password(context, "test_user", "test_password")
-            val apiResponse = KtorHttpExecutor(HttpClient(malformedJsonErrorCodeMockEngine)).execute(request).getOrThrow()
-            val directAuthState = apiResponse.tokenResponseAsState(context)
+            val testContext = context.copy(apiExecutor = KtorHttpExecutor(HttpClient(malformedJsonErrorCodeMockEngine)))
+
+            val directAuthState = TokenStepHandler(request, testContext).process()
 
             assertThat(directAuthState, instanceOf(InternalError::class.java))
             val error = directAuthState as InternalError
-            assertThat(error.errorCode, equalTo(UNKNOWN_ERROR))
+            assertThat(error.errorCode, equalTo(EXCEPTION))
             assertThat(error.description, containsString("Unexpected JSON token at offset"))
             assertThat(error.throwable, instanceOf(SerializationException::class.java))
         }

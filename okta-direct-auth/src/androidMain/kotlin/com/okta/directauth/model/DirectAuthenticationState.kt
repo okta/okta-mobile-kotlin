@@ -23,8 +23,9 @@ import com.okta.authfoundation.credential.Token
 import com.okta.directauth.http.DirectAuthChallengeRequest
 import com.okta.directauth.http.DirectAuthTokenRequest
 import com.okta.directauth.http.EXCEPTION
-import com.okta.directauth.http.challengeResponseAsState
-import com.okta.directauth.http.tokenResponseAsState
+import com.okta.directauth.http.handlers.ChallengeStepHandler
+import com.okta.directauth.http.handlers.TokenStepHandler
+import com.okta.directauth.model.DirectAuthenticationError.InternalError
 import kotlin.coroutines.cancellation.CancellationException
 
 /**
@@ -103,16 +104,15 @@ sealed interface DirectAuthenticationState {
             secondaryFactor: SecondaryFactor,
             challengeTypesSupported: List<ChallengeGrantType> = listOf(WebAuthnMfa, OobMfa, OtpMfa),
         ): DirectAuthenticationState {
+            val channel = if (secondaryFactor is PrimaryFactor.Oob) secondaryFactor.channel else null
+            val request = DirectAuthChallengeRequest(context, mfaContext, challengeTypesSupported, channel)
+
             val result =
-                runCatching {
-                    val channel = if (secondaryFactor is PrimaryFactor.Oob) secondaryFactor.channel else null
-                    val request = DirectAuthChallengeRequest(context, mfaContext, challengeTypesSupported, channel)
-                    val response = context.apiExecutor.execute(request).getOrThrow()
-                    response.challengeResponseAsState(context, mfaContext)
-                }.getOrElse {
-                    when (it) {
-                        is CancellationException -> Canceled
-                        else -> DirectAuthenticationError.InternalError(EXCEPTION, it.message, it)
+                runCatching { ChallengeStepHandler(request, context, mfaContext).process() }.getOrElse {
+                    if (it is CancellationException) {
+                        Canceled
+                    } else {
+                        InternalError(EXCEPTION, it.message, it)
                     }
                 }
             context.authenticationStateFlow.value = result
@@ -144,8 +144,7 @@ sealed interface DirectAuthenticationState {
                     when (secondaryFactor) {
                         is PrimaryFactor.Otp -> {
                             val request = DirectAuthTokenRequest.MfaOtp(context.copy(grantTypes = challengeTypesSupported), secondaryFactor.passCode, mfaContext)
-                            val response = context.apiExecutor.execute(request).getOrThrow()
-                            response.tokenResponseAsState(context)
+                            TokenStepHandler(request, context).process()
                         }
 
                         is PrimaryFactor.Oob, PrimaryFactor.WebAuthn -> {
@@ -153,9 +152,10 @@ sealed interface DirectAuthenticationState {
                         }
                     }
                 }.getOrElse {
-                    when (it) {
-                        is CancellationException -> Canceled
-                        else -> DirectAuthenticationError.InternalError(EXCEPTION, it.message, it)
+                    if (it is CancellationException) {
+                        Canceled
+                    } else {
+                        InternalError(EXCEPTION, it.message, it)
                     }
                 }
             context.authenticationStateFlow.value = result

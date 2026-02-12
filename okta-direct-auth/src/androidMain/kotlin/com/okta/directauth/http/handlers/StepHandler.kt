@@ -13,10 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.okta.directauth.http
+package com.okta.directauth.http.handlers
 
-// Internal error codes used within the Direct Authentication module.
-const val UNSUPPORTED_CONTENT_TYPE = "unsupported_content_type"
-const val UNEXPECTED_HTTP_STATUS = "unexpected_http_status"
-const val INVALID_RESPONSE = "invalid_response"
-const val EXCEPTION = "exception"
+import com.okta.authfoundation.api.http.ApiFormRequest
+import com.okta.directauth.model.DirectAuthenticationContext
+import com.okta.directauth.model.DirectAuthenticationState
+
+internal interface StepHandler {
+    val request: ApiFormRequest
+
+    val context: DirectAuthenticationContext
+
+    suspend fun process(): DirectAuthenticationState
+}
