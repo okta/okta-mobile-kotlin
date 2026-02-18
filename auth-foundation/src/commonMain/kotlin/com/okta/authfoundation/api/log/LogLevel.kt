@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.okta.authfoundation.api.http.log
+package com.okta.authfoundation.api.log
 
 /**
  * Represents the severity level of a log message.

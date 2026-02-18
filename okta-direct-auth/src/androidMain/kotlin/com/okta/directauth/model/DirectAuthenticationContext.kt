@@ -17,7 +17,7 @@ package com.okta.directauth.model
 
 import com.okta.authfoundation.GrantType
 import com.okta.authfoundation.api.http.ApiExecutor
-import com.okta.authfoundation.api.http.log.AuthFoundationLogger
+import com.okta.authfoundation.api.log.AuthFoundationLogger
 import com.okta.authfoundation.client.OidcClock
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.serialization.json.Json

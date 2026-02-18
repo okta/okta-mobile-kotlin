@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.okta.authfoundation.api.http.log
+package com.okta.authfoundation.api.log
 
 /**
  * A simple logging interface used by the SDK to output diagnostic information.

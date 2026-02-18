@@ -18,8 +18,8 @@ package com.okta.directauth.model
 import com.okta.authfoundation.GrantType
 import com.okta.authfoundation.api.http.ApiExecutor
 import com.okta.authfoundation.api.http.KtorHttpExecutor
-import com.okta.authfoundation.api.http.log.AuthFoundationLogger
-import com.okta.authfoundation.api.http.log.LogLevel
+import com.okta.authfoundation.api.log.AuthFoundationLogger
+import com.okta.authfoundation.api.log.LogLevel
 import com.okta.directauth.challengeOtpResponseMockEngine
 import com.okta.directauth.challengeWebAuthnResponseMockEngine
 import com.okta.directauth.oobAuthenticatePushResponseMockEngine

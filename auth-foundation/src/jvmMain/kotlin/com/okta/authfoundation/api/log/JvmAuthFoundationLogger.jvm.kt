@@ -13,21 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.okta.authfoundation.api.http.log
-
-import android.util.Log
+package com.okta.authfoundation.api.log
 
 /**
- * Returns a default [AuthFoundationLogger] implementation for Android that writes to Logcat.
+ * Returns a default [AuthFoundationLogger] implementation for JVM that writes to standard output.
  */
-actual fun getDefaultAuthFoundationLogger(): AuthFoundationLogger = AuthFoundationLoggerImpl()
+actual fun getDefaultAuthFoundationLogger(): AuthFoundationLogger = JvmAuthFoundationLogger()
 
 /**
- * An Android implementation of [AuthFoundationLogger] that writes logs to Android's Logcat.
+ * A JVM implementation of [AuthFoundationLogger] that writes logs to standard output.
  *
- * @param tag The tag to use for Logcat messages. Defaults to "AuthFoundation".
+ * @param tag The tag to prefix log messages with. Defaults to "AuthFoundation".
  */
-class AuthFoundationLoggerImpl(
+class JvmAuthFoundationLogger(
     private val tag: String = "AuthFoundation",
 ) : AuthFoundationLogger {
     override fun write(
@@ -35,11 +33,8 @@ class AuthFoundationLoggerImpl(
         tr: Throwable?,
         logLevel: LogLevel,
     ) {
-        when (logLevel) {
-            LogLevel.DEBUG -> Log.d(tag, message, tr)
-            LogLevel.INFO -> Log.i(tag, message, tr)
-            LogLevel.WARN -> Log.w(tag, message, tr)
-            LogLevel.ERROR -> Log.e(tag, message, tr)
-        }
+        val level = logLevel.name.padEnd(5)
+        println("$level [$tag] $message")
+        tr?.printStackTrace()
     }
 }
