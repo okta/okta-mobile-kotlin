@@ -24,10 +24,10 @@ import com.okta.authfoundation.api.log.AuthFoundationLogger
 import com.okta.authfoundation.api.log.LogLevel
 import com.okta.authfoundation.client.OidcClock
 import com.okta.directauth.model.DirectAuthenticationIntent
-import org.hamcrest.CoreMatchers.equalTo
-import org.hamcrest.CoreMatchers.instanceOf
-import org.hamcrest.MatcherAssert.assertThat
-import org.junit.Test
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertIs
+import kotlin.test.assertTrue
 
 class DirectAuthenticationFlowBuilderTest {
     private val issuerUrl = "https://example.okta.com"
@@ -37,23 +37,23 @@ class DirectAuthenticationFlowBuilderTest {
     @Test
     fun create_withRequiredParameters_usesDefaultValues() {
         val result = DirectAuthenticationFlowBuilder.create(issuerUrl, clientId, scope)
-        assertThat(result.isSuccess, equalTo(true))
+        assertTrue(result.isSuccess)
 
         val flow = result.getOrThrow() as DirectAuthenticationFlowImpl
         val context = flow.context
 
-        assertThat(context.issuerUrl, equalTo(issuerUrl))
-        assertThat(context.clientId, equalTo(clientId))
-        assertThat(context.scope, equalTo(scope))
-        assertThat(context.authorizationServerId, equalTo(""))
-        assertThat(context.clientSecret, equalTo(""))
-        assertThat(context.directAuthenticationIntent, equalTo(DirectAuthenticationIntent.SIGN_IN))
-        assertThat(
-            context.grantTypes,
-            equalTo(listOf(GrantType.Password, GrantType.Oob, GrantType.Otp, ChallengeGrantType.OobMfa, ChallengeGrantType.OtpMfa, GrantType.WebAuthn, ChallengeGrantType.WebAuthnMfa))
+        assertEquals(issuerUrl, context.issuerUrl)
+        assertEquals(clientId, context.clientId)
+        assertEquals(scope, context.scope)
+        assertEquals("", context.authorizationServerId)
+        assertEquals("", context.clientSecret)
+        assertEquals(DirectAuthenticationIntent.SIGN_IN, context.directAuthenticationIntent)
+        assertEquals(
+            listOf(GrantType.Password, GrantType.Oob, GrantType.Otp, ChallengeGrantType.OobMfa, ChallengeGrantType.OtpMfa, GrantType.WebAuthn, ChallengeGrantType.WebAuthnMfa),
+            context.grantTypes
         )
-        assertThat(context.acrValues, equalTo(emptyList()))
-        assertThat(context.additionalParameters, equalTo(emptyMap()))
+        assertEquals(emptyList(), context.acrValues)
+        assertEquals(emptyMap(), context.additionalParameters)
     }
 
     @Test
@@ -91,63 +91,63 @@ class DirectAuthenticationFlowBuilderTest {
                 additionalParameter = customParams
             }
 
-        assertThat(result.isSuccess, equalTo(true))
+        assertTrue(result.isSuccess)
 
         val flow = result.getOrThrow() as DirectAuthenticationFlowImpl
         val context = flow.context
 
-        assertThat(context.authorizationServerId, equalTo(customAuthServerId))
-        assertThat(context.clientSecret, equalTo(customClientSecret))
-        assertThat(context.directAuthenticationIntent, equalTo(customIntent))
-        assertThat(context.grantTypes, equalTo(customGrantTypes))
-        assertThat(context.acrValues, equalTo(customAcrValues))
-        assertThat(context.apiExecutor, equalTo(customApiExecutor))
-        assertThat(context.logger, equalTo(customLogger))
-        assertThat(context.clock, equalTo(customClock))
-        assertThat(context.additionalParameters, equalTo(customParams))
+        assertEquals(customAuthServerId, context.authorizationServerId)
+        assertEquals(customClientSecret, context.clientSecret)
+        assertEquals(customIntent, context.directAuthenticationIntent)
+        assertEquals(customGrantTypes, context.grantTypes)
+        assertEquals(customAcrValues, context.acrValues)
+        assertEquals(customApiExecutor, context.apiExecutor)
+        assertEquals(customLogger, context.logger)
+        assertEquals(customClock, context.clock)
+        assertEquals(customParams, context.additionalParameters)
     }
 
     @Test
     fun create_withInvalidIssuerUrl_returnsFailure() {
         val result = DirectAuthenticationFlowBuilder.create("http://not-https.com", clientId, scope)
-        assertThat(result.isFailure, equalTo(true))
+        assertTrue(result.isFailure)
 
         val exception = result.exceptionOrNull()
 
-        assertThat(exception, instanceOf(IllegalArgumentException::class.java))
-        assertThat(exception?.message, equalTo("issuerUrl must be a valid https URL."))
+        assertIs<IllegalArgumentException>(exception)
+        assertEquals("issuerUrl must be a valid https URL.", exception.message)
     }
 
     @Test
     fun create_withBlankIssuerUrl_returnsFailure() {
         val result = DirectAuthenticationFlowBuilder.create(" ", clientId, scope)
-        assertThat(result.isFailure, equalTo(true))
+        assertTrue(result.isFailure)
 
         val exception = result.exceptionOrNull()
 
-        assertThat(exception, instanceOf(IllegalArgumentException::class.java))
-        assertThat(exception?.message, equalTo("issuerUrl must be a valid https URL."))
+        assertIs<IllegalArgumentException>(exception)
+        assertEquals("issuerUrl must be a valid https URL.", exception.message)
     }
 
     @Test
     fun create_withBlankClientId_returnsFailure() {
         val result = DirectAuthenticationFlowBuilder.create(issuerUrl, " ", scope)
-        assertThat(result.isFailure, equalTo(true))
+        assertTrue(result.isFailure)
 
         val exception = result.exceptionOrNull()
 
-        assertThat(exception, instanceOf(IllegalArgumentException::class.java))
-        assertThat(exception?.message, equalTo("clientId must be set and not empty."))
+        assertIs<IllegalArgumentException>(exception)
+        assertEquals("clientId must be set and not empty.", exception.message)
     }
 
     @Test
     fun create_withEmptyScope_returnsFailure() {
         val result = DirectAuthenticationFlowBuilder.create(issuerUrl, clientId, emptyList())
-        assertThat(result.isFailure, equalTo(true))
+        assertTrue(result.isFailure)
 
         val exception = result.exceptionOrNull()
 
-        assertThat(exception, instanceOf(IllegalArgumentException::class.java))
-        assertThat(exception?.message, equalTo("scope must be set and not empty."))
+        assertIs<IllegalArgumentException>(exception)
+        assertEquals("scope must be set and not empty.", exception.message)
     }
 }

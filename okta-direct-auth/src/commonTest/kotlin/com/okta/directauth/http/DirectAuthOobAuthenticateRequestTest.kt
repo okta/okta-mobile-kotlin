@@ -41,17 +41,17 @@ import com.okta.directauth.unknownJsonTypeMockEngine
 import io.ktor.client.HttpClient
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.test.runTest
-import org.hamcrest.CoreMatchers.equalTo
-import org.hamcrest.CoreMatchers.instanceOf
-import org.hamcrest.CoreMatchers.nullValue
-import org.hamcrest.MatcherAssert.assertThat
-import org.junit.Before
-import org.junit.Test
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertIs
+import kotlin.test.assertNull
 
 class DirectAuthOobAuthenticateRequestTest {
     private lateinit var context: DirectAuthenticationContext
 
-    @Before
+    @BeforeTest
     fun setUp() {
         context =
             DirectAuthenticationContext(
@@ -88,17 +88,17 @@ class DirectAuthOobAuthenticateRequestTest {
                 oobChannel = OobChannel.PUSH
             )
 
-        assertThat(request.url(), equalTo("https://example.okta.com/oauth2/v1/oob-authenticate"))
-        assertThat(request.method(), equalTo(ApiRequestMethod.POST))
-        assertThat(request.contentType(), equalTo("application/x-www-form-urlencoded"))
-        assertThat(request.headers(), equalTo(mapOf("Accept" to listOf("application/json"))))
-        assertThat(request.query(), nullValue())
+        assertEquals("https://example.okta.com/oauth2/v1/oob-authenticate", request.url())
+        assertEquals(ApiRequestMethod.POST, request.method())
+        assertEquals("application/x-www-form-urlencoded", request.contentType())
+        assertEquals(mapOf("Accept" to listOf("application/json")), request.headers())
+        assertNull(request.query())
 
         val formParameters = request.formParameters()
-        assertThat(formParameters["client_id"], equalTo(listOf("test_client_id")))
-        assertThat(formParameters["login_hint"], equalTo(listOf("test_user")))
-        assertThat(formParameters["channel_hint"], equalTo(listOf("push")))
-        assertThat(formParameters.containsKey("client_secret"), equalTo(false))
+        assertEquals(listOf("test_client_id"), formParameters["client_id"])
+        assertEquals(listOf("test_user"), formParameters["login_hint"])
+        assertEquals(listOf("push"), formParameters["channel_hint"])
+        assertFalse(formParameters.containsKey("client_secret"))
     }
 
     @Test
@@ -117,14 +117,14 @@ class DirectAuthOobAuthenticateRequestTest {
                 oobChannel = OobChannel.SMS
             )
 
-        assertThat(request.url(), equalTo("https://example.okta.com/oauth2/aus_test_id/v1/oob-authenticate"))
-        assertThat(request.query(), equalTo(mapOf("custom" to "value")))
+        assertEquals("https://example.okta.com/oauth2/aus_test_id/v1/oob-authenticate", request.url())
+        assertEquals(mapOf("custom" to "value"), request.query())
 
         val formParameters = request.formParameters()
-        assertThat(formParameters["client_id"], equalTo(listOf("test_client_id")))
-        assertThat(formParameters["login_hint"], equalTo(listOf("test_user")))
-        assertThat(formParameters["channel_hint"], equalTo(listOf("sms")))
-        assertThat(formParameters["client_secret"], equalTo(listOf("test_client_secret")))
+        assertEquals(listOf("test_client_id"), formParameters["client_id"])
+        assertEquals(listOf("test_user"), formParameters["login_hint"])
+        assertEquals(listOf("sms"), formParameters["channel_hint"])
+        assertEquals(listOf("test_client_secret"), formParameters["client_secret"])
     }
 
     @Test
@@ -135,14 +135,13 @@ class DirectAuthOobAuthenticateRequestTest {
 
             val state = OobStepHandler(request, testContext).process()
 
-            assertThat(state, instanceOf(DirectAuthContinuation.OobPending::class.java))
-            val oobState = state as DirectAuthContinuation.OobPending
-            assertThat(oobState.bindingContext.oobCode, equalTo("example_oob_code"))
-            assertThat(oobState.bindingContext.channel, equalTo(OobChannel.PUSH))
-            assertThat(oobState.bindingContext.expiresIn, equalTo(120))
-            assertThat(oobState.bindingContext.interval, equalTo(5))
-            assertThat(oobState.bindingContext.bindingMethod, equalTo(BindingMethod.NONE))
-            assertThat(oobState.bindingContext.bindingCode, nullValue())
+            assertIs<DirectAuthContinuation.OobPending>(state)
+            assertEquals("example_oob_code", state.bindingContext.oobCode)
+            assertEquals(OobChannel.PUSH, state.bindingContext.channel)
+            assertEquals(120, state.bindingContext.expiresIn)
+            assertEquals(5, state.bindingContext.interval)
+            assertEquals(BindingMethod.NONE, state.bindingContext.bindingMethod)
+            assertNull(state.bindingContext.bindingCode)
         }
 
     @Test
@@ -153,14 +152,13 @@ class DirectAuthOobAuthenticateRequestTest {
 
             val state = OobStepHandler(request, testContext).process()
 
-            assertThat(state, instanceOf(DirectAuthContinuation.Prompt::class.java))
-            val oobState = state as DirectAuthContinuation.Prompt
-            assertThat(oobState.bindingContext.oobCode, equalTo("example_oob_code"))
-            assertThat(oobState.bindingContext.channel, equalTo(OobChannel.SMS))
-            assertThat(oobState.bindingContext.expiresIn, equalTo(120))
-            assertThat(oobState.bindingContext.interval, nullValue())
-            assertThat(oobState.bindingContext.bindingMethod, equalTo(BindingMethod.PROMPT))
-            assertThat(oobState.bindingContext.bindingCode, nullValue())
+            assertIs<DirectAuthContinuation.Prompt>(state)
+            assertEquals("example_oob_code", state.bindingContext.oobCode)
+            assertEquals(OobChannel.SMS, state.bindingContext.channel)
+            assertEquals(120, state.bindingContext.expiresIn)
+            assertNull(state.bindingContext.interval)
+            assertEquals(BindingMethod.PROMPT, state.bindingContext.bindingMethod)
+            assertNull(state.bindingContext.bindingCode)
         }
 
     @Test
@@ -171,14 +169,13 @@ class DirectAuthOobAuthenticateRequestTest {
 
             val state = OobStepHandler(request, testContext).process()
 
-            assertThat(state, instanceOf(DirectAuthContinuation.Prompt::class.java))
-            val oobState = state as DirectAuthContinuation.Prompt
-            assertThat(oobState.bindingContext.oobCode, equalTo("example_oob_code"))
-            assertThat(oobState.bindingContext.channel, equalTo(OobChannel.VOICE))
-            assertThat(oobState.bindingContext.expiresIn, equalTo(120))
-            assertThat(oobState.bindingContext.interval, nullValue())
-            assertThat(oobState.bindingContext.bindingMethod, equalTo(BindingMethod.PROMPT))
-            assertThat(oobState.bindingContext.bindingCode, nullValue())
+            assertIs<DirectAuthContinuation.Prompt>(state)
+            assertEquals("example_oob_code", state.bindingContext.oobCode)
+            assertEquals(OobChannel.VOICE, state.bindingContext.channel)
+            assertEquals(120, state.bindingContext.expiresIn)
+            assertNull(state.bindingContext.interval)
+            assertEquals(BindingMethod.PROMPT, state.bindingContext.bindingMethod)
+            assertNull(state.bindingContext.bindingCode)
         }
 
     @Test
@@ -189,14 +186,13 @@ class DirectAuthOobAuthenticateRequestTest {
 
             val state = OobStepHandler(request, testContext).process()
 
-            assertThat(state, instanceOf(DirectAuthContinuation.Transfer::class.java))
-            val oobState = state as DirectAuthContinuation.Transfer
-            assertThat(oobState.bindingContext.oobCode, equalTo("example_oob_code"))
-            assertThat(oobState.bindingContext.channel, equalTo(OobChannel.PUSH))
-            assertThat(oobState.bindingContext.expiresIn, equalTo(120))
-            assertThat(oobState.bindingContext.interval, equalTo(5))
-            assertThat(oobState.bindingContext.bindingMethod, equalTo(BindingMethod.TRANSFER))
-            assertThat(oobState.bindingContext.bindingCode, equalTo("95"))
+            assertIs<DirectAuthContinuation.Transfer>(state)
+            assertEquals("example_oob_code", state.bindingContext.oobCode)
+            assertEquals(OobChannel.PUSH, state.bindingContext.channel)
+            assertEquals(120, state.bindingContext.expiresIn)
+            assertEquals(5, state.bindingContext.interval)
+            assertEquals(BindingMethod.TRANSFER, state.bindingContext.bindingMethod)
+            assertEquals("95", state.bindingContext.bindingCode)
         }
 
     @Test
@@ -207,10 +203,9 @@ class DirectAuthOobAuthenticateRequestTest {
 
             val state = OobStepHandler(request, testContext).process()
 
-            assertThat(state, instanceOf(DirectAuthenticationError.InternalError::class.java))
-            val errorState = state as DirectAuthenticationError.InternalError
-            assertThat(errorState.errorCode, equalTo(EXCEPTION))
-            assertThat(errorState.description, equalTo("binding_method: transfer without binding_code"))
+            assertIs<DirectAuthenticationError.InternalError>(state)
+            assertEquals(EXCEPTION, state.errorCode)
+            assertEquals("binding_method: transfer without binding_code", state.description)
         }
 
     @Test
@@ -221,10 +216,9 @@ class DirectAuthOobAuthenticateRequestTest {
 
             val state = OobStepHandler(request, testContext).process()
 
-            assertThat(state, instanceOf(DirectAuthenticationError.InternalError::class.java))
-            val oobState = state as DirectAuthenticationError.InternalError
-            assertThat(oobState.errorCode, equalTo(EXCEPTION))
-            assertThat(oobState.description, equalTo("Unknown OOB channel: email"))
+            assertIs<DirectAuthenticationError.InternalError>(state)
+            assertEquals(EXCEPTION, state.errorCode)
+            assertEquals("Unknown OOB channel: email", state.description)
         }
 
     @Test
@@ -235,10 +229,9 @@ class DirectAuthOobAuthenticateRequestTest {
 
             val state = OobStepHandler(request, testContext).process()
 
-            assertThat(state, instanceOf(DirectAuthenticationError.InternalError::class.java))
-            val oobState = state as DirectAuthenticationError.InternalError
-            assertThat(oobState.errorCode, equalTo(EXCEPTION))
-            assertThat(oobState.description, equalTo("Unknown binding method: bluetooth"))
+            assertIs<DirectAuthenticationError.InternalError>(state)
+            assertEquals(EXCEPTION, state.errorCode)
+            assertEquals("Unknown binding method: bluetooth", state.description)
         }
 
     @Test
@@ -249,10 +242,9 @@ class DirectAuthOobAuthenticateRequestTest {
 
             val state = OobStepHandler(request, testContext).process()
 
-            assertThat(state, instanceOf(DirectAuthenticationError.HttpError.Oauth2Error::class.java))
-            val errorState = state as DirectAuthenticationError.HttpError.Oauth2Error
-            assertThat(errorState.error, equalTo("invalid_request"))
-            assertThat(errorState.errorDescription, equalTo("abc is not a valid channel hint"))
+            assertIs<DirectAuthenticationError.HttpError.Oauth2Error>(state)
+            assertEquals("invalid_request", state.error)
+            assertEquals("abc is not a valid channel hint", state.errorDescription)
         }
 
     @Test
@@ -263,11 +255,10 @@ class DirectAuthOobAuthenticateRequestTest {
 
             val state = OobStepHandler(request, testContext).process()
 
-            assertThat(state, instanceOf(DirectAuthenticationError.HttpError.ApiError::class.java))
-            val errorState = state as DirectAuthenticationError.HttpError.ApiError
-            assertThat(errorState.errorCode, equalTo("E00000"))
-            assertThat(errorState.errorSummary, equalTo("Internal Server Error"))
-            assertThat(errorState.httpStatusCode, equalTo(HttpStatusCode.InternalServerError))
+            assertIs<DirectAuthenticationError.HttpError.ApiError>(state)
+            assertEquals("E00000", state.errorCode)
+            assertEquals("Internal Server Error", state.errorSummary)
+            assertEquals(HttpStatusCode.InternalServerError, state.httpStatusCode)
         }
 
     @Test
@@ -278,11 +269,10 @@ class DirectAuthOobAuthenticateRequestTest {
 
             val state = OobStepHandler(request, testContext).process()
 
-            assertThat(state, instanceOf(DirectAuthenticationError.InternalError::class.java))
-            val error = state as DirectAuthenticationError.InternalError
-            assertThat(error.errorCode, equalTo(UNSUPPORTED_CONTENT_TYPE))
-            assertThat(error.throwable, instanceOf(IllegalStateException::class.java))
-            assertThat(error.throwable.message, equalTo("Unsupported content type: text/plain"))
+            assertIs<DirectAuthenticationError.InternalError>(state)
+            assertEquals(UNSUPPORTED_CONTENT_TYPE, state.errorCode)
+            assertIs<IllegalStateException>(state.throwable)
+            assertEquals("Unsupported content type: text/plain", state.throwable.message)
         }
 
     @Test
@@ -293,10 +283,9 @@ class DirectAuthOobAuthenticateRequestTest {
 
             val state = OobStepHandler(request, testContext).process()
 
-            assertThat(state, instanceOf(DirectAuthenticationError.InternalError::class.java))
-            val error = state as DirectAuthenticationError.InternalError
-            assertThat(error.errorCode, equalTo(INVALID_RESPONSE))
-            assertThat(error.throwable, instanceOf(IllegalStateException::class.java))
-            assertThat(error.throwable.message, equalTo("No parsable error response body: HTTP ${HttpStatusCode.BadRequest}"))
+            assertIs<DirectAuthenticationError.InternalError>(state)
+            assertEquals(INVALID_RESPONSE, state.errorCode)
+            assertIs<IllegalStateException>(state.throwable)
+            assertEquals("No parsable error response body: HTTP ${HttpStatusCode.BadRequest}", state.throwable.message)
         }
 }

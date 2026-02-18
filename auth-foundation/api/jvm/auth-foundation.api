@@ -206,3 +206,16 @@ public abstract interface class com/okta/authfoundation/client/OidcClock {
 	public abstract fun currentTimeEpochSecond ()J
 }
 
+public abstract interface class com/okta/authfoundation/client/TokenInfo {
+	public abstract fun getAccessToken ()Ljava/lang/String;
+	public abstract fun getClientId ()Ljava/lang/String;
+	public abstract fun getDeviceSecret ()Ljava/lang/String;
+	public abstract fun getExpiresIn ()I
+	public abstract fun getIdToken ()Ljava/lang/String;
+	public abstract fun getIssuedTokenType ()Ljava/lang/String;
+	public abstract fun getIssuerUrl ()Ljava/lang/String;
+	public abstract fun getRefreshToken ()Ljava/lang/String;
+	public abstract fun getScope ()Ljava/lang/String;
+	public abstract fun getTokenType ()Ljava/lang/String;
+}
+

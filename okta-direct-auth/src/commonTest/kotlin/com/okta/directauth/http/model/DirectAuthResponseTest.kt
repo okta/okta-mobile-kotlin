@@ -16,10 +16,9 @@
 package com.okta.directauth.http.model
 
 import kotlinx.serialization.json.Json
-import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.Matchers.equalTo
-import org.hamcrest.Matchers.nullValue
-import org.junit.Test
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNull
 
 class DirectAuthResponseTest {
     private val json = Json { ignoreUnknownKeys = true }
@@ -41,13 +40,13 @@ class DirectAuthResponseTest {
 
         val response = json.decodeFromString(ChallengeResponse.serializer(), jsonString)
 
-        assertThat(response.challengeType, equalTo("oob"))
-        assertThat(response.oobCode, equalTo("123456"))
-        assertThat(response.channel, equalTo("sms"))
-        assertThat(response.bindingMethod, equalTo("prompt"))
-        assertThat(response.bindingCode, equalTo("abc"))
-        assertThat(response.expiresIn, equalTo(300))
-        assertThat(response.interval, equalTo(60))
+        assertEquals("oob", response.challengeType)
+        assertEquals("123456", response.oobCode)
+        assertEquals("sms", response.channel)
+        assertEquals("prompt", response.bindingMethod)
+        assertEquals("abc", response.bindingCode)
+        assertEquals(300, response.expiresIn)
+        assertEquals(60, response.interval)
     }
 
     @Test
@@ -61,13 +60,13 @@ class DirectAuthResponseTest {
 
         val response = json.decodeFromString(ChallengeResponse.serializer(), jsonString)
 
-        assertThat(response.challengeType, equalTo("oob"))
-        assertThat(response.oobCode, nullValue())
-        assertThat(response.channel, nullValue())
-        assertThat(response.bindingMethod, nullValue())
-        assertThat(response.bindingCode, nullValue())
-        assertThat(response.expiresIn, nullValue())
-        assertThat(response.interval, nullValue())
+        assertEquals("oob", response.challengeType)
+        assertNull(response.oobCode)
+        assertNull(response.channel)
+        assertNull(response.bindingMethod)
+        assertNull(response.bindingCode)
+        assertNull(response.expiresIn)
+        assertNull(response.interval)
     }
 
     @Test
@@ -83,12 +82,12 @@ class DirectAuthResponseTest {
 
         val response = json.decodeFromString(ChallengeResponse.serializer(), jsonString)
 
-        assertThat(response.challengeType, equalTo("oob"))
-        assertThat(response.oobCode, equalTo("123456"))
-        assertThat(response.channel, nullValue())
-        assertThat(response.bindingMethod, nullValue())
-        assertThat(response.bindingCode, nullValue())
-        assertThat(response.expiresIn, equalTo(300))
-        assertThat(response.interval, nullValue())
+        assertEquals("oob", response.challengeType)
+        assertEquals("123456", response.oobCode)
+        assertNull(response.channel)
+        assertNull(response.bindingMethod)
+        assertNull(response.bindingCode)
+        assertEquals(300, response.expiresIn)
+        assertNull(response.interval)
     }
 }

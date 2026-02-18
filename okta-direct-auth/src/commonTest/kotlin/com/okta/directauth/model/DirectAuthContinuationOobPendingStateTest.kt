@@ -34,24 +34,24 @@ import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
 import io.ktor.http.HttpStatusCode
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runTest
 import kotlinx.io.IOException
 import kotlinx.serialization.SerializationException
-import org.hamcrest.CoreMatchers.containsString
-import org.hamcrest.CoreMatchers.equalTo
-import org.hamcrest.CoreMatchers.instanceOf
-import org.hamcrest.MatcherAssert.assertThat
-import org.junit.Before
-import org.junit.Test
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertIs
+import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class DirectAuthContinuationTransferStateTest {
+class DirectAuthContinuationOobPendingStateTest {
     private lateinit var bindingContext: BindingContext
 
     private fun createDirectAuthenticationContext(apiExecutor: KtorHttpExecutor): DirectAuthenticationContext =
@@ -79,7 +79,7 @@ class DirectAuthContinuationTransferStateTest {
             additionalParameters = mapOf("custom_param" to "custom_value")
         )
 
-    @Before
+    @BeforeTest
     fun setUp() {
         bindingContext =
             BindingContext(
@@ -87,140 +87,149 @@ class DirectAuthContinuationTransferStateTest {
                 expiresIn = 60, // 60 seconds
                 interval = 5, // 5 seconds
                 channel = OobChannel.PUSH,
-                bindingMethod = BindingMethod.TRANSFER,
-                bindingCode = "test_binding_code",
-                null
+                bindingMethod = BindingMethod.NONE,
+                bindingCode = null,
+                challengeType = null
             )
     }
 
     @Test
-    fun `proceed returns Authenticated on first attempt`() {
+    fun `poll returns Authenticated on first attempt`() {
         val context = createDirectAuthenticationContext(KtorHttpExecutor(HttpClient(tokenResponseMockEngine)))
-        val transferState = DirectAuthContinuation.Transfer(bindingContext, context)
+        val oobState = DirectAuthContinuation.OobPending(bindingContext, context)
 
-        val result = runBlocking { transferState.proceed() }
+        val result = runBlocking { oobState.proceed() }
 
-        assertThat(transferState.expirationInSeconds, equalTo(60))
-        assertThat(transferState.bindingCode, equalTo("test_binding_code"))
-        assertThat(result, instanceOf(Authenticated::class.java))
-        assertThat(context.authenticationStateFlow.value, equalTo(result))
-        val authenticated = result as Authenticated
-        assertThat(authenticated.token.tokenType, equalTo("Bearer"))
-        assertThat(authenticated.token.expiresIn, equalTo(3600))
-        assertThat(authenticated.token.accessToken, equalTo("example_access_token"))
-        assertThat(authenticated.token.scope, equalTo("openid email profile offline_access"))
-        assertThat(authenticated.token.refreshToken, equalTo("example_refresh_token"))
-        assertThat(authenticated.token.idToken, equalTo("example_id_token"))
+        assertEquals(60, oobState.expirationInSeconds)
+        assertIs<Authenticated>(result)
+        assertEquals(result, context.authenticationStateFlow.value)
+        assertEquals("Bearer", result.token.tokenType)
+        assertEquals(3600, result.token.expiresIn)
+        assertEquals("example_access_token", result.token.accessToken)
+        assertEquals("openid email profile offline_access", result.token.scope)
+        assertEquals("example_refresh_token", result.token.refreshToken)
+        assertEquals("example_id_token", result.token.idToken)
     }
 
     @Test
-    fun `proceed returns Authenticated with a mfa context`() {
+    fun `poll returns Authenticated with a mfa context`() {
         val context = createDirectAuthenticationContext(KtorHttpExecutor(HttpClient(tokenResponseMockEngine)))
         val mfaContext = MfaContext(mfaToken = "test_mfa_token", supportedChallengeTypes = listOf(ChallengeGrantType.OobMfa))
-        val transferState = DirectAuthContinuation.Transfer(bindingContext, context, mfaContext)
+        val oobState = DirectAuthContinuation.OobPending(bindingContext, context, mfaContext)
 
-        val result = runBlocking { transferState.proceed() }
+        val result = runBlocking { oobState.proceed() }
 
-        assertThat(result, instanceOf(Authenticated::class.java))
-        assertThat(context.authenticationStateFlow.value, equalTo(result))
-        val authenticated = result as Authenticated
-        assertThat(authenticated.token.tokenType, equalTo("Bearer"))
+        assertIs<Authenticated>(result)
+        assertEquals(result, context.authenticationStateFlow.value)
+        assertEquals("Bearer", result.token.tokenType)
     }
 
     @Test
-    fun `proceed returns Authenticated after one pending response`() {
+    fun `poll returns Authenticated after one pending response`() {
         val mockEngine = MockEngine.Queue()
         val collectedValues = mutableListOf<DirectAuthenticationState>()
-        val flowFinished = CompletableDeferred<Unit>()
 
         mockEngine.enqueue { respond(AUTHORIZATION_PENDING_JSON, HttpStatusCode.BadRequest, contentType) }
         mockEngine.enqueue { respond(TOKEN_RESPONSE_JSON, HttpStatusCode.OK, contentType) }
         val context = createDirectAuthenticationContext(apiExecutor = KtorHttpExecutor(HttpClient(mockEngine)))
-        val transferState = DirectAuthContinuation.Transfer(bindingContext, context)
+        val oobState = DirectAuthContinuation.OobPending(bindingContext, context)
 
         val job =
             CoroutineScope(Dispatchers.Default).launch {
                 context.authenticationStateFlow.collect { value ->
                     if (value !is DirectAuthenticationState.Idle) collectedValues.add(value)
-                    if (value is Authenticated) flowFinished.complete(Unit)
                 }
             }
 
-        val result =
-            runBlocking {
-                val proceedResult = transferState.proceed()
-                flowFinished.await()
-                proceedResult
-            }
+        val result = runBlocking { oobState.proceed() }
 
-        assertThat(result, instanceOf(Authenticated::class.java))
-        assertThat(context.authenticationStateFlow.value, equalTo(result))
-        assertThat(mockEngine.responseHistory.first().statusCode, equalTo(HttpStatusCode.BadRequest))
-        assertThat(mockEngine.responseHistory.last().statusCode, equalTo(HttpStatusCode.OK))
-        assertThat(collectedValues.first(), instanceOf(AuthorizationPending::class.java))
-        assertThat(collectedValues.last(), instanceOf(Authenticated::class.java))
+        assertIs<Authenticated>(result)
+        assertEquals(result, context.authenticationStateFlow.value)
+        assertEquals(HttpStatusCode.BadRequest, mockEngine.responseHistory.first().statusCode)
+        assertEquals(HttpStatusCode.OK, mockEngine.responseHistory.last().statusCode)
+        assertIs<AuthorizationPending>(collectedValues.first())
+        assertIs<Authenticated>(collectedValues.last())
 
         job.cancel()
     }
 
     @Test
-    fun `proceed returns InternalError on timeout`() {
+    fun `poll returns InternalError on timeout`() {
         val mockEngine = MockEngine.Queue()
         mockEngine.enqueue { respond(AUTHORIZATION_PENDING_JSON, HttpStatusCode.BadRequest, contentType) }
         mockEngine.enqueue { respond(AUTHORIZATION_PENDING_JSON, HttpStatusCode.BadRequest, contentType) }
 
         val context = createDirectAuthenticationContext(apiExecutor = KtorHttpExecutor(HttpClient(mockEngine)))
-        val transferState = DirectAuthContinuation.Transfer(bindingContext.copy(expiresIn = 1), context)
+        val oobState = DirectAuthContinuation.OobPending(bindingContext.copy(expiresIn = 1), context)
 
-        val result = runBlocking { transferState.proceed() }
+        val result = runBlocking { oobState.proceed() }
 
-        assertThat(result, instanceOf(InternalError::class.java))
-        val error = result as InternalError
-        assertThat(error.throwable, instanceOf(TimeoutCancellationException::class.java))
-        assertThat(error.description, equalTo("Polling timed out after 1 seconds."))
-        assertThat(context.authenticationStateFlow.value, equalTo(result))
+        assertIs<InternalError>(result)
+        assertIs<TimeoutCancellationException>(result.throwable)
+        assertEquals("Polling timed out after 1 seconds.", result.description)
+        assertEquals(result, context.authenticationStateFlow.value)
     }
 
     @Test
-    fun `proceed returns HttpError on API error`() {
+    fun `poll returns Canceled when coroutine is canceled`() =
+        runTest {
+            val mockEngine = MockEngine.Queue()
+            mockEngine.enqueue { respond(AUTHORIZATION_PENDING_JSON, HttpStatusCode.BadRequest, contentType) }
+            mockEngine.enqueue { respond(AUTHORIZATION_PENDING_JSON, HttpStatusCode.BadRequest, contentType) }
+
+            val context = createDirectAuthenticationContext(apiExecutor = KtorHttpExecutor(HttpClient(mockEngine)))
+            val oobState = DirectAuthContinuation.OobPending(bindingContext.copy(expiresIn = 3_600), context)
+
+            val pollJob =
+                launch(Dispatchers.Default) {
+                    assertIs<DirectAuthenticationState.Canceled>(oobState.proceed())
+                }
+
+            advanceUntilIdle()
+            pollJob.cancel()
+            advanceUntilIdle()
+
+            pollJob.join()
+            assertIs<DirectAuthenticationState.Canceled>(context.authenticationStateFlow.value)
+        }
+
+    @Test
+    fun `poll returns HttpError on API error`() {
         val context = createDirectAuthenticationContext(apiExecutor = KtorHttpExecutor(HttpClient(oAuth2ErrorMockEngine)))
-        val transferState = DirectAuthContinuation.Transfer(bindingContext, context)
+        val oobState = DirectAuthContinuation.OobPending(bindingContext, context)
 
-        val result = runBlocking { transferState.proceed() }
+        val result = runBlocking { oobState.proceed() }
 
-        assertThat(result, instanceOf(DirectAuthenticationError.HttpError.Oauth2Error::class.java))
-        val error = result as DirectAuthenticationError.HttpError.Oauth2Error
-        assertThat(error.error, equalTo("invalid_grant"))
-        assertThat(context.authenticationStateFlow.value, equalTo(result))
+        assertIs<DirectAuthenticationError.HttpError.Oauth2Error>(result)
+        assertEquals("invalid_grant", result.error)
+        assertEquals(result, context.authenticationStateFlow.value)
     }
 
     @Test
-    fun `proceed returns InternalError`() {
+    fun `poll returns InternalError`() {
         val context = createDirectAuthenticationContext(apiExecutor = KtorHttpExecutor(HttpClient(malformedJsonOkMockEngine)))
-        val transferState = DirectAuthContinuation.Transfer(bindingContext, context)
+        val oobState = DirectAuthContinuation.OobPending(bindingContext, context)
 
-        val result = runBlocking { transferState.proceed() }
+        val result = runBlocking { oobState.proceed() }
 
-        assertThat(result, instanceOf(InternalError::class.java))
-        val error = result as InternalError
-        assertThat(error.errorCode, equalTo(EXCEPTION))
-        assertThat(error.description, containsString("Unexpected JSON token at offset"))
-        assertThat(error.throwable, instanceOf(SerializationException::class.java))
+        assertIs<InternalError>(result)
+        assertEquals(EXCEPTION, result.errorCode)
+        assertTrue(result.description!!.contains("Unexpected JSON token at offset"))
+        assertIs<SerializationException>(result.throwable)
     }
 
     @Test
-    fun `proceed returns InternalError on generic exception`() {
-        val mockEngine = MockEngine { throw IOException("Simulated network failure") }
+    fun `poll returns InternalError on generic exception`() {
+        val mockEngine = MockEngine { throw kotlinx.io.IOException("Simulated network failure") }
         val context = createDirectAuthenticationContext(apiExecutor = KtorHttpExecutor(HttpClient(mockEngine)))
-        val transferState = DirectAuthContinuation.Transfer(bindingContext, context)
+        val oobState = DirectAuthContinuation.OobPending(bindingContext, context)
 
-        val result = runBlocking { transferState.proceed() }
+        val result = runBlocking { oobState.proceed() }
 
-        assertThat(result, instanceOf(InternalError::class.java))
-        val error = result as InternalError
-        assertThat(error.errorCode, equalTo(EXCEPTION))
-        assertThat(error.description, equalTo("Simulated network failure"))
-        assertThat(error.throwable, instanceOf(IOException::class.java))
-        assertThat(context.authenticationStateFlow.value, equalTo(result))
+        assertIs<InternalError>(result)
+        assertEquals(EXCEPTION, result.errorCode)
+        assertEquals("Simulated network failure", result.description)
+        assertIs<IOException>(result.throwable)
+        assertEquals(result, context.authenticationStateFlow.value)
     }
 }

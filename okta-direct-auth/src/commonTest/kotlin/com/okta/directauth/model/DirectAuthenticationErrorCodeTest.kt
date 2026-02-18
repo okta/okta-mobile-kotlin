@@ -15,20 +15,16 @@
  */
 package com.okta.directauth.model
 
-import org.junit.Assert.assertEquals
-import org.junit.Assert.fail
-import org.junit.Test
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.fail
 
 class DirectAuthenticationErrorCodeTest {
     @Test
     fun `fromString returns correct enum for all valid codes`() {
         DirectAuthenticationErrorCode.entries.forEach { expectedEnum ->
             val actualEnum = DirectAuthenticationErrorCode.fromString(expectedEnum.code)
-            assertEquals(
-                "fromString should return the correct enum for code '${expectedEnum.code}'",
-                expectedEnum,
-                actualEnum
-            )
+            assertEquals(expectedEnum, actualEnum, "fromString should return the correct enum for code '${expectedEnum.code}'")
         }
     }
 
