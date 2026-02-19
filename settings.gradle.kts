@@ -35,4 +35,6 @@ include(":native-authentication")
 include(":test-utils")
 
 include(":okta-direct-auth")
-include(":okta-direct-auth-app")
+include(":okta-direct-auth-shared")
+include(":okta-direct-auth-android-app")
+include(":okta-direct-auth-desktop-app")
