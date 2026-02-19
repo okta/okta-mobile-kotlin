@@ -9,7 +9,7 @@ plugins {
 
 android {
     namespace = "com.okta.idx.android.dynamic"
-    compileSdk = COMPILE_SDK
+    compileSdk { version = release(COMPILE_SDK) }
 
     val localProperties =
         Properties().apply {

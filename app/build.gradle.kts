@@ -15,7 +15,7 @@ val oktaProperties =
 
 android {
     namespace = "sample.okta.android"
-    compileSdk = COMPILE_SDK
+    compileSdk { version = release(COMPILE_SDK) }
 
     defaultConfig {
         applicationId = "sample.okta.oidc.android"

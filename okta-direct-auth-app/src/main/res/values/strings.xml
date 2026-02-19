@@ -1,7 +1,0 @@
-<resources>
-    <string name="app_name">DirectAuthApp</string>
-    <string name="remember_me">Keep me signed in</string>
-    <string name="verify_with_something_else">Verify with something else</string>
-    <string name="back_to_sign_in">Back to sign in</string>
-    <string name="forgot_password">Forgot password?</string>
-</resources>

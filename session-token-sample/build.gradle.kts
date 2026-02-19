@@ -14,7 +14,7 @@ val oktaProperties =
 
 android {
     namespace = "sample.okta.android.sessiontoken"
-    compileSdk = COMPILE_SDK
+    compileSdk { version = release(COMPILE_SDK) }
 
     defaultConfig {
         applicationId = "sample.okta.oidc.android.sessionToken"
