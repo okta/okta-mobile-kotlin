@@ -15,15 +15,9 @@
  */
 package com.okta.directauth.http
 
-import com.okta.authfoundation.api.http.ApiFormRequest
+import android.os.Build
+import com.okta.directauth.SDK_VERSION
 
-interface DirectAuthRequest : ApiFormRequest {
-    override fun headers(): Map<String, List<String>> {
-        return mapOf(
-            "Accept" to listOf("application/json"),
-            "User-Agent" to listOf(userAgentValue()),
-        )
-    }
+internal actual fun userAgentValue(): String {
+    return "$SDK_VERSION Android/${Build.VERSION.SDK_INT}"
 }
-
-sealed interface DirectAuthStartRequest : DirectAuthRequest
