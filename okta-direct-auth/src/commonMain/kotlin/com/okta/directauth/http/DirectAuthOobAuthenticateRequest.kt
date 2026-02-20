@@ -28,8 +28,6 @@ internal class DirectAuthOobAuthenticateRequest(
 
     override fun url(): String = context.issuerUrl.trimEnd('/') + path
 
-    override fun headers(): Map<String, List<String>> = mapOf("Accept" to listOf("application/json"))
-
     override fun method(): ApiRequestMethod = ApiRequestMethod.POST
 
     override fun contentType(): String = "application/x-www-form-urlencoded"

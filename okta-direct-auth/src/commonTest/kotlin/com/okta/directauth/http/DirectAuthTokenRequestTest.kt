@@ -21,6 +21,7 @@ import com.okta.authfoundation.api.http.ApiRequestMethod
 import com.okta.authfoundation.api.http.KtorHttpExecutor
 import com.okta.authfoundation.api.log.AuthFoundationLogger
 import com.okta.authfoundation.api.log.LogLevel
+import com.okta.directauth.apiErrorClientMockEngine
 import com.okta.directauth.authorizationPendingMockEngine
 import com.okta.directauth.emptyResponseMockEngine
 import com.okta.directauth.emptyResponseOkMockEngine
@@ -91,7 +92,9 @@ class DirectAuthTokenRequestTest {
         assertEquals("https://example.okta.com/oauth2/v1/token", request.url())
         assertEquals(ApiRequestMethod.POST, request.method())
         assertEquals("application/x-www-form-urlencoded", request.contentType())
-        assertEquals(mapOf("Accept" to listOf("application/json")), request.headers())
+        assertTrue(request.headers().containsKey("Accept"))
+        assertEquals(listOf("application/json"), request.headers()["Accept"])
+        assertEquals(listOf(userAgentValue()), request.headers()["User-Agent"])
         assertEquals(mapOf("custom_param" to "custom_value"), request.query())
     }
 
@@ -305,6 +308,23 @@ class DirectAuthTokenRequestTest {
             assertIs<HttpError.Oauth2Error>(directAuthState)
             assertEquals("invalid_grant", directAuthState.error)
             assertEquals("The password was invalid.", directAuthState.errorDescription)
+            assertEquals(HttpStatusCode.BadRequest, directAuthState.httpStatusCode)
+        }
+
+    @Test
+    fun request_parsesApiErrorFromClientErrorResponse() =
+        runTest {
+            val request = DirectAuthTokenRequest.Password(context, "test_user", "test_password")
+            val testContext = context.copy(apiExecutor = KtorHttpExecutor(HttpClient(apiErrorClientMockEngine)))
+
+            val directAuthState = TokenStepHandler(request, testContext).process()
+
+            assertIs<HttpError.ApiError>(directAuthState)
+            assertEquals("E0000011", directAuthState.errorCode)
+            assertEquals("Invalid token provided", directAuthState.errorSummary)
+            assertEquals("E0000011", directAuthState.errorLink)
+            assertEquals("test_error_id", directAuthState.errorId)
+            assertEquals(listOf("Invalid token: token is expired"), directAuthState.errorCauses)
             assertEquals(HttpStatusCode.BadRequest, directAuthState.httpStatusCode)
         }
 

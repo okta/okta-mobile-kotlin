@@ -121,6 +121,22 @@ class DirectAuthenticationFlowImplTest {
         }
 
     @Test
+    fun start_withWebAuthnFactor_returnsInternalError() =
+        runTest {
+            val flow =
+                DirectAuthenticationFlowBuilder
+                    .create(issuerUrl, clientId, scope) {
+                        apiExecutor = KtorHttpExecutor(HttpClient(tokenResponseMockEngine))
+                    }.getOrThrow()
+
+            val state = flow.start("test_user", PrimaryFactor.WebAuthn)
+
+            assertIs<DirectAuthenticationError.InternalError>(state)
+            assertIs<NotImplementedError>(state.throwable)
+            assertEquals(state, flow.authenticationState.value)
+        }
+
+    @Test
     fun reset_resetsStateToIdleFromAuthenticated() =
         runTest {
             val flow =
