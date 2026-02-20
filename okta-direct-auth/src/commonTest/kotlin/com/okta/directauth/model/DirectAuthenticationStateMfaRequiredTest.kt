@@ -29,17 +29,15 @@ import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.test.runTest
-import org.hamcrest.CoreMatchers.instanceOf
-import org.hamcrest.MatcherAssert.assertThat
-import org.junit.Before
-import org.junit.Ignore
-import org.junit.Test
-import kotlin.jvm.java
+import kotlin.test.BeforeTest
+import kotlin.test.Ignore
+import kotlin.test.Test
+import kotlin.test.assertIs
 
 class DirectAuthenticationStateMfaRequiredTest {
     private lateinit var mfaContext: MfaContext
 
-    @Before
+    @BeforeTest
     fun setUp() {
         mfaContext = MfaContext(listOf(), "mfa_token")
     }
@@ -83,7 +81,7 @@ class DirectAuthenticationStateMfaRequiredTest {
 
             val result = mfaRequired.challenge(PrimaryFactor.Oob(OobChannel.PUSH))
 
-            assertThat(result, instanceOf(DirectAuthenticationState.Canceled::class.java))
+            assertIs<DirectAuthenticationState.Canceled>(result)
         }
 
     @Test
@@ -95,9 +93,8 @@ class DirectAuthenticationStateMfaRequiredTest {
 
             val result = mfaRequired.challenge(PrimaryFactor.Oob(OobChannel.PUSH))
 
-            assertThat(result, instanceOf(DirectAuthenticationError.InternalError::class.java))
-            val error = result as DirectAuthenticationError.InternalError
-            assertThat(error.throwable, instanceOf(IllegalStateException::class.java))
+            assertIs<DirectAuthenticationError.InternalError>(result)
+            assertIs<IllegalStateException>(result.throwable)
         }
 
     @Test
@@ -108,7 +105,7 @@ class DirectAuthenticationStateMfaRequiredTest {
 
             val result = mfaRequired.challenge(PrimaryFactor.Oob(OobChannel.PUSH))
 
-            assertThat(result, instanceOf(DirectAuthContinuation.OobPending::class.java))
+            assertIs<DirectAuthContinuation.OobPending>(result)
         }
 
     @Test
@@ -119,7 +116,7 @@ class DirectAuthenticationStateMfaRequiredTest {
 
             val result = mfaRequired.challenge(PrimaryFactor.Oob(OobChannel.PUSH))
 
-            assertThat(result, instanceOf(DirectAuthContinuation.Transfer::class.java))
+            assertIs<DirectAuthContinuation.Transfer>(result)
         }
 
     @Test
@@ -130,11 +127,11 @@ class DirectAuthenticationStateMfaRequiredTest {
 
             val result = mfaRequired.challenge(PrimaryFactor.Otp("passCode"))
 
-            assertThat(result, instanceOf(DirectAuthContinuation.Prompt::class.java))
+            assertIs<DirectAuthContinuation.Prompt>(result)
         }
 
     @Test
-    @Ignore("Web authn not yet implemented")
+    @Ignore("WebAuthn is not yet supported")
     fun `challenge with WebAuthn calls returns WebAuthn state`() =
         runTest {
             val context = createDirectAuthenticationContext(KtorHttpExecutor(HttpClient(challengeWebAuthnResponseMockEngine)))
@@ -142,7 +139,7 @@ class DirectAuthenticationStateMfaRequiredTest {
 
             val result = mfaRequired.resume(PrimaryFactor.WebAuthn)
 
-            assertThat(result, instanceOf(DirectAuthContinuation.WebAuthn::class.java))
+            assertIs<DirectAuthContinuation.WebAuthn>(result)
         }
 
     @Test
@@ -154,7 +151,7 @@ class DirectAuthenticationStateMfaRequiredTest {
 
             val result = mfaRequired.resume(PrimaryFactor.Otp("123456"))
 
-            assertThat(result, instanceOf(DirectAuthenticationState.Canceled::class.java))
+            assertIs<DirectAuthenticationState.Canceled>(result)
         }
 
     @Test
@@ -166,9 +163,8 @@ class DirectAuthenticationStateMfaRequiredTest {
 
             val result = mfaRequired.resume(PrimaryFactor.Otp("123456"))
 
-            assertThat(result, instanceOf(DirectAuthenticationError.InternalError::class.java))
-            val error = result as DirectAuthenticationError.InternalError
-            assertThat(error.throwable, instanceOf(IllegalStateException::class.java))
+            assertIs<DirectAuthenticationError.InternalError>(result)
+            assertIs<IllegalStateException>(result.throwable)
         }
 
     @Test
@@ -179,7 +175,7 @@ class DirectAuthenticationStateMfaRequiredTest {
 
             val result = mfaRequired.resume(PrimaryFactor.Oob(OobChannel.PUSH))
 
-            assertThat(result, instanceOf(DirectAuthContinuation.OobPending::class.java))
+            assertIs<DirectAuthContinuation.OobPending>(result)
         }
 
     @Test
@@ -190,7 +186,7 @@ class DirectAuthenticationStateMfaRequiredTest {
 
             val result = mfaRequired.resume(PrimaryFactor.Oob(OobChannel.PUSH))
 
-            assertThat(result, instanceOf(DirectAuthContinuation.Transfer::class.java))
+            assertIs<DirectAuthContinuation.Transfer>(result)
         }
 
     @Test
@@ -201,11 +197,11 @@ class DirectAuthenticationStateMfaRequiredTest {
 
             val result = mfaRequired.resume(PrimaryFactor.Otp("passCode"))
 
-            assertThat(result, instanceOf(DirectAuthenticationState.Authenticated::class.java))
+            assertIs<DirectAuthenticationState.Authenticated>(result)
         }
 
     @Test
-    @Ignore("Web authn not yet implemented")
+    @Ignore("WebAuthn is not yet supported")
     fun `resume with WebAuthn calls returns WebAuthn state`() =
         runTest {
             val context = createDirectAuthenticationContext(KtorHttpExecutor(HttpClient(challengeWebAuthnResponseMockEngine)))
@@ -213,6 +209,6 @@ class DirectAuthenticationStateMfaRequiredTest {
 
             val result = mfaRequired.resume(PrimaryFactor.WebAuthn)
 
-            assertThat(result, instanceOf(DirectAuthContinuation.WebAuthn::class.java))
+            assertIs<DirectAuthContinuation.WebAuthn>(result)
         }
 }

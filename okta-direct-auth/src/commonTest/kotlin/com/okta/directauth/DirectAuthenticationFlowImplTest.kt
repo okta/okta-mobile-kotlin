@@ -24,11 +24,9 @@ import com.okta.directauth.model.PrimaryFactor
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.SerializationException
-import org.hamcrest.CoreMatchers.equalTo
-import org.hamcrest.CoreMatchers.instanceOf
-import org.hamcrest.MatcherAssert.assertThat
-import org.junit.Test
-import kotlin.jvm.java
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertIs
 
 class DirectAuthenticationFlowImplTest {
     private val issuerUrl = "https://example.okta.com"
@@ -46,10 +44,10 @@ class DirectAuthenticationFlowImplTest {
 
             val state = flow.start("test_user", PrimaryFactor.Password("test_password"))
 
-            assertThat(state, instanceOf(DirectAuthenticationState.Authenticated::class.java))
-            val token = (state as DirectAuthenticationState.Authenticated).token
-            assertThat(token.accessToken, equalTo("example_access_token"))
-            assertThat(flow.authenticationState.value, equalTo(state))
+            assertIs<DirectAuthenticationState.Authenticated>(state)
+            val token = state.token
+            assertEquals("example_access_token", token.accessToken)
+            assertEquals(state, flow.authenticationState.value)
         }
 
     @Test
@@ -63,11 +61,11 @@ class DirectAuthenticationFlowImplTest {
 
             val state = flow.start("test_user", PrimaryFactor.Otp("123456"))
 
-            assertThat(state, instanceOf(DirectAuthenticationState.Authenticated::class.java))
-            val token = (state as DirectAuthenticationState.Authenticated).token
-            assertThat(token.accessToken, equalTo("example_access_token"))
+            assertIs<DirectAuthenticationState.Authenticated>(state)
+            val token = state.token
+            assertEquals("example_access_token", token.accessToken)
 
-            assertThat(flow.authenticationState.value, equalTo(state))
+            assertEquals(state, flow.authenticationState.value)
         }
 
     @Test
@@ -81,9 +79,9 @@ class DirectAuthenticationFlowImplTest {
 
             val state = flow.start("test_user", PrimaryFactor.Password("test_password"))
 
-            assertThat(state, instanceOf(DirectAuthenticationState.MfaRequired::class.java))
-            assertThat((state as DirectAuthenticationState.MfaRequired).mfaContext.mfaToken, equalTo("example_mfa_token"))
-            assertThat(flow.authenticationState.value, equalTo(state))
+            assertIs<DirectAuthenticationState.MfaRequired>(state)
+            assertEquals("example_mfa_token", state.mfaContext.mfaToken)
+            assertEquals(state, flow.authenticationState.value)
         }
 
     @Test
@@ -97,9 +95,9 @@ class DirectAuthenticationFlowImplTest {
 
             val state = flow.start("test_user", PrimaryFactor.Password("test_password"))
 
-            assertThat(state, instanceOf(DirectAuthenticationError.InternalError::class.java))
-            assertThat((state as DirectAuthenticationError.InternalError).throwable, instanceOf(SerializationException::class.java))
-            assertThat(flow.authenticationState.value, equalTo(state))
+            assertIs<DirectAuthenticationError.InternalError>(state)
+            assertIs<SerializationException>(state.throwable)
+            assertEquals(state, flow.authenticationState.value)
         }
 
     @Test
@@ -113,14 +111,13 @@ class DirectAuthenticationFlowImplTest {
 
             val state = flow.start("test_user", PrimaryFactor.Oob(OobChannel.PUSH))
 
-            assertThat(state, instanceOf(DirectAuthContinuation.OobPending::class.java))
-            val oobState = state as DirectAuthContinuation.OobPending
-            assertThat(oobState.bindingContext.oobCode, equalTo("example_oob_code"))
-            assertThat(oobState.bindingContext.channel, equalTo(OobChannel.PUSH))
-            assertThat(oobState.bindingContext.expiresIn, equalTo(120))
-            assertThat(oobState.bindingContext.interval, equalTo(5))
+            assertIs<DirectAuthContinuation.OobPending>(state)
+            assertEquals("example_oob_code", state.bindingContext.oobCode)
+            assertEquals(OobChannel.PUSH, state.bindingContext.channel)
+            assertEquals(120, state.bindingContext.expiresIn)
+            assertEquals(5, state.bindingContext.interval)
 
-            assertThat(flow.authenticationState.value, equalTo(state))
+            assertEquals(state, flow.authenticationState.value)
         }
 
     @Test
@@ -132,12 +129,12 @@ class DirectAuthenticationFlowImplTest {
                         apiExecutor = KtorHttpExecutor(HttpClient(tokenResponseMockEngine))
                     }.getOrThrow()
             flow.start("test_user", PrimaryFactor.Password("test_password"))
-            assertThat(flow.authenticationState.value, instanceOf(DirectAuthenticationState.Authenticated::class.java))
+            assertIs<DirectAuthenticationState.Authenticated>(flow.authenticationState.value)
 
             val state = flow.reset()
 
-            assertThat(state, equalTo(DirectAuthenticationState.Idle))
-            assertThat(flow.authenticationState.value, equalTo(DirectAuthenticationState.Idle))
+            assertEquals(DirectAuthenticationState.Idle, state)
+            assertEquals(DirectAuthenticationState.Idle, flow.authenticationState.value)
         }
 
     @Test
@@ -149,12 +146,12 @@ class DirectAuthenticationFlowImplTest {
                         apiExecutor = KtorHttpExecutor(HttpClient(mfaRequiredMockEngine))
                     }.getOrThrow()
             flow.start("test_user", PrimaryFactor.Password("test_password"))
-            assertThat(flow.authenticationState.value, instanceOf(DirectAuthenticationState.MfaRequired::class.java))
+            assertIs<DirectAuthenticationState.MfaRequired>(flow.authenticationState.value)
 
             val state = flow.reset()
 
-            assertThat(state, equalTo(DirectAuthenticationState.Idle))
-            assertThat(flow.authenticationState.value, equalTo(DirectAuthenticationState.Idle))
+            assertEquals(DirectAuthenticationState.Idle, state)
+            assertEquals(DirectAuthenticationState.Idle, flow.authenticationState.value)
         }
 
     @Test
@@ -166,11 +163,11 @@ class DirectAuthenticationFlowImplTest {
                         apiExecutor = KtorHttpExecutor(HttpClient(malformedJsonOkMockEngine))
                     }.getOrThrow()
             flow.start("test_user", PrimaryFactor.Password("test_password"))
-            assertThat(flow.authenticationState.value, instanceOf(DirectAuthenticationError.InternalError::class.java))
+            assertIs<DirectAuthenticationError.InternalError>(flow.authenticationState.value)
 
             val state = flow.reset()
 
-            assertThat(state, equalTo(DirectAuthenticationState.Idle))
-            assertThat(flow.authenticationState.value, equalTo(DirectAuthenticationState.Idle))
+            assertEquals(DirectAuthenticationState.Idle, state)
+            assertEquals(DirectAuthenticationState.Idle, flow.authenticationState.value)
         }
 }

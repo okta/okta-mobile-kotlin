@@ -15,8 +15,7 @@
  */
 package com.okta.directauth.http.handlers
 
-import com.okta.authfoundation.client.OidcConfiguration
-import com.okta.authfoundation.credential.Token
+import com.okta.authfoundation.client.TokenInfo
 import com.okta.directauth.http.DirectAuthTokenRequest
 import com.okta.directauth.http.EXCEPTION
 import com.okta.directauth.http.INVALID_RESPONSE
@@ -36,14 +35,24 @@ import com.okta.directauth.model.DirectAuthenticationState.MfaRequired
 import com.okta.directauth.model.MfaContext
 import io.ktor.http.HttpStatusCode
 import kotlin.coroutines.cancellation.CancellationException
-import kotlin.uuid.ExperimentalUuidApi
-import kotlin.uuid.Uuid
 
 internal class TokenStepHandler(
     override val request: DirectAuthTokenRequest,
     override val context: DirectAuthenticationContext,
 ) : StepHandler {
-    @OptIn(ExperimentalUuidApi::class)
+    data class DirectAuthToken(
+        override val clientId: String,
+        override val issuerUrl: String,
+        override val tokenType: String,
+        override val expiresIn: Int,
+        override val accessToken: String,
+        override val scope: String?,
+        override val refreshToken: String?,
+        override val idToken: String?,
+        override val deviceSecret: String?,
+        override val issuedTokenType: String? = null,
+    ) : TokenInfo
+
     override suspend fun process(): DirectAuthenticationState =
         runCatching {
             val apiResponse = context.apiExecutor.execute(request).getOrThrow()
@@ -58,8 +67,7 @@ internal class TokenStepHandler(
                 val response = apiResponse.body?.takeIf { it.isNotEmpty() } ?: return InternalError(INVALID_RESPONSE, null, IllegalStateException("Empty response body: HTTP $httpStatusCode"))
                 val tokenResponse = context.json.decodeFromString<TokenResponse>(response.toString(Charsets.UTF_8))
                 return Authenticated(
-                    Token(
-                        id = Uuid.random().toString(),
+                    DirectAuthToken(
                         tokenType = tokenResponse.tokenType,
                         expiresIn = tokenResponse.expiresIn,
                         accessToken = tokenResponse.accessToken,
@@ -67,8 +75,8 @@ internal class TokenStepHandler(
                         refreshToken = tokenResponse.refreshToken,
                         idToken = tokenResponse.idToken,
                         deviceSecret = tokenResponse.deviceSecret,
-                        issuedTokenType = null, // This is not returned in the token response
-                        oidcConfiguration = OidcConfiguration(context.clientId, context.scope.joinToString(" "), context.issuerUrl)
+                        clientId = context.clientId,
+                        issuerUrl = context.issuerUrl
                     )
                 )
             }

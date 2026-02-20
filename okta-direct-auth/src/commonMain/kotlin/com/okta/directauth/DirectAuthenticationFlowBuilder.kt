@@ -106,7 +106,7 @@ class DirectAuthenticationFlowBuilder private constructor() {
      * existing logging framework, such as Timber or a custom solution. It can also be
      * replaced with a mock implementation for testing purposes.
      *
-     * Defaults to an instance of [com.okta.authfoundation.api.log.AndroidAuthFoundationLogger] which logs to Android's Logcat.
+     * Defaults to an instance of [com.okta.authfoundation.api.log.AuthFoundationLogger] which logs to Android's Logcat.
      */
     var logger: AuthFoundationLogger = getDefaultAuthFoundationLogger()
 

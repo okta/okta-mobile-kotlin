@@ -32,6 +32,7 @@ val generateBuildInfoTask =
     }
 
 kotlin {
+    jvm()
 
     androidLibrary {
         namespace = "com.okta.directauth"
@@ -58,12 +59,19 @@ kotlin {
                 implementation(libs.kotlin.stdlib)
                 implementation(libs.kotlin.serialization.json)
                 implementation(libs.kotlinx.datetime)
+                implementation(libs.ktor.client.core)
             }
         }
 
         androidMain {
             dependencies {
-                implementation(libs.ktor.client.core)
+                // Put Android platform specific dependencies here
+            }
+        }
+
+        jvmMain {
+            dependencies {
+                // Put JVM platform specific dependencies here
             }
         }
 
@@ -71,17 +79,25 @@ kotlin {
             dependencies {
                 implementation(libs.ktor.client.mock)
                 implementation(libs.kotlin.test)
+                implementation(libs.coroutines.test)
+            }
+        }
+
+        jvmTest {
+            dependencies {
+                implementation(libs.ktor.client.mock.jvm)
+                implementation(libs.junit)
+                implementation(libs.mockk)
+                implementation(libs.hamcrest)
             }
         }
 
         getByName("androidHostTest") {
             dependencies {
-                implementation(libs.coroutines.test)
                 implementation(libs.junit)
                 implementation(libs.mockk)
                 implementation(libs.hamcrest)
                 implementation(libs.ktor.client.mock.jvm)
-                implementation(project(":auth-foundation"))
             }
         }
 

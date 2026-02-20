@@ -18,6 +18,7 @@ package com.okta.authfoundation.credential
 import com.okta.authfoundation.claims.ClaimsProvider
 import com.okta.authfoundation.claims.DefaultClaimsProvider
 import com.okta.authfoundation.client.OidcConfiguration
+import com.okta.authfoundation.client.TokenInfo
 import com.okta.authfoundation.jwt.Jwt
 import com.okta.authfoundation.jwt.JwtParser
 import kotlinx.serialization.EncodeDefault
@@ -36,42 +37,42 @@ class Token @OptIn(ExperimentalSerializationApi::class) private constructor(
     /**
      * The string type of the token (e.g. `Bearer`).
      */
-    val tokenType: String,
+    override val tokenType: String,
     /**
      * The expiration duration in seconds for this token.
      */
-    val expiresIn: Int,
+    override val expiresIn: Int,
     /**
      * The access token.
      */
-    val accessToken: String,
+    override val accessToken: String,
     /**
      * The scopes granted when this token was minted.
      */
-    val scope: String?,
+    override val scope: String?,
     /**
      * The refresh token, if requested.
      */
-    val refreshToken: String?,
+    override val refreshToken: String?,
     /**
      * The ID token, if requested.
      */
-    val idToken: String?,
+    override val idToken: String?,
     /**
      * The device secret, if requested.
      */
-    val deviceSecret: String?,
+    override val deviceSecret: String?,
     /**
      * The issued token type, if returned.
      */
-    val issuedTokenType: String?,
+    override val issuedTokenType: String?,
     /**
      * The configuration that was used to fetch this token.
      */
     val oidcConfiguration: OidcConfiguration,
     @EncodeDefault
     internal val issuedAt: Long = oidcConfiguration.clock.currentTimeEpochSecond() - expiresIn,
-) {
+) : TokenInfo {
     constructor(
         id: String,
         tokenType: String,
@@ -155,6 +156,10 @@ class Token @OptIn(ExperimentalSerializationApi::class) private constructor(
             deviceSecret,
             issuedTokenType
         )
+
+    override val clientId: String = oidcConfiguration.clientId
+
+    override val issuerUrl: String = oidcConfiguration.discoveryUrl
 
     /**
      * Non-sensitive information about the [Token] to be used in storage.

@@ -30,13 +30,12 @@ import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.SerializationException
-import org.hamcrest.CoreMatchers.containsString
-import org.hamcrest.CoreMatchers.equalTo
-import org.hamcrest.CoreMatchers.instanceOf
-import org.hamcrest.MatcherAssert.assertThat
-import org.junit.Before
-import org.junit.Test
 import java.io.IOException
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertIs
+import kotlin.test.assertTrue
 
 class DirectAuthContinuationPromptStateTest {
     private lateinit var bindingContext: BindingContext
@@ -67,7 +66,7 @@ class DirectAuthContinuationPromptStateTest {
             additionalParameters = mapOf("custom_param" to "custom_value")
         )
 
-    @Before
+    @BeforeTest
     fun setUp() {
         bindingContext =
             BindingContext(
@@ -93,16 +92,15 @@ class DirectAuthContinuationPromptStateTest {
 
         val result = runBlocking { promptState.proceed("123456") }
 
-        assertThat(promptState.expirationInSeconds, equalTo(60))
-        assertThat(result, instanceOf(Authenticated::class.java))
-        assertThat(context.authenticationStateFlow.value, equalTo(result))
-        val authenticated = result as Authenticated
-        assertThat(authenticated.token.tokenType, equalTo("Bearer"))
-        assertThat(authenticated.token.expiresIn, equalTo(3600))
-        assertThat(authenticated.token.accessToken, equalTo("example_access_token"))
-        assertThat(authenticated.token.scope, equalTo("openid email profile offline_access"))
-        assertThat(authenticated.token.refreshToken, equalTo("example_refresh_token"))
-        assertThat(authenticated.token.idToken, equalTo("example_id_token"))
+        assertEquals(60, promptState.expirationInSeconds)
+        assertIs<Authenticated>(result)
+        assertEquals(result, context.authenticationStateFlow.value)
+        assertEquals("Bearer", result.token.tokenType)
+        assertEquals(3600, result.token.expiresIn)
+        assertEquals("example_access_token", result.token.accessToken)
+        assertEquals("openid email profile offline_access", result.token.scope)
+        assertEquals("example_refresh_token", result.token.refreshToken)
+        assertEquals("example_id_token", result.token.idToken)
     }
 
     @Test
@@ -112,15 +110,14 @@ class DirectAuthContinuationPromptStateTest {
 
         val result = runBlocking { promptState.proceed("123456") }
 
-        assertThat(result, instanceOf(Authenticated::class.java))
-        assertThat(context.authenticationStateFlow.value, equalTo(result))
-        val authenticated = result as Authenticated
-        assertThat(authenticated.token.tokenType, equalTo("Bearer"))
-        assertThat(authenticated.token.expiresIn, equalTo(3600))
-        assertThat(authenticated.token.accessToken, equalTo("example_access_token"))
-        assertThat(authenticated.token.scope, equalTo("openid email profile offline_access"))
-        assertThat(authenticated.token.refreshToken, equalTo("example_refresh_token"))
-        assertThat(authenticated.token.idToken, equalTo("example_id_token"))
+        assertIs<Authenticated>(result)
+        assertEquals(result, context.authenticationStateFlow.value)
+        assertEquals("Bearer", result.token.tokenType)
+        assertEquals(3600, result.token.expiresIn)
+        assertEquals("example_access_token", result.token.accessToken)
+        assertEquals("openid email profile offline_access", result.token.scope)
+        assertEquals("example_refresh_token", result.token.refreshToken)
+        assertEquals("example_id_token", result.token.idToken)
     }
 
     @Test
@@ -130,10 +127,9 @@ class DirectAuthContinuationPromptStateTest {
 
         val result = runBlocking { promptState.proceed("123456") }
 
-        assertThat(result, instanceOf(DirectAuthenticationError.HttpError.Oauth2Error::class.java))
-        val error = result as DirectAuthenticationError.HttpError.Oauth2Error
-        assertThat(error.error, equalTo("invalid_grant"))
-        assertThat(context.authenticationStateFlow.value, equalTo(result))
+        assertIs<DirectAuthenticationError.HttpError.Oauth2Error>(result)
+        assertEquals("invalid_grant", result.error)
+        assertEquals(result, context.authenticationStateFlow.value)
     }
 
     @Test
@@ -143,11 +139,10 @@ class DirectAuthContinuationPromptStateTest {
 
         val result = runBlocking { promptState.proceed("123456") }
 
-        assertThat(result, instanceOf(InternalError::class.java))
-        val error = result as InternalError
-        assertThat(error.errorCode, equalTo(EXCEPTION))
-        assertThat(error.description, containsString("Unexpected JSON token at offset"))
-        assertThat(error.throwable, instanceOf(SerializationException::class.java))
+        assertIs<InternalError>(result)
+        assertEquals(EXCEPTION, result.errorCode)
+        assertTrue(result.description!!.contains("Unexpected JSON token at offset"))
+        assertIs<SerializationException>(result.throwable)
     }
 
     @Test
@@ -158,10 +153,9 @@ class DirectAuthContinuationPromptStateTest {
 
         val result = runBlocking { promptState.proceed("123456") }
 
-        assertThat(result, instanceOf(InternalError::class.java))
-        val error = result as InternalError
-        assertThat(error.description, equalTo("Simulated network failure"))
-        assertThat(error.throwable, instanceOf(IOException::class.java))
-        assertThat(context.authenticationStateFlow.value, equalTo(result))
+        assertIs<InternalError>(result)
+        assertEquals("Simulated network failure", result.description)
+        assertIs<IOException>(result.throwable)
+        assertEquals(result, context.authenticationStateFlow.value)
     }
 }

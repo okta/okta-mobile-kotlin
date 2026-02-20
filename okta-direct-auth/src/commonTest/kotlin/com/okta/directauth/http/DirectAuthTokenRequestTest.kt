@@ -48,19 +48,18 @@ import io.ktor.client.HttpClient
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.SerializationException
-import org.hamcrest.CoreMatchers.containsString
-import org.hamcrest.CoreMatchers.equalTo
-import org.hamcrest.CoreMatchers.instanceOf
-import org.hamcrest.MatcherAssert.assertThat
-import org.junit.Before
-import org.junit.Test
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertIs
+import kotlin.test.assertTrue
 
 class DirectAuthTokenRequestTest {
     private lateinit var context: DirectAuthenticationContext
 
     private val supportedGrantTypes = listOf(GrantType.Password, GrantType.Oob, GrantType.Otp, ChallengeGrantType.OobMfa, ChallengeGrantType.OtpMfa, GrantType.WebAuthn, ChallengeGrantType.WebAuthnMfa)
 
-    @Before
+    @BeforeTest
     fun setUp() {
         context =
             DirectAuthenticationContext(
@@ -89,11 +88,11 @@ class DirectAuthTokenRequestTest {
     }
 
     private fun assertCommonProperties(request: DirectAuthTokenRequest) {
-        assertThat(request.url(), equalTo("https://example.okta.com/oauth2/v1/token"))
-        assertThat(request.method(), equalTo(ApiRequestMethod.POST))
-        assertThat(request.contentType(), equalTo("application/x-www-form-urlencoded"))
-        assertThat(request.headers(), equalTo(mapOf("Accept" to listOf("application/json"))))
-        assertThat(request.query(), equalTo(mapOf("custom_param" to "custom_value")))
+        assertEquals("https://example.okta.com/oauth2/v1/token", request.url())
+        assertEquals(ApiRequestMethod.POST, request.method())
+        assertEquals("application/x-www-form-urlencoded", request.contentType())
+        assertEquals(mapOf("Accept" to listOf("application/json")), request.headers())
+        assertEquals(mapOf("custom_param" to "custom_value"), request.query())
     }
 
     @Test
@@ -108,13 +107,13 @@ class DirectAuthTokenRequestTest {
         assertCommonProperties(request)
 
         val formParameters = request.formParameters()
-        assertThat(formParameters["client_id"], equalTo(listOf("test_client_id")))
-        assertThat(formParameters["client_secret"], equalTo(listOf("test_client_secret")))
-        assertThat(formParameters["scope"], equalTo(listOf("openid email profile offline_access")))
-        assertThat(formParameters["grant_types_supported"], equalTo(listOf("${GrantType.Password.value} ${GrantType.Otp.value}")))
-        assertThat(formParameters["grant_type"], equalTo(listOf(GrantType.Password.value)))
-        assertThat(formParameters["username"], equalTo(listOf("test_user")))
-        assertThat(formParameters["password"], equalTo(listOf("test_password")))
+        assertEquals(listOf("test_client_id"), formParameters["client_id"])
+        assertEquals(listOf("test_client_secret"), formParameters["client_secret"])
+        assertEquals(listOf("openid email profile offline_access"), formParameters["scope"])
+        assertEquals(listOf("${GrantType.Password.value} ${GrantType.Otp.value}"), formParameters["grant_types_supported"])
+        assertEquals(listOf(GrantType.Password.value), formParameters["grant_type"])
+        assertEquals(listOf("test_user"), formParameters["username"])
+        assertEquals(listOf("test_password"), formParameters["password"])
     }
 
     @Test
@@ -130,14 +129,14 @@ class DirectAuthTokenRequestTest {
         assertCommonProperties(request)
 
         val formParameters = request.formParameters()
-        assertThat(formParameters["client_id"], equalTo(listOf("test_client_id")))
-        assertThat(formParameters["client_secret"], equalTo(listOf("test_client_secret")))
-        assertThat(formParameters["scope"], equalTo(listOf("okta.myAccount.password.manage")))
-        assertThat(formParameters["prompt"], equalTo(listOf("recover_authenticator")))
-        assertThat(formParameters["grant_types_supported"], equalTo(listOf("${GrantType.Password.value} ${GrantType.Otp.value}")))
-        assertThat(formParameters["grant_type"], equalTo(listOf(GrantType.Password.value)))
-        assertThat(formParameters["username"], equalTo(listOf("test_user")))
-        assertThat(formParameters["password"], equalTo(listOf("test_password")))
+        assertEquals(listOf("test_client_id"), formParameters["client_id"])
+        assertEquals(listOf("test_client_secret"), formParameters["client_secret"])
+        assertEquals(listOf("okta.myAccount.password.manage"), formParameters["scope"])
+        assertEquals(listOf("recover_authenticator"), formParameters["prompt"])
+        assertEquals(listOf("${GrantType.Password.value} ${GrantType.Otp.value}"), formParameters["grant_types_supported"])
+        assertEquals(listOf(GrantType.Password.value), formParameters["grant_type"])
+        assertEquals(listOf("test_user"), formParameters["username"])
+        assertEquals(listOf("test_password"), formParameters["password"])
     }
 
     @Test
@@ -152,9 +151,9 @@ class DirectAuthTokenRequestTest {
         assertCommonProperties(request)
 
         val formParameters = request.formParameters()
-        assertThat(formParameters["grant_type"], equalTo(listOf(GrantType.Otp.value)))
-        assertThat(formParameters["login_hint"], equalTo(listOf("test_user")))
-        assertThat(formParameters["otp"], equalTo(listOf("123456")))
+        assertEquals(listOf(GrantType.Otp.value), formParameters["grant_type"])
+        assertEquals(listOf("test_user"), formParameters["login_hint"])
+        assertEquals(listOf("123456"), formParameters["otp"])
     }
 
     @Test
@@ -170,9 +169,9 @@ class DirectAuthTokenRequestTest {
         assertCommonProperties(request)
 
         val formParameters = request.formParameters()
-        assertThat(formParameters["grant_type"], equalTo(listOf(ChallengeGrantType.OtpMfa.value)))
-        assertThat(formParameters["mfa_token"], equalTo(listOf("test_mfa_token")))
-        assertThat(formParameters["otp"], equalTo(listOf("123456")))
+        assertEquals(listOf(ChallengeGrantType.OtpMfa.value), formParameters["grant_type"])
+        assertEquals(listOf("test_mfa_token"), formParameters["mfa_token"])
+        assertEquals(listOf("123456"), formParameters["otp"])
     }
 
     @Test
@@ -187,9 +186,9 @@ class DirectAuthTokenRequestTest {
         assertCommonProperties(request)
 
         val formParameters = request.formParameters()
-        assertThat(formParameters["grant_type"], equalTo(listOf(GrantType.Oob.value)))
-        assertThat(formParameters["oob_code"], equalTo(listOf("test_oob_code")))
-        assertThat(formParameters["binding_code"], equalTo(listOf("95")))
+        assertEquals(listOf(GrantType.Oob.value), formParameters["grant_type"])
+        assertEquals(listOf("test_oob_code"), formParameters["oob_code"])
+        assertEquals(listOf("95"), formParameters["binding_code"])
     }
 
     @Test
@@ -206,10 +205,10 @@ class DirectAuthTokenRequestTest {
         assertCommonProperties(request)
 
         val formParameters = request.formParameters()
-        assertThat(formParameters["grant_type"], equalTo(listOf(ChallengeGrantType.OobMfa.value)))
-        assertThat(formParameters["mfa_token"], equalTo(listOf("test_mfa_token")))
-        assertThat(formParameters["oob_code"], equalTo(listOf("test_oob_code")))
-        assertThat(formParameters["binding_code"], equalTo(listOf("test_binding_code")))
+        assertEquals(listOf(ChallengeGrantType.OobMfa.value), formParameters["grant_type"])
+        assertEquals(listOf("test_mfa_token"), formParameters["mfa_token"])
+        assertEquals(listOf("test_oob_code"), formParameters["oob_code"])
+        assertEquals(listOf("test_binding_code"), formParameters["binding_code"])
     }
 
     @Test
@@ -225,10 +224,10 @@ class DirectAuthTokenRequestTest {
         assertCommonProperties(request)
 
         val formParameters = request.formParameters()
-        assertThat(formParameters["grant_type"], equalTo(listOf(GrantType.WebAuthn.value)))
-        assertThat(formParameters["authenticatorData"], equalTo(listOf("test_authenticator_data")))
-        assertThat(formParameters["clientDataJSON"], equalTo(listOf("test_client_data_json")))
-        assertThat(formParameters["signature"], equalTo(listOf("test_signature")))
+        assertEquals(listOf(GrantType.WebAuthn.value), formParameters["grant_type"])
+        assertEquals(listOf("test_authenticator_data"), formParameters["authenticatorData"])
+        assertEquals(listOf("test_client_data_json"), formParameters["clientDataJSON"])
+        assertEquals(listOf("test_signature"), formParameters["signature"])
     }
 
     @Test
@@ -246,11 +245,11 @@ class DirectAuthTokenRequestTest {
         assertCommonProperties(request)
 
         val formParameters = request.formParameters()
-        assertThat(formParameters["grant_type"], equalTo(listOf(ChallengeGrantType.WebAuthnMfa.value)))
-        assertThat(formParameters["mfa_token"], equalTo(listOf("test_mfa_token")))
-        assertThat(formParameters["authenticatorData"], equalTo(listOf("test_authenticator_data")))
-        assertThat(formParameters["clientDataJSON"], equalTo(listOf("test_client_data_json")))
-        assertThat(formParameters["signature"], equalTo(listOf("test_signature")))
+        assertEquals(listOf(ChallengeGrantType.WebAuthnMfa.value), formParameters["grant_type"])
+        assertEquals(listOf("test_mfa_token"), formParameters["mfa_token"])
+        assertEquals(listOf("test_authenticator_data"), formParameters["authenticatorData"])
+        assertEquals(listOf("test_client_data_json"), formParameters["clientDataJSON"])
+        assertEquals(listOf("test_signature"), formParameters["signature"])
     }
 
     @Test
@@ -278,7 +277,7 @@ class DirectAuthTokenRequestTest {
                 password = "test_password"
             )
 
-        assertThat(request.url(), equalTo("https://example.okta.com/oauth2/default/v1/token"))
+        assertEquals("https://example.okta.com/oauth2/default/v1/token", request.url())
     }
 
     @Test
@@ -289,10 +288,10 @@ class DirectAuthTokenRequestTest {
 
             val directAuthState = TokenStepHandler(request, testContext).process()
 
-            assertThat(request.url(), equalTo("https://example.okta.com/oauth2/v1/token"))
-            assertThat(directAuthState, instanceOf(DirectAuthenticationState.Authenticated::class.java))
-            val token = (directAuthState as DirectAuthenticationState.Authenticated).token
-            assertThat(token.accessToken, equalTo("example_access_token"))
+            assertEquals("https://example.okta.com/oauth2/v1/token", request.url())
+            assertIs<DirectAuthenticationState.Authenticated>(directAuthState)
+            val token = directAuthState.token
+            assertEquals("example_access_token", token.accessToken)
         }
 
     @Test
@@ -303,11 +302,10 @@ class DirectAuthTokenRequestTest {
 
             val directAuthState = TokenStepHandler(request, testContext).process()
 
-            assertThat(directAuthState, instanceOf(HttpError.Oauth2Error::class.java))
-            val apiError = (directAuthState as HttpError.Oauth2Error)
-            assertThat(apiError.error, equalTo("invalid_grant"))
-            assertThat(apiError.errorDescription, equalTo("The password was invalid."))
-            assertThat(apiError.httpStatusCode, equalTo(HttpStatusCode.BadRequest))
+            assertIs<HttpError.Oauth2Error>(directAuthState)
+            assertEquals("invalid_grant", directAuthState.error)
+            assertEquals("The password was invalid.", directAuthState.errorDescription)
+            assertEquals(HttpStatusCode.BadRequest, directAuthState.httpStatusCode)
         }
 
     @Test
@@ -318,11 +316,10 @@ class DirectAuthTokenRequestTest {
 
             val directAuthState = TokenStepHandler(request, testContext).process()
 
-            assertThat(directAuthState, instanceOf(HttpError.ApiError::class.java))
-            val apiError = (directAuthState as HttpError.ApiError)
-            assertThat(apiError.errorCode, equalTo("E00000"))
-            assertThat(apiError.errorSummary, equalTo("Internal Server Error"))
-            assertThat(apiError.httpStatusCode, equalTo(HttpStatusCode.InternalServerError))
+            assertIs<HttpError.ApiError>(directAuthState)
+            assertEquals("E00000", directAuthState.errorCode)
+            assertEquals("Internal Server Error", directAuthState.errorSummary)
+            assertEquals(HttpStatusCode.InternalServerError, directAuthState.httpStatusCode)
         }
 
     @Test
@@ -333,9 +330,8 @@ class DirectAuthTokenRequestTest {
 
             val directAuthState = TokenStepHandler(request, testContext).process()
 
-            assertThat(directAuthState, instanceOf(DirectAuthenticationState.MfaRequired::class.java))
-            val mfaRequired = directAuthState as DirectAuthenticationState.MfaRequired
-            assertThat(mfaRequired.mfaContext.mfaToken, equalTo("example_mfa_token"))
+            assertIs<DirectAuthenticationState.MfaRequired>(directAuthState)
+            assertEquals("example_mfa_token", directAuthState.mfaContext.mfaToken)
         }
 
     @Test
@@ -346,11 +342,10 @@ class DirectAuthTokenRequestTest {
 
             val directAuthState = TokenStepHandler(request, testContext).process()
 
-            assertThat(directAuthState, instanceOf(InternalError::class.java))
-            val error = directAuthState as InternalError
-            assertThat(error.errorCode, equalTo(INVALID_RESPONSE))
-            assertThat(error.throwable, instanceOf(IllegalStateException::class.java))
-            assertThat(error.throwable.message, equalTo("No mfa_token found in body: HTTP ${HttpStatusCode.BadRequest}"))
+            assertIs<InternalError>(directAuthState)
+            assertEquals(INVALID_RESPONSE, directAuthState.errorCode)
+            assertIs<IllegalStateException>(directAuthState.throwable)
+            assertEquals("No mfa_token found in body: HTTP ${HttpStatusCode.BadRequest}", directAuthState.throwable.message)
         }
 
     @Test
@@ -361,7 +356,7 @@ class DirectAuthTokenRequestTest {
 
             val directAuthState = TokenStepHandler(request, testContext).process()
 
-            assertThat(directAuthState, instanceOf(DirectAuthenticationState.AuthorizationPending::class.java))
+            assertIs<DirectAuthenticationState.AuthorizationPending>(directAuthState)
         }
 
     @Test
@@ -372,11 +367,10 @@ class DirectAuthTokenRequestTest {
 
             val directAuthState = TokenStepHandler(request, testContext).process()
 
-            assertThat(directAuthState, instanceOf(InternalError::class.java))
-            val error = directAuthState as InternalError
-            assertThat(error.errorCode, equalTo(UNSUPPORTED_CONTENT_TYPE))
-            assertThat(error.throwable, instanceOf(IllegalStateException::class.java))
-            assertThat(error.throwable.message, equalTo("Unsupported content type: text/plain"))
+            assertIs<InternalError>(directAuthState)
+            assertEquals(UNSUPPORTED_CONTENT_TYPE, directAuthState.errorCode)
+            assertIs<IllegalStateException>(directAuthState.throwable)
+            assertEquals("Unsupported content type: text/plain", directAuthState.throwable.message)
         }
 
     @Test
@@ -387,11 +381,10 @@ class DirectAuthTokenRequestTest {
 
             val directAuthState = TokenStepHandler(request, testContext).process()
 
-            assertThat(directAuthState, instanceOf(InternalError::class.java))
-            val error = directAuthState as InternalError
-            assertThat(error.errorCode, equalTo(UNEXPECTED_HTTP_STATUS))
-            assertThat(error.throwable, instanceOf(IllegalStateException::class.java))
-            assertThat(error.throwable.message, equalTo("Unexpected HTTP Status Code: ${HttpStatusCode.Found}"))
+            assertIs<InternalError>(directAuthState)
+            assertEquals(UNEXPECTED_HTTP_STATUS, directAuthState.errorCode)
+            assertIs<IllegalStateException>(directAuthState.throwable)
+            assertEquals("Unexpected HTTP Status Code: ${HttpStatusCode.Found}", directAuthState.throwable.message)
         }
 
     @Test
@@ -402,11 +395,10 @@ class DirectAuthTokenRequestTest {
 
             val directAuthState = TokenStepHandler(request, testContext).process()
 
-            assertThat(directAuthState, instanceOf(InternalError::class.java))
-            val error = directAuthState as InternalError
-            assertThat(error.errorCode, equalTo(INVALID_RESPONSE))
-            assertThat(error.throwable, instanceOf(IllegalStateException::class.java))
-            assertThat(error.throwable.message, equalTo("No parsable error response body: HTTP ${HttpStatusCode.BadRequest}"))
+            assertIs<InternalError>(directAuthState)
+            assertEquals(INVALID_RESPONSE, directAuthState.errorCode)
+            assertIs<IllegalStateException>(directAuthState.throwable)
+            assertEquals("No parsable error response body: HTTP ${HttpStatusCode.BadRequest}", directAuthState.throwable.message)
         }
 
     @Test
@@ -417,11 +409,10 @@ class DirectAuthTokenRequestTest {
 
             val directAuthState = TokenStepHandler(request, testContext).process()
 
-            assertThat(directAuthState, instanceOf(InternalError::class.java))
-            val error = directAuthState as InternalError
-            assertThat(error.errorCode, equalTo(INVALID_RESPONSE))
-            assertThat(error.throwable, instanceOf(IllegalStateException::class.java))
-            assertThat(error.throwable.message, equalTo("No parsable error response body: HTTP ${HttpStatusCode.InternalServerError}"))
+            assertIs<InternalError>(directAuthState)
+            assertEquals(INVALID_RESPONSE, directAuthState.errorCode)
+            assertIs<IllegalStateException>(directAuthState.throwable)
+            assertEquals("No parsable error response body: HTTP ${HttpStatusCode.InternalServerError}", directAuthState.throwable.message)
         }
 
     @Test
@@ -432,11 +423,10 @@ class DirectAuthTokenRequestTest {
 
             val directAuthState = TokenStepHandler(request, testContext).process()
 
-            assertThat(directAuthState, instanceOf(InternalError::class.java))
-            val error = directAuthState as InternalError
-            assertThat(error.errorCode, equalTo(INVALID_RESPONSE))
-            assertThat(error.throwable, instanceOf(IllegalStateException::class.java))
-            assertThat(error.throwable.message, equalTo("No parsable error response body: HTTP ${HttpStatusCode.BadRequest}"))
+            assertIs<InternalError>(directAuthState)
+            assertEquals(INVALID_RESPONSE, directAuthState.errorCode)
+            assertIs<IllegalStateException>(directAuthState.throwable)
+            assertEquals("No parsable error response body: HTTP ${HttpStatusCode.BadRequest}", directAuthState.throwable.message)
         }
 
     @Test
@@ -447,11 +437,10 @@ class DirectAuthTokenRequestTest {
 
             val directAuthState = TokenStepHandler(request, testContext).process()
 
-            assertThat(directAuthState, instanceOf(InternalError::class.java))
-            val error = directAuthState as InternalError
-            assertThat(error.errorCode, equalTo(INVALID_RESPONSE))
-            assertThat(error.throwable, instanceOf(IllegalStateException::class.java))
-            assertThat(error.throwable.message, equalTo("Empty response body: HTTP ${HttpStatusCode.OK}"))
+            assertIs<InternalError>(directAuthState)
+            assertEquals(INVALID_RESPONSE, directAuthState.errorCode)
+            assertIs<IllegalStateException>(directAuthState.throwable)
+            assertEquals("Empty response body: HTTP ${HttpStatusCode.OK}", directAuthState.throwable.message)
         }
 
     @Test
@@ -462,11 +451,10 @@ class DirectAuthTokenRequestTest {
 
             val directAuthState = TokenStepHandler(request, testContext).process()
 
-            assertThat(directAuthState, instanceOf(InternalError::class.java))
-            val error = directAuthState as InternalError
-            assertThat(error.errorCode, equalTo(EXCEPTION))
-            assertThat(error.description, containsString("Unexpected JSON token at offset"))
-            assertThat(error.throwable, instanceOf(SerializationException::class.java))
+            assertIs<InternalError>(directAuthState)
+            assertEquals(EXCEPTION, directAuthState.errorCode)
+            assertTrue(directAuthState.description!!.contains("Unexpected JSON token at offset"))
+            assertIs<SerializationException>(directAuthState.throwable)
         }
 
     @Test
@@ -477,11 +465,10 @@ class DirectAuthTokenRequestTest {
 
             val directAuthState = TokenStepHandler(request, testContext).process()
 
-            assertThat(directAuthState, instanceOf(InternalError::class.java))
-            val error = directAuthState as InternalError
-            assertThat(error.errorCode, equalTo(EXCEPTION))
-            assertThat(error.description, containsString("Unexpected JSON token at offset"))
-            assertThat(error.throwable, instanceOf(SerializationException::class.java))
+            assertIs<InternalError>(directAuthState)
+            assertEquals(EXCEPTION, directAuthState.errorCode)
+            assertTrue(directAuthState.description!!.contains("Unexpected JSON token at offset"))
+            assertIs<SerializationException>(directAuthState.throwable)
         }
 
     @Test
@@ -492,11 +479,10 @@ class DirectAuthTokenRequestTest {
 
             val directAuthState = TokenStepHandler(request, testContext).process()
 
-            assertThat(directAuthState, instanceOf(InternalError::class.java))
-            val error = directAuthState as InternalError
-            assertThat(error.errorCode, equalTo(EXCEPTION))
-            assertThat(error.description, containsString("Unexpected JSON token at offset"))
-            assertThat(error.throwable, instanceOf(SerializationException::class.java))
+            assertIs<InternalError>(directAuthState)
+            assertEquals(EXCEPTION, directAuthState.errorCode)
+            assertTrue(directAuthState.description!!.contains("Unexpected JSON token at offset"))
+            assertIs<SerializationException>(directAuthState.throwable)
         }
 
     @Test
@@ -507,10 +493,9 @@ class DirectAuthTokenRequestTest {
 
             val directAuthState = TokenStepHandler(request, testContext).process()
 
-            assertThat(directAuthState, instanceOf(InternalError::class.java))
-            val error = directAuthState as InternalError
-            assertThat(error.errorCode, equalTo(EXCEPTION))
-            assertThat(error.description, containsString("Unexpected JSON token at offset"))
-            assertThat(error.throwable, instanceOf(SerializationException::class.java))
+            assertIs<InternalError>(directAuthState)
+            assertEquals(EXCEPTION, directAuthState.errorCode)
+            assertTrue(directAuthState.description!!.contains("Unexpected JSON token at offset"))
+            assertIs<SerializationException>(directAuthState.throwable)
         }
 }

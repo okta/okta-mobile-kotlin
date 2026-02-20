@@ -38,6 +38,7 @@ import io.mockk.mockk
 import io.mockk.mockkObject
 import io.mockk.mockkStatic
 import io.mockk.runs
+import io.mockk.slot
 import io.mockk.unmockkAll
 import io.mockk.verify
 import kotlinx.coroutines.runBlocking
@@ -93,9 +94,10 @@ class LegacyTokenMigrationTest {
 
     @Test fun testMigrate(): Unit =
         runBlocking {
+            val tokenSlot = slot<Token>()
             val credentialDataSource =
                 mockk<CredentialDataSource> {
-                    coEvery { createCredential(any(), any(), any()) } returns
+                    coEvery { createCredential(capture(tokenSlot), any(), any()) } returns
                         mockk {
                             every { id } returns "mock-token-id"
                         }
@@ -111,23 +113,16 @@ class LegacyTokenMigrationTest {
             assertThat(result).isEqualTo(LegacyTokenMigration.Result.SuccessfullyMigrated("mock-token-id"))
             assertThat(sharedPreferences.hasMarkedTokensAsMigrated()).isTrue()
             verify { sessionClient.clear() }
-            val token =
-                Token(
-                    id = tokenUUID.toString(),
-                    tokenType = "Bearer",
-                    expiresIn = 300,
-                    accessToken = "ExampleAccessToken",
-                    scope = "openid profile offline_access",
-                    refreshToken = "ExampleRefreshToken",
-                    idToken = "ExampleIdToken",
-                    deviceSecret = null,
-                    issuedTokenType = null,
-                    oidcConfiguration =
-                        mockk {
-                            every { clock } returns TestClock()
-                        }
-                )
-            coVerify { credentialDataSource.createCredential(token) }
+
+            val capturedToken = tokenSlot.captured
+            assertThat(capturedToken.tokenType).isEqualTo("Bearer")
+            assertThat(capturedToken.expiresIn).isEqualTo(300)
+            assertThat(capturedToken.accessToken).isEqualTo("ExampleAccessToken")
+            assertThat(capturedToken.scope).isEqualTo("openid profile offline_access")
+            assertThat(capturedToken.refreshToken).isEqualTo("ExampleRefreshToken")
+            assertThat(capturedToken.idToken).isEqualTo("ExampleIdToken")
+            assertThat(capturedToken.deviceSecret).isNull()
+            assertThat(capturedToken.issuedTokenType).isNull()
         }
 
     @Test fun testMigrateWithNullTokenReturnsMissingLegacyToken(): Unit =

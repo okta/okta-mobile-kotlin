@@ -19,7 +19,7 @@ import com.okta.authfoundation.ChallengeGrantType
 import com.okta.authfoundation.ChallengeGrantType.OobMfa
 import com.okta.authfoundation.ChallengeGrantType.OtpMfa
 import com.okta.authfoundation.ChallengeGrantType.WebAuthnMfa
-import com.okta.authfoundation.credential.Token
+import com.okta.authfoundation.client.TokenInfo
 import com.okta.directauth.http.DirectAuthChallengeRequest
 import com.okta.directauth.http.DirectAuthTokenRequest
 import com.okta.directauth.http.EXCEPTION
@@ -64,10 +64,10 @@ sealed interface DirectAuthenticationState {
     /**
      * This state indicates that the user has been authenticated and tokens have been issued.
      *
-     * @param token The [Token] containing the access, refresh, and ID tokens.
+     * @param token The [TokenInfo] containing the access, refresh, and ID tokens.
      */
     class Authenticated internal constructor(
-        val token: Token,
+        val token: TokenInfo,
     ) : DirectAuthenticationState
 
     /**
