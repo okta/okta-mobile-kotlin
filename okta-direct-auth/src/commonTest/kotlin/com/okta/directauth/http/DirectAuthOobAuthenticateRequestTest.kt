@@ -47,6 +47,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class DirectAuthOobAuthenticateRequestTest {
     private lateinit var context: DirectAuthenticationContext
@@ -91,7 +92,9 @@ class DirectAuthOobAuthenticateRequestTest {
         assertEquals("https://example.okta.com/oauth2/v1/oob-authenticate", request.url())
         assertEquals(ApiRequestMethod.POST, request.method())
         assertEquals("application/x-www-form-urlencoded", request.contentType())
-        assertEquals(mapOf("Accept" to listOf("application/json")), request.headers())
+        assertTrue(request.headers().containsKey("Accept"))
+        assertEquals(listOf("application/json"), request.headers()["Accept"])
+        assertEquals(listOf(userAgentValue()), request.headers()["User-Agent"])
         assertNull(request.query())
 
         val formParameters = request.formParameters()

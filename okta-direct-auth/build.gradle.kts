@@ -39,6 +39,11 @@ kotlin {
         compileSdk = COMPILE_SDK
         minSdk = MIN_SDK
 
+        optimization {
+            consumerKeepRules.publish = true
+            consumerKeepRules.files.add(project.file("consumer-rules.pro"))
+        }
+
         withHostTestBuilder {
             sourceSetTreeName = "test"
         }
@@ -108,5 +113,12 @@ kotlin {
                 implementation(libs.androidx.test.ext.junit)
             }
         }
+    }
+}
+
+tasks.named<Jar>("jvmJar") {
+    from(project.file("consumer-rules.pro")) {
+        into("META-INF/proguard")
+        rename { "${project.name}.pro" }
     }
 }

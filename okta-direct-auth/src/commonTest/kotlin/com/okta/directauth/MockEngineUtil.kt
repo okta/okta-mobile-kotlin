@@ -114,6 +114,11 @@ val oobAuthenticateInvalidBindingResponseMockEngine = createMockEngine(OOB_AUTHE
 
 val oobAuthenticateOauth2ErrorMockEngine = createMockEngine(OOB_AUTHENTICATE_OAUTH2_ERROR_JSON, HttpStatusCode.BadRequest)
 
+const val API_ERROR_WITH_CAUSES_JSON =
+    """{"errorCode":"E0000011","errorSummary":"Invalid token provided","errorLink":"E0000011","errorId":"test_error_id","errorCauses":[{"errorSummary":"Invalid token: token is expired"}]}"""
+
+val apiErrorClientMockEngine = createMockEngine(API_ERROR_WITH_CAUSES_JSON, HttpStatusCode.BadRequest)
+
 val challengeOtpResponseMockEngine = createMockEngine(CHALLENGE_OTP_RESPONSE_JSON, HttpStatusCode.OK)
 
 val challengeWebAuthnResponseMockEngine = createMockEngine(CHALLENGE_WEBAUTHN_RESPONSE_JSON, HttpStatusCode.OK)
