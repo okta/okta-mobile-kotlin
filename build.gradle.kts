@@ -33,9 +33,11 @@ plugins {
     alias(libs.plugins.androidx.navigation.safeargs) apply false
     alias(libs.plugins.kotlinx.binary.compatibility.validator) apply false
     alias(libs.plugins.androidx.room) apply false
+    alias(libs.plugins.kotlin.jvm) apply false
     alias(libs.plugins.kotlin.multiplatform) apply false
     alias(libs.plugins.android.kotlin.multiplatform.library) apply false
     alias(libs.plugins.android.lint) apply false
+    alias(libs.plugins.jetbrains.compose) apply false
 }
 
 allprojects {
