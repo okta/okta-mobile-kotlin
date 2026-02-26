@@ -170,6 +170,13 @@ dependencies {
     coreLibraryDesugaring(libs.core.library.desugaring)
 }
 
+tasks.named<Jar>("jvmJar") {
+    from(project.file("consumer-rules.pro")) {
+        into("META-INF/proguard")
+        rename { "${project.name}.pro" }
+    }
+}
+
 apiValidation {
     ignoredClasses.add("com.okta.authfoundation.BuildInfo")
 }

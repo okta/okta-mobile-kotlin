@@ -22,8 +22,11 @@ import com.okta.authfoundation.api.log.AuthFoundationLogger
 import com.okta.authfoundation.api.log.LogLevel
 import com.okta.directauth.challengeOtpResponseMockEngine
 import com.okta.directauth.challengeWebAuthnResponseMockEngine
+import com.okta.directauth.notJsonMockEngine
+import com.okta.directauth.oAuth2ErrorMockEngine
 import com.okta.directauth.oobAuthenticatePushResponseMockEngine
 import com.okta.directauth.oobAuthenticateTransferResponseMockEngine
+import com.okta.directauth.serverErrorMockEngine
 import com.okta.directauth.tokenResponseMockEngine
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
@@ -32,6 +35,7 @@ import kotlinx.coroutines.test.runTest
 import kotlin.test.BeforeTest
 import kotlin.test.Ignore
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertIs
 
 class DirectAuthenticationStateMfaRequiredTest {
@@ -95,6 +99,44 @@ class DirectAuthenticationStateMfaRequiredTest {
 
             assertIs<DirectAuthenticationError.InternalError>(result)
             assertIs<IllegalStateException>(result.throwable)
+        }
+
+    @Test
+    fun `challenge returns InternalError on unsupported content type`() =
+        runTest {
+            val context = createDirectAuthenticationContext(KtorHttpExecutor(HttpClient(notJsonMockEngine)))
+            val mfaRequired = DirectAuthenticationState.MfaRequired(context, mfaContext)
+
+            val result = mfaRequired.challenge(PrimaryFactor.Oob(OobChannel.PUSH))
+
+            assertIs<DirectAuthenticationError.InternalError>(result)
+            assertIs<IllegalStateException>(result.throwable)
+            assertEquals("Unsupported content type: text/plain", result.throwable.message)
+        }
+
+    @Test
+    fun `challenge returns Oauth2Error on API error`() =
+        runTest {
+            val context = createDirectAuthenticationContext(KtorHttpExecutor(HttpClient(oAuth2ErrorMockEngine)))
+            val mfaRequired = DirectAuthenticationState.MfaRequired(context, mfaContext)
+
+            val result = mfaRequired.challenge(PrimaryFactor.Oob(OobChannel.PUSH))
+
+            assertIs<DirectAuthenticationError.HttpError.Oauth2Error>(result)
+            assertEquals("invalid_grant", result.error)
+        }
+
+    @Test
+    fun `challenge returns ApiError on server error`() =
+        runTest {
+            val context = createDirectAuthenticationContext(KtorHttpExecutor(HttpClient(serverErrorMockEngine)))
+            val mfaRequired = DirectAuthenticationState.MfaRequired(context, mfaContext)
+
+            val result = mfaRequired.challenge(PrimaryFactor.Oob(OobChannel.PUSH))
+
+            assertIs<DirectAuthenticationError.HttpError.ApiError>(result)
+            assertEquals("E00000", result.errorCode)
+            assertEquals("Internal Server Error", result.errorSummary)
         }
 
     @Test
