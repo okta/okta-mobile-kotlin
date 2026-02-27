@@ -20,12 +20,12 @@ import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Browser
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.browser.customtabs.CustomTabsService
+import androidx.core.net.toUri
 import com.okta.authfoundation.events.EventCoordinator
 import com.okta.webauthenticationui.events.CustomizeBrowserEvent
 import com.okta.webauthenticationui.events.CustomizeCustomTabsEvent
@@ -56,6 +56,8 @@ internal class DefaultWebAuthenticationProvider(
         const val X_OKTA_USER_AGENT = "X-Okta-User-Agent-Extended"
 
         val USER_AGENT_HEADER = "web-authentication-ui/${Build.VERSION.SDK_INT} com.okta.webauthenticationui/2.0.0"
+
+        val HTTP_URI_FOR_BROWSER_VALIDATION = "http://".toUri()
     }
 
     override fun launch(
@@ -76,7 +78,7 @@ internal class DefaultWebAuthenticationProvider(
         tabsIntent.intent.putExtra(Browser.EXTRA_HEADERS, headers)
 
         try {
-            tabsIntent.launchUrl(context, Uri.parse(url.toString()))
+            tabsIntent.launchUrl(context, url.toString().toUri())
             return null
         } catch (e: ActivityNotFoundException) {
             return e
@@ -88,20 +90,29 @@ internal class DefaultWebAuthenticationProvider(
         eventCoordinator.sendEvent(event)
 
         val pm: PackageManager = context.packageManager
-        val serviceIntent = Intent()
-        serviceIntent.action = CustomTabsService.ACTION_CUSTOM_TABS_CONNECTION
+        val serviceIntent = Intent(CustomTabsService.ACTION_CUSTOM_TABS_CONNECTION)
         val resolveInfoList = pm.queryIntentServices(serviceIntent, event.queryIntentServicesFlags)
-        val customTabsBrowsersPackages = mutableSetOf<String>()
-        for (info in resolveInfoList) {
-            customTabsBrowsersPackages.add(info.serviceInfo.packageName)
+
+        val customTabsBrowsersPackages = resolveInfoList
+            .mapNotNull { it.serviceInfo?.packageName }
+            .toSet()
+
+        val preferredBrowser = event.preferredBrowsers.firstOrNull { customTabsBrowsersPackages.contains(it) }
+        if (preferredBrowser != null && isBrowserPackage(pm, preferredBrowser)) {
+            return preferredBrowser
         }
 
-        for (browser in event.preferredBrowsers) {
-            if (customTabsBrowsersPackages.contains(browser)) {
-                return browser
-            }
+        return customTabsBrowsersPackages.firstOrNull {
+            isBrowserPackage(pm, it)
         }
+    }
 
-        return customTabsBrowsersPackages.firstOrNull()
+    private fun isBrowserPackage(pm: PackageManager, packageName: String): Boolean {
+        val intent = Intent(Intent.ACTION_VIEW, HTTP_URI_FOR_BROWSER_VALIDATION).apply {
+            addCategory(Intent.CATEGORY_BROWSABLE)
+            setPackage(packageName)
+        }
+        val resolveInfoList = pm.queryIntentActivities(intent, 0)
+        return resolveInfoList.isNotEmpty()
     }
 }
