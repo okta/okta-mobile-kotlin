@@ -17,6 +17,7 @@ This SDK consists of several different libraries, each with detailed documentati
 - [WebAuthenticationUI](web-authentication-ui) -- Authenticate users using web-based OIDC flows.
 - [OktaIdx](okta-idx-kotlin/README.md) -- Okta's Identity Engine support using Okta's IDX API for native browserless authentication.
 - [OktaDirectAuth](okta-direct-auth/README.md) -- Direct Authentication capabilities for advanced browserless authentication.
+- [Sample App](app/README.md) -- Sample application demonstrating OAuth2 flows using the SDK.
 
 ## Support Policy
 
