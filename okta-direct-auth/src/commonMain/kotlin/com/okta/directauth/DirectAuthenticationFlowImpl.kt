@@ -17,9 +17,11 @@ package com.okta.directauth
 
 import com.okta.directauth.api.DirectAuthenticationFlow
 import com.okta.directauth.http.DirectAuthOobAuthenticateRequest
+import com.okta.directauth.http.DirectAuthPrimaryAuthenticateRequest
 import com.okta.directauth.http.DirectAuthTokenRequest
 import com.okta.directauth.http.EXCEPTION
 import com.okta.directauth.http.handlers.OobStepHandler
+import com.okta.directauth.http.handlers.PrimaryAuthenticateStepHandler
 import com.okta.directauth.http.handlers.StepHandler
 import com.okta.directauth.http.handlers.TokenStepHandler
 import com.okta.directauth.model.DirectAuthenticationContext
@@ -38,7 +40,7 @@ internal class DirectAuthenticationFlowImpl(
             is PrimaryFactor.Password -> TokenStepHandler(DirectAuthTokenRequest.Password(context, loginHint, password), context)
             is PrimaryFactor.Oob -> OobStepHandler(DirectAuthOobAuthenticateRequest(context, loginHint, channel), context)
             is PrimaryFactor.Otp -> TokenStepHandler(DirectAuthTokenRequest.Otp(context, loginHint, passCode), context)
-            PrimaryFactor.WebAuthn -> TODO("/oauth2/v1/primary-authenticate")
+            PrimaryFactor.WebAuthn -> PrimaryAuthenticateStepHandler(DirectAuthPrimaryAuthenticateRequest(context, loginHint), context)
         }
 
     override val authenticationState: StateFlow<DirectAuthenticationState> = context.authenticationStateFlow.asStateFlow()

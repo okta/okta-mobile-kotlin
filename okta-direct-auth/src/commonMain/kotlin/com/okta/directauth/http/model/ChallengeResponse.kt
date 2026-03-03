@@ -27,4 +27,4 @@ internal data class ChallengeResponse(
     @SerialName("binding_code") val bindingCode: String? = null,
     @SerialName("expires_in") val expiresIn: Int? = null,
     val interval: Int? = null,
-)
+) : ChallengeApiResponse

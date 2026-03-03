@@ -70,7 +70,8 @@ kotlin {
 
         androidMain {
             dependencies {
-                // Put Android platform specific dependencies here
+                implementation(libs.androidx.credentials.credentials)
+                implementation(libs.androidx.credentials.play.services.auth)
             }
         }
 

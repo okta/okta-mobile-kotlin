@@ -22,6 +22,7 @@ import com.okta.authfoundation.ChallengeGrantType.WebAuthnMfa
 import com.okta.authfoundation.api.http.ApiResponse
 import com.okta.directauth.http.INVALID_RESPONSE
 import com.okta.directauth.http.UNEXPECTED_HTTP_STATUS
+import com.okta.directauth.http.UNSUPPORTED_CONTENT_TYPE
 import com.okta.directauth.http.model.ApiErrorResponse
 import com.okta.directauth.http.model.DirectAuthenticationErrorResponse
 import com.okta.directauth.http.model.ErrorResponse
@@ -31,7 +32,13 @@ import com.okta.directauth.model.DirectAuthenticationError.InternalError
 import com.okta.directauth.model.DirectAuthenticationState
 import io.ktor.http.HttpStatusCode
 import kotlinx.serialization.json.decodeFromJsonElement
-import kotlinx.serialization.json.jsonObject
+
+internal fun ApiResponse.validateContentType(expected: String): DirectAuthenticationState? =
+    if (contentType != expected) {
+        InternalError(UNSUPPORTED_CONTENT_TYPE, null, IllegalStateException("Unsupported content type: $contentType"))
+    } else {
+        null
+    }
 
 // helper to convert ErrorResponse to ApiError
 internal fun ErrorResponse.toApiError(httpStatusCode: HttpStatusCode): ApiError = ApiError(errorCode, errorSummary, errorLink, errorId, errorCauses?.map { it.errorSummary }, httpStatusCode)
@@ -55,14 +62,9 @@ internal fun ApiResponse.handleErrorResponse(
             val apiError: ApiErrorResponse? =
                 body?.takeIf { it.isNotEmpty() }?.let { response ->
                     val jsonElement = context.json.parseToJsonElement(response.toString(Charsets.UTF_8))
-
-                    if ("error" in jsonElement.jsonObject) {
-                        context.json.decodeFromJsonElement<DirectAuthenticationErrorResponse>(jsonElement)
-                    } else if ("errorCode" in jsonElement.jsonObject) {
-                        context.json.decodeFromJsonElement<ErrorResponse>(jsonElement)
-                    } else {
-                        null
-                    }
+                    runCatching {
+                        context.json.decodeFromJsonElement<ApiErrorResponse>(jsonElement)
+                    }.getOrNull()
                 }
 
             when (apiError) {

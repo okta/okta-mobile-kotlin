@@ -35,11 +35,13 @@ import com.okta.directauth.app.model.AuthMethod.Password
 import com.okta.directauth.app.model.AuthScreen
 import com.okta.directauth.app.platform.AppStorage
 import com.okta.directauth.app.platform.PlatformBackHandler
+import com.okta.directauth.app.platform.rememberWebAuthnCeremonyHandler
 import com.okta.directauth.app.screen.AuthenticatedScreen
 import com.okta.directauth.app.screen.AuthenticationFlow
 import com.okta.directauth.app.screen.CodeEntryScreen
 import com.okta.directauth.app.screen.ErrorScreen
 import com.okta.directauth.app.screen.OobPollingScreen
+import com.okta.directauth.app.screen.PasskeysScreen
 import com.okta.directauth.app.screen.PasswordChangeScreen
 import com.okta.directauth.app.screen.PasswordChangeSuccessScreen
 import com.okta.directauth.app.screen.asString
@@ -161,7 +163,27 @@ fun App(appStorage: AppStorage) {
                 }
 
                 is DirectAuthContinuation.WebAuthn -> {
-                    TODO()
+                    val handler = rememberWebAuthnCeremonyHandler()
+                    if (handler != null) {
+                        PasskeysScreen(
+                            username = username,
+                            backToSignIn = {
+                                mainViewModel.reset()
+                                authenticationFlowViewModel.setInitialState(AuthScreen.UsernameInput(""))
+                            },
+                            verifyWithSomethingElse = { authenticationFlowViewModel.selectAuthenticator(username) },
+                            onStartCeremony = { mainViewModel.webAuthn(currentState, handler) }
+                        )
+                    } else {
+                        // TODO: Handle this case with manual ceremony flow
+                        ErrorScreen(
+                            error = "WebAuthn is not supported on this platform.",
+                            onBack = {
+                                mainViewModel.reset()
+                                authenticationFlowViewModel.setInitialState(AuthScreen.UsernameInput(""))
+                            }
+                        )
+                    }
                 }
 
                 is DirectAuthenticationError -> {

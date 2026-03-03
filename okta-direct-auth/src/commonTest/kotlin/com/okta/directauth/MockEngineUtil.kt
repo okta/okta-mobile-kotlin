@@ -38,7 +38,10 @@ const val OOB_AUTHENTICATE_TRANSFER_RESPONSE_JSON =
     """{"challenge_type":"http://auth0.com/oauth/grant-type/mfa-oob","oob_code":"example_oob_code","channel":"push","binding_method":"transfer","binding_code":"95","expires_in":120,"interval":5}"""
 const val OOB_AUTHENTICATE_TRANSFER_NO_BINDING_CODE_RESPONSE_JSON = """{"oob_code":"example_oob_code","channel":"push","binding_method":"transfer","expires_in":120,"interval":5}"""
 const val CHALLENGE_OTP_RESPONSE_JSON = """{"challenge_type":"http://auth0.com/oauth/grant-type/mfa-otp"}"""
-const val CHALLENGE_WEBAUTHN_RESPONSE_JSON = """{"challengeType":"urn:okta:params:oauth:grant-type:webauthn","publicKey":{}} """
+const val CHALLENGE_WEBAUTHN_RESPONSE_JSON =
+    """{"challengeType":"urn:okta:params:oauth:grant-type:mfa-webauthn","publicKey":{"challenge":"dGVzdC1jaGFsbGVuZ2U","rpId":"example.okta.com","allowCredentials":[{"type":"public-key","id":"Y3JlZC0x"}],"timeout":60000,"userVerification":"preferred"}}"""
+const val PRIMARY_AUTHENTICATE_WEBAUTHN_RESPONSE_JSON =
+    """{"publicKey":{"challenge":"dGVzdC1jaGFsbGVuZ2U","rpId":"example.okta.com","allowCredentials":[{"type":"public-key","id":"Y3JlZC0x"}],"timeout":60000,"userVerification":"preferred"}}"""
 
 // email is not a unsupported channel
 const val OOB_AUTHENTICATE_EMAIL_RESPONSE_JSON = """{"oob_code":"example_oob_code","channel":"email","binding_method":"prompt","expires_in":120}"""
@@ -122,3 +125,5 @@ val apiErrorClientMockEngine = createMockEngine(API_ERROR_WITH_CAUSES_JSON, Http
 val challengeOtpResponseMockEngine = createMockEngine(CHALLENGE_OTP_RESPONSE_JSON, HttpStatusCode.OK)
 
 val challengeWebAuthnResponseMockEngine = createMockEngine(CHALLENGE_WEBAUTHN_RESPONSE_JSON, HttpStatusCode.OK)
+
+val primaryAuthenticateWebAuthnResponseMockEngine = createMockEngine(PRIMARY_AUTHENTICATE_WEBAUTHN_RESPONSE_JSON, HttpStatusCode.OK)
