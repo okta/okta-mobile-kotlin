@@ -17,12 +17,12 @@ package com.okta.directauth.http.handlers
 
 import com.okta.authfoundation.ChallengeGrantType.OobMfa
 import com.okta.authfoundation.ChallengeGrantType.OtpMfa
-import com.okta.authfoundation.ChallengeGrantType.WebAuthnMfa
 import com.okta.directauth.http.DirectAuthChallengeRequest
 import com.okta.directauth.http.EXCEPTION
 import com.okta.directauth.http.INVALID_RESPONSE
-import com.okta.directauth.http.UNSUPPORTED_CONTENT_TYPE
+import com.okta.directauth.http.model.ChallengeApiResponse
 import com.okta.directauth.http.model.ChallengeResponse
+import com.okta.directauth.http.model.WebAuthnChallengeResponse
 import com.okta.directauth.model.BindingContext
 import com.okta.directauth.model.BindingMethod
 import com.okta.directauth.model.DirectAuthContinuation
@@ -46,43 +46,53 @@ internal class ChallengeStepHandler(
         runCatching {
             val apiResponse = context.apiExecutor.execute(request).getOrThrow()
 
-            if (apiResponse.contentType != "application/json") {
-                return InternalError(UNSUPPORTED_CONTENT_TYPE, null, IllegalStateException("Unsupported content type: ${apiResponse.contentType}"))
-            }
+            apiResponse.validateContentType(expectedContentType)?.let { return it }
 
             val httpStatusCode = HttpStatusCode.fromValue(apiResponse.statusCode)
 
             if (httpStatusCode == HttpStatusCode.OK) {
                 val response = apiResponse.body?.takeIf { it.isNotEmpty() } ?: return InternalError(INVALID_RESPONSE, null, IllegalStateException("Empty response body: HTTP $httpStatusCode"))
-                val challengeResponse = context.json.decodeFromString<ChallengeResponse>(response.toString(Charsets.UTF_8))
 
-                val challengeType = challengeResponse.challengeType.asChallengeGrantType()
-                val bindingContext =
-                    with(challengeResponse) {
-                        when (challengeType) {
-                            OobMfa -> {
-                                val oobChannel = OobChannel.fromString(requireNotNull(channel))
-                                val bindingMethod = BindingMethod.fromString(requireNotNull(bindingMethod))
-                                if (bindingMethod == BindingMethod.TRANSFER) requireNotNull(bindingCode)
-                                if (oobChannel == OobChannel.PUSH) requireNotNull(interval)
-
-                                BindingContext(requireNotNull(oobCode), requireNotNull(expiresIn), interval, oobChannel, bindingMethod, bindingCode, challengeType)
-                            }
-
-                            OtpMfa -> {
-                                BindingContext(challengeType, BindingMethod.PROMPT)
-                            }
-
-                            WebAuthnMfa -> {
-                                TODO("https://oktainc.atlassian.net/browse/OKTA-1054126")
-                            }
-                        }
+                when (val challengeApiResponse = context.json.decodeFromString<ChallengeApiResponse>(response.toString(Charsets.UTF_8))) {
+                    is WebAuthnChallengeResponse -> {
+                        return DirectAuthContinuation.WebAuthn(
+                            webAuthnChallengeResponse = challengeApiResponse,
+                            context = context,
+                            mfaContext = mfaContext
+                        )
                     }
 
-                return when (bindingContext.bindingMethod) {
-                    BindingMethod.NONE -> DirectAuthContinuation.OobPending(bindingContext, context, mfaContext)
-                    BindingMethod.PROMPT -> DirectAuthContinuation.Prompt(bindingContext, context, mfaContext)
-                    BindingMethod.TRANSFER -> DirectAuthContinuation.Transfer(bindingContext, context, mfaContext)
+                    is ChallengeResponse -> {
+                        val challengeType = challengeApiResponse.challengeType.asChallengeGrantType()
+
+                        val bindingContext =
+                            with(challengeApiResponse) {
+                                when (challengeType) {
+                                    OobMfa -> {
+                                        val oobChannel = OobChannel.fromString(requireNotNull(channel))
+                                        val bindingMethod = BindingMethod.fromString(requireNotNull(bindingMethod))
+                                        if (bindingMethod == BindingMethod.TRANSFER) requireNotNull(bindingCode)
+                                        if (oobChannel == OobChannel.PUSH) requireNotNull(interval)
+
+                                        BindingContext(requireNotNull(oobCode), requireNotNull(expiresIn), interval, oobChannel, bindingMethod, bindingCode, challengeType)
+                                    }
+
+                                    OtpMfa -> {
+                                        BindingContext(challengeType, BindingMethod.PROMPT)
+                                    }
+
+                                    else -> {
+                                        error("Unsupported challenge type: $challengeType")
+                                    }
+                                }
+                            }
+
+                        return when (bindingContext.bindingMethod) {
+                            BindingMethod.NONE -> DirectAuthContinuation.OobPending(bindingContext, context, mfaContext)
+                            BindingMethod.PROMPT -> DirectAuthContinuation.Prompt(bindingContext, context, mfaContext)
+                            BindingMethod.TRANSFER -> DirectAuthContinuation.Transfer(bindingContext, context, mfaContext)
+                        }
+                    }
                 }
             }
 

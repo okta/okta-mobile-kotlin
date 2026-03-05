@@ -124,7 +124,14 @@ fun AuthenticationFlow(
                     onReset()
                     onResetNav(state.username)
                 },
-                verifyWithSomethingElse = { onSelectAuthenticator(state.username, state.mfaRequired) }
+                verifyWithSomethingElse = { onSelectAuthenticator(state.username, state.mfaRequired) },
+                onStartCeremony = {
+                    if (state.mfaRequired != null) {
+                        onResume("", Mfa.Passkeys, state.mfaRequired)
+                    } else {
+                        onSignIn(state.username, "", Mfa.Passkeys)
+                    }
+                }
             )
         }
 

@@ -15,9 +15,11 @@
  */
 package com.okta.directauth.model
 
+import com.okta.directauth.api.WebAuthnCeremonyHandler
 import com.okta.directauth.http.DirectAuthTokenRequest
 import com.okta.directauth.http.EXCEPTION
 import com.okta.directauth.http.handlers.TokenStepHandler
+import com.okta.directauth.http.model.WebAuthnChallengeResponse
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -106,25 +108,90 @@ sealed class DirectAuthContinuation(
      * A continuation that requires a WebAuthn (passkey) challenge to be completed.
      *
      * This state provides the necessary challenge data to interact with the platform's
-     * WebAuthn/passkey APIs.
+     * WebAuthn/passkey APIs. There are two ways to proceed:
      *
-     * @param challengeData The challenge data from the server, to be passed to the platform's WebAuthn API.
+     * 1. **Recommended**: Use [proceed] with a [WebAuthnCeremonyHandler] to let the SDK
+     *    orchestrate the platform ceremony and token exchange.
+     * 2. **Lower-level**: Perform the ceremony yourself and pass the result to [proceed]
+     *    with a [WebAuthnAssertionResponse].
+     *
      * @param context The [DirectAuthenticationContext] associated with this state.
      * @param mfaContext An optional context for MFA flows.
      */
     class WebAuthn internal constructor(
-        val challengeData: String,
+        private val webAuthnChallengeResponse: WebAuthnChallengeResponse,
         context: DirectAuthenticationContext,
         mfaContext: MfaContext? = null,
     ) : DirectAuthContinuation(context, mfaContext) {
         /**
-         * Proceeds with the authentication flow with the response from the WebAuthn/passkey ceremony.
+         * Retrieves the raw JSON string representing the WebAuthn challenge data.
          *
-         * @param authenticationResponseJson The JSON response from the platform's WebAuthn API.
+         * The challenge data is required to perform the WebAuthn ceremony (assertion) on the platform.
+         *
+         * The returned [Result] wraps the operation to handle potential parsing or serialization errors.
+         * If the challenge data cannot be extracted or serialized to JSON, a [Result.failure]
+         * is returned containing the exception details.
+         */
+        fun challengeData(): Result<String> =
+            runCatching {
+                Result.success(webAuthnChallengeResponse.challengeData(context.json, context.issuerUrl))
+            }.getOrElse {
+                Result.failure(it)
+            }
+
+        /**
+         * The list of authenticator enrollments returned from the Okta server.
+         */
+        val authenticatorEnrollment = webAuthnChallengeResponse.authenticatorEnrollments
+
+        /**
+         * Proceeds with the authentication flow by delegating the WebAuthn ceremony to the
+         * provided [handler], then exchanging the assertion response for tokens.
+         *
+         * This is the recommended approach. The SDK orchestrates the full flow.
+         *
+         * @param handler A platform-specific [WebAuthnCeremonyHandler] (e.g., `AndroidWebAuthnCeremonyHandler`).
          * @return The next [DirectAuthenticationState] in the flow.
          */
-        suspend fun proceed(authenticationResponseJson: String): DirectAuthenticationState {
-            TODO("Not yet implemented")
+        suspend fun proceed(handler: WebAuthnCeremonyHandler): DirectAuthenticationState {
+            val data =
+                challengeData().getOrElse {
+                    return DirectAuthenticationError.InternalError(EXCEPTION, "Challenge data retrieval failed: ${it.message}", it)
+                }
+            val assertionResponse =
+                handler.performAssertion(data).getOrElse {
+                    val error = DirectAuthenticationError.InternalError(EXCEPTION, "WebAuthn ceremony failed: ${it.message}", it)
+                    context.authenticationStateFlow.value = error
+                    return error
+                }
+            return proceed(assertionResponse)
+        }
+
+        /**
+         * Proceeds with the authentication flow using a pre-obtained WebAuthn assertion response.
+         *
+         * Use this when the application performs the platform WebAuthn ceremony itself and
+         * wants to exchange the result for tokens.
+         *
+         * @param assertionResponse The [WebAuthnAssertionResponse] from the platform's WebAuthn API.
+         * @return The next [DirectAuthenticationState] in the flow.
+         */
+        suspend fun proceed(assertionResponse: WebAuthnAssertionResponse): DirectAuthenticationState {
+            val request =
+                mfaContext?.let {
+                    DirectAuthTokenRequest.WebAuthnMfa(context, mfaContext, assertionResponse)
+                } ?: DirectAuthTokenRequest.WebAuthn(context, assertionResponse)
+
+            val result =
+                runCatching { TokenStepHandler(request, context).process() }.getOrElse {
+                    if (it is CancellationException) {
+                        DirectAuthenticationState.Canceled
+                    } else {
+                        DirectAuthenticationError.InternalError(EXCEPTION, it.message, it)
+                    }
+                }
+            context.authenticationStateFlow.value = result
+            return result
         }
     }
 

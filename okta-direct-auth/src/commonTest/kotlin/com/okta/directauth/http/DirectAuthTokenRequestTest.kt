@@ -39,6 +39,7 @@ import com.okta.directauth.model.DirectAuthenticationError.InternalError
 import com.okta.directauth.model.DirectAuthenticationIntent
 import com.okta.directauth.model.DirectAuthenticationState
 import com.okta.directauth.model.MfaContext
+import com.okta.directauth.model.WebAuthnAssertionResponse
 import com.okta.directauth.notJsonMockEngine
 import com.okta.directauth.oAuth2ErrorMockEngine
 import com.okta.directauth.serverErrorMockEngine
@@ -52,6 +53,7 @@ import kotlinx.serialization.SerializationException
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
@@ -219,9 +221,11 @@ class DirectAuthTokenRequestTest {
         val request =
             DirectAuthTokenRequest.WebAuthn(
                 context = context,
-                authenticatorData = "test_authenticator_data",
-                clientDataJson = "test_client_data_json",
-                signature = "test_signature"
+                WebAuthnAssertionResponse(
+                    authenticatorData = "test_authenticator_data",
+                    clientDataJSON = "test_client_data_json",
+                    signature = "test_signature"
+                )
             )
 
         assertCommonProperties(request)
@@ -231,18 +235,39 @@ class DirectAuthTokenRequestTest {
         assertEquals(listOf("test_authenticator_data"), formParameters["authenticatorData"])
         assertEquals(listOf("test_client_data_json"), formParameters["clientDataJSON"])
         assertEquals(listOf("test_signature"), formParameters["signature"])
+        assertFalse(formParameters.containsKey("userHandle"))
+    }
+
+    @Test
+    fun webAuthnRequest_includesUserHandleWhenProvided() {
+        val request =
+            DirectAuthTokenRequest.WebAuthn(
+                context = context,
+                WebAuthnAssertionResponse(
+                    authenticatorData = "test_authenticator_data",
+                    clientDataJSON = "test_client_data_json",
+                    signature = "test_signature",
+                    userHandle = "test_user_handle"
+                )
+            )
+
+        val formParameters = request.formParameters()
+        assertEquals(listOf("test_user_handle"), formParameters["userHandle"])
     }
 
     @Test
     fun webAuthnMfaRequest_buildsRequestWithCorrectParameters() {
         val mfaContext = MfaContext(supportedGrantTypes, "test_mfa_token")
+
         val request =
             DirectAuthTokenRequest.WebAuthnMfa(
                 context = context,
                 mfaContext = mfaContext,
-                authenticatorData = "test_authenticator_data",
-                clientDataJson = "test_client_data_json",
-                signature = "test_signature"
+                WebAuthnAssertionResponse(
+                    authenticatorData = "test_authenticator_data",
+                    clientDataJSON = "test_client_data_json",
+                    signature = "test_signature"
+                )
             )
 
         assertCommonProperties(request)
@@ -253,6 +278,26 @@ class DirectAuthTokenRequestTest {
         assertEquals(listOf("test_authenticator_data"), formParameters["authenticatorData"])
         assertEquals(listOf("test_client_data_json"), formParameters["clientDataJSON"])
         assertEquals(listOf("test_signature"), formParameters["signature"])
+        assertFalse(formParameters.containsKey("userHandle"))
+    }
+
+    @Test
+    fun webAuthnMfaRequest_includesUserHandleWhenProvided() {
+        val mfaContext = MfaContext(supportedGrantTypes, "test_mfa_token")
+        val request =
+            DirectAuthTokenRequest.WebAuthnMfa(
+                context = context,
+                mfaContext = mfaContext,
+                WebAuthnAssertionResponse(
+                    authenticatorData = "test_authenticator_data",
+                    clientDataJSON = "test_client_data_json",
+                    signature = "test_signature",
+                    userHandle = "test_user_handle"
+                )
+            )
+
+        val formParameters = request.formParameters()
+        assertEquals(listOf("test_user_handle"), formParameters["userHandle"])
     }
 
     @Test

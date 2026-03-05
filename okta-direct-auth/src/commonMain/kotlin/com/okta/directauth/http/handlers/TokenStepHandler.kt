@@ -19,7 +19,6 @@ import com.okta.authfoundation.client.TokenInfo
 import com.okta.directauth.http.DirectAuthTokenRequest
 import com.okta.directauth.http.EXCEPTION
 import com.okta.directauth.http.INVALID_RESPONSE
-import com.okta.directauth.http.UNSUPPORTED_CONTENT_TYPE
 import com.okta.directauth.http.model.TokenResponse
 import com.okta.directauth.model.DirectAuthenticationContext
 import com.okta.directauth.model.DirectAuthenticationError.HttpError.Oauth2Error
@@ -57,9 +56,7 @@ internal class TokenStepHandler(
         runCatching {
             val apiResponse = context.apiExecutor.execute(request).getOrThrow()
 
-            if (apiResponse.contentType != "application/json") {
-                return InternalError(UNSUPPORTED_CONTENT_TYPE, null, IllegalStateException("Unsupported content type: ${apiResponse.contentType}"))
-            }
+            apiResponse.validateContentType(expectedContentType)?.let { return it }
 
             val httpStatusCode = HttpStatusCode.fromValue(apiResponse.statusCode)
 

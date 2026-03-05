@@ -33,10 +33,10 @@ import io.ktor.client.engine.mock.MockEngine
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.test.runTest
 import kotlin.test.BeforeTest
-import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
+import kotlin.test.assertTrue
 
 class DirectAuthenticationStateMfaRequiredTest {
     private lateinit var mfaContext: MfaContext
@@ -173,15 +173,16 @@ class DirectAuthenticationStateMfaRequiredTest {
         }
 
     @Test
-    @Ignore("WebAuthn is not yet supported")
     fun `challenge with WebAuthn calls returns WebAuthn state`() =
         runTest {
             val context = createDirectAuthenticationContext(KtorHttpExecutor(HttpClient(challengeWebAuthnResponseMockEngine)))
             val mfaRequired = DirectAuthenticationState.MfaRequired(context, mfaContext)
 
-            val result = mfaRequired.resume(PrimaryFactor.WebAuthn)
+            val result = mfaRequired.challenge(PrimaryFactor.WebAuthn)
 
             assertIs<DirectAuthContinuation.WebAuthn>(result)
+            assertTrue(result.challengeData().getOrThrow().contains("challenge"))
+            assertTrue(result.challengeData().getOrThrow().contains("rpId"))
         }
 
     @Test
@@ -243,7 +244,6 @@ class DirectAuthenticationStateMfaRequiredTest {
         }
 
     @Test
-    @Ignore("WebAuthn is not yet supported")
     fun `resume with WebAuthn calls returns WebAuthn state`() =
         runTest {
             val context = createDirectAuthenticationContext(KtorHttpExecutor(HttpClient(challengeWebAuthnResponseMockEngine)))
@@ -252,5 +252,7 @@ class DirectAuthenticationStateMfaRequiredTest {
             val result = mfaRequired.resume(PrimaryFactor.WebAuthn)
 
             assertIs<DirectAuthContinuation.WebAuthn>(result)
+            assertTrue(result.challengeData().getOrThrow().contains("challenge"))
+            assertTrue(result.challengeData().getOrThrow().contains("rpId"))
         }
 }
