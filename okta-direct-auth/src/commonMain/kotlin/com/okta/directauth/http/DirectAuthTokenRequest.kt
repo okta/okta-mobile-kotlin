@@ -21,6 +21,7 @@ import com.okta.authfoundation.api.http.ApiRequestMethod
 import com.okta.directauth.model.DirectAuthenticationContext
 import com.okta.directauth.model.DirectAuthenticationIntent
 import com.okta.directauth.model.MfaContext
+import com.okta.directauth.model.WebAuthnAssertionResponse
 
 sealed class DirectAuthTokenRequest(
     internal val context: DirectAuthenticationContext,
@@ -124,35 +125,33 @@ sealed class DirectAuthTokenRequest(
 
     class WebAuthn internal constructor(
         context: DirectAuthenticationContext,
-        private val authenticatorData: String,
-        private val clientDataJson: String,
-        private val signature: String,
+        private val assertionResponse: WebAuthnAssertionResponse,
     ) : DirectAuthTokenRequest(context) {
         override fun formParameters(): Map<String, List<String>> =
             buildMap {
                 putAll(context.formParameters())
                 put("grant_type", listOf(GrantType.WebAuthn.value))
-                put("authenticatorData", listOf(authenticatorData))
-                put("clientDataJSON", listOf(clientDataJson))
-                put("signature", listOf(signature))
+                put("authenticatorData", listOf(assertionResponse.authenticatorData))
+                put("clientDataJSON", listOf(assertionResponse.clientDataJSON))
+                put("signature", listOf(assertionResponse.signature))
+                assertionResponse.userHandle?.let { put("userHandle", listOf(it)) }
             }
     }
 
     class WebAuthnMfa internal constructor(
         context: DirectAuthenticationContext,
         private val mfaContext: MfaContext,
-        private val authenticatorData: String,
-        private val clientDataJson: String,
-        private val signature: String,
+        private val assertionResponse: WebAuthnAssertionResponse,
     ) : DirectAuthTokenRequest(context) {
         override fun formParameters(): Map<String, List<String>> =
             buildMap {
                 putAll(context.formParameters())
                 put("mfa_token", listOf(mfaContext.mfaToken))
                 put("grant_type", listOf(ChallengeGrantType.WebAuthnMfa.value))
-                put("authenticatorData", listOf(authenticatorData))
-                put("clientDataJSON", listOf(clientDataJson))
-                put("signature", listOf(signature))
+                put("authenticatorData", listOf(assertionResponse.authenticatorData))
+                put("clientDataJSON", listOf(assertionResponse.clientDataJSON))
+                put("signature", listOf(assertionResponse.signature))
+                assertionResponse.userHandle?.let { put("userHandle", listOf(it)) }
             }
     }
 }

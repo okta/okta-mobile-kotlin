@@ -13,19 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.okta.directauth.http.handlers
+package com.okta.directauth.app.platform
 
-import com.okta.authfoundation.api.http.ApiFormRequest
-import com.okta.directauth.model.DirectAuthenticationContext
-import com.okta.directauth.model.DirectAuthenticationState
+import androidx.compose.runtime.Composable
+import com.okta.directauth.api.WebAuthnCeremonyHandler
 
-internal interface StepHandler {
-    val request: ApiFormRequest
-
-    val context: DirectAuthenticationContext
-
-    val expectedContentType: String
-        get() = "application/json"
-
-    suspend fun process(): DirectAuthenticationState
-}
+@Composable
+actual fun rememberWebAuthnCeremonyHandler(): WebAuthnCeremonyHandler? = null

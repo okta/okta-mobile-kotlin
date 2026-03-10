@@ -27,6 +27,7 @@ import kotlinx.serialization.SerializationException
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
+import kotlin.test.assertTrue
 
 class DirectAuthenticationFlowImplTest {
     private val issuerUrl = "https://example.okta.com"
@@ -121,18 +122,18 @@ class DirectAuthenticationFlowImplTest {
         }
 
     @Test
-    fun start_withWebAuthnFactor_returnsInternalError() =
+    fun start_withWebAuthnFactor_returnsWebAuthnContinuation() =
         runTest {
             val flow =
                 DirectAuthenticationFlowBuilder
                     .create(issuerUrl, clientId, scope) {
-                        apiExecutor = KtorHttpExecutor(HttpClient(tokenResponseMockEngine))
+                        apiExecutor = KtorHttpExecutor(HttpClient(primaryAuthenticateWebAuthnResponseMockEngine))
                     }.getOrThrow()
 
             val state = flow.start("test_user", PrimaryFactor.WebAuthn)
 
-            assertIs<DirectAuthenticationError.InternalError>(state)
-            assertIs<NotImplementedError>(state.throwable)
+            assertIs<DirectAuthContinuation.WebAuthn>(state)
+            assertTrue(state.challengeData().getOrThrow().contains("challenge"))
             assertEquals(state, flow.authenticationState.value)
         }
 

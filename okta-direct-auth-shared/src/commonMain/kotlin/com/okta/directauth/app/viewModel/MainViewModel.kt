@@ -21,6 +21,7 @@ import com.okta.authfoundation.ChallengeGrantType
 import com.okta.authfoundation.api.http.KtorHttpExecutor
 import com.okta.directauth.DirectAuthenticationFlowBuilder
 import com.okta.directauth.api.DirectAuthenticationFlow
+import com.okta.directauth.api.WebAuthnCeremonyHandler
 import com.okta.directauth.app.AppConfig
 import com.okta.directauth.app.http.MyAccountReplacePasswordRequest
 import com.okta.directauth.app.model.AuthMethod
@@ -30,6 +31,7 @@ import com.okta.directauth.model.DirectAuthContinuation
 import com.okta.directauth.model.DirectAuthenticationIntent
 import com.okta.directauth.model.DirectAuthenticationState
 import com.okta.directauth.model.PrimaryFactor
+import com.okta.directauth.model.WebAuthnAssertionResponse
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -266,6 +268,49 @@ class MainViewModel : ViewModel() {
         return viewModelScope.launch {
             AppLogger.write(TAG, "Proceeding with transfer continuation (expires in ${transfer.expirationInSeconds}s)")
             transfer.proceed()
+        }
+    }
+
+    /**
+     * Proceeds with the WebAuthn authentication flow using a [WebAuthnCeremonyHandler].
+     *
+     * Called when the authentication state is [DirectAuthContinuation.WebAuthn]. The handler
+     * orchestrates the platform WebAuthn ceremony (e.g., using Android Credential Manager)
+     * and exchanges the assertion response for tokens.
+     *
+     * @param webAuthn The WebAuthn continuation state
+     * @param handler The platform-specific [WebAuthnCeremonyHandler]
+     * @return Job representing the WebAuthn operation
+     */
+    fun webAuthn(
+        webAuthn: DirectAuthContinuation.WebAuthn,
+        handler: WebAuthnCeremonyHandler,
+    ): Job {
+        AppLogger.write(TAG, "webAuthn() called - starting WebAuthn ceremony")
+        return viewModelScope.launch {
+            AppLogger.write(TAG, "Proceeding with WebAuthn ceremony via handler")
+            webAuthn.proceed(handler)
+        }
+    }
+
+    /**
+     * Proceeds with the WebAuthn authentication flow using a pre-obtained assertion response.
+     *
+     * This is the lower-level approach where the app performs the ceremony itself and passes
+     * the result to the SDK for token exchange.
+     *
+     * @param webAuthn The WebAuthn continuation state
+     * @param assertionResponse The assertion response from the platform WebAuthn API
+     * @return Job representing the token exchange operation
+     */
+    fun webAuthnManual(
+        webAuthn: DirectAuthContinuation.WebAuthn,
+        assertionResponse: WebAuthnAssertionResponse,
+    ): Job {
+        AppLogger.write(TAG, "webAuthnManual() called - exchanging assertion response for tokens")
+        return viewModelScope.launch {
+            AppLogger.write(TAG, "Proceeding with WebAuthn assertion response")
+            webAuthn.proceed(assertionResponse)
         }
     }
 

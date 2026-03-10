@@ -5,6 +5,7 @@ This application demonstrates how to use the Okta Direct Authentication SDK for 
 ## Features
 
 *   Sign in with a username and password.
+*   WebAuthn/Passkey authentication (primary and MFA). (Requires server support)
 *   Multi-factor authentication (MFA) with Okta Verify, One-Time Passwords (OTP), and more.
 *   Self-service password recovery (SSPR).
 

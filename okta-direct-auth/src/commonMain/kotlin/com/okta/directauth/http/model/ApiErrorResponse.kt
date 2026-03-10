@@ -15,10 +15,25 @@
  */
 package com.okta.directauth.http.model
 
+import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonContentPolymorphicSerializer
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.jsonObject
 
-@Serializable
+internal object ApiErrorResponseSerializer : JsonContentPolymorphicSerializer<ApiErrorResponse>(ApiErrorResponse::class) {
+    override fun selectDeserializer(element: JsonElement): DeserializationStrategy<ApiErrorResponse> {
+        val jsonObject = element.jsonObject
+        return when {
+            "error" in jsonObject -> DirectAuthenticationErrorResponse.serializer()
+            "errorCode" in jsonObject -> ErrorResponse.serializer()
+            else -> throw IllegalArgumentException("Unrecognized error response structure: ${jsonObject.keys}")
+        }
+    }
+}
+
+@Serializable(with = ApiErrorResponseSerializer::class)
 sealed interface ApiErrorResponse
 
 @Serializable

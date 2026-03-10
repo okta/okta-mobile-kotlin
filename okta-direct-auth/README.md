@@ -29,7 +29,7 @@ Unlike browser-based authentication flows, Direct Authentication gives you full 
 - Password authentication
 - One-Time Passcode (OTP)
 - Out-of-Band authentication (Push, SMS, Voice)
-- WebAuthn/Passkeys (Coming soon)
+- WebAuthn/Passkeys
 - Multi-Factor Authentication (MFA)
 - Self-Service Password Recovery (SSPR)
 
@@ -124,6 +124,9 @@ viewModelScope.launch {
             }
             is DirectAuthContinuation.Transfer -> {
                 // Device transfer with binding code
+            }
+            is DirectAuthContinuation.WebAuthn -> {
+                // WebAuthn/Passkey challenge, perform platform ceremony
             }
             is DirectAuthenticationError -> {
                 // Handle error
@@ -270,6 +273,47 @@ when (val state = directAuth.authenticationState.value) {
 }
 ```
 
+#### WebAuthn/Passkeys
+
+When using WebAuthn (either as a primary factor or MFA), the flow enters a `WebAuthn` state with the server's challenge data. There are two ways to proceed:
+
+**Recommended: Using a `WebAuthnCeremonyHandler`**
+
+The SDK provides `AndroidWebAuthnCeremonyHandler` for Android, which uses the Credential Manager API to perform the platform ceremony:
+
+```kotlin
+import com.okta.directauth.webauthn.AndroidWebAuthnCeremonyHandler
+
+when (val state = directAuth.authenticationState.value) {
+    is DirectAuthContinuation.WebAuthn -> {
+        val handler = AndroidWebAuthnCeremonyHandler(activity)
+        state.proceed(handler)
+    }
+}
+```
+
+**Manual: Performing the ceremony yourself**
+
+If you need full control over the WebAuthn ceremony, perform it yourself and pass the assertion response:
+
+```kotlin
+import com.okta.directauth.model.WebAuthnAssertionResponse
+
+when (val state = directAuth.authenticationState.value) {
+    is DirectAuthContinuation.WebAuthn -> {
+        val challengeData = state.challengeData().getOrThrow() // Raw JSON for the platform API
+        // ... perform platform WebAuthn ceremony ...
+        val response = WebAuthnAssertionResponse(
+            clientDataJSON = clientDataJSON,
+            authenticatorData = authenticatorData,
+            signature = signature,
+            userHandle = userHandle
+        )
+        state.proceed(response)
+    }
+}
+```
+
 ### Handling Errors
 
 Authentication errors are emitted as `DirectAuthenticationError`:
@@ -377,6 +421,18 @@ class AuthViewModel : ViewModel() {
         }
     }
 
+    fun signInWithWebAuthn(username: String) {
+        viewModelScope.launch {
+            directAuth.start(username, PrimaryFactor.WebAuthn)
+        }
+    }
+
+    fun handleWebAuthn(webAuthn: DirectAuthContinuation.WebAuthn, handler: WebAuthnCeremonyHandler) {
+        viewModelScope.launch {
+            webAuthn.proceed(handler)
+        }
+    }
+
     fun reset() {
         directAuth.reset()
     }
@@ -388,7 +444,8 @@ class AuthViewModel : ViewModel() {
 For a complete working example, see the `okta-direct-auth-app` module in this repository. It demonstrates:
 
 - Username/password authentication
-- MFA with multiple factors (OTP, Push, SMS, Voice)
+- MFA with multiple factors (OTP, Push, SMS, Voice, WebAuthn)
+- WebAuthn/Passkey authentication (primary and MFA)
 - Out-of-band polling with countdown timers
 - Device transfer with binding codes
 - Self-service password recovery
