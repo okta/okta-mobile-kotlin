@@ -100,6 +100,7 @@ sealed interface DirectAuthenticationState {
          * while waiting for the user to complete the challenge, or an error state if the challenge
          * could not be initiated.
          */
+        @JvmOverloads
         suspend fun challenge(
             secondaryFactor: SecondaryFactor,
             challengeTypesSupported: List<ChallengeGrantType> = listOf(WebAuthnMfa, OobMfa, OtpMfa),
@@ -135,6 +136,7 @@ sealed interface DirectAuthenticationState {
          * @return The next [DirectAuthenticationState] in the flow, which could be [Authenticated],
          *   [AuthorizationPending], or an error state.
          */
+        @JvmOverloads
         suspend fun resume(
             secondaryFactor: SecondaryFactor,
             challengeTypesSupported: List<ChallengeGrantType> = listOf(WebAuthnMfa, OobMfa, OtpMfa),

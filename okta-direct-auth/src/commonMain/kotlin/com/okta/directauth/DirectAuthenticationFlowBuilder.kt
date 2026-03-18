@@ -136,6 +136,8 @@ class DirectAuthenticationFlowBuilder private constructor() {
          * @return A [Result] containing the configured [DirectAuthenticationFlow] on success,
          * or an exception on failure.
          */
+        @JvmStatic
+        @JvmOverloads
         fun create(
             issuerUrl: String,
             clientId: String,

@@ -15,7 +15,9 @@ spotless {
     java {
         target("**/*.java")
         licenseHeaderFile("${rootDir}/config/license")
-        googleJavaFormat().aosp()
+        googleJavaFormat()
+        removeUnusedImports()
+        custom("no star imports", NoStarImportsStep())
         endWithNewline()
     }
 

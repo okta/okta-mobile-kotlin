@@ -77,7 +77,7 @@ kotlin {
 
         jvmMain {
             dependencies {
-                // Put JVM platform specific dependencies here
+                implementation(libs.coroutines.jdk8)
             }
         }
 
@@ -92,6 +92,7 @@ kotlin {
         jvmTest {
             dependencies {
                 implementation(libs.ktor.client.mock.jvm)
+                implementation(libs.kotlin.serialization.json)
                 implementation(libs.junit)
                 implementation(libs.mockk)
                 implementation(libs.hamcrest)
