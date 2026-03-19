@@ -155,7 +155,10 @@ public final class ConsoleView implements AuthViewModelListener {
   private void promptAuthenticator() {
     AuthMethod[] methods;
     if (viewModel.isRecoveryMode()) {
-      methods = new AuthMethod[] {AuthMethod.PASSWORD, AuthMethod.OTP};
+      methods =
+          new AuthMethod[] {
+            AuthMethod.OTP, AuthMethod.SMS, AuthMethod.VOICE, AuthMethod.OKTA_VERIFY
+          };
     } else {
       methods = AuthMethod.values();
     }
@@ -216,7 +219,13 @@ public final class ConsoleView implements AuthViewModelListener {
       viewModel.navigateTo(CliScreen.SELECT_AUTHENTICATOR);
       return;
     }
-    viewModel.submitMfaOtp(code);
+    if (viewModel.getCurrentAuthState() == null) {
+      // Initial authentication with OTP — no auth state yet
+      viewModel.authenticate(code);
+    } else {
+      // MFA or continuation — auth state already exists
+      viewModel.submitMfaOtp(code);
+    }
     viewModel.waitForResult();
   }
 

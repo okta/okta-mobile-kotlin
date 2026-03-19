@@ -20,12 +20,14 @@ import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.okta.directauth.cli.model.CliScreen;
 import com.okta.directauth.cli.model.TokenDisplay;
 import com.okta.directauth.cli.viewmodel.AuthViewModel;
+import com.okta.directauth.jvm.PromptContinuation;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -151,5 +153,107 @@ public class ConsoleViewTest {
     view.run();
 
     verify(output, atLeastOnce()).print(contains("=== Okta Direct Auth CLI ==="));
+  }
+
+  @Test
+  public void recoveryMode_DoesNotShowPassword() {
+    when(viewModel.isRecoveryMode()).thenReturn(true);
+    when(viewModel.getCurrentScreen())
+        .thenReturn(CliScreen.SELECT_AUTHENTICATOR)
+        .thenReturn(CliScreen.MAIN_MENU);
+    when(input.readKey(anyString())).thenReturn("0", "3");
+
+    doAnswer(
+            invocation -> {
+              when(viewModel.getCurrentScreen()).thenReturn(CliScreen.MAIN_MENU);
+              return null;
+            })
+        .when(viewModel)
+        .navigateTo(CliScreen.USERNAME_INPUT);
+
+    ConsoleView view = new ConsoleView(viewModel, input, output, false, null);
+    view.run();
+
+    // "] Password" would appear in numbered menu if Password were an option
+    verify(output, never()).print(contains("] Password"));
+    verify(output, atLeastOnce()).print(contains("OTP"));
+    verify(output, atLeastOnce()).print(contains("SMS"));
+    verify(output, atLeastOnce()).print(contains("Voice"));
+    verify(output, atLeastOnce()).print(contains("Push (Okta Verify)"));
+  }
+
+  @Test
+  public void signInMode_ShowsAllAuthMethods() {
+    when(viewModel.isRecoveryMode()).thenReturn(false);
+    when(viewModel.getCurrentScreen())
+        .thenReturn(CliScreen.SELECT_AUTHENTICATOR)
+        .thenReturn(CliScreen.MAIN_MENU);
+    when(input.readKey(anyString())).thenReturn("0", "3");
+
+    doAnswer(
+            invocation -> {
+              when(viewModel.getCurrentScreen()).thenReturn(CliScreen.MAIN_MENU);
+              return null;
+            })
+        .when(viewModel)
+        .navigateTo(CliScreen.USERNAME_INPUT);
+
+    ConsoleView view = new ConsoleView(viewModel, input, output, false, null);
+    view.run();
+
+    verify(output, atLeastOnce()).print(contains("Password"));
+    verify(output, atLeastOnce()).print(contains("OTP"));
+    verify(output, atLeastOnce()).print(contains("SMS"));
+    verify(output, atLeastOnce()).print(contains("Voice"));
+    verify(output, atLeastOnce()).print(contains("Push (Okta Verify)"));
+  }
+
+  @Test
+  public void codeEntry_NoAuthState_CallsAuthenticate() {
+    when(viewModel.getCurrentAuthState()).thenReturn(null);
+    when(viewModel.getCurrentScreen())
+        .thenReturn(CliScreen.CODE_ENTRY)
+        .thenReturn(CliScreen.MAIN_MENU);
+    when(input.readLine(anyString())).thenReturn("123456");
+    when(input.readKey(anyString())).thenReturn("3");
+
+    doAnswer(
+            invocation -> {
+              when(viewModel.getCurrentScreen()).thenReturn(CliScreen.MAIN_MENU);
+              return null;
+            })
+        .when(viewModel)
+        .authenticate("123456");
+
+    ConsoleView view = new ConsoleView(viewModel, input, output, false, null);
+    view.run();
+
+    verify(viewModel).authenticate("123456");
+    verify(viewModel, never()).submitMfaOtp(anyString());
+  }
+
+  @Test
+  public void codeEntry_WithAuthState_CallsSubmitMfaOtp() {
+    PromptContinuation promptState = mock(PromptContinuation.class);
+    when(viewModel.getCurrentAuthState()).thenReturn(promptState);
+    when(viewModel.getCurrentScreen())
+        .thenReturn(CliScreen.CODE_ENTRY)
+        .thenReturn(CliScreen.MAIN_MENU);
+    when(input.readLine(anyString())).thenReturn("654321");
+    when(input.readKey(anyString())).thenReturn("3");
+
+    doAnswer(
+            invocation -> {
+              when(viewModel.getCurrentScreen()).thenReturn(CliScreen.MAIN_MENU);
+              return null;
+            })
+        .when(viewModel)
+        .submitMfaOtp("654321");
+
+    ConsoleView view = new ConsoleView(viewModel, input, output, false, null);
+    view.run();
+
+    verify(viewModel).submitMfaOtp("654321");
+    verify(viewModel, never()).authenticate(anyString());
   }
 }
