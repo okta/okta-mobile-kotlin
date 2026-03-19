@@ -18,6 +18,7 @@ This SDK consists of several different libraries, each with detailed documentati
 - [OktaIdx](okta-idx-kotlin/README.md) -- Okta's Identity Engine support using Okta's IDX API for native browserless authentication.
 - [OktaDirectAuth](okta-direct-auth/README.md) -- Direct Authentication capabilities for advanced browserless authentication, including Java compatibility with `CompletableFuture` async API.
 - [Sample App](app/README.md) -- Sample application demonstrating OAuth2 flows using the SDK.
+- [Java CLI Sample](okta-direct-auth-java-cli-sample/README.md) -- Pure Java CLI application demonstrating Direct Authentication with `CompletableFuture` API, including MFA and password recovery.
 
 ## Support Policy
 
