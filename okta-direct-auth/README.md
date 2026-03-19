@@ -17,7 +17,8 @@ Authenticate users using Okta's Direct Authentication API, enabling native sign-
   - [Handling Errors](#handling-errors)
   - [Resetting the Flow](#resetting-the-flow)
 - [Complete Example](#complete-example)
-- [Sample Application](#sample-application)
+- [Java Usage (CompletableFuture API)](#java-usage-completablefuture-api)
+- [Sample Applications](#sample-applications)
 - [Additional Resources](#additional-resources)
 
 ## Overview
@@ -439,9 +440,122 @@ class AuthViewModel : ViewModel() {
 }
 ```
 
-## Sample Application
+## Java Usage (CompletableFuture API)
 
-For a complete working example, see the `okta-direct-auth-app` module in this repository. It demonstrates:
+The `okta-direct-auth` module provides a Java-compatible API using `CompletableFuture` for projects that cannot use Kotlin coroutines. All JVM wrapper classes are in the `com.okta.directauth.jvm` package.
+
+### Creating a Flow (Java)
+
+```java
+import com.okta.directauth.jvm.DirectAuthResult;
+import com.okta.directauth.jvm.DirectAuthenticationFlow;
+import com.okta.directauth.jvm.DirectAuthenticationFlowBuilder;
+import com.okta.directauth.model.DirectAuthenticationIntent;
+import java.util.List;
+
+DirectAuthResult<DirectAuthenticationFlow> result =
+    new DirectAuthenticationFlowBuilder(
+            "https://your-org.okta.com",
+            "your-client-id",
+            List.of("openid", "profile", "email"))
+        .setAuthorizationServerId("default")
+        .setIntent(DirectAuthenticationIntent.SIGN_IN)
+        .build();
+
+DirectAuthenticationFlow flow = result.getOrThrow();
+```
+
+### Starting Authentication (Java)
+
+```java
+import com.okta.directauth.jvm.DirectAuthenticationState;
+import com.okta.directauth.model.PrimaryFactor;
+import java.util.concurrent.CompletableFuture;
+
+// Password
+CompletableFuture<DirectAuthenticationState> future =
+    flow.startAsync("user@example.com", new PrimaryFactor.Password("user-password"));
+
+future.thenAccept(state -> {
+    if (state instanceof DirectAuthenticationState.Authenticated) {
+        DirectAuthenticationState.Authenticated auth =
+            (DirectAuthenticationState.Authenticated) state;
+        String accessToken = auth.getToken().getAccessToken();
+    }
+});
+```
+
+### Handling MFA (Java)
+
+```java
+import com.okta.authfoundation.ChallengeGrantType;
+import com.okta.directauth.jvm.MfaRequired;
+import com.okta.directauth.model.OobChannel;
+import com.okta.directauth.model.SecondaryFactor;
+
+if (state instanceof MfaRequired) {
+    MfaRequired mfaRequired = (MfaRequired) state;
+
+    // Resume with OTP
+    CompletableFuture<DirectAuthenticationState> mfaFuture =
+        mfaRequired.resumeAsync(
+            new PrimaryFactor.Otp("123456"),
+            List.of(ChallengeGrantType.OtpMfa.INSTANCE));
+
+    // Or challenge with Push
+    CompletableFuture<DirectAuthenticationState> challengeFuture =
+        mfaRequired.challengeAsync(
+            new PrimaryFactor.Oob(OobChannel.PUSH),
+            List.of(ChallengeGrantType.OobMfa.INSTANCE));
+}
+```
+
+### Handling Continuations (Java)
+
+```java
+import com.okta.directauth.jvm.OobPendingContinuation;
+import com.okta.directauth.jvm.PromptContinuation;
+import com.okta.directauth.jvm.TransferContinuation;
+
+// OOB Polling
+if (state instanceof OobPendingContinuation) {
+    OobPendingContinuation oob = (OobPendingContinuation) state;
+    CompletableFuture<DirectAuthenticationState> pollFuture = oob.proceedAsync();
+}
+
+// Device Transfer (show binding code, then poll)
+if (state instanceof TransferContinuation) {
+    TransferContinuation transfer = (TransferContinuation) state;
+    String bindingCode = transfer.getBindingCode();
+    CompletableFuture<DirectAuthenticationState> transferFuture = transfer.proceedAsync();
+}
+
+// Prompt (submit additional code)
+if (state instanceof PromptContinuation) {
+    PromptContinuation prompt = (PromptContinuation) state;
+    CompletableFuture<DirectAuthenticationState> promptFuture =
+        prompt.proceedAsync("user-entered-code");
+}
+```
+
+### Handling Errors (Java)
+
+```java
+if (state instanceof DirectAuthenticationState.Error) {
+    DirectAuthenticationState.Error error = (DirectAuthenticationState.Error) state;
+    // Check specific error subtypes
+}
+```
+
+### Complete Java Example
+
+See the [Java CLI Sample](../okta-direct-auth-java-cli-sample/README.md) for a complete working application demonstrating password authentication, MFA, device transfer, and self-service password recovery using the `CompletableFuture` API.
+
+## Sample Applications
+
+### Kotlin (Compose)
+
+See the `okta-direct-auth-app` module in this repository. It demonstrates:
 
 - Username/password authentication
 - MFA with multiple factors (OTP, Push, SMS, Voice, WebAuthn)
@@ -450,6 +564,16 @@ For a complete working example, see the `okta-direct-auth-app` module in this re
 - Device transfer with binding codes
 - Self-service password recovery
 - Error handling and recovery
+
+### Java (CLI)
+
+See the [okta-direct-auth-java-cli-sample](../okta-direct-auth-java-cli-sample/README.md) module. A pure Java CLI application demonstrating:
+
+- Password authentication with `CompletableFuture` API
+- MFA with OTP, SMS, Voice, and Okta Verify push
+- Device transfer with binding codes
+- Self-service password recovery via MyAccount API
+- JWT token decoding
 
 ## Additional Resources
 
