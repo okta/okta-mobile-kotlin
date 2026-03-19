@@ -43,10 +43,9 @@ class DirectAuthResult<T> private constructor(
      * @return The successful value.
      * @throws Throwable if this result is a failure.
      */
-    @Suppress("UNCHECKED_CAST")
     fun getOrThrow(): T {
         if (exception != null) throw exception
-        return value as T
+        return value!!
     }
 
     /**
