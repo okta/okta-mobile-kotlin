@@ -40,7 +40,7 @@ class JwtParserTest {
                     .createJwt(claims = IdTokenClaims())
                     .rawValue
 
-            val parser = JwtParser.create()
+            val parser = JwtParser(oktaRule.configuration.json, oktaRule.configuration.computeDispatcher)
             val jwt = parser.parse(input)
             assertThat(jwt.preferredUsername).isEqualTo("jaynewstrom@example.com")
         }

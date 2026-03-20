@@ -71,13 +71,27 @@ kotlin {
         }
     }
 
-    jvm()
+    jvm {
+        compilations.all {
+            compileTaskProvider.configure {
+                compilerOptions {
+                    freeCompilerArgs.addAll(
+                        listOf(
+                            "-opt-in=kotlin.RequiresOptIn",
+                            "-opt-in=com.okta.authfoundation.InternalAuthFoundationApi"
+                        )
+                    )
+                }
+            }
+        }
+    }
 
     sourceSets {
         commonMain {
             kotlin.srcDir(generateBuildInfoTask)
 
             dependencies {
+                implementation(libs.coroutines.core)
                 implementation(libs.ktor.client.core)
                 implementation(libs.ktor.client.content.negotiation)
                 implementation(libs.ktor.serialization.kotlinx.json)

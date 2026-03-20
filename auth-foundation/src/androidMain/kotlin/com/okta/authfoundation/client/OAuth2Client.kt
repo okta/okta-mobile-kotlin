@@ -16,7 +16,7 @@
 package com.okta.authfoundation.client
 
 import com.okta.authfoundation.InternalAuthFoundationApi
-import com.okta.authfoundation.claims.DefaultClaimsProvider.Companion.createClaimsDeserializer
+import com.okta.authfoundation.claims.createClaimsDeserializer
 import com.okta.authfoundation.claims.subject
 import com.okta.authfoundation.client.dto.OidcIntrospectInfo
 import com.okta.authfoundation.client.dto.OidcIntrospectInfo.Companion.asOidcIntrospectInfo

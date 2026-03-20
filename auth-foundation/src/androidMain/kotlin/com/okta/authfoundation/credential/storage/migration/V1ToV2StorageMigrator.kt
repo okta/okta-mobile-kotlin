@@ -63,7 +63,7 @@ class V1ToV2StorageMigrator internal constructor(
     private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(PREFERENCE_NAME)
     private val context by lazy { ApplicationContextHolder.appContext }
     private val defaultCredentialIdDataStore by lazy { DefaultCredentialIdDataStore.instance }
-    private val jwtParser = JwtParser.create()
+    private val jwtParser = JwtParser(OidcConfiguration.defaultJson(), AuthFoundationDefaults.computeDispatcher)
 
     internal suspend fun migrateIfNeeded() {
         if (isMigrationNeeded()) migrate()

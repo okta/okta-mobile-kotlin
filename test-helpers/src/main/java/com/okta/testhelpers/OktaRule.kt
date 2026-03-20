@@ -21,7 +21,6 @@ import com.okta.authfoundation.client.AccessTokenValidator
 import com.okta.authfoundation.client.Cache
 import com.okta.authfoundation.client.DeviceSecretValidator
 import com.okta.authfoundation.client.IdTokenValidator
-import com.okta.authfoundation.client.NoOpCache
 import com.okta.authfoundation.client.OAuth2Client
 import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.client.OidcEndpoints
@@ -43,6 +42,16 @@ class OktaRule(
     private val accessTokenValidator: AccessTokenValidator = AccessTokenValidator { _, _, _ -> },
     private val deviceSecretValidator: DeviceSecretValidator = DeviceSecretValidator { _, _, _ -> },
 ) : TestRule {
+    private val noOpCache =
+        object : Cache {
+            override fun set(
+                key: String,
+                value: String,
+            ) {}
+
+            override fun get(key: String): String? = null
+        }
+
     val mockWebServer: OktaMockWebServer = OktaMockWebServer()
 
     val mockWebServerDispatcher: NetworkDispatcher = mockWebServer.dispatcher
@@ -76,7 +85,7 @@ class OktaRule(
 
     fun createConfiguration(
         okHttpClient: OkHttpClient = this.okHttpClient,
-        cache: Cache = NoOpCache(),
+        cache: Cache = noOpCache,
     ): OidcConfiguration {
         mockkObject(AuthFoundationDefaults)
         every { AuthFoundationDefaults.okHttpClientFactory } returns { okHttpClient }
