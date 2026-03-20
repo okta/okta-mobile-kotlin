@@ -17,14 +17,21 @@ package com.okta.authfoundation.client
 
 import com.okta.authfoundation.InternalAuthFoundationApi
 import com.okta.authfoundation.client.dto.OidcUserInfo
+import com.okta.authfoundation.client.events.TokenRefreshedEvent
+import com.okta.authfoundation.client.events.TokenRevokedEvent
 import com.okta.authfoundation.client.internal.OAuth2Endpoints
 import com.okta.authfoundation.client.internal.OAuth2TokenResponse
 import com.okta.authfoundation.client.internal.performFormPost
 import com.okta.authfoundation.client.internal.performJsonFormPost
 import com.okta.authfoundation.client.internal.performJsonGetRequest
+import com.okta.authfoundation.events.Event
 import com.okta.authfoundation.jwt.Jwks
 import com.okta.authfoundation.jwt.SerializableJwks
 import com.okta.authfoundation.util.CoalescingOrchestrator
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.serialization.json.JsonObject
 
 /**
@@ -32,7 +39,7 @@ import kotlinx.serialization.json.JsonObject
  *
  * Use [OAuth2ClientBuilder] to create an instance via the builder pattern.
  *
- * On Android, the existing [OAuth2Client] class provides backward-compatible access
+ * On Android, the existing OAuth2Client class provides backward-compatible access
  * with additional platform-specific features.
  */
 @OptIn(InternalAuthFoundationApi::class)
@@ -41,6 +48,23 @@ class CommonOAuth2Client internal constructor(
     val configuration: OAuth2ClientConfiguration,
     internal val endpointsOrchestrator: CoalescingOrchestrator<OAuth2ClientResult<OAuth2Endpoints>>,
 ) {
+    private val _events =
+        MutableSharedFlow<Event>(
+            replay = 0,
+            extraBufferCapacity = 64,
+            onBufferOverflow = BufferOverflow.DROP_OLDEST
+        )
+
+    /**
+     * A read-only flow of OAuth2 lifecycle events emitted by this client.
+     *
+     * Events are multicast — all active collectors receive every event independently.
+     * There is no replay; events emitted before a collector subscribes are not delivered.
+     * When no collectors are active, events are silently dropped (fire-and-forget semantics).
+     * The emitter is never suspended; if the buffer is full, the oldest event is dropped.
+     */
+    val events: SharedFlow<Event> = _events.asSharedFlow()
+
     private val jwksOrchestrator: CoalescingOrchestrator<OAuth2ClientResult<Jwks>> =
         CoalescingOrchestrator(
             factory = ::fetchJwks,
@@ -78,6 +102,8 @@ class CommonOAuth2Client internal constructor(
      *
      * @param refreshToken the refresh token string.
      * @return the new token response as a [TokenInfo].
+     *
+     * TODO change return value from OAuth2ClientResult<TokenInfo> to Result<TokenInfo>
      */
     suspend fun refreshToken(refreshToken: String): OAuth2ClientResult<TokenInfo> {
         val endpoints = endpointsOrNull() ?: return endpointNotAvailableError()
@@ -97,6 +123,11 @@ class CommonOAuth2Client internal constructor(
             deserializer = OAuth2TokenResponse.serializer()
         ).mapSuccess { response ->
             response.toTokenInfo(configuration.clientId, configuration.issuerUrl)
+        }.also { result ->
+            // TODO convert OAuth2ClientResult to Result and emit Result.failures
+            if (result is OAuth2ClientResult.Success) {
+                _events.tryEmit(TokenRefreshedEvent(result.result))
+            }
         }
     }
 
@@ -104,6 +135,7 @@ class CommonOAuth2Client internal constructor(
      * Attempt to revoke the specified token.
      *
      * @param token the token string to revoke.
+     * TODO change return value from OAuth2ClientResult<Unit> to Result<String>
      */
     suspend fun revokeToken(token: String): OAuth2ClientResult<Unit> {
         val endpoint = endpointsOrNull()?.revocationEndpoint ?: return endpointNotAvailableError()
@@ -118,7 +150,12 @@ class CommonOAuth2Client internal constructor(
             apiExecutor = configuration.apiExecutor,
             url = endpoint,
             formParams = formParams
-        )
+        ).also { result ->
+            // TODO convert OAuth2ClientResult to Result and emit Result.failures
+            if (result is OAuth2ClientResult.Success) {
+                _events.tryEmit(TokenRevokedEvent(token))
+            }
+        }
     }
 
     /**

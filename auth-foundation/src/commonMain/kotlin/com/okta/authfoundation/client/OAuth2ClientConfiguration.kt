@@ -16,12 +16,10 @@
 package com.okta.authfoundation.client
 
 import com.okta.authfoundation.api.http.ApiExecutor
-import com.okta.authfoundation.events.EventHandler
 import kotlinx.serialization.json.Json
-import kotlin.coroutines.CoroutineContext
 
 /**
- * Immutable configuration for [OAuth2Client].
+ * Immutable configuration for [CommonOAuth2Client].
  *
  * Created via [OAuth2ClientBuilder]. Contains all settings needed to construct and operate an OAuth2 client
  * without requiring global singletons.
@@ -41,8 +39,6 @@ class OAuth2ClientConfiguration internal constructor(
     val json: Json,
     /** The cache used to optimize network calls. */
     val cache: Cache,
-    /** Optional event handlers for lifecycle events. */
-    val eventHandlers: List<EventHandler>,
     /** Optional authorization server ID. */
     val authorizationServerId: String?,
     /** Optional client secret for confidential clients. */

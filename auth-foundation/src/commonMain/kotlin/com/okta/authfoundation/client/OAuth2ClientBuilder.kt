@@ -19,7 +19,6 @@ import com.okta.authfoundation.InternalAuthFoundationApi
 import com.okta.authfoundation.api.http.ApiExecutor
 import com.okta.authfoundation.api.http.KtorHttpExecutor
 import com.okta.authfoundation.client.internal.EndpointDiscovery
-import com.okta.authfoundation.events.EventHandler
 import com.okta.authfoundation.util.CoalescingOrchestrator
 import io.ktor.http.URLProtocol
 import io.ktor.http.Url
@@ -65,9 +64,6 @@ class OAuth2ClientBuilder private constructor(
 
     /** The cache for optimizing network calls. */
     var cache: Cache = NoOpCache()
-
-    /** Event handlers for lifecycle events. */
-    var eventHandlers: List<EventHandler> = emptyList()
 
     /** Optional authorization server ID. */
     var authorizationServerId: String? = null
@@ -130,7 +126,6 @@ class OAuth2ClientBuilder private constructor(
             clock = clock,
             json = json,
             cache = cache,
-            eventHandlers = eventHandlers,
             authorizationServerId = authorizationServerId,
             clientSecret = clientSecret,
             acrValues = acrValues

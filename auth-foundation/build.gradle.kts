@@ -142,6 +142,7 @@ kotlin {
                 implementation(libs.ktor.client.mock)
                 implementation(libs.kotlin.test)
                 implementation(libs.coroutines.test)
+                implementation(libs.junit)
             }
         }
 
