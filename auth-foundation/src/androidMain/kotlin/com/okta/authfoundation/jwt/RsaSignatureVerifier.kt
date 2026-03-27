@@ -15,10 +15,14 @@
  */
 package com.okta.authfoundation.jwt
 
+import com.okta.authfoundation.api.log.LogLevel
+import com.okta.authfoundation.api.log.getDefaultAuthFoundationLogger
 import java.math.BigInteger
 import java.security.KeyFactory
 import java.security.Signature
 import java.security.spec.RSAPublicKeySpec
+
+private val logger = getDefaultAuthFoundationLogger()
 
 internal actual fun verifyRs256Signature(
     modulus: ByteArray,
@@ -33,6 +37,7 @@ internal actual fun verifyRs256Signature(
         rs256Signature.initVerify(publicKey)
         rs256Signature.update(data)
         rs256Signature.verify(signature)
-    } catch (_: Exception) {
+    } catch (e: Exception) {
+        logger.write("RSA signature verification failed", tr = e, logLevel = LogLevel.WARN)
         false
     }

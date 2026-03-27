@@ -15,6 +15,7 @@
  */
 package com.okta.authfoundation.client
 
+import com.okta.authfoundation.InternalAuthFoundationApi
 import com.okta.authfoundation.api.http.ApiExecutor
 import com.okta.authfoundation.api.http.ApiRequest
 import com.okta.authfoundation.api.http.ApiResponse
@@ -26,6 +27,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotSame
 import kotlin.test.assertTrue
 
+@OptIn(InternalAuthFoundationApi::class)
 class OAuth2ClientSharedConfigTest {
     private val testEndpoints =
         OAuth2Endpoints(
