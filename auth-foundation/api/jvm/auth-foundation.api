@@ -102,6 +102,9 @@ public final class com/okta/authfoundation/GrantType$WebAuthn : com/okta/authfou
 	public fun toString ()Ljava/lang/String;
 }
 
+public abstract interface annotation class com/okta/authfoundation/InternalAuthFoundationApi : java/lang/annotation/Annotation {
+}
+
 public abstract interface class com/okta/authfoundation/api/http/ApiExecutor {
 	public abstract fun execute-gIAlu-s (Lcom/okta/authfoundation/api/http/ApiRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
@@ -202,6 +205,68 @@ public final class com/okta/authfoundation/api/log/LogLevel : java/lang/Enum {
 	public static fun values ()[Lcom/okta/authfoundation/api/log/LogLevel;
 }
 
+public abstract interface class com/okta/authfoundation/claims/ClaimsProvider {
+	public abstract fun availableClaims ()Ljava/util/Set;
+	public abstract fun deserializeClaim (Ljava/lang/String;Lkotlinx/serialization/DeserializationStrategy;)Ljava/lang/Object;
+	public abstract fun deserializeClaims (Lkotlinx/serialization/DeserializationStrategy;)Ljava/lang/Object;
+}
+
+public final class com/okta/authfoundation/claims/ClaimsProviderKt {
+	public static final fun getActive (Lcom/okta/authfoundation/claims/ClaimsProvider;)Ljava/lang/Boolean;
+	public static final fun getAudience (Lcom/okta/authfoundation/claims/ClaimsProvider;)Ljava/lang/String;
+	public static final fun getAuthContextClassReference (Lcom/okta/authfoundation/claims/ClaimsProvider;)Ljava/lang/String;
+	public static final fun getAuthMethodsReference (Lcom/okta/authfoundation/claims/ClaimsProvider;)Ljava/util/List;
+	public static final fun getClientId (Lcom/okta/authfoundation/claims/ClaimsProvider;)Ljava/lang/String;
+	public static final fun getDeviceId (Lcom/okta/authfoundation/claims/ClaimsProvider;)Ljava/lang/String;
+	public static final fun getEmail (Lcom/okta/authfoundation/claims/ClaimsProvider;)Ljava/lang/String;
+	public static final fun getExpirationTime (Lcom/okta/authfoundation/claims/ClaimsProvider;)Ljava/lang/Integer;
+	public static final fun getFamilyName (Lcom/okta/authfoundation/claims/ClaimsProvider;)Ljava/lang/String;
+	public static final fun getGender (Lcom/okta/authfoundation/claims/ClaimsProvider;)Ljava/lang/String;
+	public static final fun getGivenName (Lcom/okta/authfoundation/claims/ClaimsProvider;)Ljava/lang/String;
+	public static final fun getIssuedAt (Lcom/okta/authfoundation/claims/ClaimsProvider;)Ljava/lang/Integer;
+	public static final fun getIssuer (Lcom/okta/authfoundation/claims/ClaimsProvider;)Ljava/lang/String;
+	public static final fun getJwtId (Lcom/okta/authfoundation/claims/ClaimsProvider;)Ljava/lang/String;
+	public static final fun getMiddleName (Lcom/okta/authfoundation/claims/ClaimsProvider;)Ljava/lang/String;
+	public static final fun getName (Lcom/okta/authfoundation/claims/ClaimsProvider;)Ljava/lang/String;
+	public static final fun getNickname (Lcom/okta/authfoundation/claims/ClaimsProvider;)Ljava/lang/String;
+	public static final fun getNotBefore (Lcom/okta/authfoundation/claims/ClaimsProvider;)Ljava/lang/Integer;
+	public static final fun getPhoneNumber (Lcom/okta/authfoundation/claims/ClaimsProvider;)Ljava/lang/String;
+	public static final fun getPreferredUsername (Lcom/okta/authfoundation/claims/ClaimsProvider;)Ljava/lang/String;
+	public static final fun getScope (Lcom/okta/authfoundation/claims/ClaimsProvider;)Ljava/lang/String;
+	public static final fun getSubject (Lcom/okta/authfoundation/claims/ClaimsProvider;)Ljava/lang/String;
+	public static final fun getTokenType (Lcom/okta/authfoundation/claims/ClaimsProvider;)Ljava/lang/String;
+	public static final fun getUserId (Lcom/okta/authfoundation/claims/ClaimsProvider;)Ljava/lang/String;
+	public static final fun getUsername (Lcom/okta/authfoundation/claims/ClaimsProvider;)Ljava/lang/String;
+}
+
+public abstract interface class com/okta/authfoundation/client/Cache {
+	public abstract fun get (Ljava/lang/String;)Ljava/lang/String;
+	public abstract fun set (Ljava/lang/String;Ljava/lang/String;)V
+}
+
+public abstract class com/okta/authfoundation/client/OAuth2ClientResult {
+	public final fun getOrThrow ()Ljava/lang/Object;
+}
+
+public final class com/okta/authfoundation/client/OAuth2ClientResult$Error : com/okta/authfoundation/client/OAuth2ClientResult {
+	public fun <init> (Ljava/lang/Exception;)V
+	public final fun getException ()Ljava/lang/Exception;
+}
+
+public final class com/okta/authfoundation/client/OAuth2ClientResult$Error$HttpResponseException : java/lang/Exception {
+	public final fun getError ()Ljava/lang/String;
+	public final fun getErrorDescription ()Ljava/lang/String;
+	public final fun getResponseCode ()I
+}
+
+public final class com/okta/authfoundation/client/OAuth2ClientResult$Error$OidcEndpointsNotAvailableException : java/lang/Exception {
+}
+
+public final class com/okta/authfoundation/client/OAuth2ClientResult$Success : com/okta/authfoundation/client/OAuth2ClientResult {
+	public fun <init> (Ljava/lang/Object;)V
+	public final fun getResult ()Ljava/lang/Object;
+}
+
 public abstract interface class com/okta/authfoundation/client/OidcClock {
 	public abstract fun currentTimeEpochSecond ()J
 }
@@ -217,5 +282,65 @@ public abstract interface class com/okta/authfoundation/client/TokenInfo {
 	public abstract fun getRefreshToken ()Ljava/lang/String;
 	public abstract fun getScope ()Ljava/lang/String;
 	public abstract fun getTokenType ()Ljava/lang/String;
+}
+
+public final class com/okta/authfoundation/client/dto/OidcUserInfo : com/okta/authfoundation/claims/ClaimsProvider {
+	public fun availableClaims ()Ljava/util/Set;
+	public fun deserializeClaim (Ljava/lang/String;Lkotlinx/serialization/DeserializationStrategy;)Ljava/lang/Object;
+	public fun deserializeClaims (Lkotlinx/serialization/DeserializationStrategy;)Ljava/lang/Object;
+}
+
+public final class com/okta/authfoundation/credential/RevokeTokenType : java/lang/Enum {
+	public static final field ACCESS_TOKEN Lcom/okta/authfoundation/credential/RevokeTokenType;
+	public static final field DEVICE_SECRET Lcom/okta/authfoundation/credential/RevokeTokenType;
+	public static final field REFRESH_TOKEN Lcom/okta/authfoundation/credential/RevokeTokenType;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lcom/okta/authfoundation/credential/RevokeTokenType;
+	public static fun values ()[Lcom/okta/authfoundation/credential/RevokeTokenType;
+}
+
+public final class com/okta/authfoundation/credential/TokenType : java/lang/Enum {
+	public static final field ACCESS_TOKEN Lcom/okta/authfoundation/credential/TokenType;
+	public static final field DEVICE_SECRET Lcom/okta/authfoundation/credential/TokenType;
+	public static final field ID_TOKEN Lcom/okta/authfoundation/credential/TokenType;
+	public static final field REFRESH_TOKEN Lcom/okta/authfoundation/credential/TokenType;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public final fun toTokenTypeHint ()Ljava/lang/String;
+	public static fun valueOf (Ljava/lang/String;)Lcom/okta/authfoundation/credential/TokenType;
+	public static fun values ()[Lcom/okta/authfoundation/credential/TokenType;
+}
+
+public abstract interface class com/okta/authfoundation/events/Event {
+}
+
+public abstract interface class com/okta/authfoundation/events/EventHandler {
+	public abstract fun onEvent (Lcom/okta/authfoundation/events/Event;)V
+}
+
+public final class com/okta/authfoundation/jwt/Jwks {
+}
+
+public final class com/okta/authfoundation/jwt/Jwt : com/okta/authfoundation/claims/ClaimsProvider {
+	public fun availableClaims ()Ljava/util/Set;
+	public fun deserializeClaim (Ljava/lang/String;Lkotlinx/serialization/DeserializationStrategy;)Ljava/lang/Object;
+	public fun deserializeClaims (Lkotlinx/serialization/DeserializationStrategy;)Ljava/lang/Object;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAlgorithm ()Ljava/lang/String;
+	public final fun getKeyId ()Ljava/lang/String;
+	public final fun getRawValue ()Ljava/lang/String;
+	public final fun getSignature ()Ljava/lang/String;
+	public final fun hasValidSignature (Lcom/okta/authfoundation/jwt/Jwks;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/okta/authfoundation/jwt/JwtParser {
+	public final fun parse (Ljava/lang/String;)Lcom/okta/authfoundation/jwt/Jwt;
+}
+
+public final class com/okta/authfoundation/util/CoalescingOrchestrator {
+	public fun <init> (Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;)V
+	public synthetic fun <init> (Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun get (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 

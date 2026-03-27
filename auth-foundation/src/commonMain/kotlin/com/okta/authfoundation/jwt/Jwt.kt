@@ -17,12 +17,8 @@ package com.okta.authfoundation.jwt
 
 import com.okta.authfoundation.claims.ClaimsProvider
 import kotlinx.coroutines.withContext
-import okio.ByteString.Companion.decodeBase64
-import java.math.BigInteger
-import java.security.KeyFactory
-import java.security.Signature
-import java.security.spec.RSAPublicKeySpec
 import kotlin.coroutines.CoroutineContext
+import kotlin.io.encoding.Base64
 
 /**
  * Represents a Json Web Token.
@@ -66,22 +62,19 @@ class Jwt internal constructor(
             if (key.keyType != "RSA") return@withContext false
             if (key.algorithm != "RS256") return@withContext false
 
-            val modulus = BigInteger(1, key.modulus?.decodeBase64()?.toByteArray() ?: return@withContext false)
-            val exponent = BigInteger(1, key.exponent?.decodeBase64()?.toByteArray() ?: return@withContext false)
-
+            val modulus = key.modulus?.decodeBase64UrlOrNull() ?: return@withContext false
+            val exponent = key.exponent?.decodeBase64UrlOrNull() ?: return@withContext false
             val jwtContentBytes = rawValue.substringBeforeLast('.').toByteArray()
+            val signatureBytes = signature.decodeBase64UrlOrNull() ?: return@withContext false
 
-            try {
-                val keyFactory = KeyFactory.getInstance("RSA")
-                val publicKey = keyFactory.generatePublic(RSAPublicKeySpec(modulus, exponent))
-
-                val rs256Signature = Signature.getInstance("SHA256withRSA")
-                rs256Signature.initVerify(publicKey)
-                rs256Signature.update(jwtContentBytes)
-                return@withContext rs256Signature.verify(signature.decodeBase64()?.toByteArray() ?: return@withContext false)
-            } catch (_: Exception) {
-                return@withContext false
-            }
+            verifyRs256Signature(modulus, exponent, jwtContentBytes, signatureBytes)
         }
     }
 }
+
+internal fun String.decodeBase64UrlOrNull(): ByteArray? =
+    try {
+        Base64.UrlSafe.withPadding(Base64.PaddingOption.ABSENT_OPTIONAL).decode(this)
+    } catch (_: Exception) {
+        null
+    }

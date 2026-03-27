@@ -15,14 +15,11 @@
  */
 package com.okta.authfoundation.jwt
 
-import com.okta.authfoundation.AuthFoundationDefaults
 import com.okta.authfoundation.claims.DefaultClaimsProvider
-import com.okta.authfoundation.client.OidcConfiguration
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
-import okio.ByteString.Companion.decodeBase64
 import kotlin.coroutines.CoroutineContext
 
 /**
@@ -32,13 +29,6 @@ class JwtParser internal constructor(
     private val json: Json,
     private val computeDispatcher: CoroutineContext,
 ) {
-    companion object {
-        /**
-         * Initialize a [JwtParser].
-         */
-        fun create(): JwtParser = JwtParser(OidcConfiguration.defaultJson(), AuthFoundationDefaults.computeDispatcher)
-    }
-
     /**
      * Parses a given string into a [Jwt], if possible.
      *
@@ -50,10 +40,14 @@ class JwtParser internal constructor(
         if (sections.size != 3) {
             throw IllegalArgumentException("Token doesn't contain 3 parts. Needs header, claims data, and signature.")
         }
-        val headerString = sections[0].decodeBase64()?.utf8() ?: throw IllegalArgumentException("Header isn't valid base64.")
+        val headerString =
+            sections[0].decodeBase64UrlOrNull()?.decodeToString()
+                ?: throw IllegalArgumentException("Header isn't valid base64.")
         val header = json.decodeFromString<JwtHeader>(headerString)
 
-        val claimsString = sections[1].decodeBase64()?.utf8() ?: throw IllegalArgumentException("Claims aren't valid base64.")
+        val claimsString =
+            sections[1].decodeBase64UrlOrNull()?.decodeToString()
+                ?: throw IllegalArgumentException("Claims aren't valid base64.")
         val claims = json.decodeFromString<JsonObject>(claimsString)
 
         return Jwt(

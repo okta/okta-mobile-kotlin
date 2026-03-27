@@ -15,7 +15,6 @@
  */
 package com.okta.authfoundation.claims
 
-import com.okta.authfoundation.client.OidcConfiguration
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
@@ -24,10 +23,6 @@ internal class DefaultClaimsProvider(
     private val claims: JsonObject,
     private val json: Json,
 ) : ClaimsProvider {
-    companion object {
-        fun OidcConfiguration.createClaimsDeserializer(claims: JsonObject): DefaultClaimsProvider = DefaultClaimsProvider(claims, json)
-    }
-
     override fun <T> deserializeClaims(deserializationStrategy: DeserializationStrategy<T>): T = json.decodeFromJsonElement(deserializationStrategy, claims)
 
     override fun availableClaims(): Set<String> = claims.keys

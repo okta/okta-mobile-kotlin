@@ -18,35 +18,6 @@ package com.okta.authfoundation.client
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
-import com.okta.authfoundation.AuthFoundationDefaults
-import com.okta.authfoundation.InternalAuthFoundationApi
-
-/**
- * A general purpose key value cache used internally by the SDK to optimize network calls.
- * Will not be used to store sensitive information.
- *
- * See [AuthFoundationDefaults.cacheFactory].
- */
-interface Cache {
-    /**
-     * Save a value with the associated key.
-     *
-     * @param key the key used to lookup the value at a later time.
-     * @param value the value to store.
-     */
-    fun set(
-        key: String,
-        value: String,
-    )
-
-    /**
-     * Look up the key that was previously saved.
-     *
-     * @param key the key used to store a value previously.
-     * @return the associated value if the key exists, null otherwise.
-     */
-    fun get(key: String): String?
-}
 
 /**
  * An implementation of [Cache] which stores key value pairs in Android [SharedPreferences].
@@ -73,15 +44,4 @@ internal class SharedPreferencesCache private constructor(
     }
 
     override fun get(key: String): String? = sharedPreferences.getString(key, null)
-}
-
-@InternalAuthFoundationApi
-class NoOpCache : Cache {
-    override fun set(
-        key: String,
-        value: String,
-    ) {
-    }
-
-    override fun get(key: String): String? = null
 }

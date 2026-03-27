@@ -79,7 +79,7 @@ class JwtTest {
             val jwks = createJwks()
             val client = oktaRule.createOAuth2Client()
             val jwt = client.createJwtBuilder().createJwt(claims = IdTokenClaims())
-            val jwtParser = JwtParser.create()
+            val jwtParser = JwtParser(oktaRule.configuration.json, oktaRule.configuration.computeDispatcher)
             val invalidJwt = jwtParser.parse("${jwt.rawValue.substringBeforeLast(".")}.invalid")
             assertThat(invalidJwt.hasValidSignature(jwks)).isFalse()
         }

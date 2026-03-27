@@ -19,6 +19,7 @@ import android.security.keystore.KeyPermanentlyInvalidatedException
 import androidx.biometric.BiometricPrompt
 import com.okta.authfoundation.AuthFoundationDefaults
 import com.okta.authfoundation.InternalAuthFoundationApi
+import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.credential.events.CredentialCreatedEvent
 import com.okta.authfoundation.jwt.JwtParser
 import kotlinx.coroutines.sync.Mutex
@@ -45,7 +46,7 @@ class CredentialDataSource(
         }
     }
 
-    private val jwtParser = JwtParser.create()
+    private val jwtParser = JwtParser(OidcConfiguration.defaultJson(), AuthFoundationDefaults.computeDispatcher)
 
     private val credentialsCache = Collections.synchronizedMap(mutableMapOf<String, Credential>())
 
