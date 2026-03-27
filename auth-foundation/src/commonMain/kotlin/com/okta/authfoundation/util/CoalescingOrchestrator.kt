@@ -23,8 +23,7 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 
-@InternalAuthFoundationApi
-class CoalescingOrchestrator<T : Any>(
+internal class CoalescingOrchestrator<T : Any>(
     private val factory: suspend () -> T,
     private val keepDataInMemory: (T) -> Boolean,
     // This should only be used for testing.

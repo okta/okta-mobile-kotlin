@@ -137,6 +137,14 @@ kotlin {
             }
         }
 
+        jvmTest {
+            dependencies {
+                implementation(libs.ktor.client.mock)
+                implementation(libs.kotlin.test)
+                implementation(libs.coroutines.test)
+            }
+        }
+
         getByName("androidHostTest") {
             dependencies {
                 implementation(libs.coroutines.test)
