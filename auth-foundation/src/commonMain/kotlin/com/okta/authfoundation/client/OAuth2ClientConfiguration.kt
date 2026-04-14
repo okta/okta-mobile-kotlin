@@ -19,7 +19,7 @@ import com.okta.authfoundation.api.http.ApiExecutor
 import kotlinx.serialization.json.Json
 
 /**
- * Immutable configuration for [CommonOAuth2Client].
+ * Immutable configuration for [OAuth2Client].
  *
  * Created via [OAuth2ClientBuilder]. Contains all settings needed to construct and operate an OAuth2 client
  * without requiring global singletons.

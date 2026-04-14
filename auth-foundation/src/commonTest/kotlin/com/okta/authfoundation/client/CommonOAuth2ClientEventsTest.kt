@@ -22,6 +22,7 @@ import com.okta.authfoundation.api.http.ApiResponse
 import com.okta.authfoundation.client.events.TokenRefreshedEvent
 import com.okta.authfoundation.client.events.TokenRevokedEvent
 import com.okta.authfoundation.client.internal.OAuth2Endpoints
+import com.okta.authfoundation.client.kmp.OAuth2Client
 import com.okta.authfoundation.events.Event
 import com.okta.authfoundation.util.CoalescingOrchestrator
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -62,7 +63,7 @@ class CommonOAuth2ClientEventsTest {
                 )
         }
 
-    private fun createClient(apiExecutor: ApiExecutor): CommonOAuth2Client {
+    private fun createClient(apiExecutor: ApiExecutor): OAuth2Client {
         val config =
             OAuth2ClientBuilder
                 .create(
@@ -74,7 +75,7 @@ class CommonOAuth2ClientEventsTest {
                 }.getOrThrow()
                 .configuration
 
-        return CommonOAuth2Client(
+        return OAuth2Client(
             configuration = config,
             endpointsOrchestrator =
                 CoalescingOrchestrator(

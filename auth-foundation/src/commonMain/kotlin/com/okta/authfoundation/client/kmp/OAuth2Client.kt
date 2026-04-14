@@ -13,12 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.okta.authfoundation.client
-
+package com.okta.authfoundation.client.kmp
 import com.okta.authfoundation.InternalAuthFoundationApi
+import com.okta.authfoundation.client.OAuth2ClientConfiguration
+import com.okta.authfoundation.client.OAuth2ClientResult
+import com.okta.authfoundation.client.TokenInfo
 import com.okta.authfoundation.client.dto.OidcUserInfo
 import com.okta.authfoundation.client.events.TokenRefreshedEvent
 import com.okta.authfoundation.client.events.TokenRevokedEvent
+import com.okta.authfoundation.client.internal.EndpointDiscovery
 import com.okta.authfoundation.client.internal.OAuth2Endpoints
 import com.okta.authfoundation.client.internal.OAuth2TokenResponse
 import com.okta.authfoundation.client.internal.performFormPost
@@ -43,7 +46,7 @@ import kotlinx.serialization.json.JsonObject
  * with additional platform-specific features.
  */
 @OptIn(InternalAuthFoundationApi::class)
-class CommonOAuth2Client internal constructor(
+class OAuth2Client internal constructor(
     /** The configuration for this client. */
     val configuration: OAuth2ClientConfiguration,
     internal val endpointsOrchestrator: CoalescingOrchestrator<OAuth2ClientResult<OAuth2Endpoints>>,
@@ -226,4 +229,23 @@ class CommonOAuth2Client internal constructor(
             is OAuth2ClientResult.Success -> OAuth2ClientResult.Success(transform(result))
             is OAuth2ClientResult.Error -> OAuth2ClientResult.Error(exception)
         }
+
+    companion object {
+        /**
+         * Creates a [OAuth2Client] from an existing [OAuth2ClientConfiguration].
+         *
+         * This is useful when recreating a client from a stored token's configuration,
+         * mirroring the Android `OAuth2Client.createFromConfiguration` pattern.
+         */
+        fun createFromConfiguration(configuration: OAuth2ClientConfiguration): OAuth2Client {
+            val discovery = EndpointDiscovery(configuration)
+            return OAuth2Client(
+                configuration,
+                CoalescingOrchestrator(
+                    factory = { discovery.discover() },
+                    keepDataInMemory = { it is OAuth2ClientResult.Success }
+                )
+            )
+        }
+    }
 }

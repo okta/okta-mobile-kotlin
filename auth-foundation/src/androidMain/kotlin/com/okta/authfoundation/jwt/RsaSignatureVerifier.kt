@@ -38,6 +38,6 @@ internal actual fun verifyRs256Signature(
         rs256Signature.update(data)
         rs256Signature.verify(signature)
     } catch (e: Exception) {
-        logger.write("RSA signature verification failed", tr = e, logLevel = LogLevel.WARN)
+        runCatching { logger.write("RSA signature verification failed", tr = e, logLevel = LogLevel.WARN) }
         false
     }

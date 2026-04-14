@@ -13,19 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.okta.authfoundation.credential.events
-
-import com.okta.authfoundation.credential.Credential
-import com.okta.authfoundation.credential.CredentialDataSource
-import com.okta.authfoundation.events.Event
-import com.okta.authfoundation.events.EventHandler
+package com.okta.authfoundation.credential
 
 /**
- * Emitted via [EventHandler.onEvent] when a [Credential] has been created via a [CredentialDataSource.createCredential] call.
+ * Minimal identity contract for credentials.
+ *
+ * Both the cross-platform [Credential] and the Android-specific
+ * [Credential][com.okta.authfoundation.credential.Credential] implement this interface,
+ * allowing credential lifecycle events to reference either type.
  */
-class CredentialCreatedEvent internal constructor(
-    /**
-     * The [Credential] that was created.
-     */
-    val credential: Credential,
-) : Event
+interface CredentialIdentifier {
+    /** Unique identifier for this credential. */
+    val id: String
+}

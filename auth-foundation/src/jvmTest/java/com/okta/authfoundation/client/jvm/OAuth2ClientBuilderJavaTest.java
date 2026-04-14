@@ -18,7 +18,7 @@ package com.okta.authfoundation.client.jvm;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import com.okta.authfoundation.client.CommonOAuth2Client;
+import com.okta.authfoundation.client.kmp.OAuth2Client;
 import java.util.Arrays;
 import java.util.Collections;
 import org.junit.Test;
@@ -35,7 +35,7 @@ public class OAuth2ClientBuilderJavaTest {
     OAuth2ClientBuilder builder =
         new OAuth2ClientBuilder(ISSUER_URL, CLIENT_ID, Arrays.asList(SCOPE.split(" ")));
 
-    AuthFoundationResult<CommonOAuth2Client> result = builder.build();
+    AuthFoundationResult<OAuth2Client> result = builder.build();
 
     assertTrue("Build with required params should succeed", result.isSuccess());
     assertNotNull("Client should not be null", result.getOrThrow());
@@ -43,7 +43,7 @@ public class OAuth2ClientBuilderJavaTest {
 
   @Test
   public void build_WithChainingSetters_Succeeds() {
-    CommonOAuth2Client client =
+    OAuth2Client client =
         new OAuth2ClientBuilder(ISSUER_URL, CLIENT_ID, Arrays.asList(SCOPE.split(" ")))
             .setAuthorizationServerId("default")
             .setClientSecret("secret")
@@ -60,7 +60,7 @@ public class OAuth2ClientBuilderJavaTest {
         new OAuth2ClientBuilder(
             "http://insecure.example.com", CLIENT_ID, Arrays.asList(SCOPE.split(" ")));
 
-    AuthFoundationResult<CommonOAuth2Client> result = builder.build();
+    AuthFoundationResult<OAuth2Client> result = builder.build();
 
     assertTrue("Build with HTTP URL should fail", result.isFailure());
   }
@@ -70,7 +70,7 @@ public class OAuth2ClientBuilderJavaTest {
     OAuth2ClientBuilder builder =
         new OAuth2ClientBuilder(ISSUER_URL, "", Arrays.asList(SCOPE.split(" ")));
 
-    AuthFoundationResult<CommonOAuth2Client> result = builder.build();
+    AuthFoundationResult<OAuth2Client> result = builder.build();
 
     assertTrue("Build with empty clientId should fail", result.isFailure());
   }
@@ -80,7 +80,7 @@ public class OAuth2ClientBuilderJavaTest {
     OAuth2ClientBuilder builder =
         new OAuth2ClientBuilder(ISSUER_URL, CLIENT_ID, Collections.emptyList());
 
-    AuthFoundationResult<CommonOAuth2Client> result = builder.build();
+    AuthFoundationResult<OAuth2Client> result = builder.build();
 
     assertTrue("Build with empty scope should fail", result.isFailure());
   }
