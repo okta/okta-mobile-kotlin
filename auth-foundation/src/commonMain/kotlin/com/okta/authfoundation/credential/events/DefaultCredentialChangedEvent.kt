@@ -15,23 +15,16 @@
  */
 package com.okta.authfoundation.credential.events
 
-import com.okta.authfoundation.credential.TokenStorage
+import com.okta.authfoundation.credential.CredentialIdentifier
 import com.okta.authfoundation.events.Event
 import com.okta.authfoundation.events.EventHandler
 
 /**
- * Emitted via [EventHandler.onEvent] when a [TokenStorage] call causes an exception.
- *
- * The default implementation automatically clears storage so it can try again, see [shouldClearStorageAndTryAgain].
+ * Emitted via [EventHandler.onEvent] when the default [CredentialIdentifier] is changed.
  */
-class TokenStorageAccessErrorEvent internal constructor(
+class DefaultCredentialChangedEvent internal constructor(
     /**
-     * The [Exception] that caused the event.
+     * The [CredentialIdentifier] that was set as default.
      */
-    val exception: Exception,
-    /**
-     * Allows the app developer to change the behavior of attempted remediation.
-     * If true, the storage implementation will attempt to clear all existing items in storage.
-     */
-    var shouldClearStorageAndTryAgain: Boolean,
+    val credential: CredentialIdentifier?,
 ) : Event

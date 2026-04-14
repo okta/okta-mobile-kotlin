@@ -57,11 +57,11 @@ class Credential internal constructor(
     token: Token,
     internal val client: OAuth2Client = OAuth2Client.createFromConfiguration(token.oidcConfiguration),
     tags: Map<String, String> = emptyMap(),
-) {
+) : CredentialIdentifier {
     /**
      * Identifier for this credential.
      */
-    val id = token.id
+    override val id = token.id
 
     internal interface BiometricSecurity {
         val userAuthenticationTimeout: Int

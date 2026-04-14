@@ -13,20 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.okta.authfoundation.credential.events
+package com.okta.authfoundation.client.events
 
-import com.okta.authfoundation.credential.Credential
+import com.okta.authfoundation.client.TokenInfo
+import com.okta.authfoundation.client.kmp.OAuth2Client
 import com.okta.authfoundation.events.Event
-import com.okta.authfoundation.events.EventHandler
-import okhttp3.Interceptor
 
 /**
- * Emitted via [EventHandler.onEvent] when the [Interceptor.intercept] from a [Credential.accessTokenInterceptor] call has been called,
- * but no valid access token exists.
+ * Emitted when a token has been refreshed via [OAuth2Client.refreshToken].
  */
-class NoAccessTokenAvailableEvent internal constructor(
-    /**
-     * The [Credential] associated with the event.
-     */
-    val credential: Credential,
+class TokenRefreshedEvent(
+    /** The new token information returned from the refresh. */
+    val tokenInfo: TokenInfo,
+) : Event
+
+/**
+ * Emitted when a token has been revoked via [OAuth2Client.revokeToken].
+ */
+class TokenRevokedEvent(
+    /** The token string that was revoked. */
+    val token: String,
 ) : Event

@@ -15,16 +15,25 @@
  */
 package com.okta.authfoundation.credential.events
 
-import com.okta.authfoundation.credential.Credential
+import com.okta.authfoundation.client.TokenInfo
+import com.okta.authfoundation.credential.CredentialIdentifier
 import com.okta.authfoundation.events.Event
 import com.okta.authfoundation.events.EventHandler
 
 /**
- * Emitted via [EventHandler.onEvent] when a [Credential.replaceToken] was invoked after a [Credential.delete] call.
+ * Emitted via [EventHandler.onEvent] after a [CredentialIdentifier] is updated due to a [CredentialIdentifier.replaceToken] invocation.
  */
-class CredentialStoredAfterRemovedEvent internal constructor(
+class CredentialStoredEvent internal constructor(
     /**
-     * The [Credential] associated with the event.
+     * The [CredentialIdentifier] associated with the event.
      */
-    val credential: Credential,
+    val credential: CredentialIdentifier,
+    /**
+     * The [TokenInfo] associated with the event.
+     */
+    val token: TokenInfo?,
+    /**
+     * The tags associated with the event.
+     */
+    val tags: Map<String, String>,
 ) : Event

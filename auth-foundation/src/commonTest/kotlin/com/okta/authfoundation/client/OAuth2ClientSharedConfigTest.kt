@@ -20,6 +20,7 @@ import com.okta.authfoundation.api.http.ApiExecutor
 import com.okta.authfoundation.api.http.ApiRequest
 import com.okta.authfoundation.api.http.ApiResponse
 import com.okta.authfoundation.client.internal.OAuth2Endpoints
+import com.okta.authfoundation.client.kmp.OAuth2Client
 import com.okta.authfoundation.util.CoalescingOrchestrator
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
@@ -166,8 +167,8 @@ class OAuth2ClientSharedConfigTest {
                 )
             }
 
-            val commonClient1 = CommonOAuth2Client(config1, orchestratorFactory())
-            val commonClient2 = CommonOAuth2Client(config2, orchestratorFactory())
+            val commonClient1 = OAuth2Client(config1, orchestratorFactory())
+            val commonClient2 = OAuth2Client(config2, orchestratorFactory())
 
             val result1 = commonClient1.revokeToken("token-1")
             val result2 = commonClient2.revokeToken("token-2")

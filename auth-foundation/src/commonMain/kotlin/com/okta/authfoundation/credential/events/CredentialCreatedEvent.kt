@@ -15,16 +15,16 @@
  */
 package com.okta.authfoundation.credential.events
 
-import com.okta.authfoundation.credential.Credential
+import com.okta.authfoundation.credential.CredentialIdentifier
 import com.okta.authfoundation.events.Event
 import com.okta.authfoundation.events.EventHandler
 
 /**
- * Emitted via [EventHandler.onEvent] when the default [Credential] is changed.
+ * Emitted via [EventHandler.onEvent] when a [CredentialIdentifier] has been created via a createCredential call.
  */
-class DefaultCredentialChangedEvent internal constructor(
+class CredentialCreatedEvent internal constructor(
     /**
-     * The [Credential] that was set as default.
+     * The [CredentialIdentifier] that was created.
      */
-    val credential: Credential,
+    val credential: CredentialIdentifier,
 ) : Event

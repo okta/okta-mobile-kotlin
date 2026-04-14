@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.okta.authfoundation.client
+package com.okta.authfoundation.client.kmp
 
 import com.okta.authfoundation.InternalAuthFoundationApi
 import com.okta.authfoundation.api.http.ApiExecutor
 import com.okta.authfoundation.api.http.ApiRequest
 import com.okta.authfoundation.api.http.ApiResponse
+import com.okta.authfoundation.client.OAuth2ClientBuilder
+import com.okta.authfoundation.client.OAuth2ClientResult
 import com.okta.authfoundation.client.events.TokenRefreshedEvent
 import com.okta.authfoundation.client.events.TokenRevokedEvent
 import com.okta.authfoundation.client.internal.OAuth2Endpoints
@@ -34,7 +36,7 @@ import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
 @OptIn(InternalAuthFoundationApi::class, ExperimentalCoroutinesApi::class)
-class CommonOAuth2ClientEventsTest {
+class OAuth2ClientEventsTest {
     private val testEndpoints =
         OAuth2Endpoints(
             issuer = "https://example.okta.com/oauth2/default",
@@ -62,7 +64,7 @@ class CommonOAuth2ClientEventsTest {
                 )
         }
 
-    private fun createClient(apiExecutor: ApiExecutor): CommonOAuth2Client {
+    private fun createClient(apiExecutor: ApiExecutor): OAuth2Client {
         val config =
             OAuth2ClientBuilder
                 .create(
@@ -74,7 +76,7 @@ class CommonOAuth2ClientEventsTest {
                 }.getOrThrow()
                 .configuration
 
-        return CommonOAuth2Client(
+        return OAuth2Client(
             configuration = config,
             endpointsOrchestrator =
                 CoalescingOrchestrator(

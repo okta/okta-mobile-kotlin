@@ -19,6 +19,7 @@ import com.okta.authfoundation.InternalAuthFoundationApi
 import com.okta.authfoundation.api.http.ApiExecutor
 import com.okta.authfoundation.api.http.KtorHttpExecutor
 import com.okta.authfoundation.client.internal.EndpointDiscovery
+import com.okta.authfoundation.client.kmp.OAuth2Client
 import com.okta.authfoundation.util.CoalescingOrchestrator
 import io.ktor.http.URLProtocol
 import io.ktor.http.Url
@@ -28,7 +29,7 @@ import kotlin.coroutines.CoroutineContext
 import kotlin.time.Clock
 
 /**
- * Builder for creating a [CommonOAuth2Client].
+ * Builder for creating a [OAuth2Client].
  *
  * Use the [create] factory method to construct an instance.
  *
@@ -76,13 +77,13 @@ class OAuth2ClientBuilder private constructor(
 
     companion object {
         /**
-         * Creates a [CommonOAuth2Client] with the given parameters and optional customization.
+         * Creates a [OAuth2Client] with the given parameters and optional customization.
          *
          * @param issuerUrl the Authorization Server URL (must use HTTPS).
          * @param clientId the application's client ID (must not be blank).
          * @param scope the default access scopes (must not be blank).
          * @param buildAction optional configuration block for customizing builder properties.
-         * @return [Result] containing the built [CommonOAuth2Client], or a failure with
+         * @return [Result] containing the built [OAuth2Client], or a failure with
          *   [IllegalArgumentException] if validation fails.
          */
         fun create(
@@ -90,7 +91,7 @@ class OAuth2ClientBuilder private constructor(
             clientId: String,
             scope: List<String>,
             buildAction: (OAuth2ClientBuilder.() -> Unit)? = null,
-        ): Result<CommonOAuth2Client> =
+        ): Result<OAuth2Client> =
             runCatching {
                 require(
                     runCatching {
@@ -107,7 +108,7 @@ class OAuth2ClientBuilder private constructor(
                 val config = builder.build()
                 val discovery = EndpointDiscovery(config)
                 @OptIn(InternalAuthFoundationApi::class)
-                CommonOAuth2Client(
+                OAuth2Client(
                     config,
                     CoalescingOrchestrator(
                         factory = { discovery.discover() },
