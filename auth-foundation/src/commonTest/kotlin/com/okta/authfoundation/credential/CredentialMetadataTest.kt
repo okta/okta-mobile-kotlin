@@ -66,7 +66,7 @@ class CredentialMetadataTest {
     private val manager =
         CredentialManager(
             client = client,
-            storage = FakeCommonTokenStorage(),
+            storage = FakeTokenStorage(),
             defaultIdStore = defaultIdStore
         )
 
@@ -157,7 +157,7 @@ class CredentialMetadataTest {
 
             manager.setDefault(credential).getOrThrow()
 
-            assertEquals("def-1", defaultIdStore.getDefaultCredentialId())
+            assertEquals("def-1", defaultIdStore.getDefaultCredentialId().getOrThrow())
             val defaultChangedEvents = events.filterIsInstance<DefaultCredentialChangedEvent>()
             assertEquals(1, defaultChangedEvents.size)
             assertEquals("def-1", defaultChangedEvents[0].credential!!.id)
@@ -176,7 +176,7 @@ class CredentialMetadataTest {
 
             manager.setDefault(null).getOrThrow()
 
-            assertNull(defaultIdStore.getDefaultCredentialId())
+            assertNull(defaultIdStore.getDefaultCredentialId().getOrThrow())
             val defaultChangedEvents = events.filterIsInstance<DefaultCredentialChangedEvent>()
             assertEquals(1, defaultChangedEvents.size)
             assertNull(defaultChangedEvents[0].credential)
@@ -208,7 +208,7 @@ class CredentialMetadataTest {
 
             credential.deleteAsync().getOrThrow()
 
-            assertNull(defaultIdStore.getDefaultCredentialId())
+            assertNull(defaultIdStore.getDefaultCredentialId().getOrThrow())
         }
 
     @Test

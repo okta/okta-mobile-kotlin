@@ -66,7 +66,7 @@ class CredentialEventsTest {
     private fun createManager(): CredentialManager =
         CredentialManager(
             client = client,
-            storage = FakeCommonTokenStorage(),
+            storage = FakeTokenStorage(),
             defaultIdStore = InMemoryDefaultCredentialIdStore()
         )
 

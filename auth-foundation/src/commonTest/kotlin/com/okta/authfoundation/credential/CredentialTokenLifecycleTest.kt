@@ -23,8 +23,10 @@ import com.okta.authfoundation.client.OAuth2ClientConfiguration
 import com.okta.authfoundation.client.OAuth2ClientResult
 import com.okta.authfoundation.client.internal.OAuth2Endpoints
 import com.okta.authfoundation.client.kmp.OAuth2Client
+import com.okta.authfoundation.credential.kmp.Credential
 import com.okta.authfoundation.credential.kmp.CredentialDataSource
 import com.okta.authfoundation.credential.kmp.CredentialImpl
+import com.okta.authfoundation.credential.kmp.CredentialManager
 import com.okta.authfoundation.credential.kmp.InMemoryDefaultCredentialIdStore
 import com.okta.authfoundation.credential.kmp.TokenData
 import com.okta.authfoundation.events.Event
@@ -120,7 +122,7 @@ class CredentialTokenLifecycleTest {
         refreshToken: String? = "valid-refresh",
         deviceSecret: String? = null,
     ): CredentialImpl {
-        val storage = FakeCommonTokenStorage()
+        val storage = FakeTokenStorage()
         val dataSource = CredentialDataSource(storage)
         val token =
             TokenData(
@@ -216,7 +218,7 @@ class CredentialTokenLifecycleTest {
         }
 
     @Test
-    fun getValidAccessToken_ValidToken_ReturnsWithoutRefresh() =
+    fun refreshIfExpired_ValidToken_ReturnsWithoutRefresh() =
         runTest {
             var apiCalled = false
             val exec =
@@ -243,7 +245,7 @@ class CredentialTokenLifecycleTest {
                     configuration = config,
                     endpointsOrchestrator = CoalescingOrchestrator(factory = { OAuth2ClientResult.Success(testEndpoints) }, keepDataInMemory = { true })
                 )
-            val storage = FakeCommonTokenStorage()
+            val storage = FakeTokenStorage()
             val ds = CredentialDataSource(storage)
             val token =
                 TokenData(
@@ -265,7 +267,7 @@ class CredentialTokenLifecycleTest {
             assertEquals(
                 "fresh-at",
                 credential
-                    .getValidAccessToken()
+                    .refreshIfExpired()
                     .getOrThrow()
                     .token.accessToken
             )
@@ -273,7 +275,7 @@ class CredentialTokenLifecycleTest {
         }
 
     @Test
-    fun getValidAccessToken_ExpiredTokenNoRefresh_ReturnsNull() =
+    fun refreshIfExpired_ExpiredTokenNoRefresh_ReturnsNull() =
         runTest {
             val clock = TestConfiguration.FixedClock(1_000_000L)
             val config =
@@ -294,13 +296,13 @@ class CredentialTokenLifecycleTest {
                     configuration = config,
                     endpointsOrchestrator = CoalescingOrchestrator(factory = { OAuth2ClientResult.Success(testEndpoints) }, keepDataInMemory = { true })
                 )
-            val ds = CredentialDataSource(FakeCommonTokenStorage())
+            val ds = CredentialDataSource(FakeTokenStorage())
             val token = createTestToken(expiresIn = 100, refreshToken = "rt", configuration = config)
             ds.createToken(token)
             clock.time = 1_000_000L + 200
             val credential =
                 CredentialImpl(token = token, client = client, dataSource = ds, events = noOpEvents, defaultIdStore = InMemoryDefaultCredentialIdStore())
-            assertTrue(credential.getValidAccessToken().isFailure)
+            assertTrue(credential.refreshIfExpired().isFailure)
         }
 
     @Test
@@ -322,7 +324,7 @@ class CredentialTokenLifecycleTest {
         }
 
     @Test
-    fun getValidAccessToken_ValidToken_ReturnsSameInstance() =
+    fun refreshIfExpired_ValidToken_ReturnsSameInstance() =
         runTest {
             var apiCalled = false
             val exec =
@@ -349,7 +351,7 @@ class CredentialTokenLifecycleTest {
                     configuration = config,
                     endpointsOrchestrator = CoalescingOrchestrator(factory = { OAuth2ClientResult.Success(testEndpoints) }, keepDataInMemory = { true })
                 )
-            val storage = FakeCommonTokenStorage()
+            val storage = FakeTokenStorage()
             val ds = CredentialDataSource(storage)
             val token =
                 TokenData(
@@ -368,7 +370,7 @@ class CredentialTokenLifecycleTest {
             clock.time = 1_000_000L - 100
             val credential =
                 CredentialImpl(token = token, client = client, dataSource = ds, events = noOpEvents, defaultIdStore = InMemoryDefaultCredentialIdStore())
-            val result = credential.getValidAccessToken().getOrThrow()
+            val result = credential.refreshIfExpired().getOrThrow()
             // When token is valid, returns this (same instance)
             assertTrue(result === credential)
             assertTrue(!apiCalled)

@@ -26,8 +26,8 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 @OptIn(InternalAuthFoundationApi::class)
-class CommonCredentialDataSourceTest {
-    private val storage = FakeCommonTokenStorage()
+class CredentialDataSourceKmpTest {
+    private val storage = FakeTokenStorage()
     private val dataSource = CredentialDataSource(storage)
 
     @Test

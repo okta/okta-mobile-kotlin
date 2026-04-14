@@ -26,6 +26,7 @@ import com.okta.authfoundation.credential.kmp.CredentialDataSource
 import com.okta.authfoundation.credential.kmp.CredentialImpl
 import com.okta.authfoundation.credential.kmp.CredentialManager
 import com.okta.authfoundation.credential.kmp.InMemoryDefaultCredentialIdStore
+import com.okta.authfoundation.credential.kmp.TokenData
 import com.okta.authfoundation.events.Event
 import com.okta.authfoundation.util.CoalescingOrchestrator
 import kotlinx.coroutines.channels.BufferOverflow
@@ -62,7 +63,7 @@ class CommonCredentialTest {
 
     private val clock = TestConfiguration.FixedClock(1_000_000L)
     private val config = TestConfiguration.create(clock = clock)
-    private val storage = FakeCommonTokenStorage()
+    private val storage = FakeTokenStorage()
     private val testEvents =
         MutableSharedFlow<Event>(
             replay = 0,
@@ -132,26 +133,26 @@ class CommonCredentialTest {
         }
 
     @Test
-    fun getAccessTokenIfValid_ValidToken_ReturnsAccessToken() =
+    fun accessTokenIfNotExpired_ValidToken_ReturnsAccessToken() =
         runTest {
             // Token created at clock=1_000_000 with expiresIn=3600 → issuedAt=996_400
             val credential = createCredential(expiresIn = 3600)
             // Simulate checking 1 second after token creation (still within expiry window)
             clock.time = 1_000_000L - 1
 
-            val accessToken = credential.getAccessTokenIfValid()
+            val accessToken = credential.accessTokenIfNotExpired()
             assertNotNull(accessToken)
             assertEquals("valid-at", accessToken)
         }
 
     @Test
-    fun getAccessTokenIfValid_ExpiredToken_ReturnsNull() =
+    fun accessTokenIfNotExpired_ExpiredToken_ReturnsNull() =
         runTest {
             val credential = createCredential(expiresIn = 100)
             // Advance clock well past expiry
             clock.time = 1_000_000L + 200
 
-            assertNull(credential.getAccessTokenIfValid())
+            assertNull(credential.accessTokenIfNotExpired())
         }
 
     @Test
@@ -191,22 +192,22 @@ class CommonCredentialTest {
     fun deleteAsync_ClearsDefaultIfMatching() =
         runTest {
             val credential = createCredential(id = "del-3")
-            defaultIdStore.setDefaultCredentialId("del-3")
+            defaultIdStore.setDefaultCredentialId("del-3").getOrThrow()
 
             credential.deleteAsync().getOrThrow()
 
-            assertNull(defaultIdStore.getDefaultCredentialId())
+            assertNull(defaultIdStore.getDefaultCredentialId().getOrThrow())
         }
 
     @Test
     fun deleteAsync_DoesNotClearDefaultIfNotMatching() =
         runTest {
             val credential = createCredential(id = "del-4")
-            defaultIdStore.setDefaultCredentialId("other-id")
+            defaultIdStore.setDefaultCredentialId("other-id").getOrThrow()
 
             credential.deleteAsync().getOrThrow()
 
-            assertEquals("other-id", defaultIdStore.getDefaultCredentialId())
+            assertEquals("other-id", defaultIdStore.getDefaultCredentialId().getOrThrow())
         }
 
     @Test
@@ -348,7 +349,7 @@ class CommonCredentialTest {
         }
 
     @Test
-    fun getValidAccessToken_OriginalUnchanged() =
+    fun refreshIfExpired_OriginalUnchanged() =
         runTest {
             val credential = createCredential(id = "imm-3")
             val originalToken = credential.token
@@ -358,7 +359,7 @@ class CommonCredentialTest {
             // Ensure token is still valid (clock at creation boundary)
             clock.time = 1_000_000L - 1
 
-            val result = credential.getValidAccessToken()
+            val result = credential.refreshIfExpired()
             assertTrue(result.isSuccess)
 
             assertEquals(originalId, credential.id)
@@ -482,10 +483,10 @@ class CommonCredentialTest {
     // --- idToken tests ---
 
     @Test
-    fun idToken_NullIdToken_ReturnsNull() =
+    fun idToken_NullIdToken_ReturnsFailure() =
         runTest {
             val credential = createCredential()
-            assertNull(credential.idToken())
+            assertTrue(credential.idToken().isFailure)
         }
 
     @Test
@@ -504,13 +505,12 @@ class CommonCredentialTest {
                     defaultIdStore = defaultIdStore
                 )
 
-            val jwt = credWithJwt.idToken()
-            assertNotNull(jwt)
+            val jwt = credWithJwt.idToken().getOrThrow()
             assertEquals("FJA0HGNtsuuda_Pl45J42kvQqcsu_0C4Fg7pbJLXTHY", jwt.keyId)
         }
 
     @Test
-    fun idToken_MalformedJwt_ReturnsNull() =
+    fun idToken_MalformedJwt_ReturnsFailure() =
         runTest {
             val token = createTestToken(id = "jwt-bad", idToken = "InvalidJwt", configuration = config)
             dataSource.createToken(token)
@@ -523,7 +523,7 @@ class CommonCredentialTest {
                     defaultIdStore = defaultIdStore
                 )
 
-            assertNull(credential.idToken())
+            assertTrue(credential.idToken().isFailure)
         }
 
     // --- find tests ---

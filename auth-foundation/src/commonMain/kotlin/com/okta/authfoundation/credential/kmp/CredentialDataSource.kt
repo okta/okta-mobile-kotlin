@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 package com.okta.authfoundation.credential.kmp
-import com.okta.authfoundation.InternalAuthFoundationApi
-import com.okta.authfoundation.client.OAuth2ClientResult
+
 import com.okta.authfoundation.client.TokenInfo
 import com.okta.authfoundation.credential.TokenMetadata
 import com.okta.authfoundation.util.CoalescingOrchestrator
@@ -32,8 +31,7 @@ import kotlinx.coroutines.sync.withLock
  * Handles token CRUD with caching. Event emission is handled by credential
  * implementations ([CredentialImpl], Android [Credential]).
  */
-@InternalAuthFoundationApi
-class CredentialDataSource(
+internal class CredentialDataSource(
     private val storage: TokenStorage,
 ) {
     private val cacheMutex = Mutex()
@@ -42,7 +40,7 @@ class CredentialDataSource(
     // Shared state for immutable credential snapshots (T001-T003)
     private val tokenFlows = mutableMapOf<String, MutableStateFlow<TokenData?>>()
     private val deletedIds = mutableSetOf<String>()
-    private val refreshOrchestrators = mutableMapOf<String, CoalescingOrchestrator<OAuth2ClientResult<TokenInfo>>>()
+    private val refreshOrchestrators = mutableMapOf<String, CoalescingOrchestrator<Result<TokenInfo>>>()
 
     /** Returns a shared [Flow] of token updates for the given credential [id]. */
     fun getTokenFlow(
@@ -85,8 +83,8 @@ class CredentialDataSource(
      */
     internal fun getOrCreateRefreshOrchestrator(
         id: String,
-        factory: suspend () -> OAuth2ClientResult<TokenInfo>,
-    ): CoalescingOrchestrator<OAuth2ClientResult<TokenInfo>> =
+        factory: suspend () -> Result<TokenInfo>,
+    ): CoalescingOrchestrator<Result<TokenInfo>> =
         synchronized(refreshOrchestrators) {
             refreshOrchestrators.getOrPut(id) {
                 CoalescingOrchestrator(
@@ -97,14 +95,14 @@ class CredentialDataSource(
         }
 
     /** Returns all stored token IDs. */
-    suspend fun allIds(): List<String> = runCatching { storage.allIds() }.getOrThrow()
+    suspend fun allIds(): List<String> = storage.allIds().getOrThrow()
 
     /** Returns metadata for the token with [id]. */
-    suspend fun metadata(id: String): TokenMetadata? = runCatching { storage.metadata(id) }.getOrThrow()
+    suspend fun metadata(id: String): TokenMetadata? = storage.metadata(id).getOrThrow()
 
     /** Updates metadata for a stored token. */
     suspend fun setMetadata(metadata: TokenMetadata) {
-        runCatching { storage.setMetadata(metadata) }.getOrThrow()
+        storage.setMetadata(metadata).getOrThrow()
     }
 
     /** Stores a new token and returns its data. */
@@ -121,7 +119,7 @@ class CredentialDataSource(
         cacheMutex.withLock {
             cache[token.id] = token
         }
-        runCatching { storage.add(token, metadata) }.getOrThrow()
+        storage.add(token, metadata).getOrThrow()
         return token
     }
 
@@ -131,7 +129,7 @@ class CredentialDataSource(
         if (existing == null) {
             throw IllegalStateException("Attempted replacing a non-existent Token")
         }
-        runCatching { storage.replace(token) }.getOrThrow()
+        storage.replace(token).getOrThrow()
         if (token is TokenData) {
             val updated =
                 token.copy(
@@ -150,7 +148,7 @@ class CredentialDataSource(
             cache[id]?.let { return it }
         }
         val metadata = metadata(id) ?: return null
-        val token = runCatching { storage.getToken(id) }.getOrNull() ?: return null
+        val token = storage.getToken(id).getOrNull() ?: return null
         if (token is TokenData) {
             cacheMutex.withLock { cache[id] = token }
         }
@@ -162,7 +160,7 @@ class CredentialDataSource(
         cacheMutex.withLock { cache.remove(id) }
         synchronized(tokenFlows) { tokenFlows.remove(id) }
         synchronized(refreshOrchestrators) { refreshOrchestrators.remove(id) }
-        runCatching { storage.remove(id) }.getOrThrow()
+        storage.remove(id).getOrThrow()
     }
 
     /** Finds all tokens matching the predicate. */

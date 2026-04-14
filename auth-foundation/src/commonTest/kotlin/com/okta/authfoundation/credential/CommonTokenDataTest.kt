@@ -20,7 +20,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 import kotlin.test.assertNull
 
-class CommonTokenDataTest {
+class TokenDataKmpTest {
     @Test
     fun create_FieldsAssignedCorrectly() {
         val config = TestConfiguration.create(clientId = "my-client", issuerUrl = "https://issuer.example.com")

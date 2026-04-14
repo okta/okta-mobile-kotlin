@@ -51,6 +51,8 @@ object TestOAuth2ClientConfiguration {
             key: String,
             value: String,
         ) {}
+
+        override fun clear() {}
     }
 
     private class TestClock : OidcClock {

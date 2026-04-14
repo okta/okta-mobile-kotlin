@@ -18,6 +18,7 @@ package com.okta.authfoundation.credential.kmp
 import com.okta.authfoundation.InternalAuthFoundationApi
 import com.okta.authfoundation.client.OAuth2ClientResult
 import com.okta.authfoundation.client.TokenInfo
+import com.okta.authfoundation.client.dto.IntrospectInfo
 import com.okta.authfoundation.client.dto.OidcUserInfo
 import com.okta.authfoundation.client.kmp.OAuth2Client
 import com.okta.authfoundation.credential.RevokeAllException
@@ -36,7 +37,6 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.serialization.json.JsonObject
 
 /**
  * Default cross-platform **immutable** implementation of [Credential].
@@ -53,7 +53,7 @@ import kotlinx.serialization.json.JsonObject
  */
 @OptIn(InternalAuthFoundationApi::class)
 class CredentialImpl internal constructor(
-    token: TokenData,
+    override val token: TokenData,
     internal val client: OAuth2Client = OAuth2Client.createFromConfiguration(token.configuration),
     override val tags: Map<String, String> = emptyMap(),
     private val dataSource: CredentialDataSource,
@@ -61,7 +61,6 @@ class CredentialImpl internal constructor(
     private val defaultIdStore: DefaultCredentialIdStore,
 ) : Credential {
     override val id: String = token.id
-    override val token: TokenData = token
 
     override fun getTokenFlow(): Flow<TokenData> = dataSource.getTokenFlow(id, token)
 
@@ -71,8 +70,8 @@ class CredentialImpl internal constructor(
             if (dataSource.isDeleted(id)) {
                 throw IllegalStateException("Credential $id has already been deleted.")
             }
-            if (defaultIdStore.getDefaultCredentialId() == id) {
-                defaultIdStore.clearDefaultCredentialId()
+            if (defaultIdStore.getDefaultCredentialId().getOrThrow() == id) {
+                defaultIdStore.clearDefaultCredentialId().getOrThrow()
             }
             dataSource.markDeleted(id)
             dataSource.remove(id)
@@ -82,7 +81,7 @@ class CredentialImpl internal constructor(
     @Suppress("UNCHECKED_CAST")
     override suspend fun getUserInfo(): Result<OidcUserInfo> =
         runCatching {
-            val fresh = getValidAccessToken().getOrThrow()
+            val fresh = refreshIfExpired().getOrThrow()
             val accessToken = fresh.token.accessToken
             when (val result = client.getUserInfo(accessToken)) {
                 is OAuth2ClientResult.Success<OidcUserInfo> -> result.result
@@ -93,9 +92,9 @@ class CredentialImpl internal constructor(
     /**
      * Introspects a specific token type at the authorization server.
      *
-     * @return [Result.success] with [JsonObject] or [Result.failure] on error.
+     * @return [Result.success] with [IntrospectInfo] or [Result.failure] on error.
      */
-    override suspend fun introspectToken(tokenType: TokenType): Result<JsonObject> =
+    override suspend fun introspectToken(tokenType: TokenType): Result<IntrospectInfo> =
         runCatching {
             val tokenStr =
                 when (tokenType) {
@@ -104,10 +103,7 @@ class CredentialImpl internal constructor(
                     TokenType.ID_TOKEN -> token.idToken
                     TokenType.DEVICE_SECRET -> token.deviceSecret
                 } ?: throw IllegalStateException("Token type ${tokenType.name} not available.")
-            when (val result = client.introspectToken(tokenType.toTokenTypeHint(), tokenStr)) {
-                is OAuth2ClientResult.Success -> result.result
-                is OAuth2ClientResult.Error -> throw result.exception
-            }
+            client.introspectToken(tokenType.toTokenTypeHint(), tokenStr).getOrThrow()
         }
 
     /**
@@ -122,21 +118,13 @@ class CredentialImpl internal constructor(
         runCatching {
             val orchestrator = dataSource.getOrCreateRefreshOrchestrator(id, ::performRealRefresh)
             val refreshResult = orchestrator.get()
-            when (refreshResult) {
-                is OAuth2ClientResult.Success -> {
-                    val newToken = refreshResult.result
-                    replaceToken(newToken)
-                }
-
-                is OAuth2ClientResult.Error -> {
-                    throw refreshResult.exception
-                }
-            }
+            val newToken = refreshResult.getOrThrow()
+            replaceToken(newToken)
         }
 
-    private suspend fun performRealRefresh(): OAuth2ClientResult<TokenInfo> {
+    private suspend fun performRealRefresh(): Result<TokenInfo> {
         val refreshTokenStr =
-            token.refreshToken ?: return OAuth2ClientResult.Error(
+            token.refreshToken ?: return Result.failure(
                 IllegalStateException("No refresh token available.")
             )
         return client.refreshToken(refreshTokenStr)
@@ -146,10 +134,7 @@ class CredentialImpl internal constructor(
         runCatching {
             val tokenStr =
                 tokenStringForType(tokenType) ?: throw IllegalStateException("Token type ${tokenType.name} not available.")
-            when (val result = client.revokeToken(tokenStr)) {
-                is OAuth2ClientResult.Success -> Unit
-                is OAuth2ClientResult.Error -> throw result.exception
-            }
+            client.revokeToken(tokenStr).getOrThrow()
         }
 
     override suspend fun revokeAllTokens(): Result<Unit> {
@@ -164,8 +149,8 @@ class CredentialImpl internal constructor(
                     pairsToRevoke
                         .map { entry ->
                             async {
-                                (client.revokeToken(entry.value) as? OAuth2ClientResult.Error<Unit>)?.exception?.let {
-                                    entry.key to it
+                                client.revokeToken(entry.value).exceptionOrNull()?.let { ex ->
+                                    entry.key to (ex as? Exception ?: Exception(ex))
                                 }
                             }
                         }.awaitAll()
@@ -179,12 +164,12 @@ class CredentialImpl internal constructor(
         }
     }
 
-    override suspend fun getValidAccessToken(): Result<Credential> {
-        getAccessTokenIfValid()?.let { return Result.success(this) }
+    override suspend fun refreshIfExpired(): Result<Credential> {
+        accessTokenIfNotExpired()?.let { return Result.success(this) }
         return refreshToken()
     }
 
-    override fun getAccessTokenIfValid(): String? {
+    override fun accessTokenIfNotExpired(): String? {
         val accessToken = token.accessToken
         val expiresIn = token.expiresIn
         if (token.issuedAt + expiresIn > token.configuration.clock.currentTimeEpochSecond()) {
@@ -193,15 +178,14 @@ class CredentialImpl internal constructor(
         return null
     }
 
-    override fun idToken(): Jwt? {
-        val idTokenStr = token.idToken ?: return null
-        return try {
+    override fun idToken(): Result<Jwt> =
+        runCatching {
+            val idTokenStr =
+                token.idToken
+                    ?: throw NoSuchElementException("No ID token present on credential $id.")
             val parser = JwtParser(client.configuration.json, Dispatchers.Default)
             parser.parse(idTokenStr)
-        } catch (_: Exception) {
-            null
         }
-    }
 
     @OptIn(InternalAuthFoundationApi::class)
     override suspend fun setTagsAsync(tags: Map<String, String>): Result<Credential> =

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package com.okta.authfoundation.credential.kmp
+
 import com.okta.authfoundation.client.OAuth2ClientConfiguration
 import com.okta.authfoundation.client.TokenInfo
 

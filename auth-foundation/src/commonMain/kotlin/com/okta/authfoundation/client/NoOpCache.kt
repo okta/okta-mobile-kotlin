@@ -15,19 +15,17 @@
  */
 package com.okta.authfoundation.client
 
-internal class InMemoryCache : Cache {
-    private val map = mutableMapOf<String, String>()
-
+/**
+ * A no-op implementation of [Cache] that does not persist any data.
+ */
+internal class NoOpCache : Cache {
     override fun set(
         key: String,
         value: String,
     ) {
-        map[key] = value
     }
 
-    override fun get(key: String): String? = map[key]
+    override fun get(key: String): String? = null
 
-    override fun clear() {
-        map.clear()
-    }
+    override fun clear() {}
 }
