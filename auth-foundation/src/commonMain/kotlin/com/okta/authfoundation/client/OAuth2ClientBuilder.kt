@@ -19,6 +19,8 @@ import com.okta.authfoundation.InternalAuthFoundationApi
 import com.okta.authfoundation.api.http.ApiExecutor
 import com.okta.authfoundation.api.http.KtorHttpExecutor
 import com.okta.authfoundation.client.internal.EndpointDiscovery
+import com.okta.authfoundation.client.kmp.DefaultIdTokenValidator
+import com.okta.authfoundation.client.kmp.IdTokenValidator
 import com.okta.authfoundation.client.kmp.OAuth2Client
 import com.okta.authfoundation.util.CoalescingOrchestrator
 import io.ktor.http.URLProtocol
@@ -29,7 +31,7 @@ import kotlin.coroutines.CoroutineContext
 import kotlin.time.Clock
 
 /**
- * Builder for creating a [OAuth2Client].
+ * Builder for creating an [OAuth2Client].
  *
  * Use the [create] factory method to construct an instance.
  *
@@ -74,6 +76,9 @@ class OAuth2ClientBuilder private constructor(
 
     /** Optional ACR values. */
     var acrValues: String? = null
+
+    /** ID token validator. When set, ID tokens are validated after token refresh. */
+    var idTokenValidator: IdTokenValidator = DefaultIdTokenValidator()
 
     companion object {
         /**
@@ -129,6 +134,7 @@ class OAuth2ClientBuilder private constructor(
             cache = cache,
             authorizationServerId = authorizationServerId,
             clientSecret = clientSecret,
-            acrValues = acrValues
+            acrValues = acrValues,
+            idTokenValidator = idTokenValidator
         )
 }

@@ -135,7 +135,7 @@ class OAuth2ClientBuilder(
         }
 
     /**
-     * Creates a [OAuth2Client] instance with the configured parameters.
+     * Creates an [OAuth2Client] instance with the configured parameters.
      *
      * @return A [AuthFoundationResult] containing the [OAuth2Client] on success, or an exception on failure.
      */

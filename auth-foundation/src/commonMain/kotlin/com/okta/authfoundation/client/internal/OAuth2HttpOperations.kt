@@ -24,6 +24,9 @@ import com.okta.authfoundation.client.OAuth2ClientResult
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.json.Json
 
+private val defaultHeaders: Map<String, List<String>> =
+    mapOf("User-Agent" to listOf(UserAgent.value))
+
 /**
  * Executes a JSON GET request and deserializes the response.
  */
@@ -36,11 +39,12 @@ internal suspend fun <T> performJsonGetRequest(
     headers: Map<String, List<String>> = mapOf("Accept" to listOf("application/json")),
 ): OAuth2ClientResult<T> =
     runCatching {
+        val mergedHeaders = defaultHeaders + headers
         val request =
             object : ApiRequest {
                 override fun method(): ApiRequestMethod = ApiRequestMethod.GET
 
-                override fun headers(): Map<String, List<String>> = headers
+                override fun headers(): Map<String, List<String>> = mergedHeaders
 
                 override fun url(): String = url
             }
@@ -66,11 +70,12 @@ internal suspend fun <T> performJsonFormPost(
     deserializer: DeserializationStrategy<T>,
 ): OAuth2ClientResult<T> =
     runCatching {
+        val mergedHeaders = defaultHeaders + mapOf("Accept" to listOf("application/json"))
         val request =
             object : ApiFormRequest {
                 override fun method(): ApiRequestMethod = ApiRequestMethod.POST
 
-                override fun headers(): Map<String, List<String>> = mapOf("Accept" to listOf("application/json"))
+                override fun headers(): Map<String, List<String>> = mergedHeaders
 
                 override fun url(): String = url
 
@@ -102,7 +107,7 @@ internal suspend fun performFormPost(
             object : ApiFormRequest {
                 override fun method(): ApiRequestMethod = ApiRequestMethod.POST
 
-                override fun headers(): Map<String, List<String>> = emptyMap()
+                override fun headers(): Map<String, List<String>> = defaultHeaders
 
                 override fun url(): String = url
 
