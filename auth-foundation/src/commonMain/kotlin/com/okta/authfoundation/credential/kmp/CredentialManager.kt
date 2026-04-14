@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package com.okta.authfoundation.credential.kmp
+
 import com.okta.authfoundation.InternalAuthFoundationApi
 import com.okta.authfoundation.client.kmp.OAuth2Client
 import com.okta.authfoundation.credential.TokenMetadata
@@ -38,12 +39,11 @@ import kotlinx.coroutines.flow.asSharedFlow
  * @param storage The [TokenStorage] for persisting tokens.
  * @param defaultIdStore Store for the default credential ID.
  */
-class CredentialManager @OptIn(InternalAuthFoundationApi::class) constructor(
+class CredentialManager(
     val client: OAuth2Client,
     storage: TokenStorage,
     val defaultIdStore: DefaultCredentialIdStore,
 ) {
-    @OptIn(InternalAuthFoundationApi::class)
     internal val dataSource = CredentialDataSource(storage)
 
     private val _events =
@@ -132,7 +132,7 @@ class CredentialManager @OptIn(InternalAuthFoundationApi::class) constructor(
     @OptIn(InternalAuthFoundationApi::class)
     suspend fun getDefault(): Result<Credential?> =
         runCatching {
-            val defaultId = defaultIdStore.getDefaultCredentialId() ?: return@runCatching null
+            val defaultId = defaultIdStore.getDefaultCredentialId().getOrThrow() ?: return@runCatching null
             val token = dataSource.getToken(defaultId) ?: return@runCatching null
             if (token !is TokenData) return@runCatching null
             val metadata = dataSource.metadata(defaultId)
@@ -153,10 +153,10 @@ class CredentialManager @OptIn(InternalAuthFoundationApi::class) constructor(
     suspend fun setDefault(credential: Credential?): Result<Unit> =
         runCatching {
             if (credential != null) {
-                defaultIdStore.setDefaultCredentialId(credential.id)
+                defaultIdStore.setDefaultCredentialId(credential.id).getOrThrow()
                 _events.tryEmit(DefaultCredentialChangedEvent(credential))
             } else {
-                defaultIdStore.clearDefaultCredentialId()
+                defaultIdStore.clearDefaultCredentialId().getOrThrow()
                 _events.tryEmit(DefaultCredentialChangedEvent(null))
             }
         }

@@ -15,6 +15,7 @@
  */
 package com.okta.authfoundation.credential.jvm;
 
+import static com.okta.authfoundation.credential.kmp.storage.TestTokenDatabaseFactoryKt.createInMemoryTokenDatabase;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -25,7 +26,11 @@ import com.okta.authfoundation.client.jvm.OAuth2ClientBuilder;
 import com.okta.authfoundation.client.kmp.OAuth2Client;
 import com.okta.authfoundation.credential.TokenMetadata;
 import com.okta.authfoundation.credential.kmp.Credential;
+import com.okta.authfoundation.credential.kmp.NoOpTokenEncryptionHandler;
 import com.okta.authfoundation.credential.kmp.TokenData;
+import com.okta.authfoundation.credential.kmp.storage.RoomDefaultCredentialIdStore;
+import com.okta.authfoundation.credential.kmp.storage.RoomTokenStorage;
+import com.okta.authfoundation.credential.kmp.storage.TokenDatabase;
 import com.okta.authfoundation.events.Event;
 import java.io.Closeable;
 import java.util.ArrayList;
@@ -45,6 +50,7 @@ public class CredentialManagerJavaTest {
 
   private OAuth2Client client;
   private CredentialManager manager;
+  private TokenDatabase database;
 
   @Before
   public void setUp() {
@@ -52,12 +58,17 @@ public class CredentialManagerJavaTest {
         new OAuth2ClientBuilder(ISSUER_URL, CLIENT_ID, Arrays.asList("openid", "profile"))
             .build()
             .getOrThrow();
-    manager = new CredentialManager(client);
+    database = createInMemoryTokenDatabase();
+    RoomTokenStorage storage =
+        new RoomTokenStorage(database, new NoOpTokenEncryptionHandler(), client.getConfiguration());
+    RoomDefaultCredentialIdStore defaultIdStore = new RoomDefaultCredentialIdStore(database);
+    manager = new CredentialManager(client, storage, defaultIdStore);
   }
 
   @After
   public void tearDown() {
     manager.close();
+    database.close();
   }
 
   @Test

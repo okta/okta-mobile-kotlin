@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 package com.okta.authfoundation.credential.kmp
+
+import com.okta.authfoundation.credential.InMemoryDefaultCredentialIdStore
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -25,36 +27,36 @@ class InMemoryDefaultCredentialIdStoreTest {
     @Test
     fun getDefaultCredentialId_InitiallyNull() =
         runTest {
-            assertNull(store.getDefaultCredentialId())
+            assertNull(store.getDefaultCredentialId().getOrThrow())
         }
 
     @Test
     fun setAndGetDefaultCredentialId() =
         runTest {
-            store.setDefaultCredentialId("cred-1")
-            assertEquals("cred-1", store.getDefaultCredentialId())
+            store.setDefaultCredentialId("cred-1").getOrThrow()
+            assertEquals("cred-1", store.getDefaultCredentialId().getOrThrow())
         }
 
     @Test
     fun setDefaultCredentialId_OverwritesPrevious() =
         runTest {
-            store.setDefaultCredentialId("cred-1")
-            store.setDefaultCredentialId("cred-2")
-            assertEquals("cred-2", store.getDefaultCredentialId())
+            store.setDefaultCredentialId("cred-1").getOrThrow()
+            store.setDefaultCredentialId("cred-2").getOrThrow()
+            assertEquals("cred-2", store.getDefaultCredentialId().getOrThrow())
         }
 
     @Test
     fun clearDefaultCredentialId_SetsToNull() =
         runTest {
-            store.setDefaultCredentialId("cred-3")
-            store.clearDefaultCredentialId()
-            assertNull(store.getDefaultCredentialId())
+            store.setDefaultCredentialId("cred-3").getOrThrow()
+            store.clearDefaultCredentialId().getOrThrow()
+            assertNull(store.getDefaultCredentialId().getOrThrow())
         }
 
     @Test
     fun clearDefaultCredentialId_WhenAlreadyNull_NoError() =
         runTest {
-            store.clearDefaultCredentialId()
-            assertNull(store.getDefaultCredentialId())
+            store.clearDefaultCredentialId().getOrThrow()
+            assertNull(store.getDefaultCredentialId().getOrThrow())
         }
 }

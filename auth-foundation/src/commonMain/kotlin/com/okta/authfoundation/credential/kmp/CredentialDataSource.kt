@@ -15,7 +15,6 @@
  */
 package com.okta.authfoundation.credential.kmp
 
-import com.okta.authfoundation.InternalAuthFoundationApi
 import com.okta.authfoundation.client.OAuth2ClientResult
 import com.okta.authfoundation.client.TokenInfo
 import com.okta.authfoundation.credential.TokenMetadata
@@ -35,8 +34,7 @@ import kotlinx.coroutines.flow.transformWhile
  * trivially short map operation that never suspends. This avoids the overhead and
  * `suspend`-signature requirement of [kotlinx.coroutines.sync.Mutex].
  */
-@InternalAuthFoundationApi
-class CredentialDataSource(
+internal class CredentialDataSource(
     private val storage: TokenStorage,
 ) {
     private val cache = mutableMapOf<String, TokenData>()
@@ -98,14 +96,14 @@ class CredentialDataSource(
         }
 
     /** Returns all stored token IDs. */
-    suspend fun allIds(): List<String> = storage.allIds()
+    suspend fun allIds(): List<String> = storage.allIds().getOrThrow()
 
     /** Returns metadata for the token with [id]. */
-    suspend fun metadata(id: String): TokenMetadata? = storage.metadata(id)
+    suspend fun metadata(id: String): TokenMetadata? = storage.metadata(id).getOrThrow()
 
     /** Updates metadata for a stored token. */
     suspend fun setMetadata(metadata: TokenMetadata) {
-        storage.setMetadata(metadata)
+        storage.setMetadata(metadata).getOrThrow()
     }
 
     /** Stores a new token and returns its data. */
@@ -120,7 +118,7 @@ class CredentialDataSource(
                 payloadData = null
             )
         synchronized(cache) { cache[token.id] = token }
-        storage.add(token, metadata)
+        storage.add(token, metadata).getOrThrow()
         return token
     }
 
@@ -130,7 +128,7 @@ class CredentialDataSource(
         if (existing == null) {
             throw IllegalStateException("Attempted replacing a non-existent Token")
         }
-        storage.replace(token)
+        storage.replace(token).getOrThrow()
         if (token is TokenData) {
             val updated =
                 token.copy(
@@ -147,12 +145,7 @@ class CredentialDataSource(
     suspend fun getToken(id: String): TokenInfo? {
         synchronized(cache) { cache[id] }?.let { return it }
         metadata(id) ?: return null
-        val token =
-            try {
-                storage.getToken(id)
-            } catch (_: NoSuchElementException) {
-                return null
-            }
+        val token = storage.getToken(id).getOrNull() ?: return null
         if (token is TokenData) {
             synchronized(cache) { cache[id] = token }
         }
@@ -164,7 +157,7 @@ class CredentialDataSource(
         synchronized(cache) { cache.remove(id) }
         synchronized(tokenFlows) { tokenFlows.remove(id) }
         synchronized(refreshOrchestrators) { refreshOrchestrators.remove(id) }
-        storage.remove(id)
+        storage.remove(id).getOrThrow()
     }
 
     /** Finds all tokens matching the predicate. */

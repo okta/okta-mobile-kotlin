@@ -19,35 +19,16 @@ package com.okta.authfoundation.credential.kmp
  * Platform-agnostic abstraction for storing the default credential ID.
  *
  * On Android, the existing [DefaultCredentialIdDataStore] provides an encrypted DataStore-based
- * implementation. On JVM, [InMemoryDefaultCredentialIdStore] provides a simple in-memory implementation.
+ * implementation. For cross-platform persistent storage, use
+ * [RoomDefaultCredentialIdStore][com.okta.authfoundation.credential.storage.RoomDefaultCredentialIdStore].
  */
 interface DefaultCredentialIdStore {
     /** Returns the current default credential ID, or null if none is set. */
-    suspend fun getDefaultCredentialId(): String?
+    suspend fun getDefaultCredentialId(): Result<String?>
 
     /** Sets the default credential ID. */
-    suspend fun setDefaultCredentialId(id: String)
+    suspend fun setDefaultCredentialId(id: String): Result<Unit>
 
     /** Clears the default credential ID. */
-    suspend fun clearDefaultCredentialId()
-}
-
-/**
- * Simple in-memory implementation of [DefaultCredentialIdStore].
- *
- * Suitable for testing and JVM applications where persistence across restarts is not required.
- */
-class InMemoryDefaultCredentialIdStore : DefaultCredentialIdStore {
-    @Volatile
-    private var defaultId: String? = null
-
-    override suspend fun getDefaultCredentialId(): String? = defaultId
-
-    override suspend fun setDefaultCredentialId(id: String) {
-        defaultId = id
-    }
-
-    override suspend fun clearDefaultCredentialId() {
-        defaultId = null
-    }
+    suspend fun clearDefaultCredentialId(): Result<Unit>
 }

@@ -13,21 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.okta.authfoundation.client
+package com.okta.authfoundation.credential.kmp.storage
 
-internal class InMemoryCache : Cache {
-    private val map = mutableMapOf<String, String>()
+import androidx.room.Dao
+import androidx.room.Query
+import androidx.room.Upsert
 
-    override fun set(
-        key: String,
-        value: String,
-    ) {
-        map[key] = value
-    }
+@Dao
+internal interface SettingDao {
+    @Query("SELECT value FROM SettingEntity WHERE `key` = :key")
+    suspend fun getValue(key: String): String?
 
-    override fun get(key: String): String? = map[key]
+    @Upsert
+    suspend fun upsert(setting: SettingEntity)
 
-    override fun clear() {
-        map.clear()
-    }
+    @Query("DELETE FROM SettingEntity WHERE `key` = :key")
+    suspend fun delete(key: String)
 }

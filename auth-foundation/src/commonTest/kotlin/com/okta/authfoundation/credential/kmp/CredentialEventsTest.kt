@@ -19,7 +19,8 @@ import com.okta.authfoundation.InternalAuthFoundationApi
 import com.okta.authfoundation.client.OAuth2ClientResult
 import com.okta.authfoundation.client.internal.OAuth2Endpoints
 import com.okta.authfoundation.client.kmp.OAuth2Client
-import com.okta.authfoundation.credential.FakeCommonTokenStorage
+import com.okta.authfoundation.credential.FakeTokenStorage
+import com.okta.authfoundation.credential.InMemoryDefaultCredentialIdStore
 import com.okta.authfoundation.credential.TestConfiguration
 import com.okta.authfoundation.credential.createTestToken
 import com.okta.authfoundation.credential.events.CredentialCreatedEvent
@@ -66,7 +67,7 @@ class CredentialEventsTest {
     private fun createManager(): CredentialManager =
         CredentialManager(
             client = client,
-            storage = FakeCommonTokenStorage(),
+            storage = FakeTokenStorage(),
             defaultIdStore = InMemoryDefaultCredentialIdStore()
         )
 

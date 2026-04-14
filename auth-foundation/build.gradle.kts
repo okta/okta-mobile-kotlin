@@ -97,6 +97,8 @@ kotlin {
                 implementation(libs.ktor.serialization.kotlinx.json)
                 implementation(libs.kotlinx.datetime)
                 implementation(libs.kotlin.serialization.json)
+                implementation(libs.room.runtime)
+                implementation(libs.androidx.sqlite.bundled)
             }
         }
 
@@ -143,6 +145,8 @@ kotlin {
                 implementation(libs.kotlin.test)
                 implementation(libs.coroutines.test)
                 implementation(libs.junit)
+                implementation(libs.room.testing)
+                implementation(libs.androidx.sqlite.bundled)
             }
         }
 

@@ -13,18 +13,41 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.okta.authfoundation.credential
+package com.okta.authfoundation.credential.kmp.storage
 
+import androidx.room.Room
+import androidx.sqlite.driver.bundled.BundledSQLiteDriver
+import com.okta.authfoundation.credential.TestOAuth2ClientConfiguration
+import com.okta.authfoundation.credential.TokenMetadata
+import com.okta.authfoundation.credential.kmp.EncryptionResult
 import com.okta.authfoundation.credential.kmp.TokenData
+import com.okta.authfoundation.credential.kmp.TokenEncryptionHandler
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.runTest
+import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-class InMemoryCommonTokenStorageTest {
-    private val storage = InMemoryTokenStorage()
+class RoomTokenStorageTest {
+    private val configuration = TestOAuth2ClientConfiguration.create()
+    private val encryptionHandler = PassthroughEncryptionHandler()
+
+    private val database: TokenDatabase =
+        Room
+            .inMemoryDatabaseBuilder<TokenDatabase>()
+            .setDriver(BundledSQLiteDriver())
+            .setQueryCoroutineContext(Dispatchers.IO)
+            .build()
+
+    private val storage = RoomTokenStorage(database, encryptionHandler, configuration)
+
+    @AfterTest
+    fun tearDown() {
+        database.close()
+    }
 
     private fun createTestToken(id: String = "test-id"): TokenData =
         TokenData(
@@ -37,7 +60,7 @@ class InMemoryCommonTokenStorageTest {
             idToken = null,
             deviceSecret = null,
             issuedTokenType = null,
-            configuration = TestOAuth2ClientConfiguration.create()
+            configuration = configuration
         )
 
     private fun createTestMetadata(
@@ -76,10 +99,13 @@ class InMemoryCommonTokenStorageTest {
             val retrieved = storage.getToken("test-id").getOrThrow()
             assertEquals("access-test-id", retrieved.accessToken)
             assertEquals("Bearer", retrieved.tokenType)
+            assertEquals(3600, retrieved.expiresIn)
+            assertEquals("openid profile", retrieved.scope)
+            assertEquals("refresh-test-id", retrieved.refreshToken)
         }
 
     @Test
-    fun getToken_NonExistentId_ReturnsFailure() =
+    fun getToken_NonExistentId_ThrowsNoSuchElement() =
         runTest {
             assertTrue(storage.getToken("nonexistent").isFailure)
         }
@@ -97,16 +123,32 @@ class InMemoryCommonTokenStorageTest {
     @Test
     fun replace_UpdatesExistingToken() =
         runTest {
-            storage.add(createTestToken(), createTestMetadata()).getOrThrow()
-            val updated = createTestToken().copy(id = "test-id")
+            val original = createTestToken()
+            storage.add(original, createTestMetadata()).getOrThrow()
+
+            val updated =
+                TokenData(
+                    id = "test-id",
+                    tokenType = "Bearer",
+                    expiresIn = 7200,
+                    accessToken = "new-access-token",
+                    scope = "openid",
+                    refreshToken = "new-refresh",
+                    idToken = null,
+                    deviceSecret = null,
+                    issuedTokenType = null,
+                    configuration = configuration
+                )
             storage.replace(updated).getOrThrow()
 
             val retrieved = storage.getToken("test-id").getOrThrow()
-            assertEquals("access-test-id", retrieved.accessToken)
+            assertEquals("new-access-token", retrieved.accessToken)
+            assertEquals(7200, retrieved.expiresIn)
+            assertEquals("new-refresh", retrieved.refreshToken)
         }
 
     @Test
-    fun replace_NonExistentId_ReturnsFailure() =
+    fun replace_NonExistentId_ThrowsNoSuchElement() =
         runTest {
             assertTrue(storage.replace(createTestToken("nonexistent")).isFailure)
         }
@@ -124,6 +166,12 @@ class InMemoryCommonTokenStorageTest {
         }
 
     @Test
+    fun metadata_NonExistentId_ReturnsNull() =
+        runTest {
+            assertNull(storage.metadata("nonexistent").getOrThrow())
+        }
+
+    @Test
     fun multipleTokens_IndependentCrud() =
         runTest {
             storage.add(createTestToken("id1"), createTestMetadata("id1")).getOrThrow()
@@ -137,4 +185,44 @@ class InMemoryCommonTokenStorageTest {
             val token2 = storage.getToken("id2").getOrThrow()
             assertEquals("access-id2", token2.accessToken)
         }
+
+    @Test
+    fun encryptionHandler_EncryptsAccessToken() =
+        runTest {
+            val xorHandler = XorEncryptionHandler()
+            val encryptedStorage = RoomTokenStorage(database, xorHandler, configuration)
+
+            val token = createTestToken()
+            encryptedStorage.add(token, createTestMetadata()).getOrThrow()
+
+            val retrieved = encryptedStorage.getToken("test-id").getOrThrow()
+            assertEquals("access-test-id", retrieved.accessToken)
+        }
+
+    @Test
+    fun remove_NonExistentId_DoesNothing() =
+        runTest {
+            storage.remove("nonexistent").getOrThrow()
+            assertTrue(storage.allIds().getOrThrow().isEmpty())
+        }
+
+    private class PassthroughEncryptionHandler : TokenEncryptionHandler {
+        override suspend fun encrypt(plaintext: ByteArray): EncryptionResult = EncryptionResult(ciphertext = plaintext)
+
+        override suspend fun decrypt(
+            ciphertext: ByteArray,
+            encryptionExtras: Map<String, String>,
+        ): ByteArray = ciphertext
+    }
+
+    private class XorEncryptionHandler : TokenEncryptionHandler {
+        private val key: Byte = 0x42
+
+        override suspend fun encrypt(plaintext: ByteArray): EncryptionResult = EncryptionResult(ciphertext = plaintext.map { (it.toInt() xor key.toInt()).toByte() }.toByteArray())
+
+        override suspend fun decrypt(
+            ciphertext: ByteArray,
+            encryptionExtras: Map<String, String>,
+        ): ByteArray = ciphertext.map { (it.toInt() xor key.toInt()).toByte() }.toByteArray()
+    }
 }

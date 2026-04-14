@@ -19,7 +19,8 @@ import com.okta.authfoundation.InternalAuthFoundationApi
 import com.okta.authfoundation.client.OAuth2ClientResult
 import com.okta.authfoundation.client.internal.OAuth2Endpoints
 import com.okta.authfoundation.client.kmp.OAuth2Client
-import com.okta.authfoundation.credential.FakeCommonTokenStorage
+import com.okta.authfoundation.credential.FakeTokenStorage
+import com.okta.authfoundation.credential.InMemoryDefaultCredentialIdStore
 import com.okta.authfoundation.credential.TestConfiguration
 import com.okta.authfoundation.credential.TokenMetadata
 import com.okta.authfoundation.credential.createTestToken
@@ -67,7 +68,7 @@ class CredentialMetadataTest {
     private val manager =
         CredentialManager(
             client = client,
-            storage = FakeCommonTokenStorage(),
+            storage = FakeTokenStorage(),
             defaultIdStore = defaultIdStore
         )
 
@@ -158,7 +159,7 @@ class CredentialMetadataTest {
 
             manager.setDefault(credential).getOrThrow()
 
-            assertEquals("def-1", defaultIdStore.getDefaultCredentialId())
+            assertEquals("def-1", defaultIdStore.getDefaultCredentialId().getOrThrow())
             val defaultChangedEvents = events.filterIsInstance<DefaultCredentialChangedEvent>()
             assertEquals(1, defaultChangedEvents.size)
             assertEquals("def-1", defaultChangedEvents[0].credentialIdentifier!!.id)
@@ -177,7 +178,7 @@ class CredentialMetadataTest {
 
             manager.setDefault(null).getOrThrow()
 
-            assertNull(defaultIdStore.getDefaultCredentialId())
+            assertNull(defaultIdStore.getDefaultCredentialId().getOrThrow())
             val defaultChangedEvents = events.filterIsInstance<DefaultCredentialChangedEvent>()
             assertEquals(1, defaultChangedEvents.size)
             assertNull(defaultChangedEvents[0].credentialIdentifier)
@@ -209,7 +210,7 @@ class CredentialMetadataTest {
 
             credential.deleteAsync().getOrThrow()
 
-            assertNull(defaultIdStore.getDefaultCredentialId())
+            assertNull(defaultIdStore.getDefaultCredentialId().getOrThrow())
         }
 
     @Test

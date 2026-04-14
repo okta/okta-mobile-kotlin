@@ -13,21 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.okta.authfoundation.client
+package com.okta.authfoundation.credential.kmp.storage
 
-internal class InMemoryCache : Cache {
-    private val map = mutableMapOf<String, String>()
+import androidx.room.Room
+import androidx.sqlite.driver.bundled.BundledSQLiteDriver
+import kotlinx.coroutines.Dispatchers
 
-    override fun set(
-        key: String,
-        value: String,
-    ) {
-        map[key] = value
-    }
-
-    override fun get(key: String): String? = map[key]
-
-    override fun clear() {
-        map.clear()
-    }
-}
+/**
+ * Creates an in-memory [TokenDatabase] for testing.
+ * Callable from Java (unlike the inline reified Room builder).
+ */
+fun createInMemoryTokenDatabase(): TokenDatabase =
+    Room
+        .inMemoryDatabaseBuilder<TokenDatabase>()
+        .setDriver(BundledSQLiteDriver())
+        .setQueryCoroutineContext(Dispatchers.IO)
+        .build()

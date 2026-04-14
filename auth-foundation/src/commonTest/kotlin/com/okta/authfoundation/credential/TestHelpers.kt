@@ -22,6 +22,7 @@ import com.okta.authfoundation.client.Cache
 import com.okta.authfoundation.client.OAuth2ClientConfiguration
 import com.okta.authfoundation.client.OidcClock
 import com.okta.authfoundation.client.TokenInfo
+import com.okta.authfoundation.credential.kmp.DefaultCredentialIdStore
 import com.okta.authfoundation.credential.kmp.TokenData
 import com.okta.authfoundation.credential.kmp.TokenStorage
 import com.okta.authfoundation.events.Event
@@ -59,6 +60,8 @@ internal object TestConfiguration {
             key: String,
             value: String,
         ) {}
+
+        override fun clear() {}
     }
 
     class FixedClock(
@@ -108,37 +111,61 @@ internal class RecordingEventHandler : EventHandler {
     }
 }
 
-internal class FakeCommonTokenStorage : TokenStorage {
+internal class InMemoryDefaultCredentialIdStore : DefaultCredentialIdStore {
+    @Volatile
+    private var defaultId: String? = null
+
+    override suspend fun getDefaultCredentialId(): Result<String?> = Result.success(defaultId)
+
+    override suspend fun setDefaultCredentialId(id: String): Result<Unit> =
+        runCatching {
+            defaultId = id
+        }
+
+    override suspend fun clearDefaultCredentialId(): Result<Unit> =
+        runCatching {
+            defaultId = null
+        }
+}
+
+internal class FakeTokenStorage : TokenStorage {
     private val tokens = mutableMapOf<String, TokenInfo>()
     private val metadata = mutableMapOf<String, TokenMetadata>()
 
-    override suspend fun allIds(): List<String> = tokens.keys.toList()
+    override suspend fun allIds(): Result<List<String>> = Result.success(tokens.keys.toList())
 
-    override suspend fun metadata(id: String): TokenMetadata? = metadata[id]
+    override suspend fun metadata(id: String): Result<TokenMetadata?> = Result.success(metadata[id])
 
-    override suspend fun setMetadata(metadata: TokenMetadata) {
-        this.metadata[metadata.id] = metadata
-    }
+    override suspend fun setMetadata(metadata: TokenMetadata): Result<Unit> =
+        runCatching {
+            this.metadata[metadata.id] = metadata
+        }
 
     override suspend fun add(
         token: TokenInfo,
         metadata: TokenMetadata,
-    ) {
-        tokens[token.id] = token
-        this.metadata[token.id] = metadata
-    }
-
-    override suspend fun remove(id: String) {
-        tokens.remove(id)
-        metadata.remove(id)
-    }
-
-    override suspend fun replace(token: TokenInfo) {
-        if (!tokens.containsKey(token.id)) {
-            throw NoSuchElementException("No token with id ${token.id}")
+    ): Result<Unit> =
+        runCatching {
+            tokens[token.id] = token
+            this.metadata[token.id] = metadata
         }
-        tokens[token.id] = token
-    }
 
-    override suspend fun getToken(id: String): TokenInfo = tokens[id] ?: throw NoSuchElementException("No token with id $id")
+    override suspend fun remove(id: String): Result<Unit> =
+        runCatching {
+            tokens.remove(id)
+            metadata.remove(id)
+        }
+
+    override suspend fun replace(token: TokenInfo): Result<Unit> =
+        runCatching {
+            if (!tokens.containsKey(token.id)) {
+                throw NoSuchElementException("No token with id ${token.id}")
+            }
+            tokens[token.id] = token
+        }
+
+    override suspend fun getToken(id: String): Result<TokenInfo> =
+        runCatching {
+            tokens[id] ?: throw NoSuchElementException("No token with id $id")
+        }
 }
