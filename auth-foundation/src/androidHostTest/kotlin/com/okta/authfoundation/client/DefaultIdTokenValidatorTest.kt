@@ -124,7 +124,8 @@ class DefaultIdTokenValidatorTest {
     @Test fun testMalformedPayload() {
         val idTokenClaims = IdTokenClaims(issuer = null)
         assertFailsWithMessage(
-            "Expected string value for a non-null key 'iss', got null literal instead at element: \$.iss\n" +
+            "Expected string value for a non-null key 'iss', got null literal instead at path: \$.iss\n" +
+                "Use 'coerceInputValues = true' in 'Json {}' builder to coerce nulls if property has a default value.\n" +
                 "JSON input: .....ldsHoJsPzQ\",\"ds_hash\":\"DAeLOFRqifysbgsrbOgbog\",\"nonce\":null}",
             "",
             idTokenClaims

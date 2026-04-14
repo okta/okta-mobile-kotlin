@@ -110,7 +110,7 @@ class OAuth2ClientEventsTest {
 
             val result = client.refreshToken("old-refresh-token")
 
-            assertTrue(result is OAuth2ClientResult.Success)
+            assertTrue(result.isSuccess)
             assertEquals(1, recordedEvents.size)
             val event = assertIs<TokenRefreshedEvent>(recordedEvents[0])
             assertEquals("new-access-token", event.tokenInfo.accessToken)
@@ -129,7 +129,7 @@ class OAuth2ClientEventsTest {
 
             val result = client.revokeToken("some-token")
 
-            assertTrue(result is OAuth2ClientResult.Success)
+            assertTrue(result.isSuccess)
             assertEquals(1, recordedEvents.size)
             val event = assertIs<TokenRevokedEvent>(recordedEvents[0])
             assertEquals("some-token", event.token)
@@ -153,7 +153,7 @@ class OAuth2ClientEventsTest {
 
             val result = client.refreshToken("old-refresh-token")
 
-            assertTrue(result is OAuth2ClientResult.Error)
+            assertTrue(result.isFailure)
             assertEquals(0, recordedEvents.size)
             collectJob.cancel()
         }

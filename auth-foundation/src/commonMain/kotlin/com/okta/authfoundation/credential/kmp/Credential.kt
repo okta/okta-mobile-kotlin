@@ -16,13 +16,13 @@
 package com.okta.authfoundation.credential.kmp
 
 import com.okta.authfoundation.client.TokenInfo
+import com.okta.authfoundation.client.dto.IntrospectInfo
 import com.okta.authfoundation.client.dto.OidcUserInfo
 import com.okta.authfoundation.credential.CredentialIdentifier
 import com.okta.authfoundation.credential.RevokeTokenType
 import com.okta.authfoundation.credential.TokenType
 import com.okta.authfoundation.jwt.Jwt
 import kotlinx.coroutines.flow.Flow
-import kotlinx.serialization.json.JsonObject
 
 /**
  * Cross-platform credential interface providing token management operations.
@@ -144,12 +144,12 @@ interface Credential : CredentialIdentifier {
      * Introspects a specific token type at the authorization server.
      *
      * @param tokenType the [TokenType] to introspect.
-     * @return [Result.success] with [JsonObject] containing the introspection response,
-     *   or [Result.failure] with:
+     * @return [Result.success] with [IntrospectInfo] — check [IntrospectInfo.active]
+     *   to determine if the token is valid, or [Result.failure] with:
      * - [IllegalStateException] if the requested [tokenType] is not present on this credential.
      * - Other exceptions if the network request fails.
      */
-    suspend fun introspectToken(tokenType: TokenType): Result<JsonObject>
+    suspend fun introspectToken(tokenType: TokenType): Result<IntrospectInfo>
 
     /**
      * Refreshes the token and returns a new credential snapshot.

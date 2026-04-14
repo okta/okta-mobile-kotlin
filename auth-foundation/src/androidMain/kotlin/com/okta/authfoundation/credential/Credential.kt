@@ -516,7 +516,6 @@ class Credential internal constructor(
                 JwtParser(client.configuration.json, client.configuration.computeDispatcher)
             parser.parse(idToken)
         } catch (e: Exception) {
-            // The token was malformed.
             null
         }
     }

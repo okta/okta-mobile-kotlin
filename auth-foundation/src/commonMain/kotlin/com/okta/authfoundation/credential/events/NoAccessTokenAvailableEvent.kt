@@ -21,10 +21,15 @@ import com.okta.authfoundation.events.EventHandler
 
 /**
  * Emitted via [EventHandler.onEvent] when no valid access token exists.
+ *
+ * **Migration note (Android):** The [credential] property was previously typed as
+ * `Credential`. It is now [CredentialIdentifier] for cross-platform compatibility.
+ * On Android, the underlying instance is still a `Credential` and can be cast:
+ * ```kotlin
+ * val cred = event.credential as Credential
+ * ```
  */
 class NoAccessTokenAvailableEvent internal constructor(
-    /**
-     * The [CredentialIdentifier] associated with the event.
-     */
+    /** The credential associated with the event. */
     val credential: CredentialIdentifier,
 ) : Event
