@@ -16,7 +16,6 @@
 package com.okta.authfoundation.credential.kmp
 
 import com.okta.authfoundation.InternalAuthFoundationApi
-import com.okta.authfoundation.client.OAuth2ClientResult
 import com.okta.authfoundation.client.TokenInfo
 import com.okta.authfoundation.client.dto.IntrospectInfo
 import com.okta.authfoundation.client.dto.OidcUserInfo
@@ -64,7 +63,6 @@ class CredentialImpl internal constructor(
 
     override fun getTokenFlow(): Flow<TokenData> = dataSource.getTokenFlow(id, token)
 
-    @OptIn(InternalAuthFoundationApi::class)
     override suspend fun deleteAsync(): Result<Unit> =
         runCatching {
             if (dataSource.isDeleted(id)) {
@@ -82,10 +80,7 @@ class CredentialImpl internal constructor(
         runCatching {
             val fresh = refreshIfExpired().getOrThrow()
             val accessToken = fresh.token.accessToken
-            when (val result = client.getUserInfo(accessToken)) {
-                is OAuth2ClientResult.Success<OidcUserInfo> -> result.result
-                is OAuth2ClientResult.Error<OidcUserInfo> -> throw result.exception
-            }
+            client.getUserInfo(accessToken).getOrThrow()
         }
 
     /**
@@ -213,7 +208,6 @@ class CredentialImpl internal constructor(
      *
      * Emits the updated token on the shared flow and fires [CredentialStoredEvent].
      */
-    @OptIn(InternalAuthFoundationApi::class)
     internal suspend fun replaceToken(newToken: TokenInfo): Credential {
         val deleted = dataSource.isDeleted(id)
         if (deleted) {

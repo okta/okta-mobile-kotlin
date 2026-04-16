@@ -15,7 +15,6 @@
  */
 package com.okta.authfoundation.credential.kmp.storage
 
-import com.okta.authfoundation.InternalAuthFoundationApi
 import com.okta.authfoundation.client.OAuth2ClientConfiguration
 import com.okta.authfoundation.client.TokenInfo
 import com.okta.authfoundation.credential.TokenMetadata
@@ -33,7 +32,6 @@ import com.okta.authfoundation.credential.kmp.TokenStorage
  * @param encryptionHandler the encryption strategy for token data.
  * @param configuration the [OAuth2ClientConfiguration] used to reconstruct tokens.
  */
-@InternalAuthFoundationApi
 class RoomTokenStorage(
     database: TokenDatabase,
     private val encryptionHandler: TokenEncryptionHandler,

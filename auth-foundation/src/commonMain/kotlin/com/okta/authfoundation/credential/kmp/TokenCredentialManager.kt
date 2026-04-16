@@ -15,7 +15,6 @@
  */
 package com.okta.authfoundation.credential.kmp
 
-import com.okta.authfoundation.InternalAuthFoundationApi
 import com.okta.authfoundation.client.kmp.OAuth2Client
 import com.okta.authfoundation.credential.TokenMetadata
 import com.okta.authfoundation.credential.events.CredentialCreatedEvent
@@ -39,19 +38,19 @@ import kotlinx.coroutines.flow.asSharedFlow
  * @param storage The [TokenStorage] for persisting tokens.
  * @param defaultIdStore Store for the default credential ID.
  */
-class CredentialManager(
+class TokenCredentialManager(
     val client: OAuth2Client,
     storage: TokenStorage,
     val defaultIdStore: DefaultCredentialIdStore,
 ) {
-    internal val dataSource = CredentialDataSource(storage)
-
     private val _events =
         MutableSharedFlow<Event>(
             replay = 0,
             extraBufferCapacity = 64,
             onBufferOverflow = BufferOverflow.DROP_OLDEST
         )
+
+    internal val dataSource = CredentialDataSource(storage, _events)
 
     /**
      * A read-only flow of credential lifecycle events emitted by this manager.
@@ -68,7 +67,6 @@ class CredentialManager(
      *
      * @return [Result.success] with the stored [Credential].
      */
-    @OptIn(InternalAuthFoundationApi::class)
     suspend fun store(
         token: TokenData,
         tags: Map<String, String> = emptyMap(),
@@ -91,9 +89,12 @@ class CredentialManager(
     /**
      * Retrieves a credential by its [id].
      *
+     * Use this when you already know the credential ID (e.g., stored in app preferences).
+     * To retrieve the "current user" credential without tracking the ID, use [getDefault] instead.
+     *
      * @return [Result.success] with the [Credential], or null if not found.
+     * @see getDefault
      */
-    @OptIn(InternalAuthFoundationApi::class)
     suspend fun get(id: String): Result<Credential?> =
         runCatching {
             val token = dataSource.getToken(id) ?: return@runCatching null
@@ -101,6 +102,7 @@ class CredentialManager(
             val metadata = dataSource.metadata(id)
             CredentialImpl(
                 token = token,
+                client = client,
                 tags = metadata?.tags ?: emptyMap(),
                 dataSource = dataSource,
                 events = _events,
@@ -111,25 +113,30 @@ class CredentialManager(
     /**
      * Returns IDs of all stored credentials.
      */
-    @OptIn(InternalAuthFoundationApi::class)
     suspend fun allIds(): Result<List<String>> = runCatching { dataSource.allIds() }
 
     /**
      * Returns metadata for the credential with [id].
      */
-    @OptIn(InternalAuthFoundationApi::class)
     suspend fun metadata(id: String): Result<TokenMetadata?> = runCatching { dataSource.metadata(id) }
 
     /**
      * Updates metadata for an existing credential.
      */
-    @OptIn(InternalAuthFoundationApi::class)
     suspend fun setMetadata(metadata: TokenMetadata): Result<Unit> = runCatching { dataSource.setMetadata(metadata) }
 
     /**
-     * Returns the default credential, or null if none is set.
+     * Returns the default credential, or null if no default has been set.
+     *
+     * The default credential is set via [setDefault]. This is a convenience for apps with a
+     * "current user" concept — store once with [setDefault], retrieve later without tracking
+     * the credential ID. To retrieve a credential by a known ID, use [get] instead.
+     *
+     * @return [Result.success] with the default [Credential], or null if no default is set
+     *   or the default credential no longer exists in storage.
+     * @see setDefault
+     * @see get
      */
-    @OptIn(InternalAuthFoundationApi::class)
     suspend fun getDefault(): Result<Credential?> =
         runCatching {
             val defaultId = defaultIdStore.getDefaultCredentialId().getOrThrow() ?: return@runCatching null
@@ -138,6 +145,7 @@ class CredentialManager(
             val metadata = dataSource.metadata(defaultId)
             CredentialImpl(
                 token = token,
+                client = client,
                 tags = metadata?.tags ?: emptyMap(),
                 dataSource = dataSource,
                 events = _events,
@@ -166,7 +174,6 @@ class CredentialManager(
      *
      * @param where a function that receives [TokenMetadata] and returns true for credentials to include.
      */
-    @OptIn(InternalAuthFoundationApi::class)
     suspend fun find(where: (TokenMetadata) -> Boolean): Result<List<Credential>> =
         runCatching {
             dataSource
@@ -178,11 +185,38 @@ class CredentialManager(
                     if (token !is TokenData) return@mapNotNull null
                     CredentialImpl(
                         token = token,
+                        client = client,
                         tags = metadata.tags,
                         dataSource = dataSource,
                         events = _events,
                         defaultIdStore = defaultIdStore
                     )
                 }
+        }
+
+    /**
+     * Returns all credentials matching the given [predicate].
+     *
+     * @param predicate a function that receives [Credential] and returns true for credentials to include.
+     */
+    @JvmName("findByCredential")
+    suspend fun find(predicate: (Credential) -> Boolean): Result<List<Credential>> =
+        runCatching {
+            val allIds = dataSource.allIds()
+            allIds.mapNotNull { id ->
+                val token = dataSource.getToken(id) ?: return@mapNotNull null
+                if (token !is TokenData) return@mapNotNull null
+                val metadata = dataSource.metadata(id)
+                val credential =
+                    CredentialImpl(
+                        token = token,
+                        client = client,
+                        tags = metadata?.tags ?: emptyMap(),
+                        dataSource = dataSource,
+                        events = _events,
+                        defaultIdStore = defaultIdStore
+                    )
+                if (predicate(credential)) credential else null
+            }
         }
 }

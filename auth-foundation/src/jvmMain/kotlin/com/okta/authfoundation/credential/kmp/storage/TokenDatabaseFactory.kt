@@ -17,9 +17,12 @@ package com.okta.authfoundation.credential.kmp.storage
 
 import androidx.room.Room
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
-import com.okta.authfoundation.InternalAuthFoundationApi
+import com.okta.authfoundation.client.OAuth2ClientConfiguration
+import com.okta.authfoundation.credential.kmp.JceTokenEncryptionHandler
+import com.okta.authfoundation.credential.kmp.TokenEncryptionHandler
 import kotlinx.coroutines.Dispatchers
 import java.io.File
+import javax.crypto.SecretKey
 
 /**
  * Creates a [TokenDatabase] for JVM applications using file-based SQLite.
@@ -29,7 +32,6 @@ import java.io.File
  * @param dbPath the file system path for the database. Defaults to `~/.okta/common_token_database`.
  * @return a configured [TokenDatabase] instance.
  */
-@InternalAuthFoundationApi
 fun createTokenDatabase(dbPath: String = "${System.getProperty("user.home")}${File.separator}.okta${File.separator}${TokenDatabase.DB_NAME}"): TokenDatabase {
     val dbFile = File(dbPath)
     dbFile.parentFile?.mkdirs()
@@ -38,4 +40,31 @@ fun createTokenDatabase(dbPath: String = "${System.getProperty("user.home")}${Fi
         .setDriver(BundledSQLiteDriver())
         .setQueryCoroutineContext(Dispatchers.IO)
         .build()
+}
+
+/**
+ * Creates a [RoomTokenStorage] for JVM applications with AES-256-GCM encryption.
+ *
+ * The encryption handler uses [JceTokenEncryptionHandler] by default, which manages
+ * encryption keys at `~/.okta/.encryption_key` (Base64 encoded). Custom key providers
+ * can be supplied via [encryptionKeyProvider].
+ *
+ * @param configuration the [OAuth2ClientConfiguration] used to reconstruct tokens.
+ * @param dbPath the file system path for the database. Defaults to `~/.okta/common_token_database`.
+ * @param encryptionKeyProvider optional lambda to provide a custom [SecretKey]. Defaults to JCE key management.
+ * @return a configured [RoomTokenStorage] instance with encryption enabled.
+ */
+fun createEncryptedTokenStorage(
+    configuration: OAuth2ClientConfiguration,
+    dbPath: String = "${System.getProperty("user.home")}${File.separator}.okta${File.separator}${TokenDatabase.DB_NAME}",
+    encryptionKeyProvider: (() -> SecretKey)? = null,
+): RoomTokenStorage {
+    val database = createTokenDatabase(dbPath)
+    val encryptionHandler: TokenEncryptionHandler =
+        if (encryptionKeyProvider != null) {
+            JceTokenEncryptionHandler(encryptionKeyProvider)
+        } else {
+            JceTokenEncryptionHandler()
+        }
+    return RoomTokenStorage(database, encryptionHandler, configuration)
 }

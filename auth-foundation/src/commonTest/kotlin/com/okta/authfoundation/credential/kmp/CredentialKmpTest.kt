@@ -22,10 +22,15 @@ import com.okta.authfoundation.client.kmp.OAuth2Client
 import com.okta.authfoundation.credential.FakeTokenStorage
 import com.okta.authfoundation.credential.InMemoryDefaultCredentialIdStore
 import com.okta.authfoundation.credential.TestConfiguration
+import com.okta.authfoundation.credential.TokenMetadata
 import com.okta.authfoundation.credential.TokenType
 import com.okta.authfoundation.credential.createTestToken
 import com.okta.authfoundation.credential.events.CredentialDeletedEvent
 import com.okta.authfoundation.credential.events.CredentialStoredEvent
+import com.okta.authfoundation.credential.kmp.Credential
+import com.okta.authfoundation.credential.kmp.CredentialDataSource
+import com.okta.authfoundation.credential.kmp.CredentialImpl
+import com.okta.authfoundation.credential.kmp.TokenCredentialManager
 import com.okta.authfoundation.events.Event
 import com.okta.authfoundation.util.CoalescingOrchestrator
 import kotlinx.coroutines.channels.BufferOverflow
@@ -43,7 +48,7 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 @OptIn(InternalAuthFoundationApi::class)
-class CredentialTest {
+class CredentialKmpTest {
     companion object {
         private val VALID_JWT =
             "eyJraWQiOiJGSkEwSEdOdHN1dWRhX1BsNDVKNDJrdlFxY3N1XzBDNEZnN3BiSkxYVEhZIiwiYWxnIjoiUlMyNTYifQ." +
@@ -96,7 +101,7 @@ class CredentialTest {
         )
 
     private val manager =
-        CredentialManager(
+        TokenCredentialManager(
             client = client,
             storage = storage,
             defaultIdStore = defaultIdStore
@@ -534,7 +539,7 @@ class CredentialTest {
             createCredential(id = "find-2", tags = mapOf("env" to "dev"))
             createCredential(id = "find-3", tags = mapOf("env" to "prod"))
 
-            val results = manager.find { it.tags["env"] == "prod" }.getOrThrow()
+            val results = manager.find { metadata: TokenMetadata -> metadata.tags["env"] == "prod" }.getOrThrow()
 
             assertEquals(2, results.size)
             assertTrue(results.any { it.id == "find-1" })
@@ -546,7 +551,7 @@ class CredentialTest {
         runTest {
             createCredential(id = "find-empty", tags = mapOf("env" to "dev"))
 
-            val results = manager.find { it.tags["env"] == "staging" }.getOrThrow()
+            val results = manager.find { metadata: TokenMetadata -> metadata.tags["env"] == "staging" }.getOrThrow()
 
             assertTrue(results.isEmpty())
         }
@@ -556,7 +561,7 @@ class CredentialTest {
         runTest {
             createCredential(id = "find-tags", tags = mapOf("role" to "admin"))
 
-            val results = manager.find { it.tags["role"] == "admin" }.getOrThrow()
+            val results = manager.find { metadata: TokenMetadata -> metadata.tags["role"] == "admin" }.getOrThrow()
 
             assertEquals(1, results.size)
             assertEquals("admin", results[0].tags["role"])

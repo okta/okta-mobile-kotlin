@@ -22,11 +22,14 @@ import com.okta.authfoundation.client.kmp.OAuth2Client
 import com.okta.authfoundation.credential.FakeTokenStorage
 import com.okta.authfoundation.credential.InMemoryDefaultCredentialIdStore
 import com.okta.authfoundation.credential.TestConfiguration
+import com.okta.authfoundation.credential.TokenMetadata
 import com.okta.authfoundation.credential.createTestToken
 import com.okta.authfoundation.credential.events.CredentialCreatedEvent
 import com.okta.authfoundation.credential.events.CredentialDeletedEvent
 import com.okta.authfoundation.credential.events.CredentialStoredEvent
 import com.okta.authfoundation.credential.events.DefaultCredentialChangedEvent
+import com.okta.authfoundation.credential.kmp.Credential
+import com.okta.authfoundation.credential.kmp.TokenCredentialManager
 import com.okta.authfoundation.events.Event
 import com.okta.authfoundation.util.CoalescingOrchestrator
 import kotlinx.coroutines.launch
@@ -64,14 +67,14 @@ class CredentialEventsTest {
                 )
         )
 
-    private fun createManager(): CredentialManager =
-        CredentialManager(
+    private fun createManager(): TokenCredentialManager =
+        TokenCredentialManager(
             client = client,
             storage = FakeTokenStorage(),
             defaultIdStore = InMemoryDefaultCredentialIdStore()
         )
 
-    private suspend fun CredentialManager.storeCredential(
+    private suspend fun TokenCredentialManager.storeCredential(
         id: String,
         tags: Map<String, String> = emptyMap(),
     ): Credential =

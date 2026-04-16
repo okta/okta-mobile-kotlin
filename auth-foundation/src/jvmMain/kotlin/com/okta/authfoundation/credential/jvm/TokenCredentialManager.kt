@@ -33,13 +33,13 @@ import java.util.UUID
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.function.Consumer
 import com.okta.authfoundation.client.kmp.OAuth2Client as KmpOAuth2Client
-import com.okta.authfoundation.credential.kmp.CredentialManager as KmpCredentialManager
+import com.okta.authfoundation.credential.kmp.TokenCredentialManager as KmpCredentialManager
 
 /**
- * Java-friendly credential manager for JVM applications.
+ * Java-friendly token credential manager for JVM applications.
  *
  * Provides blocking CRUD operations for credentials, wrapping the cross-platform
- * [KmpCredentialManager][com.okta.authfoundation.credential.kmp.CredentialManager]
+ * [KmpCredentialManager][com.okta.authfoundation.credential.kmp.TokenCredentialManager]
  * with [AuthFoundationResult] for Java interop.
  *
  * **Warning**: All public methods use [runBlocking] internally. Do **not** call them from
@@ -52,7 +52,7 @@ import com.okta.authfoundation.credential.kmp.CredentialManager as KmpCredential
  * @param storage The [TokenStorage] for persisting tokens.
  * @param defaultIdStore Store for the default credential ID.
  */
-class CredentialManager(
+class TokenCredentialManager(
     private val client: KmpOAuth2Client,
     storage: TokenStorage,
     defaultIdStore: DefaultCredentialIdStore,
@@ -87,15 +87,6 @@ class CredentialManager(
     }
 
     /**
-     * Removes a previously registered event listener.
-     *
-     * @param listener The [Consumer] to remove.
-     */
-    fun removeEventListener(listener: Consumer<Event>) {
-        listeners.remove(listener)
-    }
-
-    /**
      * Stores a new credential with the given token data and optional tags.
      *
      * @param tokenData The token data to store.
@@ -113,8 +104,12 @@ class CredentialManager(
     /**
      * Retrieves a credential by its ID.
      *
+     * Use this when you already know the credential ID (e.g., stored in app preferences).
+     * To retrieve the "current user" credential without tracking the ID, use [getDefault] instead.
+     *
      * @param id The credential identifier.
      * @return The [Credential] or null if not found.
+     * @see getDefault
      */
     fun get(id: String): AuthFoundationResult<Credential?> =
         runCatching { runBlocking { delegate.get(id).getOrThrow() } }
@@ -142,7 +137,16 @@ class CredentialManager(
             .let { AuthFoundationResult.fromKotlinResult(it) }
 
     /**
-     * Returns the default credential, or null if none is set.
+     * Returns the default credential, or null if no default has been set.
+     *
+     * The default credential is set via [setDefault]. This is a convenience for apps with a
+     * "current user" concept — store once with [setDefault], retrieve later without tracking
+     * the credential ID. To retrieve a credential by a known ID, use [get] instead.
+     *
+     * @return The default [Credential], or null if no default is set or the default credential
+     *   no longer exists in storage.
+     * @see setDefault
+     * @see get
      */
     fun getDefault(): AuthFoundationResult<Credential?> =
         runCatching { runBlocking { delegate.getDefault().getOrThrow() } }
