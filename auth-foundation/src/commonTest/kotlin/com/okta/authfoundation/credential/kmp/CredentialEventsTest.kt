@@ -90,7 +90,7 @@ class CredentialEventsTest {
 
             val created = events.filterIsInstance<CredentialCreatedEvent>()
             assertEquals(1, created.size)
-            assertEquals("ev-1", created[0].credential.id)
+            assertEquals("ev-1", created[0].credentialIdentifier.id)
             job.cancel()
         }
 
@@ -108,7 +108,7 @@ class CredentialEventsTest {
 
             val deleted = events.filterIsInstance<CredentialDeletedEvent>()
             assertEquals(1, deleted.size)
-            assertEquals("ev-2", deleted[0].credential.id)
+            assertEquals("ev-2", deleted[0].credentialIdentifier.id)
             job.cancel()
         }
 
@@ -126,7 +126,7 @@ class CredentialEventsTest {
 
             val stored = events.filterIsInstance<CredentialStoredEvent>()
             assertEquals(1, stored.size)
-            assertEquals("ev-3", stored[0].credential.id)
+            assertEquals("ev-3", stored[0].credentialIdentifier.id)
             assertEquals("v", stored[0].tags["k"])
             job.cancel()
         }
@@ -145,7 +145,7 @@ class CredentialEventsTest {
 
             val changed = events.filterIsInstance<DefaultCredentialChangedEvent>()
             assertEquals(1, changed.size)
-            assertEquals("ev-4", changed[0].credential?.id)
+            assertEquals("ev-4", changed[0].credentialIdentifier?.id)
             job.cancel()
         }
 
@@ -164,7 +164,7 @@ class CredentialEventsTest {
 
             val changed = events.filterIsInstance<DefaultCredentialChangedEvent>()
             assertEquals(1, changed.size)
-            assertEquals(null, changed[0].credential)
+            assertEquals(null, changed[0].credentialIdentifier)
             job.cancel()
         }
 

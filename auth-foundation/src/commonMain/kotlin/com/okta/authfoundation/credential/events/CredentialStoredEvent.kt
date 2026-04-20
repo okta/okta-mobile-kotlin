@@ -27,7 +27,7 @@ class CredentialStoredEvent internal constructor(
     /**
      * The [CredentialIdentifier] associated with the event.
      */
-    val credential: CredentialIdentifier,
+    val credentialIdentifier: CredentialIdentifier,
     /**
      * The [TokenInfo] associated with the event.
      */

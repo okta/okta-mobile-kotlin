@@ -26,5 +26,5 @@ class CredentialCreatedEvent internal constructor(
     /**
      * The [CredentialIdentifier] that was created.
      */
-    val credential: CredentialIdentifier,
+    val credentialIdentifier: CredentialIdentifier,
 ) : Event

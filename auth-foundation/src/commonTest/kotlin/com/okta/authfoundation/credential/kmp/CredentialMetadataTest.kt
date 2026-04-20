@@ -161,7 +161,7 @@ class CredentialMetadataTest {
             assertEquals("def-1", defaultIdStore.getDefaultCredentialId())
             val defaultChangedEvents = events.filterIsInstance<DefaultCredentialChangedEvent>()
             assertEquals(1, defaultChangedEvents.size)
-            assertEquals("def-1", defaultChangedEvents[0].credential!!.id)
+            assertEquals("def-1", defaultChangedEvents[0].credentialIdentifier!!.id)
             job.cancel()
         }
 
@@ -180,7 +180,7 @@ class CredentialMetadataTest {
             assertNull(defaultIdStore.getDefaultCredentialId())
             val defaultChangedEvents = events.filterIsInstance<DefaultCredentialChangedEvent>()
             assertEquals(1, defaultChangedEvents.size)
-            assertNull(defaultChangedEvents[0].credential)
+            assertNull(defaultChangedEvents[0].credentialIdentifier)
             job.cancel()
         }
 

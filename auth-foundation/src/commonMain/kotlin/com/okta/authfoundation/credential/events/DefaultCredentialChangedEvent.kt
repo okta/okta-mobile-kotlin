@@ -26,5 +26,5 @@ class DefaultCredentialChangedEvent internal constructor(
     /**
      * The [CredentialIdentifier] that was set as default.
      */
-    val credential: CredentialIdentifier?,
+    val credentialIdentifier: CredentialIdentifier?,
 ) : Event

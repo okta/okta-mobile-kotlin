@@ -21,7 +21,6 @@ import com.okta.authfoundation.client.internal.OAuth2Endpoints
 import com.okta.authfoundation.client.kmp.OAuth2Client
 import com.okta.authfoundation.credential.FakeCommonTokenStorage
 import com.okta.authfoundation.credential.TestConfiguration
-import com.okta.authfoundation.credential.TokenMetadata
 import com.okta.authfoundation.credential.TokenType
 import com.okta.authfoundation.credential.createTestToken
 import com.okta.authfoundation.credential.events.CredentialDeletedEvent
@@ -183,7 +182,7 @@ class CredentialTest {
 
             val deleteEvents = events.filterIsInstance<CredentialDeletedEvent>()
             assertEquals(1, deleteEvents.size)
-            assertEquals("del-2", deleteEvents[0].credential.id)
+            assertEquals("del-2", deleteEvents[0].credentialIdentifier.id)
             job.cancel()
         }
 
@@ -249,7 +248,7 @@ class CredentialTest {
 
             val storedEvents = events.filterIsInstance<CredentialStoredEvent>()
             assertEquals(1, storedEvents.size)
-            assertEquals("tag-2", storedEvents[0].credential.id)
+            assertEquals("tag-2", storedEvents[0].credentialIdentifier.id)
             assertEquals("v", storedEvents[0].tags["k"])
             job.cancel()
         }

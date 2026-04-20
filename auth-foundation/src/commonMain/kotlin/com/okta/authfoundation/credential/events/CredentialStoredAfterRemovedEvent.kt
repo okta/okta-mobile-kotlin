@@ -26,5 +26,5 @@ class CredentialStoredAfterRemovedEvent internal constructor(
     /**
      * The [CredentialIdentifier] associated with the event.
      */
-    val credential: CredentialIdentifier,
+    val credentialIdentifier: CredentialIdentifier,
 ) : Event

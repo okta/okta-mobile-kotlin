@@ -52,7 +52,6 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
 import okhttp3.Request
 import org.junit.After
 import org.junit.Before
@@ -287,7 +286,7 @@ class CredentialTest {
             val event = oktaRule.eventHandler[0]
             assertThat(event).isInstanceOf(CredentialDeletedEvent::class.java)
             val deletedEvent = event as CredentialDeletedEvent
-            assertThat(deletedEvent.credential).isEqualTo(credential)
+            assertThat(deletedEvent.credentialIdentifier).isEqualTo(credential)
         }
 
     @Test
@@ -307,7 +306,7 @@ class CredentialTest {
             val event2 = oktaRule.eventHandler[1]
             assertThat(event2).isInstanceOf(CredentialDeletedEvent::class.java)
             val deletedEvent = event2 as CredentialDeletedEvent
-            assertThat(deletedEvent.credential).isEqualTo(credential)
+            assertThat(deletedEvent.credentialIdentifier).isEqualTo(credential)
             assertThat(defaultCredentialIdDataStore.getDefaultCredentialId()).isNull()
         }
 
@@ -341,7 +340,7 @@ class CredentialTest {
             val event = oktaRule.eventHandler[1]
             assertThat(event).isInstanceOf(CredentialStoredAfterRemovedEvent::class.java)
             val removedEvent = event as CredentialStoredAfterRemovedEvent
-            assertThat(removedEvent.credential).isEqualTo(credential)
+            assertThat(removedEvent.credentialIdentifier).isEqualTo(credential)
         }
 
     @Test fun testGetTokenFlowReturnsEmptyFlowAfterRemove(): Unit =
@@ -595,8 +594,8 @@ class CredentialTest {
             val credentialStoredEvent = event2 as CredentialStoredEvent
             assertThat(credentialStoredEvent.token).isNotNull()
             assertThat(credentialStoredEvent.token).isEqualTo(token)
-            assertThat(credentialStoredEvent.credential).isNotNull()
-            assertThat(credentialStoredEvent.credential).isEqualTo(credential)
+            assertThat(credentialStoredEvent.credentialIdentifier).isNotNull()
+            assertThat(credentialStoredEvent.credentialIdentifier).isEqualTo(credential)
             assertThat(credentialStoredEvent.tags).isEqualTo(emptyMap<String, String>())
         }
 
