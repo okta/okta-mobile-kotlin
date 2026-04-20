@@ -34,12 +34,16 @@ import com.okta.directauth.model.DirectAuthenticationState.MfaRequired
 import com.okta.directauth.model.MfaContext
 import io.ktor.http.HttpStatusCode
 import kotlin.coroutines.cancellation.CancellationException
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 internal class TokenStepHandler(
     override val request: DirectAuthTokenRequest,
     override val context: DirectAuthenticationContext,
 ) : StepHandler {
+    @OptIn(ExperimentalUuidApi::class)
     data class DirectAuthToken(
+        override val id: String = Uuid.random().toString(),
         override val clientId: String,
         override val issuerUrl: String,
         override val tokenType: String,

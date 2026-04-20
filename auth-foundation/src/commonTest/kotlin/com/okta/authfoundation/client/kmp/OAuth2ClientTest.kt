@@ -13,11 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.okta.authfoundation.client
+package com.okta.authfoundation.client.kmp
 
+import com.okta.authfoundation.InternalAuthFoundationApi
 import com.okta.authfoundation.api.http.ApiExecutor
 import com.okta.authfoundation.api.http.ApiRequest
 import com.okta.authfoundation.api.http.ApiResponse
+import com.okta.authfoundation.client.OAuth2ClientBuilder
+import com.okta.authfoundation.client.OAuth2ClientResult
 import com.okta.authfoundation.client.internal.OAuth2Endpoints
 import com.okta.authfoundation.util.CoalescingOrchestrator
 import kotlinx.coroutines.test.runTest
@@ -27,9 +30,11 @@ import kotlinx.serialization.json.jsonPrimitive
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertSame
 import kotlin.test.assertTrue
 
-class CommonOAuth2ClientTest {
+@OptIn(InternalAuthFoundationApi::class)
+class OAuth2ClientTest {
     private val testEndpoints =
         OAuth2Endpoints(
             issuer = "https://example.okta.com/oauth2/default",
@@ -46,7 +51,7 @@ class CommonOAuth2ClientTest {
     private fun createClient(
         apiExecutor: ApiExecutor,
         endpoints: OAuth2Endpoints = testEndpoints,
-    ): CommonOAuth2Client {
+    ): OAuth2Client {
         val config =
             OAuth2ClientBuilder
                 .create(
@@ -58,7 +63,7 @@ class CommonOAuth2ClientTest {
                 }.getOrThrow()
                 .configuration
 
-        return CommonOAuth2Client(
+        return OAuth2Client(
             configuration = config,
             endpointsOrchestrator =
                 CoalescingOrchestrator(
@@ -202,7 +207,7 @@ class CommonOAuth2ClientTest {
                     .configuration
 
             val client =
-                CommonOAuth2Client(
+                OAuth2Client(
                     configuration = config,
                     endpointsOrchestrator =
                         CoalescingOrchestrator(
@@ -218,4 +223,20 @@ class CommonOAuth2ClientTest {
             val result = client.refreshToken("token")
             assertTrue(result is OAuth2ClientResult.Error)
         }
+
+    @Test
+    fun createFromConfiguration_UsesConfigFromOriginalClient() {
+        val originalClient =
+            OAuth2ClientBuilder
+                .create(
+                    issuerUrl = "https://example.okta.com/oauth2/default",
+                    clientId = "test-client-id",
+                    scope = listOf("openid", "profile")
+                ).getOrThrow()
+
+        val recreated = OAuth2Client.createFromConfiguration(originalClient.configuration)
+
+        assertSame(originalClient.configuration, recreated.configuration)
+        assertEquals("test-client-id", recreated.configuration.clientId)
+    }
 }

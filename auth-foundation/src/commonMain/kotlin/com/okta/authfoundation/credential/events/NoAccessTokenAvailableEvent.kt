@@ -13,24 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.okta.authfoundation.client.events
+package com.okta.authfoundation.credential.events
 
-import com.okta.authfoundation.client.CommonOAuth2Client
-import com.okta.authfoundation.client.TokenInfo
+import com.okta.authfoundation.credential.CredentialIdentifier
 import com.okta.authfoundation.events.Event
+import com.okta.authfoundation.events.EventHandler
 
 /**
- * Emitted when a token has been refreshed via [CommonOAuth2Client.refreshToken].
+ * Emitted via [EventHandler.onEvent] when no valid access token exists.
  */
-class TokenRefreshedEvent(
-    /** The new token information returned from the refresh. */
-    val tokenInfo: TokenInfo,
-) : Event
-
-/**
- * Emitted when a token has been revoked via [CommonOAuth2Client.revokeToken].
- */
-class TokenRevokedEvent(
-    /** The token string that was revoked. */
-    val token: String,
+class NoAccessTokenAvailableEvent internal constructor(
+    /**
+     * The [CredentialIdentifier] associated with the event.
+     */
+    val credential: CredentialIdentifier,
 ) : Event

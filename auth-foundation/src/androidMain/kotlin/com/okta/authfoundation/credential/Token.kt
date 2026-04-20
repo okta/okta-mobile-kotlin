@@ -33,7 +33,7 @@ import java.util.Objects
  */
 @Serializable
 class Token @OptIn(ExperimentalSerializationApi::class) private constructor(
-    internal val id: String,
+    override val id: String,
     /**
      * The string type of the token (e.g. `Bearer`).
      */

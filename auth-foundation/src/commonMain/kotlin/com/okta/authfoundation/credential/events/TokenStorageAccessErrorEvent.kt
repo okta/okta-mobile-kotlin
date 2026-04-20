@@ -15,12 +15,11 @@
  */
 package com.okta.authfoundation.credential.events
 
-import com.okta.authfoundation.credential.TokenStorage
 import com.okta.authfoundation.events.Event
 import com.okta.authfoundation.events.EventHandler
 
 /**
- * Emitted via [EventHandler.onEvent] when a [TokenStorage] call causes an exception.
+ * Emitted via [EventHandler.onEvent] when a storage call causes an exception.
  *
  * The default implementation automatically clears storage so it can try again, see [shouldClearStorageAndTryAgain].
  */

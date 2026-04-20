@@ -78,6 +78,11 @@ final class TestStateFactory {
     TokenInfo token =
         new TokenInfo() {
           @Override
+          public @NotNull String getId() {
+            return "test_token_id";
+          }
+
+          @Override
           public @NotNull String getClientId() {
             return "test_client_id";
           }

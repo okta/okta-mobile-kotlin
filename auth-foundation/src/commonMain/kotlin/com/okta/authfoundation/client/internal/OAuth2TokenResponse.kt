@@ -18,6 +18,8 @@ package com.okta.authfoundation.client.internal
 import com.okta.authfoundation.client.TokenInfo
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 /**
  * Serializable token response from the authorization server.
@@ -33,11 +35,13 @@ internal class OAuth2TokenResponse(
     @SerialName("device_secret") val deviceSecret: String? = null,
     @SerialName("issued_token_type") val issuedTokenType: String? = null,
 ) {
+    @OptIn(ExperimentalUuidApi::class)
     fun toTokenInfo(
         clientId: String,
         issuerUrl: String,
     ): TokenInfo =
         object : TokenInfo {
+            override val id: String = Uuid.random().toString()
             override val clientId: String = clientId
             override val issuerUrl: String = issuerUrl
             override val tokenType: String = this@OAuth2TokenResponse.tokenType

@@ -17,6 +17,11 @@ package com.okta.authfoundation.client
 
 interface TokenInfo {
     /**
+     * Unique identifier for this token.
+     */
+    val id: String
+
+    /**
      * The client id of the application that minted this token.
      */
     val clientId: String

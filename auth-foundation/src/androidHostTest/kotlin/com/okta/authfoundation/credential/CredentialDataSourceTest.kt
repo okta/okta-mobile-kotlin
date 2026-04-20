@@ -117,7 +117,7 @@ class CredentialDataSourceTest {
             val event = oktaRule.eventHandler[0]
             assertThat(event).isInstanceOf(CredentialCreatedEvent::class.java)
             val createdEvent = event as CredentialCreatedEvent
-            assertThat(createdEvent.credential).isEqualTo(credential)
+            assertThat(createdEvent.credentialIdentifier).isEqualTo(credential)
         }
 
     @Test fun `replaceToken fails when trying to replace a non-existent token`() =

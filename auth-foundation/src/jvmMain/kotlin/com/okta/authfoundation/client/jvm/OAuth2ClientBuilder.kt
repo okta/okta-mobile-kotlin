@@ -17,13 +17,13 @@ package com.okta.authfoundation.client.jvm
 
 import com.okta.authfoundation.api.http.ApiExecutor
 import com.okta.authfoundation.client.Cache
-import com.okta.authfoundation.client.CommonOAuth2Client
 import com.okta.authfoundation.client.OAuth2ClientBuilder
 import com.okta.authfoundation.client.OidcClock
+import com.okta.authfoundation.client.kmp.OAuth2Client
 import kotlin.coroutines.CoroutineContext
 
 /**
- * A Java-idiomatic builder for creating instances of [CommonOAuth2Client].
+ * A Java-idiomatic builder for creating instances of [OAuth2Client].
  *
  * This builder provides method-chaining setters for optional parameters and delegates
  * to the Kotlin [OAuth2ClientBuilder] for the actual construction.
@@ -135,11 +135,11 @@ class OAuth2ClientBuilder(
         }
 
     /**
-     * Creates a [CommonOAuth2Client] instance with the configured parameters.
+     * Creates a [OAuth2Client] instance with the configured parameters.
      *
-     * @return A [AuthFoundationResult] containing the [CommonOAuth2Client] on success, or an exception on failure.
+     * @return A [AuthFoundationResult] containing the [OAuth2Client] on success, or an exception on failure.
      */
-    fun build(): AuthFoundationResult<CommonOAuth2Client> {
+    fun build(): AuthFoundationResult<OAuth2Client> {
         val kotlinResult =
             OAuth2ClientBuilder.create(issuerUrl, clientId, scope) {
                 this@OAuth2ClientBuilder.apiExecutor?.let { apiExecutor = it }

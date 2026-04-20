@@ -15,18 +15,16 @@
  */
 package com.okta.authfoundation.credential.events
 
-import com.okta.authfoundation.credential.Credential
+import com.okta.authfoundation.credential.CredentialIdentifier
 import com.okta.authfoundation.events.Event
 import com.okta.authfoundation.events.EventHandler
-import okhttp3.Interceptor
 
 /**
- * Emitted via [EventHandler.onEvent] when the [Interceptor.intercept] from a [Credential.accessTokenInterceptor] call has been called,
- * but no valid access token exists.
+ * Emitted via [EventHandler.onEvent] when a [CredentialIdentifier] has been deleted via a [CredentialIdentifier.delete] call.
  */
-class NoAccessTokenAvailableEvent internal constructor(
+class CredentialDeletedEvent internal constructor(
     /**
-     * The [Credential] associated with the event.
+     * The [CredentialIdentifier] that was deleted.
      */
-    val credential: Credential,
+    val credentialIdentifier: CredentialIdentifier,
 ) : Event
