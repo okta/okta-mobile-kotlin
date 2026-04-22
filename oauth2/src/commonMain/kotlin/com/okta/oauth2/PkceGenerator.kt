@@ -15,27 +15,23 @@
  */
 package com.okta.oauth2
 
+import com.okta.authfoundation.crypto.secureRandomBytes
+import com.okta.authfoundation.crypto.sha256Digest
 import okio.ByteString.Companion.toByteString
-import java.security.MessageDigest
-import java.security.SecureRandom
 
 internal object PkceGenerator {
     const val CODE_CHALLENGE_METHOD = "S256"
 
     fun codeChallenge(codeVerifier: String): String {
         val bytes: ByteArray = codeVerifier.toByteArray(Charsets.US_ASCII)
-        val messageDigest: MessageDigest = MessageDigest.getInstance("SHA-256")
-        messageDigest.update(bytes, 0, bytes.size)
-        val digest: ByteArray = messageDigest.digest()
-        return base64Encode(digest)
+        val digest: ByteArray = sha256Digest(bytes)
+        return base64UrlEncode(digest)
     }
 
     fun codeVerifier(): String {
-        val secureRandom = SecureRandom()
-        val codeVerifier = ByteArray(32)
-        secureRandom.nextBytes(codeVerifier)
-        return base64Encode(codeVerifier)
+        val codeVerifier = secureRandomBytes(32)
+        return base64UrlEncode(codeVerifier)
     }
 
-    private fun base64Encode(source: ByteArray): String = source.toByteString().base64Url().trimEnd('=')
+    private fun base64UrlEncode(source: ByteArray): String = source.toByteString().base64Url().trimEnd('=')
 }
