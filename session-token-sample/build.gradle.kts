@@ -86,6 +86,7 @@ dependencies {
     implementation(libs.okio.core)
     implementation(libs.okio.jvm)
     implementation(libs.timber)
+    implementation(libs.kotlin.serialization.json)
 
     debugImplementation(libs.leakcanary.android)
 }

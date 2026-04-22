@@ -20,7 +20,7 @@ import com.okta.authfoundation.client.OAuth2Client
 import com.okta.authfoundation.client.OAuth2ClientResult
 import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.client.internal.SdkVersionsRegistry
-import com.okta.oauth2.BuildConfig.SDK_VERSION
+import com.okta.oauth2.SDK_VERSION
 import okhttp3.HttpUrl
 import java.util.UUID
 
