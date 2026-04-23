@@ -16,12 +16,9 @@
 package com.okta.authfoundation.credential.jvm
 
 import com.okta.authfoundation.client.jvm.AuthFoundationResult
-import com.okta.authfoundation.client.kmp.OAuth2Client
-import com.okta.authfoundation.credential.InMemoryTokenStorage
 import com.okta.authfoundation.credential.TokenMetadata
 import com.okta.authfoundation.credential.kmp.Credential
 import com.okta.authfoundation.credential.kmp.DefaultCredentialIdStore
-import com.okta.authfoundation.credential.kmp.InMemoryDefaultCredentialIdStore
 import com.okta.authfoundation.credential.kmp.TokenData
 import com.okta.authfoundation.credential.kmp.TokenStorage
 import com.okta.authfoundation.events.Event
@@ -35,32 +32,33 @@ import java.io.Closeable
 import java.util.UUID
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.function.Consumer
-import com.okta.authfoundation.credential.kmp.CredentialManager as KmpCommonCredentialManager
+import com.okta.authfoundation.client.kmp.OAuth2Client as KmpOAuth2Client
+import com.okta.authfoundation.credential.kmp.CredentialManager as KmpCredentialManager
 
 /**
  * Java-friendly credential manager for JVM applications.
  *
  * Provides blocking CRUD operations for credentials, wrapping the cross-platform
- * [KmpCommonCredentialManager][com.okta.authfoundation.credential.CredentialManager]
+ * [KmpCredentialManager][com.okta.authfoundation.credential.kmp.CredentialManager]
  * with [AuthFoundationResult] for Java interop.
  *
  * **Warning**: All public methods use [runBlocking] internally. Do **not** call them from
  * a coroutine or a thread that is part of a coroutine dispatcher — this will deadlock.
- * For coroutine-based callers, use [KmpCommonCredentialManager] directly.
+ * For coroutine-based callers, use [KmpCredentialManager] directly.
  *
  * Event listeners can be registered via [addEventListener] to receive credential lifecycle events.
  *
  * @param client The [OAuth2Client] used for token operations.
- * @param storage The [TokenStorage] for persisting tokens. Defaults to in-memory storage.
- * @param defaultIdStore Store for default credential ID. Defaults to in-memory.
+ * @param storage The [TokenStorage] for persisting tokens.
+ * @param defaultIdStore Store for the default credential ID.
  */
-class CredentialManager @JvmOverloads constructor(
-    private val client: OAuth2Client,
-    storage: TokenStorage = InMemoryTokenStorage(),
-    defaultIdStore: DefaultCredentialIdStore = InMemoryDefaultCredentialIdStore(),
+class CredentialManager(
+    private val client: KmpOAuth2Client,
+    storage: TokenStorage,
+    defaultIdStore: DefaultCredentialIdStore,
 ) : Closeable {
     private val delegate =
-        KmpCommonCredentialManager(
+        KmpCredentialManager(
             client = client,
             storage = storage,
             defaultIdStore = defaultIdStore

@@ -13,21 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.okta.authfoundation.client
+package com.okta.authfoundation.credential.kmp.storage
 
-internal class InMemoryCache : Cache {
-    private val map = mutableMapOf<String, String>()
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 
-    override fun set(
-        key: String,
-        value: String,
-    ) {
-        map[key] = value
-    }
-
-    override fun get(key: String): String? = map[key]
-
-    override fun clear() {
-        map.clear()
-    }
-}
+@Entity(tableName = "SettingEntity")
+internal data class SettingEntity(
+    @PrimaryKey
+    val key: String,
+    val value: String,
+)

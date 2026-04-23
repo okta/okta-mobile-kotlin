@@ -50,6 +50,8 @@ class OktaRule(
             ) {}
 
             override fun get(key: String): String? = null
+
+            override fun clear() {}
         }
 
     val mockWebServer: OktaMockWebServer = OktaMockWebServer()

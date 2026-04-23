@@ -44,4 +44,9 @@ internal class SharedPreferencesCache private constructor(
     }
 
     override fun get(key: String): String? = sharedPreferences.getString(key, null)
+
+    @SuppressLint("ApplySharedPref")
+    override fun clear() {
+        sharedPreferences.edit().clear().commit()
+    }
 }

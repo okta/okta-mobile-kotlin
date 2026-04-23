@@ -15,8 +15,6 @@
  */
 package com.okta.authfoundation.client
 
-import com.okta.authfoundation.InternalAuthFoundationApi
-
 /**
  * A general purpose key value cache used internally by the SDK to optimize network calls.
  * Will not be used to store sensitive information.
@@ -40,17 +38,9 @@ interface Cache {
      * @return the associated value if the key exists, null otherwise.
      */
     fun get(key: String): String?
-}
 
-/**
- * A no-op implementation of [Cache] that does not persist any data.
- */
-internal class NoOpCache : Cache {
-    override fun set(
-        key: String,
-        value: String,
-    ) {
-    }
-
-    override fun get(key: String): String? = null
+    /**
+     * Removes all entries from the cache.
+     */
+    fun clear()
 }

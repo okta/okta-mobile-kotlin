@@ -16,7 +16,7 @@
 package com.okta.authfoundation.credential.kmp
 
 import com.okta.authfoundation.InternalAuthFoundationApi
-import com.okta.authfoundation.credential.FakeCommonTokenStorage
+import com.okta.authfoundation.credential.FakeTokenStorage
 import com.okta.authfoundation.credential.TestConfiguration
 import com.okta.authfoundation.credential.TokenMetadata
 import com.okta.authfoundation.credential.createTestMetadata
@@ -31,7 +31,7 @@ import kotlin.test.assertTrue
 
 @OptIn(InternalAuthFoundationApi::class)
 class CredentialDataSourceTest {
-    private val storage = FakeCommonTokenStorage()
+    private val storage = FakeTokenStorage()
     private val dataSource = CredentialDataSource(storage)
 
     @Test

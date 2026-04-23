@@ -31,33 +31,41 @@ class InMemoryTokenStorage : TokenStorage {
     private val tokens = ConcurrentHashMap<String, TokenInfo>()
     private val metadata = ConcurrentHashMap<String, TokenMetadata>()
 
-    override suspend fun allIds(): List<String> = tokens.keys().toList()
+    override suspend fun allIds(): Result<List<String>> = runCatching { tokens.keys().toList() }
 
-    override suspend fun metadata(id: String): TokenMetadata? = metadata[id]
+    override suspend fun metadata(id: String): Result<TokenMetadata?> = runCatching { metadata[id] }
 
-    override suspend fun setMetadata(metadata: TokenMetadata) {
-        this.metadata[metadata.id] = metadata
-    }
+    override suspend fun setMetadata(metadata: TokenMetadata): Result<Unit> =
+        runCatching {
+            this.metadata[metadata.id] = metadata
+        }
 
     override suspend fun add(
         token: TokenInfo,
         metadata: TokenMetadata,
-    ) {
-        tokens[token.id] = token
-        this.metadata[token.id] = metadata
-    }
-
-    override suspend fun remove(id: String) {
-        tokens.remove(id)
-        metadata.remove(id)
-    }
-
-    override suspend fun replace(token: TokenInfo) {
-        if (!tokens.containsKey(token.id)) {
-            throw NoSuchElementException("No token with id ${token.id} exists.")
+    ): Result<Unit> =
+        runCatching {
+            tokens[token.id] = token
+            this.metadata[token.id] = metadata
         }
-        tokens[token.id] = token
-    }
 
-    override suspend fun getToken(id: String): TokenInfo = tokens[id] ?: throw NoSuchElementException("No token with id $id exists.")
+    override suspend fun remove(id: String): Result<Unit> =
+        runCatching {
+            tokens.remove(id)
+            metadata.remove(id)
+            Unit
+        }
+
+    override suspend fun replace(token: TokenInfo): Result<Unit> =
+        runCatching {
+            if (!tokens.containsKey(token.id)) {
+                throw NoSuchElementException("No token with id ${token.id} exists.")
+            }
+            tokens[token.id] = token
+        }
+
+    override suspend fun getToken(id: String): Result<TokenInfo> =
+        runCatching {
+            tokens[id] ?: throw NoSuchElementException("No token with id $id exists.")
+        }
 }

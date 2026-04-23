@@ -20,7 +20,8 @@ import com.okta.authfoundation.client.OAuth2ClientResult
 import com.okta.authfoundation.client.TokenInfo
 import com.okta.authfoundation.client.internal.OAuth2Endpoints
 import com.okta.authfoundation.client.kmp.OAuth2Client
-import com.okta.authfoundation.credential.FakeCommonTokenStorage
+import com.okta.authfoundation.credential.FakeTokenStorage
+import com.okta.authfoundation.credential.InMemoryDefaultCredentialIdStore
 import com.okta.authfoundation.credential.TestConfiguration
 import com.okta.authfoundation.credential.TokenMetadata
 import com.okta.authfoundation.credential.createTestToken
@@ -28,7 +29,6 @@ import com.okta.authfoundation.util.CoalescingOrchestrator
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
@@ -63,7 +63,7 @@ class CustomTokenStorageTest {
     @Test
     fun customStorage_AllOperationsWorkThroughIt() =
         runTest {
-            val customStorage = FakeCommonTokenStorage()
+            val customStorage = FakeTokenStorage()
             val manager =
                 CredentialManager(
                     client = client,
@@ -100,29 +100,28 @@ class CustomTokenStorageTest {
         runTest {
             val failingStorage =
                 object : TokenStorage {
-                    override suspend fun allIds(): List<String> = emptyList()
+                    override suspend fun allIds(): Result<List<String>> = Result.success(emptyList())
 
-                    override suspend fun metadata(id: String): TokenMetadata? = null
+                    override suspend fun metadata(id: String): Result<TokenMetadata?> = Result.success(null)
 
-                    override suspend fun setMetadata(metadata: TokenMetadata) {}
+                    override suspend fun setMetadata(metadata: TokenMetadata): Result<Unit> = Result.success(Unit)
 
                     override suspend fun add(
                         token: TokenInfo,
                         metadata: TokenMetadata,
-                    ): Unit = throw RuntimeException("Storage write failed")
+                    ): Result<Unit> = Result.failure(RuntimeException("Storage write failed"))
 
-                    override suspend fun remove(id: String) {}
+                    override suspend fun remove(id: String): Result<Unit> = Result.success(Unit)
 
-                    override suspend fun replace(token: TokenInfo) {}
+                    override suspend fun replace(token: TokenInfo): Result<Unit> = Result.success(Unit)
 
-                    override suspend fun getToken(id: String): TokenInfo = throw NoSuchElementException()
+                    override suspend fun getToken(id: String): Result<TokenInfo> = Result.failure(NoSuchElementException())
                 }
 
             val dataSource = CredentialDataSource(failingStorage)
 
-            assertFailsWith<RuntimeException>("Storage write failed") {
-                dataSource.createToken(createTestToken(id = "fail-1", configuration = config))
-            }
+            val result = runCatching { dataSource.createToken(createTestToken(id = "fail-1", configuration = config)) }
+            assertTrue(result.isFailure)
         }
 
     @Test
@@ -130,35 +129,34 @@ class CustomTokenStorageTest {
         runTest {
             val failingStorage =
                 object : TokenStorage {
-                    override suspend fun allIds(): List<String> = throw RuntimeException("Storage read failed")
+                    override suspend fun allIds(): Result<List<String>> = Result.failure(RuntimeException("Storage read failed"))
 
-                    override suspend fun metadata(id: String): TokenMetadata? = null
+                    override suspend fun metadata(id: String): Result<TokenMetadata?> = Result.success(null)
 
-                    override suspend fun setMetadata(metadata: TokenMetadata) {}
+                    override suspend fun setMetadata(metadata: TokenMetadata): Result<Unit> = Result.success(Unit)
 
                     override suspend fun add(
                         token: TokenInfo,
                         metadata: TokenMetadata,
-                    ) {}
+                    ): Result<Unit> = Result.success(Unit)
 
-                    override suspend fun remove(id: String) {}
+                    override suspend fun remove(id: String): Result<Unit> = Result.success(Unit)
 
-                    override suspend fun replace(token: TokenInfo) {}
+                    override suspend fun replace(token: TokenInfo): Result<Unit> = Result.success(Unit)
 
-                    override suspend fun getToken(id: String): TokenInfo = throw NoSuchElementException()
+                    override suspend fun getToken(id: String): Result<TokenInfo> = Result.failure(NoSuchElementException())
                 }
 
             val dataSource = CredentialDataSource(failingStorage)
 
-            assertFailsWith<RuntimeException>("Storage read failed") {
-                dataSource.allIds()
-            }
+            val result = runCatching { dataSource.allIds() }
+            assertTrue(result.isFailure)
         }
 
     @Test
     fun customStorage_MultipleCredentials_IndependentLifecycles() =
         runTest {
-            val customStorage = FakeCommonTokenStorage()
+            val customStorage = FakeTokenStorage()
             val manager =
                 CredentialManager(
                     client = client,
@@ -190,7 +188,7 @@ class CustomTokenStorageTest {
     @Test
     fun customStorage_DefaultCredential_WorksThroughCustomStorage() =
         runTest {
-            val customStorage = FakeCommonTokenStorage()
+            val customStorage = FakeTokenStorage()
             val manager =
                 CredentialManager(
                     client = client,
