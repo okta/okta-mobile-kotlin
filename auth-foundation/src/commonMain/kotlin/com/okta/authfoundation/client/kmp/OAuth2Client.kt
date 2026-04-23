@@ -19,6 +19,7 @@ import com.okta.authfoundation.InternalAuthFoundationApi
 import com.okta.authfoundation.client.OAuth2ClientConfiguration
 import com.okta.authfoundation.client.OAuth2ClientResult
 import com.okta.authfoundation.client.TokenInfo
+import com.okta.authfoundation.client.dto.DeviceAuthorizationInfo
 import com.okta.authfoundation.client.dto.IntrospectInfo
 import com.okta.authfoundation.client.dto.OidcUserInfo
 import com.okta.authfoundation.client.events.TokenRefreshedEvent
@@ -26,6 +27,7 @@ import com.okta.authfoundation.client.events.TokenRevokedEvent
 import com.okta.authfoundation.client.internal.EndpointDiscovery
 import com.okta.authfoundation.client.internal.OAuth2Endpoints
 import com.okta.authfoundation.client.internal.OAuth2TokenResponse
+import com.okta.authfoundation.client.internal.SerializableDeviceAuthorizationResponse
 import com.okta.authfoundation.client.internal.performFormPost
 import com.okta.authfoundation.client.internal.performJsonFormPost
 import com.okta.authfoundation.client.internal.performJsonGetRequest
@@ -291,6 +293,40 @@ class OAuth2Client internal constructor(
                 )
             when (result) {
                 is OAuth2ClientResult.Success -> IntrospectInfo.fromJsonObject(result.result, configuration.json)
+                is OAuth2ClientResult.Error -> throw result.exception
+            }
+        }
+
+    /**
+     * Performs a device authorization request per
+     * [RFC 8628](https://datatracker.ietf.org/doc/html/rfc8628).
+     *
+     * Posts [formParams] to the device authorization endpoint and returns a [DeviceAuthorizationInfo]
+     * containing the device code, user code, and verification URIs needed to complete the flow.
+     *
+     * @param formParams the form parameters (at minimum `client_id` and `scope`).
+     * @return [Result.success] with [DeviceAuthorizationInfo], or [Result.failure] with:
+     * - [OAuth2ClientResult.Error.OidcEndpointsNotAvailableException] if the device authorization endpoint is not available.
+     * - [OAuth2ClientResult.Error.HttpResponseException] if the server returns an error.
+     * - Other exceptions for network or parsing failures.
+     */
+    suspend fun deviceAuthorizationRequest(formParams: Map<String, String>): Result<DeviceAuthorizationInfo> =
+        runCatching {
+            val endpoint =
+                endpointsOrNull()?.deviceAuthorizationEndpoint
+                    ?: throw OAuth2ClientResult.Error.OidcEndpointsNotAvailableException()
+
+            val result =
+                performJsonFormPost(
+                    apiExecutor = configuration.apiExecutor,
+                    json = configuration.json,
+                    url = endpoint,
+                    formParams = formParams,
+                    deserializer = SerializableDeviceAuthorizationResponse.serializer(),
+                    onRateLimitExceeded = { event -> _events.tryEmit(event) }
+                )
+            when (result) {
+                is OAuth2ClientResult.Success -> result.result.toDeviceAuthorizationInfo()
                 is OAuth2ClientResult.Error -> throw result.exception
             }
         }

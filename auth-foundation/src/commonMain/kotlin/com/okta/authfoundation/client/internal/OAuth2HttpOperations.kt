@@ -27,11 +27,19 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.format.DateTimeComponents
 import kotlinx.datetime.toInstant
 import kotlinx.serialization.DeserializationStrategy
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlin.time.Clock
 
 private val defaultHeaders: Map<String, List<String>> =
     mapOf("User-Agent" to listOf(UserAgent.value))
+
+@Serializable
+internal class ErrorResponse(
+    @SerialName("error") val error: String? = null,
+    @SerialName("error_description") val errorDescription: String? = null,
+)
 
 private val HTTP_DATE_MONTHS =
     mapOf(
@@ -244,6 +252,16 @@ internal suspend fun <T> performJsonFormPost(
         val body =
             response.body?.decodeToString()
                 ?: throw IllegalStateException("Empty response body")
+
+        if (response.statusCode !in 200..299) {
+            val errorResponse = runCatching { json.decodeFromString(ErrorResponse.serializer(), body) }.getOrNull()
+            throw OAuth2ClientResult.Error.HttpResponseException(
+                responseCode = response.statusCode,
+                error = errorResponse?.error,
+                errorDescription = errorResponse?.errorDescription
+            )
+        }
+
         json.decodeFromString(deserializer, body)
     }.fold(
         onSuccess = { OAuth2ClientResult.Success(it) },

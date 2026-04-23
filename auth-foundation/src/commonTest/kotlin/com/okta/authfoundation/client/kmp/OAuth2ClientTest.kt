@@ -51,6 +51,19 @@ class OAuth2ClientTest {
             deviceAuthorizationEndpoint = null
         )
 
+    private val testEndpointsWithDeviceAuth =
+        OAuth2Endpoints(
+            issuer = "https://example.okta.com/oauth2/default",
+            authorizationEndpoint = "https://example.okta.com/oauth2/default/v1/authorize",
+            tokenEndpoint = "https://example.okta.com/oauth2/default/v1/token",
+            userInfoEndpoint = "https://example.okta.com/oauth2/default/v1/userinfo",
+            jwksUri = "https://example.okta.com/oauth2/default/v1/keys",
+            introspectionEndpoint = "https://example.okta.com/oauth2/default/v1/introspect",
+            revocationEndpoint = "https://example.okta.com/oauth2/default/v1/revoke",
+            endSessionEndpoint = "https://example.okta.com/oauth2/default/v1/logout",
+            deviceAuthorizationEndpoint = "https://example.okta.com/oauth2/default/v1/device/authorize"
+        )
+
     private fun createClient(
         apiExecutor: ApiExecutor,
         endpoints: OAuth2Endpoints = testEndpoints,
@@ -288,6 +301,111 @@ class OAuth2ClientTest {
 
             val result = client.refreshToken("token")
             assertTrue(result.isFailure)
+        }
+
+    @Test
+    fun deviceAuthorizationRequest_ReturnsDeviceAuthorizationInfo() =
+        runTest {
+            val deviceAuthJson =
+                """
+                {
+                    "device_code": "1a521d9f-0922-4e6d-8db9-8b654297435a",
+                    "user_code": "GDLMZQCT",
+                    "verification_uri": "https://example.okta.com/activate",
+                    "verification_uri_complete": "https://example.okta.com/activate?user_code=GDLMZQCT",
+                    "expires_in": 600,
+                    "interval": 10
+                }
+                """.trimIndent()
+
+            val client = createClient(mockApiExecutor(deviceAuthJson), testEndpointsWithDeviceAuth)
+            val result =
+                client.deviceAuthorizationRequest(
+                    mapOf("client_id" to "test-client-id", "scope" to "openid")
+                )
+
+            assertTrue(result.isSuccess)
+            val info = result.getOrThrow()
+            assertEquals("1a521d9f-0922-4e6d-8db9-8b654297435a", info.deviceCode)
+            assertEquals("GDLMZQCT", info.userCode)
+            assertEquals("https://example.okta.com/activate", info.verificationUri)
+            assertEquals("https://example.okta.com/activate?user_code=GDLMZQCT", info.verificationUriComplete)
+            assertEquals(600, info.expiresIn)
+            assertEquals(10, info.interval)
+        }
+
+    @Test
+    fun deviceAuthorizationRequest_WithMinimalJson_ReturnsDeviceAuthorizationInfo() =
+        runTest {
+            val deviceAuthJson =
+                """
+                {
+                    "device_code": "abc123",
+                    "user_code": "WXYZ",
+                    "verification_uri": "https://example.okta.com/activate",
+                    "expires_in": 300
+                }
+                """.trimIndent()
+
+            val client = createClient(mockApiExecutor(deviceAuthJson), testEndpointsWithDeviceAuth)
+            val result =
+                client.deviceAuthorizationRequest(
+                    mapOf("client_id" to "test-client-id", "scope" to "openid")
+                )
+
+            assertTrue(result.isSuccess)
+            val info = result.getOrThrow()
+            assertEquals("abc123", info.deviceCode)
+            assertEquals("WXYZ", info.userCode)
+            assertEquals(null, info.verificationUriComplete)
+            assertEquals(5, info.interval)
+            assertEquals(300, info.expiresIn)
+        }
+
+    @Test
+    fun deviceAuthorizationRequest_WithNoDeviceAuthorizationEndpoint_ReturnsError() =
+        runTest {
+            val client = createClient(mockApiExecutor(""), testEndpoints)
+            val result =
+                client.deviceAuthorizationRequest(
+                    mapOf("client_id" to "test-client-id", "scope" to "openid")
+                )
+
+            assertTrue(result.isFailure)
+            assertIs<OAuth2ClientResult.Error.OidcEndpointsNotAvailableException>(result.exceptionOrNull())
+        }
+
+    @Test
+    fun deviceAuthorizationRequest_WithNoEndpoints_ReturnsError() =
+        runTest {
+            val config =
+                OAuth2ClientBuilder
+                    .create(
+                        issuerUrl = "https://example.okta.com/oauth2/default",
+                        clientId = "test-client-id",
+                        scope = listOf("openid")
+                    ) {
+                        apiExecutor = mockApiExecutor("")
+                    }.getOrThrow()
+                    .configuration
+
+            val client =
+                OAuth2Client(
+                    configuration = config,
+                    endpointsOrchestrator =
+                        CoalescingOrchestrator(
+                            factory = {
+                                OAuth2ClientResult.Error(
+                                    OAuth2ClientResult.Error.OidcEndpointsNotAvailableException()
+                                )
+                            },
+                            keepDataInMemory = { false }
+                        )
+                )
+
+            val result = client.deviceAuthorizationRequest(mapOf("client_id" to "test-client-id"))
+            assertTrue(result.isFailure)
+            assertIs<OAuth2ClientResult.Error.OidcEndpointsNotAvailableException>(result.exceptionOrNull())
         }
 
     @Test

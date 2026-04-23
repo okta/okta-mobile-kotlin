@@ -16,6 +16,8 @@
 package com.okta.oauth2.kmp.jvm
 
 import com.okta.authfoundation.client.TokenInfo
+import com.okta.oauth2.kmp.DeviceAuthorizationFlowContext
+import com.okta.oauth2.kmp.DeviceAuthorizationFlow as KotlinDeviceAuthorizationFlow
 import com.okta.oauth2.kmp.ResourceOwnerFlow as KotlinResourceOwnerFlow
 
 /**
@@ -24,6 +26,36 @@ import com.okta.oauth2.kmp.ResourceOwnerFlow as KotlinResourceOwnerFlow
  * so this Kotlin file provides the bridge.
  */
 object TestFlowFactory {
+    @JvmStatic
+    fun createSuccessDeviceAuthorizationFlow(): DeviceAuthorizationFlow =
+        DeviceAuthorizationFlow(
+            object : KotlinDeviceAuthorizationFlow {
+                override suspend fun start(scope: String): Result<DeviceAuthorizationFlowContext> =
+                    Result.success(
+                        DeviceAuthorizationFlowContext(
+                            verificationUri = "https://example.okta.com/activate",
+                            verificationUriComplete = "https://example.okta.com/activate?user_code=ABCD-1234",
+                            userCode = "ABCD-1234",
+                            expiresIn = 600,
+                            deviceCode = "dc-test-123",
+                            interval = 5
+                        )
+                    )
+
+                override suspend fun resume(flowContext: DeviceAuthorizationFlowContext): Result<TokenInfo> = Result.success(FakeTokenInfo())
+            }
+        )
+
+    @JvmStatic
+    fun createFailingDeviceAuthorizationFlow(): DeviceAuthorizationFlow =
+        DeviceAuthorizationFlow(
+            object : KotlinDeviceAuthorizationFlow {
+                override suspend fun start(scope: String): Result<DeviceAuthorizationFlowContext> = Result.failure(IllegalStateException("OIDC Endpoints not available."))
+
+                override suspend fun resume(flowContext: DeviceAuthorizationFlowContext): Result<TokenInfo> = Result.failure(IllegalStateException("access_denied"))
+            }
+        )
+
     @JvmStatic
     fun createSuccessResourceOwnerFlow(): ResourceOwnerFlow =
         ResourceOwnerFlow(

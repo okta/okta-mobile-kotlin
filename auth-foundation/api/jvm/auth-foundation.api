@@ -341,6 +341,27 @@ public abstract interface class com/okta/authfoundation/client/TokenInfo {
 	public abstract fun getTokenType ()Ljava/lang/String;
 }
 
+public final class com/okta/authfoundation/client/dto/DeviceAuthorizationInfo {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;II)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()I
+	public final fun component6 ()I
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;II)Lcom/okta/authfoundation/client/dto/DeviceAuthorizationInfo;
+	public static synthetic fun copy$default (Lcom/okta/authfoundation/client/dto/DeviceAuthorizationInfo;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;IIILjava/lang/Object;)Lcom/okta/authfoundation/client/dto/DeviceAuthorizationInfo;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDeviceCode ()Ljava/lang/String;
+	public final fun getExpiresIn ()I
+	public final fun getInterval ()I
+	public final fun getUserCode ()Ljava/lang/String;
+	public final fun getVerificationUri ()Ljava/lang/String;
+	public final fun getVerificationUriComplete ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
 public abstract class com/okta/authfoundation/client/dto/IntrospectInfo {
 	public synthetic fun <init> (ZLkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getActive ()Z
@@ -483,6 +504,7 @@ public final class com/okta/authfoundation/client/kmp/IdTokenValidator$Parameter
 
 public final class com/okta/authfoundation/client/kmp/OAuth2Client {
 	public static final field Companion Lcom/okta/authfoundation/client/kmp/OAuth2Client$Companion;
+	public final fun deviceAuthorizationRequest-gIAlu-s (Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun endpointsOrNull (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun getConfiguration ()Lcom/okta/authfoundation/client/OAuth2ClientConfiguration;
 	public final fun getEvents ()Lkotlinx/coroutines/flow/SharedFlow;
