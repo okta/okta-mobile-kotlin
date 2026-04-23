@@ -26,7 +26,7 @@ class TokenExchangeFlowTest {
     @Test
     fun start_WhenSuccess_ReturnsTokenInfo() =
         runTest {
-            val fakeToken = FakeTokenExchangeTokenInfo()
+            val fakeToken = FakeTokenInfo()
             val mockFlow =
                 object : TokenExchangeFlow {
                     override suspend fun start(
@@ -96,7 +96,7 @@ class TokenExchangeFlowTest {
                         scope: String,
                     ): Result<TokenInfo> {
                         capturedAudience = audience
-                        return Result.success(FakeTokenExchangeTokenInfo())
+                        return Result.success(FakeTokenInfo())
                     }
                 }
 
@@ -104,18 +104,4 @@ class TokenExchangeFlowTest {
 
             assertEquals("api://custom", capturedAudience)
         }
-}
-
-private class FakeTokenExchangeTokenInfo : TokenInfo {
-    override val id: String = "test-id"
-    override val clientId: String = "test-client"
-    override val issuerUrl: String = "https://example.okta.com"
-    override val tokenType: String = "Bearer"
-    override val expiresIn: Int = 3600
-    override val accessToken: String = "test-access-token"
-    override val scope: String? = "openid profile"
-    override val refreshToken: String? = "test-refresh-token"
-    override val idToken: String? = null
-    override val deviceSecret: String? = null
-    override val issuedTokenType: String? = null
 }

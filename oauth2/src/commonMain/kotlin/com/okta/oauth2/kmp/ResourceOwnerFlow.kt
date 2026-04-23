@@ -15,7 +15,9 @@
  */
 package com.okta.oauth2.kmp
 
+import com.okta.authfoundation.InternalAuthFoundationApi
 import com.okta.authfoundation.client.TokenInfo
+import com.okta.authfoundation.client.kmp.OAuth2Client
 
 /**
  * An authentication flow that implements the Resource Owner Password Grant.
@@ -50,4 +52,15 @@ interface ResourceOwnerFlow {
         password: String,
         scope: String,
     ): Result<TokenInfo>
+
+    companion object {
+        /**
+         * Creates a [ResourceOwnerFlow] backed by the given [client].
+         *
+         * @param client the [OAuth2Client] used to perform the flow.
+         * @return a [ResourceOwnerFlow] instance.
+         */
+        @OptIn(InternalAuthFoundationApi::class)
+        operator fun invoke(client: OAuth2Client): ResourceOwnerFlow = ResourceOwnerFlowImpl(client)
+    }
 }

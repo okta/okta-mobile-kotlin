@@ -37,8 +37,7 @@ public class DeviceAuthorizationFlowTest {
   @Test
   public void start_ReturnsCompletableFutureWithContext()
       throws ExecutionException, InterruptedException, TimeoutException {
-    DeviceAuthorizationFlow flow = TestFlowFactory.createSuccessDeviceAuthorizationFlow();
-    try {
+    try (DeviceAuthorizationFlow flow = TestFlowFactory.createSuccessDeviceAuthorizationFlow()) {
       CompletableFuture<DeviceAuthorizationFlowContext> future =
           flow.start("openid profile email offline_access");
       assertNotNull("Future should not be null", future);
@@ -48,16 +47,13 @@ public class DeviceAuthorizationFlowTest {
       assertEquals("https://example.okta.com/activate", ctx.getVerificationUri());
       assertEquals("ABCD-1234", ctx.getUserCode());
       assertEquals(600, ctx.getExpiresIn());
-    } finally {
-      flow.close();
     }
   }
 
   @Test
   public void resume_ReturnsCompletableFutureWithTokenInfo()
       throws ExecutionException, InterruptedException, TimeoutException {
-    DeviceAuthorizationFlow flow = TestFlowFactory.createSuccessDeviceAuthorizationFlow();
-    try {
+    try (DeviceAuthorizationFlow flow = TestFlowFactory.createSuccessDeviceAuthorizationFlow()) {
       DeviceAuthorizationFlowContext ctx = flow.start("openid").get(5, TimeUnit.SECONDS);
       CompletableFuture<TokenInfo> future = flow.resume(ctx);
       assertNotNull("Future should not be null", future);
@@ -66,16 +62,13 @@ public class DeviceAuthorizationFlowTest {
       assertNotNull("TokenInfo should not be null", tokenInfo);
       assertEquals("Bearer", tokenInfo.getTokenType());
       assertEquals("test-access-token", tokenInfo.getAccessToken());
-    } finally {
-      flow.close();
     }
   }
 
   @Test
   public void start_WithError_CompletesExceptionally()
       throws TimeoutException, InterruptedException {
-    DeviceAuthorizationFlow flow = TestFlowFactory.createFailingDeviceAuthorizationFlow();
-    try {
+    try (DeviceAuthorizationFlow flow = TestFlowFactory.createFailingDeviceAuthorizationFlow()) {
       CompletableFuture<DeviceAuthorizationFlowContext> future = flow.start("openid");
       try {
         future.get(5, TimeUnit.SECONDS);
@@ -86,17 +79,16 @@ public class DeviceAuthorizationFlowTest {
             "Should contain error message",
             e.getCause().getMessage().contains("OIDC Endpoints not available."));
       }
-    } finally {
-      flow.close();
     }
   }
 
   @Test
   public void resume_WithError_CompletesExceptionally()
       throws ExecutionException, InterruptedException, TimeoutException {
-    DeviceAuthorizationFlow successStart = TestFlowFactory.createSuccessDeviceAuthorizationFlow();
-    DeviceAuthorizationFlow failingResume = TestFlowFactory.createFailingDeviceAuthorizationFlow();
-    try {
+    try (DeviceAuthorizationFlow successStart =
+            TestFlowFactory.createSuccessDeviceAuthorizationFlow();
+        DeviceAuthorizationFlow failingResume =
+            TestFlowFactory.createFailingDeviceAuthorizationFlow()) {
       // Get a valid context from the success flow
       DeviceAuthorizationFlowContext ctx = successStart.start("openid").get(5, TimeUnit.SECONDS);
 
@@ -110,10 +102,15 @@ public class DeviceAuthorizationFlowTest {
         assertTrue(
             "Should contain error message", e.getCause().getMessage().contains("access_denied"));
       }
-    } finally {
-      successStart.close();
-      failingResume.close();
     }
+  }
+
+  @Test
+  public void constructor_WithOAuth2Client_CreatesFlow() {
+    com.okta.authfoundation.client.kmp.OAuth2Client kmpClient = TestOAuth2Client.create();
+    DeviceAuthorizationFlow flow = new DeviceAuthorizationFlow(kmpClient);
+    assertNotNull(flow);
+    flow.close();
   }
 
   @Test

@@ -40,15 +40,12 @@ public class RedirectEndSessionFlowTest {
     BrowserRedirectHandler handler =
         TestFlowFactory.createFakeBrowserRedirectHandler(
             "com.example.app:/logout?state=test-state");
-    RedirectEndSessionFlow flow =
-        TestFlowFactory.createSuccessRedirectEndSessionFlow("com.example.app:/logout");
-    try {
+    try (RedirectEndSessionFlow flow =
+        TestFlowFactory.createSuccessRedirectEndSessionFlow("com.example.app:/logout")) {
       CompletableFuture<Unit> future =
           flow.start("example-id-token", "com.example.app:/logout", handler);
       assertNotNull("Future should not be null", future);
       future.get(5, TimeUnit.SECONDS);
-    } finally {
-      flow.close();
     }
   }
 
@@ -58,15 +55,12 @@ public class RedirectEndSessionFlowTest {
     BrowserRedirectHandler handler =
         TestFlowFactory.createFakeBrowserRedirectHandler(
             "com.example.app:/logout?state=test-state");
-    RedirectEndSessionFlow flow =
-        TestFlowFactory.createSuccessRedirectEndSessionFlow("com.example.app:/logout");
-    try {
+    try (RedirectEndSessionFlow flow =
+        TestFlowFactory.createSuccessRedirectEndSessionFlow("com.example.app:/logout")) {
       CompletableFuture<Unit> future =
           flow.start(
               "example-id-token", "com.example.app:/logout", handler, Collections.emptyMap());
       future.get(5, TimeUnit.SECONDS);
-    } finally {
-      flow.close();
     }
   }
 
@@ -75,8 +69,7 @@ public class RedirectEndSessionFlowTest {
       throws TimeoutException, InterruptedException {
     BrowserRedirectHandler handler =
         TestFlowFactory.createFakeBrowserRedirectHandler("com.example.app:/logout");
-    RedirectEndSessionFlow flow = TestFlowFactory.createFailingRedirectEndSessionFlow();
-    try {
+    try (RedirectEndSessionFlow flow = TestFlowFactory.createFailingRedirectEndSessionFlow()) {
       CompletableFuture<Unit> future =
           flow.start("example-id-token", "com.example.app:/logout", handler);
       try {
@@ -88,9 +81,15 @@ public class RedirectEndSessionFlowTest {
             "Should contain error message",
             e.getCause().getMessage().contains("OIDC Endpoints not available."));
       }
-    } finally {
-      flow.close();
     }
+  }
+
+  @Test
+  public void constructor_WithOAuth2Client_CreatesFlow() {
+    com.okta.authfoundation.client.kmp.OAuth2Client kmpClient = TestOAuth2Client.create();
+    RedirectEndSessionFlow flow = new RedirectEndSessionFlow(kmpClient);
+    assertNotNull(flow);
+    flow.close();
   }
 
   @Test

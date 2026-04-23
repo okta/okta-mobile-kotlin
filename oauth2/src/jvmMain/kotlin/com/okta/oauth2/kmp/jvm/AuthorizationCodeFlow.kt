@@ -24,6 +24,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.future.future
 import java.io.Closeable
 import java.util.concurrent.CompletableFuture
+import com.okta.authfoundation.client.kmp.OAuth2Client as KmpOAuth2Client
 import com.okta.oauth2.kmp.AuthorizationCodeFlow as KotlinAuthorizationCodeFlow
 
 /**
@@ -35,6 +36,13 @@ import com.okta.oauth2.kmp.AuthorizationCodeFlow as KotlinAuthorizationCodeFlow
  * the redirect callback. Java consumers can use [CompletableFuture] without dealing
  * with Kotlin coroutines.
  *
+ * Typical Java usage:
+ * ```java
+ * AuthorizationCodeFlow flow = new AuthorizationCodeFlow(kmpClient);
+ * TokenInfo token = flow.start(redirectUrl, browserHandler).get();
+ * flow.close();
+ * ```
+ *
  * Must be [closed][close] when no longer needed to release coroutine resources.
  *
  * @param delegate the underlying Kotlin [KotlinAuthorizationCodeFlow] instance.
@@ -42,6 +50,13 @@ import com.okta.oauth2.kmp.AuthorizationCodeFlow as KotlinAuthorizationCodeFlow
 class AuthorizationCodeFlow(
     private val delegate: KotlinAuthorizationCodeFlow,
 ) : Closeable {
+    /**
+     * Creates an [AuthorizationCodeFlow] backed by the given [KmpOAuth2Client].
+     *
+     * @param client the KMP OAuth2 client to use for the Authorization Code flow.
+     */
+    constructor(client: KmpOAuth2Client) : this(KotlinAuthorizationCodeFlow(client))
+
     private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     /**

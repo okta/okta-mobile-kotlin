@@ -24,6 +24,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.future.future
 import java.io.Closeable
 import java.util.concurrent.CompletableFuture
+import com.okta.authfoundation.client.kmp.OAuth2Client as KmpOAuth2Client
 import com.okta.oauth2.kmp.DeviceAuthorizationFlow as KotlinDeviceAuthorizationFlow
 
 /**
@@ -32,6 +33,14 @@ import com.okta.oauth2.kmp.DeviceAuthorizationFlow as KotlinDeviceAuthorizationF
  * This class exposes async methods returning [CompletableFuture] so Java consumers
  * can use the Device Authorization flow without dealing with Kotlin coroutines.
  *
+ * Typical Java usage:
+ * ```java
+ * DeviceAuthorizationFlow flow = new DeviceAuthorizationFlow(kmpClient);
+ * DeviceAuthorizationFlowContext ctx = flow.start(scope).get();
+ * TokenInfo token = flow.resume(ctx).get();
+ * flow.close();
+ * ```
+ *
  * Must be [closed][close] when no longer needed to release coroutine resources.
  *
  * @param delegate the underlying Kotlin [KotlinDeviceAuthorizationFlow] instance.
@@ -39,6 +48,13 @@ import com.okta.oauth2.kmp.DeviceAuthorizationFlow as KotlinDeviceAuthorizationF
 class DeviceAuthorizationFlow(
     private val delegate: KotlinDeviceAuthorizationFlow,
 ) : Closeable {
+    /**
+     * Creates a [DeviceAuthorizationFlow] backed by the given [KmpOAuth2Client].
+     *
+     * @param client the KMP OAuth2 client to use for the Device Authorization flow.
+     */
+    constructor(client: KmpOAuth2Client) : this(KotlinDeviceAuthorizationFlow(client))
+
     private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     /**

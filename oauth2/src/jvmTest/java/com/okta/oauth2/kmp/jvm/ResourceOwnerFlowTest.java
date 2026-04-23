@@ -36,8 +36,7 @@ public class ResourceOwnerFlowTest {
   @Test
   public void start_ReturnsCompletableFutureWithTokenInfo()
       throws ExecutionException, InterruptedException, TimeoutException {
-    ResourceOwnerFlow flow = TestFlowFactory.createSuccessResourceOwnerFlow();
-    try {
+    try (ResourceOwnerFlow flow = TestFlowFactory.createSuccessResourceOwnerFlow()) {
       CompletableFuture<TokenInfo> future = flow.start("user@example.com", "password", "openid");
       assertNotNull("Future should not be null", future);
 
@@ -45,16 +44,13 @@ public class ResourceOwnerFlowTest {
       assertNotNull("TokenInfo should not be null", tokenInfo);
       assertEquals("Bearer", tokenInfo.getTokenType());
       assertEquals("test-access-token", tokenInfo.getAccessToken());
-    } finally {
-      flow.close();
     }
   }
 
   @Test
   public void start_WithError_CompletesExceptionally()
       throws TimeoutException, InterruptedException {
-    ResourceOwnerFlow flow = TestFlowFactory.createFailingResourceOwnerFlow();
-    try {
+    try (ResourceOwnerFlow flow = TestFlowFactory.createFailingResourceOwnerFlow()) {
       CompletableFuture<TokenInfo> future = flow.start("user@example.com", "wrong", "openid");
       try {
         future.get(5, TimeUnit.SECONDS);
@@ -64,9 +60,15 @@ public class ResourceOwnerFlowTest {
         assertTrue(
             "Should contain error message", e.getCause().getMessage().contains("invalid_grant"));
       }
-    } finally {
-      flow.close();
     }
+  }
+
+  @Test
+  public void constructor_WithOAuth2Client_CreatesFlow() {
+    com.okta.authfoundation.client.kmp.OAuth2Client kmpClient = TestOAuth2Client.create();
+    ResourceOwnerFlow flow = new ResourceOwnerFlow(kmpClient);
+    assertNotNull(flow);
+    flow.close();
   }
 
   @Test

@@ -23,6 +23,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.future.future
 import java.io.Closeable
 import java.util.concurrent.CompletableFuture
+import com.okta.authfoundation.client.kmp.OAuth2Client as KmpOAuth2Client
 import com.okta.oauth2.kmp.RedirectEndSessionFlow as KotlinRedirectEndSessionFlow
 
 /**
@@ -34,6 +35,13 @@ import com.okta.oauth2.kmp.RedirectEndSessionFlow as KotlinRedirectEndSessionFlo
  * the redirect callback. Java consumers can use [CompletableFuture] without dealing
  * with Kotlin coroutines.
  *
+ * Typical Java usage:
+ * ```java
+ * RedirectEndSessionFlow flow = new RedirectEndSessionFlow(kmpClient);
+ * flow.start(idToken, redirectUrl, browserHandler).get();
+ * flow.close();
+ * ```
+ *
  * Must be [closed][close] when no longer needed to release coroutine resources.
  *
  * @param delegate the underlying Kotlin [KotlinRedirectEndSessionFlow] instance.
@@ -41,6 +49,13 @@ import com.okta.oauth2.kmp.RedirectEndSessionFlow as KotlinRedirectEndSessionFlo
 class RedirectEndSessionFlow(
     private val delegate: KotlinRedirectEndSessionFlow,
 ) : Closeable {
+    /**
+     * Creates a [RedirectEndSessionFlow] backed by the given [KmpOAuth2Client].
+     *
+     * @param client the KMP OAuth2 client to use for the Redirect End Session flow.
+     */
+    constructor(client: KmpOAuth2Client) : this(KotlinRedirectEndSessionFlow(client))
+
     private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     /**
