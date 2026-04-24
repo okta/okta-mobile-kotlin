@@ -18,6 +18,7 @@ package com.okta.authfoundation.credential.kmp
 import com.okta.authfoundation.InternalAuthFoundationApi
 import com.okta.authfoundation.client.OAuth2ClientResult
 import com.okta.authfoundation.client.TokenInfo
+import com.okta.authfoundation.client.dto.IntrospectInfo
 import com.okta.authfoundation.client.dto.OidcUserInfo
 import com.okta.authfoundation.client.kmp.OAuth2Client
 import com.okta.authfoundation.credential.RevokeAllException
@@ -36,7 +37,6 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.serialization.json.JsonObject
 
 /**
  * Default cross-platform **immutable** implementation of [Credential].
@@ -91,9 +91,9 @@ class CredentialImpl internal constructor(
     /**
      * Introspects a specific token type at the authorization server.
      *
-     * @return [Result.success] with [JsonObject] or [Result.failure] on error.
+     * @return [Result.success] with [IntrospectInfo] or [Result.failure] on error.
      */
-    override suspend fun introspectToken(tokenType: TokenType): Result<JsonObject> =
+    override suspend fun introspectToken(tokenType: TokenType): Result<IntrospectInfo> =
         runCatching {
             val tokenStr =
                 when (tokenType) {
@@ -102,10 +102,7 @@ class CredentialImpl internal constructor(
                     TokenType.ID_TOKEN -> token.idToken
                     TokenType.DEVICE_SECRET -> token.deviceSecret
                 } ?: throw IllegalStateException("Token type ${tokenType.name} not available.")
-            when (val result = client.introspectToken(tokenType.toTokenTypeHint(), tokenStr)) {
-                is OAuth2ClientResult.Success -> result.result
-                is OAuth2ClientResult.Error -> throw result.exception
-            }
+            client.introspectToken(tokenType.toTokenTypeHint(), tokenStr).getOrThrow()
         }
 
     /**
@@ -120,15 +117,13 @@ class CredentialImpl internal constructor(
         runCatching {
             val orchestrator = dataSource.getOrCreateRefreshOrchestrator(id, ::performRealRefresh)
             val refreshResult = orchestrator.get()
-            when (refreshResult) {
-                is OAuth2ClientResult.Success -> replaceToken(refreshResult.result)
-                is OAuth2ClientResult.Error -> throw refreshResult.exception
-            }
+            val newToken = refreshResult.getOrThrow()
+            replaceToken(newToken)
         }
 
-    private suspend fun performRealRefresh(): OAuth2ClientResult<TokenInfo> {
+    private suspend fun performRealRefresh(): Result<TokenInfo> {
         val refreshTokenStr =
-            token.refreshToken ?: return OAuth2ClientResult.Error(
+            token.refreshToken ?: return Result.failure(
                 IllegalStateException("No refresh token available.")
             )
         return client.refreshToken(refreshTokenStr)
@@ -138,10 +133,7 @@ class CredentialImpl internal constructor(
         runCatching {
             val tokenStr =
                 tokenStringForType(tokenType) ?: throw IllegalStateException("Token type ${tokenType.name} not available.")
-            when (val result = client.revokeToken(tokenStr)) {
-                is OAuth2ClientResult.Success -> Unit
-                is OAuth2ClientResult.Error -> throw result.exception
-            }
+            client.revokeToken(tokenStr).getOrThrow()
         }
 
     override suspend fun revokeAllTokens(): Result<Unit> {
@@ -156,8 +148,8 @@ class CredentialImpl internal constructor(
                     pairsToRevoke
                         .map { entry ->
                             async {
-                                (client.revokeToken(entry.value) as? OAuth2ClientResult.Error<Unit>)?.exception?.let {
-                                    entry.key to it
+                                client.revokeToken(entry.value).exceptionOrNull()?.let { ex ->
+                                    entry.key to (ex as? Exception ?: Exception(ex))
                                 }
                             }
                         }.awaitAll()

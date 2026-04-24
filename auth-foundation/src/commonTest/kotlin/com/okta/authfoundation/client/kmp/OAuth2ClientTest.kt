@@ -21,14 +21,17 @@ import com.okta.authfoundation.api.http.ApiRequest
 import com.okta.authfoundation.api.http.ApiResponse
 import com.okta.authfoundation.client.OAuth2ClientBuilder
 import com.okta.authfoundation.client.OAuth2ClientResult
+import com.okta.authfoundation.client.dto.IntrospectInfo
 import com.okta.authfoundation.client.internal.OAuth2Endpoints
 import com.okta.authfoundation.util.CoalescingOrchestrator
 import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.boolean
 import kotlinx.serialization.json.jsonPrimitive
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertIs
 import kotlin.test.assertNotNull
 import kotlin.test.assertSame
 import kotlin.test.assertTrue
@@ -105,8 +108,8 @@ class OAuth2ClientTest {
             val client = createClient(mockApiExecutor(tokenJson))
             val result = client.refreshToken("old-refresh-token")
 
-            assertTrue(result is OAuth2ClientResult.Success)
-            val tokenInfo = result.result
+            assertTrue(result.isSuccess)
+            val tokenInfo = result.getOrThrow()
             assertEquals("Bearer", tokenInfo.tokenType)
             assertEquals(3600, tokenInfo.expiresIn)
             assertEquals("new-access-token", tokenInfo.accessToken)
@@ -120,11 +123,11 @@ class OAuth2ClientTest {
             val client = createClient(mockApiExecutor(""))
             val result = client.revokeToken("some-token")
 
-            assertTrue(result is OAuth2ClientResult.Success)
+            assertTrue(result.isSuccess)
         }
 
     @Test
-    fun introspectToken_returnsJsonObject() =
+    fun introspectToken_returnsIntrospectInfo() =
         runTest {
             val introspectJson =
                 """
@@ -138,10 +141,12 @@ class OAuth2ClientTest {
             val client = createClient(mockApiExecutor(introspectJson))
             val result = client.introspectToken("access_token", "some-token")
 
-            assertTrue(result is OAuth2ClientResult.Success)
-            val json = result.result
-            assertTrue(json["active"]!!.jsonPrimitive.boolean)
-            assertEquals("openid profile", json["scope"]!!.jsonPrimitive.content)
+            assertTrue(result.isSuccess)
+            val info = result.getOrThrow()
+            assertIs<IntrospectInfo.Active>(info)
+            assertEquals(true, info.active)
+            val scope = info.deserializeClaim("scope", String.serializer())
+            assertEquals("openid profile", scope)
         }
 
     @Test
@@ -221,7 +226,7 @@ class OAuth2ClientTest {
                 )
 
             val result = client.refreshToken("token")
-            assertTrue(result is OAuth2ClientResult.Error)
+            assertTrue(result.isFailure)
         }
 
     @Test

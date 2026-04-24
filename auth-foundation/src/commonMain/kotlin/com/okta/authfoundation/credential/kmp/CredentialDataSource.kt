@@ -15,7 +15,6 @@
  */
 package com.okta.authfoundation.credential.kmp
 
-import com.okta.authfoundation.client.OAuth2ClientResult
 import com.okta.authfoundation.client.TokenInfo
 import com.okta.authfoundation.credential.TokenMetadata
 import com.okta.authfoundation.util.CoalescingOrchestrator
@@ -41,7 +40,7 @@ internal class CredentialDataSource(
 
     private val tokenFlows = mutableMapOf<String, MutableStateFlow<TokenData?>>()
     private val deletedIds = mutableSetOf<String>()
-    private val refreshOrchestrators = mutableMapOf<String, CoalescingOrchestrator<OAuth2ClientResult<TokenInfo>>>()
+    private val refreshOrchestrators = mutableMapOf<String, CoalescingOrchestrator<Result<TokenInfo>>>()
 
     /** Returns a shared [Flow] of token updates for the given credential [id]. */
     fun getTokenFlow(
@@ -84,8 +83,8 @@ internal class CredentialDataSource(
      */
     internal fun getOrCreateRefreshOrchestrator(
         id: String,
-        factory: suspend () -> OAuth2ClientResult<TokenInfo>,
-    ): CoalescingOrchestrator<OAuth2ClientResult<TokenInfo>> =
+        factory: suspend () -> Result<TokenInfo>,
+    ): CoalescingOrchestrator<Result<TokenInfo>> =
         synchronized(refreshOrchestrators) {
             refreshOrchestrators.getOrPut(id) {
                 CoalescingOrchestrator(

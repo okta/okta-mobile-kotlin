@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 package com.okta.authfoundation.client.kmp
+
 import com.okta.authfoundation.InternalAuthFoundationApi
 import com.okta.authfoundation.client.OAuth2ClientConfiguration
 import com.okta.authfoundation.client.OAuth2ClientResult
 import com.okta.authfoundation.client.TokenInfo
+import com.okta.authfoundation.client.dto.IntrospectInfo
 import com.okta.authfoundation.client.dto.OidcUserInfo
 import com.okta.authfoundation.client.events.TokenRefreshedEvent
 import com.okta.authfoundation.client.events.TokenRevokedEvent
@@ -103,94 +105,125 @@ class OAuth2Client internal constructor(
     /**
      * Attempt to refresh a token using the provided refresh token string.
      *
-     * @param refreshToken the refresh token string.
-     * @return the new token response as a [TokenInfo].
+     * On success, a [TokenRefreshedEvent] is emitted on [events].
+     * If an [IdTokenValidator] is configured, the ID token is validated before the event is emitted.
      *
-     * TODO change return value from OAuth2ClientResult<TokenInfo> to Result<TokenInfo>
+     * @param refreshToken the refresh token string.
+     * @return [Result.success] with the new [TokenInfo], or [Result.failure] with:
+     * - [OAuth2ClientResult.Error.OidcEndpointsNotAvailableException] if endpoints cannot be resolved.
+     * - [OAuth2ClientResult.Error.HttpResponseException] if the server returns an error.
+     * - [IdTokenValidator.Error] if ID token validation fails.
+     * - Other exceptions for network or parsing failures.
      */
-    suspend fun refreshToken(refreshToken: String): OAuth2ClientResult<TokenInfo> {
-        val endpoints = endpointsOrNull() ?: return endpointNotAvailableError()
+    suspend fun refreshToken(refreshToken: String): Result<TokenInfo> =
+        runCatching {
+            val endpoints =
+                endpointsOrNull()
+                    ?: throw OAuth2ClientResult.Error.OidcEndpointsNotAvailableException()
 
-        val formParams =
-            mapOf(
-                "client_id" to configuration.clientId,
-                "grant_type" to "refresh_token",
-                "refresh_token" to refreshToken
-            )
+            val formParams =
+                mapOf(
+                    "client_id" to configuration.clientId,
+                    "grant_type" to "refresh_token",
+                    "refresh_token" to refreshToken
+                )
 
-        return performJsonFormPost(
-            apiExecutor = configuration.apiExecutor,
-            json = configuration.json,
-            url = endpoints.tokenEndpoint,
-            formParams = formParams,
-            deserializer = OAuth2TokenResponse.serializer()
-        ).mapSuccess { response ->
-            response.toTokenInfo(configuration.clientId, configuration.issuerUrl)
-        }.also { result ->
-            // TODO convert OAuth2ClientResult to Result and emit Result.failures
-            if (result is OAuth2ClientResult.Success) {
-                _events.tryEmit(TokenRefreshedEvent(result.result))
+            val result =
+                performJsonFormPost(
+                    apiExecutor = configuration.apiExecutor,
+                    json = configuration.json,
+                    url = endpoints.tokenEndpoint,
+                    formParams = formParams,
+                    deserializer = OAuth2TokenResponse.serializer()
+                )
+            when (result) {
+                is OAuth2ClientResult.Success -> {
+                    val tokenInfo = result.result.toTokenInfo(configuration.clientId, configuration.issuerUrl)
+                    _events.tryEmit(TokenRefreshedEvent(tokenInfo))
+                    tokenInfo
+                }
+
+                is OAuth2ClientResult.Error -> {
+                    throw result.exception
+                }
             }
         }
-    }
 
     /**
      * Attempt to revoke the specified token.
      *
+     * On success, a [TokenRevokedEvent] is emitted on [events].
+     *
      * @param token the token string to revoke.
-     * TODO change return value from OAuth2ClientResult<Unit> to Result<String>
+     * @return [Result.success] with [Unit] if revoked, or [Result.failure] with:
+     * - [OAuth2ClientResult.Error.OidcEndpointsNotAvailableException] if endpoints cannot be resolved.
+     * - [OAuth2ClientResult.Error.HttpResponseException] if the server returns an error.
+     * - Other exceptions for network failures.
      */
-    suspend fun revokeToken(token: String): OAuth2ClientResult<Unit> {
-        val endpoint = endpointsOrNull()?.revocationEndpoint ?: return endpointNotAvailableError()
+    suspend fun revokeToken(token: String): Result<Unit> =
+        runCatching {
+            val endpoint =
+                endpointsOrNull()?.revocationEndpoint
+                    ?: throw OAuth2ClientResult.Error.OidcEndpointsNotAvailableException()
 
-        val formParams =
-            mapOf(
-                "client_id" to configuration.clientId,
-                "token" to token
-            )
+            val formParams =
+                mapOf(
+                    "client_id" to configuration.clientId,
+                    "token" to token
+                )
 
-        return performFormPost(
-            apiExecutor = configuration.apiExecutor,
-            url = endpoint,
-            formParams = formParams
-        ).also { result ->
-            // TODO convert OAuth2ClientResult to Result and emit Result.failures
-            if (result is OAuth2ClientResult.Success) {
-                _events.tryEmit(TokenRevokedEvent(token))
+            val result =
+                performFormPost(
+                    apiExecutor = configuration.apiExecutor,
+                    url = endpoint,
+                    formParams = formParams
+                )
+            when (result) {
+                is OAuth2ClientResult.Success -> _events.tryEmit(TokenRevokedEvent(token))
+                is OAuth2ClientResult.Error -> throw result.exception
             }
         }
-    }
 
     /**
-     * Performs a call to the Authorization Server to validate the specified token.
+     * Performs a call to the Authorization Server to validate the specified token
+     * per [RFC 7662](https://datatracker.ietf.org/doc/html/rfc7662).
      *
      * @param tokenTypeHint a hint about the type of token (e.g., "access_token", "refresh_token").
      * @param token the token string to introspect.
-     *
-     * TODO parse and return the IntrospectInfo object instead of raw JsonObject.
-     * https://datatracker.ietf.org/doc/html/rfc7662
+     * @return [Result.success] with [IntrospectInfo], or [Result.failure] with:
+     * - [OAuth2ClientResult.Error.OidcEndpointsNotAvailableException] if endpoints cannot be resolved.
+     * - [OAuth2ClientResult.Error.HttpResponseException] if the server returns an error.
+     * - Other exceptions for network or parsing failures.
      */
     suspend fun introspectToken(
         tokenTypeHint: String,
         token: String,
-    ): OAuth2ClientResult<JsonObject> {
-        val endpoint = endpointsOrNull()?.introspectionEndpoint ?: return endpointNotAvailableError()
+    ): Result<IntrospectInfo> =
+        runCatching {
+            val endpoint =
+                endpointsOrNull()?.introspectionEndpoint
+                    ?: throw OAuth2ClientResult.Error.OidcEndpointsNotAvailableException()
 
-        val formParams =
-            mapOf(
-                "client_id" to configuration.clientId,
-                "token" to token,
-                "token_type_hint" to tokenTypeHint
-            )
+            val formParams =
+                mapOf(
+                    "client_id" to configuration.clientId,
+                    "token" to token,
+                    "token_type_hint" to tokenTypeHint
+                )
 
-        return performJsonFormPost(
-            apiExecutor = configuration.apiExecutor,
-            json = configuration.json,
-            url = endpoint,
-            formParams = formParams,
-            deserializer = JsonObject.serializer()
-        )
-    }
+            val result =
+                performJsonFormPost(
+                    apiExecutor = configuration.apiExecutor,
+                    json = configuration.json,
+                    url = endpoint,
+                    formParams = formParams,
+                    deserializer = JsonObject.serializer()
+                )
+            when (result) {
+                is OAuth2ClientResult.Success -> IntrospectInfo.fromJsonObject(result.result, configuration.json)
+                is OAuth2ClientResult.Error -> throw result.exception
+            }
+        }
 
     /**
      * Performs a call to the Authorization Server to fetch the JSON Web Key Set.

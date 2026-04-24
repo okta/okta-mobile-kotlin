@@ -173,8 +173,8 @@ class OAuth2ClientSharedConfigTest {
             val result1 = commonClient1.revokeToken("token-1")
             val result2 = commonClient2.revokeToken("token-2")
 
-            assertTrue(result1 is OAuth2ClientResult.Success)
-            assertTrue(result2 is OAuth2ClientResult.Success)
+            assertTrue(result1.isSuccess)
+            assertTrue(result2.isSuccess)
             assertEquals(2, requestCount)
         }
 }
