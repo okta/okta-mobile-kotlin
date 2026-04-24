@@ -255,6 +255,7 @@ public final class com/okta/authfoundation/client/OAuth2ClientBuilder {
 	public final fun getClientSecret ()Ljava/lang/String;
 	public final fun getClock ()Lcom/okta/authfoundation/client/OidcClock;
 	public final fun getComputeDispatcher ()Lkotlin/coroutines/CoroutineContext;
+	public final fun getIdTokenValidator ()Lcom/okta/authfoundation/client/kmp/IdTokenValidator;
 	public final fun getIoDispatcher ()Lkotlin/coroutines/CoroutineContext;
 	public final fun getJson ()Lkotlinx/serialization/json/Json;
 	public final fun setAcrValues (Ljava/lang/String;)V
@@ -264,6 +265,7 @@ public final class com/okta/authfoundation/client/OAuth2ClientBuilder {
 	public final fun setClientSecret (Ljava/lang/String;)V
 	public final fun setClock (Lcom/okta/authfoundation/client/OidcClock;)V
 	public final fun setComputeDispatcher (Lkotlin/coroutines/CoroutineContext;)V
+	public final fun setIdTokenValidator (Lcom/okta/authfoundation/client/kmp/IdTokenValidator;)V
 	public final fun setIoDispatcher (Lkotlin/coroutines/CoroutineContext;)V
 	public final fun setJson (Lkotlinx/serialization/json/Json;)V
 }
@@ -282,6 +284,7 @@ public final class com/okta/authfoundation/client/OAuth2ClientConfiguration {
 	public final fun getClientSecret ()Ljava/lang/String;
 	public final fun getClock ()Lcom/okta/authfoundation/client/OidcClock;
 	public final fun getDefaultScope ()Ljava/lang/String;
+	public final fun getIdTokenValidator ()Lcom/okta/authfoundation/client/kmp/IdTokenValidator;
 	public final fun getIssuerUrl ()Ljava/lang/String;
 	public final fun getJson ()Lkotlinx/serialization/json/Json;
 }
@@ -401,6 +404,46 @@ public final class com/okta/authfoundation/client/jvm/OAuth2ClientBuilder {
 	public final fun setIoDispatcher (Lkotlin/coroutines/CoroutineContext;)Lcom/okta/authfoundation/client/jvm/OAuth2ClientBuilder;
 }
 
+public final class com/okta/authfoundation/client/kmp/DefaultIdTokenValidator : com/okta/authfoundation/client/kmp/IdTokenValidator {
+	public fun <init> ()V
+	public fun validate (Ljava/lang/String;Ljava/lang/String;Lcom/okta/authfoundation/jwt/Jwt;Lcom/okta/authfoundation/client/OidcClock;ILcom/okta/authfoundation/client/kmp/IdTokenValidator$Parameters;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public abstract interface class com/okta/authfoundation/client/kmp/IdTokenValidator {
+	public abstract fun validate (Ljava/lang/String;Ljava/lang/String;Lcom/okta/authfoundation/jwt/Jwt;Lcom/okta/authfoundation/client/OidcClock;ILcom/okta/authfoundation/client/kmp/IdTokenValidator$Parameters;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun validate$default (Lcom/okta/authfoundation/client/kmp/IdTokenValidator;Ljava/lang/String;Ljava/lang/String;Lcom/okta/authfoundation/jwt/Jwt;Lcom/okta/authfoundation/client/OidcClock;ILcom/okta/authfoundation/client/kmp/IdTokenValidator$Parameters;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class com/okta/authfoundation/client/kmp/IdTokenValidator$DefaultImpls {
+	public static synthetic fun validate$default (Lcom/okta/authfoundation/client/kmp/IdTokenValidator;Ljava/lang/String;Ljava/lang/String;Lcom/okta/authfoundation/jwt/Jwt;Lcom/okta/authfoundation/client/OidcClock;ILcom/okta/authfoundation/client/kmp/IdTokenValidator$Parameters;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class com/okta/authfoundation/client/kmp/IdTokenValidator$Error : java/lang/IllegalStateException {
+	public static final field Companion Lcom/okta/authfoundation/client/kmp/IdTokenValidator$Error$Companion;
+	public static final field EXPIRED Ljava/lang/String;
+	public static final field INVALID_AUDIENCE Ljava/lang/String;
+	public static final field INVALID_ISSUER Ljava/lang/String;
+	public static final field INVALID_JWT_ALGORITHM Ljava/lang/String;
+	public static final field INVALID_JWT_SIGNATURE Ljava/lang/String;
+	public static final field INVALID_SUBJECT Ljava/lang/String;
+	public static final field ISSUED_AT_THRESHOLD_NOT_SATISFIED Ljava/lang/String;
+	public static final field ISSUER_NOT_HTTPS Ljava/lang/String;
+	public static final field MAX_AGE_NOT_SATISFIED Ljava/lang/String;
+	public static final field NONCE_MISMATCH Ljava/lang/String;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getIdentifier ()Ljava/lang/String;
+}
+
+public final class com/okta/authfoundation/client/kmp/IdTokenValidator$Error$Companion {
+}
+
+public final class com/okta/authfoundation/client/kmp/IdTokenValidator$Parameters {
+	public fun <init> (Ljava/lang/String;Ljava/lang/Integer;)V
+	public final fun getMaxAge ()Ljava/lang/Integer;
+	public final fun getNonce ()Ljava/lang/String;
+}
+
 public final class com/okta/authfoundation/client/kmp/OAuth2Client {
 	public static final field Companion Lcom/okta/authfoundation/client/kmp/OAuth2Client$Companion;
 	public final fun endpointsOrNull (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -415,6 +458,11 @@ public final class com/okta/authfoundation/client/kmp/OAuth2Client {
 
 public final class com/okta/authfoundation/client/kmp/OAuth2Client$Companion {
 	public final fun createFromConfiguration (Lcom/okta/authfoundation/client/OAuth2ClientConfiguration;)Lcom/okta/authfoundation/client/kmp/OAuth2Client;
+}
+
+public final class com/okta/authfoundation/client/kmp/events/ValidateIdTokenEvent : com/okta/authfoundation/events/Event {
+	public fun <init> ()V
+	public final fun getIssuedAtGracePeriodInSeconds ()I
 }
 
 public abstract interface class com/okta/authfoundation/credential/CredentialIdentifier {

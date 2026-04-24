@@ -29,10 +29,13 @@ import com.okta.authfoundation.client.internal.OAuth2TokenResponse
 import com.okta.authfoundation.client.internal.performFormPost
 import com.okta.authfoundation.client.internal.performJsonFormPost
 import com.okta.authfoundation.client.internal.performJsonGetRequest
+import com.okta.authfoundation.client.kmp.events.ValidateIdTokenEvent
 import com.okta.authfoundation.events.Event
 import com.okta.authfoundation.jwt.Jwks
+import com.okta.authfoundation.jwt.JwtParser
 import com.okta.authfoundation.jwt.SerializableJwks
 import com.okta.authfoundation.util.CoalescingOrchestrator
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -236,6 +239,41 @@ class OAuth2Client internal constructor(
             is OAuth2ClientResult.Error -> null
             is OAuth2ClientResult.Success -> result.result
         }
+
+    /**
+     * Validates the ID token in [tokenInfo] using the configured [IdTokenValidator].
+     *
+     * Verifies claims first, then JWT signature against JWKS.
+     */
+    private suspend fun validateIdToken(tokenInfo: TokenInfo) {
+        val idTokenStr = tokenInfo.idToken ?: return
+        val validator = configuration.idTokenValidator
+
+        val parser = JwtParser(configuration.json, Dispatchers.Default)
+        val jwt = parser.parse(idTokenStr)
+
+        val event = ValidateIdTokenEvent()
+        _events.tryEmit(event)
+
+        validator.validate(
+            issuerUrl = configuration.issuerUrl,
+            clientId = configuration.clientId,
+            idToken = jwt,
+            clock = configuration.clock,
+            issuedAtGracePeriodInSeconds = event.issuedAtGracePeriodInSeconds
+        )
+
+        // Verify signature against JWKS
+        val jwksResult = jwks()
+        if (jwksResult is OAuth2ClientResult.Success) {
+            if (!jwt.hasValidSignature(jwksResult.result)) {
+                throw IdTokenValidator.Error(
+                    "Invalid JWT signature.",
+                    IdTokenValidator.Error.INVALID_JWT_SIGNATURE
+                )
+            }
+        }
+    }
 
     private fun <T> endpointNotAvailableError(): OAuth2ClientResult.Error<T> = OAuth2ClientResult.Error(OAuth2ClientResult.Error.OidcEndpointsNotAvailableException())
 

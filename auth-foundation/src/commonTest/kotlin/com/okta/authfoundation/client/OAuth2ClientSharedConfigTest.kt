@@ -20,12 +20,17 @@ import com.okta.authfoundation.api.http.ApiExecutor
 import com.okta.authfoundation.api.http.ApiRequest
 import com.okta.authfoundation.api.http.ApiResponse
 import com.okta.authfoundation.client.internal.OAuth2Endpoints
+import com.okta.authfoundation.client.kmp.DefaultIdTokenValidator
+import com.okta.authfoundation.client.kmp.IdTokenValidator
 import com.okta.authfoundation.client.kmp.OAuth2Client
+import com.okta.authfoundation.jwt.Jwt
 import com.okta.authfoundation.util.CoalescingOrchestrator
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertIs
 import kotlin.test.assertNotSame
+import kotlin.test.assertSame
 import kotlin.test.assertTrue
 
 @OptIn(InternalAuthFoundationApi::class)
@@ -177,4 +182,46 @@ class OAuth2ClientSharedConfigTest {
             assertTrue(result2.isSuccess)
             assertEquals(2, requestCount)
         }
+
+    @Test
+    fun builder_defaultIdTokenValidator_IsDefaultIdTokenValidator() {
+        val client =
+            OAuth2ClientBuilder
+                .create(
+                    issuerUrl = "https://example.okta.com/oauth2/default",
+                    clientId = "client-1",
+                    scope = listOf("openid")
+                ).getOrThrow()
+
+        assertIs<DefaultIdTokenValidator>(client.configuration.idTokenValidator)
+    }
+
+    @Test
+    fun builder_customIdTokenValidator_IsUsed() {
+        val custom =
+            object : IdTokenValidator {
+                override suspend fun validate(
+                    issuerUrl: String,
+                    clientId: String,
+                    idToken: Jwt,
+                    clock: OidcClock,
+                    issuedAtGracePeriodInSeconds: Int,
+                    parameters: IdTokenValidator.Parameters,
+                ) {
+                    // no-op
+                }
+            }
+
+        val client =
+            OAuth2ClientBuilder
+                .create(
+                    issuerUrl = "https://example.okta.com/oauth2/default",
+                    clientId = "client-1",
+                    scope = listOf("openid")
+                ) {
+                    idTokenValidator = custom
+                }.getOrThrow()
+
+        assertSame(custom, client.configuration.idTokenValidator)
+    }
 }
