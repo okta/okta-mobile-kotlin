@@ -23,20 +23,18 @@ import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
-import javax.crypto.spec.SecretKeySpec
 
 /**
  * JVM-based AES-256-GCM token encryption handler for KMP apps.
  *
  * Encrypts and decrypts token data using AES-256 in Galois Counter Mode (GCM).
- * The encryption key is generated on first use and stored at `~/.okta/.encryption_key` (Base64 encoded).
+ * The encryption key is generated on first use and stored in a PKCS12 keystore at `~/.okta/okta.p12`.
  * A fresh 12-byte IV is generated for each encryption and stored in `encryptionExtras["iv"]`.
  *
- * **Note:** The default key storage writes a Base64-encoded key to disk with restrictive file
+ * **Note:** The default key storage uses a fixed keystore password, so security relies on file-system
  * permissions. This is suitable as an SDK default but may not meet enterprise security requirements.
- * For production deployments, supply a custom [keyProvider] backed by a Java KeyStore (JKS/PKCS12),
- * a hardware security module (HSM), or a cloud key management service (AWS KMS, Azure Key Vault,
- * GCP Cloud KMS, HashiCorp Vault).
+ * For production deployments, supply a custom [keyProvider] backed by a hardware security module
+ * (HSM), or a cloud key management service (AWS KMS, Azure Key Vault, GCP Cloud KMS, HashiCorp Vault).
  *
  * @param keyProvider optional lambda to provide a custom [SecretKey]. Defaults to loading/generating the standard key.
  */
@@ -51,48 +49,36 @@ class JceTokenEncryptionHandler(
         private const val GCM_TAG_LENGTH = 128
         private const val IV_KEY = "iv"
 
-        private val ENCRYPTION_KEY_PATH =
-            "${System.getProperty("user.home")}${File.separator}.okta${File.separator}.encryption_key"
+        private val KEYSTORE_PATH =
+            "${System.getProperty("user.home")}${File.separator}.okta${File.separator}okta.p12"
+        private val KEYSTORE_PASSWORD =
+            (System.getProperty("okta.keystore.password") ?: "okta-sdk-default").toCharArray()
+        private const val KEY_ALIAS = "token-encryption-key"
+        private const val KEYSTORE_TYPE = "PKCS12"
 
         /**
-         * Generates a new 256-bit AES key and stores it at the default location.
+         * Loads the encryption key from the PKCS12 keystore, or generates and stores a new one.
+         *
+         * Synchronized to prevent a TOCTOU race where two concurrent callers both find the
+         * keystore missing, generate different keys, and the second write overwrites the first.
          */
-        private fun generateAndStoreKey(): SecretKey {
-            val keyGen = KeyGenerator.getInstance(ALGORITHM)
-            keyGen.init(KEY_SIZE, SecureRandom())
-            val key = keyGen.generateKey()
-            storeKey(key)
-            return key
-        }
-
-        /**
-         * Stores an encryption key in Base64 format at the default location.
-         */
-        private fun storeKey(key: SecretKey) {
-            val keyFile = File(ENCRYPTION_KEY_PATH)
-            keyFile.parentFile?.mkdirs()
-            val encodedKey = Base64.getEncoder().encodeToString(key.encoded)
-            keyFile.writeText(encodedKey)
-            // Set restrictive file permissions (read/write owner only)
-            keyFile.setReadable(false, false)
-            keyFile.setReadable(true, true)
-            keyFile.setWritable(false, false)
-            keyFile.setWritable(true, true)
-            keyFile.setExecutable(false)
-        }
-
-        /**
-         * Loads the encryption key from the default location, or generates a new one if not found.
-         */
+        @Synchronized
         private fun defaultKeyProvider(): SecretKey {
-            val keyFile = File(ENCRYPTION_KEY_PATH)
-            return if (keyFile.exists()) {
-                val encodedKey = keyFile.readText()
-                val decodedKey = Base64.getDecoder().decode(encodedKey)
-                SecretKeySpec(decodedKey, 0, decodedKey.size, ALGORITHM)
+            val keyStore = KeyStore.getInstance(KEYSTORE_TYPE)
+            val keystoreFile = File(KEYSTORE_PATH)
+            val protection = KeyStore.PasswordProtection(KEYSTORE_PASSWORD)
+            if (keystoreFile.exists()) {
+                keystoreFile.inputStream().use { keyStore.load(it, KEYSTORE_PASSWORD) }
+                (keyStore.getEntry(KEY_ALIAS, protection) as? KeyStore.SecretKeyEntry)
+                    ?.let { return it.secretKey }
             } else {
-                generateAndStoreKey()
+                keyStore.load(null, KEYSTORE_PASSWORD)
+                keystoreFile.parentFile?.mkdirs()
             }
+            val key = KeyGenerator.getInstance(ALGORITHM).also { it.init(KEY_SIZE, SecureRandom()) }.generateKey()
+            keyStore.setEntry(KEY_ALIAS, KeyStore.SecretKeyEntry(key), protection)
+            keystoreFile.outputStream().use { keyStore.store(it, KEYSTORE_PASSWORD) }
+            return key
         }
     }
 

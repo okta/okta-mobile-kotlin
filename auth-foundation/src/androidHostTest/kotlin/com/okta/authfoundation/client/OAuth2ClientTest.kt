@@ -15,6 +15,7 @@
  */
 package com.okta.authfoundation.client
 
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
 import com.okta.authfoundation.client.IdTokenValidator.Error.Companion.INVALID_JWT_SIGNATURE
 import com.okta.authfoundation.client.dto.OidcIntrospectInfo
@@ -55,7 +56,9 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
 
+@RunWith(AndroidJUnit4::class)
 class OAuth2ClientTest {
     private val mockPrefix = "client_test_responses"
 
