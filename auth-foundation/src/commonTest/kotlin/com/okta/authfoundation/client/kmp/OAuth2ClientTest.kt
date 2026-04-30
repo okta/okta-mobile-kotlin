@@ -162,10 +162,7 @@ class OAuth2ClientTest {
                 """.trimIndent()
 
             val client = createClient(mockApiExecutor(userInfoJson))
-            val result = client.getUserInfo("access-token")
-
-            assertTrue(result is OAuth2ClientResult.Success)
-            val userInfo = result.result
+            val userInfo = client.getUserInfo("access-token").getOrThrow()
             assertNotNull(userInfo)
         }
 
@@ -189,12 +186,76 @@ class OAuth2ClientTest {
                 """.trimIndent()
 
             val client = createClient(mockApiExecutor(jwksJson))
-            val result = client.jwks()
-
-            assertTrue(result is OAuth2ClientResult.Success)
-            val jwks = result.result
+            val jwks = client.jwks().getOrThrow()
             assertEquals(1, jwks.keys.size)
             assertEquals("key1", jwks.keys[0].keyId)
+        }
+
+    @Test
+    fun tokenRequest_ReturnsValidatedTokenInfo() =
+        runTest {
+            val tokenJson =
+                """
+                {
+                    "token_type": "Bearer",
+                    "expires_in": 3600,
+                    "access_token": "tr-access-token",
+                    "scope": "openid profile",
+                    "refresh_token": "tr-refresh-token",
+                    "id_token": null
+                }
+                """.trimIndent()
+
+            val client = createClient(mockApiExecutor(tokenJson))
+            val formParams =
+                mapOf(
+                    "client_id" to "test-client-id",
+                    "grant_type" to "authorization_code",
+                    "code" to "auth-code-123",
+                    "redirect_uri" to "https://example.com/callback"
+                )
+            val result = client.tokenRequest(formParams)
+
+            assertTrue(result.isSuccess)
+            val tokenInfo = result.getOrThrow()
+            assertEquals("Bearer", tokenInfo.tokenType)
+            assertEquals(3600, tokenInfo.expiresIn)
+            assertEquals("tr-access-token", tokenInfo.accessToken)
+            assertEquals("openid profile", tokenInfo.scope)
+            assertEquals("tr-refresh-token", tokenInfo.refreshToken)
+        }
+
+    @Test
+    fun tokenRequest_WithNoEndpoints_ReturnsError() =
+        runTest {
+            val config =
+                OAuth2ClientBuilder
+                    .create(
+                        issuerUrl = "https://example.okta.com/oauth2/default",
+                        clientId = "test-client-id",
+                        scope = listOf("openid")
+                    ) {
+                        apiExecutor = mockApiExecutor("")
+                    }.getOrThrow()
+                    .configuration
+
+            val client =
+                OAuth2Client(
+                    configuration = config,
+                    endpointsOrchestrator =
+                        CoalescingOrchestrator(
+                            factory = {
+                                OAuth2ClientResult.Error(
+                                    OAuth2ClientResult.Error.OidcEndpointsNotAvailableException()
+                                )
+                            },
+                            keepDataInMemory = { false }
+                        )
+                )
+
+            val result = client.tokenRequest(mapOf("grant_type" to "authorization_code"))
+            assertTrue(result.isFailure)
+            assertIs<OAuth2ClientResult.Error.OidcEndpointsNotAvailableException>(result.exceptionOrNull())
         }
 
     @Test

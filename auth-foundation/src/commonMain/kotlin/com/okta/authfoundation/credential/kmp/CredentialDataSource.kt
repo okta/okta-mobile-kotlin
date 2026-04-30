@@ -17,11 +17,17 @@ package com.okta.authfoundation.credential.kmp
 
 import com.okta.authfoundation.client.TokenInfo
 import com.okta.authfoundation.credential.TokenMetadata
+import com.okta.authfoundation.credential.events.TokenStorageAccessErrorEvent
+import com.okta.authfoundation.events.Event
 import com.okta.authfoundation.util.CoalescingOrchestrator
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.transformWhile
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.yield
 
 /**
  * Cross-platform data source managing [TokenInfo] storage.
@@ -29,15 +35,17 @@ import kotlinx.coroutines.flow.transformWhile
  * Handles token CRUD with caching. Event emission is handled by credential
  * implementations ([CredentialImpl], Android [Credential]).
  *
- * All shared state is guarded by [synchronized] because every critical section is a
- * trivially short map operation that never suspends. This avoids the overhead and
- * `suspend`-signature requirement of [kotlinx.coroutines.sync.Mutex].
+ * @param storage the [TokenStorage] for persisting tokens.
+ * @param eventsFlow optional shared flow for emitting [TokenStorageAccessErrorEvent]. If provided, database exceptions will be caught and emitted.
  */
 internal class CredentialDataSource(
     private val storage: TokenStorage,
+    private val eventsFlow: MutableSharedFlow<Event>? = null,
 ) {
+    private val cacheMutex = Mutex()
     private val cache = mutableMapOf<String, TokenData>()
 
+    // Shared state for immutable credential snapshots (T001-T003)
     private val tokenFlows = mutableMapOf<String, MutableStateFlow<TokenData?>>()
     private val deletedIds = mutableSetOf<String>()
     private val refreshOrchestrators = mutableMapOf<String, CoalescingOrchestrator<Result<TokenInfo>>>()
@@ -69,13 +77,13 @@ internal class CredentialDataSource(
 
     /** Marks the credential with [id] as deleted. */
     suspend fun markDeleted(id: String) {
-        synchronized(deletedIds) { deletedIds.add(id) }
+        cacheMutex.withLock { deletedIds.add(id) }
         // Emit null to signal deletion on the token flow.
         emitToken(id, null)
     }
 
     /** Returns true if the credential with [id] has been deleted. */
-    fun isDeleted(id: String): Boolean = synchronized(deletedIds) { id in deletedIds }
+    suspend fun isDeleted(id: String): Boolean = cacheMutex.withLock { id in deletedIds }
 
     /**
      * Returns (or creates) a shared [CoalescingOrchestrator] for token refresh deduplication
@@ -95,14 +103,22 @@ internal class CredentialDataSource(
         }
 
     /** Returns all stored token IDs. */
-    suspend fun allIds(): List<String> = storage.allIds().getOrThrow()
+    suspend fun allIds(): List<String> =
+        wrapStorageOperation {
+            storage.allIds().getOrThrow()
+        }
 
     /** Returns metadata for the token with [id]. */
-    suspend fun metadata(id: String): TokenMetadata? = storage.metadata(id).getOrThrow()
+    suspend fun metadata(id: String): TokenMetadata? =
+        wrapStorageOperation {
+            storage.metadata(id).getOrThrow()
+        }
 
     /** Updates metadata for a stored token. */
     suspend fun setMetadata(metadata: TokenMetadata) {
-        storage.setMetadata(metadata).getOrThrow()
+        wrapStorageOperation {
+            storage.setMetadata(metadata).getOrThrow()
+        }
     }
 
     /** Stores a new token and returns its data. */
@@ -116,47 +132,59 @@ internal class CredentialDataSource(
                 tags = tags,
                 payloadData = null
             )
-        synchronized(cache) { cache[token.id] = token }
-        storage.add(token, metadata).getOrThrow()
+        cacheMutex.withLock {
+            cache[token.id] = token
+        }
+        wrapStorageOperation {
+            storage.add(token, metadata).getOrThrow()
+        }
         return token
     }
 
     /** Replaces an existing token atomically. Returns the updated token. */
     suspend fun replaceToken(token: TokenInfo): TokenData? {
-        val existing = synchronized(cache) { cache[token.id] }
+        val existing = cacheMutex.withLock { cache[token.id] }
         if (existing == null) {
             throw IllegalStateException("Attempted replacing a non-existent Token")
         }
-        storage.replace(token).getOrThrow()
+        wrapStorageOperation {
+            storage.replace(token).getOrThrow()
+        }
         if (token is TokenData) {
             val updated =
                 token.copy(
                     refreshToken = token.refreshToken ?: existing.refreshToken,
                     deviceSecret = token.deviceSecret ?: existing.deviceSecret
                 )
-            synchronized(cache) { cache[token.id] = updated }
+            cacheMutex.withLock { cache[token.id] = updated }
             return updated
         }
         return null
     }
 
-    /** Retrieves a token by ID, using cache if available. Returns null only if the token does not exist. */
+    /** Retrieves a token by ID, using cache if available. */
     suspend fun getToken(id: String): TokenInfo? {
-        synchronized(cache) { cache[id] }?.let { return it }
-        metadata(id) ?: return null
-        val token = storage.getToken(id).getOrNull() ?: return null
+        cacheMutex.withLock {
+            cache[id]?.let { return it }
+        }
+        val token =
+            wrapStorageOperation {
+                storage.getToken(id).getOrNull()
+            } ?: return null
         if (token is TokenData) {
-            synchronized(cache) { cache[id] = token }
+            cacheMutex.withLock { cache[id] = token }
         }
         return token
     }
 
     /** Removes a token from storage and cleans up shared state. */
     suspend fun remove(id: String) {
-        synchronized(cache) { cache.remove(id) }
+        cacheMutex.withLock { cache.remove(id) }
         synchronized(tokenFlows) { tokenFlows.remove(id) }
         synchronized(refreshOrchestrators) { refreshOrchestrators.remove(id) }
-        storage.remove(id).getOrThrow()
+        wrapStorageOperation {
+            storage.remove(id).getOrThrow()
+        }
     }
 
     /** Finds all tokens matching the predicate. */
@@ -165,4 +193,44 @@ internal class CredentialDataSource(
             .mapNotNull { metadata(it) }
             .filter { where(it) }
             .mapNotNull { metadata -> getToken(metadata.id) }
+
+    /**
+     * Wraps a storage operation with error handling and event emission.
+     *
+     * If the operation throws an exception and eventsFlow is available, emits
+     * a [TokenStorageAccessErrorEvent]. If the event's [TokenStorageAccessErrorEvent.shouldClearStorageAndTryAgain]
+     * is true, attempts the operation again.
+     */
+    private suspend fun <T> wrapStorageOperation(operation: suspend () -> T): T =
+        try {
+            operation()
+        } catch (e: Exception) {
+            if (eventsFlow != null) {
+                val event =
+                    TokenStorageAccessErrorEvent(
+                        exception = e,
+                        shouldClearStorageAndTryAgain = false
+                    )
+                // Emit event non-blocking (adds to replay buffer immediately if there's room).
+                // Fall back to suspending emit if needed (buffer full or to wait for subscribers).
+                if (!eventsFlow.tryEmit(event)) {
+                    eventsFlow.emit(event)
+                }
+                // Yield control to allow other coroutines (like recovery handlers) to run.
+                yield()
+
+                // If recovery is requested, attempt the operation again (after theoretical cleanup)
+                if (event.shouldClearStorageAndTryAgain) {
+                    try {
+                        operation()
+                    } catch (retryException: Exception) {
+                        throw retryException
+                    }
+                } else {
+                    throw e
+                }
+            } else {
+                throw e
+            }
+        }
 }

@@ -25,6 +25,9 @@ import com.okta.authfoundation.credential.InMemoryDefaultCredentialIdStore
 import com.okta.authfoundation.credential.TestConfiguration
 import com.okta.authfoundation.credential.TokenMetadata
 import com.okta.authfoundation.credential.createTestToken
+import com.okta.authfoundation.credential.kmp.CredentialDataSource
+import com.okta.authfoundation.credential.kmp.TokenCredentialManager
+import com.okta.authfoundation.credential.kmp.TokenStorage
 import com.okta.authfoundation.util.CoalescingOrchestrator
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
@@ -65,7 +68,7 @@ class CustomTokenStorageTest {
         runTest {
             val customStorage = FakeTokenStorage()
             val manager =
-                CredentialManager(
+                TokenCredentialManager(
                     client = client,
                     storage = customStorage,
                     defaultIdStore = InMemoryDefaultCredentialIdStore()
@@ -158,7 +161,7 @@ class CustomTokenStorageTest {
         runTest {
             val customStorage = FakeTokenStorage()
             val manager =
-                CredentialManager(
+                TokenCredentialManager(
                     client = client,
                     storage = customStorage,
                     defaultIdStore = InMemoryDefaultCredentialIdStore()
@@ -190,7 +193,7 @@ class CustomTokenStorageTest {
         runTest {
             val customStorage = FakeTokenStorage()
             val manager =
-                CredentialManager(
+                TokenCredentialManager(
                     client = client,
                     storage = customStorage,
                     defaultIdStore = InMemoryDefaultCredentialIdStore()

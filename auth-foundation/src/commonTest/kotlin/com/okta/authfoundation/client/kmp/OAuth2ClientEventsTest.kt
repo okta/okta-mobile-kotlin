@@ -24,6 +24,8 @@ import com.okta.authfoundation.client.OAuth2ClientResult
 import com.okta.authfoundation.client.events.TokenRefreshedEvent
 import com.okta.authfoundation.client.events.TokenRevokedEvent
 import com.okta.authfoundation.client.internal.OAuth2Endpoints
+import com.okta.authfoundation.client.kmp.OAuth2Client
+import com.okta.authfoundation.client.kmp.events.RateLimitExceededEvent
 import com.okta.authfoundation.events.Event
 import com.okta.authfoundation.util.CoalescingOrchestrator
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -111,8 +113,11 @@ class OAuth2ClientEventsTest {
             val result = client.refreshToken("old-refresh-token")
 
             assertTrue(result.isSuccess)
-            assertEquals(1, recordedEvents.size)
-            val event = assertIs<TokenRefreshedEvent>(recordedEvents[0])
+            assertEquals(2, recordedEvents.size)
+            // TokenCreatedEvent is emitted first from processTokenResponse (no ID token to validate)
+            assertIs<com.okta.authfoundation.client.kmp.events.TokenCreatedEvent>(recordedEvents[0])
+            // TokenRefreshedEvent is emitted after
+            val event = assertIs<TokenRefreshedEvent>(recordedEvents[1])
             assertEquals("new-access-token", event.tokenInfo.accessToken)
             collectJob.cancel()
         }
@@ -155,6 +160,110 @@ class OAuth2ClientEventsTest {
 
             assertTrue(result.isFailure)
             assertEquals(0, recordedEvents.size)
+            collectJob.cancel()
+        }
+
+    @Test
+    fun refreshToken_Http429_EmitsRateLimitExceededEvent() =
+        runTest {
+            val recordedEvents = mutableListOf<Event>()
+            val rateLimitExecutor =
+                object : ApiExecutor {
+                    override suspend fun execute(request: ApiRequest): Result<ApiResponse> =
+                        Result.success(
+                            object : ApiResponse {
+                                override val statusCode: Int = 429
+                                override val body: ByteArray? = null
+                                override val headers: Map<String, List<String>> =
+                                    mapOf("Retry-After" to listOf("60"))
+                                override val contentLength: Long = 0L
+                                override val contentType: String = ""
+                            }
+                        )
+                }
+
+            val client = createClient(rateLimitExecutor)
+            val collectJob =
+                backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+                    client.events.collect { recordedEvents.add(it) }
+                }
+
+            val result = client.refreshToken("old-refresh-token")
+
+            assertTrue(result.isFailure)
+            assertEquals(1, recordedEvents.size)
+            val event = assertIs<RateLimitExceededEvent>(recordedEvents[0])
+            assertEquals(429, event.statusCode)
+            assertEquals(60L, event.retryAfterSeconds)
+            collectJob.cancel()
+        }
+
+    @Test
+    fun refreshToken_Http429_NoRetryAfter_EmitsRateLimitExceededEvent() =
+        runTest {
+            val recordedEvents = mutableListOf<Event>()
+            val rateLimitExecutor =
+                object : ApiExecutor {
+                    override suspend fun execute(request: ApiRequest): Result<ApiResponse> =
+                        Result.success(
+                            object : ApiResponse {
+                                override val statusCode: Int = 429
+                                override val body: ByteArray? = null
+                                override val headers: Map<String, List<String>> = emptyMap()
+                                override val contentLength: Long = 0L
+                                override val contentType: String = ""
+                            }
+                        )
+                }
+
+            val client = createClient(rateLimitExecutor)
+            val collectJob =
+                backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+                    client.events.collect { recordedEvents.add(it) }
+                }
+
+            val result = client.refreshToken("old-refresh-token")
+
+            assertTrue(result.isFailure)
+            assertEquals(1, recordedEvents.size)
+            val event = assertIs<RateLimitExceededEvent>(recordedEvents[0])
+            assertEquals(429, event.statusCode)
+            assertEquals(null, event.retryAfterSeconds)
+            collectJob.cancel()
+        }
+
+    @Test
+    fun revokeToken_Http429_EmitsRateLimitExceededEvent() =
+        runTest {
+            val recordedEvents = mutableListOf<Event>()
+            val rateLimitExecutor =
+                object : ApiExecutor {
+                    override suspend fun execute(request: ApiRequest): Result<ApiResponse> =
+                        Result.success(
+                            object : ApiResponse {
+                                override val statusCode: Int = 429
+                                override val body: ByteArray? = null
+                                override val headers: Map<String, List<String>> =
+                                    mapOf("Retry-After" to listOf("120"))
+                                override val contentLength: Long = 0L
+                                override val contentType: String = ""
+                            }
+                        )
+                }
+
+            val client = createClient(rateLimitExecutor)
+            val collectJob =
+                backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+                    client.events.collect { recordedEvents.add(it) }
+                }
+
+            val result = client.revokeToken("some-token")
+
+            assertTrue(result.isFailure)
+            assertEquals(1, recordedEvents.size)
+            val event = assertIs<RateLimitExceededEvent>(recordedEvents[0])
+            assertEquals(429, event.statusCode)
+            assertEquals(120L, event.retryAfterSeconds)
             collectJob.cancel()
         }
 }

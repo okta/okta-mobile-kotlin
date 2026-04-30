@@ -43,13 +43,13 @@ import org.junit.Before;
 import org.junit.Test;
 
 /** Pure Java tests verifying that the CredentialManager API is usable from Java. */
-public class CredentialManagerJavaTest {
+public class TokenCredentialManagerJavaTest {
 
   private static final String ISSUER_URL = "https://example.okta.com/oauth2/default";
   private static final String CLIENT_ID = "test-client-id";
 
   private OAuth2Client client;
-  private CredentialManager manager;
+  private TokenCredentialManager manager;
   private TokenDatabase database;
 
   @Before
@@ -62,7 +62,7 @@ public class CredentialManagerJavaTest {
     RoomTokenStorage storage =
         new RoomTokenStorage(database, new NoOpTokenEncryptionHandler(), client.getConfiguration());
     RoomDefaultCredentialIdStore defaultIdStore = new RoomDefaultCredentialIdStore(database);
-    manager = new CredentialManager(client, storage, defaultIdStore);
+    manager = new TokenCredentialManager(client, storage, defaultIdStore);
   }
 
   @After

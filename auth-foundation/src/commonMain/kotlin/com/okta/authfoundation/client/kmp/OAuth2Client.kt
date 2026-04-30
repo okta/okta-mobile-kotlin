@@ -29,6 +29,8 @@ import com.okta.authfoundation.client.internal.OAuth2TokenResponse
 import com.okta.authfoundation.client.internal.performFormPost
 import com.okta.authfoundation.client.internal.performJsonFormPost
 import com.okta.authfoundation.client.internal.performJsonGetRequest
+import com.okta.authfoundation.client.kmp.events.TokenCreatedEvent
+import com.okta.authfoundation.client.kmp.events.ValidateAccessTokenEvent
 import com.okta.authfoundation.client.kmp.events.ValidateIdTokenEvent
 import com.okta.authfoundation.events.Event
 import com.okta.authfoundation.jwt.Jwks
@@ -44,6 +46,22 @@ import kotlinx.serialization.json.JsonObject
 
 /**
  * A cross-platform OAuth2 client for interacting with an Okta Authorization Server.
+ *
+ * This client is **storage-agnostic** — it handles HTTP calls, token validation, and event
+ * emission but never persists tokens. To store tokens, use
+ * [TokenCredentialManager][com.okta.authfoundation.credential.kmp.TokenCredentialManager]:
+ *
+ * ```kotlin
+ * // 1. Create the client
+ * val client = OAuth2ClientBuilder.create(issuerUrl, clientId, scope).getOrThrow()
+ *
+ * // 2. Perform a token request (e.g., from a flow class)
+ * val tokenInfo = client.tokenRequest(formParams).getOrThrow()
+ *
+ * // 3. Persist via TokenCredentialManager
+ * val tokenData = TokenData(tokenInfo, client.configuration)
+ * val credential = manager.store(tokenData).getOrThrow()
+ * ```
  *
  * Use [OAuth2ClientBuilder] to create an instance via the builder pattern.
  *
@@ -73,37 +91,53 @@ class OAuth2Client internal constructor(
      */
     val events: SharedFlow<Event> = _events.asSharedFlow()
 
-    private val jwksOrchestrator: CoalescingOrchestrator<OAuth2ClientResult<Jwks>> =
+    private val jwksOrchestrator: CoalescingOrchestrator<Result<Jwks>> =
         CoalescingOrchestrator(
             factory = ::fetchJwks,
-            keepDataInMemory = { it is OAuth2ClientResult.Success }
+            keepDataInMemory = { it.isSuccess }
         )
 
     /**
      * Performs the OIDC User Info call.
      *
      * @param accessToken the access token used for authorization.
+     * @return [Result.success] with [OidcUserInfo], or [Result.failure] with:
+     * - [OAuth2ClientResult.Error.OidcEndpointsNotAvailableException] if endpoints cannot be resolved.
+     * - [OAuth2ClientResult.Error.HttpResponseException] if the server returns an error.
+     * - Other exceptions for network or parsing failures.
      */
-    suspend fun getUserInfo(accessToken: String): OAuth2ClientResult<OidcUserInfo> {
-        val endpoint = endpointsOrNull()?.userInfoEndpoint ?: return endpointNotAvailableError()
+    suspend fun getUserInfo(accessToken: String): Result<OidcUserInfo> =
+        runCatching {
+            val endpoint =
+                endpointsOrNull()?.userInfoEndpoint
+                    ?: throw OAuth2ClientResult.Error.OidcEndpointsNotAvailableException()
 
-        return performJsonGetRequest(
-            apiExecutor = configuration.apiExecutor,
-            json = configuration.json,
-            url = endpoint,
-            deserializer = JsonObject.serializer(),
-            headers =
-                mapOf(
-                    "Accept" to listOf("application/json"),
-                    "Authorization" to listOf("Bearer $accessToken")
+            val result =
+                performJsonGetRequest(
+                    apiExecutor = configuration.apiExecutor,
+                    json = configuration.json,
+                    url = endpoint,
+                    deserializer = JsonObject.serializer(),
+                    headers =
+                        mapOf(
+                            "Accept" to listOf("application/json"),
+                            "Authorization" to listOf("Bearer $accessToken")
+                        ),
+                    onRateLimitExceeded = { event -> _events.tryEmit(event) }
                 )
-        ).mapSuccess { claims ->
-            val claimsProvider =
-                com.okta.authfoundation.claims
-                    .DefaultClaimsProvider(claims, configuration.json)
-            OidcUserInfo(claimsProvider)
+            when (result) {
+                is OAuth2ClientResult.Success -> {
+                    val claimsProvider =
+                        com.okta.authfoundation.claims
+                            .DefaultClaimsProvider(result.result, configuration.json)
+                    OidcUserInfo(claimsProvider)
+                }
+
+                is OAuth2ClientResult.Error -> {
+                    throw result.exception
+                }
+            }
         }
-    }
 
     /**
      * Attempt to refresh a token using the provided refresh token string.
@@ -120,16 +154,46 @@ class OAuth2Client internal constructor(
      */
     suspend fun refreshToken(refreshToken: String): Result<TokenInfo> =
         runCatching {
-            val endpoints =
-                endpointsOrNull()
-                    ?: throw OAuth2ClientResult.Error.OidcEndpointsNotAvailableException()
-
             val formParams =
                 mapOf(
                     "client_id" to configuration.clientId,
                     "grant_type" to "refresh_token",
                     "refresh_token" to refreshToken
                 )
+            val tokenInfo = tokenRequest(formParams).getOrThrow()
+            _events.tryEmit(TokenRefreshedEvent(tokenInfo))
+            tokenInfo
+        }
+
+    /**
+     * Performs a token endpoint request with the given form parameters.
+     *
+     * Posts [formParams] to the token endpoint, parses the response into [TokenInfo],
+     * and runs full validation via [processTokenResponse] (ID token, access token,
+     * device secret validation + event emission).
+     *
+     * This is the KMP equivalent of the Android `@InternalAuthFoundationApi tokenRequest` method.
+     * Flow classes should call this instead of making their own HTTP calls to the token endpoint.
+     *
+     * @param formParams the form parameters for the token request (e.g., `grant_type`, `client_id`, etc.).
+     * @param nonce the nonce sent with the authorization request, if applicable.
+     * @param maxAge the max_age sent with the authorization request, if applicable.
+     * @return [Result.success] with the validated [TokenInfo], or [Result.failure] with:
+     * - [OAuth2ClientResult.Error.OidcEndpointsNotAvailableException] if endpoints cannot be resolved.
+     * - [OAuth2ClientResult.Error.HttpResponseException] if the server returns an error.
+     * - [IdTokenValidator.Error] if ID token validation fails.
+     * - Other exceptions for network or parsing failures.
+     */
+    @InternalAuthFoundationApi
+    suspend fun tokenRequest(
+        formParams: Map<String, String>,
+        nonce: String? = null,
+        maxAge: Int? = null,
+    ): Result<TokenInfo> =
+        runCatching {
+            val endpoints =
+                endpointsOrNull()
+                    ?: throw OAuth2ClientResult.Error.OidcEndpointsNotAvailableException()
 
             val result =
                 performJsonFormPost(
@@ -137,12 +201,13 @@ class OAuth2Client internal constructor(
                     json = configuration.json,
                     url = endpoints.tokenEndpoint,
                     formParams = formParams,
-                    deserializer = OAuth2TokenResponse.serializer()
+                    deserializer = OAuth2TokenResponse.serializer(),
+                    onRateLimitExceeded = { event -> _events.tryEmit(event) }
                 )
             when (result) {
                 is OAuth2ClientResult.Success -> {
                     val tokenInfo = result.result.toTokenInfo(configuration.clientId, configuration.issuerUrl)
-                    _events.tryEmit(TokenRefreshedEvent(tokenInfo))
+                    processTokenResponse(tokenInfo, nonce, maxAge)
                     tokenInfo
                 }
 
@@ -179,7 +244,8 @@ class OAuth2Client internal constructor(
                 performFormPost(
                     apiExecutor = configuration.apiExecutor,
                     url = endpoint,
-                    formParams = formParams
+                    formParams = formParams,
+                    onRateLimitExceeded = { event -> _events.tryEmit(event) }
                 )
             when (result) {
                 is OAuth2ClientResult.Success -> _events.tryEmit(TokenRevokedEvent(token))
@@ -220,7 +286,8 @@ class OAuth2Client internal constructor(
                     json = configuration.json,
                     url = endpoint,
                     formParams = formParams,
-                    deserializer = JsonObject.serializer()
+                    deserializer = JsonObject.serializer(),
+                    onRateLimitExceeded = { event -> _events.tryEmit(event) }
                 )
             when (result) {
                 is OAuth2ClientResult.Success -> IntrospectInfo.fromJsonObject(result.result, configuration.json)
@@ -230,8 +297,13 @@ class OAuth2Client internal constructor(
 
     /**
      * Performs a call to the Authorization Server to fetch the JSON Web Key Set.
+     *
+     * @return [Result.success] with the [Jwks], or [Result.failure] with:
+     * - [OAuth2ClientResult.Error.OidcEndpointsNotAvailableException] if endpoints cannot be resolved.
+     * - [OAuth2ClientResult.Error.HttpResponseException] if the server returns an error.
+     * - Other exceptions for network or parsing failures.
      */
-    suspend fun jwks(): OAuth2ClientResult<Jwks> = jwksOrchestrator.get()
+    suspend fun jwks(): Result<Jwks> = jwksOrchestrator.get()
 
     @InternalAuthFoundationApi
     suspend fun endpointsOrNull(): OAuth2Endpoints? =
@@ -241,64 +313,103 @@ class OAuth2Client internal constructor(
         }
 
     /**
-     * Validates the ID token in [tokenInfo] using the configured [IdTokenValidator].
+     * Validates a token response and emits a [TokenCreatedEvent].
      *
-     * Verifies claims first, then JWT signature against JWKS.
+     * Called by [tokenRequest] after parsing the HTTP response. Not intended to be
+     * called directly — use [tokenRequest] instead.
+     *
+     * Validation order (when an ID token is present):
+     * 1. Parse ID token to [Jwt]
+     * 2. Validate ID token claims via [IdTokenValidator]
+     * 3. Verify JWT signature against JWKS (retry once on signature failure)
+     * 4. Validate access token hash via [AccessTokenValidator]
+     * 5. Validate device secret hash via [DeviceSecretValidator] (if present)
+     * 6. Emit [TokenCreatedEvent]
+     *
+     * If no ID token is present, steps 1–5 are skipped and only [TokenCreatedEvent] is emitted.
+     *
+     * @param tokenInfo the token response to validate.
+     * @param nonce the nonce sent with the authorization request, if applicable.
+     * @param maxAge the max_age sent with the authorization request, if applicable.
      */
-    private suspend fun validateIdToken(tokenInfo: TokenInfo) {
-        val idTokenStr = tokenInfo.idToken ?: return
-        val validator = configuration.idTokenValidator
+    private suspend fun processTokenResponse(
+        tokenInfo: TokenInfo,
+        nonce: String? = null,
+        maxAge: Int? = null,
+    ) {
+        val idTokenStr = tokenInfo.idToken
+        if (idTokenStr != null) {
+            val parser = JwtParser(configuration.json, Dispatchers.Default)
+            val jwt = parser.parse(idTokenStr)
 
-        val parser = JwtParser(configuration.json, Dispatchers.Default)
-        val jwt = parser.parse(idTokenStr)
+            // 1. Validate ID token claims
+            val idTokenEvent = ValidateIdTokenEvent()
+            _events.tryEmit(idTokenEvent)
 
-        val event = ValidateIdTokenEvent()
-        _events.tryEmit(event)
+            configuration.idTokenValidator.validate(
+                issuerUrl = configuration.issuerUrl,
+                clientId = configuration.clientId,
+                idToken = jwt,
+                clock = configuration.clock,
+                issuedAtGracePeriodInSeconds = idTokenEvent.issuedAtGracePeriodInSeconds,
+                parameters = IdTokenValidator.Parameters(nonce = nonce, maxAge = maxAge)
+            )
 
-        validator.validate(
-            issuerUrl = configuration.issuerUrl,
-            clientId = configuration.clientId,
-            idToken = jwt,
-            clock = configuration.clock,
-            issuedAtGracePeriodInSeconds = event.issuedAtGracePeriodInSeconds
-        )
+            // 2. Verify JWT signature against JWKS, retry once on failure
+            val jwks = jwks().getOrNull()
+            if (jwks != null) {
+                if (!jwt.hasValidSignature(jwks)) {
+                    // Retry with refreshed JWKS
+                    val refreshedJwks = fetchJwks().getOrNull()
+                    if (refreshedJwks == null || !jwt.hasValidSignature(refreshedJwks)) {
+                        throw IdTokenValidator.Error(
+                            "Invalid JWT signature.",
+                            IdTokenValidator.Error.INVALID_JWT_SIGNATURE
+                        )
+                    }
+                }
+            }
 
-        // Verify signature against JWKS
-        val jwksResult = jwks()
-        if (jwksResult is OAuth2ClientResult.Success) {
-            if (!jwt.hasValidSignature(jwksResult.result)) {
-                throw IdTokenValidator.Error(
-                    "Invalid JWT signature.",
-                    IdTokenValidator.Error.INVALID_JWT_SIGNATURE
-                )
+            // 3. Validate access token hash
+            _events.tryEmit(ValidateAccessTokenEvent())
+            configuration.accessTokenValidator.validate(tokenInfo.accessToken, jwt)
+
+            // 4. Validate device secret hash (if present)
+            val deviceSecret = tokenInfo.deviceSecret
+            if (deviceSecret != null) {
+                configuration.deviceSecretValidator.validate(deviceSecret, jwt)
             }
         }
+
+        // 5. Emit token created event
+        _events.tryEmit(TokenCreatedEvent(tokenInfo))
     }
 
-    private fun <T> endpointNotAvailableError(): OAuth2ClientResult.Error<T> = OAuth2ClientResult.Error(OAuth2ClientResult.Error.OidcEndpointsNotAvailableException())
+    private suspend fun fetchJwks(): Result<Jwks> =
+        runCatching {
+            val jwksUri =
+                endpointsOrNull()?.jwksUri
+                    ?: throw OAuth2ClientResult.Error.OidcEndpointsNotAvailableException()
 
-    private suspend fun fetchJwks(): OAuth2ClientResult<Jwks> {
-        val jwksUri = endpointsOrNull()?.jwksUri ?: return endpointNotAvailableError()
+            val url =
+                if (jwksUri.contains("?")) {
+                    "$jwksUri&client_id=${configuration.clientId}"
+                } else {
+                    "$jwksUri?client_id=${configuration.clientId}"
+                }
 
-        val url =
-            if (jwksUri.contains("?")) {
-                "$jwksUri&client_id=${configuration.clientId}"
-            } else {
-                "$jwksUri?client_id=${configuration.clientId}"
+            val result =
+                performJsonGetRequest(
+                    apiExecutor = configuration.apiExecutor,
+                    json = configuration.json,
+                    url = url,
+                    deserializer = SerializableJwks.serializer(),
+                    onRateLimitExceeded = { event -> _events.tryEmit(event) }
+                )
+            when (result) {
+                is OAuth2ClientResult.Success -> result.result.toJwks()
+                is OAuth2ClientResult.Error -> throw result.exception
             }
-
-        return performJsonGetRequest(
-            apiExecutor = configuration.apiExecutor,
-            json = configuration.json,
-            url = url,
-            deserializer = SerializableJwks.serializer()
-        ).mapSuccess { it.toJwks() }
-    }
-
-    private fun <T, R> OAuth2ClientResult<T>.mapSuccess(transform: (T) -> R): OAuth2ClientResult<R> =
-        when (this) {
-            is OAuth2ClientResult.Success -> OAuth2ClientResult.Success(transform(result))
-            is OAuth2ClientResult.Error -> OAuth2ClientResult.Error(exception)
         }
 
     companion object {

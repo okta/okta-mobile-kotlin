@@ -100,4 +100,21 @@ class TokenData(
         result = 31 * result + (issuedTokenType?.hashCode() ?: 0)
         return result
     }
+
+    /**
+     * Returns the access token string if it has not expired, or `null` if it has.
+     *
+     * This is a **pure read** with no side effects — it checks the token's
+     * `issuedAt + expiresIn` against the current clock and never triggers a network call.
+     *
+     * @return the access token string, or `null` if the token has expired.
+     */
+    fun accessTokenIfNotExpired(): String? {
+        val expirationTime = issuedAt + expiresIn
+        return if (configuration.clock.currentTimeEpochSecond() < expirationTime) {
+            accessToken
+        } else {
+            null
+        }
+    }
 }

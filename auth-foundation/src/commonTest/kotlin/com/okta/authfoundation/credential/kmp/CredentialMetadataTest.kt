@@ -25,6 +25,8 @@ import com.okta.authfoundation.credential.TestConfiguration
 import com.okta.authfoundation.credential.TokenMetadata
 import com.okta.authfoundation.credential.createTestToken
 import com.okta.authfoundation.credential.events.DefaultCredentialChangedEvent
+import com.okta.authfoundation.credential.kmp.Credential
+import com.okta.authfoundation.credential.kmp.TokenCredentialManager
 import com.okta.authfoundation.events.Event
 import com.okta.authfoundation.util.CoalescingOrchestrator
 import kotlinx.coroutines.launch
@@ -66,7 +68,7 @@ class CredentialMetadataTest {
         )
 
     private val manager =
-        CredentialManager(
+        TokenCredentialManager(
             client = client,
             storage = FakeTokenStorage(),
             defaultIdStore = defaultIdStore

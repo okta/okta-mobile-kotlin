@@ -16,7 +16,11 @@
 package com.okta.authfoundation.client
 
 import com.okta.authfoundation.api.http.ApiExecutor
+import com.okta.authfoundation.client.kmp.AccessTokenValidator
+import com.okta.authfoundation.client.kmp.DefaultAccessTokenValidator
+import com.okta.authfoundation.client.kmp.DefaultDeviceSecretValidator
 import com.okta.authfoundation.client.kmp.DefaultIdTokenValidator
+import com.okta.authfoundation.client.kmp.DeviceSecretValidator
 import com.okta.authfoundation.client.kmp.IdTokenValidator
 import kotlinx.serialization.json.Json
 
@@ -49,4 +53,8 @@ class OAuth2ClientConfiguration internal constructor(
     val acrValues: String?,
     /** Validator for ID tokens. ID tokens are validated after token refresh. */
     val idTokenValidator: IdTokenValidator = DefaultIdTokenValidator(),
+    /** Validator for access tokens. Validates `at_hash` claim against the access token hash. */
+    val accessTokenValidator: AccessTokenValidator = DefaultAccessTokenValidator(),
+    /** Validator for device secrets. Validates `ds_hash` claim against the device secret hash. */
+    val deviceSecretValidator: DeviceSecretValidator = DefaultDeviceSecretValidator(),
 )

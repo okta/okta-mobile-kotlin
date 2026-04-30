@@ -19,7 +19,11 @@ import com.okta.authfoundation.InternalAuthFoundationApi
 import com.okta.authfoundation.api.http.ApiExecutor
 import com.okta.authfoundation.api.http.KtorHttpExecutor
 import com.okta.authfoundation.client.internal.EndpointDiscovery
+import com.okta.authfoundation.client.kmp.AccessTokenValidator
+import com.okta.authfoundation.client.kmp.DefaultAccessTokenValidator
+import com.okta.authfoundation.client.kmp.DefaultDeviceSecretValidator
 import com.okta.authfoundation.client.kmp.DefaultIdTokenValidator
+import com.okta.authfoundation.client.kmp.DeviceSecretValidator
 import com.okta.authfoundation.client.kmp.IdTokenValidator
 import com.okta.authfoundation.client.kmp.OAuth2Client
 import com.okta.authfoundation.util.CoalescingOrchestrator
@@ -80,6 +84,12 @@ class OAuth2ClientBuilder private constructor(
     /** ID token validator. When set, ID tokens are validated after token refresh. */
     var idTokenValidator: IdTokenValidator = DefaultIdTokenValidator()
 
+    /** Access token validator. When set, access tokens are validated via `at_hash` claim. */
+    var accessTokenValidator: AccessTokenValidator = DefaultAccessTokenValidator()
+
+    /** Device secret validator. When set, device secrets are validated via `ds_hash` claim. */
+    var deviceSecretValidator: DeviceSecretValidator = DefaultDeviceSecretValidator()
+
     companion object {
         /**
          * Creates a [OAuth2Client] with the given parameters and optional customization.
@@ -135,6 +145,8 @@ class OAuth2ClientBuilder private constructor(
             authorizationServerId = authorizationServerId,
             clientSecret = clientSecret,
             acrValues = acrValues,
-            idTokenValidator = idTokenValidator
+            idTokenValidator = idTokenValidator,
+            accessTokenValidator = accessTokenValidator,
+            deviceSecretValidator = deviceSecretValidator
         )
 }

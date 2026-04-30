@@ -15,7 +15,6 @@
  */
 package com.okta.authfoundation.credential.kmp.storage
 
-import com.okta.authfoundation.InternalAuthFoundationApi
 import com.okta.authfoundation.credential.kmp.DefaultCredentialIdStore
 
 /**
@@ -24,7 +23,6 @@ import com.okta.authfoundation.credential.kmp.DefaultCredentialIdStore
  *
  * @param database the [TokenDatabase] instance (shared with [RoomTokenStorage]).
  */
-@InternalAuthFoundationApi
 class RoomDefaultCredentialIdStore(
     database: TokenDatabase,
 ) : DefaultCredentialIdStore {

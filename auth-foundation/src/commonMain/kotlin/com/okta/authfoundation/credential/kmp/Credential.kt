@@ -130,7 +130,10 @@ interface Credential : CredentialIdentifier {
     fun accessTokenIfNotExpired(): String?
 
     /**
-     * Updates the tags for this credential.
+     * Updates the tags for this credential and returns a **new** snapshot.
+     *
+     * This credential instance retains the old tags after the call.
+     * Always use the returned credential for subsequent operations.
      *
      * @param tags the new tag map to associate with this credential.
      * @return [Result.success] with a new [Credential] snapshot containing the updated tags,
@@ -152,7 +155,19 @@ interface Credential : CredentialIdentifier {
     suspend fun introspectToken(tokenType: TokenType): Result<IntrospectInfo>
 
     /**
-     * Refreshes the token and returns a new credential snapshot.
+     * Refreshes the token and returns a **new** credential snapshot.
+     *
+     * **Important:** This credential instance becomes stale after a successful refresh.
+     * Always use the returned credential for subsequent operations:
+     * ```kotlin
+     * val fresh = credential.refreshToken().getOrThrow()
+     * fresh.getUserInfo()  // correct — uses refreshed token
+     * // credential.getUserInfo()  // wrong — uses old expired token
+     * ```
+     *
+     * To observe token updates reactively (e.g., in a UI), use [getTokenFlow] which emits
+     * every time the token is refreshed for this credential ID, regardless of which snapshot
+     * triggered the refresh.
      *
      * Uses a shared orchestrator for deduplication — concurrent calls for the same credential ID
      * will coalesce into a single network request.
