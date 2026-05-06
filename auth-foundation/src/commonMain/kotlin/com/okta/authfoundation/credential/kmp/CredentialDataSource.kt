@@ -44,6 +44,7 @@ internal class CredentialDataSource(
 ) {
     private val cacheMutex = Mutex()
     private val cache = mutableMapOf<String, TokenData>()
+    private val orchestratorsMutex = Mutex()
 
     // Shared state for immutable credential snapshots (T001-T003)
     private val tokenFlows = mutableMapOf<String, MutableStateFlow<TokenData?>>()
@@ -89,11 +90,11 @@ internal class CredentialDataSource(
      * Returns (or creates) a shared [CoalescingOrchestrator] for token refresh deduplication
      * for the given credential [id].
      */
-    internal fun getOrCreateRefreshOrchestrator(
+    internal suspend fun getOrCreateRefreshOrchestrator(
         id: String,
         factory: suspend () -> Result<TokenInfo>,
     ): CoalescingOrchestrator<Result<TokenInfo>> =
-        synchronized(refreshOrchestrators) {
+        orchestratorsMutex.withLock {
             refreshOrchestrators.getOrPut(id) {
                 CoalescingOrchestrator(
                     factory = factory,
@@ -181,7 +182,7 @@ internal class CredentialDataSource(
     suspend fun remove(id: String) {
         cacheMutex.withLock { cache.remove(id) }
         synchronized(tokenFlows) { tokenFlows.remove(id) }
-        synchronized(refreshOrchestrators) { refreshOrchestrators.remove(id) }
+        orchestratorsMutex.withLock { refreshOrchestrators.remove(id) }
         wrapStorageOperation {
             storage.remove(id).getOrThrow()
         }
@@ -221,7 +222,7 @@ internal class CredentialDataSource(
 
                 // If recovery is requested, attempt the operation again (after theoretical cleanup)
                 if (event.shouldClearStorageAndTryAgain) {
-                    try {
+                    return try {
                         operation()
                     } catch (retryException: Exception) {
                         throw retryException

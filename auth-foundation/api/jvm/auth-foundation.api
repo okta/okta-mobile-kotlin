@@ -313,6 +313,11 @@ public final class com/okta/authfoundation/client/OAuth2ClientResult$Error$HttpR
 public final class com/okta/authfoundation/client/OAuth2ClientResult$Error$OidcEndpointsNotAvailableException : java/lang/Exception {
 }
 
+public final class com/okta/authfoundation/client/OAuth2ClientResult$Error$RateLimitException : java/lang/Exception {
+	public final fun getRequestUrl ()Ljava/lang/String;
+	public final fun getRetryAfterSeconds ()Ljava/lang/Long;
+}
+
 public final class com/okta/authfoundation/client/OAuth2ClientResult$Success : com/okta/authfoundation/client/OAuth2ClientResult {
 	public fun <init> (Ljava/lang/Object;)V
 	public final fun getResult ()Ljava/lang/Object;

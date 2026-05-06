@@ -44,6 +44,22 @@ sealed class OAuth2ClientResult<T> {
          * This can happen due to a misconfigured setup, or just a common HTTP error.
          */
         class OidcEndpointsNotAvailableException internal constructor() : Exception("OIDC Endpoints not available.")
+
+        /**
+         * The request was rate-limited by the Authorization Server (HTTP 429).
+         *
+         * @param requestUrl the URL of the request that was rate-limited.
+         * @param retryAfterSeconds the parsed `Retry-After` header value in seconds, or `null` if absent or unparseable.
+         */
+        class RateLimitException internal constructor(
+            val requestUrl: String,
+            val retryAfterSeconds: Long?,
+        ) : Exception(
+                buildString {
+                    append("HTTP 429: Too Many Requests for $requestUrl")
+                    if (retryAfterSeconds != null) append(" (retry after ${retryAfterSeconds}s)")
+                }
+            )
     }
 
     /** Success with the expected result. */

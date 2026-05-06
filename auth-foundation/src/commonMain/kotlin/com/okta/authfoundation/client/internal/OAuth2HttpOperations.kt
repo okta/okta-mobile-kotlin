@@ -22,31 +22,132 @@ import com.okta.authfoundation.api.http.ApiRequest
 import com.okta.authfoundation.api.http.ApiRequestMethod
 import com.okta.authfoundation.client.OAuth2ClientResult
 import com.okta.authfoundation.client.kmp.events.RateLimitExceededEvent
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.format.DateTimeComponents
+import kotlinx.datetime.toInstant
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.json.Json
+import kotlin.time.Clock
 
 private val defaultHeaders: Map<String, List<String>> =
     mapOf("User-Agent" to listOf(UserAgent.value))
 
+private val HTTP_DATE_MONTHS =
+    mapOf(
+        "Jan" to 1,
+        "Feb" to 2,
+        "Mar" to 3,
+        "Apr" to 4,
+        "May" to 5,
+        "Jun" to 6,
+        "Jul" to 7,
+        "Aug" to 8,
+        "Sep" to 9,
+        "Oct" to 10,
+        "Nov" to 11,
+        "Dec" to 12
+    )
+
 /**
- * Parses the Retry-After header value into seconds.
+ * Parses the Retry-After header value into delay seconds.
  *
- * Per RFC 7231, Retry-After can be either:
+ * Per RFC 7231 §7.1.3, Retry-After can be either:
  * - A delay in seconds: "120"
  * - An HTTP-date: "Wed, 21 Oct 2025 07:28:00 GMT"
  *
- * @return the delay in seconds, or null if unparseable.
+ * All three HTTP-date formats from RFC 7231 §7.1.1 are supported:
+ * - IMF-fixdate: "Wed, 21 Oct 2025 07:28:00 GMT"
+ * - RFC 850 (obsolete): "Wednesday, 21-Oct-25 07:28:00 GMT"
+ * - ANSI C asctime (obsolete): "Wed Oct 21 07:28:00 2025"
+ *
+ * @param currentEpochSeconds the current time in epoch seconds, used to compute the delay
+ *   from an HTTP-date. Defaults to the system clock.
+ * @return the delay in seconds (≥ 0), or null if unparseable.
  */
-internal fun parseRetryAfterHeader(value: String?): Long? {
+internal fun parseRetryAfterHeader(
+    value: String?,
+    currentEpochSeconds: Long = Clock.System.now().epochSeconds,
+): Long? {
     if (value.isNullOrBlank()) return null
-    return try {
-        // Try parsing as integer seconds first
-        value.toLong()
-    } catch (e: NumberFormatException) {
-        // If not an integer, treat as HTTP-date and estimate from current time
-        // For now, return null. In production, would parse HTTP-date.
-        null
-    }
+
+    // 1. Try delay-seconds format (e.g., "120")
+    value.toLongOrNull()?.let { return it }
+
+    // 2. Try HTTP-date formats per RFC 7231 §7.1.1
+    val targetEpochSeconds = parseHttpDate(value) ?: return null
+    val delaySeconds = targetEpochSeconds - currentEpochSeconds
+    return if (delaySeconds > 0) delaySeconds else 0L
+}
+
+/**
+ * Parses an HTTP-date string per RFC 7231 §7.1.1 and returns epoch seconds, or null on failure.
+ *
+ * Tries the three formats defined by RFC 7231 in preference order:
+ * 1. IMF-fixdate: "Wed, 21 Oct 2015 07:28:00 GMT"
+ * 2. RFC 850 (obsolete): "Wednesday, 21-Oct-15 07:28:00 GMT"
+ * 3. ANSI C asctime (obsolete): "Wed Oct 21 07:28:00 2015"
+ */
+internal fun parseHttpDate(value: String): Long? {
+    // IMF-fixdate: handled by kotlinx-datetime's RFC_1123 parser.
+    // Also accepts omitted day-of-week, "UT", "Z", and UTC offset variants.
+    runCatching {
+        DateTimeComponents.Formats.RFC_1123
+            .parse(value)
+            .toInstantUsingOffset()
+            .epochSeconds
+    }.getOrNull()?.let { return it }
+
+    parseRfc850(value)?.let { return it }
+    parseAsctime(value)?.let { return it }
+
+    return null
+}
+
+/**
+ * Parses RFC 850 HTTP-date: "DAYNAME, DD-Mon-YY HH:MM:SS GMT"
+ *
+ * Per RFC 7231 §7.1.1, 2-digit years ≥ 70 map to 1970–1999; years < 70 map to 2000–2069.
+ */
+private fun parseRfc850(value: String): Long? {
+    val commaIdx = value.indexOf(", ")
+    if (commaIdx < 0) return null
+    val rest = value.substring(commaIdx + 2)
+    // "21-Oct-15 07:28:00 GMT" → split on "-", " " and ":"
+    val parts = rest.split("-", " ", ":")
+    if (parts.size < 7) return null
+    return runCatching {
+        val day = parts[0].toInt()
+        val month = HTTP_DATE_MONTHS[parts[1]] ?: return null
+        val twoDigitYear = parts[2].toInt()
+        val year = if (twoDigitYear >= 70) 1900 + twoDigitYear else 2000 + twoDigitYear
+        val hour = parts[3].toInt()
+        val minute = parts[4].toInt()
+        val second = parts[5].toInt()
+        LocalDateTime(year, month, day, hour, minute, second).toInstant(TimeZone.UTC).epochSeconds
+    }.getOrNull()
+}
+
+/**
+ * Parses ANSI C asctime HTTP-date: "DDD Mon [D]D HH:MM:SS YYYY"
+ *
+ * The day-of-month may be space-padded (single digit with leading space), which
+ * split(Regex("\\s+")) handles naturally.
+ */
+private fun parseAsctime(value: String): Long? {
+    val parts = value.trim().split(Regex("\\s+"))
+    if (parts.size != 5) return null
+    return runCatching {
+        val month = HTTP_DATE_MONTHS[parts[1]] ?: return null
+        val day = parts[2].toInt()
+        val timeParts = parts[3].split(":")
+        if (timeParts.size != 3) return null
+        val hour = timeParts[0].toInt()
+        val minute = timeParts[1].toInt()
+        val second = timeParts[2].toInt()
+        val year = parts[4].toInt()
+        LocalDateTime(year, month, day, hour, minute, second).toInstant(TimeZone.UTC).epochSeconds
+    }.getOrNull()
 }
 
 /**
@@ -85,7 +186,7 @@ internal suspend fun <T> performJsonGetRequest(
             val retryAfter = parseRetryAfterHeader(response.headers["Retry-After"]?.firstOrNull())
             val event = RateLimitExceededEvent(url, 429, response.headers, retryAfter)
             onRateLimitExceeded?.invoke(event)
-            throw IllegalStateException("HTTP 429: Too Many Requests")
+            throw OAuth2ClientResult.Error.RateLimitException(url, retryAfter)
         }
 
         val body =
@@ -137,7 +238,7 @@ internal suspend fun <T> performJsonFormPost(
             val retryAfter = parseRetryAfterHeader(response.headers["Retry-After"]?.firstOrNull())
             val event = RateLimitExceededEvent(url, 429, response.headers, retryAfter)
             onRateLimitExceeded?.invoke(event)
-            throw IllegalStateException("HTTP 429: Too Many Requests")
+            throw OAuth2ClientResult.Error.RateLimitException(url, retryAfter)
         }
 
         val body =
@@ -184,7 +285,7 @@ internal suspend fun performFormPost(
             val retryAfter = parseRetryAfterHeader(response.headers["Retry-After"]?.firstOrNull())
             val event = RateLimitExceededEvent(url, 429, response.headers, retryAfter)
             onRateLimitExceeded?.invoke(event)
-            throw IllegalStateException("HTTP 429: Too Many Requests")
+            throw OAuth2ClientResult.Error.RateLimitException(url, retryAfter)
         }
 
         if (response.statusCode !in 200..299) {
