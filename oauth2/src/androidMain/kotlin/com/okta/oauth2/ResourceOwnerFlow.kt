@@ -20,18 +20,18 @@ import com.okta.authfoundation.client.OAuth2ClientResult
 import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.client.internal.SdkVersionsRegistry
 import com.okta.authfoundation.credential.Token
-import com.okta.oauth2.BuildConfig.SDK_VERSION
+import com.okta.oauth2.SDK_VERSION
 import okhttp3.FormBody
 import okhttp3.Request
 
 /**
- * An authentication flow class that implements the Token Exchange Flow.
+ * An authentication flow class that implements the Resource Owner Flow exchange.
  *
- * As an example, consider [SSO for Native Apps](https://developer.okta.com/docs/guides/configure-native-sso/main/#native-sso-flow) where a client exchanges the ID and the Device Secret tokens to get access to the resource.
+ * This simple authentication flow permits a user to authenticate using a simple username and password. As such, the configuration is straightforward.
  *
- * See the [specification](https://openid.net/specs/openid-connect-native-sso-1_0.html)
+ * > Important: Resource Owner authentication does not support MFA or other more secure authentication models, and is not recommended for production applications.
  */
-class TokenExchangeFlow(
+class ResourceOwnerFlow(
     private val client: OAuth2Client,
 ) {
     companion object {
@@ -41,29 +41,27 @@ class TokenExchangeFlow(
     }
 
     /**
-     * Initializes a token exchange flow.
+     * Initializes a resource owner flow.
      */
     constructor() : this(OAuth2Client.default)
 
     /**
-     * Initializes a token exchange flow using the [OidcConfiguration].
+     * Initializes a resource owner flow using the [OidcConfiguration].
      *
      * @param oidcConfiguration the [OidcConfiguration] specifying the authorization servers.
      */
     constructor(oidcConfiguration: OidcConfiguration) : this(OAuth2Client.createFromConfiguration(oidcConfiguration))
 
     /**
-     * Initiates the Token Exchange flow.
+     * Initiates the Resource Owner flow.
      *
-     * @param idToken the id token for the user to create a new token for.
-     * @param deviceSecret the [Token.deviceSecret] obtained via another authentication flow.
-     * @param audience the audience of the authorization server. Defaults to `api://default`.
+     * @param username the username
+     * @param password the password
      * @param scope the scopes to request during sign in. Defaults to the configured [client] [OidcConfiguration.defaultScope].
      */
     suspend fun start(
-        idToken: String,
-        deviceSecret: String,
-        audience: String = "api://default",
+        username: String,
+        password: String,
         scope: String = client.configuration.defaultScope,
     ): OAuth2ClientResult<Token> {
         val endpoints = client.endpointsOrNull() ?: return client.endpointNotAvailableError()
@@ -71,13 +69,10 @@ class TokenExchangeFlow(
         val formBodyBuilder =
             FormBody
                 .Builder()
-                .add("audience", audience)
-                .add("subject_token_type", "urn:ietf:params:oauth:token-type:id_token")
-                .add("subject_token", idToken)
-                .add("actor_token_type", "urn:x-oath:params:oauth:token-type:device-secret")
-                .add("actor_token", deviceSecret)
+                .add("username", username)
+                .add("password", password)
                 .add("client_id", client.configuration.clientId)
-                .add("grant_type", "urn:ietf:params:oauth:grant-type:token-exchange")
+                .add("grant_type", "password")
                 .add("scope", scope)
 
         val request =
