@@ -13,20 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.okta.oauth2
+package com.okta.authfoundation.crypto
 
-import com.google.common.truth.Truth.assertThat
-import org.junit.Test
+import java.security.MessageDigest
+import java.security.SecureRandom
 
-class PkceGeneratorTest {
-    @Test fun testCodeVerifier() {
-        val codeVerifier = PkceGenerator.codeVerifier()
-        assertThat(codeVerifier).hasLength(43)
-    }
-
-    @Test fun testCodeChallenge() {
-        val codeVerifier = "6f4znUVL4KQJOUYrchTgKZ8Btrl0-kMt_23pvzEbGk8"
-        val codeChallenge = PkceGenerator.codeChallenge(codeVerifier)
-        assertThat(codeChallenge).isEqualTo("e4o5cyg_ZCmAMCweS_s076UN5tUR_idjxrckuiOCcOc")
-    }
+actual fun secureRandomBytes(size: Int): ByteArray {
+    val bytes = ByteArray(size)
+    SecureRandom().nextBytes(bytes)
+    return bytes
 }
+
+actual fun sha256Digest(data: ByteArray): ByteArray = MessageDigest.getInstance("SHA-256").digest(data)

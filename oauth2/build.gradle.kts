@@ -88,6 +88,7 @@ kotlin {
                 api(project(":auth-foundation"))
                 implementation(libs.coroutines.core)
                 implementation(libs.kotlin.serialization.json)
+                implementation(libs.ktor.client.core)
                 implementation(libs.okio.core)
             }
         }

@@ -815,6 +815,11 @@ public final class com/okta/authfoundation/credential/kmp/storage/TokenDatabase_
 	public fun getRequiredAutoMigrationSpecClasses ()Ljava/util/Set;
 }
 
+public final class com/okta/authfoundation/crypto/CryptoProvider_jvmKt {
+	public static final fun secureRandomBytes (I)[B
+	public static final fun sha256Digest ([B)[B
+}
+
 public abstract interface class com/okta/authfoundation/events/Event {
 }
 

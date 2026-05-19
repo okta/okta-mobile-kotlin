@@ -1,0 +1,14 @@
+public abstract interface class com/okta/oauth2/BrowserRedirectHandler {
+	public abstract fun handleRedirect (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class com/okta/oauth2/LocalhostBrowserRedirectHandler : com/okta/oauth2/BrowserRedirectHandler {
+	public static final field Companion Lcom/okta/oauth2/LocalhostBrowserRedirectHandler$Companion;
+	public fun <init> (ILjava/lang/String;JLkotlin/jvm/functions/Function1;)V
+	public synthetic fun <init> (ILjava/lang/String;JLkotlin/jvm/functions/Function1;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun handleRedirect (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class com/okta/oauth2/LocalhostBrowserRedirectHandler$Companion {
+}
+
