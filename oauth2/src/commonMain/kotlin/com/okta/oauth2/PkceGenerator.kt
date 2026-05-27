@@ -17,7 +17,7 @@ package com.okta.oauth2
 
 import com.okta.authfoundation.crypto.secureRandomBytes
 import com.okta.authfoundation.crypto.sha256Digest
-import okio.ByteString.Companion.toByteString
+import kotlin.io.encoding.Base64
 
 internal object PkceGenerator {
     const val CODE_CHALLENGE_METHOD = "S256"
@@ -25,13 +25,11 @@ internal object PkceGenerator {
     fun codeChallenge(codeVerifier: String): String {
         val bytes: ByteArray = codeVerifier.toByteArray(Charsets.US_ASCII)
         val digest: ByteArray = sha256Digest(bytes)
-        return base64UrlEncode(digest)
+        return Base64.UrlSafe.withPadding(Base64.PaddingOption.ABSENT).encode(digest)
     }
 
     fun codeVerifier(): String {
         val codeVerifier = secureRandomBytes(32)
-        return base64UrlEncode(codeVerifier)
+        return Base64.UrlSafe.withPadding(Base64.PaddingOption.ABSENT).encode(codeVerifier)
     }
-
-    private fun base64UrlEncode(source: ByteArray): String = source.toByteString().base64Url().trimEnd('=')
 }

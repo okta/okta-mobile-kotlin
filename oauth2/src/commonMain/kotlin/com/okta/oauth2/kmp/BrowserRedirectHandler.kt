@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.okta.oauth2
+package com.okta.oauth2.kmp
 
 /**
  * Abstracts browser launch and redirect capture for redirect-based OAuth2 flows.
