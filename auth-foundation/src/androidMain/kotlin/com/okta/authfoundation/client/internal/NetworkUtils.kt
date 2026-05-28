@@ -30,8 +30,6 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.okio.decodeFromBufferedSource
 import okhttp3.Call
 import okhttp3.Callback
@@ -164,12 +162,6 @@ private suspend fun OidcConfiguration.executeRequest(
 
     return response
 }
-
-@Serializable
-internal class ErrorResponse(
-    @SerialName("error") val error: String? = null,
-    @SerialName("error_description") val errorDescription: String? = null,
-)
 
 @OptIn(ExperimentalSerializationApi::class)
 private fun <T> Response.toOAuth2ClientResultError(
