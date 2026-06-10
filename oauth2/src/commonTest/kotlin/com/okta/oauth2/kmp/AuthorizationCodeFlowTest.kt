@@ -48,7 +48,7 @@ class AuthorizationCodeFlowTest {
                     override suspend fun resume(
                         uri: String,
                         flowContext: AuthorizationCodeFlowContext,
-                    ): Result<TokenInfo> = Result.success(FakeAuthCodeTokenInfo())
+                    ): Result<TokenInfo> = Result.success(FakeTokenInfo())
                 }
 
             val result = mockFlow.start("com.example.app:/callback")
@@ -63,7 +63,7 @@ class AuthorizationCodeFlowTest {
     @Test
     fun resume_WhenSuccess_ReturnsTokenInfo() =
         runTest {
-            val fakeToken = FakeAuthCodeTokenInfo()
+            val fakeToken = FakeTokenInfo()
             val mockFlow =
                 object : AuthorizationCodeFlow {
                     override suspend fun start(
@@ -241,18 +241,4 @@ class AuthorizationCodeFlowTest {
             assertTrue(result.isFailure)
             assertTrue(result.exceptionOrNull()?.message?.contains("OIDC Endpoints not available.") == true)
         }
-}
-
-private class FakeAuthCodeTokenInfo : TokenInfo {
-    override val id: String = "test-id"
-    override val clientId: String = "test-client"
-    override val issuerUrl: String = "https://example.okta.com"
-    override val tokenType: String = "Bearer"
-    override val expiresIn: Int = 3600
-    override val accessToken: String = "test-access-token"
-    override val scope: String? = "openid profile"
-    override val refreshToken: String? = "test-refresh-token"
-    override val idToken: String? = null
-    override val deviceSecret: String? = null
-    override val issuedTokenType: String? = null
 }

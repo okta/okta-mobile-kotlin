@@ -43,8 +43,7 @@ public class AuthorizationCodeFlowTest {
   @Test
   public void start_ReturnsCompletableFutureWithTokenInfo()
       throws ExecutionException, InterruptedException, TimeoutException {
-    AuthorizationCodeFlow flow = TestFlowFactory.createSuccessAuthorizationCodeFlow();
-    try {
+    try (AuthorizationCodeFlow flow = TestFlowFactory.createSuccessAuthorizationCodeFlow()) {
       CompletableFuture<TokenInfo> future =
           flow.start("com.example.app:/callback", FAKE_REDIRECT_HANDLER);
       assertNotNull("Future should not be null", future);
@@ -53,16 +52,13 @@ public class AuthorizationCodeFlowTest {
       assertNotNull("TokenInfo should not be null", tokenInfo);
       assertEquals("Bearer", tokenInfo.getTokenType());
       assertEquals("test-access-token", tokenInfo.getAccessToken());
-    } finally {
-      flow.close();
     }
   }
 
   @Test
   public void start_WithAllParams_UsesProvidedScope()
       throws ExecutionException, InterruptedException, TimeoutException {
-    AuthorizationCodeFlow flow = TestFlowFactory.createSuccessAuthorizationCodeFlow();
-    try {
+    try (AuthorizationCodeFlow flow = TestFlowFactory.createSuccessAuthorizationCodeFlow()) {
       CompletableFuture<TokenInfo> future =
           flow.start(
               "com.example.app:/callback",
@@ -71,31 +67,25 @@ public class AuthorizationCodeFlowTest {
               "openid profile email");
       TokenInfo tokenInfo = future.get(5, TimeUnit.SECONDS);
       assertNotNull("TokenInfo should not be null", tokenInfo);
-    } finally {
-      flow.close();
     }
   }
 
   @Test
   public void start_WithDefaults_UsesDefaultScopeAndNoExtraParams()
       throws ExecutionException, InterruptedException, TimeoutException {
-    AuthorizationCodeFlow flow = TestFlowFactory.createSuccessAuthorizationCodeFlow();
-    try {
+    try (AuthorizationCodeFlow flow = TestFlowFactory.createSuccessAuthorizationCodeFlow()) {
       // Uses @JvmOverloads defaults — only redirectUrl and browserRedirectHandler required
       CompletableFuture<TokenInfo> future =
           flow.start("com.example.app:/callback", FAKE_REDIRECT_HANDLER);
       TokenInfo tokenInfo = future.get(5, TimeUnit.SECONDS);
       assertNotNull("TokenInfo should not be null", tokenInfo);
-    } finally {
-      flow.close();
     }
   }
 
   @Test
   public void start_WithError_CompletesExceptionally()
       throws TimeoutException, InterruptedException {
-    AuthorizationCodeFlow flow = TestFlowFactory.createFailingAuthorizationCodeFlow();
-    try {
+    try (AuthorizationCodeFlow flow = TestFlowFactory.createFailingAuthorizationCodeFlow()) {
       CompletableFuture<TokenInfo> future =
           flow.start("com.example.app:/callback", FAKE_REDIRECT_HANDLER);
       try {
@@ -107,9 +97,15 @@ public class AuthorizationCodeFlowTest {
             "Should contain error message",
             e.getCause().getMessage().contains("OIDC Endpoints not available."));
       }
-    } finally {
-      flow.close();
     }
+  }
+
+  @Test
+  public void constructor_WithOAuth2Client_CreatesFlow() {
+    com.okta.authfoundation.client.kmp.OAuth2Client kmpClient = TestOAuth2Client.create();
+    AuthorizationCodeFlow flow = new AuthorizationCodeFlow(kmpClient);
+    assertNotNull(flow);
+    flow.close();
   }
 
   @Test

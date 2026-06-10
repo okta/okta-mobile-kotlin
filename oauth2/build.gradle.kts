@@ -127,6 +127,7 @@ kotlin {
         }
 
         getByName("androidHostTest") {
+            resources.srcDir("src/test/resources")
             dependencies {
                 implementation(libs.coroutines.test)
                 implementation(libs.junit)

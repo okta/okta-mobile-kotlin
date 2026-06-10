@@ -37,8 +37,7 @@ public class SessionTokenFlowTest {
   @Test
   public void start_ReturnsCompletableFutureWithTokenInfo()
       throws ExecutionException, InterruptedException, TimeoutException {
-    SessionTokenFlow flow = TestFlowFactory.createSuccessSessionTokenFlow();
-    try {
+    try (SessionTokenFlow flow = TestFlowFactory.createSuccessSessionTokenFlow()) {
       CompletableFuture<TokenInfo> future =
           flow.start("example-session-token", "com.example.app:/callback");
       assertNotNull("Future should not be null", future);
@@ -47,16 +46,13 @@ public class SessionTokenFlowTest {
       assertNotNull("TokenInfo should not be null", tokenInfo);
       assertEquals("Bearer", tokenInfo.getTokenType());
       assertEquals("test-access-token", tokenInfo.getAccessToken());
-    } finally {
-      flow.close();
     }
   }
 
   @Test
   public void start_WithAllParams_ReturnsTokenInfo()
       throws ExecutionException, InterruptedException, TimeoutException {
-    SessionTokenFlow flow = TestFlowFactory.createSuccessSessionTokenFlow();
-    try {
+    try (SessionTokenFlow flow = TestFlowFactory.createSuccessSessionTokenFlow()) {
       CompletableFuture<TokenInfo> future =
           flow.start(
               "example-session-token",
@@ -65,16 +61,13 @@ public class SessionTokenFlowTest {
               "openid profile email");
       TokenInfo tokenInfo = future.get(5, TimeUnit.SECONDS);
       assertNotNull("TokenInfo should not be null", tokenInfo);
-    } finally {
-      flow.close();
     }
   }
 
   @Test
   public void start_WithError_CompletesExceptionally()
       throws TimeoutException, InterruptedException {
-    SessionTokenFlow flow = TestFlowFactory.createFailingSessionTokenFlow();
-    try {
+    try (SessionTokenFlow flow = TestFlowFactory.createFailingSessionTokenFlow()) {
       CompletableFuture<TokenInfo> future = flow.start("bad-token", "com.example.app:/callback");
       try {
         future.get(5, TimeUnit.SECONDS);
@@ -85,9 +78,15 @@ public class SessionTokenFlowTest {
             "Should contain error message",
             e.getCause().getMessage().contains("OIDC Endpoints not available."));
       }
-    } finally {
-      flow.close();
     }
+  }
+
+  @Test
+  public void constructor_WithOAuth2Client_CreatesFlow() {
+    com.okta.authfoundation.client.kmp.OAuth2Client kmpClient = TestOAuth2Client.create();
+    SessionTokenFlow flow = new SessionTokenFlow(kmpClient);
+    assertNotNull(flow);
+    flow.close();
   }
 
   @Test

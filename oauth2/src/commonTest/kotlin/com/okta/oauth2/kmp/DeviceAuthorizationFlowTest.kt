@@ -56,7 +56,7 @@ class DeviceAuthorizationFlowTest {
     @Test
     fun resume_WhenSuccess_ReturnsTokenInfo() =
         runTest {
-            val fakeToken = FakeDeviceTokenInfo()
+            val fakeToken = FakeTokenInfo()
             val mockFlow =
                 object : DeviceAuthorizationFlow {
                     override suspend fun start(scope: String): Result<DeviceAuthorizationFlowContext> = Result.failure(NotImplementedError())
@@ -118,18 +118,4 @@ class DeviceAuthorizationFlowTest {
 
             assertTrue(result.isFailure)
         }
-}
-
-private class FakeDeviceTokenInfo : TokenInfo {
-    override val id: String = "test-id"
-    override val clientId: String = "test-client"
-    override val issuerUrl: String = "https://example.okta.com"
-    override val tokenType: String = "Bearer"
-    override val expiresIn: Int = 3600
-    override val accessToken: String = "test-access-token"
-    override val scope: String = "openid profile"
-    override val refreshToken: String? = "test-refresh-token"
-    override val idToken: String? = null
-    override val deviceSecret: String? = null
-    override val issuedTokenType: String? = null
 }

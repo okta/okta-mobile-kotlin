@@ -23,6 +23,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.future.future
 import java.io.Closeable
 import java.util.concurrent.CompletableFuture
+import com.okta.authfoundation.client.kmp.OAuth2Client as KmpOAuth2Client
 import com.okta.oauth2.kmp.TokenExchangeFlow as KotlinTokenExchangeFlow
 
 /**
@@ -31,6 +32,13 @@ import com.okta.oauth2.kmp.TokenExchangeFlow as KotlinTokenExchangeFlow
  * This class exposes async methods returning [CompletableFuture] so Java consumers
  * can use the Token Exchange flow without dealing with Kotlin coroutines.
  *
+ * Typical Java usage:
+ * ```java
+ * TokenExchangeFlow flow = new TokenExchangeFlow(kmpClient);
+ * TokenInfo token = flow.start(idToken, deviceSecret, null, scope).get();
+ * flow.close();
+ * ```
+ *
  * Must be [closed][close] when no longer needed to release coroutine resources.
  *
  * @param delegate the underlying Kotlin [KotlinTokenExchangeFlow] instance.
@@ -38,6 +46,13 @@ import com.okta.oauth2.kmp.TokenExchangeFlow as KotlinTokenExchangeFlow
 class TokenExchangeFlow(
     private val delegate: KotlinTokenExchangeFlow,
 ) : Closeable {
+    /**
+     * Creates a [TokenExchangeFlow] backed by the given [KmpOAuth2Client].
+     *
+     * @param client the KMP OAuth2 client to use for the Token Exchange flow.
+     */
+    constructor(client: KmpOAuth2Client) : this(KotlinTokenExchangeFlow(client))
+
     private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     /**

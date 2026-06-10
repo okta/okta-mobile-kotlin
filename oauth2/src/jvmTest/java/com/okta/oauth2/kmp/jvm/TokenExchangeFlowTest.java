@@ -36,8 +36,7 @@ public class TokenExchangeFlowTest {
   @Test
   public void start_ReturnsCompletableFutureWithTokenInfo()
       throws ExecutionException, InterruptedException, TimeoutException {
-    TokenExchangeFlow flow = TestFlowFactory.createSuccessTokenExchangeFlow();
-    try {
+    try (TokenExchangeFlow flow = TestFlowFactory.createSuccessTokenExchangeFlow()) {
       CompletableFuture<TokenInfo> future =
           flow.start("id-token", "device-secret", null, "openid profile email offline_access");
       assertNotNull("Future should not be null", future);
@@ -46,30 +45,24 @@ public class TokenExchangeFlowTest {
       assertNotNull("TokenInfo should not be null", tokenInfo);
       assertEquals("Bearer", tokenInfo.getTokenType());
       assertEquals("test-access-token", tokenInfo.getAccessToken());
-    } finally {
-      flow.close();
     }
   }
 
   @Test
   public void start_WithDefaults_UsesDefaultScope()
       throws ExecutionException, InterruptedException, TimeoutException {
-    TokenExchangeFlow flow = TestFlowFactory.createSuccessTokenExchangeFlow();
-    try {
+    try (TokenExchangeFlow flow = TestFlowFactory.createSuccessTokenExchangeFlow()) {
       // Uses @JvmOverloads defaults — only required params
       CompletableFuture<TokenInfo> future = flow.start("id-token", "device-secret");
       TokenInfo tokenInfo = future.get(5, TimeUnit.SECONDS);
       assertNotNull("TokenInfo should not be null", tokenInfo);
-    } finally {
-      flow.close();
     }
   }
 
   @Test
   public void start_WithError_CompletesExceptionally()
       throws TimeoutException, InterruptedException {
-    TokenExchangeFlow flow = TestFlowFactory.createFailingTokenExchangeFlow();
-    try {
+    try (TokenExchangeFlow flow = TestFlowFactory.createFailingTokenExchangeFlow()) {
       CompletableFuture<TokenInfo> future = flow.start("id-token", "device-secret");
       try {
         future.get(5, TimeUnit.SECONDS);
@@ -79,9 +72,15 @@ public class TokenExchangeFlowTest {
         assertTrue(
             "Should contain error message", e.getCause().getMessage().contains("invalid_grant"));
       }
-    } finally {
-      flow.close();
     }
+  }
+
+  @Test
+  public void constructor_WithOAuth2Client_CreatesFlow() {
+    com.okta.authfoundation.client.kmp.OAuth2Client kmpClient = TestOAuth2Client.create();
+    TokenExchangeFlow flow = new TokenExchangeFlow(kmpClient);
+    assertNotNull(flow);
+    flow.close();
   }
 
   @Test

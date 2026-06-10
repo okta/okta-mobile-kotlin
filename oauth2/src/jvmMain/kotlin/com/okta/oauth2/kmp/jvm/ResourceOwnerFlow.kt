@@ -23,6 +23,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.future.future
 import java.io.Closeable
 import java.util.concurrent.CompletableFuture
+import com.okta.authfoundation.client.kmp.OAuth2Client as KmpOAuth2Client
 import com.okta.oauth2.kmp.ResourceOwnerFlow as KotlinResourceOwnerFlow
 
 /**
@@ -31,6 +32,13 @@ import com.okta.oauth2.kmp.ResourceOwnerFlow as KotlinResourceOwnerFlow
  * This class exposes async methods returning [CompletableFuture] so Java consumers
  * can use the Resource Owner flow without dealing with Kotlin coroutines.
  *
+ * Typical Java usage:
+ * ```java
+ * ResourceOwnerFlow flow = new ResourceOwnerFlow(kmpClient);
+ * TokenInfo token = flow.start(username, password, scope).get();
+ * flow.close();
+ * ```
+ *
  * Must be [closed][close] when no longer needed to release coroutine resources.
  *
  * @param delegate the underlying Kotlin [KotlinResourceOwnerFlow] instance.
@@ -38,6 +46,13 @@ import com.okta.oauth2.kmp.ResourceOwnerFlow as KotlinResourceOwnerFlow
 class ResourceOwnerFlow(
     private val delegate: KotlinResourceOwnerFlow,
 ) : Closeable {
+    /**
+     * Creates a [ResourceOwnerFlow] backed by the given [KmpOAuth2Client].
+     *
+     * @param client the KMP OAuth2 client to use for the Resource Owner flow.
+     */
+    constructor(client: KmpOAuth2Client) : this(KotlinResourceOwnerFlow(client))
+
     private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     /**

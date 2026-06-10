@@ -86,17 +86,3 @@ class ResourceOwnerFlowTest {
             assertTrue(result.exceptionOrNull() is java.io.IOException)
         }
 }
-
-private class FakeTokenInfo : TokenInfo {
-    override val id: String = "test-id"
-    override val clientId: String = "test-client"
-    override val issuerUrl: String = "https://example.okta.com"
-    override val tokenType: String = "Bearer"
-    override val expiresIn: Int = 3600
-    override val accessToken: String = "test-access-token"
-    override val scope: String = "openid profile"
-    override val refreshToken: String? = "test-refresh-token"
-    override val idToken: String? = null
-    override val deviceSecret: String? = null
-    override val issuedTokenType: String? = null
-}
