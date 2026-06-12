@@ -196,7 +196,7 @@ internal data class Message(
 ) {
     @Serializable
     internal data class Localization(
-        val key: String,
+        val key: String? = null,
     )
 }
 
