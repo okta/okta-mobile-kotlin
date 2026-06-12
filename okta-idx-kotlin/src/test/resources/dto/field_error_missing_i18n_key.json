@@ -1,0 +1,79 @@
+{
+  "version": "1.0.0",
+  "stateHandle": "02MBcg1YCpB3SxK93qaYSUVSKjCwLwg3Eq4x7eyaej",
+  "expiresAt": "2021-09-28T18:02:00.000Z",
+  "intent": "LOGIN",
+  "remediation": {
+    "type": "array",
+    "value": [
+      {
+        "rel": ["create-form"],
+        "name": "enroll-profile",
+        "href": "https://foo.okta.com/idp/idx/enroll/new",
+        "method": "POST",
+        "produces": "application/ion+json; okta-version=1.0.0",
+        "value": [
+          {
+            "name": "userProfile",
+            "form": {
+              "value": [
+                {
+                  "name": "email",
+                  "label": "Email",
+                  "required": true,
+                  "value": "not-an-email",
+                  "messages": {
+                    "type": "array",
+                    "value": [
+                      {
+                        "message": "Message with key present",
+                        "i18n": {
+                          "key": "registration.error.invalidLoginEmail"
+                        },
+                        "class": "ERROR"
+                      },
+                      {
+                        "message": "Message with i18n object but key absent",
+                        "i18n": {},
+                        "class": "ERROR"
+                      },
+                      {
+                        "message": "Message with no i18n at all",
+                        "class": "ERROR"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "name": "stateHandle",
+                  "required": true,
+                  "value": "02MBcg1YCpB3SxK93qaYSUVSKjCwLwg3Eq4x7eyaej",
+                  "visible": false,
+                  "mutable": false
+                }
+              ]
+            }
+          }
+        ],
+        "accepts": "application/json; okta-version=1.0.0"
+      }
+    ]
+  },
+  "cancel": {
+    "rel": ["create-form"],
+    "name": "cancel",
+    "href": "https://foo.okta.com/idp/idx/cancel",
+    "method": "POST",
+    "produces": "application/ion+json; okta-version=1.0.0",
+    "value": [
+      {
+        "name": "stateHandle",
+        "required": true,
+        "value": "02MBcg1YCpB3SxK93qaYSUVSKjCwLwg3Eq4x7eyaej",
+        "visible": false,
+        "mutable": false
+      }
+    ],
+    "accepts": "application/json; okta-version=1.0.0"
+  }
+}

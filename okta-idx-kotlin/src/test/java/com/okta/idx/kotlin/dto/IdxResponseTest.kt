@@ -151,6 +151,81 @@ class IdxResponseTest {
     }
 
     @Test
+    fun testFieldError_MissingI18nKey_DoesNotThrow() {
+        // Regression test for https://github.com/okta/okta-mobile-kotlin/issues/375
+        // The server may omit the 'key' field from a Message.Localization object.
+        // Previously this caused a MissingFieldException; now it should deserialize gracefully.
+        val idxResponse = getIdxResponse("field_error_missing_i18n_key.json")
+
+        val emailField =
+            idxResponse.remediations
+                .first()
+                .form.visibleFields
+                .first()
+                .form!!
+                .visibleFields
+                .first()
+        assertThat(emailField.messages).hasSize(3)
+    }
+
+    @Test
+    fun testFieldError_I18nKeyPresent_MappedToLocalizationKey() {
+        val idxResponse = getIdxResponse("field_error_missing_i18n_key.json")
+
+        val emailField =
+            idxResponse.remediations
+                .first()
+                .form.visibleFields
+                .first()
+                .form!!
+                .visibleFields
+                .first()
+        val message = emailField.messages[0]
+
+        assertThat(message.message).isEqualTo("Message with key present")
+        assertThat(message.localizationKey).isEqualTo("registration.error.invalidLoginEmail")
+        assertThat(message.type).isEqualTo(IdxMessage.Severity.ERROR)
+    }
+
+    @Test
+    fun testFieldError_I18nObjectPresentButKeyAbsent_LocalizationKeyIsNull() {
+        val idxResponse = getIdxResponse("field_error_missing_i18n_key.json")
+
+        val emailField =
+            idxResponse.remediations
+                .first()
+                .form.visibleFields
+                .first()
+                .form!!
+                .visibleFields
+                .first()
+        val message = emailField.messages[1]
+
+        assertThat(message.message).isEqualTo("Message with i18n object but key absent")
+        assertThat(message.localizationKey).isNull()
+        assertThat(message.type).isEqualTo(IdxMessage.Severity.ERROR)
+    }
+
+    @Test
+    fun testFieldError_NoI18nObject_LocalizationKeyIsNull() {
+        val idxResponse = getIdxResponse("field_error_missing_i18n_key.json")
+
+        val emailField =
+            idxResponse.remediations
+                .first()
+                .form.visibleFields
+                .first()
+                .form!!
+                .visibleFields
+                .first()
+        val message = emailField.messages[2]
+
+        assertThat(message.message).isEqualTo("Message with no i18n at all")
+        assertThat(message.localizationKey).isNull()
+        assertThat(message.type).isEqualTo(IdxMessage.Severity.ERROR)
+    }
+
+    @Test
     fun testTopLevelError() {
         val idxResponse = getIdxResponse("top_level_error.json")
 
