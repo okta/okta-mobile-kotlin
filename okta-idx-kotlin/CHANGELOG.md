@@ -1,5 +1,15 @@
 # Changelog
 
+## [3.1.1] 2026-06-12
+
+[Commits](https://github.com/okta/okta-mobile-kotlin/commit/4b13d30c09df3481128b1e23a9351c9d6884d078)
+
+### Fixed
+
+- Fixed `kotlinx.serialization.MissingFieldException` crash when a server response is missing
+  the `key` field in a `Message.Localization` (i18n) object. The field is now optional.
+  Note: consumers who previously relied on `key` being non-null will need to add a null check.
+
 ## [3.1.0] 2025-07-18
 
 [Commits](https://github.com/okta/okta-idx-android/compare/3.0.3...3.1.0)
