@@ -42,7 +42,7 @@
         </div>
         <div class="navigation-controls">
         <ul class="filter-section filter-section_loading" id="filter-section" aria-label="Target filter">
-                <button class="platform-tag platform-selector jvm-like" data-active="" aria-pressed="true" data-filter=":auth-foundation/androidMain">android</button>
+                <button class="platform-tag platform-selector jvm-like" data-active="" aria-pressed="true" data-filter=":auth-foundation/commonMain">common</button>
             <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
                 <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox" data-role="dropdown-toggle" aria-controls="platform-tags-listbox" aria-haspopup="listbox" aria-expanded="false" aria-label="Toggle source sets"></button>
                 <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox" aria-label="Target filter">
@@ -53,9 +53,9 @@
                     </div>
                         <li role="option" class="dropdown--option platform-selector-option jvm-like" tabindex="0">
                             <label class="checkbox">
-                                <input type="checkbox" class="checkbox--input" id=":auth-foundation/androidMain" data-filter=":auth-foundation/androidMain">
+                                <input type="checkbox" class="checkbox--input" id=":auth-foundation/commonMain" data-filter=":auth-foundation/commonMain">
                                 <span class="checkbox--icon"></span>
-                                android
+                                common
                             </label>
                         </li>
                 </ul>
@@ -89,28 +89,32 @@
         </nav>
         <div id="resizer" class="resizer" data-item-type="BAR"></div>
         <div id="main" data-item-type="SECTION" role="main">
-<div class="main-content" data-page-type="classlike" id="content" pageids="auth-foundation::com.okta.authfoundation.api.http/ApiExecutor///PointingToDeclaration//606929609">
+<div class="main-content" data-page-type="classlike" id="content" pageids="auth-foundation::com.okta.authfoundation.api.http/ApiExecutor///PointingToDeclaration//-1771157707">
   <div class="breadcrumbs"><a href="../../index.html">auth-foundation</a><span class="delimiter">/</span><a href="../index.html">com.okta.authfoundation.api.http</a><span class="delimiter">/</span><span class="current">ApiExecutor</span></div>
   <div class="cover ">
     <h1 class="cover"><span>Api</span><wbr><span><span>Executor</span></span></h1>
-    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">interface </span><a href="index.html">ApiExecutor</a></div><p class="paragraph">A simple abstraction for executing network requests defined by <a href="../-api-request/index.html">ApiRequest</a> and returning <a href="../-api-response/index.html">ApiResponse</a>.</p><p class="paragraph">Implementations of this interface are responsible for performing the actual network operations, handling responses, retries, and error handling.</p></div></div>
+    <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+      <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain" data-active="" data-toggle=":auth-foundation/commonMain">common</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/commonMain"><div class="symbol monospace"><span class="token keyword">interface </span><a href="index.html">ApiExecutor</a></div><p class="paragraph">A simple abstraction for executing network requests defined by <a href="../-api-request/index.html">ApiRequest</a> and returning <a href="../-api-response/index.html">ApiResponse</a>.</p><p class="paragraph">Implementations of this interface are responsible for performing the actual network operations, handling responses, retries, and error handling.</p><h4 class="tableheader">Inheritors</h4><div class="table"><div class="table-row table-row_content" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../-ktor-http-executor/index.html">KtorHttpExecutor</a></div></span></div><div></div></div></div></div></div>    </div>
   </div>
   <div class="tabbedcontent">
     <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
     <div class="tabs-section-body">
       <div data-togglable="FUNCTION">
         <h2 class="tableheader">Functions</h2>
-        <div class="table"><a data-name="1425820180%2FFunctions%2F606929609" anchor-label="execute" id="1425820180%2FFunctions%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
-          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
+        <div class="table"><a data-name="1425820180%2FFunctions%2F-1771157707" anchor-label="execute" id="1425820180%2FFunctions%2F-1771157707" data-filterable-set=":auth-foundation/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="execute.html"><span><span>execute</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1425820180%2FFunctions%2F606929609"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1425820180%2FFunctions%2F-1771157707"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="execute.html"><span class="token function">execute</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">request<span class="token operator">: </span><a href="../-api-request/index.html">ApiRequest</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-result/index.html">Result</a><span class="token operator">&lt;</span><a href="../-api-response/index.html">ApiResponse</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Executes the given network request asynchronously.</p></div></div></div>
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain" data-active="" data-toggle=":auth-foundation/commonMain">common</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/commonMain"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="execute.html"><span class="token function">execute</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">request<span class="token operator">: </span><a href="../-api-request/index.html">ApiRequest</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span>ERROR CLASS: Symbol not found for Result&lt;com/okta/authfoundation/api/http/ApiResponse&gt;</div><div class="brief "><p class="paragraph">Executes the given network request asynchronously.</p></div></div>                  </div>
                 </div>
               </div>
             </div>

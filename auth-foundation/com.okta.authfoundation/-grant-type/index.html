@@ -42,7 +42,7 @@
         </div>
         <div class="navigation-controls">
         <ul class="filter-section filter-section_loading" id="filter-section" aria-label="Target filter">
-                <button class="platform-tag platform-selector jvm-like" data-active="" aria-pressed="true" data-filter=":auth-foundation/androidMain">android</button>
+                <button class="platform-tag platform-selector jvm-like" data-active="" aria-pressed="true" data-filter=":auth-foundation/commonMain">common</button>
             <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
                 <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox" data-role="dropdown-toggle" aria-controls="platform-tags-listbox" aria-haspopup="listbox" aria-expanded="false" aria-label="Toggle source sets"></button>
                 <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox" aria-label="Target filter">
@@ -53,9 +53,9 @@
                     </div>
                         <li role="option" class="dropdown--option platform-selector-option jvm-like" tabindex="0">
                             <label class="checkbox">
-                                <input type="checkbox" class="checkbox--input" id=":auth-foundation/androidMain" data-filter=":auth-foundation/androidMain">
+                                <input type="checkbox" class="checkbox--input" id=":auth-foundation/commonMain" data-filter=":auth-foundation/commonMain">
                                 <span class="checkbox--icon"></span>
-                                android
+                                common
                             </label>
                         </li>
                 </ul>
@@ -89,163 +89,185 @@
         </nav>
         <div id="resizer" class="resizer" data-item-type="BAR"></div>
         <div id="main" data-item-type="SECTION" role="main">
-<div class="main-content" data-page-type="classlike" id="content" pageids="auth-foundation::com.okta.authfoundation/GrantType///PointingToDeclaration//606929609">
+<div class="main-content" data-page-type="classlike" id="content" pageids="auth-foundation::com.okta.authfoundation/GrantType///PointingToDeclaration//-1771157707">
   <div class="breadcrumbs"><a href="../../index.html">auth-foundation</a><span class="delimiter">/</span><a href="../index.html">com.okta.authfoundation</a><span class="delimiter">/</span><span class="current">GrantType</span></div>
   <div class="cover ">
     <h1 class="cover"><span>Grant</span><wbr><span><span>Type</span></span></h1>
-    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">sealed </span><span class="token keyword">class </span><a href="index.html">GrantType</a></div><p class="paragraph">Represents the OAuth 2.0 grant type. Determines the mechanism Okta uses to authorize the creation of the tokens.</p><p class="paragraph">This sealed class allows for a fixed set of standard grant types as well as custom ones.</p><h4 class="tableheader">See also</h4><div class="table"><div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div></div></span></div><div><div class="title"><p class="paragraph"><a href="https://developer.okta.com/docs/reference/direct-auth/grant-types/">Okta Direct Authentication Grant Types</a></p></div></div></div></div></div><h4 class="tableheader">Inheritors</h4><div class="table"><div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="-authorization-code/index.html">AuthorizationCode</a></div></span></div><div></div></div></div><div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="-refresh-token/index.html">RefreshToken</a></div></span></div><div></div></div></div><div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="-password/index.html">Password</a></div></span></div><div></div></div></div><div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="-device-code/index.html">DeviceCode</a></div></span></div><div></div></div></div><div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="-token-exchange/index.html">TokenExchange</a></div></span></div><div></div></div></div><div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="-jwt-bearer/index.html">JwtBearer</a></div></span></div><div></div></div></div><div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="-otp/index.html">Otp</a></div></span></div><div></div></div></div><div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="-oob/index.html">Oob</a></div></span></div><div></div></div></div><div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="-web-authn/index.html">WebAuthn</a></div></span></div><div></div></div></div><div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="-other/index.html">Other</a></div></span></div><div></div></div></div><div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../-challenge-grant-type/index.html">ChallengeGrantType</a></div></span></div><div></div></div></div></div></div></div>
+    <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+      <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain" data-active="" data-toggle=":auth-foundation/commonMain">common</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/commonMain"><div class="symbol monospace"><span class="token keyword">sealed </span><span class="token keyword">class </span><a href="index.html">GrantType</a></div><p class="paragraph">Represents the OAuth 2.0 grant type. Determines the mechanism Okta uses to authorize the creation of the tokens.</p><p class="paragraph">This sealed class allows for a fixed set of standard grant types as well as custom ones.</p><h4 class="tableheader">See also</h4><div class="table"><div class="table-row table-row_content" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div></div></span></div><div><div class="title"><p class="paragraph"><a href="https://developer.okta.com/docs/reference/direct-auth/grant-types/">Okta Direct Authentication Grant Types</a></p></div></div></div></div></div><h4 class="tableheader">Inheritors</h4><div class="table"><div class="table-row table-row_content" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="-authorization-code/index.html">AuthorizationCode</a></div></span></div><div></div></div></div><div class="table-row table-row_content" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="-refresh-token/index.html">RefreshToken</a></div></span></div><div></div></div></div><div class="table-row table-row_content" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="-password/index.html">Password</a></div></span></div><div></div></div></div><div class="table-row table-row_content" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="-device-code/index.html">DeviceCode</a></div></span></div><div></div></div></div><div class="table-row table-row_content" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="-token-exchange/index.html">TokenExchange</a></div></span></div><div></div></div></div><div class="table-row table-row_content" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="-jwt-bearer/index.html">JwtBearer</a></div></span></div><div></div></div></div><div class="table-row table-row_content" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="-otp/index.html">Otp</a></div></span></div><div></div></div></div><div class="table-row table-row_content" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="-oob/index.html">Oob</a></div></span></div><div></div></div></div><div class="table-row table-row_content" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="-web-authn/index.html">WebAuthn</a></div></span></div><div></div></div></div><div class="table-row table-row_content" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="-other/index.html">Other</a></div></span></div><div></div></div></div><div class="table-row table-row_content" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../-challenge-grant-type/index.html">ChallengeGrantType</a></div></span></div><div></div></div></div></div></div>    </div>
   </div>
   <div class="tabbedcontent">
     <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
     <div class="tabs-section-body">
       <div data-togglable="TYPE">
         <h2 class="tableheader">Types</h2>
-        <div class="table"><a data-name="-296220033%2FClasslikes%2F606929609" anchor-label="AuthorizationCode" id="-296220033%2FClasslikes%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
-          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
+        <div class="table"><a data-name="-296220033%2FClasslikes%2F-1771157707" anchor-label="AuthorizationCode" id="-296220033%2FClasslikes%2F-1771157707" data-filterable-set=":auth-foundation/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-authorization-code/index.html"><span>Authorization</span><wbr><span><span>Code</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-296220033%2FClasslikes%2F606929609"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-296220033%2FClasslikes%2F-1771157707"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">object </span><a href="-authorization-code/index.html">AuthorizationCode</a> : <a href="index.html">GrantType</a></div><div class="brief "><p class="paragraph">The authorization code grant type is used to obtain both access tokens and refresh tokens and is optimized for confidential clients.</p></div></div></div>
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain" data-active="" data-toggle=":auth-foundation/commonMain">common</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/commonMain"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">object </span><a href="-authorization-code/index.html">AuthorizationCode</a> : <a href="index.html">GrantType</a></div><div class="brief "><p class="paragraph">The authorization code grant type is used to obtain both access tokens and refresh tokens and is optimized for confidential clients.</p></div></div>                  </div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="1235318042%2FClasslikes%2F606929609" anchor-label="DeviceCode" id="1235318042%2FClasslikes%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
-          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
+<a data-name="1235318042%2FClasslikes%2F-1771157707" anchor-label="DeviceCode" id="1235318042%2FClasslikes%2F-1771157707" data-filterable-set=":auth-foundation/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-device-code/index.html"><span>Device</span><wbr><span><span>Code</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1235318042%2FClasslikes%2F606929609"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1235318042%2FClasslikes%2F-1771157707"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">object </span><a href="-device-code/index.html">DeviceCode</a> : <a href="index.html">GrantType</a></div><div class="brief "><p class="paragraph">The device authorization grant is used by browserless or input-constrained devices in the device flow to obtain an access token.</p></div></div></div>
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain" data-active="" data-toggle=":auth-foundation/commonMain">common</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/commonMain"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">object </span><a href="-device-code/index.html">DeviceCode</a> : <a href="index.html">GrantType</a></div><div class="brief "><p class="paragraph">The device authorization grant is used by browserless or input-constrained devices in the device flow to obtain an access token.</p></div></div>                  </div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="117811133%2FClasslikes%2F606929609" anchor-label="JwtBearer" id="117811133%2FClasslikes%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
-          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
+<a data-name="117811133%2FClasslikes%2F-1771157707" anchor-label="JwtBearer" id="117811133%2FClasslikes%2F-1771157707" data-filterable-set=":auth-foundation/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-jwt-bearer/index.html"><span>Jwt</span><wbr><span><span>Bearer</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="117811133%2FClasslikes%2F606929609"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="117811133%2FClasslikes%2F-1771157707"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">object </span><a href="-jwt-bearer/index.html">JwtBearer</a> : <a href="index.html">GrantType</a></div><div class="brief "><p class="paragraph">A grant type that uses a JWT as an authorization grant.</p></div></div></div>
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain" data-active="" data-toggle=":auth-foundation/commonMain">common</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/commonMain"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">object </span><a href="-jwt-bearer/index.html">JwtBearer</a> : <a href="index.html">GrantType</a></div><div class="brief "><p class="paragraph">A grant type that uses a JWT as an authorization grant.</p></div></div>                  </div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-1333407613%2FClasslikes%2F606929609" anchor-label="Oob" id="-1333407613%2FClasslikes%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
-          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
+<a data-name="-1333407613%2FClasslikes%2F-1771157707" anchor-label="Oob" id="-1333407613%2FClasslikes%2F-1771157707" data-filterable-set=":auth-foundation/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-oob/index.html"><span><span>Oob</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1333407613%2FClasslikes%2F606929609"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1333407613%2FClasslikes%2F-1771157707"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">object </span><a href="-oob/index.html">Oob</a> : <a href="index.html">GrantType</a></div><div class="brief "><p class="paragraph">A grant type for Out-of-Band (OOB) authentication, such as push notifications.</p></div></div></div>
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain" data-active="" data-toggle=":auth-foundation/commonMain">common</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/commonMain"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">object </span><a href="-oob/index.html">Oob</a> : <a href="index.html">GrantType</a></div><div class="brief "><p class="paragraph">A grant type for Out-of-Band (OOB) authentication, such as push notifications.</p></div></div>                  </div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="1523107509%2FClasslikes%2F606929609" anchor-label="Other" id="1523107509%2FClasslikes%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
-          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
+<a data-name="1523107509%2FClasslikes%2F-1771157707" anchor-label="Other" id="1523107509%2FClasslikes%2F-1771157707" data-filterable-set=":auth-foundation/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-other/index.html"><span><span>Other</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1523107509%2FClasslikes%2F606929609"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1523107509%2FClasslikes%2F-1771157707"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">class </span><a href="-other/index.html">Other</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>type<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></span></span><span class="token punctuation">)</span> : <a href="index.html">GrantType</a></div><div class="brief "><p class="paragraph">A custom grant type not defined in the standard set.</p></div></div></div>
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain" data-active="" data-toggle=":auth-foundation/commonMain">common</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/commonMain"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">class </span><a href="-other/index.html">Other</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>type<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></span></span><span class="token punctuation">)</span> : <a href="index.html">GrantType</a></div><div class="brief "><p class="paragraph">A custom grant type not defined in the standard set.</p></div></div>                  </div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-386027526%2FClasslikes%2F606929609" anchor-label="Otp" id="-386027526%2FClasslikes%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
-          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
+<a data-name="-386027526%2FClasslikes%2F-1771157707" anchor-label="Otp" id="-386027526%2FClasslikes%2F-1771157707" data-filterable-set=":auth-foundation/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-otp/index.html"><span><span>Otp</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-386027526%2FClasslikes%2F606929609"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-386027526%2FClasslikes%2F-1771157707"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">object </span><a href="-otp/index.html">Otp</a> : <a href="index.html">GrantType</a></div><div class="brief "><p class="paragraph">A grant type for One-Time Passcode (OTP) authentication, often used as a second factor.</p></div></div></div>
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain" data-active="" data-toggle=":auth-foundation/commonMain">common</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/commonMain"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">object </span><a href="-otp/index.html">Otp</a> : <a href="index.html">GrantType</a></div><div class="brief "><p class="paragraph">A grant type for One-Time Passcode (OTP) authentication, often used as a second factor.</p></div></div>                  </div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-245990942%2FClasslikes%2F606929609" anchor-label="Password" id="-245990942%2FClasslikes%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
-          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
+<a data-name="-245990942%2FClasslikes%2F-1771157707" anchor-label="Password" id="-245990942%2FClasslikes%2F-1771157707" data-filterable-set=":auth-foundation/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-password/index.html"><span><span>Password</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-245990942%2FClasslikes%2F606929609"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-245990942%2FClasslikes%2F-1771157707"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">object </span><a href="-password/index.html">Password</a> : <a href="index.html">GrantType</a></div><div class="brief "><p class="paragraph">The resource owner password credentials grant type is suitable in cases where the resource owner has a trust relationship with the client.</p></div></div></div>
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain" data-active="" data-toggle=":auth-foundation/commonMain">common</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/commonMain"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">object </span><a href="-password/index.html">Password</a> : <a href="index.html">GrantType</a></div><div class="brief "><p class="paragraph">The resource owner password credentials grant type is suitable in cases where the resource owner has a trust relationship with the client.</p></div></div>                  </div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="965277695%2FClasslikes%2F606929609" anchor-label="RefreshToken" id="965277695%2FClasslikes%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
-          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
+<a data-name="965277695%2FClasslikes%2F-1771157707" anchor-label="RefreshToken" id="965277695%2FClasslikes%2F-1771157707" data-filterable-set=":auth-foundation/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-refresh-token/index.html"><span>Refresh</span><wbr><span><span>Token</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="965277695%2FClasslikes%2F606929609"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="965277695%2FClasslikes%2F-1771157707"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">object </span><a href="-refresh-token/index.html">RefreshToken</a> : <a href="index.html">GrantType</a></div><div class="brief "><p class="paragraph">The refresh token grant type is used by clients to exchange a refresh token for a new access token when the current access token becomes invalid or expires.</p></div></div></div>
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain" data-active="" data-toggle=":auth-foundation/commonMain">common</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/commonMain"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">object </span><a href="-refresh-token/index.html">RefreshToken</a> : <a href="index.html">GrantType</a></div><div class="brief "><p class="paragraph">The refresh token grant type is used by clients to exchange a refresh token for a new access token when the current access token becomes invalid or expires.</p></div></div>                  </div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-157837303%2FClasslikes%2F606929609" anchor-label="TokenExchange" id="-157837303%2FClasslikes%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
-          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
+<a data-name="-157837303%2FClasslikes%2F-1771157707" anchor-label="TokenExchange" id="-157837303%2FClasslikes%2F-1771157707" data-filterable-set=":auth-foundation/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-token-exchange/index.html"><span>Token</span><wbr><span><span>Exchange</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-157837303%2FClasslikes%2F606929609"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-157837303%2FClasslikes%2F-1771157707"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">object </span><a href="-token-exchange/index.html">TokenExchange</a> : <a href="index.html">GrantType</a></div><div class="brief "><p class="paragraph">A grant type for exchanging a token of one type for a token of another type.</p></div></div></div>
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain" data-active="" data-toggle=":auth-foundation/commonMain">common</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/commonMain"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">object </span><a href="-token-exchange/index.html">TokenExchange</a> : <a href="index.html">GrantType</a></div><div class="brief "><p class="paragraph">A grant type for exchanging a token of one type for a token of another type.</p></div></div>                  </div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="882294667%2FClasslikes%2F606929609" anchor-label="WebAuthn" id="882294667%2FClasslikes%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
-          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
+<a data-name="882294667%2FClasslikes%2F-1771157707" anchor-label="WebAuthn" id="882294667%2FClasslikes%2F-1771157707" data-filterable-set=":auth-foundation/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-web-authn/index.html"><span>Web</span><wbr><span><span>Authn</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="882294667%2FClasslikes%2F606929609"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="882294667%2FClasslikes%2F-1771157707"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">object </span><a href="-web-authn/index.html">WebAuthn</a> : <a href="index.html">GrantType</a></div><div class="brief "><p class="paragraph">A grant type for WebAuthn authentication.</p></div></div></div>
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain" data-active="" data-toggle=":auth-foundation/commonMain">common</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/commonMain"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">object </span><a href="-web-authn/index.html">WebAuthn</a> : <a href="index.html">GrantType</a></div><div class="brief "><p class="paragraph">A grant type for WebAuthn authentication.</p></div></div>                  </div>
                 </div>
               </div>
             </div>
@@ -254,17 +276,19 @@
       </div>
       <div data-togglable="PROPERTY">
         <h2 class="tableheader">Properties</h2>
-        <div class="table"><a data-name="-380961503%2FProperties%2F606929609" anchor-label="value" id="-380961503%2FProperties%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
-          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
+        <div class="table"><a data-name="-380961503%2FProperties%2F-1771157707" anchor-label="value" id="-380961503%2FProperties%2F-1771157707" data-filterable-set=":auth-foundation/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="value.html"><span><span>value</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-380961503%2FProperties%2F606929609"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-380961503%2FProperties%2F-1771157707"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="value.html">value</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></div></div></div>
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain" data-active="" data-toggle=":auth-foundation/commonMain">common</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="value.html">value</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></div></div>                  </div>
                 </div>
               </div>
             </div>

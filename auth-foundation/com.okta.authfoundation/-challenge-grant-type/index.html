@@ -42,7 +42,7 @@
         </div>
         <div class="navigation-controls">
         <ul class="filter-section filter-section_loading" id="filter-section" aria-label="Target filter">
-                <button class="platform-tag platform-selector jvm-like" data-active="" aria-pressed="true" data-filter=":auth-foundation/androidMain">android</button>
+                <button class="platform-tag platform-selector jvm-like" data-active="" aria-pressed="true" data-filter=":auth-foundation/commonMain">common</button>
             <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
                 <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox" data-role="dropdown-toggle" aria-controls="platform-tags-listbox" aria-haspopup="listbox" aria-expanded="false" aria-label="Toggle source sets"></button>
                 <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox" aria-label="Target filter">
@@ -53,9 +53,9 @@
                     </div>
                         <li role="option" class="dropdown--option platform-selector-option jvm-like" tabindex="0">
                             <label class="checkbox">
-                                <input type="checkbox" class="checkbox--input" id=":auth-foundation/androidMain" data-filter=":auth-foundation/androidMain">
+                                <input type="checkbox" class="checkbox--input" id=":auth-foundation/commonMain" data-filter=":auth-foundation/commonMain">
                                 <span class="checkbox--icon"></span>
-                                android
+                                common
                             </label>
                         </li>
                 </ul>
@@ -89,58 +89,66 @@
         </nav>
         <div id="resizer" class="resizer" data-item-type="BAR"></div>
         <div id="main" data-item-type="SECTION" role="main">
-<div class="main-content" data-page-type="classlike" id="content" pageids="auth-foundation::com.okta.authfoundation/ChallengeGrantType///PointingToDeclaration//606929609">
+<div class="main-content" data-page-type="classlike" id="content" pageids="auth-foundation::com.okta.authfoundation/ChallengeGrantType///PointingToDeclaration//-1771157707">
   <div class="breadcrumbs"><a href="../../index.html">auth-foundation</a><span class="delimiter">/</span><a href="../index.html">com.okta.authfoundation</a><span class="delimiter">/</span><span class="current">ChallengeGrantType</span></div>
   <div class="cover ">
     <h1 class="cover"><span>Challenge</span><wbr><span>Grant</span><wbr><span><span>Type</span></span></h1>
-    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">sealed </span><span class="token keyword">class </span><a href="index.html">ChallengeGrantType</a> : <a href="../-grant-type/index.html">GrantType</a></div><p class="paragraph">Represents specialized OAuth 2.0 grant types used for challenge-based authentication mechanisms, such as Multi-Factor Authentication (MFA) with Out-of-Band (OOB), One-Time Passcode (OTP), or WebAuthn.</p><p class="paragraph">These grant types extend the standard set to support additional security requirements.</p><h4 class="tableheader">Inheritors</h4><div class="table"><div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="-oob-mfa/index.html">OobMfa</a></div></span></div><div></div></div></div><div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="-otp-mfa/index.html">OtpMfa</a></div></span></div><div></div></div></div><div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="-web-authn-mfa/index.html">WebAuthnMfa</a></div></span></div><div></div></div></div></div></div></div>
+    <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+      <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain" data-active="" data-toggle=":auth-foundation/commonMain">common</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/commonMain"><div class="symbol monospace"><span class="token keyword">sealed </span><span class="token keyword">class </span><a href="index.html">ChallengeGrantType</a> : <a href="../-grant-type/index.html">GrantType</a></div><p class="paragraph">Represents specialized OAuth 2.0 grant types used for challenge-based authentication mechanisms, such as Multi-Factor Authentication (MFA) with Out-of-Band (OOB), One-Time Passcode (OTP), or WebAuthn.</p><p class="paragraph">These grant types extend the standard set to support additional security requirements.</p><h4 class="tableheader">Inheritors</h4><div class="table"><div class="table-row table-row_content" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="-oob-mfa/index.html">OobMfa</a></div></span></div><div></div></div></div><div class="table-row table-row_content" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="-otp-mfa/index.html">OtpMfa</a></div></span></div><div></div></div></div><div class="table-row table-row_content" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="-web-authn-mfa/index.html">WebAuthnMfa</a></div></span></div><div></div></div></div></div></div>    </div>
   </div>
   <div class="tabbedcontent">
     <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
     <div class="tabs-section-body">
       <div data-togglable="TYPE">
         <h2 class="tableheader">Types</h2>
-        <div class="table"><a data-name="400457772%2FClasslikes%2F606929609" anchor-label="OobMfa" id="400457772%2FClasslikes%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
-          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
+        <div class="table"><a data-name="400457772%2FClasslikes%2F-1771157707" anchor-label="OobMfa" id="400457772%2FClasslikes%2F-1771157707" data-filterable-set=":auth-foundation/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-oob-mfa/index.html"><span>Oob</span><wbr><span><span>Mfa</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="400457772%2FClasslikes%2F606929609"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="400457772%2FClasslikes%2F-1771157707"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">object </span><a href="-oob-mfa/index.html">OobMfa</a> : <a href="index.html">ChallengeGrantType</a></div><div class="brief "><p class="paragraph">A grant type for Multi-Factor Authentication (MFA) using Out-of-Band (OOB) methods.</p></div></div></div>
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain" data-active="" data-toggle=":auth-foundation/commonMain">common</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/commonMain"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">object </span><a href="-oob-mfa/index.html">OobMfa</a> : <a href="index.html">ChallengeGrantType</a></div><div class="brief "><p class="paragraph">A grant type for Multi-Factor Authentication (MFA) using Out-of-Band (OOB) methods.</p></div></div>                  </div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="1570527573%2FClasslikes%2F606929609" anchor-label="OtpMfa" id="1570527573%2FClasslikes%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
-          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
+<a data-name="1570527573%2FClasslikes%2F-1771157707" anchor-label="OtpMfa" id="1570527573%2FClasslikes%2F-1771157707" data-filterable-set=":auth-foundation/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-otp-mfa/index.html"><span>Otp</span><wbr><span><span>Mfa</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1570527573%2FClasslikes%2F606929609"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1570527573%2FClasslikes%2F-1771157707"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">object </span><a href="-otp-mfa/index.html">OtpMfa</a> : <a href="index.html">ChallengeGrantType</a></div><div class="brief "><p class="paragraph">A grant type for Multi-Factor Authentication (MFA) using One-Time Passcodes (OTP).</p></div></div></div>
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain" data-active="" data-toggle=":auth-foundation/commonMain">common</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/commonMain"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">object </span><a href="-otp-mfa/index.html">OtpMfa</a> : <a href="index.html">ChallengeGrantType</a></div><div class="brief "><p class="paragraph">A grant type for Multi-Factor Authentication (MFA) using One-Time Passcodes (OTP).</p></div></div>                  </div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-973697894%2FClasslikes%2F606929609" anchor-label="WebAuthnMfa" id="-973697894%2FClasslikes%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
-          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
+<a data-name="-973697894%2FClasslikes%2F-1771157707" anchor-label="WebAuthnMfa" id="-973697894%2FClasslikes%2F-1771157707" data-filterable-set=":auth-foundation/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-web-authn-mfa/index.html"><span>Web</span><wbr><span>Authn</span><wbr><span><span>Mfa</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-973697894%2FClasslikes%2F606929609"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-973697894%2FClasslikes%2F-1771157707"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">object </span><a href="-web-authn-mfa/index.html">WebAuthnMfa</a> : <a href="index.html">ChallengeGrantType</a></div><div class="brief "><p class="paragraph">A grant type for Multi-Factor Authentication (MFA) using WebAuthn.</p></div></div></div>
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain" data-active="" data-toggle=":auth-foundation/commonMain">common</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/commonMain"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">object </span><a href="-web-authn-mfa/index.html">WebAuthnMfa</a> : <a href="index.html">ChallengeGrantType</a></div><div class="brief "><p class="paragraph">A grant type for Multi-Factor Authentication (MFA) using WebAuthn.</p></div></div>                  </div>
                 </div>
               </div>
             </div>
@@ -149,17 +157,19 @@
       </div>
       <div data-togglable="PROPERTY">
         <h2 class="tableheader">Properties</h2>
-        <div class="table"><a data-name="-380961503%2FProperties%2F606929609" anchor-label="value" id="-380961503%2FProperties%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
-          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
+        <div class="table"><a data-name="-380961503%2FProperties%2F-1771157707" anchor-label="value" id="-380961503%2FProperties%2F-1771157707" data-filterable-set=":auth-foundation/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../-grant-type/value.html"><span><span>value</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-380961503%2FProperties%2F606929609"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-380961503%2FProperties%2F-1771157707"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="../-grant-type/value.html">value</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></div></div></div>
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain" data-active="" data-toggle=":auth-foundation/commonMain">common</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="../-grant-type/value.html">value</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></div></div>                  </div>
                 </div>
               </div>
             </div>

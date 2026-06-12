@@ -42,7 +42,7 @@
         </div>
         <div class="navigation-controls">
         <ul class="filter-section filter-section_loading" id="filter-section" aria-label="Target filter">
-                <button class="platform-tag platform-selector jvm-like" data-active="" aria-pressed="true" data-filter=":okta-direct-auth/androidMain">android</button>
+                <button class="platform-tag platform-selector jvm-like" data-active="" aria-pressed="true" data-filter=":okta-direct-auth/commonMain">common</button>
             <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
                 <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox" data-role="dropdown-toggle" aria-controls="platform-tags-listbox" aria-haspopup="listbox" aria-expanded="false" aria-label="Toggle source sets"></button>
                 <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox" aria-label="Target filter">
@@ -53,9 +53,9 @@
                     </div>
                         <li role="option" class="dropdown--option platform-selector-option jvm-like" tabindex="0">
                             <label class="checkbox">
-                                <input type="checkbox" class="checkbox--input" id=":okta-direct-auth/androidMain" data-filter=":okta-direct-auth/androidMain">
+                                <input type="checkbox" class="checkbox--input" id=":okta-direct-auth/commonMain" data-filter=":okta-direct-auth/commonMain">
                                 <span class="checkbox--icon"></span>
-                                android
+                                common
                             </label>
                         </li>
                 </ul>
@@ -89,28 +89,32 @@
         </nav>
         <div id="resizer" class="resizer" data-item-type="BAR"></div>
         <div id="main" data-item-type="SECTION" role="main">
-<div class="main-content" data-page-type="classlike" id="content" pageids="okta-direct-auth::com.okta.directauth.model/DirectAuthenticationError.HttpError.Oauth2Error///PointingToDeclaration//1050266023">
+<div class="main-content" data-page-type="classlike" id="content" pageids="okta-direct-auth::com.okta.directauth.model/DirectAuthenticationError.HttpError.Oauth2Error///PointingToDeclaration//8072595">
   <div class="breadcrumbs"><a href="../../../../index.html">okta-direct-auth</a><span class="delimiter">/</span><a href="../../../index.html">com.okta.directauth.model</a><span class="delimiter">/</span><a href="../../index.html">DirectAuthenticationError</a><span class="delimiter">/</span><a href="../index.html">HttpError</a><span class="delimiter">/</span><span class="current">Oauth2Error</span></div>
   <div class="cover ">
     <h1 class="cover"><span><span>Oauth2Error</span></span></h1>
-    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":okta-direct-auth/androidMain"><div class="symbol monospace"><span class="token keyword">class </span><a href="index.html">Oauth2Error</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>error<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">httpStatusCode<span class="token operator">: </span><span data-unresolved-link="io.ktor.http/HttpStatusCode///PointingToDeclaration/">HttpStatusCode</span><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>errorDescription<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></span></span><span class="token punctuation">)</span> : <a href="../index.html">DirectAuthenticationError.HttpError</a></div><p class="paragraph">An OAuth2-specific error that occurred during the direct authentication process.</p><p class="paragraph">https://datatracker.ietf.org/doc/html/rfc6749#section-4.1.2.1</p><h4 class="tableheader">Parameters</h4><div class="table"><div class="table-row table-row_content" data-filterable-current=":okta-direct-auth/androidMain" data-filterable-set=":okta-direct-auth/androidMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>error</span></span></u></div></span></div><div><div class="title"><p class="paragraph">A string representing the error.</p></div></div></div></div><div class="table-row table-row_content" data-filterable-current=":okta-direct-auth/androidMain" data-filterable-set=":okta-direct-auth/androidMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span>error</span><wbr><span><span>Description</span></span></u></div></span></div><div><div class="title"><p class="paragraph">An optional description of the error.</p></div></div></div></div><div class="table-row table-row_content" data-filterable-current=":okta-direct-auth/androidMain" data-filterable-set=":okta-direct-auth/androidMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span>http</span><wbr><span>Status</span><wbr><span><span>Code</span></span></u></div></span></div><div><div class="title"><p class="paragraph">The <span data-unresolved-link="io.ktor.http/HttpStatusCode///PointingToDeclaration/">HttpStatusCode</span> associated with this error.</p></div></div></div></div></div></div></div>
+    <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+      <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":okta-direct-auth/commonMain" data-filterable-set=":okta-direct-auth/commonMain" data-active="" data-toggle=":okta-direct-auth/commonMain">common</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":okta-direct-auth/commonMain"><div class="symbol monospace"><span class="token keyword">class </span><a href="index.html">Oauth2Error</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>error<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">httpStatusCode<span class="token operator">: </span>ERROR CLASS: Symbol not found for HttpStatusCode<span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>errorDescription<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></span></span><span class="token punctuation">)</span> : <a href="../index.html">DirectAuthenticationError.HttpError</a></div><p class="paragraph">An OAuth2-specific error that occurred during the direct authentication process.</p><p class="paragraph">https://datatracker.ietf.org/doc/html/rfc6749#section-4.1.2.1</p><h4 class="tableheader">Parameters</h4><div class="table"><div class="table-row table-row_content" data-filterable-current=":okta-direct-auth/commonMain" data-filterable-set=":okta-direct-auth/commonMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>error</span></span></u></div></span></div><div><div class="title"><p class="paragraph">A string representing the error.</p></div></div></div></div><div class="table-row table-row_content" data-filterable-current=":okta-direct-auth/commonMain" data-filterable-set=":okta-direct-auth/commonMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span>error</span><wbr><span><span>Description</span></span></u></div></span></div><div><div class="title"><p class="paragraph">An optional description of the error.</p></div></div></div></div><div class="table-row table-row_content" data-filterable-current=":okta-direct-auth/commonMain" data-filterable-set=":okta-direct-auth/commonMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span>http</span><wbr><span>Status</span><wbr><span><span>Code</span></span></u></div></span></div><div><div class="title"><p class="paragraph">The HttpStatusCode associated with this error.</p></div></div></div></div></div></div>    </div>
   </div>
   <div class="tabbedcontent">
     <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
     <div class="tabs-section-body">
       <div data-togglable="CONSTRUCTOR">
         <h2 class="tableheader">Constructors</h2>
-        <div class="table"><a data-name="577898140%2FConstructors%2F1050266023" anchor-label="Oauth2Error" id="577898140%2FConstructors%2F1050266023" data-filterable-set=":okta-direct-auth/androidMain"></a>
-          <div class="table-row table-row_content" data-togglable="CONSTRUCTOR" data-filterable-current=":okta-direct-auth/androidMain" data-filterable-set=":okta-direct-auth/androidMain">
+        <div class="table"><a data-name="2105728770%2FConstructors%2F8072595" anchor-label="Oauth2Error" id="2105728770%2FConstructors%2F8072595" data-filterable-set=":okta-direct-auth/commonMain"></a>
+          <div class="table-row table-row_content" data-togglable="CONSTRUCTOR" data-filterable-current=":okta-direct-auth/commonMain" data-filterable-set=":okta-direct-auth/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-oauth2-error.html"><span><span>Oauth2Error</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="577898140%2FConstructors%2F1050266023"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2105728770%2FConstructors%2F8072595"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":okta-direct-auth/androidMain"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">error<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">httpStatusCode<span class="token operator">: </span><span data-unresolved-link="io.ktor.http/HttpStatusCode///PointingToDeclaration/">HttpStatusCode</span><span class="token punctuation">, </span></span><span class="parameter ">errorDescription<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></span></span><span class="token punctuation">)</span></div></div></div>
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":okta-direct-auth/commonMain" data-filterable-set=":okta-direct-auth/commonMain" data-active="" data-toggle=":okta-direct-auth/commonMain">common</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":okta-direct-auth/commonMain"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">error<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">httpStatusCode<span class="token operator">: </span>ERROR CLASS: Symbol not found for HttpStatusCode<span class="token punctuation">, </span></span><span class="parameter ">errorDescription<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></span></span><span class="token punctuation">)</span></div></div>                  </div>
                 </div>
               </div>
             </div>
@@ -119,47 +123,53 @@
       </div>
       <div data-togglable="PROPERTY">
         <h2 class="tableheader">Properties</h2>
-        <div class="table"><a data-name="84320055%2FProperties%2F1050266023" anchor-label="error" id="84320055%2FProperties%2F1050266023" data-filterable-set=":okta-direct-auth/androidMain"></a>
-          <div class="table-row table-row_content" data-filterable-current=":okta-direct-auth/androidMain" data-filterable-set=":okta-direct-auth/androidMain">
+        <div class="table"><a data-name="84320055%2FProperties%2F8072595" anchor-label="error" id="84320055%2FProperties%2F8072595" data-filterable-set=":okta-direct-auth/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":okta-direct-auth/commonMain" data-filterable-set=":okta-direct-auth/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="error.html"><span><span>error</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="84320055%2FProperties%2F1050266023"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="84320055%2FProperties%2F8072595"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":okta-direct-auth/androidMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="error.html">error</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></div></div></div>
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":okta-direct-auth/commonMain" data-filterable-set=":okta-direct-auth/commonMain" data-active="" data-toggle=":okta-direct-auth/commonMain">common</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":okta-direct-auth/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="error.html">error</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></div></div>                  </div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-1448002649%2FProperties%2F1050266023" anchor-label="errorDescription" id="-1448002649%2FProperties%2F1050266023" data-filterable-set=":okta-direct-auth/androidMain"></a>
-          <div class="table-row table-row_content" data-filterable-current=":okta-direct-auth/androidMain" data-filterable-set=":okta-direct-auth/androidMain">
+<a data-name="-1448002649%2FProperties%2F8072595" anchor-label="errorDescription" id="-1448002649%2FProperties%2F8072595" data-filterable-set=":okta-direct-auth/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":okta-direct-auth/commonMain" data-filterable-set=":okta-direct-auth/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="error-description.html"><span>error</span><wbr><span><span>Description</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1448002649%2FProperties%2F1050266023"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1448002649%2FProperties%2F8072595"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":okta-direct-auth/androidMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="error-description.html">errorDescription</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></div></div></div>
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":okta-direct-auth/commonMain" data-filterable-set=":okta-direct-auth/commonMain" data-active="" data-toggle=":okta-direct-auth/commonMain">common</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":okta-direct-auth/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="error-description.html">errorDescription</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></div></div>                  </div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="1261303413%2FProperties%2F1050266023" anchor-label="httpStatusCode" id="1261303413%2FProperties%2F1050266023" data-filterable-set=":okta-direct-auth/androidMain"></a>
-          <div class="table-row table-row_content" data-filterable-current=":okta-direct-auth/androidMain" data-filterable-set=":okta-direct-auth/androidMain">
+<a data-name="1261303413%2FProperties%2F8072595" anchor-label="httpStatusCode" id="1261303413%2FProperties%2F8072595" data-filterable-set=":okta-direct-auth/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":okta-direct-auth/commonMain" data-filterable-set=":okta-direct-auth/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../http-status-code.html"><span>http</span><wbr><span>Status</span><wbr><span><span>Code</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1261303413%2FProperties%2F1050266023"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1261303413%2FProperties%2F8072595"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":okta-direct-auth/androidMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="../http-status-code.html">httpStatusCode</a><span class="token operator">: </span><span data-unresolved-link="io.ktor.http/HttpStatusCode///PointingToDeclaration/">HttpStatusCode</span></div></div></div>
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":okta-direct-auth/commonMain" data-filterable-set=":okta-direct-auth/commonMain" data-active="" data-toggle=":okta-direct-auth/commonMain">common</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":okta-direct-auth/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="../http-status-code.html">httpStatusCode</a><span class="token operator">: </span>ERROR CLASS: Symbol not found for HttpStatusCode</div></div>                  </div>
                 </div>
               </div>
             </div>

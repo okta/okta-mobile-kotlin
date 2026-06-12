@@ -1,0 +1,285 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>DirectAuthenticationFlowBuilder</title>
+<link href="../../../images/logo-icon.svg" rel="icon" type="image/svg"><script>var pathToRoot = "../../../";</script>
+    <script>document.documentElement.classList.replace("no-js", "js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+      if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+      } else {
+        const savedDarkMode = JSON.parse(storage)
+        if (savedDarkMode === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+      }
+    </script>
+<script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async></script>
+<link href="../../../styles/style.css" rel="Stylesheet">
+<link href="../../../styles/main.css" rel="Stylesheet">
+<link href="../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../ui-kit/ui-kit.min.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../scripts/safe-local-storage_blocking.js"></script>
+<script type="text/javascript" src="../../../scripts/navigation-loader.js" async></script>
+<script type="text/javascript" src="../../../scripts/platform-content-handler.js" async></script>
+<script type="text/javascript" src="../../../scripts/main.js" defer></script>
+<script type="text/javascript" src="../../../scripts/prism.js" async></script>
+<script type="text/javascript" src="../../../ui-kit/ui-kit.min.js" defer></script></head>
+<body>
+<div class="root">
+    <header class="navigation theme-dark" id="navigation-wrapper" role="banner">
+<a class="library-name--link" href="../../../index.html" tabindex="1">
+                    Okta Mobile Kotlin SDK
+            </a>        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle" type="button">Toggle table of contents
+        </button>
+        <div class="navigation-controls--break ui-kit_mobile-only"></div>
+        <div class="library-version" id="library-version">
+        </div>
+        <div class="navigation-controls">
+        <ul class="filter-section filter-section_loading" id="filter-section" aria-label="Target filter">
+                <button class="platform-tag platform-selector jvm-like" data-active="" aria-pressed="true" data-filter=":okta-direct-auth/jvmMain">jvm</button>
+            <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
+                <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox" data-role="dropdown-toggle" aria-controls="platform-tags-listbox" aria-haspopup="listbox" aria-expanded="false" aria-label="Toggle source sets"></button>
+                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox" aria-label="Target filter">
+                    <div class="dropdown--header"><span>Target filter</span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close target filter">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                        <li role="option" class="dropdown--option platform-selector-option jvm-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":okta-direct-auth/jvmMain" data-filter=":okta-direct-auth/jvmMain">
+                                <span class="checkbox--icon"></span>
+                                jvm
+                            </label>
+                        </li>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </ul>
+            <button class="navigation-controls--btn navigation-controls--btn_theme" id="theme-toggle-button" type="button">Switch theme
+            </button>
+            <div class="navigation-controls--btn navigation-controls--btn_search" id="searchBar" role="button">Search in
+                API
+            </div>
+        </div>
+    </header>
+    <div id="container">
+        <nav id="leftColumn" class="sidebar" data-item-type="SECTION" data-item-config="{&quot;defaultSize&quot;: 280, &quot;minSize&quot;: 200, &quot;maxSize&quot;: 400}">
+            <a class="toc--skip-link" href="#main">Skip to content</a>
+            <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
+                <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list" data-role="dropdown-listbox" aria-label="Table of contents">
+                    <div class="dropdown--header">
+                            <span>
+                                    Okta Mobile Kotlin SDK
+                            </span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                    <div class="sidebar--inner" id="sideMenu"></div>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </nav>
+        <div id="resizer" class="resizer" data-item-type="BAR"></div>
+        <div id="main" data-item-type="SECTION" role="main">
+<div class="main-content" data-page-type="classlike" id="content" pageids="okta-direct-auth::com.okta.directauth.jvm/DirectAuthenticationFlowBuilder///PointingToDeclaration//-550445117">
+  <div class="breadcrumbs"><a href="../../index.html">okta-direct-auth</a><span class="delimiter">/</span><a href="../index.html">com.okta.directauth.jvm</a><span class="delimiter">/</span><span class="current">DirectAuthenticationFlowBuilder</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span>Direct</span><wbr><span>Authentication</span><wbr><span>Flow</span><wbr><span><span>Builder</span></span></h1>
+    <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+      <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":okta-direct-auth/jvmMain" data-filterable-set=":okta-direct-auth/jvmMain" data-active="" data-toggle=":okta-direct-auth/jvmMain">jvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":okta-direct-auth/jvmMain"><div class="symbol monospace"><span class="token keyword">class </span><a href="index.html">DirectAuthenticationFlowBuilder</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">issuerUrl<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">clientId<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">scope<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span></div><p class="paragraph">A Java-idiomatic builder for creating instances of <a href="../-direct-authentication-flow/index.html">DirectAuthenticationFlow</a>.</p><p class="paragraph">This builder provides method-chaining setters for optional parameters and delegates to the Kotlin <a href="../../com.okta.directauth/-direct-authentication-flow-builder/index.html">KotlinBuilder</a> for the actual construction.</p><h4 class="tableheader">Parameters</h4><div class="table"><div class="table-row table-row_content" data-filterable-current=":okta-direct-auth/jvmMain" data-filterable-set=":okta-direct-auth/jvmMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span>issuer</span><wbr><span><span>Url</span></span></u></div></span></div><div><div class="title"><p class="paragraph">The base URL of the Authorization Server.</p></div></div></div></div><div class="table-row table-row_content" data-filterable-current=":okta-direct-auth/jvmMain" data-filterable-set=":okta-direct-auth/jvmMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span>client</span><wbr><span><span>Id</span></span></u></div></span></div><div><div class="title"><p class="paragraph">The client ID of the application.</p></div></div></div></div><div class="table-row table-row_content" data-filterable-current=":okta-direct-auth/jvmMain" data-filterable-set=":okta-direct-auth/jvmMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>scope</span></span></u></div></span></div><div><div class="title"><p class="paragraph">The OAuth 2.0 scopes the application is requesting.</p></div></div></div></div></div></div>    </div>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="CONSTRUCTOR">
+        <h2 class="tableheader">Constructors</h2>
+        <div class="table"><a data-name="-258324633%2FConstructors%2F-550445117" anchor-label="DirectAuthenticationFlowBuilder" id="-258324633%2FConstructors%2F-550445117" data-filterable-set=":okta-direct-auth/jvmMain"></a>
+          <div class="table-row table-row_content" data-togglable="CONSTRUCTOR" data-filterable-current=":okta-direct-auth/jvmMain" data-filterable-set=":okta-direct-auth/jvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-direct-authentication-flow-builder.html"><span>Direct</span><wbr><span>Authentication</span><wbr><span>Flow</span><wbr><span><span>Builder</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-258324633%2FConstructors%2F-550445117"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":okta-direct-auth/jvmMain" data-filterable-set=":okta-direct-auth/jvmMain" data-active="" data-toggle=":okta-direct-auth/jvmMain">jvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":okta-direct-auth/jvmMain"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">issuerUrl<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">clientId<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">scope<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="FUNCTION">
+        <h2 class="tableheader">Functions</h2>
+        <div class="table"><a data-name="-1408932507%2FFunctions%2F-550445117" anchor-label="build" id="-1408932507%2FFunctions%2F-550445117" data-filterable-set=":okta-direct-auth/jvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":okta-direct-auth/jvmMain" data-filterable-set=":okta-direct-auth/jvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="build.html"><span><span>build</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1408932507%2FFunctions%2F-550445117"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":okta-direct-auth/jvmMain" data-filterable-set=":okta-direct-auth/jvmMain" data-active="" data-toggle=":okta-direct-auth/jvmMain">jvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":okta-direct-auth/jvmMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="build.html"><span class="token function">build</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-direct-auth-result/index.html">DirectAuthResult</a><span class="token operator">&lt;</span><a href="../-direct-authentication-flow/index.html">DirectAuthenticationFlow</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Creates a <a href="../-direct-authentication-flow/index.html">DirectAuthenticationFlow</a> instance with the configured parameters.</p></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1295217569%2FFunctions%2F-550445117" anchor-label="setAcrValues" id="1295217569%2FFunctions%2F-550445117" data-filterable-set=":okta-direct-auth/jvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":okta-direct-auth/jvmMain" data-filterable-set=":okta-direct-auth/jvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="set-acr-values.html"><span>set</span><wbr><span>Acr</span><wbr><span><span>Values</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1295217569%2FFunctions%2F-550445117"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":okta-direct-auth/jvmMain" data-filterable-set=":okta-direct-auth/jvmMain" data-active="" data-toggle=":okta-direct-auth/jvmMain">jvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":okta-direct-auth/jvmMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="set-acr-values.html"><span class="token function">setAcrValues</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">acrValues<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">DirectAuthenticationFlowBuilder</a></div><div class="brief "><p class="paragraph">Sets the ACR values.</p></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1240190800%2FFunctions%2F-550445117" anchor-label="setAdditionalParameters" id="1240190800%2FFunctions%2F-550445117" data-filterable-set=":okta-direct-auth/jvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":okta-direct-auth/jvmMain" data-filterable-set=":okta-direct-auth/jvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="set-additional-parameters.html"><span>set</span><wbr><span>Additional</span><wbr><span><span>Parameters</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1240190800%2FFunctions%2F-550445117"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":okta-direct-auth/jvmMain" data-filterable-set=":okta-direct-auth/jvmMain" data-active="" data-toggle=":okta-direct-auth/jvmMain">jvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":okta-direct-auth/jvmMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="set-additional-parameters.html"><span class="token function">setAdditionalParameters</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">additionalParameters<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-map/index.html">Map</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">DirectAuthenticationFlowBuilder</a></div><div class="brief "><p class="paragraph">Sets additional query string parameters for all requests.</p></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="2127912210%2FFunctions%2F-550445117" anchor-label="setAuthorizationServerId" id="2127912210%2FFunctions%2F-550445117" data-filterable-set=":okta-direct-auth/jvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":okta-direct-auth/jvmMain" data-filterable-set=":okta-direct-auth/jvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="set-authorization-server-id.html"><span>set</span><wbr><span>Authorization</span><wbr><span>Server</span><wbr><span><span>Id</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2127912210%2FFunctions%2F-550445117"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":okta-direct-auth/jvmMain" data-filterable-set=":okta-direct-auth/jvmMain" data-active="" data-toggle=":okta-direct-auth/jvmMain">jvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":okta-direct-auth/jvmMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="set-authorization-server-id.html"><span class="token function">setAuthorizationServerId</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">authorizationServerId<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">DirectAuthenticationFlowBuilder</a></div><div class="brief "><p class="paragraph">Sets the authorization server ID.</p></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1507574126%2FFunctions%2F-550445117" anchor-label="setClientSecret" id="1507574126%2FFunctions%2F-550445117" data-filterable-set=":okta-direct-auth/jvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":okta-direct-auth/jvmMain" data-filterable-set=":okta-direct-auth/jvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="set-client-secret.html"><span>set</span><wbr><span>Client</span><wbr><span><span>Secret</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1507574126%2FFunctions%2F-550445117"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":okta-direct-auth/jvmMain" data-filterable-set=":okta-direct-auth/jvmMain" data-active="" data-toggle=":okta-direct-auth/jvmMain">jvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":okta-direct-auth/jvmMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="set-client-secret.html"><span class="token function">setClientSecret</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">clientSecret<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">DirectAuthenticationFlowBuilder</a></div><div class="brief "><p class="paragraph">Sets the client secret.</p></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1578309202%2FFunctions%2F-550445117" anchor-label="setClock" id="-1578309202%2FFunctions%2F-550445117" data-filterable-set=":okta-direct-auth/jvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":okta-direct-auth/jvmMain" data-filterable-set=":okta-direct-auth/jvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="set-clock.html"><span>set</span><wbr><span><span>Clock</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1578309202%2FFunctions%2F-550445117"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":okta-direct-auth/jvmMain" data-filterable-set=":okta-direct-auth/jvmMain" data-active="" data-toggle=":okta-direct-auth/jvmMain">jvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":okta-direct-auth/jvmMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="set-clock.html"><span class="token function">setClock</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">clock<span class="token operator">: </span><a href="../../../auth-foundation/com.okta.authfoundation.client/-oidc-clock/index.html">OidcClock</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">DirectAuthenticationFlowBuilder</a></div><div class="brief "><p class="paragraph">Sets the clock used for time-sensitive operations.</p></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1839478702%2FFunctions%2F-550445117" anchor-label="setIntent" id="1839478702%2FFunctions%2F-550445117" data-filterable-set=":okta-direct-auth/jvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":okta-direct-auth/jvmMain" data-filterable-set=":okta-direct-auth/jvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="set-intent.html"><span>set</span><wbr><span><span>Intent</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1839478702%2FFunctions%2F-550445117"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":okta-direct-auth/jvmMain" data-filterable-set=":okta-direct-auth/jvmMain" data-active="" data-toggle=":okta-direct-auth/jvmMain">jvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":okta-direct-auth/jvmMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="set-intent.html"><span class="token function">setIntent</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">intent<span class="token operator">: </span><a href="../../com.okta.directauth.model/-direct-authentication-intent/index.html">DirectAuthenticationIntent</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">DirectAuthenticationFlowBuilder</a></div><div class="brief "><p class="paragraph">Sets the authentication intent.</p></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1970675045%2FFunctions%2F-550445117" anchor-label="setSupportedGrantTypes" id="1970675045%2FFunctions%2F-550445117" data-filterable-set=":okta-direct-auth/jvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":okta-direct-auth/jvmMain" data-filterable-set=":okta-direct-auth/jvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="set-supported-grant-types.html"><span>set</span><wbr><span>Supported</span><wbr><span>Grant</span><wbr><span><span>Types</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1970675045%2FFunctions%2F-550445117"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":okta-direct-auth/jvmMain" data-filterable-set=":okta-direct-auth/jvmMain" data-active="" data-toggle=":okta-direct-auth/jvmMain">jvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":okta-direct-auth/jvmMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="set-supported-grant-types.html"><span class="token function">setSupportedGrantTypes</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">supportedGrantTypes<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><a href="../../../auth-foundation/com.okta.authfoundation/-grant-type/index.html">GrantType</a><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">DirectAuthenticationFlowBuilder</a></div><div class="brief "><p class="paragraph">Sets the supported grant types.</p></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    <div class="footer">
+        <div class="footer--container">
+            <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
+            <div class="footer--content">
+                <div>
+                    <span>Generated by </span>
+                    <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
+                        Dokka
+                    </a>
+                    <div>© 2026 Copyright</div>
+                </div>
+            </div>
+        </div>
+    </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

@@ -42,7 +42,7 @@
         </div>
         <div class="navigation-controls">
         <ul class="filter-section filter-section_loading" id="filter-section" aria-label="Target filter">
-                <button class="platform-tag platform-selector jvm-like" data-active="" aria-pressed="true" data-filter=":auth-foundation/androidMain">android</button>
+                <button class="platform-tag platform-selector jvm-like" data-active="" aria-pressed="true" data-filter=":auth-foundation/commonMain">common</button>
             <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
                 <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox" data-role="dropdown-toggle" aria-controls="platform-tags-listbox" aria-haspopup="listbox" aria-expanded="false" aria-label="Toggle source sets"></button>
                 <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox" aria-label="Target filter">
@@ -53,9 +53,9 @@
                     </div>
                         <li role="option" class="dropdown--option platform-selector-option jvm-like" tabindex="0">
                             <label class="checkbox">
-                                <input type="checkbox" class="checkbox--input" id=":auth-foundation/androidMain" data-filter=":auth-foundation/androidMain">
+                                <input type="checkbox" class="checkbox--input" id=":auth-foundation/commonMain" data-filter=":auth-foundation/commonMain">
                                 <span class="checkbox--icon"></span>
-                                android
+                                common
                             </label>
                         </li>
                 </ul>
@@ -89,12 +89,14 @@
         </nav>
         <div id="resizer" class="resizer" data-item-type="BAR"></div>
         <div id="main" data-item-type="SECTION" role="main">
-<div class="main-content" data-page-type="member" id="content" pageids="auth-foundation::com.okta.authfoundation.claims/ClaimsProvider/deserializeClaim/#kotlin.String#kotlinx.serialization.DeserializationStrategy[TypeParam(bounds=[kotlin.Any?])]/PointingToDeclaration//606929609">
+<div class="main-content" data-page-type="member" id="content" pageids="auth-foundation::com.okta.authfoundation.claims/ClaimsProvider/deserializeClaim/#kotlin.String#<ERROR CLASS> ERROR CLASS: Symbol not found for DeserializationStrategy<T>/PointingToDeclaration//-1771157707">
   <div class="breadcrumbs"><a href="../../index.html">auth-foundation</a><span class="delimiter">/</span><a href="../index.html">com.okta.authfoundation.claims</a><span class="delimiter">/</span><a href="index.html">ClaimsProvider</a><span class="delimiter">/</span><span class="current">deserializeClaim</span></div>
   <div class="cover ">
     <h1 class="cover"><span>deserialize</span><wbr><span><span>Claim</span></span></h1>
   </div>
-  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">fun </span><span class="token operator">&lt;</span><a href="deserialize-claim.html">T</a><span class="token operator">&gt; </span><a href="deserialize-claim.html"><span class="token function">deserializeClaim</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">claim<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">deserializationStrategy<span class="token operator">: </span><span data-unresolved-link="kotlinx.serialization/DeserializationStrategy///PointingToDeclaration/">DeserializationStrategy</span><span class="token operator">&lt;</span><a href="deserialize-claim.html">T</a><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="deserialize-claim.html">T</a><span class="token operator">?</span></div><p class="paragraph">Deserialize a specific claim from the claims data in a type safe way.</p><span class="kdoc-tag"><h4 class="">Return</h4><p class="paragraph">the specified type, deserialized from the claims, if present.</p></span><h4 class="tableheader">Throws</h4><div class="table"><div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><span data-unresolved-link="kotlinx.serialization/SerializationException///PointingToDeclaration/"><span>Serialization</span><wbr><span><span>Exception</span></span></span></div></span></div><div><div class="title"><p class="paragraph">if the claim can't be deserialized into the specified type.</p></div></div></div></div></div></div></div>
+  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain" data-active="" data-toggle=":auth-foundation/commonMain">common</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/commonMain"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">fun </span><span class="token operator">&lt;</span><a href="deserialize-claim.html">T</a><span class="token operator">&gt; </span><a href="deserialize-claim.html"><span class="token function">deserializeClaim</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">claim<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">deserializationStrategy<span class="token operator">: </span>ERROR CLASS: Symbol not found for DeserializationStrategy&lt;T&gt;</span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="deserialize-claim.html">T</a><span class="token operator">?</span></div><p class="paragraph">Deserialize a specific claim from the claims data in a type safe way.</p><span class="kdoc-tag"><h4 class="">Return</h4><p class="paragraph">the specified type, deserialized from the claims, if present.</p></span><h4 class="tableheader">Throws</h4><div class="table"><div class="table-row table-row_content" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><span>Serialization</span><wbr><span><span>Exception</span></span></div></span></div><div><div class="title"><p class="paragraph">if the claim can't be deserialized into the specified type.</p></div></div></div></div></div></div>  </div>
 </div>
     <div class="footer">
         <div class="footer--container">

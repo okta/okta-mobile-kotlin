@@ -1,0 +1,302 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>OAuth2ClientBuilder</title>
+<link href="../../../images/logo-icon.svg" rel="icon" type="image/svg"><script>var pathToRoot = "../../../";</script>
+    <script>document.documentElement.classList.replace("no-js", "js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+      if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+      } else {
+        const savedDarkMode = JSON.parse(storage)
+        if (savedDarkMode === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+      }
+    </script>
+<script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async></script>
+<link href="../../../styles/style.css" rel="Stylesheet">
+<link href="../../../styles/main.css" rel="Stylesheet">
+<link href="../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../ui-kit/ui-kit.min.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../scripts/safe-local-storage_blocking.js"></script>
+<script type="text/javascript" src="../../../scripts/navigation-loader.js" async></script>
+<script type="text/javascript" src="../../../scripts/platform-content-handler.js" async></script>
+<script type="text/javascript" src="../../../scripts/main.js" defer></script>
+<script type="text/javascript" src="../../../scripts/prism.js" async></script>
+<script type="text/javascript" src="../../../ui-kit/ui-kit.min.js" defer></script></head>
+<body>
+<div class="root">
+    <header class="navigation theme-dark" id="navigation-wrapper" role="banner">
+<a class="library-name--link" href="../../../index.html" tabindex="1">
+                    Okta Mobile Kotlin SDK
+            </a>        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle" type="button">Toggle table of contents
+        </button>
+        <div class="navigation-controls--break ui-kit_mobile-only"></div>
+        <div class="library-version" id="library-version">
+        </div>
+        <div class="navigation-controls">
+        <ul class="filter-section filter-section_loading" id="filter-section" aria-label="Target filter">
+                <button class="platform-tag platform-selector jvm-like" data-active="" aria-pressed="true" data-filter=":auth-foundation/jvmMain">jvm</button>
+            <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
+                <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox" data-role="dropdown-toggle" aria-controls="platform-tags-listbox" aria-haspopup="listbox" aria-expanded="false" aria-label="Toggle source sets"></button>
+                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox" aria-label="Target filter">
+                    <div class="dropdown--header"><span>Target filter</span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close target filter">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                        <li role="option" class="dropdown--option platform-selector-option jvm-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":auth-foundation/jvmMain" data-filter=":auth-foundation/jvmMain">
+                                <span class="checkbox--icon"></span>
+                                jvm
+                            </label>
+                        </li>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </ul>
+            <button class="navigation-controls--btn navigation-controls--btn_theme" id="theme-toggle-button" type="button">Switch theme
+            </button>
+            <div class="navigation-controls--btn navigation-controls--btn_search" id="searchBar" role="button">Search in
+                API
+            </div>
+        </div>
+    </header>
+    <div id="container">
+        <nav id="leftColumn" class="sidebar" data-item-type="SECTION" data-item-config="{&quot;defaultSize&quot;: 280, &quot;minSize&quot;: 200, &quot;maxSize&quot;: 400}">
+            <a class="toc--skip-link" href="#main">Skip to content</a>
+            <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
+                <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list" data-role="dropdown-listbox" aria-label="Table of contents">
+                    <div class="dropdown--header">
+                            <span>
+                                    Okta Mobile Kotlin SDK
+                            </span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                    <div class="sidebar--inner" id="sideMenu"></div>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </nav>
+        <div id="resizer" class="resizer" data-item-type="BAR"></div>
+        <div id="main" data-item-type="SECTION" role="main">
+<div class="main-content" data-page-type="classlike" id="content" pageids="auth-foundation::com.okta.authfoundation.client.jvm/OAuth2ClientBuilder///PointingToDeclaration//1230527205">
+  <div class="breadcrumbs"><a href="../../index.html">auth-foundation</a><span class="delimiter">/</span><a href="../index.html">com.okta.authfoundation.client.jvm</a><span class="delimiter">/</span><span class="current">OAuth2ClientBuilder</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span>OAuth2Client</span><wbr><span><span>Builder</span></span></h1>
+    <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+      <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":auth-foundation/jvmMain" data-filterable-set=":auth-foundation/jvmMain" data-active="" data-toggle=":auth-foundation/jvmMain">jvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/jvmMain"><div class="symbol monospace"><span class="token keyword">class </span><a href="index.html">OAuth2ClientBuilder</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">issuerUrl<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">clientId<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">scope<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span></div><p class="paragraph">A Java-idiomatic builder for creating instances of <a href="../../com.okta.authfoundation.client.kmp/-o-auth2-client/index.html">OAuth2Client</a>.</p><p class="paragraph">This builder provides method-chaining setters for optional parameters and delegates to the Kotlin <a href="index.html">OAuth2ClientBuilder</a> for the actual construction.</p><h4 class="tableheader">Parameters</h4><div class="table"><div class="table-row table-row_content" data-filterable-current=":auth-foundation/jvmMain" data-filterable-set=":auth-foundation/jvmMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span>issuer</span><wbr><span><span>Url</span></span></u></div></span></div><div><div class="title"><p class="paragraph">The base URL of the Authorization Server.</p></div></div></div></div><div class="table-row table-row_content" data-filterable-current=":auth-foundation/jvmMain" data-filterable-set=":auth-foundation/jvmMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span>client</span><wbr><span><span>Id</span></span></u></div></span></div><div><div class="title"><p class="paragraph">The client ID of the application.</p></div></div></div></div><div class="table-row table-row_content" data-filterable-current=":auth-foundation/jvmMain" data-filterable-set=":auth-foundation/jvmMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>scope</span></span></u></div></span></div><div><div class="title"><p class="paragraph">The OAuth 2.0 scopes the application is requesting.</p></div></div></div></div></div></div>    </div>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="CONSTRUCTOR">
+        <h2 class="tableheader">Constructors</h2>
+        <div class="table"><a data-name="560844856%2FConstructors%2F1230527205" anchor-label="OAuth2ClientBuilder" id="560844856%2FConstructors%2F1230527205" data-filterable-set=":auth-foundation/jvmMain"></a>
+          <div class="table-row table-row_content" data-togglable="CONSTRUCTOR" data-filterable-current=":auth-foundation/jvmMain" data-filterable-set=":auth-foundation/jvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-o-auth2-client-builder.html"><span>OAuth2Client</span><wbr><span><span>Builder</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="560844856%2FConstructors%2F1230527205"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":auth-foundation/jvmMain" data-filterable-set=":auth-foundation/jvmMain" data-active="" data-toggle=":auth-foundation/jvmMain">jvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/jvmMain"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">issuerUrl<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">clientId<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">scope<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="FUNCTION">
+        <h2 class="tableheader">Functions</h2>
+        <div class="table"><a data-name="-484348289%2FFunctions%2F1230527205" anchor-label="build" id="-484348289%2FFunctions%2F1230527205" data-filterable-set=":auth-foundation/jvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/jvmMain" data-filterable-set=":auth-foundation/jvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="build.html"><span><span>build</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-484348289%2FFunctions%2F1230527205"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":auth-foundation/jvmMain" data-filterable-set=":auth-foundation/jvmMain" data-active="" data-toggle=":auth-foundation/jvmMain">jvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/jvmMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="build.html"><span class="token function">build</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-auth-foundation-result/index.html">AuthFoundationResult</a><span class="token operator">&lt;</span><a href="../../com.okta.authfoundation.client.kmp/-o-auth2-client/index.html">OAuth2Client</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Creates an <a href="../../com.okta.authfoundation.client.kmp/-o-auth2-client/index.html">OAuth2Client</a> instance with the configured parameters.</p></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1065122457%2FFunctions%2F1230527205" anchor-label="setAcrValues" id="-1065122457%2FFunctions%2F1230527205" data-filterable-set=":auth-foundation/jvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/jvmMain" data-filterable-set=":auth-foundation/jvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="set-acr-values.html"><span>set</span><wbr><span>Acr</span><wbr><span><span>Values</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1065122457%2FFunctions%2F1230527205"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":auth-foundation/jvmMain" data-filterable-set=":auth-foundation/jvmMain" data-active="" data-toggle=":auth-foundation/jvmMain">jvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/jvmMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="set-acr-values.html"><span class="token function">setAcrValues</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">acrValues<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">OAuth2ClientBuilder</a></div><div class="brief "><p class="paragraph">Sets the ACR values.</p></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-565291028%2FFunctions%2F1230527205" anchor-label="setApiExecutor" id="-565291028%2FFunctions%2F1230527205" data-filterable-set=":auth-foundation/jvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/jvmMain" data-filterable-set=":auth-foundation/jvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="set-api-executor.html"><span>set</span><wbr><span>Api</span><wbr><span><span>Executor</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-565291028%2FFunctions%2F1230527205"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":auth-foundation/jvmMain" data-filterable-set=":auth-foundation/jvmMain" data-active="" data-toggle=":auth-foundation/jvmMain">jvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/jvmMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="set-api-executor.html"><span class="token function">setApiExecutor</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">apiExecutor<span class="token operator">: </span><a href="../../com.okta.authfoundation.api.http/-api-executor/index.html">ApiExecutor</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">OAuth2ClientBuilder</a></div><div class="brief "><p class="paragraph">Sets the HTTP executor used for all network requests.</p></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1552515540%2FFunctions%2F1230527205" anchor-label="setAuthorizationServerId" id="-1552515540%2FFunctions%2F1230527205" data-filterable-set=":auth-foundation/jvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/jvmMain" data-filterable-set=":auth-foundation/jvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="set-authorization-server-id.html"><span>set</span><wbr><span>Authorization</span><wbr><span>Server</span><wbr><span><span>Id</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1552515540%2FFunctions%2F1230527205"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":auth-foundation/jvmMain" data-filterable-set=":auth-foundation/jvmMain" data-active="" data-toggle=":auth-foundation/jvmMain">jvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/jvmMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="set-authorization-server-id.html"><span class="token function">setAuthorizationServerId</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">authorizationServerId<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">OAuth2ClientBuilder</a></div><div class="brief "><p class="paragraph">Sets the authorization server ID.</p></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1056135923%2FFunctions%2F1230527205" anchor-label="setCache" id="1056135923%2FFunctions%2F1230527205" data-filterable-set=":auth-foundation/jvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/jvmMain" data-filterable-set=":auth-foundation/jvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="set-cache.html"><span>set</span><wbr><span><span>Cache</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1056135923%2FFunctions%2F1230527205"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":auth-foundation/jvmMain" data-filterable-set=":auth-foundation/jvmMain" data-active="" data-toggle=":auth-foundation/jvmMain">jvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/jvmMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="set-cache.html"><span class="token function">setCache</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">cache<span class="token operator">: </span><a href="../../com.okta.authfoundation.client/-cache/index.html">Cache</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">OAuth2ClientBuilder</a></div><div class="brief "><p class="paragraph">Sets the cache for optimizing network calls.</p></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1989272812%2FFunctions%2F1230527205" anchor-label="setClientSecret" id="-1989272812%2FFunctions%2F1230527205" data-filterable-set=":auth-foundation/jvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/jvmMain" data-filterable-set=":auth-foundation/jvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="set-client-secret.html"><span>set</span><wbr><span>Client</span><wbr><span><span>Secret</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1989272812%2FFunctions%2F1230527205"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":auth-foundation/jvmMain" data-filterable-set=":auth-foundation/jvmMain" data-active="" data-toggle=":auth-foundation/jvmMain">jvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/jvmMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="set-client-secret.html"><span class="token function">setClientSecret</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">clientSecret<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">OAuth2ClientBuilder</a></div><div class="brief "><p class="paragraph">Sets the client secret for confidential clients.</p></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1391987628%2FFunctions%2F1230527205" anchor-label="setClock" id="-1391987628%2FFunctions%2F1230527205" data-filterable-set=":auth-foundation/jvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/jvmMain" data-filterable-set=":auth-foundation/jvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="set-clock.html"><span>set</span><wbr><span><span>Clock</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1391987628%2FFunctions%2F1230527205"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":auth-foundation/jvmMain" data-filterable-set=":auth-foundation/jvmMain" data-active="" data-toggle=":auth-foundation/jvmMain">jvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/jvmMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="set-clock.html"><span class="token function">setClock</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">clock<span class="token operator">: </span><a href="../../com.okta.authfoundation.client/-oidc-clock/index.html">OidcClock</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">OAuth2ClientBuilder</a></div><div class="brief "><p class="paragraph">Sets the clock used for time-sensitive operations.</p></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-823305260%2FFunctions%2F1230527205" anchor-label="setComputeDispatcher" id="-823305260%2FFunctions%2F1230527205" data-filterable-set=":auth-foundation/jvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/jvmMain" data-filterable-set=":auth-foundation/jvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="set-compute-dispatcher.html"><span>set</span><wbr><span>Compute</span><wbr><span><span>Dispatcher</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-823305260%2FFunctions%2F1230527205"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":auth-foundation/jvmMain" data-filterable-set=":auth-foundation/jvmMain" data-active="" data-toggle=":auth-foundation/jvmMain">jvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/jvmMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="set-compute-dispatcher.html"><span class="token function">setComputeDispatcher</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">dispatcher<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.coroutines/-coroutine-context/index.html">CoroutineContext</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">OAuth2ClientBuilder</a></div><div class="brief "><p class="paragraph">Sets the dispatcher for compute-bound operations.</p></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1004755743%2FFunctions%2F1230527205" anchor-label="setIoDispatcher" id="-1004755743%2FFunctions%2F1230527205" data-filterable-set=":auth-foundation/jvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/jvmMain" data-filterable-set=":auth-foundation/jvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="set-io-dispatcher.html"><span>set</span><wbr><span>Io</span><wbr><span><span>Dispatcher</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1004755743%2FFunctions%2F1230527205"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":auth-foundation/jvmMain" data-filterable-set=":auth-foundation/jvmMain" data-active="" data-toggle=":auth-foundation/jvmMain">jvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/jvmMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="set-io-dispatcher.html"><span class="token function">setIoDispatcher</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">dispatcher<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.coroutines/-coroutine-context/index.html">CoroutineContext</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">OAuth2ClientBuilder</a></div><div class="brief "><p class="paragraph">Sets the dispatcher for IO-bound operations.</p></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    <div class="footer">
+        <div class="footer--container">
+            <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
+            <div class="footer--content">
+                <div>
+                    <span>Generated by </span>
+                    <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
+                        Dokka
+                    </a>
+                    <div>© 2026 Copyright</div>
+                </div>
+            </div>
+        </div>
+    </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

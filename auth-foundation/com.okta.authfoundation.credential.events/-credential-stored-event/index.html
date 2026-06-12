@@ -42,7 +42,7 @@
         </div>
         <div class="navigation-controls">
         <ul class="filter-section filter-section_loading" id="filter-section" aria-label="Target filter">
-                <button class="platform-tag platform-selector jvm-like" data-active="" aria-pressed="true" data-filter=":auth-foundation/androidMain">android</button>
+                <button class="platform-tag platform-selector jvm-like" data-active="" aria-pressed="true" data-filter=":auth-foundation/commonMain">common</button>
             <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
                 <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox" data-role="dropdown-toggle" aria-controls="platform-tags-listbox" aria-haspopup="listbox" aria-expanded="false" aria-label="Toggle source sets"></button>
                 <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox" aria-label="Target filter">
@@ -53,9 +53,9 @@
                     </div>
                         <li role="option" class="dropdown--option platform-selector-option jvm-like" tabindex="0">
                             <label class="checkbox">
-                                <input type="checkbox" class="checkbox--input" id=":auth-foundation/androidMain" data-filter=":auth-foundation/androidMain">
+                                <input type="checkbox" class="checkbox--input" id=":auth-foundation/commonMain" data-filter=":auth-foundation/commonMain">
                                 <span class="checkbox--icon"></span>
-                                android
+                                common
                             </label>
                         </li>
                 </ul>
@@ -89,58 +89,66 @@
         </nav>
         <div id="resizer" class="resizer" data-item-type="BAR"></div>
         <div id="main" data-item-type="SECTION" role="main">
-<div class="main-content" data-page-type="classlike" id="content" pageids="auth-foundation::com.okta.authfoundation.credential.events/CredentialStoredEvent///PointingToDeclaration//606929609">
+<div class="main-content" data-page-type="classlike" id="content" pageids="auth-foundation::com.okta.authfoundation.credential.events/CredentialStoredEvent///PointingToDeclaration//-1771157707">
   <div class="breadcrumbs"><a href="../../index.html">auth-foundation</a><span class="delimiter">/</span><a href="../index.html">com.okta.authfoundation.credential.events</a><span class="delimiter">/</span><span class="current">CredentialStoredEvent</span></div>
   <div class="cover ">
     <h1 class="cover"><span>Credential</span><wbr><span>Stored</span><wbr><span><span>Event</span></span></h1>
-    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">class </span><a href="index.html">CredentialStoredEvent</a> : <a href="../../com.okta.authfoundation.events/-event/index.html">Event</a></div><p class="paragraph">Emitted via <a href="../../com.okta.authfoundation.events/-event-handler/on-event.html">EventHandler.onEvent</a> after a <a href="../../com.okta.authfoundation.credential/-credential/index.html">Credential</a> is updated due to a <a href="../../../auth-foundation/com.okta.authfoundation.credential/-credential/replace-token.html">Credential.replaceToken</a> invocation.</p></div></div>
+    <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+      <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain" data-active="" data-toggle=":auth-foundation/commonMain">common</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/commonMain"><div class="symbol monospace"><span class="token keyword">class </span><a href="index.html">CredentialStoredEvent</a> : <a href="../../com.okta.authfoundation.events/-event/index.html">Event</a></div><p class="paragraph">Emitted via <a href="../../com.okta.authfoundation.events/-event-handler/on-event.html">EventHandler.onEvent</a> after a <a href="../../com.okta.authfoundation.credential/-credential-identifier/index.html">CredentialIdentifier</a> is updated due to a CredentialIdentifier.replaceToken invocation.</p></div>    </div>
   </div>
   <div class="tabbedcontent">
     <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
     <div class="tabs-section-body">
       <div data-togglable="PROPERTY">
         <h2 class="tableheader">Properties</h2>
-        <div class="table"><a data-name="1303813117%2FProperties%2F606929609" anchor-label="credential" id="1303813117%2FProperties%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
-          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
+        <div class="table"><a data-name="557713236%2FProperties%2F-1771157707" anchor-label="credentialIdentifier" id="557713236%2FProperties%2F-1771157707" data-filterable-set=":auth-foundation/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
-                  <div><a href="credential.html"><span><span>credential</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1303813117%2FProperties%2F606929609"></span>
+                  <div><a href="credential-identifier.html"><span>credential</span><wbr><span><span>Identifier</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="557713236%2FProperties%2F-1771157707"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="credential.html">credential</a><span class="token operator">: </span><a href="../../com.okta.authfoundation.credential/-credential/index.html">Credential</a></div><div class="brief "><p class="paragraph">The <a href="../../com.okta.authfoundation.credential/-credential/index.html">Credential</a> associated with the event.</p></div></div></div>
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain" data-active="" data-toggle=":auth-foundation/commonMain">common</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="credential-identifier.html">credentialIdentifier</a><span class="token operator">: </span><a href="../../com.okta.authfoundation.credential/-credential-identifier/index.html">CredentialIdentifier</a></div><div class="brief "><p class="paragraph">The <a href="../../com.okta.authfoundation.credential/-credential-identifier/index.html">CredentialIdentifier</a> associated with the event.</p></div></div>                  </div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="317211579%2FProperties%2F606929609" anchor-label="tags" id="317211579%2FProperties%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
-          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
+<a data-name="317211579%2FProperties%2F-1771157707" anchor-label="tags" id="317211579%2FProperties%2F-1771157707" data-filterable-set=":auth-foundation/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="tags.html"><span><span>tags</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="317211579%2FProperties%2F606929609"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="317211579%2FProperties%2F-1771157707"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="tags.html">tags</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-map/index.html">Map</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">The tags associated with the event.</p></div></div></div>
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain" data-active="" data-toggle=":auth-foundation/commonMain">common</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="tags.html">tags</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-map/index.html">Map</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">The tags associated with the event.</p></div></div>                  </div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-2123338547%2FProperties%2F606929609" anchor-label="token" id="-2123338547%2FProperties%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
-          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
+<a data-name="-2123338547%2FProperties%2F-1771157707" anchor-label="token" id="-2123338547%2FProperties%2F-1771157707" data-filterable-set=":auth-foundation/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="token.html"><span><span>token</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2123338547%2FProperties%2F606929609"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2123338547%2FProperties%2F-1771157707"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="token.html">token</a><span class="token operator">: </span><a href="../../com.okta.authfoundation.credential/-token/index.html">Token</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">The <a href="../../com.okta.authfoundation.credential/-token/index.html">Token</a> associated with the event.</p></div></div></div>
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain" data-active="" data-toggle=":auth-foundation/commonMain">common</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="token.html">token</a><span class="token operator">: </span><a href="../../com.okta.authfoundation.client/-token-info/index.html">TokenInfo</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">The <a href="../../com.okta.authfoundation.client/-token-info/index.html">TokenInfo</a> associated with the event.</p></div></div>                  </div>
                 </div>
               </div>
             </div>

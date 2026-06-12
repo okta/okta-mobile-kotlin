@@ -42,7 +42,7 @@
         </div>
         <div class="navigation-controls">
         <ul class="filter-section filter-section_loading" id="filter-section" aria-label="Target filter">
-                <button class="platform-tag platform-selector jvm-like" data-active="" aria-pressed="true" data-filter=":okta-direct-auth/androidMain">android</button>
+                <button class="platform-tag platform-selector jvm-like" data-active="" aria-pressed="true" data-filter=":okta-direct-auth/commonMain">common</button>
             <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
                 <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox" data-role="dropdown-toggle" aria-controls="platform-tags-listbox" aria-haspopup="listbox" aria-expanded="false" aria-label="Toggle source sets"></button>
                 <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox" aria-label="Target filter">
@@ -53,9 +53,9 @@
                     </div>
                         <li role="option" class="dropdown--option platform-selector-option jvm-like" tabindex="0">
                             <label class="checkbox">
-                                <input type="checkbox" class="checkbox--input" id=":okta-direct-auth/androidMain" data-filter=":okta-direct-auth/androidMain">
+                                <input type="checkbox" class="checkbox--input" id=":okta-direct-auth/commonMain" data-filter=":okta-direct-auth/commonMain">
                                 <span class="checkbox--icon"></span>
-                                android
+                                common
                             </label>
                         </li>
                 </ul>
@@ -89,28 +89,32 @@
         </nav>
         <div id="resizer" class="resizer" data-item-type="BAR"></div>
         <div id="main" data-item-type="SECTION" role="main">
-<div class="main-content" data-page-type="classlike" id="content" pageids="okta-direct-auth::com.okta.directauth.api/DirectAuthenticationFlow///PointingToDeclaration//1050266023">
+<div class="main-content" data-page-type="classlike" id="content" pageids="okta-direct-auth::com.okta.directauth.api/DirectAuthenticationFlow///PointingToDeclaration//8072595">
   <div class="breadcrumbs"><a href="../../index.html">okta-direct-auth</a><span class="delimiter">/</span><a href="../index.html">com.okta.directauth.api</a><span class="delimiter">/</span><span class="current">DirectAuthenticationFlow</span></div>
   <div class="cover ">
     <h1 class="cover"><span>Direct</span><wbr><span>Authentication</span><wbr><span><span>Flow</span></span></h1>
-    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":okta-direct-auth/androidMain"><div class="symbol monospace"><span class="token keyword">interface </span><a href="index.html">DirectAuthenticationFlow</a></div><p class="paragraph">The primary interface for interacting with the Okta Direct Authentication API.</p><p class="paragraph">This interface defines the contract for initiating an authentication flow. An instance of this interface can be created using the <code class="lang-kotlin">DirectAuthenticationFlow.create</code> builder.</p></div></div>
+    <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+      <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":okta-direct-auth/commonMain" data-filterable-set=":okta-direct-auth/commonMain" data-active="" data-toggle=":okta-direct-auth/commonMain">common</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":okta-direct-auth/commonMain"><div class="symbol monospace"><span class="token keyword">interface </span><a href="index.html">DirectAuthenticationFlow</a></div><p class="paragraph">The primary interface for interacting with the Okta Direct Authentication API.</p><p class="paragraph">This interface defines the contract for initiating an authentication flow. An instance of this interface can be created using the <code class="lang-kotlin">DirectAuthenticationFlow.create</code> builder.</p></div>    </div>
   </div>
   <div class="tabbedcontent">
     <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
     <div class="tabs-section-body">
       <div data-togglable="PROPERTY">
         <h2 class="tableheader">Properties</h2>
-        <div class="table"><a data-name="264305610%2FProperties%2F1050266023" anchor-label="authenticationState" id="264305610%2FProperties%2F1050266023" data-filterable-set=":okta-direct-auth/androidMain"></a>
-          <div class="table-row table-row_content" data-filterable-current=":okta-direct-auth/androidMain" data-filterable-set=":okta-direct-auth/androidMain">
+        <div class="table"><a data-name="264305610%2FProperties%2F8072595" anchor-label="authenticationState" id="264305610%2FProperties%2F8072595" data-filterable-set=":okta-direct-auth/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":okta-direct-auth/commonMain" data-filterable-set=":okta-direct-auth/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="authentication-state.html"><span>authentication</span><wbr><span><span>State</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="264305610%2FProperties%2F1050266023"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="264305610%2FProperties%2F8072595"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":okta-direct-auth/androidMain"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">val </span><a href="authentication-state.html">authenticationState</a><span class="token operator">: </span><span data-unresolved-link="kotlinx.coroutines.flow/StateFlow///PointingToDeclaration/">StateFlow</span><span class="token operator">&lt;</span><a href="../../com.okta.directauth.model/-direct-authentication-state/index.html">DirectAuthenticationState</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Indicates authentication flow state</p></div></div></div>
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":okta-direct-auth/commonMain" data-filterable-set=":okta-direct-auth/commonMain" data-active="" data-toggle=":okta-direct-auth/commonMain">common</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":okta-direct-auth/commonMain"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">val </span><a href="authentication-state.html">authenticationState</a><span class="token operator">: </span>ERROR CLASS: Symbol not found for StateFlow&lt;com/okta/directauth/model/DirectAuthenticationState&gt;</div><div class="brief "><p class="paragraph">Indicates authentication flow state</p></div></div>                  </div>
                 </div>
               </div>
             </div>
@@ -119,32 +123,36 @@
       </div>
       <div data-togglable="FUNCTION">
         <h2 class="tableheader">Functions</h2>
-        <div class="table"><a data-name="1188295348%2FFunctions%2F1050266023" anchor-label="reset" id="1188295348%2FFunctions%2F1050266023" data-filterable-set=":okta-direct-auth/androidMain"></a>
-          <div class="table-row table-row_content" data-filterable-current=":okta-direct-auth/androidMain" data-filterable-set=":okta-direct-auth/androidMain">
+        <div class="table"><a data-name="1188295348%2FFunctions%2F8072595" anchor-label="reset" id="1188295348%2FFunctions%2F8072595" data-filterable-set=":okta-direct-auth/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":okta-direct-auth/commonMain" data-filterable-set=":okta-direct-auth/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="reset.html"><span><span>reset</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1188295348%2FFunctions%2F1050266023"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1188295348%2FFunctions%2F8072595"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":okta-direct-auth/androidMain"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">fun </span><a href="reset.html"><span class="token function">reset</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../com.okta.directauth.model/-direct-authentication-state/index.html">DirectAuthenticationState</a></div><div class="brief "><p class="paragraph">Resets the direct authentication flow</p></div></div></div>
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":okta-direct-auth/commonMain" data-filterable-set=":okta-direct-auth/commonMain" data-active="" data-toggle=":okta-direct-auth/commonMain">common</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":okta-direct-auth/commonMain"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">fun </span><a href="reset.html"><span class="token function">reset</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../com.okta.directauth.model/-direct-authentication-state/index.html">DirectAuthenticationState</a></div><div class="brief "><p class="paragraph">Resets the direct authentication flow</p></div></div>                  </div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="525129695%2FFunctions%2F1050266023" anchor-label="start" id="525129695%2FFunctions%2F1050266023" data-filterable-set=":okta-direct-auth/androidMain"></a>
-          <div class="table-row table-row_content" data-filterable-current=":okta-direct-auth/androidMain" data-filterable-set=":okta-direct-auth/androidMain">
+<a data-name="525129695%2FFunctions%2F8072595" anchor-label="start" id="525129695%2FFunctions%2F8072595" data-filterable-set=":okta-direct-auth/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":okta-direct-auth/commonMain" data-filterable-set=":okta-direct-auth/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="start.html"><span><span>start</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="525129695%2FFunctions%2F1050266023"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="525129695%2FFunctions%2F8072595"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":okta-direct-auth/androidMain"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="start.html"><span class="token function">start</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">loginHint<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">primaryFactor<span class="token operator">: </span><a href="../../com.okta.directauth.model/-primary-factor/index.html">PrimaryFactor</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../com.okta.directauth.model/-direct-authentication-state/index.html">DirectAuthenticationState</a></div><div class="brief "><p class="paragraph">Starts the direct authentication flow with an initial factor.</p></div></div></div>
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":okta-direct-auth/commonMain" data-filterable-set=":okta-direct-auth/commonMain" data-active="" data-toggle=":okta-direct-auth/commonMain">common</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":okta-direct-auth/commonMain"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="start.html"><span class="token function">start</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">loginHint<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">primaryFactor<span class="token operator">: </span><a href="../../com.okta.directauth.model/-primary-factor/index.html">PrimaryFactor</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../com.okta.directauth.model/-direct-authentication-state/index.html">DirectAuthenticationState</a></div><div class="brief "><p class="paragraph">Starts the direct authentication flow with an initial factor.</p></div></div>                  </div>
                 </div>
               </div>
             </div>
