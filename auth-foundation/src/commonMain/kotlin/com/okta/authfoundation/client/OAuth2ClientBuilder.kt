@@ -90,6 +90,24 @@ class OAuth2ClientBuilder private constructor(
     /** Device secret validator. When set, device secrets are validated via `ds_hash` claim. */
     var deviceSecretValidator: DeviceSecretValidator = DefaultDeviceSecretValidator()
 
+    /**
+     * Optional per-endpoint URL overrides.
+     *
+     * When set, each non-null field replaces the corresponding URL from the OpenID Connect
+     * discovery document. When all 8 fields are non-null, the discovery HTTP call is skipped
+     * entirely. All non-null override values must be valid HTTPS URLs.
+     *
+     * Example:
+     * ```kotlin
+     * endpointOverrides = OAuth2EndpointOverrides(
+     *     tokenEndpoint = "https://proxy.example.com/token"
+     * )
+     * ```
+     *
+     * @see OAuth2EndpointOverrides
+     */
+    var endpointOverrides: OAuth2EndpointOverrides? = null
+
     companion object {
         /**
          * Creates a [OAuth2Client] with the given parameters and optional customization.
@@ -120,6 +138,31 @@ class OAuth2ClientBuilder private constructor(
 
                 val builder = OAuth2ClientBuilder(issuerUrl, clientId, scope.joinToString(" "))
                 buildAction?.invoke(builder)
+
+                // Validate endpoint override URLs
+                builder.endpointOverrides?.let { overrides ->
+                    fun validateOverrideUrl(
+                        value: String?,
+                        fieldName: String,
+                    ) {
+                        if (value == null) return
+                        require(
+                            runCatching {
+                                val url = Url(value)
+                                url.protocol == URLProtocol.HTTPS && url.host.isNotBlank()
+                            }.getOrDefault(false)
+                        ) { "endpointOverrides.$fieldName must be a valid https URL." }
+                    }
+                    validateOverrideUrl(overrides.authorizationEndpoint, "authorizationEndpoint")
+                    validateOverrideUrl(overrides.tokenEndpoint, "tokenEndpoint")
+                    validateOverrideUrl(overrides.userInfoEndpoint, "userInfoEndpoint")
+                    validateOverrideUrl(overrides.jwksUri, "jwksUri")
+                    validateOverrideUrl(overrides.introspectionEndpoint, "introspectionEndpoint")
+                    validateOverrideUrl(overrides.revocationEndpoint, "revocationEndpoint")
+                    validateOverrideUrl(overrides.endSessionEndpoint, "endSessionEndpoint")
+                    validateOverrideUrl(overrides.deviceAuthorizationEndpoint, "deviceAuthorizationEndpoint")
+                }
+
                 val config = builder.build()
                 val discovery = EndpointDiscovery(config)
                 @OptIn(InternalAuthFoundationApi::class)
@@ -147,6 +190,7 @@ class OAuth2ClientBuilder private constructor(
             acrValues = acrValues,
             idTokenValidator = idTokenValidator,
             accessTokenValidator = accessTokenValidator,
-            deviceSecretValidator = deviceSecretValidator
+            deviceSecretValidator = deviceSecretValidator,
+            endpointOverrides = endpointOverrides
         )
 }

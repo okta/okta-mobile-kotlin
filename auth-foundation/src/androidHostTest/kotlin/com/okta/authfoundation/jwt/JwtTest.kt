@@ -19,8 +19,12 @@ import com.google.common.truth.Truth.assertThat
 import com.okta.authfoundation.jwt.JwtBuilder.Companion.createJwtBuilder
 import com.okta.testhelpers.OktaRule
 import kotlinx.coroutines.runBlocking
+import okio.ByteString.Companion.toByteString
 import org.junit.Rule
 import org.junit.Test
+import java.security.KeyPair
+import java.security.Signature
+import java.security.interfaces.ECPublicKey
 
 class JwtTest {
     @get:Rule val oktaRule = OktaRule()
@@ -109,4 +113,112 @@ class JwtTest {
             val jwt = oktaRule.createOAuth2Client().createJwtBuilder().createJwt(claims = IdTokenClaims())
             assertThat(jwt).isNotEqualTo("Different!")
         }
+
+    // ── EC dispatch tests ──────────────────────────────────────────────────────
+
+    @Test fun hasValidSignature_EcKey_Es256_ReturnsTrue(): Unit =
+        runBlocking {
+            val keyPair = TestKeyFactory.createEcKeyPair("P-256")
+            val jwks = createEcJwks(keyPair, crv = "P-256", keyId = "ec-test-key")
+            val jwt =
+                createEcJwt(
+                    keyPair = keyPair,
+                    keyId = "ec-test-key",
+                    algorithm = "ES256",
+                    jcaAlg = "SHA256withECDSA",
+                    parser = JwtParser(oktaRule.configuration.json, oktaRule.configuration.computeDispatcher)
+                )
+            assertThat(jwt.hasValidSignature(jwks)).isTrue()
+        }
+
+    @Test fun hasValidSignature_EcKey_WrongKeyId_ReturnsFalse(): Unit =
+        runBlocking {
+            val keyPair = TestKeyFactory.createEcKeyPair("P-256")
+            // JWKS has "other-key-id" but JWT header says "ec-test-key"
+            val jwks = createEcJwks(keyPair, crv = "P-256", keyId = "other-key-id")
+            val jwt =
+                createEcJwt(
+                    keyPair = keyPair,
+                    keyId = "ec-test-key",
+                    algorithm = "ES256",
+                    jcaAlg = "SHA256withECDSA",
+                    parser = JwtParser(oktaRule.configuration.json, oktaRule.configuration.computeDispatcher)
+                )
+            assertThat(jwt.hasValidSignature(jwks)).isFalse()
+        }
+
+    @Test fun hasValidSignature_MixedJwks_RsaKeyStillWorks(): Unit =
+        runBlocking {
+            // A JWKS containing both an RSA key and an EC key — RSA JWT should still verify correctly.
+            val rsaJwks = createJwks()
+            val ecKeyPair = TestKeyFactory.createEcKeyPair("P-256")
+            val ecJwks = createEcJwks(ecKeyPair, crv = "P-256", keyId = "ec-key")
+            val mixedJwks = Jwks(keys = rsaJwks.keys + ecJwks.keys)
+
+            val rsaJwt = oktaRule.createOAuth2Client().createJwtBuilder().createJwt(claims = IdTokenClaims())
+            assertThat(rsaJwt.hasValidSignature(mixedJwks)).isTrue()
+        }
 }
+
+// ── EC JWT test helper ─────────────────────────────────────────────────────────
+
+private fun createEcJwt(
+    keyPair: KeyPair,
+    keyId: String,
+    algorithm: String,
+    jcaAlg: String,
+    parser: JwtParser,
+): Jwt {
+    val ecPublicKey = keyPair.public as ECPublicKey
+    val coordByteLen = (ecPublicKey.params.order.bitLength() + 7) / 8
+
+    fun String.toBase64(): String = toByteArray(Charsets.US_ASCII).toByteString().base64Url().trimEnd('=')
+
+    val header = """{"alg":"$algorithm","kid":"$keyId","typ":"JWT"}""".toBase64()
+    val claims = """{"sub":"test","iss":"https://example.okta.com","aud":"client","iat":1700000000,"exp":9999999999}""".toBase64()
+    val signingInput = "$header.$claims"
+
+    val derSig =
+        Signature.getInstance(jcaAlg).run {
+            initSign(keyPair.private)
+            update(signingInput.toByteArray(Charsets.US_ASCII))
+            sign()
+        }
+
+    // Convert DER → P1363 for JWT (IETF JWS spec requires P1363/raw format)
+    val p1363Sig = derToP1363(derSig, coordByteLen)
+    val sigEncoded = p1363Sig.toByteString().base64Url().trimEnd('=')
+
+    return parser.parse("$signingInput.$sigEncoded")
+}
+
+/** Converts a DER ECDSA signature to P1363 (raw r‖s) format for JWT encoding. */
+private fun derToP1363(
+    der: ByteArray,
+    coordByteLen: Int,
+): ByteArray {
+    var pos = 1 // skip 0x30
+    val lenByte = der[pos++].toInt() and 0xFF
+    if (lenByte and 0x80 != 0) pos += lenByte and 0x7F
+
+    pos++ // skip 0x02
+    val rLen = der[pos++].toInt() and 0xFF
+    val rBytes = der.copyOfRange(pos, pos + rLen)
+    pos += rLen
+
+    pos++ // skip 0x02
+    val sLen = der[pos++].toInt() and 0xFF
+    val sBytes = der.copyOfRange(pos, pos + sLen)
+
+    val p1363 = ByteArray(coordByteLen * 2)
+    rBytes.toCoordBytes(coordByteLen).copyInto(p1363, 0)
+    sBytes.toCoordBytes(coordByteLen).copyInto(p1363, coordByteLen)
+    return p1363
+}
+
+private fun ByteArray.toCoordBytes(coordByteLen: Int): ByteArray =
+    when {
+        size == coordByteLen -> this
+        size > coordByteLen -> copyOfRange(size - coordByteLen, size)
+        else -> ByteArray(coordByteLen - size) + this
+    }

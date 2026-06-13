@@ -16,6 +16,7 @@
 package com.okta.authfoundation.client.internal
 
 import com.okta.authfoundation.InternalAuthFoundationApi
+import com.okta.authfoundation.client.OAuth2EndpointOverrides
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -33,7 +34,44 @@ class OAuth2Endpoints(
     val revocationEndpoint: String?,
     val endSessionEndpoint: String?,
     val deviceAuthorizationEndpoint: String?,
-)
+) {
+    companion object {
+        /**
+         * Returns `true` when [overrides] is non-null and every one of its 8 endpoint fields
+         * is non-null, allowing discovery to be skipped entirely.
+         */
+        fun allFieldsNonNull(overrides: OAuth2EndpointOverrides?): Boolean {
+            if (overrides == null) return false
+            return overrides.authorizationEndpoint != null &&
+                overrides.tokenEndpoint != null &&
+                overrides.userInfoEndpoint != null &&
+                overrides.jwksUri != null &&
+                overrides.introspectionEndpoint != null &&
+                overrides.revocationEndpoint != null &&
+                overrides.endSessionEndpoint != null &&
+                overrides.deviceAuthorizationEndpoint != null
+        }
+    }
+
+    /**
+     * Returns a new [OAuth2Endpoints] where each non-null field in [overrides] replaces the
+     * corresponding field from this instance. Null override fields keep the discovered value.
+     */
+    fun merge(overrides: OAuth2EndpointOverrides?): OAuth2Endpoints {
+        if (overrides == null) return this
+        return OAuth2Endpoints(
+            issuer = issuer,
+            authorizationEndpoint = overrides.authorizationEndpoint ?: authorizationEndpoint,
+            tokenEndpoint = overrides.tokenEndpoint ?: tokenEndpoint,
+            userInfoEndpoint = overrides.userInfoEndpoint ?: userInfoEndpoint,
+            jwksUri = overrides.jwksUri ?: jwksUri,
+            introspectionEndpoint = overrides.introspectionEndpoint ?: introspectionEndpoint,
+            revocationEndpoint = overrides.revocationEndpoint ?: revocationEndpoint,
+            endSessionEndpoint = overrides.endSessionEndpoint ?: endSessionEndpoint,
+            deviceAuthorizationEndpoint = overrides.deviceAuthorizationEndpoint ?: deviceAuthorizationEndpoint
+        )
+    }
+}
 
 @Serializable
 internal class SerializableOAuth2Endpoints(

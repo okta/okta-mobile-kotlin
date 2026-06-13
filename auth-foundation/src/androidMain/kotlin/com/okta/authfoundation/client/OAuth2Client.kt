@@ -123,8 +123,23 @@ class OAuth2Client private constructor(
      * Attempt to refresh the token.
      *
      * @param token the [Token] to refresh.
+     * @see refreshToken for an overload that accepts additional request parameters.
      */
-    suspend fun refreshToken(token: Token): OAuth2ClientResult<Token> {
+    suspend fun refreshToken(token: Token): OAuth2ClientResult<Token> = refreshToken(token, emptyMap())
+
+    /**
+     * Attempt to refresh the token, forwarding additional form body parameters to the token endpoint.
+     *
+     * Reserved keys (`grant_type`, `client_id`, `refresh_token`) are silently filtered out of
+     * [extraRequestParameters] and cannot be overridden.
+     *
+     * @param token the [Token] to refresh.
+     * @param extraRequestParameters additional form parameters to include in the token request.
+     */
+    suspend fun refreshToken(
+        token: Token,
+        extraRequestParameters: Map<String, String>,
+    ): OAuth2ClientResult<Token> {
         val endpoints = endpointsOrNull() ?: return endpointNotAvailableError()
 
         val refreshToken =
@@ -132,13 +147,18 @@ class OAuth2Client private constructor(
                 return OAuth2ClientResult.Error(throwable as Exception)
             }
 
+        val reserved = setOf("grant_type", "client_id", "refresh_token")
         val formBody =
             FormBody
                 .Builder()
                 .add("client_id", configuration.clientId)
                 .add("grant_type", "refresh_token")
                 .add("refresh_token", refreshToken)
-                .build()
+                .apply {
+                    extraRequestParameters.forEach { (key, value) ->
+                        if (key !in reserved) add(key, value)
+                    }
+                }.build()
 
         val request =
             Request
