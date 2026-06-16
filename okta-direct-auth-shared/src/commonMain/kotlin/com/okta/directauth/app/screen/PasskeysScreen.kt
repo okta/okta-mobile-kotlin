@@ -34,10 +34,9 @@ import androidx.compose.ui.unit.dp
 import com.okta.directauth.app.ui.theme.DirectAuthAppTheme
 
 @Composable
+context(nav: AuthenticatorNavContext)
 fun PasskeysScreen(
     username: String,
-    backToSignIn: () -> Unit,
-    verifyWithSomethingElse: () -> Unit,
     onStartCeremony: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -51,13 +50,7 @@ fun PasskeysScreen(
         }
     }
 
-    AuthenticatorScreenScaffold(
-        title = "Passkeys",
-        username = username,
-        backToSignIn = backToSignIn,
-        verifyWithSomethingElse = verifyWithSomethingElse,
-        modifier = modifier
-    ) {
+    AuthenticatorScreenScaffold(title = "Passkeys", username = username, modifier = modifier) {
         CircularProgressIndicator()
         Spacer(modifier = Modifier.height(16.dp))
         Text(text = "Waiting for passkey authentication...")
@@ -78,11 +71,11 @@ fun PasskeysScreen(
 @Composable
 private fun PasskeysScreenPreview() {
     DirectAuthAppTheme {
-        PasskeysScreen(
-            username = "test.user@example.com",
-            backToSignIn = {},
-            verifyWithSomethingElse = {},
-            onStartCeremony = {}
-        )
+        context(AuthenticatorNavContext(backToSignIn = {}, verifyWithSomethingElse = {})) {
+            PasskeysScreen(
+                username = "test.user@example.com",
+                onStartCeremony = {}
+            )
+        }
     }
 }

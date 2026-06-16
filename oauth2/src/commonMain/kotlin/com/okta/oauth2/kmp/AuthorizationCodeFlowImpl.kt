@@ -31,7 +31,7 @@ internal class AuthorizationCodeFlowImpl(
     override suspend fun start(
         redirectUrl: String,
         extraRequestParameters: Map<String, String>,
-        scope: String,
+        scope: String?,
     ): Result<AuthorizationCodeFlowContext> =
         runCatching {
             val endpoints =
@@ -55,7 +55,7 @@ internal class AuthorizationCodeFlowImpl(
             urlBuilder.parameters.append("code_challenge", PkceGenerator.codeChallenge(codeVerifier))
             urlBuilder.parameters.append("code_challenge_method", PkceGenerator.CODE_CHALLENGE_METHOD)
             urlBuilder.parameters.append("client_id", client.configuration.clientId)
-            urlBuilder.parameters.append("scope", scope)
+            urlBuilder.parameters.append("scope", scope ?: client.configuration.defaultScope)
             urlBuilder.parameters.append("redirect_uri", redirectUrl)
             urlBuilder.parameters.append("response_type", "code")
             urlBuilder.parameters.append("state", state)

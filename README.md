@@ -6,19 +6,19 @@
 
 The Okta Mobile SDKs are a suite of libraries that intends to replace our legacy mobile SDKs, with the aim to streamline development, ease maintenance and feature development, and enable new use cases that were previously difficult or impractical to implement. We are building a platform to support the development of many SDKs, allowing application developers to choose which SDKs they need.
 
-The Okta Mobile Kotlin SDK is intended to be used on the Android platform.
+The Okta Mobile Kotlin SDK is a Kotlin Multiplatform (KMP) library targeting Android and JVM, with select modules supporting JS and WASM.
 
 ## SDK Overview
 
 This SDK consists of several different libraries, each with detailed documentation.
 
-- [AuthFoundation](auth-foundation) -- Common classes for managing credentials and used as a foundation for other libraries.
-- [OktaOAuth2](oauth2) -- OAuth2 authentication capabilities for authenticating users.
-- [WebAuthenticationUI](web-authentication-ui) -- Authenticate users using web-based OIDC flows.
-- [OktaIdx](okta-idx-kotlin/README.md) -- Okta's Identity Engine support using Okta's IDX API for native browserless authentication.
-- [OktaDirectAuth](okta-direct-auth/README.md) -- Direct Authentication capabilities for advanced browserless authentication, including Java compatibility with `CompletableFuture` async API.
-- [Sample App](app/README.md) -- Sample application demonstrating OAuth2 flows using the SDK.
-- [Java CLI Sample](okta-direct-auth-java-cli-sample/README.md) -- Pure Java CLI application demonstrating Direct Authentication with `CompletableFuture` API, including MFA and password recovery.
+- [AuthFoundation](auth-foundation) *(Android, JVM)* -- Common classes for managing credentials and used as a foundation for other libraries.
+- [OktaOAuth2](oauth2) *(Android, JVM)* -- OAuth2 authentication capabilities for authenticating users.
+- [WebAuthenticationUI](web-authentication-ui) *(Android only)* -- Authenticate users using web-based OIDC flows via Chrome Custom Tabs.
+- [OktaIdx](okta-idx-kotlin/README.md) *(Android only)* -- Okta's Identity Engine support using Okta's IDX API for native browserless authentication.
+- [OktaDirectAuth](okta-direct-auth/README.md) *(Android, JVM)* -- Direct Authentication capabilities for advanced browserless authentication, including Java compatibility with `CompletableFuture` async API.
+- [Android Sample App](app/README.md) *(Android only)* -- Android sample application demonstrating OAuth2 flows using the SDK.
+- [Java CLI Sample](okta-direct-auth-java-cli-sample/README.md) *(JVM only)* -- Pure Java CLI application demonstrating Direct Authentication with `CompletableFuture` API, including MFA and password recovery.
 
 ## Support Policy
 

@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.android.kotlin.multiplatform.library)
@@ -69,6 +71,7 @@ kotlin {
         compilations.all {
             compileTaskProvider.configure {
                 compilerOptions {
+                    jvmTarget = JvmTarget.fromTarget(JVM_TARGET)
                     freeCompilerArgs.addAll(
                         listOf(
                             "-opt-in=kotlin.RequiresOptIn",

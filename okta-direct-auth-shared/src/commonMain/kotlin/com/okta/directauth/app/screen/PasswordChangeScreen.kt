@@ -83,16 +83,15 @@ private const val PASSWORD_MISMATCH_ERROR = "Passwords do not match"
  * - Supports keyboard "Done" action for quick submission
  *
  * @param username The username being authenticated. Displayed on screen.
- * @param backToSignIn Callback to return to the username entry screen.
  * @param onSuccess Callback invoked when password change succeeds.
  * @param next Callback invoked when user submits valid passwords.
  *             Returns a Job that can be cancelled if the user navigates away.
  *             Parameter: (newPassword: String)
  */
 @Composable
+context(nav: AuthenticatorNavContext)
 fun PasswordChangeScreen(
     username: String,
-    backToSignIn: () -> Unit,
     passwordChangeResult: MainViewModel.PasswordChangeResult,
     onDismissError: () -> Unit,
     modifier: Modifier = Modifier,
@@ -141,118 +140,117 @@ fun PasswordChangeScreen(
         }
     }
 
-    AuthenticatorScreenScaffold(
-        title = "Change your password",
-        username = username,
-        backToSignIn = {
+    context(
+        AuthenticatorNavContext(backToSignIn = {
             jobState.cancel()
-            backToSignIn()
-        },
-        verifyWithSomethingElse = null
+            nav.backToSignIn()
+        })
     ) {
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.Start
-        ) {
-            // New Password Field
-            Text(
-                text = "New Password",
-                fontWeight = FontWeight.Bold
-            )
-            OutlinedTextField(
-                value = newPassword,
-                onValueChange = {
-                    newPassword = it
-                    newPasswordError = null
-                },
+        AuthenticatorScreenScaffold(title = "Change your password", username = username) {
+            Column(
                 modifier = Modifier.fillMaxWidth(),
-                visualTransformation = if (newPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                isError = newPasswordError != null,
-                enabled = !jobState.isActive,
-                trailingIcon = {
-                    val image =
-                        if (newPasswordVisible) {
-                            Icons.Filled.Visibility
-                        } else {
-                            Icons.Filled.VisibilityOff
-                        }
-
-                    val description = if (newPasswordVisible) "Hide password" else "Show password"
-
-                    IconButton(
-                        onClick = { newPasswordVisible = !newPasswordVisible },
-                        enabled = !jobState.isActive
-                    ) {
-                        Icon(imageVector = image, description)
-                    }
-                },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
-            )
-            if (newPasswordError != null) {
+                horizontalAlignment = Alignment.Start
+            ) {
+                // New Password Field
                 Text(
-                    text = newPasswordError!!,
-                    color = MaterialTheme.colorScheme.error
+                    text = "New Password",
+                    fontWeight = FontWeight.Bold
                 )
+                OutlinedTextField(
+                    value = newPassword,
+                    onValueChange = {
+                        newPassword = it
+                        newPasswordError = null
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    visualTransformation = if (newPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                    isError = newPasswordError != null,
+                    enabled = !jobState.isActive,
+                    trailingIcon = {
+                        val image =
+                            if (newPasswordVisible) {
+                                Icons.Filled.Visibility
+                            } else {
+                                Icons.Filled.VisibilityOff
+                            }
+
+                        val description = if (newPasswordVisible) "Hide password" else "Show password"
+
+                        IconButton(
+                            onClick = { newPasswordVisible = !newPasswordVisible },
+                            enabled = !jobState.isActive
+                        ) {
+                            Icon(imageVector = image, description)
+                        }
+                    },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
+                )
+                if (newPasswordError != null) {
+                    Text(
+                        text = newPasswordError!!,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Confirm Password Field
+                Text(
+                    text = "Confirm New Password",
+                    fontWeight = FontWeight.Bold
+                )
+                OutlinedTextField(
+                    value = confirmPassword,
+                    onValueChange = {
+                        confirmPassword = it
+                        confirmPasswordError = null
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                    isError = confirmPasswordError != null,
+                    enabled = !jobState.isActive,
+                    trailingIcon = {
+                        val image =
+                            if (confirmPasswordVisible) {
+                                Icons.Filled.Visibility
+                            } else {
+                                Icons.Filled.VisibilityOff
+                            }
+
+                        val description = if (confirmPasswordVisible) "Hide password" else "Show password"
+
+                        IconButton(
+                            onClick = { confirmPasswordVisible = !confirmPasswordVisible },
+                            enabled = !jobState.isActive
+                        ) {
+                            Icon(imageVector = image, description)
+                        }
+                    },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                    keyboardActions =
+                        KeyboardActions(
+                            onDone = { validateAndSubmit() }
+                        )
+                )
+                if (confirmPasswordError != null) {
+                    Text(
+                        text = confirmPasswordError!!,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Confirm Password Field
-            Text(
-                text = "Confirm New Password",
-                fontWeight = FontWeight.Bold
-            )
-            OutlinedTextField(
-                value = confirmPassword,
-                onValueChange = {
-                    confirmPassword = it
-                    confirmPasswordError = null
-                },
-                modifier = Modifier.fillMaxWidth(),
-                visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                isError = confirmPasswordError != null,
+            Button(
+                onClick = { validateAndSubmit() },
                 enabled = !jobState.isActive,
-                trailingIcon = {
-                    val image =
-                        if (confirmPasswordVisible) {
-                            Icons.Filled.Visibility
-                        } else {
-                            Icons.Filled.VisibilityOff
-                        }
-
-                    val description = if (confirmPasswordVisible) "Hide password" else "Show password"
-
-                    IconButton(
-                        onClick = { confirmPasswordVisible = !confirmPasswordVisible },
-                        enabled = !jobState.isActive
-                    ) {
-                        Icon(imageVector = image, description)
-                    }
-                },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                keyboardActions =
-                    KeyboardActions(
-                        onDone = { validateAndSubmit() }
-                    )
-            )
-            if (confirmPasswordError != null) {
-                Text(
-                    text = confirmPasswordError!!,
-                    color = MaterialTheme.colorScheme.error
-                )
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(text = "Change Password")
             }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Button(
-            onClick = { validateAndSubmit() },
-            enabled = !jobState.isActive,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(text = "Change Password")
         }
     }
 
@@ -404,13 +402,14 @@ fun PasswordChangeErrorDialog(
 @Composable
 private fun PasswordChangeScreenPreview() {
     DirectAuthAppTheme {
-        PasswordChangeScreen(
-            username = "user1@okta.com",
-            backToSignIn = {},
-            passwordChangeResult = MainViewModel.PasswordChangeResult.Idle,
-            onDismissError = {},
-            next = { Job().apply { complete() } }
-        )
+        context(AuthenticatorNavContext(backToSignIn = {})) {
+            PasswordChangeScreen(
+                username = "user1@okta.com",
+                passwordChangeResult = MainViewModel.PasswordChangeResult.Idle,
+                onDismissError = {},
+                next = { Job().apply { complete() } }
+            )
+        }
     }
 }
 

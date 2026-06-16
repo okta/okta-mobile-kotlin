@@ -35,7 +35,13 @@ class OAuth2ClientConfiguration internal constructor(
     val clientId: String,
     /** The default access scopes required by the client. */
     val defaultScope: String,
-    /** The base URL of the Authorization Server. */
+    /**
+     * The effective issuer URL used for OIDC discovery and token validation.
+     *
+     * Derived by [OAuth2ClientBuilder] from the base org URL and [authorizationServerId]:
+     * - No [authorizationServerId]: the base org URL itself.
+     * - With [authorizationServerId]: `"$baseUrl/oauth2/$authorizationServerId"`.
+     */
     val issuerUrl: String,
     /** The HTTP executor used for all network requests. */
     val apiExecutor: ApiExecutor,
@@ -45,7 +51,11 @@ class OAuth2ClientConfiguration internal constructor(
     val json: Json,
     /** The cache used to optimize network calls. */
     val cache: Cache,
-    /** Optional authorization server ID. */
+    /**
+     * The authorization server ID provided at build time, or null for the org authorization server.
+     *
+     * This is stored for reference; the effective issuer URL is already reflected in [issuerUrl].
+     */
     val authorizationServerId: String?,
     /** Optional client secret for confidential clients. */
     val clientSecret: String?,

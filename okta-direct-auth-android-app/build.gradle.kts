@@ -1,9 +1,19 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.compose)
     alias(libs.plugins.compose.compiler)
     id("spotless")
 }
+
+val localProperties =
+    Properties().apply {
+        val localPropertiesFile = rootProject.file("local.properties")
+        if (localPropertiesFile.exists()) {
+            rootProject.file("local.properties").inputStream().use { load(it) }
+        }
+    }
 
 android {
     namespace = "com.okta.directauth.app.android"
@@ -16,6 +26,9 @@ android {
         versionCode = 1
         versionName = "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        manifestPlaceholders["webAuthenticationRedirectScheme"] =
+            parseScheme(localProperties.getProperty("signInRedirectUri"))
     }
 
     buildTypes {
@@ -37,6 +50,7 @@ android {
 dependencies {
     coreLibraryDesugaring(libs.core.library.desugaring)
     implementation(project(":okta-direct-auth-shared"))
+    implementation(project(":web-authentication-ui"))
     implementation(libs.jetbrains.compose.runtime)
     implementation(libs.jetbrains.compose.ui)
     implementation(libs.jetbrains.compose.foundation)

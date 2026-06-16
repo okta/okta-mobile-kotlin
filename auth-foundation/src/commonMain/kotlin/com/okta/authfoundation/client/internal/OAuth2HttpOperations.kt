@@ -20,6 +20,7 @@ import com.okta.authfoundation.api.http.ApiExecutor
 import com.okta.authfoundation.api.http.ApiFormRequest
 import com.okta.authfoundation.api.http.ApiRequest
 import com.okta.authfoundation.api.http.ApiRequestMethod
+import com.okta.authfoundation.api.http.ApiResponse
 import com.okta.authfoundation.client.OAuth2ClientResult
 import com.okta.authfoundation.client.kmp.events.RateLimitExceededEvent
 import kotlinx.datetime.LocalDateTime
@@ -40,6 +41,21 @@ internal class ErrorResponse(
     @SerialName("error") val error: String? = null,
     @SerialName("error_description") val errorDescription: String? = null,
 )
+
+/**
+ * Parses a non-2xx HTTP response into an [OAuth2ClientResult.Error.HttpResponseException].
+ *
+ * Attempts to deserialize the body as an OAuth2 error response with `error` and
+ * `error_description` fields. Falls back to `null` fields if parsing fails.
+ */
+private fun throwHttpResponseError(
+    json: Json,
+    response: ApiResponse,
+    body: String,
+) {
+    val errorResponse = runCatching { json.decodeFromString(ErrorResponse.serializer(), body) }.getOrNull()
+    throw OAuth2ClientResult.Error.HttpResponseException(response.statusCode, errorResponse?.error, errorResponse?.errorDescription)
+}
 
 private val HTTP_DATE_MONTHS =
     mapOf(
@@ -200,6 +216,11 @@ internal suspend fun <T> performJsonGetRequest(
         val body =
             response.body?.decodeToString()
                 ?: throw IllegalStateException("Empty response body")
+
+        if (response.statusCode !in 200..299) {
+            throwHttpResponseError(json, response, body)
+        }
+
         json.decodeFromString(deserializer, body)
     }.fold(
         onSuccess = { OAuth2ClientResult.Success(it) },
@@ -254,12 +275,7 @@ internal suspend fun <T> performJsonFormPost(
                 ?: throw IllegalStateException("Empty response body")
 
         if (response.statusCode !in 200..299) {
-            val errorResponse = runCatching { json.decodeFromString(ErrorResponse.serializer(), body) }.getOrNull()
-            throw OAuth2ClientResult.Error.HttpResponseException(
-                responseCode = response.statusCode,
-                error = errorResponse?.error,
-                errorDescription = errorResponse?.errorDescription
-            )
+            throwHttpResponseError(json, response, body)
         }
 
         json.decodeFromString(deserializer, body)

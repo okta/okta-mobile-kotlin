@@ -21,6 +21,14 @@ package com.okta.directauth.app.util
 const val BLANK_FIELD_ERROR = "This field cannot be left blank"
 
 /**
+ * Carries the error handler for field validation so it need not be repeated at every
+ * [validateNotBlank] call site inside the same composable scope.
+ */
+fun interface ValidationErrorContext {
+    fun onValidationError()
+}
+
+/**
  * Validates that a string is not blank.
  * Calls [onError] if validation fails, or [onSuccess] with the string if validation passes.
  *
@@ -39,6 +47,24 @@ inline fun String.validateNotBlank(
     onSuccess: (String) -> Unit,
 ) {
     if (this.isBlank()) onError() else onSuccess(this)
+}
+
+/**
+ * Context-parameterized variant of [validateNotBlank]. Calls [ValidationErrorContext.onValidationError]
+ * on failure so callers need only supply [onSuccess].
+ *
+ * Usage example:
+ * ```
+ * context(ValidationErrorContext { showError = true }) {
+ *     password.validateNotBlank { jobState.addJob(next(it)) }
+ *     // keyboard action also gets the same error handler implicitly
+ *     code.validateNotBlank { jobState.addJob(submit(it)) }
+ * }
+ * ```
+ */
+context(ctx: ValidationErrorContext)
+inline fun String.validateNotBlank(onSuccess: (String) -> Unit) {
+    if (isBlank()) ctx.onValidationError() else onSuccess(this)
 }
 
 /**

@@ -28,7 +28,7 @@ class DeviceAuthorizationFlowTest {
         runTest {
             val mockFlow =
                 object : DeviceAuthorizationFlow {
-                    override suspend fun start(scope: String): Result<DeviceAuthorizationFlowContext> =
+                    override suspend fun start(scope: String?): Result<DeviceAuthorizationFlowContext> =
                         Result.success(
                             DeviceAuthorizationFlowContext(
                                 verificationUri = "https://example.okta.com/activate",
@@ -59,7 +59,7 @@ class DeviceAuthorizationFlowTest {
             val fakeToken = FakeTokenInfo()
             val mockFlow =
                 object : DeviceAuthorizationFlow {
-                    override suspend fun start(scope: String): Result<DeviceAuthorizationFlowContext> = Result.failure(NotImplementedError())
+                    override suspend fun start(scope: String?): Result<DeviceAuthorizationFlowContext> = Result.failure(NotImplementedError())
 
                     override suspend fun resume(flowContext: DeviceAuthorizationFlowContext): Result<TokenInfo> = Result.success(fakeToken)
                 }
@@ -84,7 +84,7 @@ class DeviceAuthorizationFlowTest {
         runTest {
             val mockFlow =
                 object : DeviceAuthorizationFlow {
-                    override suspend fun start(scope: String): Result<DeviceAuthorizationFlowContext> = Result.failure(NotImplementedError())
+                    override suspend fun start(scope: String?): Result<DeviceAuthorizationFlowContext> = Result.failure(NotImplementedError())
 
                     override suspend fun resume(flowContext: DeviceAuthorizationFlowContext): Result<TokenInfo> = Result.failure(IllegalStateException("access_denied"))
                 }
@@ -109,7 +109,7 @@ class DeviceAuthorizationFlowTest {
         runTest {
             val mockFlow =
                 object : DeviceAuthorizationFlow {
-                    override suspend fun start(scope: String): Result<DeviceAuthorizationFlowContext> = Result.failure(IllegalStateException("OIDC Endpoints not available."))
+                    override suspend fun start(scope: String?): Result<DeviceAuthorizationFlowContext> = Result.failure(IllegalStateException("OIDC Endpoints not available."))
 
                     override suspend fun resume(flowContext: DeviceAuthorizationFlowContext): Result<TokenInfo> = Result.failure(NotImplementedError())
                 }

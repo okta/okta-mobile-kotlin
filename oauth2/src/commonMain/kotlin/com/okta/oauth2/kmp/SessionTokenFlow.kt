@@ -33,14 +33,14 @@ interface SessionTokenFlow {
      * @param sessionToken the session token obtained from Okta legacy Authn APIs.
      * @param redirectUrl the redirect URL registered with the authorization server.
      * @param extraRequestParameters additional key-value pairs appended to the authorization URL.
-     * @param scope the space-delimited scopes to request.
+     * @param scope the space-delimited scopes to request. Defaults to the client's configured default scope when null.
      * @return [Result.success] with [TokenInfo] on success, or [Result.failure] on error.
      */
     suspend fun start(
         sessionToken: String,
         redirectUrl: String,
         extraRequestParameters: Map<String, String> = emptyMap(),
-        scope: String = "openid profile email offline_access",
+        scope: String? = null,
     ): Result<TokenInfo>
 
     companion object {

@@ -15,6 +15,7 @@
  */
 package com.okta.oauth2.kmp
 
+import com.okta.authfoundation.InternalAuthFoundationApi
 import com.okta.authfoundation.client.OAuth2ClientResult
 import com.okta.authfoundation.client.TokenInfo
 import com.okta.authfoundation.client.kmp.OAuth2Client
@@ -30,13 +31,13 @@ internal class DeviceAuthorizationFlowImpl(
 ) : DeviceAuthorizationFlow {
     internal var delayFunction: suspend (Long) -> Unit = ::delay
 
-    override suspend fun start(scope: String): Result<DeviceAuthorizationFlowContext> =
+    override suspend fun start(scope: String?): Result<DeviceAuthorizationFlowContext> =
         client
             .deviceAuthorizationRequest(
                 formParams =
                     mapOf(
                         "client_id" to client.configuration.clientId,
-                        "scope" to scope
+                        "scope" to (scope ?: client.configuration.defaultScope)
                     )
             ).map { info ->
                 DeviceAuthorizationFlowContext(
@@ -49,8 +50,12 @@ internal class DeviceAuthorizationFlowImpl(
                 )
             }
 
+    @OptIn(InternalAuthFoundationApi::class)
     override suspend fun resume(flowContext: DeviceAuthorizationFlowContext): Result<TokenInfo> =
         runCatching {
+            client.endpointsOrNull()
+                ?: throw IllegalStateException("OIDC Endpoints not available.")
+
             val formParams =
                 mapOf(
                     "client_id" to client.configuration.clientId,

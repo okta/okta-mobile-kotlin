@@ -49,13 +49,13 @@ interface AuthorizationCodeFlow {
      *
      * @param redirectUrl the registered redirect URI for this client.
      * @param extraRequestParameters additional query parameters for the authorization endpoint.
-     * @param scope the scopes to request.
+     * @param scope the scopes to request. Defaults to the client's configured default scope when null.
      * @return a [Result] containing an [AuthorizationCodeFlowContext] with the authorization URL and state.
      */
     suspend fun start(
         redirectUrl: String,
         extraRequestParameters: Map<String, String> = emptyMap(),
-        scope: String = "openid profile email offline_access",
+        scope: String? = null,
     ): Result<AuthorizationCodeFlowContext>
 
     /**

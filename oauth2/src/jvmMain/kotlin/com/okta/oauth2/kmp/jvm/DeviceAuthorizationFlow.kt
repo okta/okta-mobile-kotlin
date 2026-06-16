@@ -60,11 +60,11 @@ class DeviceAuthorizationFlow(
     /**
      * Initiates the device authorization flow asynchronously.
      *
-     * @param scope the scopes to request.
+     * @param scope the scopes to request. Defaults to the client's configured default scope when null.
      * @return a [CompletableFuture] that completes with [DeviceAuthorizationFlowContext] on success,
      *   or completes exceptionally on failure.
      */
-    fun start(scope: String = "openid profile email offline_access"): CompletableFuture<DeviceAuthorizationFlowContext> =
+    fun start(scope: String? = null): CompletableFuture<DeviceAuthorizationFlowContext> =
         coroutineScope.future {
             delegate.start(scope).getOrThrow()
         }

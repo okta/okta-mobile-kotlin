@@ -33,7 +33,7 @@ class TokenExchangeFlowTest {
                         idToken: String,
                         deviceSecret: String,
                         audience: String?,
-                        scope: String,
+                        scope: String?,
                     ): Result<TokenInfo> = Result.success(fakeToken)
                 }
 
@@ -55,7 +55,7 @@ class TokenExchangeFlowTest {
                         idToken: String,
                         deviceSecret: String,
                         audience: String?,
-                        scope: String,
+                        scope: String?,
                     ): Result<TokenInfo> = Result.failure(IllegalStateException("invalid_grant"))
                 }
 
@@ -74,7 +74,7 @@ class TokenExchangeFlowTest {
                         idToken: String,
                         deviceSecret: String,
                         audience: String?,
-                        scope: String,
+                        scope: String?,
                     ): Result<TokenInfo> = Result.failure(IllegalStateException("OIDC Endpoints not available."))
                 }
 
@@ -93,7 +93,7 @@ class TokenExchangeFlowTest {
                         idToken: String,
                         deviceSecret: String,
                         audience: String?,
-                        scope: String,
+                        scope: String?,
                     ): Result<TokenInfo> {
                         capturedAudience = audience
                         return Result.success(FakeTokenInfo())

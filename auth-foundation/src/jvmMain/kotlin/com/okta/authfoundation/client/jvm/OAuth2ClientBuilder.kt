@@ -28,7 +28,12 @@ import kotlin.coroutines.CoroutineContext
  * This builder provides method-chaining setters for optional parameters and delegates
  * to the Kotlin [OAuth2ClientBuilder] for the actual construction.
  *
- * @param issuerUrl The base URL of the Authorization Server.
+ * Pass the base org URL as [issuerUrl] and optionally call [setAuthorizationServerId] to target a
+ * custom authorization server. The effective issuer URL used for OIDC discovery is derived as:
+ * - No authorization server ID: [issuerUrl] is used as-is (org authorization server).
+ * - With authorization server ID: `"$issuerUrl/oauth2/$authorizationServerId"` (custom authorization server).
+ *
+ * @param issuerUrl The base URL of the Okta org (e.g. `"https://your-domain.okta.com"`). Must use HTTPS.
  * @param clientId The client ID of the application.
  * @param scope The OAuth 2.0 scopes the application is requesting.
  */
@@ -103,9 +108,13 @@ class OAuth2ClientBuilder(
         }
 
     /**
-     * Sets the authorization server ID.
+     * Sets the authorization server ID used to target a custom authorization server.
      *
-     * @param authorizationServerId The ID of the authorization server.
+     * When set, the effective issuer URL for OIDC discovery is constructed as
+     * `"$issuerUrl/oauth2/$authorizationServerId"`. Use `"default"` for the Okta-provisioned
+     * custom authorization server, or any other custom authorization server ID from your Okta org.
+     *
+     * @param authorizationServerId The ID of the custom authorization server.
      * @return This builder for chaining.
      */
     fun setAuthorizationServerId(authorizationServerId: String): com.okta.authfoundation.client.jvm.OAuth2ClientBuilder =

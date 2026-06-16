@@ -42,7 +42,7 @@ internal object FakeSuspendFlows {
             override suspend fun start(
                 username: String,
                 password: String,
-                scope: String,
+                scope: String?,
             ): Result<TokenInfo> = Result.success(FakeTokenInfo())
         }
 
@@ -52,14 +52,14 @@ internal object FakeSuspendFlows {
             override suspend fun start(
                 username: String,
                 password: String,
-                scope: String,
+                scope: String?,
             ): Result<TokenInfo> = Result.failure(IllegalArgumentException("invalid_grant"))
         }
 
     @JvmStatic
     fun successDeviceAuthorizationDelegate(): KotlinDeviceAuthorizationFlow =
         object : KotlinDeviceAuthorizationFlow {
-            override suspend fun start(scope: String): Result<DeviceAuthorizationFlowContext> =
+            override suspend fun start(scope: String?): Result<DeviceAuthorizationFlowContext> =
                 Result.success(
                     DeviceAuthorizationFlowContext(
                         verificationUri = "https://example.okta.com/activate",
@@ -77,7 +77,7 @@ internal object FakeSuspendFlows {
     @JvmStatic
     fun failingDeviceAuthorizationDelegate(): KotlinDeviceAuthorizationFlow =
         object : KotlinDeviceAuthorizationFlow {
-            override suspend fun start(scope: String): Result<DeviceAuthorizationFlowContext> = Result.failure(IllegalStateException("OIDC Endpoints not available."))
+            override suspend fun start(scope: String?): Result<DeviceAuthorizationFlowContext> = Result.failure(IllegalStateException("OIDC Endpoints not available."))
 
             override suspend fun resume(flowContext: DeviceAuthorizationFlowContext): Result<TokenInfo> = Result.failure(IllegalStateException("access_denied"))
         }
@@ -89,7 +89,7 @@ internal object FakeSuspendFlows {
                 idToken: String,
                 deviceSecret: String,
                 audience: String?,
-                scope: String,
+                scope: String?,
             ): Result<TokenInfo> = Result.success(FakeTokenInfo())
         }
 
@@ -100,7 +100,7 @@ internal object FakeSuspendFlows {
                 idToken: String,
                 deviceSecret: String,
                 audience: String?,
-                scope: String,
+                scope: String?,
             ): Result<TokenInfo> = Result.failure(IllegalStateException("invalid_grant"))
         }
 
@@ -111,7 +111,7 @@ internal object FakeSuspendFlows {
                 sessionToken: String,
                 redirectUrl: String,
                 extraRequestParameters: Map<String, String>,
-                scope: String,
+                scope: String?,
             ): Result<TokenInfo> = Result.success(FakeTokenInfo())
         }
 
@@ -122,7 +122,7 @@ internal object FakeSuspendFlows {
                 sessionToken: String,
                 redirectUrl: String,
                 extraRequestParameters: Map<String, String>,
-                scope: String,
+                scope: String?,
             ): Result<TokenInfo> = Result.failure(IllegalStateException("OIDC Endpoints not available."))
         }
 
@@ -175,7 +175,7 @@ internal object FakeSuspendFlows {
             override suspend fun start(
                 redirectUrl: String,
                 extraRequestParameters: Map<String, String>,
-                scope: String,
+                scope: String?,
             ): Result<AuthorizationCodeFlowContext> =
                 Result.success(
                     AuthorizationCodeFlowContext(
@@ -200,7 +200,7 @@ internal object FakeSuspendFlows {
             override suspend fun start(
                 redirectUrl: String,
                 extraRequestParameters: Map<String, String>,
-                scope: String,
+                scope: String?,
             ): Result<AuthorizationCodeFlowContext> = Result.failure(IllegalStateException("OIDC Endpoints not available."))
 
             override suspend fun resume(

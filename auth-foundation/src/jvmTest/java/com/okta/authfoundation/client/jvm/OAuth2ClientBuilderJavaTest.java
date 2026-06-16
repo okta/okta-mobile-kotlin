@@ -15,6 +15,7 @@
  */
 package com.okta.authfoundation.client.jvm;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -26,25 +27,43 @@ import org.junit.Test;
 /** Pure Java tests verifying that the JvmOAuth2ClientBuilder API is usable from Java. */
 public class OAuth2ClientBuilderJavaTest {
 
-  private static final String ISSUER_URL = "https://example.okta.com/oauth2/default";
+  private static final String BASE_URL = "https://example.okta.com";
   private static final String CLIENT_ID = "test-client-id";
   private static final String SCOPE = "openid profile";
 
   @Test
-  public void build_WithRequiredParamsOnly_Succeeds() {
+  public void build_WithRequiredParamsOnly_UsesBaseUrlAsIssuer() {
     OAuth2ClientBuilder builder =
-        new OAuth2ClientBuilder(ISSUER_URL, CLIENT_ID, Arrays.asList(SCOPE.split(" ")));
+        new OAuth2ClientBuilder(BASE_URL, CLIENT_ID, Arrays.asList(SCOPE.split(" ")));
 
     AuthFoundationResult<OAuth2Client> result = builder.build();
 
     assertTrue("Build with required params should succeed", result.isSuccess());
-    assertNotNull("Client should not be null", result.getOrThrow());
+    OAuth2Client client = result.getOrThrow();
+    assertNotNull("Client should not be null", client);
+    assertEquals(
+        "Issuer should be the base URL", BASE_URL, client.getConfiguration().getIssuerUrl());
+  }
+
+  @Test
+  public void build_WithAuthorizationServerId_BuildsCustomAuthServerIssuerUrl() {
+    OAuth2Client client =
+        new OAuth2ClientBuilder(BASE_URL, CLIENT_ID, Arrays.asList(SCOPE.split(" ")))
+            .setAuthorizationServerId("default")
+            .build()
+            .getOrThrow();
+
+    assertNotNull("Client should not be null", client);
+    assertEquals(
+        "Issuer should include auth server ID",
+        BASE_URL + "/oauth2/default",
+        client.getConfiguration().getIssuerUrl());
   }
 
   @Test
   public void build_WithChainingSetters_Succeeds() {
     OAuth2Client client =
-        new OAuth2ClientBuilder(ISSUER_URL, CLIENT_ID, Arrays.asList(SCOPE.split(" ")))
+        new OAuth2ClientBuilder(BASE_URL, CLIENT_ID, Arrays.asList(SCOPE.split(" ")))
             .setAuthorizationServerId("default")
             .setClientSecret("secret")
             .setAcrValues("urn:okta:loa:2fa:any")
@@ -68,7 +87,7 @@ public class OAuth2ClientBuilderJavaTest {
   @Test
   public void build_WithEmptyClientId_Fails() {
     OAuth2ClientBuilder builder =
-        new OAuth2ClientBuilder(ISSUER_URL, "", Arrays.asList(SCOPE.split(" ")));
+        new OAuth2ClientBuilder(BASE_URL, "", Arrays.asList(SCOPE.split(" ")));
 
     AuthFoundationResult<OAuth2Client> result = builder.build();
 
@@ -78,7 +97,7 @@ public class OAuth2ClientBuilderJavaTest {
   @Test
   public void build_WithEmptyScope_Fails() {
     OAuth2ClientBuilder builder =
-        new OAuth2ClientBuilder(ISSUER_URL, CLIENT_ID, Collections.emptyList());
+        new OAuth2ClientBuilder(BASE_URL, CLIENT_ID, Collections.emptyList());
 
     AuthFoundationResult<OAuth2Client> result = builder.build();
 

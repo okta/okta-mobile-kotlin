@@ -36,12 +36,12 @@ interface DeviceAuthorizationFlow {
     /**
      * Initiates the device authorization flow.
      *
-     * @param scope the OAuth2 scopes to request.
+     * @param scope the OAuth2 scopes to request. Defaults to the client's configured default scope when null.
      * @return [Result.success] with a [DeviceAuthorizationFlowContext], or [Result.failure] with:
      * - [com.okta.authfoundation.client.OAuth2ClientResult.Error.OidcEndpointsNotAvailableException] if the device authorization endpoint is unavailable.
      * - Other exceptions for network or parse failures.
      */
-    suspend fun start(scope: String = "openid profile email offline_access"): Result<DeviceAuthorizationFlowContext>
+    suspend fun start(scope: String? = null): Result<DeviceAuthorizationFlowContext>
 
     /**
      * Polls the token endpoint until the user authorizes or the session expires.

@@ -69,15 +69,14 @@ private const val TAG = "SelectAuthenticatorScreen"
  * @param T The type of AuthMethod (must extend AuthMethod)
  * @param username The username being authenticated. Displayed on screen.
  * @param supportedAuthenticators List of available authentication methods to choose from.
- * @param backToSignIn Callback invoked when user wants to return to username entry.
  * @param onSelectAuthenticator Callback invoked when user selects an authentication method.
  *                              Parameters: (username: String, selectedMethod: T)
  */
 @Composable
+context(nav: AuthenticatorNavContext)
 fun <T : AuthMethod> SelectAuthenticatorScreen(
     username: String,
     supportedAuthenticators: List<T>,
-    backToSignIn: () -> Unit,
     onSelectAuthenticator: (String, T) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -157,7 +156,7 @@ fun <T : AuthMethod> SelectAuthenticatorScreen(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .clickable(onClick = backToSignIn),
+                    .clickable(onClick = nav.backToSignIn),
             textAlign = TextAlign.Start
         )
     }
@@ -167,11 +166,12 @@ fun <T : AuthMethod> SelectAuthenticatorScreen(
 @Composable
 private fun SelectAuthenticatorScreenPreview() {
     DirectAuthAppTheme {
-        SelectAuthenticatorScreen(
-            username = "test.user@example.com",
-            supportedAuthenticators = listOf(AuthMethod.Password, AuthMethod.Mfa.Otp, AuthMethod.Mfa.Sms),
-            backToSignIn = {},
-            onSelectAuthenticator = { _, _ -> }
-        )
+        context(AuthenticatorNavContext(backToSignIn = {})) {
+            SelectAuthenticatorScreen(
+                username = "test.user@example.com",
+                supportedAuthenticators = listOf(AuthMethod.Password, AuthMethod.Mfa.Otp, AuthMethod.Mfa.Sms),
+                onSelectAuthenticator = { _, _ -> }
+            )
+        }
     }
 }
