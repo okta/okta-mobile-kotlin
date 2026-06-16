@@ -57,4 +57,6 @@ class OAuth2ClientConfiguration internal constructor(
     val accessTokenValidator: AccessTokenValidator = DefaultAccessTokenValidator(),
     /** Validator for device secrets. Validates `ds_hash` claim against the device secret hash. */
     val deviceSecretValidator: DeviceSecretValidator = DefaultDeviceSecretValidator(),
+    /** Optional per-endpoint URL overrides. Non-null fields win over discovery results. */
+    val endpointOverrides: OAuth2EndpointOverrides? = null,
 )

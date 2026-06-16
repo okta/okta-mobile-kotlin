@@ -153,15 +153,43 @@ class OAuth2Client internal constructor(
      * - [OAuth2ClientResult.Error.HttpResponseException] if the server returns an error.
      * - [IdTokenValidator.Error] if ID token validation fails.
      * - Other exceptions for network or parsing failures.
+     * @see refreshToken for an overload that accepts additional request parameters.
      */
-    suspend fun refreshToken(refreshToken: String): Result<TokenInfo> =
+    suspend fun refreshToken(refreshToken: String): Result<TokenInfo> = refreshToken(refreshToken, emptyMap())
+
+    /**
+     * Attempt to refresh a token using the provided refresh token string, forwarding additional
+     * form body parameters to the token endpoint.
+     *
+     * Reserved keys (`grant_type`, `client_id`, `refresh_token`) are silently filtered out of
+     * [extraRequestParameters] and cannot be overridden.
+     *
+     * On success, a [TokenRefreshedEvent] is emitted on [events].
+     *
+     * @param refreshToken the refresh token string.
+     * @param extraRequestParameters additional form parameters to include in the token request
+     *   (e.g., `mapOf("acr_values" to "urn:okta:loa:2fa:any")`).
+     * @return [Result.success] with the new [TokenInfo], or [Result.failure] with:
+     * - [OAuth2ClientResult.Error.OidcEndpointsNotAvailableException] if endpoints cannot be resolved.
+     * - [OAuth2ClientResult.Error.HttpResponseException] if the server returns an error.
+     * - [IdTokenValidator.Error] if ID token validation fails.
+     * - Other exceptions for network or parsing failures.
+     */
+    suspend fun refreshToken(
+        refreshToken: String,
+        extraRequestParameters: Map<String, String>,
+    ): Result<TokenInfo> =
         runCatching {
+            val reserved = setOf("grant_type", "client_id", "refresh_token")
             val formParams =
-                mapOf(
-                    "client_id" to configuration.clientId,
-                    "grant_type" to "refresh_token",
-                    "refresh_token" to refreshToken
-                )
+                buildMap {
+                    put("client_id", configuration.clientId)
+                    put("grant_type", "refresh_token")
+                    put("refresh_token", refreshToken)
+                    extraRequestParameters.forEach { (key, value) ->
+                        if (key !in reserved) put(key, value)
+                    }
+                }
             val tokenInfo = tokenRequest(formParams).getOrThrow()
             _events.tryEmit(TokenRefreshedEvent(tokenInfo))
             tokenInfo

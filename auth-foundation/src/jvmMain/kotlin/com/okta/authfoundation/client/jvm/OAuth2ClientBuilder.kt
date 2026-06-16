@@ -45,6 +45,7 @@ class OAuth2ClientBuilder(
     private var authorizationServerId: String? = null
     private var clientSecret: String? = null
     private var acrValues: String? = null
+    private var endpointOverrides: com.okta.authfoundation.client.OAuth2EndpointOverrides? = null
 
     /**
      * Sets the HTTP executor used for all network requests.
@@ -135,6 +136,21 @@ class OAuth2ClientBuilder(
         }
 
     /**
+     * Sets optional per-endpoint URL overrides.
+     *
+     * When provided, each non-null field in [overrides] replaces the corresponding URL from
+     * the OpenID Connect discovery document. When all 8 fields are non-null, the discovery
+     * HTTP call is skipped entirely. All non-null values must be valid HTTPS URLs.
+     *
+     * @param overrides The [OAuth2EndpointOverrides] to apply.
+     * @return This builder for chaining.
+     */
+    fun setEndpointOverrides(overrides: com.okta.authfoundation.client.OAuth2EndpointOverrides): com.okta.authfoundation.client.jvm.OAuth2ClientBuilder =
+        apply {
+            this.endpointOverrides = overrides
+        }
+
+    /**
      * Creates an [OAuth2Client] instance with the configured parameters.
      *
      * @return A [AuthFoundationResult] containing the [OAuth2Client] on success, or an exception on failure.
@@ -150,6 +166,7 @@ class OAuth2ClientBuilder(
                 this@OAuth2ClientBuilder.authorizationServerId?.let { authorizationServerId = it }
                 this@OAuth2ClientBuilder.clientSecret?.let { clientSecret = it }
                 this@OAuth2ClientBuilder.acrValues?.let { acrValues = it }
+                this@OAuth2ClientBuilder.endpointOverrides?.let { endpointOverrides = it }
             }
         return AuthFoundationResult.fromKotlinResult(kotlinResult)
     }

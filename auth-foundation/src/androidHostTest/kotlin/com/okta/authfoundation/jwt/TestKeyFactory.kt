@@ -17,8 +17,11 @@ package com.okta.authfoundation.jwt
 
 import okio.ByteString.Companion.decodeBase64
 import java.security.KeyFactory
+import java.security.KeyPair
+import java.security.KeyPairGenerator
 import java.security.PrivateKey
 import java.security.PublicKey
+import java.security.spec.ECGenParameterSpec
 import java.security.spec.PKCS8EncodedKeySpec
 import java.security.spec.X509EncodedKeySpec
 
@@ -94,5 +97,25 @@ object TestKeyFactory {
         val keySpec = X509EncodedKeySpec(publicKeyBytes)
         val keyFactory = KeyFactory.getInstance("RSA")
         return keyFactory.generatePublic(keySpec)
+    }
+
+    /**
+     * Generates a fresh EC key pair for the given named curve.
+     *
+     * @param curve the JWK curve name: `"P-256"`, `"P-384"`, or `"P-521"`.
+     */
+    fun createEcKeyPair(curve: String = "P-256"): KeyPair {
+        val ecCurveName =
+            when (curve) {
+                "P-256" -> "secp256r1"
+                "P-384" -> "secp384r1"
+                "P-521" -> "secp521r1"
+                else -> curve
+            }
+        return KeyPairGenerator
+            .getInstance("EC")
+            .apply {
+                initialize(ECGenParameterSpec(ecCurveName))
+            }.generateKeyPair()
     }
 }

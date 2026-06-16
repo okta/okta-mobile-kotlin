@@ -452,8 +452,29 @@ class Credential internal constructor(
 
     /**
      * Attempt to refresh the [Token] associated with this [Credential].
+     *
+     * Uses a shared orchestrator for deduplication — concurrent calls for the same credential
+     * will coalesce into a single network request.
+     *
+     * @see refreshToken for an overload that accepts additional request parameters.
      */
     suspend fun refreshToken(): OAuth2ClientResult<Token> = refreshCoalescingOrchestrator.get()
+
+    /**
+     * Attempt to refresh the [Token] associated with this [Credential], forwarding additional
+     * form body parameters to the token endpoint.
+     *
+     * When [extraRequestParameters] is empty, delegates to [refreshToken] (uses the orchestrator).
+     * When non-empty, calls the token endpoint directly — bypassing the coalescing orchestrator.
+     *
+     * Reserved keys (`grant_type`, `client_id`, `refresh_token`) are silently filtered out.
+     *
+     * @param extraRequestParameters additional form parameters to forward to the token endpoint.
+     */
+    suspend fun refreshToken(extraRequestParameters: Map<String, String>): OAuth2ClientResult<Token> {
+        if (extraRequestParameters.isEmpty()) return refreshToken()
+        return client.refreshToken(token, extraRequestParameters)
+    }
 
     private suspend fun performRealRefresh(): OAuth2ClientResult<Token> = client.refreshToken(token)
 

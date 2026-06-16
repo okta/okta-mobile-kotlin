@@ -116,6 +116,25 @@ class CredentialImpl internal constructor(
             replaceToken(newToken)
         }
 
+    /**
+     * Refreshes the token with extra request parameters, bypassing the coalescing orchestrator.
+     *
+     * When [extraRequestParameters] is empty, delegates to [refreshToken] (uses the orchestrator).
+     * When non-empty, calls the token endpoint directly — each call is a new network request.
+     *
+     * @param extraRequestParameters additional form parameters forwarded to the token endpoint.
+     * @return [Result.success] with a new [CredentialImpl] snapshot, or [Result.failure].
+     */
+    override suspend fun refreshToken(extraRequestParameters: Map<String, String>): Result<Credential> {
+        if (extraRequestParameters.isEmpty()) return refreshToken()
+        return runCatching {
+            val refreshTokenStr =
+                token.refreshToken ?: throw IllegalStateException("No refresh token available.")
+            val newToken = client.refreshToken(refreshTokenStr, extraRequestParameters).getOrThrow()
+            replaceToken(newToken)
+        }
+    }
+
     private suspend fun performRealRefresh(): Result<TokenInfo> {
         val refreshTokenStr =
             token.refreshToken ?: return Result.failure(

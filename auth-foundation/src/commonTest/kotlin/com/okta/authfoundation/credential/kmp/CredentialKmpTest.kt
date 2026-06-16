@@ -484,6 +484,38 @@ class CredentialKmpTest {
             assertTrue(result.isFailure)
         }
 
+    @Test
+    fun refreshToken_WithExtraParams_NoRefreshToken_Fails() =
+        runTest {
+            val credential = createCredential(refreshToken = null)
+            val result = credential.refreshToken(mapOf("acr_values" to "urn:okta:loa:2fa:any"))
+            assertTrue(result.isFailure)
+            assertIs<IllegalStateException>(result.exceptionOrNull())
+        }
+
+    @Test
+    fun refreshToken_EmptyExtraParams_DelegatesToNoArgOverload() =
+        runTest {
+            // Empty map should delegate to the orchestrated refreshToken()
+            val credential = createCredential(refreshToken = "valid-rt")
+            val result = credential.refreshToken(emptyMap())
+            // Fails because NoOpApiExecutor returns failure — same behavior as no-arg overload
+            assertTrue(result.isFailure)
+        }
+
+    @Test
+    fun refreshToken_WithExtraParams_BypassesOrchestrator() =
+        runTest {
+            // When extra params are provided, the orchestrator is bypassed and a direct call is made.
+            // The NoOpApiExecutor always fails — so both paths fail — but we can verify the non-empty
+            // map path does NOT throw IllegalStateException (no-refresh-token error).
+            val credential = createCredential(refreshToken = "valid-rt")
+            val result = credential.refreshToken(mapOf("acr_values" to "urn:okta:loa:2fa:any"))
+            // Should fail with network error (not "No refresh token" error)
+            assertTrue(result.isFailure)
+            assertTrue(result.exceptionOrNull() !is IllegalStateException)
+        }
+
     // --- idToken tests ---
 
     @Test

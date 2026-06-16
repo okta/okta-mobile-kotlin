@@ -89,4 +89,82 @@ class JwksTest {
             "yUPh0wNqXh1CMSxzud4uHkfBKkNX7powR4cRS_i0VxkbiicbNZ0IQhw-enDhZieRti4NhygOJfN8DPmtHsWJxt_pCsibc--bNgylcESpn9K4OxtiQrjUvtRM4WX3PWsKUREDZ0Vp-WAXC2nibvqRP_Ky38DkZMinzvCLabr0IOzyGc9AJrUHib61X6FucSoLM_YrKi2hd2UUHqeGiZrmUcHCrgrxcJIBTSbJq47hZrFzFN5RDq0Ium-lm8DU3bfoSlyc7minHlCWcOd90LtjonIHYqUVlpRYUzj_n4AM7DPKI6DDxC0-hio37qxfdmV_5Zvo6fpxIe8EUbI-oUoS3Q"
         )
     }
+
+    @Test fun ecKey_XYCrvParsedCorrectly() {
+        val json =
+            """
+            {
+                "keys": [
+                    {
+                        "kty": "EC",
+                        "kid": "ec-key-1",
+                        "use": "sig",
+                        "crv": "P-256",
+                        "x": "f83OJ3D2xF1Bg8vub9tLe1gHMzV76e8Tus9uPHvRVEU",
+                        "y": "x_FEzRu9m36HLN_tue659LNpXW6pCyStikYjKIWI5a0"
+                    }
+                ]
+            }
+            """.trimIndent()
+        val jwks =
+            oktaRule.configuration.json
+                .decodeFromString(SerializableJwks.serializer(), json)
+                .toJwks()
+        assertThat(jwks.keys).hasSize(1)
+        val key = jwks.keys.first()
+        assertThat(key.keyType).isEqualTo("EC")
+        assertThat(key.crv).isEqualTo("P-256")
+        assertThat(key.x).isEqualTo("f83OJ3D2xF1Bg8vub9tLe1gHMzV76e8Tus9uPHvRVEU")
+        assertThat(key.y).isEqualTo("x_FEzRu9m36HLN_tue659LNpXW6pCyStikYjKIWI5a0")
+        assertThat(key.exponent).isNull()
+        assertThat(key.modulus).isNull()
+    }
+
+    @Test fun ecKey_MissingXField_ParsesNull() {
+        val json =
+            """
+            {
+                "keys": [
+                    {
+                        "kty": "EC",
+                        "kid": "ec-key-no-x",
+                        "use": "sig",
+                        "crv": "P-256",
+                        "y": "x_FEzRu9m36HLN_tue659LNpXW6pCyStikYjKIWI5a0"
+                    }
+                ]
+            }
+            """.trimIndent()
+        val jwks =
+            oktaRule.configuration.json
+                .decodeFromString(SerializableJwks.serializer(), json)
+                .toJwks()
+        val key = jwks.keys.first()
+        assertThat(key.x).isNull()
+        assertThat(key.y).isEqualTo("x_FEzRu9m36HLN_tue659LNpXW6pCyStikYjKIWI5a0")
+    }
+
+    @Test fun ecKey_MissingCrvField_ParsesNull() {
+        val json =
+            """
+            {
+                "keys": [
+                    {
+                        "kty": "EC",
+                        "kid": "ec-key-no-crv",
+                        "use": "sig",
+                        "x": "f83OJ3D2xF1Bg8vub9tLe1gHMzV76e8Tus9uPHvRVEU",
+                        "y": "x_FEzRu9m36HLN_tue659LNpXW6pCyStikYjKIWI5a0"
+                    }
+                ]
+            }
+            """.trimIndent()
+        val jwks =
+            oktaRule.configuration.json
+                .decodeFromString(SerializableJwks.serializer(), json)
+                .toJwks()
+        val key = jwks.keys.first()
+        assertThat(key.crv).isNull()
+        assertThat(key.x).isEqualTo("f83OJ3D2xF1Bg8vub9tLe1gHMzV76e8Tus9uPHvRVEU")
+    }
 }

@@ -59,15 +59,29 @@ class Jwt internal constructor(
         return withContext(computeDispatcher) {
             val key = jwks.keys.firstOrNull { it.keyId == keyId } ?: return@withContext false
             if (key.use != "sig") return@withContext false
-            if (key.keyType != "RSA") return@withContext false
-            if (key.algorithm != "RS256") return@withContext false
 
-            val modulus = key.modulus?.decodeBase64UrlOrNull() ?: return@withContext false
-            val exponent = key.exponent?.decodeBase64UrlOrNull() ?: return@withContext false
             val jwtContentBytes = rawValue.substringBeforeLast('.').toByteArray()
             val signatureBytes = signature.decodeBase64UrlOrNull() ?: return@withContext false
 
-            verifyRs256Signature(modulus, exponent, jwtContentBytes, signatureBytes)
+            when (key.keyType) {
+                "RSA" -> {
+                    if (key.algorithm != "RS256") return@withContext false
+                    val modulus = key.modulus?.decodeBase64UrlOrNull() ?: return@withContext false
+                    val exponent = key.exponent?.decodeBase64UrlOrNull() ?: return@withContext false
+                    verifyRs256Signature(modulus, exponent, jwtContentBytes, signatureBytes)
+                }
+
+                "EC" -> {
+                    val crv = key.crv ?: return@withContext false
+                    val x = key.x?.decodeBase64UrlOrNull() ?: return@withContext false
+                    val y = key.y?.decodeBase64UrlOrNull() ?: return@withContext false
+                    verifyEcSignature(x, y, crv, jwtContentBytes, signatureBytes)
+                }
+
+                else -> {
+                    false
+                }
+            }
         }
     }
 }

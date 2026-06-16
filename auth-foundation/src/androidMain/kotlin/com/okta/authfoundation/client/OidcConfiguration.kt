@@ -62,6 +62,13 @@ class OidcConfiguration private constructor(
     /** The factory for creating a new instance of [Cache]. [Cache] is used to optimize network calls by the SDK. */
     @property:InternalAuthFoundationApi
     val cacheFactory: suspend () -> Cache = AuthFoundationDefaults.cacheFactory,
+    /**
+     * Optional per-endpoint URL overrides. Non-null fields take precedence over discovery values.
+     * When all fields are non-null the discovery document fetch is skipped entirely.
+     * See [OAuth2EndpointOverrides] for details and URL validation rules.
+     */
+    @Transient @property:InternalAuthFoundationApi
+    val endpointOverrides: OAuth2EndpointOverrides? = null,
 ) {
     /**
      * Used to create an OidcConfiguration.
@@ -87,7 +94,39 @@ class OidcConfiguration private constructor(
         idTokenValidator = AuthFoundationDefaults.idTokenValidator,
         accessTokenValidator = AuthFoundationDefaults.accessTokenValidator,
         deviceSecretValidator = AuthFoundationDefaults.deviceSecretValidator,
-        cacheFactory = AuthFoundationDefaults.cacheFactory
+        cacheFactory = AuthFoundationDefaults.cacheFactory,
+        endpointOverrides = null
+    )
+
+    /**
+     * Used to create an OidcConfiguration with custom endpoint overrides.
+     *
+     * @param clientId the application's client ID.
+     * @param defaultScope the default access scopes required by the client.
+     * @param issuer the Authorization Server URL, e.g. `https://your_okta_domain.okta.com/oauth2/default`.
+     * @param endpointOverrides optional per-endpoint URL overrides; see [OAuth2EndpointOverrides].
+     *
+     * See [AuthFoundationDefaults] for further customization options.
+     */
+    constructor(
+        clientId: String,
+        defaultScope: String,
+        issuer: String,
+        endpointOverrides: OAuth2EndpointOverrides?,
+    ) : this(
+        clientId = clientId,
+        defaultScope = defaultScope,
+        discoveryUrl = "$issuer/.well-known/openid-configuration",
+        okHttpClientFactory = AuthFoundationDefaults.okHttpClientFactory,
+        ioDispatcher = AuthFoundationDefaults.ioDispatcher,
+        computeDispatcher = AuthFoundationDefaults.computeDispatcher,
+        clock = AuthFoundationDefaults.clock,
+        eventCoordinator = AuthFoundationDefaults.eventCoordinator,
+        idTokenValidator = AuthFoundationDefaults.idTokenValidator,
+        accessTokenValidator = AuthFoundationDefaults.accessTokenValidator,
+        deviceSecretValidator = AuthFoundationDefaults.deviceSecretValidator,
+        cacheFactory = AuthFoundationDefaults.cacheFactory,
+        endpointOverrides = endpointOverrides
     )
 
     /** The Call.Factory which makes calls to the okta server. */

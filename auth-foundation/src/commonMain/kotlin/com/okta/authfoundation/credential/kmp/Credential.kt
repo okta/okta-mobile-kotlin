@@ -176,8 +176,27 @@ interface Credential : CredentialIdentifier {
      *   or [Result.failure] with:
      * - [IllegalStateException] if no refresh token is available on this credential.
      * - Other exceptions if the refresh network request fails.
+     * @see refreshToken for an overload that accepts additional request parameters.
      */
     suspend fun refreshToken(): Result<Credential>
+
+    /**
+     * Refreshes the token with additional form body parameters and returns a **new** credential snapshot.
+     *
+     * Unlike [refreshToken], this overload **bypasses the coalescing orchestrator** — each call
+     * always makes a new network request. Use the no-parameter overload when deduplication is desired.
+     *
+     * Reserved keys (`grant_type`, `client_id`, `refresh_token`) are silently filtered out of
+     * [extraRequestParameters] and cannot be overridden.
+     *
+     * @param extraRequestParameters additional form parameters to forward to the token endpoint
+     *   (e.g., `mapOf("acr_values" to "urn:okta:loa:2fa:any")`).
+     * @return [Result.success] with a new [Credential] snapshot containing the refreshed token,
+     *   or [Result.failure] with:
+     * - [IllegalStateException] if no refresh token is available on this credential.
+     * - Other exceptions if the refresh network request fails.
+     */
+    suspend fun refreshToken(extraRequestParameters: Map<String, String>): Result<Credential> = refreshToken()
 
     /**
      * Retrieves the parsed [Jwt] from the ID token.

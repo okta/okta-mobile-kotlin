@@ -33,9 +33,16 @@ internal object EndpointsFactory {
     private var cacheInstance: Cache? = null
 
     suspend fun get(configuration: OidcConfiguration): OAuth2ClientResult<OidcEndpoints> {
+        val overrides = configuration.endpointOverrides
+
+        // If all override fields are provided, skip discovery entirely.
+        if (overrides != null && overrides.allFieldsNonNull()) {
+            return OAuth2ClientResult.Success(overrides.asOidcEndpoints())
+        }
+
         val cache = getOrCreateCache(configuration.cacheFactory)
         val cacheKey = PREFIX + configuration.discoveryUrl
-        val endpoints =
+        val cached =
             withContext(configuration.computeDispatcher) {
                 val result = cache.get(cacheKey) ?: return@withContext null
                 return@withContext try {
@@ -49,23 +56,35 @@ internal object EndpointsFactory {
                     null
                 }
             }
-        if (endpoints != null) {
-            return endpoints
-        }
-        val request =
-            Request
-                .Builder()
-                .url(configuration.discoveryUrl.toHttpUrl())
-                .build()
-        return configuration.internalPerformRequest(request, { it.isSuccessful }) { responseBody ->
-            @OptIn(ExperimentalSerializationApi::class)
-            val serializableOidcEndpoints =
-                configuration.json.decodeFromBufferedSource(
-                    SerializableOidcEndpoints.serializer(),
-                    responseBody.peek()
-                )
-            cache.set(cacheKey, responseBody.readUtf8())
-            serializableOidcEndpoints.asOidcEndpoints()
+        val discovered =
+            if (cached != null) {
+                cached
+            } else {
+                val request =
+                    Request
+                        .Builder()
+                        .url(configuration.discoveryUrl.toHttpUrl())
+                        .build()
+                configuration.internalPerformRequest(request, { it.isSuccessful }) { responseBody ->
+                    @OptIn(ExperimentalSerializationApi::class)
+                    val serializableOidcEndpoints =
+                        configuration.json.decodeFromBufferedSource(
+                            SerializableOidcEndpoints.serializer(),
+                            responseBody.peek()
+                        )
+                    cache.set(cacheKey, responseBody.readUtf8())
+                    serializableOidcEndpoints.asOidcEndpoints()
+                }
+            }
+
+        // Merge partial overrides on top of the discovered endpoints.
+        return if (overrides == null) {
+            discovered
+        } else {
+            when (discovered) {
+                is OAuth2ClientResult.Success -> OAuth2ClientResult.Success(discovered.result.merge(overrides))
+                is OAuth2ClientResult.Error -> discovered
+            }
         }
     }
 
@@ -82,4 +101,40 @@ internal object EndpointsFactory {
     internal fun reset() {
         cacheInstance = null
     }
+
+    private fun OAuth2EndpointOverrides.allFieldsNonNull(): Boolean =
+        authorizationEndpoint != null &&
+            tokenEndpoint != null &&
+            userInfoEndpoint != null &&
+            jwksUri != null &&
+            introspectionEndpoint != null &&
+            revocationEndpoint != null &&
+            endSessionEndpoint != null &&
+            deviceAuthorizationEndpoint != null
+
+    private fun OAuth2EndpointOverrides.asOidcEndpoints(): OidcEndpoints =
+        OidcEndpoints(
+            issuer = authorizationEndpoint!!.toHttpUrl(), // use authorizationEndpoint as a proxy issuer
+            authorizationEndpoint = authorizationEndpoint.toHttpUrl(),
+            tokenEndpoint = tokenEndpoint!!.toHttpUrl(),
+            userInfoEndpoint = userInfoEndpoint!!.toHttpUrl(),
+            jwksUri = jwksUri!!.toHttpUrl(),
+            introspectionEndpoint = introspectionEndpoint!!.toHttpUrl(),
+            revocationEndpoint = revocationEndpoint!!.toHttpUrl(),
+            endSessionEndpoint = endSessionEndpoint!!.toHttpUrl(),
+            deviceAuthorizationEndpoint = deviceAuthorizationEndpoint!!.toHttpUrl()
+        )
+
+    private fun OidcEndpoints.merge(overrides: OAuth2EndpointOverrides): OidcEndpoints =
+        OidcEndpoints(
+            issuer = issuer,
+            authorizationEndpoint = overrides.authorizationEndpoint?.toHttpUrl() ?: authorizationEndpoint,
+            tokenEndpoint = overrides.tokenEndpoint?.toHttpUrl() ?: tokenEndpoint,
+            userInfoEndpoint = overrides.userInfoEndpoint?.toHttpUrl() ?: userInfoEndpoint,
+            jwksUri = overrides.jwksUri?.toHttpUrl() ?: jwksUri,
+            introspectionEndpoint = overrides.introspectionEndpoint?.toHttpUrl() ?: introspectionEndpoint,
+            revocationEndpoint = overrides.revocationEndpoint?.toHttpUrl() ?: revocationEndpoint,
+            endSessionEndpoint = overrides.endSessionEndpoint?.toHttpUrl() ?: endSessionEndpoint,
+            deviceAuthorizationEndpoint = overrides.deviceAuthorizationEndpoint?.toHttpUrl() ?: deviceAuthorizationEndpoint
+        )
 }
