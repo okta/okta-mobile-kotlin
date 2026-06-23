@@ -26,8 +26,8 @@ import io.mockk.runs
 object MockAesEncryptionHandler {
     fun getInstance() =
         mockk<AesEncryptionHandler>().apply {
-            every { encryptString(any()) } returnsArgument 0
-            every { decryptString(any()) } returnsArgument 0
+            every { encryptString(any()) } answers { Result.success(firstArg()) }
+            every { decryptString(any()) } answers { Result.success(firstArg()) }
             every { resetEncryptionKey() } just runs
         }
 }

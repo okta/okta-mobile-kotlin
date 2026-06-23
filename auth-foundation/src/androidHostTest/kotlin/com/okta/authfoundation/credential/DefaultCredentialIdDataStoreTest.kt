@@ -63,7 +63,7 @@ class DefaultCredentialIdDataStoreTest {
     fun `getDefaultCredentialId returns the token id provided in setDefaultTokenId`() =
         runTest {
             val tokenId = "tokenId"
-            defaultCredentialIdDataStore.setDefaultCredentialId(tokenId)
+            defaultCredentialIdDataStore.setDefaultCredentialId(tokenId).getOrThrow()
             assertThat(defaultCredentialIdDataStore.getDefaultCredentialId()).isEqualTo(tokenId)
             coVerify { AuthFoundation.initializeStorage() }
         }
@@ -73,8 +73,8 @@ class DefaultCredentialIdDataStoreTest {
         runTest {
             val oldTokenId = "oldTokenId"
             val newTokenId = "newTokenId"
-            defaultCredentialIdDataStore.setDefaultCredentialId(oldTokenId)
-            defaultCredentialIdDataStore.setDefaultCredentialId(newTokenId)
+            defaultCredentialIdDataStore.setDefaultCredentialId(oldTokenId).getOrThrow()
+            defaultCredentialIdDataStore.setDefaultCredentialId(newTokenId).getOrThrow()
 
             assertThat(defaultCredentialIdDataStore.getDefaultCredentialId()).isEqualTo(newTokenId)
             coVerify { AuthFoundation.initializeStorage() }

@@ -92,7 +92,7 @@ class V1ToV2StorageMigrator internal constructor(
             val metadata = Token.Metadata(entry.identifier, entry.tags, idToken)
             tokenStorage.add(entry.token, metadata)
             if (entry.isDefaultTokenEntry()) {
-                defaultCredentialIdDataStore.setDefaultCredentialId(entry.identifier)
+                defaultCredentialIdDataStore.setDefaultCredentialId(entry.identifier).getOrNull()
             }
         }
     }

@@ -40,17 +40,18 @@ class AesEncryptionHandler(
         }
     }
 
-    fun encryptString(string: String): String {
-        val aesKey = AndroidKeystoreUtil.getOrCreateAesKey(encryptionKeySpec)
-        val cipher = getCipher().apply { init(Cipher.ENCRYPT_MODE, aesKey) }
-        val encryptedStringByteArray = cipher.doFinal(string.toByteArray())
-        val encryptedString = Base64.encodeToString(encryptedStringByteArray, Base64.NO_WRAP)
-        return Base64.encodeToString(cipher.iv, Base64.NO_WRAP) + SEPARATOR + encryptedString
-    }
+    fun encryptString(string: String): Result<String> =
+        runCatching {
+            val aesKey = AndroidKeystoreUtil.getOrCreateAesKey(encryptionKeySpec).getOrThrow()
+            val cipher = getCipher().apply { init(Cipher.ENCRYPT_MODE, aesKey) }
+            val encryptedStringByteArray = cipher.doFinal(string.toByteArray())
+            val encryptedString = Base64.encodeToString(encryptedStringByteArray, Base64.NO_WRAP)
+            Base64.encodeToString(cipher.iv, Base64.NO_WRAP) + SEPARATOR + encryptedString
+        }
 
     fun decryptString(encryptedString: String): Result<String> =
         runCatching {
-            val aesKey = AndroidKeystoreUtil.getOrCreateAesKey(encryptionKeySpec)
+            val aesKey = AndroidKeystoreUtil.getOrCreateAesKey(encryptionKeySpec).getOrThrow()
             val (ivBase64, encryptedAesStringBase64) = encryptedString.split(SEPARATOR, limit = 2)
             val iv = Base64.decode(ivBase64, Base64.NO_WRAP)
             val encryptedAesString = Base64.decode(encryptedAesStringBase64, Base64.NO_WRAP)
