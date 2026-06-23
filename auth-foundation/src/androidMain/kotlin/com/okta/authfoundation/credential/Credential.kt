@@ -152,6 +152,8 @@ class Credential internal constructor(
          * set to null to unset the default [Credential].
          *
          * > Note: This blocks on [setDefaultAsync] and [getDefaultAsync].
+         * > Setting this property may throw [java.security.ProviderException] if AES key generation
+         * > fails (see [setDefaultAsync]).
          */
         var default: Credential?
             get() =
@@ -168,10 +170,13 @@ class Credential internal constructor(
         /**
          * Sets the default [Credential] to provided [credential]. Unsets the default [Credential] if
          * [credential] is null.
+         *
+         * @throws java.security.ProviderException if the underlying AES key generation fails (e.g.
+         * StrongBox unavailable on certain OEM devices).
          */
         suspend fun setDefaultAsync(credential: Credential?) {
             credential?.let {
-                defaultCredentialIdDataStore.setDefaultCredentialId(credential.id)
+                defaultCredentialIdDataStore.setDefaultCredentialId(credential.id).getOrThrow()
                 AuthFoundationDefaults.eventCoordinator.sendEvent(
                     DefaultCredentialChangedEvent(
                         credential

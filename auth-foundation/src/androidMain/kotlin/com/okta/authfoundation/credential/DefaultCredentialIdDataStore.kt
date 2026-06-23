@@ -49,9 +49,12 @@ internal class DefaultCredentialIdDataStore(
         }
     }
 
-    suspend fun setDefaultCredentialId(id: String) =
-        context.dataStore.edit { preferences ->
-            preferences[PREFERENCE_KEY] = aesEncryptionHandler.encryptString(id)
+    suspend fun setDefaultCredentialId(id: String): Result<Unit> =
+        runCatching {
+            val encrypted = aesEncryptionHandler.encryptString(id).getOrThrow()
+            context.dataStore.edit { preferences ->
+                preferences[PREFERENCE_KEY] = encrypted
+            }
         }
 
     suspend fun clearDefaultCredentialId() =

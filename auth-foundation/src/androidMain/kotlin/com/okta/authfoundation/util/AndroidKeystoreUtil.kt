@@ -43,13 +43,13 @@ object AndroidKeystoreUtil {
         keyStore.deleteEntry(alias)
     }
 
-    fun getOrCreateAesKey(keyGenParameterSpec: KeyGenParameterSpec): Key {
-        if (keyStore.containsAlias(keyGenParameterSpec.keystoreAlias)) {
-            return keyStore.getKey(keyGenParameterSpec.keystoreAlias, null)
+    fun getOrCreateAesKey(keyGenParameterSpec: KeyGenParameterSpec): Result<Key> =
+        runCatching {
+            if (keyStore.containsAlias(keyGenParameterSpec.keystoreAlias)) {
+                return@runCatching keyStore.getKey(keyGenParameterSpec.keystoreAlias, null)
+            }
+            val aesKeyGenerator = getAesKeyGenerator()
+            aesKeyGenerator.init(keyGenParameterSpec)
+            aesKeyGenerator.generateKey()
         }
-
-        val aesKeyGenerator = getAesKeyGenerator()
-        aesKeyGenerator.init(keyGenParameterSpec)
-        return aesKeyGenerator.generateKey()
-    }
 }

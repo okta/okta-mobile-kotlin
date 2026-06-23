@@ -39,7 +39,7 @@ class AesEncryptionHandlerTest {
     fun setUp() {
         mockkObject(AndroidKeystoreUtil)
         keyGenerator = KeyGenerator.getInstance("AES")
-        every { AndroidKeystoreUtil.getOrCreateAesKey(any()) } returns keyGenerator.generateKey()
+        every { AndroidKeystoreUtil.getOrCreateAesKey(any()) } returns Result.success(keyGenerator.generateKey())
         mockEncryptionKeySpec = mockk(relaxed = true)
 
         aesEncryptionHandler = AesEncryptionHandler(mockEncryptionKeySpec)
@@ -53,7 +53,7 @@ class AesEncryptionHandlerTest {
     @Test
     fun `encrypt then decrypt string successfully`() {
         val testString = "testString"
-        val encryptedString = aesEncryptionHandler.encryptString(testString)
+        val encryptedString = aesEncryptionHandler.encryptString(testString).getOrThrow()
         assertThat(encryptedString).isNotEqualTo(testString)
 
         val decryptedString = aesEncryptionHandler.decryptString(encryptedString)
@@ -63,10 +63,10 @@ class AesEncryptionHandlerTest {
     @Test
     fun `encrypt then decrypt string with exception`() {
         val testString = "testString"
-        val encryptedString = aesEncryptionHandler.encryptString(testString)
+        val encryptedString = aesEncryptionHandler.encryptString(testString).getOrThrow()
         assertThat(encryptedString).isNotEqualTo(testString)
 
-        every { AndroidKeystoreUtil.getOrCreateAesKey(any()) } returns keyGenerator.generateKey() // wrong key
+        every { AndroidKeystoreUtil.getOrCreateAesKey(any()) } returns Result.success(keyGenerator.generateKey()) // wrong key
         val decryptedString = aesEncryptionHandler.decryptString(encryptedString)
         assertThat(decryptedString.isFailure).isTrue()
         assertThat(decryptedString.exceptionOrNull()).isInstanceOf(AEADBadTagException::class.java)

@@ -64,8 +64,10 @@ internal class EncryptionTokenProvider(
         }
     }
 
-    private suspend fun setDeviceToken(deviceToken: String) =
+    private suspend fun setDeviceToken(deviceToken: String) {
+        val encrypted = aesEncryptionHandler.encryptString(deviceToken).getOrThrow()
         context.dataStore.edit { preferences ->
-            preferences[PREFERENCE_KEY] = aesEncryptionHandler.encryptString(deviceToken)
+            preferences[PREFERENCE_KEY] = encrypted
         }
+    }
 }
