@@ -15,6 +15,7 @@
  */
 package com.okta.authfoundation.credential
 
+import android.security.keystore.KeyPermanentlyInvalidatedException
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
 import com.okta.authfoundation.client.OidcConfiguration
@@ -71,6 +72,15 @@ internal class DefaultTokenEncryptionHandlerTest {
                     defaultSecurity
                 )
             assertThat(decryptionResult).isEqualTo(token)
+        }
+
+    @Test fun encryptThrowsKeyPermanentlyInvalidatedException_whenKeyDeletedAfterGeneration() =
+        runTest {
+            tokenEncryptionHandler.generateKey(defaultSecurity)
+            tokenEncryptionHandler.keyStore.deleteEntry(defaultSecurity.keyAlias)
+            assertFailsWith<KeyPermanentlyInvalidatedException> {
+                tokenEncryptionHandler.encrypt(token, defaultSecurity)
+            }
         }
 
     @Test fun decryptingBioTokenWithNoPromptFails() =
