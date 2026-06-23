@@ -90,6 +90,14 @@ class WebAuthentication(
     class FlowCancelledException internal constructor() : Exception("Flow cancelled.")
 
     /**
+     * Used in a [OAuth2ClientResult.Error.exception].
+     *
+     * Indicates that [login] or [logoutOfBrowser] was called while another flow was already in
+     * progress. Only one redirect flow can be active at a time.
+     */
+    class FlowAlreadyInProgressException internal constructor() : Exception("Another flow is already in progress.")
+
+    /**
      * Initiates the OIDC Authorization Code redirect flow.
      *
      * @param context the Android [Activity] [Context] which is used to display the login flow via the configured
