@@ -63,6 +63,9 @@ public final class com/okta/webauthenticationui/WebAuthentication {
 public final class com/okta/webauthenticationui/WebAuthentication$Companion {
 }
 
+public final class com/okta/webauthenticationui/WebAuthentication$FlowAlreadyInProgressException : java/lang/Exception {
+}
+
 public final class com/okta/webauthenticationui/WebAuthentication$FlowCancelledException : java/lang/Exception {
 }
 

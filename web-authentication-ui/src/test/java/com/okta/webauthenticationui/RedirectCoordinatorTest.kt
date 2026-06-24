@@ -356,6 +356,29 @@ class RedirectCoordinatorTest {
             assertThat(foregroundActivity).isNull()
         }
 
+    @Test fun testInitializeReturnsErrorWhenFlowAlreadyActive(): Unit =
+        testScope.runTest {
+            val initializerCountDownLatch = CountDownLatch(1)
+            subject.initializerContinuationListeningCallback = {
+                initializerCountDownLatch.countDown()
+            }
+            val firstJob =
+                launch(Dispatchers.IO) {
+                    subject.initialize(mock(), mock()) {
+                        RedirectInitializationResult.Success(mock(), Any())
+                    }
+                }
+            assertThat(initializerCountDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
+            val concurrentResult =
+                subject.initialize(mock(), mock()) {
+                    RedirectInitializationResult.Success(mock(), Any())
+                }
+            assertThat(concurrentResult).isInstanceOf(RedirectInitializationResult.Error::class.java)
+            val error = concurrentResult as RedirectInitializationResult.Error
+            assertThat(error.exception).isInstanceOf(WebAuthentication.FlowAlreadyInProgressException::class.java)
+            firstJob.cancel()
+        }
+
     @Test fun testListenForRedirectDoesNothingWhenCancelled(): Unit =
         testScope.runTest {
             val startedCountDownLatch = CountDownLatch(1)

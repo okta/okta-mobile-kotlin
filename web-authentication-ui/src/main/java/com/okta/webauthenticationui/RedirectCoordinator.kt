@@ -30,6 +30,8 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import okhttp3.HttpUrl
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
@@ -53,22 +55,29 @@ internal class DefaultRedirectCoordinator(
 
     private var emitErrorJob: Job? = null
 
+    private val flowMutex = Mutex()
+
+    @Volatile private var isFlowActive = false
+
     @Suppress("UNCHECKED_CAST")
     override suspend fun <T> initialize(
         webAuthenticationProvider: WebAuthenticationProvider,
         context: Context,
         initializer: suspend () -> RedirectInitializationResult<T>,
     ): RedirectInitializationResult<T> {
-        if (!currentCoroutineContext().isActive) {
-            reset()
-        }
         currentCoroutineContext().ensureActive()
-
-        this.webAuthenticationProvider = webAuthenticationProvider
-        this.initializer = initializer
+        flowMutex.withLock {
+            if (isFlowActive) {
+                return RedirectInitializationResult.Error(WebAuthentication.FlowAlreadyInProgressException())
+            }
+            isFlowActive = true
+            this.webAuthenticationProvider = webAuthenticationProvider
+            this.initializer = initializer
+        }
 
         if (context is ComponentActivity) {
             if (!context.lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
+                reset()
                 return RedirectInitializationResult.Error(IllegalStateException("Activity is not resumed."))
             }
         }
@@ -157,6 +166,7 @@ internal class DefaultRedirectCoordinator(
 
     // Nulls all instance variables.
     private fun reset() {
+        isFlowActive = false
         initializationContinuation = null
         initializerContinuationListeningCallback = null
         initializer = null
