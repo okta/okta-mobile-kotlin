@@ -33,7 +33,7 @@ internal class SessionTokenFlowImpl(
         sessionToken: String,
         redirectUrl: String,
         extraRequestParameters: Map<String, String>,
-        scope: String,
+        scope: String?,
     ): Result<TokenInfo> =
         runCatching {
             val authorizationCodeFlow = AuthorizationCodeFlowImpl(client)

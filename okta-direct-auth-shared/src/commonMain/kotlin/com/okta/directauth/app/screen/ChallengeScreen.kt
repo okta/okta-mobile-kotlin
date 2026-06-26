@@ -52,18 +52,15 @@ private const val TAG = "ChallengeScreen"
  * @param title The title text to display on the screen.
  * @param buttonText The text to display on the challenge button.
  * @param username The username being authenticated. Displayed on screen.
- * @param backToSignIn Callback to return to the username entry screen.
- * @param verifyWithSomethingElse Callback to select a different authentication method.
  * @param onChallenge Callback invoked when the user clicks the challenge button.
  *                    Returns a Job that can be cancelled if the user navigates away.
  */
 @Composable
+context(nav: AuthenticatorNavContext)
 fun ChallengeScreen(
     title: String,
     buttonText: String,
     username: String,
-    backToSignIn: () -> Unit,
-    verifyWithSomethingElse: () -> Unit,
     onChallenge: () -> Job,
     modifier: Modifier = Modifier,
 ) {
@@ -74,27 +71,32 @@ fun ChallengeScreen(
     val focusManager = LocalFocusManager.current
     val jobState = rememberCancellableJob()
 
-    AuthenticatorScreenScaffold(
-        title = title,
-        username = username,
-        backToSignIn = {
-            jobState.cancel()
-            backToSignIn()
-        },
-        verifyWithSomethingElse = {
-            jobState.cancel()
-            verifyWithSomethingElse()
-        }
-    ) {
-        Button(
-            onClick = {
-                focusManager.clearFocus()
-                jobState.addJob(onChallenge())
+    context(
+        AuthenticatorNavContext(
+            backToSignIn = {
+                jobState.cancel()
+                nav.backToSignIn()
             },
-            enabled = !jobState.isActive,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(text = buttonText)
+            verifyWithSomethingElse =
+                nav.verifyWithSomethingElse?.let {
+                    {
+                        jobState.cancel()
+                        it()
+                    }
+                }
+        )
+    ) {
+        AuthenticatorScreenScaffold(title = title, username = username) {
+            Button(
+                onClick = {
+                    focusManager.clearFocus()
+                    jobState.addJob(onChallenge())
+                },
+                enabled = !jobState.isActive,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(text = buttonText)
+            }
         }
     }
 }
@@ -103,13 +105,13 @@ fun ChallengeScreen(
 @Composable
 private fun ChallengeScreenPreview() {
     DirectAuthAppTheme {
-        ChallengeScreen(
-            title = "Get a push notification",
-            buttonText = "Send push",
-            username = "test.user@example.com",
-            backToSignIn = {},
-            verifyWithSomethingElse = {},
-            onChallenge = { Job().apply { complete() } }
-        )
+        context(AuthenticatorNavContext(backToSignIn = {}, verifyWithSomethingElse = {})) {
+            ChallengeScreen(
+                title = "Get a push notification",
+                buttonText = "Send push",
+                username = "test.user@example.com",
+                onChallenge = { Job().apply { complete() } }
+            )
+        }
     }
 }

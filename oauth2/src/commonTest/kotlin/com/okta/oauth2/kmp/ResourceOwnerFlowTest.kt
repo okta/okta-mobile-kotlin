@@ -26,13 +26,13 @@ class ResourceOwnerFlowTest {
     @Test
     fun start_WithValidCredentials_ReturnsTokenInfo() =
         runTest {
-            val capturedParams = mutableMapOf<String, String>()
+            val capturedParams = mutableMapOf<String, String?>()
             val mockFlow =
                 object : ResourceOwnerFlow {
                     override suspend fun start(
                         username: String,
                         password: String,
-                        scope: String,
+                        scope: String?,
                     ): Result<TokenInfo> {
                         capturedParams["username"] = username
                         capturedParams["password"] = password
@@ -58,7 +58,7 @@ class ResourceOwnerFlowTest {
                     override suspend fun start(
                         username: String,
                         password: String,
-                        scope: String,
+                        scope: String?,
                     ): Result<TokenInfo> = Result.failure(IllegalArgumentException("invalid_grant"))
                 }
 
@@ -76,7 +76,7 @@ class ResourceOwnerFlowTest {
                     override suspend fun start(
                         username: String,
                         password: String,
-                        scope: String,
+                        scope: String?,
                     ): Result<TokenInfo> = Result.failure(java.io.IOException("Network unreachable"))
                 }
 

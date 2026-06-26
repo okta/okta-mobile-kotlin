@@ -34,3 +34,21 @@ internal object AppLogger {
         logger.write("$tag: $message")
     }
 }
+
+/**
+ * Provides an implicit log tag so that [log] can be called without passing a tag explicitly.
+ * Implement this on a class whose companion object or the class itself holds the tag constant.
+ */
+interface LogScope {
+    val logTag: String
+}
+
+/**
+ * Logs [message] prefixed with the tag from the ambient [LogScope].
+ *
+ * Usage — declare [cancelAndLaunch] (or similar scope) to accept
+ * `suspend context(LogScope) () -> Unit` and provide the VM's [LogScope] via `context(this) { ... }`.
+ * Inside the block every call to [log] resolves the tag automatically.
+ */
+context(scope: LogScope)
+internal fun log(message: String) = AppLogger.write(scope.logTag, message)

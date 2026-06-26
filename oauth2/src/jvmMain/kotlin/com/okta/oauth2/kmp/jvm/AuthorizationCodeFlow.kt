@@ -68,7 +68,7 @@ class AuthorizationCodeFlow(
      * @param redirectUrl the registered redirect URI for this client.
      * @param browserRedirectHandler handles opening the browser and capturing the redirect.
      * @param extraRequestParameters additional authorization endpoint parameters.
-     * @param scope the scopes to request.
+     * @param scope the scopes to request. Defaults to the client's configured default scope when null.
      * @return a [CompletableFuture] that completes with [TokenInfo] on success,
      *   or completes exceptionally on failure.
      */
@@ -77,7 +77,7 @@ class AuthorizationCodeFlow(
         redirectUrl: String,
         browserRedirectHandler: BrowserRedirectHandler,
         extraRequestParameters: Map<String, String> = emptyMap(),
-        scope: String = "openid profile email offline_access",
+        scope: String? = null,
     ): CompletableFuture<TokenInfo> =
         coroutineScope.future {
             val flowContext =

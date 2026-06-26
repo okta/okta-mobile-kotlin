@@ -15,32 +15,33 @@
  */
 package com.okta.authfoundation.client.internal
 
+import android.os.Build
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.robolectric.RobolectricTestRunner
 
-@RunWith(RobolectricTestRunner::class)
+@RunWith(AndroidJUnit4::class)
 class SdkVersionsRegistryTest {
-    private val defaultAndroidVersion = 23
+    private val androidVersion get() = Build.VERSION.SDK_INT
 
     @Before fun reset() {
         SdkVersionsRegistry.reset()
     }
 
     @Test fun testUserAgentWithNoOtherVersionsRegistered() {
-        assertThat(SdkVersionsRegistry.userAgent).matches("okta-auth-foundation-kotlin/.* Android/$defaultAndroidVersion")
+        assertThat(SdkVersionsRegistry.userAgent).matches("okta-auth-foundation-kotlin/.* Android/$androidVersion")
     }
 
     @Test fun testRegisterRegeneratesUserAgent() {
         SdkVersionsRegistry.register("atest/1.0.0")
-        assertThat(SdkVersionsRegistry.userAgent).matches("atest/1.0.0 okta-auth-foundation-kotlin/.* Android/$defaultAndroidVersion")
+        assertThat(SdkVersionsRegistry.userAgent).matches("atest/1.0.0 okta-auth-foundation-kotlin/.* Android/$androidVersion")
     }
 
     @Test fun testRegisterRegeneratesUserAgentSorted() {
         SdkVersionsRegistry.register("ztest/1.0.0")
-        assertThat(SdkVersionsRegistry.userAgent).matches("okta-auth-foundation-kotlin/.* ztest/1.0.0 Android/$defaultAndroidVersion")
+        assertThat(SdkVersionsRegistry.userAgent).matches("okta-auth-foundation-kotlin/.* ztest/1.0.0 Android/$androidVersion")
     }
 
     @Test fun testRegisterCanBeCalledMultipleTimes() {

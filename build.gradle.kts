@@ -65,6 +65,19 @@ allprojects {
     }
 }
 
+tasks.register("checkLegacyAbi") {
+    description = "Checks API binary compatibility across all modules."
+    group = "verification"
+}
+
+gradle.projectsEvaluated {
+    tasks.named("checkLegacyAbi").configure {
+        subprojects.forEach { subproject ->
+            subproject.tasks.findByName("apiCheck")?.let { dependsOn(it) }
+        }
+    }
+}
+
 subprojects {
     plugins.withId("com.vanniktech.maven.publish.base") {
         configure<MavenPublishBaseExtension> {

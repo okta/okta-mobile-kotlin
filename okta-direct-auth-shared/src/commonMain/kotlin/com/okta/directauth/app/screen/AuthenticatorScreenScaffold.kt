@@ -36,11 +36,10 @@ import com.okta.directauth.app.platform.appLogoPainter
 import com.okta.directauth.app.ui.theme.Dimens
 
 @Composable
+context(nav: AuthenticatorNavContext)
 fun AuthenticatorScreenScaffold(
     title: String,
     username: String,
-    backToSignIn: () -> Unit,
-    verifyWithSomethingElse: (() -> Unit)?,
     modifier: Modifier = Modifier,
     forgotPassword: @Composable (() -> Unit)? = null,
     content: @Composable (() -> Unit),
@@ -73,13 +72,13 @@ fun AuthenticatorScreenScaffold(
             horizontalAlignment = Alignment.Start
         ) {
             forgotPassword?.invoke()
-            if (verifyWithSomethingElse != null) {
+            if (nav.verifyWithSomethingElse != null) {
                 Text(
                     text = AppStrings.VERIFY_WITH_SOMETHING_ELSE,
                     color = MaterialTheme.colorScheme.primary,
                     modifier =
                         Modifier
-                            .clickable(onClick = verifyWithSomethingElse)
+                            .clickable(onClick = nav.verifyWithSomethingElse)
                 )
             }
             Text(
@@ -87,7 +86,7 @@ fun AuthenticatorScreenScaffold(
                 color = MaterialTheme.colorScheme.primary,
                 modifier =
                     Modifier
-                        .clickable(onClick = backToSignIn)
+                        .clickable(onClick = nav.backToSignIn)
             )
         }
     }

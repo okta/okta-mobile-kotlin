@@ -18,6 +18,8 @@ package com.okta.directauth.app.ui.theme
 import androidx.compose.ui.unit.dp
 
 object Dimens {
+    val spaceSmall = 8.dp
     val spaceMedium = 16.dp
+    val spaceLarge = 24.dp
     val logoSize = 120.dp
 }

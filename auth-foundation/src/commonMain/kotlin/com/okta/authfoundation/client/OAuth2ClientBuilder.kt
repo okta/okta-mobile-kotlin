@@ -39,13 +39,26 @@ import kotlin.time.Clock
  *
  * Use the [create] factory method to construct an instance.
  *
+ * Pass the base org URL as [issuerUrl] and optionally set [authorizationServerId] to target a
+ * custom authorization server. The effective issuer URL used for OIDC discovery is derived as:
+ * - No [authorizationServerId]: `issuerUrl` is used as-is (org authorization server).
+ * - With [authorizationServerId]: `"$issuerUrl/oauth2/$authorizationServerId"` (custom authorization server).
+ *
  * ```kotlin
- * val client = OAuth2ClientBuilder.create(
- *     issuerUrl = "https://your-okta-domain.okta.com/oauth2/default",
+ * // Org authorization server
+ * val orgClient = OAuth2ClientBuilder.create(
+ *     issuerUrl = "https://your-okta-domain.okta.com",
  *     clientId = "your-client-id",
- *     scope = "openid profile offline_access",
+ *     scope = listOf("openid", "profile", "offline_access"),
+ * ).getOrThrow()
+ *
+ * // Custom authorization server
+ * val customClient = OAuth2ClientBuilder.create(
+ *     issuerUrl = "https://your-okta-domain.okta.com",
+ *     clientId = "your-client-id",
+ *     scope = listOf("openid", "profile", "offline_access"),
  * ) {
- *     clock = OidcClock { customTimeSource() }
+ *     authorizationServerId = "default"
  * }.getOrThrow()
  * ```
  */
@@ -72,7 +85,16 @@ class OAuth2ClientBuilder private constructor(
     /** The cache for optimizing network calls. */
     var cache: Cache = NoOpCache()
 
-    /** Optional authorization server ID. */
+    /**
+     * Optional authorization server ID.
+     *
+     * When set, the effective issuer URL for OIDC discovery is constructed as
+     * `"$issuerUrl/oauth2/$authorizationServerId"`. When null or blank, [issuerUrl] is used
+     * directly (org authorization server).
+     *
+     * Use `"default"` for the Okta-provisioned custom authorization server, or any other
+     * custom authorization server ID from your Okta org.
+     */
     var authorizationServerId: String? = null
 
     /** Optional client secret for confidential clients. */
@@ -110,12 +132,15 @@ class OAuth2ClientBuilder private constructor(
 
     companion object {
         /**
-         * Creates a [OAuth2Client] with the given parameters and optional customization.
+         * Creates an [OAuth2Client] with the given parameters and optional customization.
          *
-         * @param issuerUrl the Authorization Server URL (must use HTTPS).
+         * @param issuerUrl the base URL of the Okta org (e.g. `"https://your-domain.okta.com"`).
+         *   Must use HTTPS. When [authorizationServerId] is also set, the effective issuer for
+         *   OIDC discovery becomes `"$issuerUrl/oauth2/$authorizationServerId"`.
          * @param clientId the application's client ID (must not be blank).
-         * @param scope the default access scopes (must not be blank).
-         * @param buildAction optional configuration block for customizing builder properties.
+         * @param scope the default access scopes (must not be empty).
+         * @param buildAction optional configuration block for customizing builder properties,
+         *   including [authorizationServerId] for targeting a custom authorization server.
          * @return [Result] containing the built [OAuth2Client], or a failure with
          *   [IllegalArgumentException] if validation fails.
          */
@@ -176,11 +201,18 @@ class OAuth2ClientBuilder private constructor(
             }
     }
 
+    private fun effectiveIssuerUrl(): String {
+        val url = Url(issuerUrl)
+        val portSuffix = if (url.port == url.protocol.defaultPort) "" else ":${url.port}"
+        val base = "${url.protocol.name}://${url.host}$portSuffix"
+        return if (authorizationServerId.isNullOrBlank()) base else "$base/oauth2/$authorizationServerId"
+    }
+
     private fun build(): OAuth2ClientConfiguration =
         OAuth2ClientConfiguration(
             clientId = clientId,
             defaultScope = scope,
-            issuerUrl = issuerUrl.trimEnd('/'),
+            issuerUrl = effectiveIssuerUrl(),
             apiExecutor = apiExecutor,
             clock = clock,
             json = json,

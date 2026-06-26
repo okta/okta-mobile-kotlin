@@ -22,6 +22,7 @@ import java.net.InetAddress
 import java.net.ServerSocket
 import java.net.Socket
 import kotlin.test.Test
+import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
@@ -173,6 +174,41 @@ class LocalhostBrowserRedirectHandlerTest {
 
             handler.handleRedirect("https://example.com/authorize?client_id=test")
             assertEquals("https://example.com/authorize?client_id=test", launchedUrl)
+        }
+
+    @Test
+    fun handleRedirect_CustomSuccessResponse_SentToBrowser() =
+        runBlocking<Unit> {
+            val port = findAvailablePort()
+            var receivedResponse: String? = null
+            val customResponse = "HTTP/1.1 302 Found\r\nLocation: https://app.example.com/done\r\n\r\n"
+            val handler =
+                LocalhostBrowserRedirectHandler(
+                    port = port,
+                    path = "/callback",
+                    successResponse = customResponse,
+                    browserLauncher = { _ ->
+                        Thread {
+                            var socket: Socket? = null
+                            for (attempt in 1..20) {
+                                try {
+                                    socket = Socket(InetAddress.getLoopbackAddress(), port)
+                                    break
+                                } catch (_: java.net.ConnectException) {
+                                    Thread.sleep(50)
+                                }
+                            }
+                            checkNotNull(socket)
+                            socket.getOutputStream().write("GET /callback?code=abc HTTP/1.1\r\n".toByteArray())
+                            socket.getOutputStream().flush()
+                            receivedResponse = socket.getInputStream().readAllBytes().toString(Charsets.UTF_8)
+                            socket.close()
+                        }.start()
+                    }
+                )
+
+            handler.handleRedirect("https://example.com/authorize")
+            assertContains(receivedResponse!!, "Location: https://app.example.com/done")
         }
 
     @Test

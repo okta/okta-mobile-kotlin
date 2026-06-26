@@ -31,7 +31,7 @@ internal class ResourceOwnerFlowImpl(
     override suspend fun start(
         username: String,
         password: String,
-        scope: String,
+        scope: String?,
     ): Result<TokenInfo> =
         client.tokenRequest(
             formParams =
@@ -39,7 +39,7 @@ internal class ResourceOwnerFlowImpl(
                     "grant_type" to "password",
                     "username" to username,
                     "password" to password,
-                    "scope" to scope,
+                    "scope" to (scope ?: client.configuration.defaultScope),
                     "client_id" to client.configuration.clientId
                 )
         )

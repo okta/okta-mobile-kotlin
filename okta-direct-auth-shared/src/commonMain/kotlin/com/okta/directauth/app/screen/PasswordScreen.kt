@@ -51,6 +51,7 @@ import com.okta.directauth.app.platform.AppStrings
 import com.okta.directauth.app.ui.theme.DirectAuthAppTheme
 import com.okta.directauth.app.util.AppLogger
 import com.okta.directauth.app.util.BLANK_FIELD_ERROR
+import com.okta.directauth.app.util.ValidationErrorContext
 import com.okta.directauth.app.util.rememberCancellableJob
 import com.okta.directauth.app.util.validateNotBlank
 import kotlinx.coroutines.Job
@@ -80,18 +81,15 @@ private const val TAG = "PasswordScreen"
  * - Supports keyboard "Done" action for quick submission
  *
  * @param username The username being authenticated. Displayed on screen.
- * @param backToSignIn Callback to return to the username entry screen.
- * @param verifyWithSomethingElse Callback to select a different authentication method.
  * @param forgotPassword Callback invoked when user clicks "Forgot password" link.
  * @param next Callback invoked when user submits a valid password.
  *             Returns a Job that can be cancelled if the user navigates away.
  *             Parameter: (password: String)
  */
 @Composable
+context(nav: AuthenticatorNavContext)
 fun PasswordScreen(
     username: String,
-    backToSignIn: () -> Unit,
-    verifyWithSomethingElse: () -> Unit,
     forgotPassword: () -> Unit,
     modifier: Modifier = Modifier,
     next: (String) -> Job,
@@ -106,95 +104,97 @@ fun PasswordScreen(
     val focusManager = LocalFocusManager.current
     val jobState = rememberCancellableJob()
 
-    AuthenticatorScreenScaffold(
-        title = "Verify with your password",
-        username = username,
-        backToSignIn = {
-            jobState.cancel()
-            backToSignIn()
-        },
-        verifyWithSomethingElse = {
-            jobState.cancel()
-            verifyWithSomethingElse()
-        },
-        forgotPassword = {
-            Text(
-                text = AppStrings.FORGOT_PASSWORD,
-                color = MaterialTheme.colorScheme.primary,
-                modifier =
-                    Modifier
-                        .clickable(
-                            enabled = !jobState.isActive,
-                            onClick = forgotPassword
-                        )
-            )
-        }
-    ) {
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.Start
-        ) {
-            Text(
-                text = "Password",
-                fontWeight = FontWeight.Bold
-            )
-            OutlinedTextField(
-                value = password,
-                onValueChange = { password = it },
-                modifier = Modifier.fillMaxWidth(),
-                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                isError = showError,
-                enabled = !jobState.isActive,
-                trailingIcon = {
-                    val image =
-                        if (passwordVisible) {
-                            Icons.Filled.Visibility
-                        } else {
-                            Icons.Filled.VisibilityOff
-                        }
-
-                    val description = if (passwordVisible) "Hide password" else "Show password"
-
-                    IconButton(
-                        onClick = { passwordVisible = !passwordVisible },
-                        enabled = !jobState.isActive
-                    ) {
-                        Icon(imageVector = image, description)
+    context(
+        AuthenticatorNavContext(
+            backToSignIn = {
+                jobState.cancel()
+                nav.backToSignIn()
+            },
+            verifyWithSomethingElse =
+                nav.verifyWithSomethingElse?.let {
+                    {
+                        jobState.cancel()
+                        it()
                     }
-                },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                keyboardActions =
-                    KeyboardActions(
-                        onDone = {
-                            password.validateNotBlank(
-                                onError = { showError = true },
-                                onSuccess = {
-                                    focusManager.clearFocus()
-                                    jobState.addJob(next(it))
+                }
+        )
+    ) {
+        AuthenticatorScreenScaffold(
+            title = "Verify with your password",
+            username = username,
+            forgotPassword = {
+                Text(
+                    text = AppStrings.FORGOT_PASSWORD,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier =
+                        Modifier
+                            .clickable(
+                                enabled = !jobState.isActive,
+                                onClick = forgotPassword
+                            )
+                )
+            }
+        ) {
+            context(ValidationErrorContext { showError = true }) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.Start
+                ) {
+                    Text(
+                        text = "Password",
+                        fontWeight = FontWeight.Bold
+                    )
+                    OutlinedTextField(
+                        value = password,
+                        onValueChange = { password = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                        isError = showError,
+                        enabled = !jobState.isActive,
+                        trailingIcon = {
+                            val image =
+                                if (passwordVisible) {
+                                    Icons.Filled.Visibility
+                                } else {
+                                    Icons.Filled.VisibilityOff
+                                }
+
+                            val description = if (passwordVisible) "Hide password" else "Show password"
+
+                            IconButton(
+                                onClick = { passwordVisible = !passwordVisible },
+                                enabled = !jobState.isActive
+                            ) {
+                                Icon(imageVector = image, description)
+                            }
+                        },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                        keyboardActions =
+                            KeyboardActions(
+                                onDone = {
+                                    password.validateNotBlank {
+                                        focusManager.clearFocus()
+                                        jobState.addJob(next(it))
+                                    }
                                 }
                             )
-                        }
                     )
-            )
-            if (showError) {
-                Text(BLANK_FIELD_ERROR, color = Color.Red)
+                    if (showError) {
+                        Text(BLANK_FIELD_ERROR, color = Color.Red)
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Button(
+                    onClick = { password.validateNotBlank { jobState.addJob(next(it)) } },
+                    enabled = !jobState.isActive,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(text = "Next")
+                }
             }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Button(
-            onClick = {
-                password.validateNotBlank(
-                    onError = { showError = true },
-                    onSuccess = { jobState.addJob(next(it)) }
-                )
-            },
-            enabled = !jobState.isActive,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(text = "Next")
         }
     }
 }
@@ -203,12 +203,12 @@ fun PasswordScreen(
 @Composable
 private fun PasswordScreenPreview() {
     DirectAuthAppTheme {
-        PasswordScreen(
-            username = "user1@okta.com",
-            backToSignIn = {},
-            verifyWithSomethingElse = {},
-            forgotPassword = {},
-            next = { Job().apply { complete() } }
-        )
+        context(AuthenticatorNavContext(backToSignIn = {}, verifyWithSomethingElse = {})) {
+            PasswordScreen(
+                username = "user1@okta.com",
+                forgotPassword = {},
+                next = { Job().apply { complete() } }
+            )
+        }
     }
 }

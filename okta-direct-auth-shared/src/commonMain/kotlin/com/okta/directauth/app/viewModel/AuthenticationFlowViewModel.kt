@@ -24,7 +24,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 /**
- * ViewModel that manages the UI navigation state for the authentication flow.
+ * ViewModel that manages the UI navigation state for the Direct Authentication flow.
  *
  * This ViewModel is responsible for:
  * - Tracking the current screen being displayed (username, authenticator selection, password, etc.)

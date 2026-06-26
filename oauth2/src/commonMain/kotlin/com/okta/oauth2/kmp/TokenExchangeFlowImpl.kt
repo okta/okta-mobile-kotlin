@@ -32,7 +32,7 @@ internal class TokenExchangeFlowImpl(
         idToken: String,
         deviceSecret: String,
         audience: String?,
-        scope: String,
+        scope: String?,
     ): Result<TokenInfo> {
         val formParams =
             buildMap {
@@ -43,7 +43,7 @@ internal class TokenExchangeFlowImpl(
                 put("actor_token", deviceSecret)
                 put("client_id", client.configuration.clientId)
                 put("grant_type", "urn:ietf:params:oauth:grant-type:token-exchange")
-                put("scope", scope)
+                put("scope", scope ?: client.configuration.defaultScope)
             }
         return client.tokenRequest(formParams = formParams)
     }

@@ -33,7 +33,7 @@ class SessionTokenFlowTest {
                         sessionToken: String,
                         redirectUrl: String,
                         extraRequestParameters: Map<String, String>,
-                        scope: String,
+                        scope: String?,
                     ): Result<TokenInfo> = Result.success(fakeToken)
                 }
 
@@ -55,7 +55,7 @@ class SessionTokenFlowTest {
                         sessionToken: String,
                         redirectUrl: String,
                         extraRequestParameters: Map<String, String>,
-                        scope: String,
+                        scope: String?,
                     ): Result<TokenInfo> = Result.failure(IllegalStateException("OIDC Endpoints not available."))
                 }
 
@@ -74,7 +74,7 @@ class SessionTokenFlowTest {
                         sessionToken: String,
                         redirectUrl: String,
                         extraRequestParameters: Map<String, String>,
-                        scope: String,
+                        scope: String?,
                     ): Result<TokenInfo> = Result.failure(IllegalStateException("No location header in response."))
                 }
 
@@ -94,7 +94,7 @@ class SessionTokenFlowTest {
                         sessionToken: String,
                         redirectUrl: String,
                         extraRequestParameters: Map<String, String>,
-                        scope: String,
+                        scope: String?,
                     ): Result<TokenInfo> {
                         capturedExtraParams = extraRequestParameters
                         return Result.success(FakeTokenInfo())

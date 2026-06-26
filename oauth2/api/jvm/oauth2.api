@@ -81,8 +81,9 @@ public final class com/okta/oauth2/kmp/DeviceAuthorizationFlowContext {
 
 public final class com/okta/oauth2/kmp/LocalhostBrowserRedirectHandler : com/okta/oauth2/kmp/BrowserRedirectHandler {
 	public static final field Companion Lcom/okta/oauth2/kmp/LocalhostBrowserRedirectHandler$Companion;
-	public fun <init> (ILjava/lang/String;JLkotlin/jvm/functions/Function1;)V
-	public synthetic fun <init> (ILjava/lang/String;JLkotlin/jvm/functions/Function1;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public static final field DEFAULT_SUCCESS_RESPONSE Ljava/lang/String;
+	public fun <init> (ILjava/lang/String;JLjava/lang/String;Lkotlin/jvm/functions/Function1;)V
+	public synthetic fun <init> (ILjava/lang/String;JLjava/lang/String;Lkotlin/jvm/functions/Function1;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun handleRedirect (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
@@ -123,10 +124,15 @@ public final class com/okta/oauth2/kmp/RedirectEndSessionFlowContext {
 public abstract interface class com/okta/oauth2/kmp/ResourceOwnerFlow {
 	public static final field Companion Lcom/okta/oauth2/kmp/ResourceOwnerFlow$Companion;
 	public abstract fun start-BWLJW6A (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun start-BWLJW6A$default (Lcom/okta/oauth2/kmp/ResourceOwnerFlow;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public final class com/okta/oauth2/kmp/ResourceOwnerFlow$Companion {
 	public final fun invoke (Lcom/okta/authfoundation/client/kmp/OAuth2Client;)Lcom/okta/oauth2/kmp/ResourceOwnerFlow;
+}
+
+public final class com/okta/oauth2/kmp/ResourceOwnerFlow$DefaultImpls {
+	public static synthetic fun start-BWLJW6A$default (Lcom/okta/oauth2/kmp/ResourceOwnerFlow;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public abstract interface class com/okta/oauth2/kmp/SessionTokenFlow {
@@ -189,7 +195,9 @@ public final class com/okta/oauth2/kmp/jvm/ResourceOwnerFlow : java/io/Closeable
 	public fun <init> (Lcom/okta/authfoundation/client/kmp/OAuth2Client;)V
 	public fun <init> (Lcom/okta/oauth2/kmp/ResourceOwnerFlow;)V
 	public fun close ()V
+	public final fun start (Ljava/lang/String;Ljava/lang/String;)Ljava/util/concurrent/CompletableFuture;
 	public final fun start (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/util/concurrent/CompletableFuture;
+	public static synthetic fun start$default (Lcom/okta/oauth2/kmp/jvm/ResourceOwnerFlow;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Ljava/util/concurrent/CompletableFuture;
 }
 
 public final class com/okta/oauth2/kmp/jvm/SessionTokenFlow : java/io/Closeable {

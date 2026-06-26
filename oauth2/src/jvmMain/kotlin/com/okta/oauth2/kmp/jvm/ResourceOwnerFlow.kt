@@ -60,14 +60,15 @@ class ResourceOwnerFlow(
      *
      * @param username the user's username or email.
      * @param password the user's password.
-     * @param scope the scopes to request.
+     * @param scope the scopes to request. Defaults to the client's configured default scope when null.
      * @return a [CompletableFuture] that completes with [TokenInfo] on success,
      *   or completes exceptionally on failure.
      */
+    @JvmOverloads
     fun start(
         username: String,
         password: String,
-        scope: String,
+        scope: String? = null,
     ): CompletableFuture<TokenInfo> =
         coroutineScope.future {
             delegate.start(username, password, scope).getOrThrow()

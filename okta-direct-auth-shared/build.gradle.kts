@@ -21,6 +21,8 @@ val localProperties =
 val issuer = localProperties.getProperty("issuer") ?: ""
 val clientId = localProperties.getProperty("clientId") ?: ""
 val authorizationServerId = localProperties.getProperty("authorizationServerId") ?: ""
+val signInRedirectUri = localProperties.getProperty("signInRedirectUri") ?: ""
+val desktopSignInRedirectUri = localProperties.getProperty("desktopSignInRedirectUri") ?: ""
 
 val isCi = System.getenv("CI")?.toBoolean() ?: false
 if (!isCi && (issuer.isEmpty() || clientId.isEmpty() || authorizationServerId.isEmpty())) {
@@ -29,6 +31,8 @@ if (!isCi && (issuer.isEmpty() || clientId.isEmpty() || authorizationServerId.is
             "issuer=<your_issuer>\n" +
             "clientId=<your_client_id>\n" +
             "authorizationServerId=<your_authorization_server_id>\n" +
+            "signInRedirectUri=<android_custom_scheme_uri> (optional, for Android browser sign-in)\n" +
+            "desktopSignInRedirectUri=<localhost_uri> (optional, for Desktop browser sign-in, e.g. http://localhost:8080/callback)\n" +
             "Direct Auth configuration: https://developer.okta.com/docs/guides/configure-direct-auth-grants"
     )
 }
@@ -39,6 +43,10 @@ val generateAppConfig =
         description = "Generates AppConfig.kt with local.properties values."
         group = "build"
 
+        val localPropertiesFile = rootProject.file("local.properties")
+        if (localPropertiesFile.exists()) {
+            inputs.file(localPropertiesFile)
+        }
         val outputDir = layout.buildDirectory.dir("generated/source/appConfig/kotlin")
         outputs.dir(outputDir)
 
@@ -53,6 +61,8 @@ val generateAppConfig =
             |    const val ISSUER: String = "$issuer"
             |    const val CLIENT_ID: String = "$clientId"
             |    const val AUTHORIZATION_SERVER_ID: String = "$authorizationServerId"
+            |    const val SIGN_IN_REDIRECT_URI: String = "$signInRedirectUri"
+            |    const val DESKTOP_SIGN_IN_REDIRECT_URI: String = "$desktopSignInRedirectUri"
             |}
                 """.trimMargin()
             )
@@ -79,6 +89,8 @@ kotlin {
             dependencies {
                 implementation(project(":okta-direct-auth"))
                 implementation(project(":auth-foundation"))
+                implementation(project(":oauth2"))
+                implementation(libs.ktor.client.logging)
                 implementation(libs.jetbrains.compose.material3)
                 implementation(libs.jetbrains.compose.animation)
                 implementation(libs.jetbrains.compose.material.icons.extended)
@@ -96,6 +108,7 @@ kotlin {
         }
 
         androidMain.dependencies {
+            implementation(project(":web-authentication-ui"))
             implementation(libs.androidx.activity.compose)
             implementation(libs.core.ktx)
             implementation(libs.lifecycle.runtime.ktx)

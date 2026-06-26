@@ -32,7 +32,7 @@ class AuthorizationCodeFlowTest {
                     override suspend fun start(
                         redirectUrl: String,
                         extraRequestParameters: Map<String, String>,
-                        scope: String,
+                        scope: String?,
                     ): Result<AuthorizationCodeFlowContext> =
                         Result.success(
                             AuthorizationCodeFlowContext(
@@ -69,7 +69,7 @@ class AuthorizationCodeFlowTest {
                     override suspend fun start(
                         redirectUrl: String,
                         extraRequestParameters: Map<String, String>,
-                        scope: String,
+                        scope: String?,
                     ): Result<AuthorizationCodeFlowContext> =
                         Result.success(
                             AuthorizationCodeFlowContext(
@@ -115,7 +115,7 @@ class AuthorizationCodeFlowTest {
                     override suspend fun start(
                         redirectUrl: String,
                         extraRequestParameters: Map<String, String>,
-                        scope: String,
+                        scope: String?,
                     ): Result<AuthorizationCodeFlowContext> = Result.failure(IllegalStateException())
 
                     override suspend fun resume(
@@ -156,7 +156,7 @@ class AuthorizationCodeFlowTest {
                     override suspend fun start(
                         redirectUrl: String,
                         extraRequestParameters: Map<String, String>,
-                        scope: String,
+                        scope: String?,
                     ): Result<AuthorizationCodeFlowContext> = Result.failure(IllegalStateException())
 
                     override suspend fun resume(
@@ -194,7 +194,7 @@ class AuthorizationCodeFlowTest {
                     override suspend fun start(
                         redirectUrl: String,
                         extraRequestParameters: Map<String, String>,
-                        scope: String,
+                        scope: String?,
                     ): Result<AuthorizationCodeFlowContext> = Result.failure(IllegalStateException())
 
                     override suspend fun resume(
@@ -227,7 +227,7 @@ class AuthorizationCodeFlowTest {
                     override suspend fun start(
                         redirectUrl: String,
                         extraRequestParameters: Map<String, String>,
-                        scope: String,
+                        scope: String?,
                     ): Result<AuthorizationCodeFlowContext> = Result.failure(IllegalStateException("OIDC Endpoints not available."))
 
                     override suspend fun resume(

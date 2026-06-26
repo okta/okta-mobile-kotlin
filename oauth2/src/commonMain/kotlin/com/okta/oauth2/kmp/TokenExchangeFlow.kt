@@ -36,7 +36,7 @@ interface TokenExchangeFlow {
      * @param idToken the ID token for the user.
      * @param deviceSecret the device secret obtained from a previous authentication flow.
      * @param audience the audience of the authorization server. Defaults to `api://default`.
-     * @param scope the OAuth2 scopes to request.
+     * @param scope the OAuth2 scopes to request. Defaults to the client's configured default scope when null.
      * @return [Result.success] with [TokenInfo] on success, or [Result.failure] with:
      * - [com.okta.authfoundation.client.OAuth2ClientResult.Error.OidcEndpointsNotAvailableException] if endpoints are unavailable.
      * - [com.okta.authfoundation.client.OAuth2ClientResult.Error.HttpResponseException] on server errors.
@@ -46,7 +46,7 @@ interface TokenExchangeFlow {
         idToken: String,
         deviceSecret: String,
         audience: String? = null,
-        scope: String = "openid profile email offline_access",
+        scope: String? = null,
     ): Result<TokenInfo>
 
     companion object {

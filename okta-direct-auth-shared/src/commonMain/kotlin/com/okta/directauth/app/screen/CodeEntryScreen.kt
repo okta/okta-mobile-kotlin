@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import com.okta.directauth.app.ui.theme.DirectAuthAppTheme
 import com.okta.directauth.app.util.AppLogger
 import com.okta.directauth.app.util.BLANK_FIELD_ERROR
+import com.okta.directauth.app.util.ValidationErrorContext
 import com.okta.directauth.app.util.rememberCancellableJob
 import com.okta.directauth.app.util.validateNotBlank
 import kotlinx.coroutines.Job
@@ -68,18 +69,14 @@ private const val TAG = "CodeEntryScreen"
  * - Reusable across different code-based authentication methods (OTP, SMS, Voice)
  *
  * @param username The username being authenticated. Displayed on screen.
- * @param backToSignIn Callback to return to the username entry screen.
- * @param verifyWithSomethingElse Optional callback to select a different authentication method.
- *                                 If null, the "Verify with something else" link is not shown.
  * @param next Callback invoked when user submits a valid code.
  *             Returns a Job that can be cancelled if the user navigates away.
  *             Parameter: (code: String)
  */
 @Composable
+context(nav: AuthenticatorNavContext)
 fun CodeEntryScreen(
     username: String,
-    backToSignIn: () -> Unit,
-    verifyWithSomethingElse: (() -> Unit)?,
     modifier: Modifier = Modifier,
     next: (String) -> Job,
 ) {
@@ -92,54 +89,58 @@ fun CodeEntryScreen(
     val focusManager = LocalFocusManager.current
     val jobState = rememberCancellableJob()
 
-    AuthenticatorScreenScaffold(
-        title = "Enter a code",
-        username = username,
-        backToSignIn = {
-            jobState.cancel()
-            backToSignIn()
-        },
-        verifyWithSomethingElse = {
-            jobState.cancel()
-            verifyWithSomethingElse?.invoke()
-        }
-    ) {
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.Start
-        ) {
-            Text(
-                text = "Enter code",
-                fontWeight = FontWeight.Bold
-            )
-            OutlinedTextField(
-                value = code,
-                onValueChange = { code = it },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                isError = showError
-            )
-            if (showError) {
-                Text(BLANK_FIELD_ERROR, color = Color.Red)
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Button(
-            onClick = {
-                code.validateNotBlank(
-                    onError = { showError = true },
-                    onSuccess = {
-                        focusManager.clearFocus()
-                        jobState.addJob(next(it))
-                    }
-                )
+    context(
+        AuthenticatorNavContext(
+            backToSignIn = {
+                jobState.cancel()
+                nav.backToSignIn()
             },
-            enabled = !jobState.isActive,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(text = "Next")
+            verifyWithSomethingElse =
+                nav.verifyWithSomethingElse?.let {
+                    {
+                        jobState.cancel()
+                        it()
+                    }
+                }
+        )
+    ) {
+        AuthenticatorScreenScaffold(title = "Enter a code", username = username) {
+            context(ValidationErrorContext { showError = true }) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.Start
+                ) {
+                    Text(
+                        text = "Enter code",
+                        fontWeight = FontWeight.Bold
+                    )
+                    OutlinedTextField(
+                        value = code,
+                        onValueChange = { code = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        isError = showError
+                    )
+                    if (showError) {
+                        Text(BLANK_FIELD_ERROR, color = Color.Red)
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Button(
+                    onClick = {
+                        code.validateNotBlank {
+                            focusManager.clearFocus()
+                            jobState.addJob(next(it))
+                        }
+                    },
+                    enabled = !jobState.isActive,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(text = "Next")
+                }
+            }
         }
     }
 }
@@ -148,11 +149,11 @@ fun CodeEntryScreen(
 @Composable
 private fun CodeEntryScreenPreview() {
     DirectAuthAppTheme {
-        CodeEntryScreen(
-            username = "user1@okta.com",
-            backToSignIn = {},
-            verifyWithSomethingElse = {},
-            next = { Job().apply { complete() } }
-        )
+        context(AuthenticatorNavContext(backToSignIn = {}, verifyWithSomethingElse = {})) {
+            CodeEntryScreen(
+                username = "user1@okta.com",
+                next = { Job().apply { complete() } }
+            )
+        }
     }
 }

@@ -50,170 +50,173 @@ fun AuthenticationFlow(
         }
 
         is AuthScreen.SelectAuthenticator -> {
-            SelectAuthenticatorScreen(
-                username = savedUsername,
-                supportedAuthenticators = supportedAuthenticators,
-                backToSignIn = {
+            context(
+                AuthenticatorNavContext(backToSignIn = {
                     onReset()
                     onResetNav(state.username)
-                },
-                onSelectAuthenticator = { username, authMethod ->
-                    onAuthenticatorSelect(username, authMethod, null)
-                }
-            )
+                })
+            ) {
+                SelectAuthenticatorScreen(
+                    username = savedUsername,
+                    supportedAuthenticators = supportedAuthenticators,
+                    onSelectAuthenticator = { username, authMethod ->
+                        onAuthenticatorSelect(username, authMethod, null)
+                    }
+                )
+            }
         }
 
         is AuthScreen.PasswordAuthenticator -> {
-            PasswordScreen(
-                username = state.username,
-                backToSignIn = {
-                    onReset()
-                    onResetNav(state.username)
-                },
-                verifyWithSomethingElse = { onSelectAuthenticator(state.username, null) },
-                forgotPassword = {
-                    onForgotPassword()
-                    onSelectAuthenticator(state.username, null)
+            context(
+                AuthenticatorNavContext(
+                    backToSignIn = {
+                        onReset()
+                        onResetNav(state.username)
+                    },
+                    verifyWithSomethingElse = { onSelectAuthenticator(state.username, null) }
+                )
+            ) {
+                PasswordScreen(
+                    username = state.username,
+                    forgotPassword = {
+                        onForgotPassword()
+                        onSelectAuthenticator(state.username, null)
+                    }
+                ) { password ->
+                    onSignIn(state.username, password, AuthMethod.Password)
                 }
-            ) { password ->
-                onSignIn(state.username, password, AuthMethod.Password)
             }
         }
 
         is AuthScreen.OktaVerify -> {
-            ChallengeScreen(
-                title = "Get a push notification",
-                buttonText = "Send push",
-                username = state.username,
-                backToSignIn = {
-                    onReset()
-                    onResetNav(state.username)
-                },
-                verifyWithSomethingElse = { onSelectAuthenticator(state.username, state.mfaRequired) },
-                onChallenge = {
-                    if (state.mfaRequired != null) {
-                        onResume("", AuthMethod.Mfa.OktaVerify, state.mfaRequired)
-                    } else {
-                        onSignIn(state.username, "", AuthMethod.Mfa.OktaVerify)
+            context(
+                AuthenticatorNavContext(
+                    backToSignIn = {
+                        onReset()
+                        onResetNav(state.username)
+                    },
+                    verifyWithSomethingElse = { onSelectAuthenticator(state.username, state.mfaRequired) }
+                )
+            ) {
+                ChallengeScreen(
+                    title = "Get a push notification",
+                    buttonText = "Send push",
+                    username = state.username,
+                    onChallenge = {
+                        if (state.mfaRequired != null) {
+                            onResume("", AuthMethod.Mfa.OktaVerify, state.mfaRequired)
+                        } else {
+                            onSignIn(state.username, "", AuthMethod.Mfa.OktaVerify)
+                        }
                     }
-                }
-            )
+                )
+            }
         }
 
         is AuthScreen.Otp -> {
-            CodeEntryScreen(
-                username = state.username,
-                backToSignIn = {
-                    onReset()
-                    onResetNav(state.username)
-                },
-                verifyWithSomethingElse = { onSelectAuthenticator(state.username, state.mfaRequired) }
-            ) { code ->
-                if (state.mfaRequired != null) {
-                    onResume(code, AuthMethod.Mfa.Otp, state.mfaRequired)
-                } else {
-                    onSignIn(state.username, code, AuthMethod.Mfa.Otp)
+            context(
+                AuthenticatorNavContext(
+                    backToSignIn = {
+                        onReset()
+                        onResetNav(state.username)
+                    },
+                    verifyWithSomethingElse = { onSelectAuthenticator(state.username, state.mfaRequired) }
+                )
+            ) {
+                CodeEntryScreen(username = state.username) { code ->
+                    if (state.mfaRequired != null) {
+                        onResume(code, AuthMethod.Mfa.Otp, state.mfaRequired)
+                    } else {
+                        onSignIn(state.username, code, AuthMethod.Mfa.Otp)
+                    }
                 }
             }
         }
 
         is AuthScreen.Passkeys -> {
-            PasskeysScreen(
-                state.username,
-                backToSignIn = {
-                    onReset()
-                    onResetNav(state.username)
-                },
-                verifyWithSomethingElse = { onSelectAuthenticator(state.username, state.mfaRequired) },
-                onStartCeremony = {
-                    if (state.mfaRequired != null) {
-                        onResume("", Mfa.Passkeys, state.mfaRequired)
-                    } else {
-                        onSignIn(state.username, "", Mfa.Passkeys)
-                    }
-                }
-            )
-        }
-
-        is AuthScreen.Sms -> {
-            if (state.codeSent) {
-                CodeEntryScreen(
-                    username = state.username,
-                    backToSignIn = { onResetNav(state.username) },
-                    verifyWithSomethingElse = {
-                        onSelectAuthenticator(
-                            state.username,
-                            state.mfaRequired
-                        )
-                    }
-                ) { code ->
-                    if (state.mfaRequired != null) {
-                        onResume(code, AuthMethod.Mfa.Sms, state.mfaRequired)
-                    } else {
-                        onSignIn(state.username, code, AuthMethod.Mfa.Sms)
-                    }
-                }
-            } else {
-                ChallengeScreen(
-                    title = "Get a code via SMS",
-                    buttonText = "Send code",
-                    username = state.username,
-                    backToSignIn = { onResetNav(state.username) },
-                    verifyWithSomethingElse = {
-                        onSelectAuthenticator(
-                            state.username,
-                            state.mfaRequired
-                        )
+            context(
+                AuthenticatorNavContext(
+                    backToSignIn = {
+                        onReset()
+                        onResetNav(state.username)
                     },
-                    onChallenge = {
+                    verifyWithSomethingElse = { onSelectAuthenticator(state.username, state.mfaRequired) }
+                )
+            ) {
+                PasskeysScreen(
+                    username = state.username,
+                    onStartCeremony = {
                         if (state.mfaRequired != null) {
-                            onResume("", AuthMethod.Mfa.Sms, state.mfaRequired)
+                            onResume("", Mfa.Passkeys, state.mfaRequired)
                         } else {
-                            onSignIn(state.username, "", AuthMethod.Mfa.Sms)
+                            onSignIn(state.username, "", Mfa.Passkeys)
                         }
                     }
                 )
             }
         }
 
-        is AuthScreen.Voice -> {
-            if (state.codeSent) {
-                CodeEntryScreen(
-                    username = state.username,
+        is AuthScreen.Sms -> {
+            context(
+                AuthenticatorNavContext(
                     backToSignIn = { onResetNav(state.username) },
-                    verifyWithSomethingElse = {
-                        onSelectAuthenticator(
-                            state.username,
-                            state.mfaRequired
-                        )
-                    }
-                ) { code ->
-                    if (state.mfaRequired != null) {
-                        onResume(code, AuthMethod.Mfa.Voice, state.mfaRequired)
-                    } else {
-                        onSignIn(state.username, code, AuthMethod.Mfa.Voice)
-                    }
-                }
-            } else {
-                ChallengeScreen(
-                    title = "Get a code via voice call",
-                    buttonText = "Call me",
-                    username = state.username,
-                    backToSignIn = { onResetNav(state.username) },
-                    verifyWithSomethingElse = {
-                        onSelectAuthenticator(
-                            state.username,
-                            state.mfaRequired
-                        )
-                    },
-                    onChallenge = {
+                    verifyWithSomethingElse = { onSelectAuthenticator(state.username, state.mfaRequired) }
+                )
+            ) {
+                if (state.codeSent) {
+                    CodeEntryScreen(username = state.username) { code ->
                         if (state.mfaRequired != null) {
-                            onResume("", AuthMethod.Mfa.Voice, state.mfaRequired)
+                            onResume(code, AuthMethod.Mfa.Sms, state.mfaRequired)
                         } else {
-                            onSignIn(state.username, "", AuthMethod.Mfa.Voice)
+                            onSignIn(state.username, code, AuthMethod.Mfa.Sms)
                         }
                     }
+                } else {
+                    ChallengeScreen(
+                        title = "Get a code via SMS",
+                        buttonText = "Send code",
+                        username = state.username,
+                        onChallenge = {
+                            if (state.mfaRequired != null) {
+                                onResume("", AuthMethod.Mfa.Sms, state.mfaRequired)
+                            } else {
+                                onSignIn(state.username, "", AuthMethod.Mfa.Sms)
+                            }
+                        }
+                    )
+                }
+            }
+        }
+
+        is AuthScreen.Voice -> {
+            context(
+                AuthenticatorNavContext(
+                    backToSignIn = { onResetNav(state.username) },
+                    verifyWithSomethingElse = { onSelectAuthenticator(state.username, state.mfaRequired) }
                 )
+            ) {
+                if (state.codeSent) {
+                    CodeEntryScreen(username = state.username) { code ->
+                        if (state.mfaRequired != null) {
+                            onResume(code, AuthMethod.Mfa.Voice, state.mfaRequired)
+                        } else {
+                            onSignIn(state.username, code, AuthMethod.Mfa.Voice)
+                        }
+                    }
+                } else {
+                    ChallengeScreen(
+                        title = "Get a code via voice call",
+                        buttonText = "Call me",
+                        username = state.username,
+                        onChallenge = {
+                            if (state.mfaRequired != null) {
+                                onResume("", AuthMethod.Mfa.Voice, state.mfaRequired)
+                            } else {
+                                onSignIn(state.username, "", AuthMethod.Mfa.Voice)
+                            }
+                        }
+                    )
+                }
             }
         }
 
@@ -230,17 +233,20 @@ fun AuthenticationFlow(
                     mfaMethods.filter { it.label !in excludedLabels }
                 } ?: mfaMethods
 
-            SelectAuthenticatorScreen(
-                username = state.username,
-                supportedAuthenticators = authMethods,
-                backToSignIn = {
+            context(
+                AuthenticatorNavContext(backToSignIn = {
                     onReset()
                     onResetNav(state.username)
-                },
-                onSelectAuthenticator = { username, mfaMethod ->
-                    onAuthenticatorSelect(username, mfaMethod, state.mfaRequired)
-                }
-            )
+                })
+            ) {
+                SelectAuthenticatorScreen(
+                    username = state.username,
+                    supportedAuthenticators = authMethods,
+                    onSelectAuthenticator = { username, mfaMethod ->
+                        onAuthenticatorSelect(username, mfaMethod, state.mfaRequired)
+                    }
+                )
+            }
         }
     }
 }

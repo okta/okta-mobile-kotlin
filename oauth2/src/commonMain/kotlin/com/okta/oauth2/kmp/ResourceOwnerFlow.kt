@@ -43,14 +43,14 @@ interface ResourceOwnerFlow {
      *
      * @param username the user's username or email.
      * @param password the user's password.
-     * @param scope the scopes to request. Defaults to the client's configured default scope.
+     * @param scope the scopes to request. Defaults to the client's configured default scope when null.
      * @return [Result.success] with [TokenInfo] on successful authentication,
      *   or [Result.failure] with the error.
      */
     suspend fun start(
         username: String,
         password: String,
-        scope: String,
+        scope: String? = null,
     ): Result<TokenInfo>
 
     companion object {
