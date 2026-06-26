@@ -15,13 +15,15 @@
  */
 package com.okta.authfoundation.util
 
-import com.okta.authfoundation.InternalAuthFoundationApi
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 internal class CoalescingOrchestrator<T : Any>(
     private val factory: suspend () -> T,
@@ -29,63 +31,49 @@ internal class CoalescingOrchestrator<T : Any>(
     // This should only be used for testing.
     private val awaitListener: (() -> Unit)? = null,
 ) {
-    @Volatile private lateinit var data: T
+    // Fast path: volatile read avoids lock on the common already-cached case.
+    // @Volatile is meaningful on JVM/Android; a no-op on JS/WASM (harmless — single-threaded).
+    @Volatile private var cachedData: T? = null
 
-    @Volatile private var dataInitialized: Boolean = false
+    // Always accessed under mutex.
+    private var deferred: Deferred<T>? = null
+    private val mutex = Mutex()
 
-    @Volatile private var deferred: Deferred<T>? = null
-    private val lock: Any = Any()
-
-    tailrec suspend fun get(): T {
-        if (dataInitialized) {
-            return data
+    suspend fun get(): T {
+        cachedData?.let { return it }
+        var result: T? = null
+        while (result == null) {
+            result = fetchOnce()
         }
-
-        val result =
-            coroutineScope {
-                val deferredToAwait: Deferred<T>
-                synchronized(lock) {
-                    if (dataInitialized) {
-                        return@coroutineScope data
-                    }
-                    val localDeferred = deferred
-                    if (localDeferred != null && !localDeferred.isCancelled) {
-                        deferredToAwait = localDeferred
-                    } else {
-                        deferredToAwait = loadDataAsync(this@coroutineScope)
-                    }
-                }
-                try {
-                    awaitListener?.invoke()
-                    deferredToAwait.await()
-                } catch (e: CancellationException) {
-                    // The `deferredToAwait` was cancelled before we could await it by another thread.
-                    null
-                }
-            }
-        if (result != null) {
-            return result
-        }
-        // Null returned due to cancellation. Try again by calling ourself.
-        return get()
+        return result
     }
 
-    private fun loadDataAsync(scope: CoroutineScope): Deferred<T> {
-        val local =
-            scope.async(start = CoroutineStart.LAZY) {
-                val result = factory()
-                synchronized(lock) {
-                    if (keepDataInMemory(result)) {
-                        data = result
-                        dataInitialized = true
-                    }
-                    deferred = null
+    private suspend fun fetchOnce(): T? =
+        coroutineScope {
+            val deferredToAwait: Deferred<T> =
+                mutex.withLock {
+                    cachedData?.let { return@coroutineScope it }
+                    deferred?.takeIf { !it.isCancelled }
+                        ?: async(start = CoroutineStart.LAZY) {
+                            val result = factory()
+                            mutex.withLock {
+                                if (keepDataInMemory(result)) {
+                                    cachedData = result
+                                }
+                                deferred = null
+                            }
+                            result
+                        }.also { deferred = it }
                 }
-                result
+
+            try {
+                awaitListener?.invoke()
+                deferredToAwait.await()
+            } catch (_: CancellationException) {
+                // Re-throw if the calling coroutine itself was cancelled; otherwise the deferred
+                // was cancelled by another caller and we should retry.
+                currentCoroutineContext().ensureActive()
+                null
             }
-
-        deferred = local
-
-        return local
-    }
+        }
 }
