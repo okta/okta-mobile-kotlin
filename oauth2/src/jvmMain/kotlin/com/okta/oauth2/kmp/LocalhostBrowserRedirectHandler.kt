@@ -23,6 +23,7 @@ import java.io.InputStreamReader
 import java.net.InetAddress
 import java.net.ServerSocket
 import java.net.URI
+import java.util.function.Consumer
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.time.Duration.Companion.milliseconds
@@ -43,74 +44,119 @@ import kotlin.time.Duration.Companion.milliseconds
  *   `"HTTP/1.1 302 Found\r\nLocation: https://app.example.com/done\r\n\r\n"`.
  * @param browserLauncher opens the given URL in a browser. Defaults to [Desktop.browse].
  */
-class LocalhostBrowserRedirectHandler(
-    private val port: Int,
-    private val path: String,
-    private val timeoutMs: Long = DEFAULT_TIMEOUT_MS,
-    private val successResponse: String = DEFAULT_SUCCESS_RESPONSE,
-    private val browserLauncher: (String) -> Unit = Companion::defaultBrowserLauncher,
-) : BrowserRedirectHandler {
-    override suspend fun handleRedirect(url: String): String =
-        withTimeout(timeoutMs.milliseconds) {
-            suspendCancellableCoroutine { continuation ->
-                val serverSocket = ServerSocket(port, 1, InetAddress.getLoopbackAddress())
+@Suppress("LongParameterList")
+class LocalhostBrowserRedirectHandler
+    @JvmOverloads
+    constructor(
+        private val port: Int,
+        private val path: String,
+        private val timeoutMs: Long = DEFAULT_TIMEOUT_MS,
+        private val successResponse: String = DEFAULT_SUCCESS_RESPONSE,
+        private val browserLauncher: (String) -> Unit = Companion::defaultBrowserLauncher,
+    ) : BrowserRedirectHandler {
+        override suspend fun handleRedirect(url: String): String =
+            withTimeout(timeoutMs.milliseconds) {
+                suspendCancellableCoroutine { continuation ->
+                    val serverSocket = ServerSocket(port, 1, InetAddress.getLoopbackAddress())
 
-                val thread =
-                    Thread {
-                        try {
-                            val socket = serverSocket.accept()
-                            val reader = BufferedReader(InputStreamReader(socket.getInputStream()))
-                            val requestLine = reader.readLine() ?: throw IllegalStateException("Empty request")
+                    val thread =
+                        Thread {
+                            try {
+                                val socket = serverSocket.accept()
+                                val reader = BufferedReader(InputStreamReader(socket.getInputStream()))
+                                val requestLine = reader.readLine() ?: throw IllegalStateException("Empty request")
 
-                            // Parse GET /callback?code=xxx&state=yyy HTTP/1.1
-                            val requestPath =
-                                requestLine.split(" ").getOrNull(1)
-                                    ?: throw IllegalStateException("Invalid request line: $requestLine")
+                                // Parse GET /callback?code=xxx&state=yyy HTTP/1.1
+                                val requestPath =
+                                    requestLine.split(" ").getOrNull(1)
+                                        ?: throw IllegalStateException("Invalid request line: $requestLine")
 
-                            if (!requestPath.startsWith(path)) {
-                                throw IllegalStateException("Unexpected path: $requestPath (expected: $path)")
+                                if (!requestPath.startsWith(path)) {
+                                    throw IllegalStateException("Unexpected path: $requestPath (expected: $path)")
+                                }
+
+                                val callbackUri = "http://localhost:$port$requestPath"
+
+                                socket.getOutputStream().write(successResponse.toByteArray())
+                                socket.close()
+
+                                continuation.resume(callbackUri)
+                            } catch (e: Exception) {
+                                if (continuation.isActive) {
+                                    continuation.resumeWithException(e)
+                                }
+                            } finally {
+                                runCatching { serverSocket.close() }
                             }
-
-                            val callbackUri = "http://localhost:$port$requestPath"
-
-                            socket.getOutputStream().write(successResponse.toByteArray())
-                            socket.close()
-
-                            continuation.resume(callbackUri)
-                        } catch (e: Exception) {
-                            if (continuation.isActive) {
-                                continuation.resumeWithException(e)
-                            }
-                        } finally {
-                            runCatching { serverSocket.close() }
                         }
+                    thread.isDaemon = true
+                    thread.start()
+
+                    continuation.invokeOnCancellation {
+                        runCatching { serverSocket.close() }
+                        thread.interrupt()
                     }
-                thread.isDaemon = true
-                thread.start()
 
-                continuation.invokeOnCancellation {
-                    runCatching { serverSocket.close() }
-                    thread.interrupt()
+                    browserLauncher(url)
                 }
-
-                browserLauncher(url)
             }
-        }
 
-    companion object {
-        private const val DEFAULT_TIMEOUT_MS = 300_000L // 5 minutes
+        companion object {
+            private const val DEFAULT_TIMEOUT_MS = 300_000L // 5 minutes
 
-        /** Default HTTP response sent to the browser after a successful redirect capture. */
-        const val DEFAULT_SUCCESS_RESPONSE: String =
-            "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n" +
-                "<html><body><h1>Authentication Complete</h1>" +
-                "<p>You can close this window.</p></body></html>"
+            /** Default HTTP response sent to the browser after a successful redirect capture. */
+            const val DEFAULT_SUCCESS_RESPONSE: String =
+                "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n" +
+                    "<html><body><h1>Authentication Complete</h1>" +
+                    "<p>You can close this window.</p></body></html>"
 
-        private fun defaultBrowserLauncher(url: String) {
-            if (!Desktop.isDesktopSupported() || !Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-                throw UnsupportedOperationException("Desktop browser launch not supported on this platform")
+            /**
+             * Creates a [LocalhostBrowserRedirectHandler] with a Java-friendly
+             * [java.util.function.Consumer] browser launcher.
+             *
+             * Java usage:
+             * ```java
+             * LocalhostBrowserRedirectHandler handler =
+             *     LocalhostBrowserRedirectHandler.create(8080, "/callback", url -> myBrowser.open(url));
+             * ```
+             *
+             * @param port the port to listen on.
+             * @param path the expected callback path.
+             * @param browserLauncher a [Consumer] that opens the given URL in a browser.
+             * @return a new [LocalhostBrowserRedirectHandler]
+             */
+            @JvmStatic
+            fun create(
+                port: Int,
+                path: String,
+                browserLauncher: Consumer<String>,
+            ): LocalhostBrowserRedirectHandler = LocalhostBrowserRedirectHandler(port, path, browserLauncher = browserLauncher::accept)
+
+            /**
+             * Creates a [LocalhostBrowserRedirectHandler] with a custom timeout and
+             * Java-friendly [java.util.function.Consumer] browser launcher.
+             *
+             * @param port the port to listen on.
+             * @param path the expected callback path.
+             * @param timeoutMs maximum wait time in milliseconds.
+             * @param successResponse raw HTTP response written back to the browser on success.
+             * @param browserLauncher a [Consumer] that opens the given URL in a browser.
+             * @return a new [LocalhostBrowserRedirectHandler]
+             */
+            @JvmStatic
+            fun create(
+                port: Int,
+                path: String,
+                timeoutMs: Long,
+                successResponse: String,
+                browserLauncher: Consumer<String>,
+            ): LocalhostBrowserRedirectHandler = LocalhostBrowserRedirectHandler(port, path, timeoutMs, successResponse, browserLauncher::accept)
+
+            private fun defaultBrowserLauncher(url: String) {
+                if (!Desktop.isDesktopSupported() || !Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+                    throw UnsupportedOperationException("Desktop browser launch not supported on this platform")
+                }
+                Desktop.getDesktop().browse(URI(url))
             }
-            Desktop.getDesktop().browse(URI(url))
         }
     }
-}
