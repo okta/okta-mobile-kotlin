@@ -39,6 +39,8 @@ val localProperties =
 val issuer = localProperties.getProperty("issuer") ?: ""
 val clientId = localProperties.getProperty("clientId") ?: ""
 val authorizationServerId = localProperties.getProperty("authorizationServerId") ?: ""
+val signInRedirectUri = localProperties.getProperty("signInRedirectUri") ?: ""
+val desktopSignInRedirectUri = localProperties.getProperty("desktopSignInRedirectUri") ?: ""
 
 val isCi = System.getenv("CI")?.toBoolean() ?: false
 if (!isCi && (issuer.isEmpty() || clientId.isEmpty() || authorizationServerId.isEmpty())) {
@@ -47,6 +49,8 @@ if (!isCi && (issuer.isEmpty() || clientId.isEmpty() || authorizationServerId.is
             "issuer=<your_issuer>\n" +
             "clientId=<your_client_id>\n" +
             "authorizationServerId=<your_authorization_server_id>\n" +
+            "signInRedirectUri=<android_custom_scheme_uri> (optional, for Android browser sign-in)\n" +
+            "desktopSignInRedirectUri=<localhost_uri> (optional, for JVM browser sign-in, e.g. http://localhost:8080/callback)\n" +
             "Direct Auth configuration: https://developer.okta.com/docs/guides/configure-direct-auth-grants"
     )
 }
@@ -64,12 +68,14 @@ val generateAppConfig =
             outputFile.writeText(
                 """
             |package com.okta.directauth.cli;
-            |       
+            |
             |public final class AppConfig {
             |  public static final String ISSUER = "$issuer";
             |  public static final String CLIENT_ID = "$clientId";
             |  public static final String AUTHORIZATION_SERVER_ID = "$authorizationServerId";
-            |  
+            |  public static final String SIGN_IN_REDIRECT_URI = "$signInRedirectUri";
+            |  public static final String DESKTOP_SIGN_IN_REDIRECT_URI = "$desktopSignInRedirectUri";
+            |
             |  private AppConfig() {}
             |}
                 """.trimMargin()
@@ -85,9 +91,12 @@ sourceSets {
 
 dependencies {
     implementation(project(":okta-direct-auth"))
+    implementation(project(":oauth2"))
     implementation(project(":auth-foundation"))
     implementation(libs.ktor.client.core)
     implementation(libs.jjwt.api)
+    implementation(libs.picocli)
+    runtimeOnly(libs.ktor.client.cio)
     runtimeOnly(libs.jjwt.impl)
     runtimeOnly(libs.jjwt.jackson)
     runtimeOnly(libs.slf4j.nop)

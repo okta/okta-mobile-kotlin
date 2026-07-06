@@ -15,87 +15,142 @@
  */
 package com.okta.directauth.cli;
 
+import com.okta.authfoundation.client.jvm.AuthFoundationResult;
+import com.okta.authfoundation.client.jvm.OAuth2ClientBuilder;
+import com.okta.authfoundation.client.kmp.OAuth2Client;
 import com.okta.directauth.cli.model.CliPreferences;
+import com.okta.directauth.cli.oauth2.OAuth2Flows;
+import com.okta.directauth.cli.oauth2.WrapperOAuth2Flows;
 import com.okta.directauth.cli.view.ConsoleView;
+import com.okta.directauth.cli.view.OAuth2ConsoleView;
 import com.okta.directauth.cli.view.SystemConsoleInput;
 import com.okta.directauth.cli.view.SystemConsoleOutput;
 import com.okta.directauth.cli.viewmodel.AuthViewModel;
+import com.okta.directauth.cli.viewmodel.OAuth2ViewModel;
 import com.okta.directauth.jvm.DirectAuthResult;
 import com.okta.directauth.jvm.DirectAuthenticationFlow;
 import com.okta.directauth.jvm.DirectAuthenticationFlowBuilder;
 import com.okta.directauth.model.DirectAuthenticationIntent;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
+import java.util.concurrent.Callable;
+import picocli.CommandLine;
+import picocli.CommandLine.Command;
+import picocli.CommandLine.Option;
 
-/** Entry point for the Java CLI direct authentication sample app. */
-public final class Main {
+/**
+ * Entry point for the Okta Auth CLI sample demonstrating Direct Authentication and OAuth2 flows.
+ */
+@Command(
+    name = "okta-direct-auth-cli",
+    version = "okta-direct-auth-cli 1.0.0",
+    description =
+        "Interactive CLI demonstrating Okta Direct Authentication and OAuth2 authorization flows.",
+    mixinStandardHelpOptions = true)
+public final class Main implements Callable<Integer> {
   private static final String TAG = "Main";
   private static final String VERSION = "1.0.0";
   private static final String CONFIG_DOCS_URL =
       "https://developer.okta.com/docs/guides/configure-direct-auth-grants/";
+  private static final List<String> OAUTH2_SCOPES =
+      Arrays.asList("openid", "profile", "email", "offline_access");
 
-  private Main() {}
+  @Option(names = "--issuer", description = "Okta issuer URL")
+  private String issuerArg;
 
-  /**
-   * Main entry point.
-   *
-   * @param args command-line arguments
-   */
-  public static void main(String[] args) {
-    if (hasFlag(args, "help") || hasFlag(args, "h")) {
-      printHelp();
-      return;
-    }
+  @Option(names = "--clientId", description = "OAuth 2.0 client ID")
+  private String clientIdArg;
 
-    if (hasFlag(args, "version") || hasFlag(args, "v")) {
-      System.out.println("okta-direct-auth-cli " + VERSION);
-      return;
-    }
+  @Option(
+      names = "--authorizationServerId",
+      description = "Authorization server ID (e.g., 'default')")
+  private String authorizationServerIdArg;
 
-    if (hasFlag(args, "verbose")) {
+  @Option(
+      names = "--desktopSignInRedirectUri",
+      description =
+          "Loopback redirect URI for OAuth2 redirect-based flows (default:"
+              + " http://localhost:8080/callback)")
+  private String signInRedirectUriArg;
+
+  @Option(
+      names = "--format",
+      description = "Token display format: ${COMPLETION-CANDIDATES} (default: raw)",
+      defaultValue = "raw")
+  private TokenFormat format;
+
+  @Option(names = "--mode", description = "Pre-select demonstration mode: ${COMPLETION-CANDIDATES}")
+  private DemoMode modeArg;
+
+  @Option(
+      names = {"-v", "--verbose"},
+      description = "Enable debug logging to stderr")
+  private boolean verbose;
+
+  private enum TokenFormat {
+    raw,
+    decoded
+  }
+
+  private enum DemoMode {
+    direct,
+    oauth2
+  }
+
+  @Override
+  public Integer call() {
+    if (verbose) {
       CliLogger.setVerbose(true);
     }
 
-    CliLogger.info(TAG, "Starting Okta Direct Auth CLI v" + VERSION);
+    CliLogger.info(TAG, "Starting Okta Auth CLI v" + VERSION);
     CliLogger.debug(TAG, "Java " + System.getProperty("java.version"));
     CliLogger.debug(
         TAG, "OS: " + System.getProperty("os.name") + " " + System.getProperty("os.arch"));
+    CliLogger.debug(TAG, "Token format: " + format);
 
-    boolean decodedFormat = parseArg(args, "format", "raw").equals("decoded");
-    CliLogger.debug(TAG, "Token format: " + (decodedFormat ? "decoded" : "raw"));
-
-    String issuer = resolveConfig(args, "issuer", AppConfig.ISSUER, "Issuer URL");
-    String clientId = resolveConfig(args, "clientId", AppConfig.CLIENT_ID, "Client ID");
+    String issuer = resolveConfig(issuerArg, AppConfig.ISSUER, "Issuer URL");
+    String clientId = resolveConfig(clientIdArg, AppConfig.CLIENT_ID, "Client ID");
     String authorizationServerId =
         resolveConfig(
-            args,
-            "authorizationServerId",
+            authorizationServerIdArg,
             AppConfig.AUTHORIZATION_SERVER_ID,
             "Authorization Server ID (e.g., 'default')");
+    // JVM: prefer desktopSignInRedirectUri, fall back to signInRedirectUri.
+    String defaultRedirectUri =
+        !AppConfig.DESKTOP_SIGN_IN_REDIRECT_URI.isEmpty()
+            ? AppConfig.DESKTOP_SIGN_IN_REDIRECT_URI
+            : AppConfig.SIGN_IN_REDIRECT_URI;
+    String signInRedirectUri =
+        resolveConfig(
+            signInRedirectUriArg,
+            defaultRedirectUri,
+            "Desktop Sign-In Redirect URI (OAuth2 redirect-based flows, e.g. http://localhost:8080/callback)");
 
     if (issuer.isEmpty() || clientId.isEmpty() || authorizationServerId.isEmpty()) {
       System.err.println("=== Configuration Error ===");
       System.err.println("Missing required configuration values.");
       System.err.println("See: " + CONFIG_DOCS_URL);
-      System.exit(1);
+      return 1;
     }
 
     CliLogger.debug(TAG, "Issuer: " + issuer);
     CliLogger.debug(TAG, "Client ID: " + clientId);
     CliLogger.debug(TAG, "Authorization Server ID: " + authorizationServerId);
+    CliLogger.debug(TAG, "Sign-In Redirect URI: " + signInRedirectUri);
 
+    // --- Build Direct Auth flows ---
     List<String> signInScopes = Arrays.asList("openid", "profile", "email");
     List<String> recoveryScopes = List.of("okta.myAccount.password.manage");
 
-    CliLogger.info(TAG, "Building sign-in flow (scopes: " + signInScopes + ")");
+    CliLogger.info(TAG, "Building Direct Auth sign-in flow (scopes: " + signInScopes + ")");
     DirectAuthResult<DirectAuthenticationFlow> signInResult =
         new DirectAuthenticationFlowBuilder(issuer, clientId, signInScopes)
             .setAuthorizationServerId(authorizationServerId)
             .setIntent(DirectAuthenticationIntent.SIGN_IN)
             .build();
 
-    CliLogger.info(TAG, "Building recovery flow (scopes: " + recoveryScopes + ")");
+    CliLogger.info(TAG, "Building Direct Auth recovery flow (scopes: " + recoveryScopes + ")");
     DirectAuthResult<DirectAuthenticationFlow> recoveryResult =
         new DirectAuthenticationFlowBuilder(issuer, clientId, recoveryScopes)
             .setAuthorizationServerId(authorizationServerId)
@@ -103,13 +158,11 @@ public final class Main {
             .build();
 
     if (signInResult.isFailure()) {
-      CliLogger.error(
-          TAG,
-          "Failed to create sign-in flow",
-          Objects.requireNonNull(signInResult.exceptionOrNull()));
-      System.err.println("Failed to create sign-in flow: " + signInResult.exceptionOrNull());
+      Throwable cause = signInResult.exceptionOrNull();
+      CliLogger.error(TAG, "Failed to create sign-in flow", cause);
+      System.err.println("Failed to create sign-in flow: " + cause);
       System.err.println("See: " + CONFIG_DOCS_URL);
-      System.exit(1);
+      return 1;
     }
 
     DirectAuthenticationFlow signInFlow = signInResult.getOrThrow();
@@ -119,6 +172,33 @@ public final class Main {
       CliLogger.info(TAG, "Recovery flow unavailable (password recovery disabled)");
     }
 
+    // --- Build OAuth2 client and flows ---
+    CliLogger.info(TAG, "Building OAuth2 client (scopes: " + OAUTH2_SCOPES + ")");
+    AuthFoundationResult<OAuth2Client> oauth2ClientResult =
+        new OAuth2ClientBuilder(issuer, clientId, OAUTH2_SCOPES)
+            .setAuthorizationServerId(authorizationServerId)
+            .build();
+
+    if (oauth2ClientResult.isFailure()) {
+      Throwable cause = oauth2ClientResult.exceptionOrNull();
+      CliLogger.error(TAG, "Failed to create OAuth2 client", cause);
+      System.err.println("Failed to create OAuth2 client: " + cause);
+      return 1;
+    }
+
+    OAuth2Client oauth2Client = oauth2ClientResult.getOrThrow();
+    OAuth2Flows oauth2Flows;
+    try {
+      oauth2Flows = new WrapperOAuth2Flows(oauth2Client, OAUTH2_SCOPES, signInRedirectUri);
+    } catch (IllegalArgumentException e) {
+      System.err.println("=== Configuration Error ===");
+      System.err.println("Invalid desktopSignInRedirectUri: " + e.getMessage());
+      System.err.println(
+          "Use --desktopSignInRedirectUri or set desktopSignInRedirectUri in local.properties.");
+      return 1;
+    }
+
+    // --- Wire views and view models ---
     CliPreferences preferences = new CliPreferences();
     CliLogger.debug(
         TAG,
@@ -126,107 +206,110 @@ public final class Main {
             + (preferences.getLastUsername().isEmpty() ? "<none>" : preferences.getLastUsername())
             + ")");
 
-    AuthViewModel viewModel = new AuthViewModel(signInFlow, recoveryFlow, issuer);
-    ConsoleView view =
+    boolean decoded = format == TokenFormat.decoded;
+
+    AuthViewModel directAuthViewModel = new AuthViewModel(signInFlow, recoveryFlow, issuer);
+    ConsoleView directAuthView =
         new ConsoleView(
-            viewModel,
+            directAuthViewModel,
             new SystemConsoleInput(),
             new SystemConsoleOutput(),
-            decodedFormat,
+            decoded,
             preferences);
+
+    OAuth2ViewModel oauth2ViewModel = new OAuth2ViewModel(oauth2Flows, decoded);
+    OAuth2ConsoleView oauth2View =
+        new OAuth2ConsoleView(oauth2ViewModel, new SystemConsoleInput(), new SystemConsoleOutput());
 
     Runtime.getRuntime()
         .addShutdownHook(
             new Thread(
                 () -> {
                   CliLogger.debug(TAG, "Shutdown hook triggered");
-                  view.stop();
-                  viewModel.close();
+                  directAuthView.stop();
+                  directAuthViewModel.close();
+                  oauth2View.stop();
+                  oauth2ViewModel.close();
                 }));
 
-    CliLogger.info(TAG, "Ready. Entering interactive mode.");
+    // --- Top-level mode selection ---
+    DemoMode mode = modeArg;
+    if (mode == null) {
+      mode = promptMode();
+    }
+
+    CliLogger.info(TAG, "Mode selected: " + mode);
+
     try {
-      view.run();
+      if (mode == DemoMode.direct) {
+        CliLogger.info(TAG, "Entering Direct Authentication mode.");
+        directAuthView.run();
+      } else {
+        CliLogger.info(TAG, "Entering OAuth2 Flows mode.");
+        oauth2View.run();
+      }
     } finally {
       CliLogger.info(TAG, "Exiting.");
-      viewModel.close();
+      directAuthViewModel.close();
+      oauth2ViewModel.close();
     }
+    return 0;
+  }
+
+  private static DemoMode promptMode() {
+    System.out.println("\n=== Okta Auth CLI ===");
+    System.out.println("[1] Direct Authentication");
+    System.out.println("[2] OAuth2 Flows");
+    System.out.println("[3] Exit");
+    System.out.print("Select option: ");
+    if (System.console() != null) {
+      String line = System.console().readLine();
+      if (line != null) {
+        switch (line.trim()) {
+          case "1":
+            return DemoMode.direct;
+          case "2":
+            return DemoMode.oauth2;
+          case "3":
+            System.exit(0);
+        }
+      }
+    }
+    // Default to direct auth if input unavailable
+    return DemoMode.direct;
   }
 
   /**
    * Resolves a configuration value from: (1) CLI arg, (2) local.properties default, (3) interactive
    * prompt.
    */
-  private static String resolveConfig(
-      String[] args, String key, String defaultValue, String promptLabel) {
-    String fromArg = parseArg(args, key, "");
-    if (!fromArg.isEmpty()) {
-      CliLogger.debug(TAG, "Config '" + key + "' from CLI arg");
-      return fromArg;
+  private static String resolveConfig(String argValue, String defaultValue, String promptLabel) {
+    if (argValue != null && !argValue.isEmpty()) {
+      CliLogger.debug("Main", "Config '" + promptLabel + "' from CLI arg");
+      return argValue;
     }
     if (!defaultValue.isEmpty()) {
-      CliLogger.debug(TAG, "Config '" + key + "' from local.properties");
+      CliLogger.debug("Main", "Config '" + promptLabel + "' from local.properties");
       return defaultValue;
     }
     if (System.console() == null) {
-      CliLogger.error(TAG, "Config '" + key + "' is required but stdin is not available");
+      CliLogger.error(
+          "Main", "Config '" + promptLabel + "' is required but stdin is not available");
       return "";
     }
-    CliLogger.debug(TAG, "Config '" + key + "' prompting user");
+    CliLogger.debug("Main", "Config '" + promptLabel + "' prompting user");
     System.out.print(promptLabel + ": ");
     String line = System.console().readLine();
     return (line != null) ? line.trim() : "";
   }
 
   /**
-   * Parses a {@code --key=value} argument from the args array.
+   * Main entry point.
    *
-   * @return the value, or the default if not found
+   * @param args command-line arguments
    */
-  private static String parseArg(String[] args, String key, String defaultValue) {
-    String prefix = "--" + key + "=";
-    for (String arg : args) {
-      if (arg.startsWith(prefix)) {
-        return arg.substring(prefix.length());
-      }
-    }
-    return defaultValue;
-  }
-
-  /** Returns true if a boolean flag (e.g., {@code --verbose}, {@code --help}) is present. */
-  private static boolean hasFlag(String[] args, String flag) {
-    String dashed = "--" + flag;
-    String singleDash = "-" + flag;
-    for (String arg : args) {
-      if (dashed.equals(arg) || singleDash.equals(arg)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  private static void printHelp() {
-    System.out.println("okta-direct-auth-cli v" + VERSION);
-    System.out.println();
-    System.out.println("Usage: okta-direct-auth-cli [OPTIONS]");
-    System.out.println();
-    System.out.println("Options:");
-    System.out.println("  --issuer=URL                  Okta issuer URL");
-    System.out.println("  --clientId=ID                 OAuth 2.0 client ID");
-    System.out.println(
-        "  --authorizationServerId=ID    Authorization server ID (default: 'default')");
-    System.out.println("  --format=raw|decoded          Token display format (default: raw)");
-    System.out.println("  --verbose                     Enable debug logging to stderr");
-    System.out.println("  --version, -v                 Show version and exit");
-    System.out.println("  --help, -h                    Show this help and exit");
-    System.out.println();
-    System.out.println("Configuration:");
-    System.out.println(
-        "  Values are resolved in order: CLI args > local.properties > interactive prompt.");
-    System.out.println("  See: " + CONFIG_DOCS_URL);
-    System.out.println();
-    System.out.println("Examples:");
-    System.out.println("  okta-direct-auth-cli --issuer=https://dev-123.okta.com --clientId=abc");
-    System.out.println("  okta-direct-auth-cli --format=decoded --verbose");
+  public static void main(String[] args) {
+    int exitCode = new CommandLine(new Main()).execute(args);
+    System.exit(exitCode);
   }
 }
