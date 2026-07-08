@@ -8,10 +8,18 @@ plugins {
     id("androidx.navigation.safeargs.kotlin")
 }
 
-val oktaProperties =
+val localProperties =
     Properties().apply {
-        rootProject.file("okta.properties").inputStream().use { load(it) }
+        val file = rootProject.file("local.properties")
+        if (file.exists()) file.inputStream().use { load(it) }
     }
+
+fun local(key: String): String = localProperties.getProperty(key) ?: ""
+
+val signInRedirectUri = local("signInRedirectUri")
+val signOutRedirectUri =
+    local("signOutRedirectUri")
+        .ifEmpty { signInRedirectUri.replace("/callback", "/logout") }
 
 android {
     namespace = "sample.okta.android"
@@ -25,12 +33,12 @@ android {
         versionCode = 1
         versionName = "1.0"
 
-        buildConfigField("String", "ISSUER", "\"${oktaProperties.getProperty("issuer")}\"")
-        buildConfigField("String", "CLIENT_ID", "\"${oktaProperties.getProperty("clientId")}\"")
-        buildConfigField("String", "SIGN_IN_REDIRECT_URI", "\"${oktaProperties.getProperty("signInRedirectUri")}\"")
-        buildConfigField("String", "SIGN_OUT_REDIRECT_URI", "\"${oktaProperties.getProperty("signOutRedirectUri")}\"")
+        buildConfigField("String", "ISSUER", "\"${local("issuer")}\"")
+        buildConfigField("String", "CLIENT_ID", "\"${local("clientId")}\"")
+        buildConfigField("String", "SIGN_IN_REDIRECT_URI", "\"$signInRedirectUri\"")
+        buildConfigField("String", "SIGN_OUT_REDIRECT_URI", "\"$signOutRedirectUri\"")
 
-        manifestPlaceholders["webAuthenticationRedirectScheme"] = parseScheme(oktaProperties.getProperty("signInRedirectUri"))
+        manifestPlaceholders["webAuthenticationRedirectScheme"] = parseScheme(signInRedirectUri)
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 

@@ -53,7 +53,7 @@ internal class DashboardFragment :
         object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 lifecycleScope.launch {
-                    Credential.default?.let { viewModel.setCredential(it) }
+                    Credential.getDefaultAsync()?.let { viewModel.setCredential(it) }
                 }
             }
         }
@@ -72,7 +72,7 @@ internal class DashboardFragment :
                 is DashboardViewModel.CredentialState.Loaded -> {
                     val credential = credentialState.credential
                     lifecycleScope.launch {
-                        val defaultCredential = Credential.default
+                        val defaultCredential = Credential.getDefaultAsync()
                         onBackPressedCallback.isEnabled = defaultCredential != credential
 
                         binding.credentialName.text = if (defaultCredential == credential) "Default" else "TokenExchange"

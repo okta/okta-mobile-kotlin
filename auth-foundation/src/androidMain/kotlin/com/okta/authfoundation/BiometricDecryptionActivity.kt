@@ -26,10 +26,10 @@ import androidx.biometric.BiometricPrompt.AuthenticationCallback
 import androidx.biometric.BiometricPrompt.PromptInfo
 import androidx.core.content.ContextCompat
 import com.okta.authfoundation.client.ApplicationContextHolder
+import com.okta.authfoundation.util.runCatchingCancellable
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import java.security.GeneralSecurityException
 import javax.crypto.Cipher
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
@@ -157,17 +157,19 @@ class BiometricDecryptionActivity : AppCompatActivity() {
         private fun startActivity() {
             val intent = Intent()
             intent.setClass(ApplicationContextHolder.appContext, BiometricDecryptionActivity::class.java)
-            intent.setAction(BiometricDecryptionActivity::class.java.name)
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS)
+            intent.action = BiometricDecryptionActivity::class.java.name
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS
             ApplicationContextHolder.appContext.startActivity(intent)
         }
 
-        internal suspend fun biometricUnlock(promptInfo: PromptInfo) =
+        internal suspend fun biometricUnlock(promptInfo: PromptInfo): Result<Unit> =
             accessMutex.withLock {
-                suspendCancellableCoroutine { continuation ->
-                    this.promptInfo = promptInfo
-                    biometricAction = BiometricAction.Unlock(continuation)
-                    startActivity()
+                runCatchingCancellable {
+                    suspendCancellableCoroutine { continuation ->
+                        this.promptInfo = promptInfo
+                        biometricAction = BiometricAction.Unlock(continuation)
+                        startActivity()
+                    }
                 }
             }
 
@@ -175,32 +177,20 @@ class BiometricDecryptionActivity : AppCompatActivity() {
             cipher: Cipher,
             encryptedData: ByteArray,
             promptInfo: PromptInfo,
-        ): ByteArray =
+        ): Result<ByteArray> =
             accessMutex.withLock {
-                suspendCancellableCoroutine { continuation ->
-                    this.promptInfo = promptInfo
-                    biometricAction =
-                        BiometricAction.Decrypt(
-                            cipher,
-                            encryptedData,
-                            continuation
-                        )
-                    startActivity()
+                runCatchingCancellable {
+                    suspendCancellableCoroutine { continuation ->
+                        this.promptInfo = promptInfo
+                        biometricAction =
+                            BiometricAction.Decrypt(
+                                cipher,
+                                encryptedData,
+                                continuation
+                            )
+                        startActivity()
+                    }
                 }
             }
     }
-}
-
-class BiometricAuthenticationException(
-    message: String,
-    val biometricExceptionDetails: BiometricExceptionDetails,
-) : GeneralSecurityException(message)
-
-sealed interface BiometricExceptionDetails {
-    data object OnAuthenticationFailed : BiometricExceptionDetails
-
-    data class OnAuthenticationError(
-        val errorCode: Int,
-        val errString: CharSequence,
-    ) : BiometricExceptionDetails
 }

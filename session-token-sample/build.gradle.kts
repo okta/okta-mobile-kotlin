@@ -7,10 +7,13 @@ plugins {
     id("spotless")
 }
 
-val oktaProperties =
+val localProperties =
     Properties().apply {
-        rootProject.file("okta.properties").inputStream().use { load(it) }
+        val file = rootProject.file("local.properties")
+        if (file.exists()) file.inputStream().use { load(it) }
     }
+
+fun local(key: String): String = localProperties.getProperty(key) ?: ""
 
 android {
     namespace = "sample.okta.android.sessiontoken"
@@ -23,9 +26,9 @@ android {
         versionCode = 1
         versionName = "1.0"
 
-        buildConfigField("String", "ISSUER", "\"${oktaProperties.getProperty("issuer")}\"")
-        buildConfigField("String", "CLIENT_ID", "\"${oktaProperties.getProperty("clientId")}\"")
-        buildConfigField("String", "SIGN_IN_REDIRECT_URI", "\"${oktaProperties.getProperty("signInRedirectUri")}\"")
+        buildConfigField("String", "ISSUER", "\"${local("issuer")}\"")
+        buildConfigField("String", "CLIENT_ID", "\"${local("clientId")}\"")
+        buildConfigField("String", "SIGN_IN_REDIRECT_URI", "\"${local("signInRedirectUri")}\"")
     }
 
     buildTypes {
