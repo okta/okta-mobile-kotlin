@@ -52,6 +52,10 @@ import java.util.Objects
  *
  * This class can be used as a convenience mechanism for managing stored credentials, performing operations on or for a user using
  * their credentials, and interacting with resources scoped to the credential.
+ *
+ * Note: [Credential] itself never invokes biometric authentication directly; all biometric-gated token
+ * decryption is delegated entirely to [TokenEncryptionHandler] (which, in turn, uses
+ * [BiometricAuthenticator]/[AndroidBiometricAuthenticator]).
  */
 class Credential internal constructor(
     token: Token,

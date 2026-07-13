@@ -55,12 +55,12 @@ internal class DashboardViewModel(
         viewModelScope.launch {
             val cred =
                 if (credentialTagNameValue == null) {
-                    Credential.default
+                    Credential.getDefaultAsync()
                 } else {
                     Credential
-                        .find {
+                        .findAsync {
                             it.tags[SampleHelper.CREDENTIAL_NAME_TAG_KEY] == credentialTagNameValue
-                        }.firstOrNull() ?: Credential.default
+                        }.firstOrNull() ?: Credential.getDefaultAsync()
                 }
             cred?.let { setCredential(it) } ?: run {
                 _credentialLiveData.value = CredentialState.LoggedOut

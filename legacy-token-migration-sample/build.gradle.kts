@@ -7,10 +7,13 @@ plugins {
     id("spotless")
 }
 
-val oktaProperties =
+val localProperties =
     Properties().apply {
-        rootProject.file("okta.properties").inputStream().use { load(it) }
+        val file = rootProject.file("local.properties")
+        if (file.exists()) file.inputStream().use { load(it) }
     }
+
+fun local(key: String): String = localProperties.getProperty(key) ?: ""
 
 android {
     namespace = "sample.okta.android.legacy"
@@ -23,15 +26,15 @@ android {
         versionCode = 1
         versionName = "1.0"
 
-        buildConfigField("String", "ISSUER", "\"${oktaProperties.getProperty("issuer")}\"")
-        buildConfigField("String", "CLIENT_ID", "\"${oktaProperties.getProperty("clientId")}\"")
-        buildConfigField("String", "SIGN_IN_REDIRECT_URI", "\"${oktaProperties.getProperty("signInRedirectUri")}\"")
-        buildConfigField("String", "SIGN_OUT_REDIRECT_URI", "\"${oktaProperties.getProperty("signOutRedirectUri")}\"")
-        buildConfigField("String", "LEGACY_SIGN_IN_REDIRECT_URI", "\"${oktaProperties.getProperty("legacySignInRedirectUri")}\"")
-        buildConfigField("String", "LEGACY_SIGN_OUT_REDIRECT_URI", "\"${oktaProperties.getProperty("legacySignOutRedirectUri")}\"")
+        buildConfigField("String", "ISSUER", "\"${local("issuer")}\"")
+        buildConfigField("String", "CLIENT_ID", "\"${local("clientId")}\"")
+        buildConfigField("String", "SIGN_IN_REDIRECT_URI", "\"${local("signInRedirectUri")}\"")
+        buildConfigField("String", "SIGN_OUT_REDIRECT_URI", "\"${local("signOutRedirectUri")}\"")
+        buildConfigField("String", "LEGACY_SIGN_IN_REDIRECT_URI", "\"${local("legacySignInRedirectUri")}\"")
+        buildConfigField("String", "LEGACY_SIGN_OUT_REDIRECT_URI", "\"${local("legacySignOutRedirectUri")}\"")
 
-        manifestPlaceholders["webAuthenticationRedirectScheme"] = parseScheme(oktaProperties.getProperty("signInRedirectUri"))
-        manifestPlaceholders["appAuthRedirectScheme"] = parseScheme(oktaProperties.getProperty("legacySignInRedirectUri"))
+        manifestPlaceholders["webAuthenticationRedirectScheme"] = parseScheme(local("signInRedirectUri"))
+        manifestPlaceholders["appAuthRedirectScheme"] = parseScheme(local("legacySignInRedirectUri"))
     }
 
     sourceSets {

@@ -18,8 +18,10 @@ package sample.okta.android
 import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
+import androidx.biometric.BiometricPrompt
 import com.okta.authfoundation.AuthFoundation
 import com.okta.authfoundation.client.OidcConfiguration
+import com.okta.authfoundation.credential.Credential
 import com.okta.authfoundation.credential.TokenDbRecoveryUtil
 import timber.log.Timber
 
@@ -43,6 +45,14 @@ class SampleApplication : Application() {
                 defaultScope = SampleHelper.DEFAULT_SCOPE,
                 issuer = BuildConfig.ISSUER
             )
+        Credential.Security.standard = Credential.Security.BiometricStrong(userAuthenticationTimeout = 0)
+        Credential.Security.promptInfo =
+            BiometricPrompt.PromptInfo
+                .Builder()
+                .setTitle("Authenticate")
+                .setSubtitle("Verify your identity to access your account")
+                .setNegativeButtonText("Cancel")
+                .build()
         // Use this in case token database is corrupted due to automatic backup/restore
         TokenDbRecoveryUtil.setupDatabaseRecovery()
     }

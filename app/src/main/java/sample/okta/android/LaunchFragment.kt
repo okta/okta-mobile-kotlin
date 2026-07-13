@@ -35,7 +35,7 @@ internal class LaunchFragment :
         super.onViewCreated(view, savedInstanceState)
 
         lifecycleScope.launch {
-            if (Credential.default != null) {
+            if (Credential.allIdsAsync().isNotEmpty()) {
                 binding.loggedInTextView.visibility = View.VISIBLE
                 binding.dashboardButton.visibility = View.VISIBLE
                 binding.dashboardButton.setOnClickListener {

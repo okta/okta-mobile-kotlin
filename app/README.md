@@ -40,9 +40,9 @@ https://<your_okta_domain>.okta.com/oauth2/default
 You can view all available authorization servers at:
 `https://<your_okta_domain>.okta.com/admin/oauth2/as`
 
-## Configuring `okta.properties`
+## Configuring `local.properties`
 
-Update the `okta.properties` file in the **root directory** of the project with values from your Okta application:
+Add the following keys to `local.properties` in the **root directory** of the project with values from your Okta application:
 
 ```properties
 issuer=https://<your_okta_domain>.okta.com/oauth2/default
@@ -58,12 +58,12 @@ legacySignOutRedirectUri=com.okta.sample.android.legacy:/logout
 | `issuer`                   | Your authorization server URL. Usually `https://<domain>.okta.com/oauth2/default`. Custom authorization servers are also supported.                |
 | `clientId`                 | The Client ID of your Native App from the Okta Admin Console.                                                                                      |
 | `signInRedirectUri`        | The redirect URI after sign-in. Must match what is registered in the Okta app. Use reverse domain notation, e.g. `com.okta.sample.android:/login`. |
-| `signOutRedirectUri`       | The redirect URI after sign-out. Must match what is registered in the Okta app.                                                                    |
+| `signOutRedirectUri`       | The redirect URI after sign-out. Must match what is registered in the Okta app. If omitted, derived from `signInRedirectUri` by replacing `/callback` with `/logout`. |
 | `legacySignInRedirectUri`  | Redirect URI used by the legacy token migration sample.                                                                                            |
 | `legacySignOutRedirectUri` | Redirect URI used by the legacy token migration sample.                                                                                            |
 
-> **Note:** `okta.properties` is read at build time by `app/build.gradle.kts` and injected as `BuildConfig` fields. Never commit real credentials to source control — the file is listed in `.gitignore`
-> for this reason.
+> **Note:** `local.properties` is read at build time by `app/build.gradle.kts` and injected as `BuildConfig` fields. It already exists for your Android SDK path and is listed in `.gitignore` —
+> never commit real credentials to source control.
 
 ## Running the Sample
 

@@ -517,7 +517,7 @@ The sample is designed to show what is possible when using the SDK.
 
 ### Configuring the sample
 
-Update the `okta.properties` file in the root directory of the project with the contents created from the Okta admin dashboard:
+Add the following keys to `local.properties` in the root directory of the project with the contents created from the Okta admin dashboard:
 ```
 issuer=https://YOUR_ORG.okta.com/oauth2/default
 clientId=test-client-id

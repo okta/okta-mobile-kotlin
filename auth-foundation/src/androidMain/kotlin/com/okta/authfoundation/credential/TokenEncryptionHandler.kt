@@ -22,7 +22,6 @@ import android.security.keystore.KeyProperties
 import android.util.Base64
 import androidx.biometric.BiometricPrompt
 import com.okta.authfoundation.AuthFoundationDefaults
-import com.okta.authfoundation.BiometricDecryptionActivity
 import com.okta.authfoundation.InternalAuthFoundationApi
 import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.credential.TokenEncryptionHandler.Companion.isSyncDecryptionContext
@@ -265,19 +264,13 @@ class DefaultTokenEncryptionHandler(
                 if (isSyncDecryptionContext) {
                     throw BiometricInvocationException("Attempted fetching Biometric Token from sync context.")
                 }
+                val authenticator = AndroidBiometricAuthenticator(promptInfo, keyStore)
                 if (security.userAuthenticationTimeout == 0) { // auth-per-use key
-                    return internalDecrypt(encryptedToken, encryptionExtras) { encryptedAesKey ->
-                        val privateRsaKey = keyStore.getKey(security.keyAlias, null)
-                        val rsaCipher =
-                            getRsaCipher().apply { init(Cipher.DECRYPT_MODE, privateRsaKey) }
-                        BiometricDecryptionActivity.biometricDecrypt(
-                            rsaCipher,
-                            encryptedAesKey,
-                            promptInfo
-                        )
+                    internalDecrypt(encryptedToken, encryptionExtras) { encryptedAesKey ->
+                        authenticator.decrypt(encryptedAesKey, security.keyAlias).getOrThrow()
                     }
                 } else {
-                    BiometricDecryptionActivity.biometricUnlock(promptInfo)
+                    authenticator.unlock().getOrThrow()
                     rsaDecrypt(encryptedToken, encryptionExtras, security)
                 }
             }
@@ -321,7 +314,7 @@ class DefaultTokenEncryptionHandler(
                 init(
                     Cipher.DECRYPT_MODE,
                     aesKey,
-                    GCMParameterSpec(128, aesIv)
+                    GCMParameterSpec(GCM_TAG_LENGTH_BITS, aesIv)
                 )
             }
         val decryptedToken = aesCipher.doFinal(encryptedToken)
@@ -336,8 +329,9 @@ class DefaultTokenEncryptionHandler(
         internal const val BASE64_SEPARATOR = ","
         internal const val BIO_TOKEN_NO_PROMPT_INFO_ERROR =
             "promptInfo is required for decrypting biometric tokens"
+        internal const val GCM_TAG_LENGTH_BITS = 128
 
-        private fun getAesCipher(): Cipher =
+        internal fun getAesCipher(): Cipher =
             Cipher.getInstance(
                 KeyProperties.KEY_ALGORITHM_AES + "/" +
                     KeyProperties.BLOCK_MODE_GCM + "/" +

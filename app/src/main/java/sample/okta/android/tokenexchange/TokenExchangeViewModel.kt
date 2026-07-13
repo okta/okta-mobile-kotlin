@@ -42,10 +42,10 @@ class TokenExchangeViewModel : ViewModel() {
         _state.value = TokenExchangeState.Loading
 
         viewModelScope.launch {
-            val credential = Credential.default
+            val credential = Credential.getDefaultAsync()
             val tokenExchangeCredential =
                 Credential
-                    .find { it.tags[SampleHelper.CREDENTIAL_NAME_TAG_KEY] == NAME_TAG_VALUE }
+                    .findAsync { it.tags[SampleHelper.CREDENTIAL_NAME_TAG_KEY] == NAME_TAG_VALUE }
                     .firstOrNull()
             val tokenExchangeFlow = TokenExchangeFlow()
             val idToken = credential?.token?.idToken
