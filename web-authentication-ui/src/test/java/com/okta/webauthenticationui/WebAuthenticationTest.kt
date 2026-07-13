@@ -19,11 +19,13 @@ import android.content.Context
 import android.net.Uri
 import com.google.common.truth.Truth.assertThat
 import com.okta.authfoundation.client.OAuth2ClientResult
+import com.okta.authfoundation.client.TokenInfo
 import com.okta.authfoundation.credential.Token
+import com.okta.oauth2.kmp.AuthorizationCodeFlow
+import com.okta.oauth2.kmp.AuthorizationCodeFlowContext
+import com.okta.oauth2.kmp.RedirectEndSessionFlow
+import com.okta.oauth2.kmp.RedirectEndSessionFlowContext
 import com.okta.testhelpers.OktaRule
-import com.okta.testhelpers.RequestMatchers.method
-import com.okta.testhelpers.RequestMatchers.path
-import com.okta.testhelpers.testBodyFromFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.test.runTest
@@ -37,25 +39,96 @@ import java.util.concurrent.TimeUnit
 
 @RunWith(RobolectricTestRunner::class)
 class WebAuthenticationTest {
-    private val mockPrefix = "test_responses"
-
     @get:Rule val oktaRule = OktaRule()
+
+    private val loginFlowContext =
+        AuthorizationCodeFlowContext(
+            url = "http://example.com/authorize?state=test-login-state",
+            redirectUrl = "unitTest:/login",
+            codeVerifier = "test-code-verifier",
+            state = "test-login-state",
+            nonce = "test-nonce",
+            maxAge = null
+        )
+
+    private val loginTokenInfo: TokenInfo =
+        object : TokenInfo {
+            override val id = "test-token-id"
+            override val clientId = "test-client-id"
+            override val issuerUrl = "https://example-test.okta.com/oauth2/default"
+            override val tokenType = "Bearer"
+            override val expiresIn = 3600
+            override val accessToken = "exampleAccessToken"
+            override val scope = "offline_access profile openid email"
+            override val refreshToken = "exampleRefreshToken"
+            override val idToken =
+                "eyJraWQiOiJGSkEwSEdOdHN1dWRhX1BsNDVKNDJrdlFxY3N1XzBDNEZnN3BiSkxYVEhZIiwiYWxnIjoiUlMyNTYifQ" +
+                    ".eyJzdWIiOiIwMHViNDF6N21nek5xcnlNdjY5NiIsIm5hbWUiOiJKYXkgTmV3c3Ryb20iLCJlbWFpbCI6ImpheW5l" +
+                    "d3N0cm9tQGV4YW1wbGUuY29tIiwidmVyIjoxLCJpc3MiOiJodHRwczovL2V4YW1wbGUtdGVzdC5va3RhLmNvbS9v" +
+                    "YXV0aDIvZGVmYXVsdCIsImF1ZCI6IjBvYThmdXAwbEFQWUZDNEkyNjk2IiwiaWF0IjoxNjQ0MzQ3MDY5LCJleHAi" +
+                    "OjE2NDQzNTA2NjksImp0aSI6IklELjU1Y3hCdGRZbDhsNmFyS0lTUEJ3ZDB5T1QtOVVDVGFYYVFUWHQybGFSTHMi" +
+                    "LCJhbXIiOlsicHdkIl0sImlkcCI6IjAwbzhmb3U3c1JhR0d3ZG40Njk2Iiwic2lkIjoiaWR4V3hrbHBfNGtTeHVD" +
+                    "X25VMXBYRC1uQSIsInByZWZlcnJlZF91c2VybmFtZSI6ImpheW5ld3N0cm9tQGV4YW1wbGUuY29tIiwiYXV0aF90" +
+                    "aW1lIjoxNjQ0MzQ3MDY4LCJhdF9oYXNoIjoiZ01jR1RiaEdUMUdfbGRzSG9Kc1B6USIsImRzX2hhc2giOiJEQWVM" +
+                    "T0ZScWlmeXNiZ3NyYk9nYm9nIn0.z7LBgWT2O-DUZiOOUzr90qEgLoMiR5eHZsY1V2XPbhfOrjIv9ax9niHE7lPS" +
+                    "5GYq02w4Cuf0DbdWjiNj96n4wTPmNU6N0x-XRluv4kved_wBBIvWNLGu_ZZZAFXaIFqmFGxPB6hIsYKvB3FmQCC0N" +
+                    "vSXyDquadW9X7bBA7BO7VfX_jOKCkK_1MC1FZdU9n8rppu190Gk-z5dEWegHHtKy3vb12t4NR9CkA2uQgolnii8fN" +
+                    "bie-3Z6zAdMXAZXkIcFu43Wn4TGwuzWK25IThcMNsPbLFFI4r0zo9E20IsH4gcJQiE_vFUzukzCsbppaiSAWBdSgE" +
+                    "S9K-QskWacZIWOg"
+            override val deviceSecret = "exampleDeviceSecret"
+            override val issuedTokenType = "urn:ietf:params:oauth:token-type:access_token"
+        }
+
+    private val logoutFlowContext =
+        RedirectEndSessionFlowContext(
+            url = "http://example.com/logout?state=test-logout-state",
+            redirectUrl = "unitTest:/logout",
+            state = "test-logout-state"
+        )
+
+    private fun authorizationCodeFlowStub(
+        startResult: Result<AuthorizationCodeFlowContext> = Result.success(loginFlowContext),
+        resumeResult: Result<TokenInfo> = Result.success(loginTokenInfo),
+    ): AuthorizationCodeFlow =
+        object : AuthorizationCodeFlow {
+            override suspend fun start(
+                redirectUrl: String,
+                extraRequestParameters: Map<String, String>,
+                scope: String?,
+            ): Result<AuthorizationCodeFlowContext> = startResult
+
+            override suspend fun resume(
+                uri: String,
+                flowContext: AuthorizationCodeFlowContext,
+            ): Result<TokenInfo> = resumeResult
+        }
+
+    private fun redirectEndSessionFlowStub(
+        startResult: Result<RedirectEndSessionFlowContext> = Result.success(logoutFlowContext),
+        resumeResult: Result<Unit> = Result.success(Unit),
+    ): RedirectEndSessionFlow =
+        object : RedirectEndSessionFlow {
+            override suspend fun start(
+                idToken: String,
+                redirectUrl: String,
+                extraRequestParameters: Map<String, String>,
+            ): Result<RedirectEndSessionFlowContext> = startResult
+
+            override fun resume(
+                uri: String,
+                flowContext: RedirectEndSessionFlowContext,
+            ): Result<Unit> = resumeResult
+        }
 
     @Test fun testLogin(): Unit =
         runTest {
-            oktaRule.enqueue(
-                method("POST"),
-                path("/oauth2/default/v1/token")
-            ) { response ->
-                response.testBodyFromFile("$mockPrefix/token.json")
-            }
-
             val webAuthenticationProvider = mock<WebAuthenticationProvider>()
             val webAuthentication = WebAuthentication(webAuthenticationProvider)
             val context = mock<Context>()
 
             val redirectCoordinator = DefaultRedirectCoordinator(this)
             webAuthentication.redirectCoordinator = redirectCoordinator
+            webAuthentication.authorizationCodeFlow = authorizationCodeFlowStub()
 
             val initializeCountDownLatch = CountDownLatch(1)
             redirectCoordinator.initializerContinuationListeningCallback = {
@@ -83,9 +156,153 @@ class WebAuthenticationTest {
             assertThat(token.accessToken).isEqualTo("exampleAccessToken")
             assertThat(token.scope).isEqualTo("offline_access profile openid email")
             assertThat(token.refreshToken).isEqualTo("exampleRefreshToken")
-            assertThat(token.idToken).isEqualTo(
-                "eyJraWQiOiJGSkEwSEdOdHN1dWRhX1BsNDVKNDJrdlFxY3N1XzBDNEZnN3BiSkxYVEhZIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiIwMHViNDF6N21nek5xcnlNdjY5NiIsIm5hbWUiOiJKYXkgTmV3c3Ryb20iLCJlbWFpbCI6ImpheW5ld3N0cm9tQGV4YW1wbGUuY29tIiwidmVyIjoxLCJpc3MiOiJodHRwczovL2V4YW1wbGUtdGVzdC5va3RhLmNvbS9vYXV0aDIvZGVmYXVsdCIsImF1ZCI6IjBvYThmdXAwbEFQWUZDNEkyNjk2IiwiaWF0IjoxNjQ0MzQ3MDY5LCJleHAiOjE2NDQzNTA2NjksImp0aSI6IklELjU1Y3hCdGRZbDhsNmFyS0lTUEJ3ZDB5T1QtOVVDVGFYYVFUWHQybGFSTHMiLCJhbXIiOlsicHdkIl0sImlkcCI6IjAwbzhmb3U3c1JhR0d3ZG40Njk2Iiwic2lkIjoiaWR4V3hrbHBfNGtTeHVDX25VMXBYRC1uQSIsInByZWZlcnJlZF91c2VybmFtZSI6ImpheW5ld3N0cm9tQGV4YW1wbGUuY29tIiwiYXV0aF90aW1lIjoxNjQ0MzQ3MDY4LCJhdF9oYXNoIjoiZ01jR1RiaEdUMUdfbGRzSG9Kc1B6USIsImRzX2hhc2giOiJEQWVMT0ZScWlmeXNiZ3NyYk9nYm9nIn0.z7LBgWT2O-DUZiOOUzr90qEgLoMiR5eHZsY1V2XPbhfOrjIv9ax9niHE7lPS5GYq02w4Cuf0DbdWjiNj96n4wTPmNU6N0x-XRluv4kved_wBBIvWNLGu_ZZZAFXaIFqmFGxPB6hIsYKvB3FmQCC0NvSXyDquadW9X7bBA7BO7VfX_jOKCkK_1MC1FZdU9n8rppu190Gk-z5dEWegHHtKy3vb12t4NR9CkA2uQgolnii8fNbie-3Z6zAdMXAZXkIcFu43Wn4TGwuzWK25IThcMNsPbLFFI4r0zo9E20IsH4gcJQiE_vFUzukzCsbppaiSAWBdSgES9K-QskWacZIWOg"
-            )
+            assertThat(token.idToken).isEqualTo(loginTokenInfo.idToken)
+            assertThat(token.deviceSecret).isEqualTo("exampleDeviceSecret")
+            assertThat(token.issuedTokenType).isEqualTo("urn:ietf:params:oauth:token-type:access_token")
+            assertThat(token.oidcConfiguration).isSameInstanceAs(oktaRule.configuration)
+        }
+
+    @Test fun testLoginResumeError(): Unit =
+        runTest {
+            val webAuthenticationProvider = mock<WebAuthenticationProvider>()
+            val webAuthentication = WebAuthentication(oktaRule.configuration, webAuthenticationProvider)
+            val context = mock<Context>()
+
+            val redirectCoordinator = DefaultRedirectCoordinator(this)
+            webAuthentication.redirectCoordinator = redirectCoordinator
+            webAuthentication.authorizationCodeFlow =
+                authorizationCodeFlowStub(
+                    resumeResult = Result.failure(AuthorizationCodeFlow.ResumeException("state mismatch", "state_mismatch"))
+                )
+
+            val initializeCountDownLatch = CountDownLatch(1)
+            redirectCoordinator.initializerContinuationListeningCallback = {
+                initializeCountDownLatch.countDown()
+            }
+            val redirectCountDownLatch = CountDownLatch(1)
+            redirectCoordinator.redirectContinuationListeningCallback = {
+                redirectCountDownLatch.countDown()
+            }
+            val loginResultDeferred =
+                async(Dispatchers.IO) {
+                    webAuthentication.login(context, "unitTest:/login")
+                }
+            assertThat(initializeCountDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
+            redirectCoordinator.runInitializationFunction()
+
+            assertThat(redirectCountDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
+            redirectCoordinator.emit(Uri.parse("unitTest:/login?state=bad-state&code=ExampleCode"))
+
+            val exception = (loginResultDeferred.await() as OAuth2ClientResult.Error<Token>).exception
+            assertThat(exception).isInstanceOf(AuthorizationCodeFlow.ResumeException::class.java)
+        }
+
+    @Test fun testLogoutResumeError(): Unit =
+        runTest {
+            val webAuthenticationProvider = mock<WebAuthenticationProvider>()
+            val webAuthentication = WebAuthentication(oktaRule.configuration, webAuthenticationProvider)
+            val context = mock<Context>()
+
+            val redirectCoordinator = DefaultRedirectCoordinator(this)
+            webAuthentication.redirectCoordinator = redirectCoordinator
+            webAuthentication.redirectEndSessionFlow =
+                redirectEndSessionFlowStub(
+                    resumeResult = Result.failure(RuntimeException("state mismatch"))
+                )
+
+            val initializeCountDownLatch = CountDownLatch(1)
+            redirectCoordinator.initializerContinuationListeningCallback = {
+                initializeCountDownLatch.countDown()
+            }
+            val redirectCountDownLatch = CountDownLatch(1)
+            redirectCoordinator.redirectContinuationListeningCallback = {
+                redirectCountDownLatch.countDown()
+            }
+            val logoutResultDeferred =
+                async(Dispatchers.IO) {
+                    webAuthentication.logoutOfBrowser(context, "unitTest:/logout", "ExampleIdToken")
+                }
+            assertThat(initializeCountDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
+            redirectCoordinator.runInitializationFunction()
+
+            assertThat(redirectCountDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
+            redirectCoordinator.emit(Uri.parse("unitTest:/logout?state=bad-state"))
+
+            val exception = (logoutResultDeferred.await() as OAuth2ClientResult.Error<Unit>).exception
+            assertThat(exception).isInstanceOf(RuntimeException::class.java)
+        }
+
+    @Test fun testLoginMalformedUrl_ReturnsError(): Unit =
+        runTest {
+            val webAuthenticationProvider = mock<WebAuthenticationProvider>()
+            val webAuthentication = WebAuthentication(webAuthenticationProvider)
+            val context = mock<Context>()
+
+            val redirectCoordinator = DefaultRedirectCoordinator(this)
+            webAuthentication.redirectCoordinator = redirectCoordinator
+            webAuthentication.authorizationCodeFlow =
+                authorizationCodeFlowStub(
+                    startResult =
+                        Result.success(
+                            AuthorizationCodeFlowContext(
+                                url = "not a valid url",
+                                redirectUrl = "unitTest:/login",
+                                codeVerifier = "cv",
+                                state = "s",
+                                nonce = "n",
+                                maxAge = null
+                            )
+                        )
+                )
+
+            val initializeCountDownLatch = CountDownLatch(1)
+            redirectCoordinator.initializerContinuationListeningCallback = {
+                initializeCountDownLatch.countDown()
+            }
+            val loginResultDeferred =
+                async(Dispatchers.IO) {
+                    webAuthentication.login(context, "unitTest:/login")
+                }
+            assertThat(initializeCountDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
+            redirectCoordinator.runInitializationFunction()
+
+            val exception = (loginResultDeferred.await() as OAuth2ClientResult.Error<Token>).exception
+            assertThat(exception).isInstanceOf(IllegalArgumentException::class.java)
+        }
+
+    @Test fun testLogoutMalformedUrl_ReturnsError(): Unit =
+        runTest {
+            val webAuthenticationProvider = mock<WebAuthenticationProvider>()
+            val webAuthentication = WebAuthentication(webAuthenticationProvider)
+            val context = mock<Context>()
+
+            val redirectCoordinator = DefaultRedirectCoordinator(this)
+            webAuthentication.redirectCoordinator = redirectCoordinator
+            webAuthentication.redirectEndSessionFlow =
+                redirectEndSessionFlowStub(
+                    startResult =
+                        Result.success(
+                            RedirectEndSessionFlowContext(
+                                url = "not a valid url",
+                                redirectUrl = "unitTest:/logout",
+                                state = "s"
+                            )
+                        )
+                )
+
+            val initializeCountDownLatch = CountDownLatch(1)
+            redirectCoordinator.initializerContinuationListeningCallback = {
+                initializeCountDownLatch.countDown()
+            }
+            val logoutResultDeferred =
+                async(Dispatchers.IO) {
+                    webAuthentication.logoutOfBrowser(context, "unitTest:/logout", "ExampleIdToken")
+                }
+            assertThat(initializeCountDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
+            redirectCoordinator.runInitializationFunction()
+
+            val exception = (logoutResultDeferred.await() as OAuth2ClientResult.Error<Unit>).exception
+            assertThat(exception).isInstanceOf(IllegalArgumentException::class.java)
         }
 
     @Test fun testLoginInitializationCancellation(): Unit =
@@ -96,6 +313,7 @@ class WebAuthenticationTest {
 
             val redirectCoordinator = DefaultRedirectCoordinator(this)
             webAuthentication.redirectCoordinator = redirectCoordinator
+            webAuthentication.authorizationCodeFlow = authorizationCodeFlowStub()
 
             val initializeCountDownLatch = CountDownLatch(1)
             redirectCoordinator.initializerContinuationListeningCallback = {
@@ -120,6 +338,7 @@ class WebAuthenticationTest {
 
             val redirectCoordinator = DefaultRedirectCoordinator(this)
             webAuthentication.redirectCoordinator = redirectCoordinator
+            webAuthentication.authorizationCodeFlow = authorizationCodeFlowStub()
 
             val initializeCountDownLatch = CountDownLatch(1)
             redirectCoordinator.initializerContinuationListeningCallback = {
@@ -145,15 +364,16 @@ class WebAuthenticationTest {
 
     @Test fun testLoginAuthorizationCodeFlowError(): Unit =
         runTest {
-            oktaRule.enqueue(path("/.well-known/openid-configuration")) { response ->
-                response.setResponseCode(503)
-            }
             val webAuthenticationProvider = mock<WebAuthenticationProvider>()
             val webAuthentication = WebAuthentication(oktaRule.configuration, webAuthenticationProvider)
             val context = mock<Context>()
 
             val redirectCoordinator = DefaultRedirectCoordinator(this)
             webAuthentication.redirectCoordinator = redirectCoordinator
+            webAuthentication.authorizationCodeFlow =
+                authorizationCodeFlowStub(
+                    startResult = Result.failure(IllegalStateException("OIDC Endpoints not available."))
+                )
 
             val initializeCountDownLatch = CountDownLatch(1)
             redirectCoordinator.initializerContinuationListeningCallback = {
@@ -167,7 +387,7 @@ class WebAuthenticationTest {
             redirectCoordinator.runInitializationFunction()
 
             val exception = (loginResultDeferred.await() as OAuth2ClientResult.Error<Token>).exception
-            assertThat(exception).isInstanceOf(OAuth2ClientResult.Error.OidcEndpointsNotAvailableException::class.java)
+            assertThat(exception).isInstanceOf(IllegalStateException::class.java)
         }
 
     @Test fun testLogout(): Unit =
@@ -178,6 +398,7 @@ class WebAuthenticationTest {
 
             val redirectCoordinator = DefaultRedirectCoordinator(this)
             webAuthentication.redirectCoordinator = redirectCoordinator
+            webAuthentication.redirectEndSessionFlow = redirectEndSessionFlowStub()
 
             val initializeCountDownLatch = CountDownLatch(1)
             redirectCoordinator.initializerContinuationListeningCallback = {
@@ -210,6 +431,7 @@ class WebAuthenticationTest {
 
             val redirectCoordinator = DefaultRedirectCoordinator(this)
             webAuthentication.redirectCoordinator = redirectCoordinator
+            webAuthentication.redirectEndSessionFlow = redirectEndSessionFlowStub()
 
             val initializeCountDownLatch = CountDownLatch(1)
             redirectCoordinator.initializerContinuationListeningCallback = {
@@ -234,6 +456,7 @@ class WebAuthenticationTest {
 
             val redirectCoordinator = DefaultRedirectCoordinator(this)
             webAuthentication.redirectCoordinator = redirectCoordinator
+            webAuthentication.redirectEndSessionFlow = redirectEndSessionFlowStub()
 
             val initializeCountDownLatch = CountDownLatch(1)
             redirectCoordinator.initializerContinuationListeningCallback = {
@@ -259,15 +482,16 @@ class WebAuthenticationTest {
 
     @Test fun testLogoutEndSessionRedirectFlowError(): Unit =
         runTest {
-            oktaRule.enqueue(path("/.well-known/openid-configuration")) { response ->
-                response.setResponseCode(503)
-            }
             val webAuthenticationProvider = mock<WebAuthenticationProvider>()
             val webAuthentication = WebAuthentication(oktaRule.configuration, webAuthenticationProvider)
             val context = mock<Context>()
 
             val redirectCoordinator = DefaultRedirectCoordinator(this)
             webAuthentication.redirectCoordinator = redirectCoordinator
+            webAuthentication.redirectEndSessionFlow =
+                redirectEndSessionFlowStub(
+                    startResult = Result.failure(IllegalStateException("OIDC Endpoints not available."))
+                )
 
             val initializeCountDownLatch = CountDownLatch(1)
             redirectCoordinator.initializerContinuationListeningCallback = {
@@ -281,6 +505,6 @@ class WebAuthenticationTest {
             redirectCoordinator.runInitializationFunction()
 
             val exception = (logoutResultDeferred.await() as OAuth2ClientResult.Error<Unit>).exception
-            assertThat(exception).isInstanceOf(OAuth2ClientResult.Error.OidcEndpointsNotAvailableException::class.java)
+            assertThat(exception).isInstanceOf(IllegalStateException::class.java)
         }
 }

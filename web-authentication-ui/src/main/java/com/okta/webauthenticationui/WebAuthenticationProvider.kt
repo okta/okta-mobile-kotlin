@@ -26,6 +26,7 @@ import android.os.Bundle
 import android.provider.Browser
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.browser.customtabs.CustomTabsService
+import androidx.core.net.toUri
 import com.okta.authfoundation.events.EventCoordinator
 import com.okta.webauthenticationui.events.CustomizeBrowserEvent
 import com.okta.webauthenticationui.events.CustomizeCustomTabsEvent
@@ -76,7 +77,7 @@ internal class DefaultWebAuthenticationProvider(
         tabsIntent.intent.putExtra(Browser.EXTRA_HEADERS, headers)
 
         try {
-            tabsIntent.launchUrl(context, Uri.parse(url.toString()))
+            tabsIntent.launchUrl(context, url.toString().toUri())
             return null
         } catch (e: ActivityNotFoundException) {
             return e

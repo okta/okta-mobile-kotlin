@@ -31,6 +31,7 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import sample.okta.android.BuildConfig
+import sample.okta.android.SampleApplication
 import sample.okta.android.SampleHelper
 import timber.log.Timber
 
@@ -135,7 +136,7 @@ internal class DashboardViewModel(
             val idToken = credential.token.idToken ?: return@launch
             when (
                 val result =
-                    WebAuthentication().logoutOfBrowser(
+                    WebAuthentication(SampleApplication.oAuth2Client).logoutOfBrowser(
                         context = context,
                         redirectUrl = BuildConfig.SIGN_OUT_REDIRECT_URI,
                         idToken = idToken

@@ -20,7 +20,9 @@ import android.app.Application
 import android.content.Context
 import androidx.biometric.BiometricPrompt
 import com.okta.authfoundation.AuthFoundation
+import com.okta.authfoundation.client.OAuth2ClientBuilder
 import com.okta.authfoundation.client.OidcConfiguration
+import com.okta.authfoundation.client.kmp.OAuth2Client
 import com.okta.authfoundation.credential.Credential
 import com.okta.authfoundation.credential.TokenDbRecoveryUtil
 import timber.log.Timber
@@ -29,6 +31,15 @@ class SampleApplication : Application() {
     companion object {
         @SuppressLint("StaticFieldLeak")
         lateinit var context: Context
+
+        val oAuth2Client: OAuth2Client by lazy {
+            OAuth2ClientBuilder
+                .create(
+                    issuerUrl = BuildConfig.ISSUER,
+                    clientId = BuildConfig.CLIENT_ID,
+                    scope = SampleHelper.DEFAULT_SCOPE.split(" ")
+                ).getOrThrow()
+        }
     }
 
     override fun onCreate() {
