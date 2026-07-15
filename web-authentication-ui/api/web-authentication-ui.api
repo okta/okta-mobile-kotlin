@@ -45,19 +45,17 @@ public final class com/okta/webauthenticationui/ForegroundActivityEvent$OnResume
 
 public final class com/okta/webauthenticationui/WebAuthentication {
 	public static final field Companion Lcom/okta/webauthenticationui/WebAuthentication$Companion;
+	public fun <init> (Lcom/okta/authfoundation/client/kmp/OAuth2Client;Lcom/okta/webauthenticationui/WebAuthenticationProvider;)V
+	public synthetic fun <init> (Lcom/okta/authfoundation/client/kmp/OAuth2Client;Lcom/okta/webauthenticationui/WebAuthenticationProvider;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun <init> (Lcom/okta/authfoundation/client/OAuth2Client;Lcom/okta/webauthenticationui/WebAuthenticationProvider;)V
 	public synthetic fun <init> (Lcom/okta/authfoundation/client/OAuth2Client;Lcom/okta/webauthenticationui/WebAuthenticationProvider;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun <init> (Lcom/okta/authfoundation/client/OidcConfiguration;Lcom/okta/webauthenticationui/WebAuthenticationProvider;)V
 	public synthetic fun <init> (Lcom/okta/authfoundation/client/OidcConfiguration;Lcom/okta/webauthenticationui/WebAuthenticationProvider;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun <init> (Lcom/okta/webauthenticationui/WebAuthenticationProvider;)V
 	public synthetic fun <init> (Lcom/okta/webauthenticationui/WebAuthenticationProvider;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun getAuthorizationCodeFlow ()Lcom/okta/oauth2/AuthorizationCodeFlow;
-	public final fun getRedirectEndSessionFlow ()Lcom/okta/oauth2/RedirectEndSessionFlow;
 	public final fun login (Landroid/content/Context;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun login$default (Lcom/okta/webauthenticationui/WebAuthentication;Landroid/content/Context;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public final fun logoutOfBrowser (Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public final fun setAuthorizationCodeFlow (Lcom/okta/oauth2/AuthorizationCodeFlow;)V
-	public final fun setRedirectEndSessionFlow (Lcom/okta/oauth2/RedirectEndSessionFlow;)V
 }
 
 public final class com/okta/webauthenticationui/WebAuthentication$Companion {

@@ -25,6 +25,7 @@ import com.okta.authfoundation.credential.Credential
 import com.okta.webauthenticationui.WebAuthentication
 import kotlinx.coroutines.launch
 import sample.okta.android.BuildConfig
+import sample.okta.android.SampleApplication
 import sample.okta.android.SampleHelper
 import timber.log.Timber
 
@@ -39,11 +40,13 @@ class BrowserViewModel : ViewModel() {
         viewModelScope.launch {
             _state.value = BrowserState.Loading
 
-            val webAuthentication = WebAuthentication()
-            var scope = SampleHelper.DEFAULT_SCOPE
-            if (addDeviceSsoScope) {
-                scope += " device_sso"
-            }
+            val webAuthentication = WebAuthentication(SampleApplication.oAuth2Client)
+            val scope =
+                if (addDeviceSsoScope) {
+                    "${SampleHelper.DEFAULT_SCOPE} device_sso"
+                } else {
+                    SampleHelper.DEFAULT_SCOPE
+                }
 
             when (
                 val result =
@@ -56,7 +59,7 @@ class BrowserViewModel : ViewModel() {
             ) {
                 is OAuth2ClientResult.Error -> {
                     Timber.e(result.exception, "Failed to start login flow.")
-                    _state.value = BrowserState.Error("Failed to start login flow.")
+                    _state.value = BrowserState.Error(result.exception.message ?: "Failed to start login flow.")
                 }
 
                 is OAuth2ClientResult.Success -> {

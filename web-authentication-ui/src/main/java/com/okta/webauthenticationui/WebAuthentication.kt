@@ -18,16 +18,20 @@ package com.okta.webauthenticationui
 import android.app.Activity
 import android.content.Context
 import androidx.annotation.VisibleForTesting
-import com.okta.authfoundation.client.OAuth2Client
 import com.okta.authfoundation.client.OAuth2ClientResult
 import com.okta.authfoundation.client.OidcConfiguration
+import com.okta.authfoundation.client.TokenInfo
 import com.okta.authfoundation.client.internal.SdkVersionsRegistry
+import com.okta.authfoundation.client.kmp.OAuth2Client
 import com.okta.authfoundation.credential.Token
-import com.okta.oauth2.AuthorizationCodeFlow
-import com.okta.oauth2.RedirectEndSessionFlow
+import com.okta.authfoundation.events.EventCoordinator
+import com.okta.oauth2.kmp.AuthorizationCodeFlow
+import com.okta.oauth2.kmp.RedirectEndSessionFlow
 import com.okta.webauthenticationui.BuildConfig.SDK_VERSION
 import com.okta.webauthenticationui.events.CustomizeBrowserEvent
 import com.okta.webauthenticationui.events.CustomizeCustomTabsEvent
+import okhttp3.HttpUrl.Companion.toHttpUrl
+import com.okta.authfoundation.client.OAuth2Client as AndroidOAuth2Client
 
 @Deprecated(
     message = "Renamed to WebAuthentication",
@@ -45,9 +49,12 @@ typealias WebAuthenticationClient = WebAuthentication
  * To further customize the authentication flow, please read more about the underlying flows: [AuthorizationCodeFlow],
  * [RedirectEndSessionFlow].
  */
-class WebAuthentication(
-    private val client: OAuth2Client,
-    private val webAuthenticationProvider: WebAuthenticationProvider = DefaultWebAuthenticationProvider(client.configuration.eventCoordinator),
+class WebAuthentication private constructor(
+    private val authorizationCodeFlowFactory: () -> AuthorizationCodeFlow,
+    private val redirectEndSessionFlowFactory: () -> RedirectEndSessionFlow,
+    private val tokenOidcConfiguration: OidcConfiguration,
+    private val defaultScopeValue: String,
+    private val webAuthenticationProvider: WebAuthenticationProvider,
 ) {
     companion object {
         init {
@@ -56,14 +63,49 @@ class WebAuthentication(
     }
 
     /**
+     * Initializes a web authentication client backed by a KMP [OAuth2Client].
+     *
+     * This is the preferred constructor. The KMP client is used directly to create the underlying
+     * [AuthorizationCodeFlow] and [RedirectEndSessionFlow].
+     *
+     * @param oAuth2Client the KMP [OAuth2Client] to use for authorization requests.
+     * @param webAuthenticationProvider the [WebAuthenticationProvider] which will be used to show
+     * the UI when performing the redirect flows.
+     */
+    constructor(
+        oAuth2Client: OAuth2Client,
+        webAuthenticationProvider: WebAuthenticationProvider = DefaultWebAuthenticationProvider(EventCoordinator(emptyList())),
+    ) : this(
+        authorizationCodeFlowFactory = { AuthorizationCodeFlow(oAuth2Client) },
+        redirectEndSessionFlowFactory = { RedirectEndSessionFlow(oAuth2Client) },
+        tokenOidcConfiguration =
+            OidcConfiguration(
+                clientId = oAuth2Client.configuration.clientId,
+                defaultScope = oAuth2Client.configuration.defaultScope,
+                issuer = oAuth2Client.configuration.issuerUrl
+            ),
+        defaultScopeValue = oAuth2Client.configuration.defaultScope,
+        webAuthenticationProvider = webAuthenticationProvider
+    )
+
+    /**
      * Initializes a web authentication client.
      *
      * @param webAuthenticationProvider the [WebAuthenticationProvider] which will be used to show the UI when performing the
      * redirect flows.
      */
+    @Deprecated(
+        message = "Use the constructor taking com.okta.authfoundation.client.kmp.OAuth2Client instead.",
+        replaceWith =
+            ReplaceWith(
+                "WebAuthentication(kmpClient, webAuthenticationProvider)",
+                "com.okta.authfoundation.client.kmp.OAuth2Client"
+            )
+    )
+    @Suppress("DEPRECATION")
     constructor(
         webAuthenticationProvider: WebAuthenticationProvider = DefaultWebAuthenticationProvider(OidcConfiguration.default.eventCoordinator),
-    ) : this(OAuth2Client.default, webAuthenticationProvider)
+    ) : this(AndroidOAuth2Client.default, webAuthenticationProvider)
 
     /**
      * Initializes a web authentication client.
@@ -72,15 +114,72 @@ class WebAuthentication(
      * @param webAuthenticationProvider the [WebAuthenticationProvider] which will be used to show the UI when performing the
      * redirect flows.
      */
+    @Deprecated(
+        message = "Use the constructor taking com.okta.authfoundation.client.kmp.OAuth2Client instead.",
+        replaceWith =
+            ReplaceWith(
+                "WebAuthentication(kmpClient, webAuthenticationProvider)",
+                "com.okta.authfoundation.client.kmp.OAuth2Client"
+            )
+    )
+    @Suppress("DEPRECATION")
     constructor(
         oidcConfiguration: OidcConfiguration,
         webAuthenticationProvider: WebAuthenticationProvider = DefaultWebAuthenticationProvider(oidcConfiguration.eventCoordinator),
-    ) : this(OAuth2Client.createFromConfiguration(oidcConfiguration), webAuthenticationProvider)
+    ) : this(AndroidOAuth2Client.createFromConfiguration(oidcConfiguration), webAuthenticationProvider)
 
-    var authorizationCodeFlow: AuthorizationCodeFlow = AuthorizationCodeFlow(client)
-    var redirectEndSessionFlow: RedirectEndSessionFlow = RedirectEndSessionFlow(client)
+    /**
+     * Initializes a web authentication client backed by an Android-only [OAuth2Client].
+     *
+     * @param client the Android [OAuth2Client] to use for authorization requests.
+     * @param webAuthenticationProvider the [WebAuthenticationProvider] which will be used to show the UI when performing the
+     * redirect flows.
+     */
+    @Deprecated(
+        message = "Use the constructor taking com.okta.authfoundation.client.kmp.OAuth2Client instead.",
+        replaceWith =
+            ReplaceWith(
+                "WebAuthentication(kmpClient, webAuthenticationProvider)",
+                "com.okta.authfoundation.client.kmp.OAuth2Client"
+            )
+    )
+    constructor(
+        client: AndroidOAuth2Client,
+        webAuthenticationProvider: WebAuthenticationProvider = DefaultWebAuthenticationProvider(client.configuration.eventCoordinator),
+    ) : this(
+        authorizationCodeFlowFactory = { AuthorizationCodeFlow(client) },
+        redirectEndSessionFlowFactory = { RedirectEndSessionFlow(client) },
+        tokenOidcConfiguration = client.configuration,
+        defaultScopeValue = client.configuration.defaultScope,
+        webAuthenticationProvider = webAuthenticationProvider
+    )
 
-    @VisibleForTesting internal var redirectCoordinator: RedirectCoordinator = SingletonRedirectCoordinator
+    private val flowLock = Any()
+
+    @Volatile
+    private var authorizationCodeFlowBacking: AuthorizationCodeFlow? = null
+
+    @VisibleForTesting
+    internal var authorizationCodeFlow: AuthorizationCodeFlow
+        get() =
+            authorizationCodeFlowBacking ?: synchronized(flowLock) {
+                authorizationCodeFlowBacking ?: authorizationCodeFlowFactory().also { authorizationCodeFlowBacking = it }
+            }
+        set(value) = synchronized(flowLock) { authorizationCodeFlowBacking = value }
+
+    @Volatile
+    private var redirectEndSessionFlowBacking: RedirectEndSessionFlow? = null
+
+    @VisibleForTesting
+    internal var redirectEndSessionFlow: RedirectEndSessionFlow
+        get() =
+            redirectEndSessionFlowBacking ?: synchronized(flowLock) {
+                redirectEndSessionFlowBacking ?: redirectEndSessionFlowFactory().also { redirectEndSessionFlowBacking = it }
+            }
+        set(value) = synchronized(flowLock) { redirectEndSessionFlowBacking = value }
+
+    @VisibleForTesting
+    internal var redirectCoordinator: RedirectCoordinator = SingletonRedirectCoordinator
 
     /**
      * Used in a [OAuth2ClientResult.Error.exception].
@@ -105,50 +204,38 @@ class WebAuthentication(
      * @param redirectUrl the redirect URL.
      * @param extraRequestParameters the extra key value pairs to send to the authorize endpoint.
      *  See [Authorize Documentation](https://developer.okta.com/docs/reference/api/oidc/#authorize) for parameter options.
-     * @param scope the scopes to request during sign in. Defaults to the configured [client] [OidcConfiguration.defaultScope].
+     * @param scope the scopes to request during sign in. Defaults to the configured client's default scope.
      */
     suspend fun login(
         context: Context,
         redirectUrl: String,
         extraRequestParameters: Map<String, String> = emptyMap(),
-        scope: String = client.configuration.defaultScope,
+        scope: String = defaultScopeValue,
     ): OAuth2ClientResult<Token> {
         val initializationResult =
             redirectCoordinator.initialize(webAuthenticationProvider, context) {
-                when (val result = authorizationCodeFlow.start(redirectUrl, extraRequestParameters, scope)) {
-                    is OAuth2ClientResult.Success -> {
-                        RedirectInitializationResult.Success(result.result.url, result.result)
+                authorizationCodeFlow
+                    .start(redirectUrl, extraRequestParameters, scope)
+                    .mapCatching { flowContext ->
+                        RedirectInitializationResult.Success(flowContext.url.toHttpUrl(), flowContext)
+                    }.getOrElse { e ->
+                        RedirectInitializationResult.Error(e.asException())
                     }
-
-                    is OAuth2ClientResult.Error -> {
-                        RedirectInitializationResult.Error(result.exception)
-                    }
-                }
             }
 
         val flowContext =
             when (initializationResult) {
-                is RedirectInitializationResult.Error -> {
-                    return OAuth2ClientResult.Error(initializationResult.exception)
-                }
-
-                is RedirectInitializationResult.Success -> {
-                    initializationResult.flowContext
-                }
+                is RedirectInitializationResult.Error -> return OAuth2ClientResult.Error(initializationResult.exception)
+                is RedirectInitializationResult.Success -> initializationResult.flowContext
             }
 
         val uri =
             when (val redirectResult = redirectCoordinator.listenForResult()) {
-                is RedirectResult.Error -> {
-                    return OAuth2ClientResult.Error(redirectResult.exception)
-                }
-
-                is RedirectResult.Redirect -> {
-                    redirectResult.uri
-                }
+                is RedirectResult.Error -> return OAuth2ClientResult.Error(redirectResult.exception)
+                is RedirectResult.Redirect -> redirectResult.uri
             }
 
-        return authorizationCodeFlow.resume(uri, flowContext)
+        return authorizationCodeFlow.resume(uri.toString(), flowContext).mapToOAuth2ClientResult { it.toToken() }
     }
 
     /**
@@ -168,39 +255,52 @@ class WebAuthentication(
     ): OAuth2ClientResult<Unit> {
         val initializationResult =
             redirectCoordinator.initialize(webAuthenticationProvider, context) {
-                when (val result = redirectEndSessionFlow.start(redirectUrl, idToken)) {
-                    is OAuth2ClientResult.Success -> {
-                        RedirectInitializationResult.Success(result.result.url, result.result)
+                redirectEndSessionFlow
+                    .start(idToken, redirectUrl)
+                    .mapCatching { flowContext ->
+                        RedirectInitializationResult.Success(flowContext.url.toHttpUrl(), flowContext)
+                    }.getOrElse { e ->
+                        RedirectInitializationResult.Error(e.asException())
                     }
-
-                    is OAuth2ClientResult.Error -> {
-                        RedirectInitializationResult.Error(result.exception)
-                    }
-                }
             }
 
         val flowContext =
             when (initializationResult) {
-                is RedirectInitializationResult.Error -> {
-                    return OAuth2ClientResult.Error(initializationResult.exception)
-                }
-
-                is RedirectInitializationResult.Success -> {
-                    initializationResult.flowContext
-                }
+                is RedirectInitializationResult.Error -> return OAuth2ClientResult.Error(initializationResult.exception)
+                is RedirectInitializationResult.Success -> initializationResult.flowContext
             }
 
         val uri =
             when (val redirectResult = redirectCoordinator.listenForResult()) {
-                is RedirectResult.Error -> {
-                    return OAuth2ClientResult.Error(redirectResult.exception)
-                }
-
-                is RedirectResult.Redirect -> {
-                    redirectResult.uri
-                }
+                is RedirectResult.Error -> return OAuth2ClientResult.Error(redirectResult.exception)
+                is RedirectResult.Redirect -> redirectResult.uri
             }
 
-        return redirectEndSessionFlow.resume(uri, flowContext)
+        return redirectEndSessionFlow.resume(uri.toString(), flowContext).fold(
+            onSuccess = { OAuth2ClientResult.Success(Unit) },
+            onFailure = { OAuth2ClientResult.Error(it.asException()) }
+        )
     }
+
+    private fun Throwable.asException(): Exception = this as? Exception ?: RuntimeException(this)
+
+    private fun TokenInfo.toToken(): Token =
+        Token(
+            id = id,
+            tokenType = tokenType,
+            expiresIn = expiresIn,
+            accessToken = accessToken,
+            scope = scope,
+            refreshToken = refreshToken,
+            idToken = idToken,
+            deviceSecret = deviceSecret,
+            issuedTokenType = issuedTokenType,
+            oidcConfiguration = tokenOidcConfiguration
+        )
+
+    private fun <T, R> Result<T>.mapToOAuth2ClientResult(transform: (T) -> R): OAuth2ClientResult<R> =
+        fold(
+            onSuccess = { OAuth2ClientResult.Success(transform(it)) },
+            onFailure = { OAuth2ClientResult.Error(it.asException()) }
+        )
 }

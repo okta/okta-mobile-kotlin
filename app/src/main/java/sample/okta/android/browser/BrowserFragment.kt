@@ -17,6 +17,7 @@ package sample.okta.android.browser
 
 import android.os.Bundle
 import android.view.View
+import android.widget.Toast
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import sample.okta.android.databinding.FragmentBrowserBinding
@@ -45,6 +46,7 @@ internal class BrowserFragment :
                 is BrowserState.Error -> {
                     binding.errorTextView.visibility = View.VISIBLE
                     binding.errorTextView.text = state.message
+                    Toast.makeText(requireContext(), state.message, Toast.LENGTH_LONG).show()
                 }
 
                 BrowserState.Idle -> {
