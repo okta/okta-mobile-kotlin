@@ -1,4 +1,4 @@
-public abstract interface class com/okta/webauthenticationui/ForegroundActivityEvent : com/okta/authfoundation/events/Event {
+public abstract interface class com/okta/webauthenticationui/ForegroundActivityEvent : com/okta/webauthenticationui/events/UIEvent {
 }
 
 public final class com/okta/webauthenticationui/ForegroundActivityEvent$OnBackPressed : com/okta/webauthenticationui/ForegroundActivityEvent {
@@ -67,18 +67,40 @@ public final class com/okta/webauthenticationui/WebAuthentication$FlowAlreadyInP
 public final class com/okta/webauthenticationui/WebAuthentication$FlowCancelledException : java/lang/Exception {
 }
 
+public final class com/okta/webauthenticationui/DefaultWebAuthenticationProvider : com/okta/webauthenticationui/WebAuthenticationProvider {
+	public synthetic fun <init> (Lcom/okta/authfoundation/events/EventCoordinator;Ljava/util/List;ILkotlin/jvm/functions/Function2;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> ()V
+	public fun <init> (Lcom/okta/authfoundation/events/EventCoordinator;)V
+	public fun <init> (Lcom/okta/authfoundation/events/EventCoordinator;Ljava/util/List;)V
+	public fun <init> (Lcom/okta/authfoundation/events/EventCoordinator;Ljava/util/List;I)V
+	public fun <init> (Lcom/okta/authfoundation/events/EventCoordinator;Ljava/util/List;ILkotlin/jvm/functions/Function2;)V
+	public static final field Companion Lcom/okta/webauthenticationui/DefaultWebAuthenticationProvider$Companion;
+	public final fun getPreferredBrowsers ()Ljava/util/List;
+	public final fun getQueryIntentServicesFlags ()I
+	public fun launch (Landroid/content/Context;Lokhttp3/HttpUrl;)Ljava/lang/Exception;
+}
+
+public final class com/okta/webauthenticationui/DefaultWebAuthenticationProvider$Companion {
+	public final fun getDEFAULT_PREFERRED_BROWSERS ()Ljava/util/List;
+	public final fun getUSER_AGENT_HEADER ()Ljava/lang/String;
+	public static final field X_OKTA_USER_AGENT Ljava/lang/String;
+}
+
 public abstract interface class com/okta/webauthenticationui/WebAuthenticationProvider {
 	public abstract fun launch (Landroid/content/Context;Lokhttp3/HttpUrl;)Ljava/lang/Exception;
 }
 
-public final class com/okta/webauthenticationui/events/CustomizeBrowserEvent : com/okta/authfoundation/events/Event {
+public abstract interface class com/okta/webauthenticationui/events/UIEvent : com/okta/authfoundation/events/Event {
+}
+
+public final class com/okta/webauthenticationui/events/CustomizeBrowserEvent : com/okta/webauthenticationui/events/UIEvent {
 	public fun <init> ()V
 	public final fun getPreferredBrowsers ()Ljava/util/List;
 	public final fun getQueryIntentServicesFlags ()I
 	public final fun setQueryIntentServicesFlags (I)V
 }
 
-public final class com/okta/webauthenticationui/events/CustomizeCustomTabsEvent : com/okta/authfoundation/events/Event {
+public final class com/okta/webauthenticationui/events/CustomizeCustomTabsEvent : com/okta/webauthenticationui/events/UIEvent {
 	public final fun getContext ()Landroid/content/Context;
 	public final fun getIntentBuilder ()Landroidx/browser/customtabs/CustomTabsIntent$Builder;
 }

@@ -13,18 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.okta.authfoundation.credential.events
-
-import com.okta.authfoundation.credential.CredentialIdentifier
-import com.okta.authfoundation.events.CredentialEvent
-import com.okta.authfoundation.events.EventHandler
+package com.okta.authfoundation.events
 
 /**
- * Emitted via [EventHandler.onEvent] when a [CredentialIdentifier] has been deleted via a [CredentialIdentifier.delete] call.
+ * Marker interface for events related to the OAuth2 token lifecycle, including token creation,
+ * refresh, revocation, validation, and rate limiting. Handlers that operate at the model layer
+ * and are only interested in token state changes can filter by this type:
+ *
+ * ```kotlin
+ * EventCoordinator(object : EventHandler {
+ *     override fun onEvent(event: Event) {
+ *         if (event !is TokenEvent) return
+ *         // handle token events only
+ *     }
+ * })
+ * ```
  */
-class CredentialDeletedEvent internal constructor(
-    /**
-     * The [CredentialIdentifier] that was deleted.
-     */
-    val credentialIdentifier: CredentialIdentifier,
-) : CredentialEvent
+interface TokenEvent : Event

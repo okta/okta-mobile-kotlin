@@ -378,40 +378,36 @@ class DatabaseRecoveryTest {
         }
 
     @Test
-    fun errorEvent_WithRecoveryEnabled_RetriesOperation() =
+    fun sharedFlowMutation_DoesNotTriggerRetry() =
         runTest {
+            // The eventsFlow is notification-only. Mutating the event from a flow collector
+            // does not influence the retry decision; only the onStorageError callback does.
             val eventsFlow =
                 MutableSharedFlow<Event>(
                     replay = 64,
                     extraBufferCapacity = 64,
                     onBufferOverflow = BufferOverflow.DROP_OLDEST
                 )
-
-            // Collect events but intercept to enable recovery
             val collectorJob =
                 launch {
                     eventsFlow.collect { event ->
                         if (event is TokenStorageAccessErrorEvent) {
+                            @Suppress("DEPRECATION")
                             event.shouldClearStorageAndTryAgain = true
                         }
                     }
                 }
 
             val faultyStorage = FaultyTokenStorage()
-            val dataSource = CredentialDataSource(faultyStorage, eventsFlow)
+            val dataSource = CredentialDataSource(faultyStorage, eventsFlow) // no onStorageError callback
 
-            // Add a token first
-            val token = createTestToken(id = "retry-test", configuration = TestConfiguration.create())
-            val metadata = createTestMetadata(id = "retry-test")
+            val token = createTestToken(id = "no-retry", configuration = TestConfiguration.create())
+            val metadata = createTestMetadata(id = "no-retry")
             faultyStorage.getInnerDelegate().add(token, metadata).getOrThrow()
 
-            // Inject a fault - it will be emitted but recovery will retry
             faultyStorage.injectFault()
-            val result = dataSource.getToken("retry-test")
-
-            // With recovery enabled, the retry should succeed
-            assertTrue(result != null, "Result should not be null")
-            assertEquals("retry-test", result!!.id)
+            // Without a callback, the exception is rethrown even though the collector set the flag.
+            assertFailsWith<RuntimeException> { dataSource.getToken("no-retry") }
             collectorJob.cancel()
         }
 
@@ -425,5 +421,83 @@ class DatabaseRecoveryTest {
             assertFailsWith<RuntimeException> {
                 dataSource.allIds()
             }
+        }
+
+    @Test
+    fun onStorageError_WithRecoveryEnabled_RetriesOperation() =
+        runTest {
+            val faultyStorage = FaultyTokenStorage()
+            val dataSource = CredentialDataSource(faultyStorage, onStorageError = { true })
+
+            val token = createTestToken(id = "callback-retry", configuration = TestConfiguration.create())
+            val metadata = createTestMetadata(id = "callback-retry")
+            faultyStorage.getInnerDelegate().add(token, metadata).getOrThrow()
+
+            faultyStorage.injectFault()
+            val result = dataSource.getToken("callback-retry")
+
+            assertTrue(result != null, "Retry should succeed when onStorageError returns true")
+            assertEquals("callback-retry", result!!.id)
+        }
+
+    @Test
+    fun onStorageError_CallbackReceivesException() =
+        runTest {
+            val receivedExceptions = mutableListOf<Exception>()
+            val faultyStorage = FaultyTokenStorage()
+            val dataSource =
+                CredentialDataSource(
+                    faultyStorage,
+                    onStorageError = { e ->
+                        receivedExceptions.add(e)
+                        false
+                    }
+                )
+
+            faultyStorage.injectFault()
+            assertFailsWith<RuntimeException> { dataSource.allIds() }
+
+            assertEquals(1, receivedExceptions.size)
+            assertIs<RuntimeException>(receivedExceptions[0])
+        }
+
+    @Test
+    fun onStorageErrorAndSharedFlow_BothNotified() =
+        runTest {
+            val flowEvents = mutableListOf<Event>()
+            val eventsFlow =
+                MutableSharedFlow<Event>(
+                    replay = 64,
+                    extraBufferCapacity = 64,
+                    onBufferOverflow = BufferOverflow.DROP_OLDEST
+                )
+            val collectorJob = launch { eventsFlow.collect { flowEvents.add(it) } }
+
+            val faultyStorage = FaultyTokenStorage()
+            val dataSource = CredentialDataSource(faultyStorage, eventsFlow, onStorageError = { false })
+
+            faultyStorage.injectFault()
+            assertFailsWith<RuntimeException> { dataSource.allIds() }
+
+            delay(50)
+            assertEquals(1, flowEvents.filterIsInstance<TokenStorageAccessErrorEvent>().size)
+            collectorJob.cancel()
+        }
+
+    @Test
+    fun onStorageError_NoSharedFlow_StillHandlesRecovery() =
+        runTest {
+            val faultyStorage = FaultyTokenStorage()
+            val dataSource = CredentialDataSource(faultyStorage, onStorageError = { true })
+
+            val token = createTestToken(id = "no-flow-retry", configuration = TestConfiguration.create())
+            val metadata = createTestMetadata(id = "no-flow-retry")
+            faultyStorage.getInnerDelegate().add(token, metadata).getOrThrow()
+
+            faultyStorage.injectFault()
+            val result = dataSource.getToken("no-flow-retry")
+
+            assertTrue(result != null)
+            assertEquals("no-flow-retry", result!!.id)
         }
 }

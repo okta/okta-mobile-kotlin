@@ -13,14 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.okta.authfoundation.client.kmp.events
+package com.okta.webauthenticationui.events
 
 import com.okta.authfoundation.events.Event
 
 /**
- * Emitted before access token validation is performed.
+ * Marker interface for events related to the browser authentication UI, such as browser
+ * customization and activity lifecycle events. Model-layer handlers that do not need to
+ * respond to UI events can exclude this type:
  *
- * Consumers can collect this event from [com.okta.authfoundation.client.kmp.OAuth2Client.events]
- * to observe when access token validation occurs.
+ * ```kotlin
+ * EventCoordinator(object : EventHandler {
+ *     override fun onEvent(event: Event) {
+ *         if (event is UIEvent) return  // skip UI events in model layer
+ *         // handle other events
+ *     }
+ * })
+ * ```
  */
-class ValidateAccessTokenEvent internal constructor() : Event
+interface UIEvent : Event

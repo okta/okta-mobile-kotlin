@@ -428,12 +428,12 @@ public final class com/okta/authfoundation/client/dto/OidcUserInfo : com/okta/au
 	public fun deserializeClaims (Lkotlinx/serialization/DeserializationStrategy;)Ljava/lang/Object;
 }
 
-public final class com/okta/authfoundation/client/events/TokenRefreshedEvent : com/okta/authfoundation/events/Event {
+public final class com/okta/authfoundation/client/events/TokenRefreshedEvent : com/okta/authfoundation/events/TokenEvent {
 	public fun <init> (Lcom/okta/authfoundation/client/TokenInfo;)V
 	public final fun getTokenInfo ()Lcom/okta/authfoundation/client/TokenInfo;
 }
 
-public final class com/okta/authfoundation/client/events/TokenRevokedEvent : com/okta/authfoundation/events/Event {
+public final class com/okta/authfoundation/client/events/TokenRevokedEvent : com/okta/authfoundation/events/TokenEvent {
 	public fun <init> (Ljava/lang/String;)V
 	public final fun getToken ()Ljava/lang/String;
 }
@@ -508,7 +508,10 @@ public final class com/okta/authfoundation/client/kmp/DefaultDeviceSecretValidat
 
 public final class com/okta/authfoundation/client/kmp/DefaultIdTokenValidator : com/okta/authfoundation/client/kmp/IdTokenValidator {
 	public fun <init> ()V
-	public fun validate (Ljava/lang/String;Ljava/lang/String;Lcom/okta/authfoundation/jwt/Jwt;Lcom/okta/authfoundation/client/OidcClock;ILcom/okta/authfoundation/client/kmp/IdTokenValidator$Parameters;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun <init> (I)V
+	public synthetic fun <init> (IILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getIssuedAtGracePeriodInSeconds ()I
+	public fun validate (Ljava/lang/String;Ljava/lang/String;Lcom/okta/authfoundation/jwt/Jwt;Lcom/okta/authfoundation/client/OidcClock;Lcom/okta/authfoundation/client/kmp/IdTokenValidator$Parameters;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public abstract interface class com/okta/authfoundation/client/kmp/DeviceSecretValidator {
@@ -520,12 +523,12 @@ public final class com/okta/authfoundation/client/kmp/DeviceSecretValidator$Erro
 }
 
 public abstract interface class com/okta/authfoundation/client/kmp/IdTokenValidator {
-	public abstract fun validate (Ljava/lang/String;Ljava/lang/String;Lcom/okta/authfoundation/jwt/Jwt;Lcom/okta/authfoundation/client/OidcClock;ILcom/okta/authfoundation/client/kmp/IdTokenValidator$Parameters;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun validate$default (Lcom/okta/authfoundation/client/kmp/IdTokenValidator;Ljava/lang/String;Ljava/lang/String;Lcom/okta/authfoundation/jwt/Jwt;Lcom/okta/authfoundation/client/OidcClock;ILcom/okta/authfoundation/client/kmp/IdTokenValidator$Parameters;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public abstract fun validate (Ljava/lang/String;Ljava/lang/String;Lcom/okta/authfoundation/jwt/Jwt;Lcom/okta/authfoundation/client/OidcClock;Lcom/okta/authfoundation/client/kmp/IdTokenValidator$Parameters;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun validate$default (Lcom/okta/authfoundation/client/kmp/IdTokenValidator;Ljava/lang/String;Ljava/lang/String;Lcom/okta/authfoundation/jwt/Jwt;Lcom/okta/authfoundation/client/OidcClock;Lcom/okta/authfoundation/client/kmp/IdTokenValidator$Parameters;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public final class com/okta/authfoundation/client/kmp/IdTokenValidator$DefaultImpls {
-	public static synthetic fun validate$default (Lcom/okta/authfoundation/client/kmp/IdTokenValidator;Ljava/lang/String;Ljava/lang/String;Lcom/okta/authfoundation/jwt/Jwt;Lcom/okta/authfoundation/client/OidcClock;ILcom/okta/authfoundation/client/kmp/IdTokenValidator$Parameters;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun validate$default (Lcom/okta/authfoundation/client/kmp/IdTokenValidator;Ljava/lang/String;Ljava/lang/String;Lcom/okta/authfoundation/jwt/Jwt;Lcom/okta/authfoundation/client/OidcClock;Lcom/okta/authfoundation/client/kmp/IdTokenValidator$Parameters;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public final class com/okta/authfoundation/client/kmp/IdTokenValidator$Error : java/lang/IllegalStateException {
@@ -574,23 +577,14 @@ public final class com/okta/authfoundation/client/kmp/OAuth2Client$Companion {
 	public final fun createFromConfiguration (Lcom/okta/authfoundation/client/OAuth2ClientConfiguration;)Lcom/okta/authfoundation/client/kmp/OAuth2Client;
 }
 
-public final class com/okta/authfoundation/client/kmp/events/RateLimitExceededEvent : com/okta/authfoundation/events/Event {
+public final class com/okta/authfoundation/client/kmp/events/RateLimitExceededEvent : com/okta/authfoundation/events/TokenEvent {
 	public final fun getRequestUrl ()Ljava/lang/String;
 	public final fun getResponseHeaders ()Ljava/util/Map;
 	public final fun getRetryAfterSeconds ()Ljava/lang/Long;
-	public final fun getStatusCode ()I
 }
 
-public final class com/okta/authfoundation/client/kmp/events/TokenCreatedEvent : com/okta/authfoundation/events/Event {
+public final class com/okta/authfoundation/client/kmp/events/TokenCreatedEvent : com/okta/authfoundation/events/TokenEvent {
 	public final fun getTokenInfo ()Lcom/okta/authfoundation/client/TokenInfo;
-}
-
-public final class com/okta/authfoundation/client/kmp/events/ValidateAccessTokenEvent : com/okta/authfoundation/events/Event {
-}
-
-public final class com/okta/authfoundation/client/kmp/events/ValidateIdTokenEvent : com/okta/authfoundation/events/Event {
-	public fun <init> ()V
-	public final fun getIssuedAtGracePeriodInSeconds ()I
 }
 
 public abstract interface class com/okta/authfoundation/credential/BiometricAuthenticator {
@@ -648,40 +642,43 @@ public final class com/okta/authfoundation/credential/TokenType : java/lang/Enum
 	public static fun values ()[Lcom/okta/authfoundation/credential/TokenType;
 }
 
-public final class com/okta/authfoundation/credential/events/CredentialCreatedEvent : com/okta/authfoundation/events/Event {
+public final class com/okta/authfoundation/credential/events/CredentialCreatedEvent : com/okta/authfoundation/events/CredentialEvent {
 	public final fun getCredentialIdentifier ()Lcom/okta/authfoundation/credential/CredentialIdentifier;
 }
 
-public final class com/okta/authfoundation/credential/events/CredentialDeletedEvent : com/okta/authfoundation/events/Event {
+public final class com/okta/authfoundation/credential/events/CredentialDeletedEvent : com/okta/authfoundation/events/CredentialEvent {
 	public final fun getCredentialIdentifier ()Lcom/okta/authfoundation/credential/CredentialIdentifier;
 }
 
-public final class com/okta/authfoundation/credential/events/CredentialStoredAfterRemovedEvent : com/okta/authfoundation/events/Event {
+public final class com/okta/authfoundation/credential/events/CredentialStoredAfterRemovedEvent : com/okta/authfoundation/events/CredentialEvent {
 	public final fun getCredentialIdentifier ()Lcom/okta/authfoundation/credential/CredentialIdentifier;
 }
 
-public final class com/okta/authfoundation/credential/events/CredentialStoredEvent : com/okta/authfoundation/events/Event {
+public final class com/okta/authfoundation/credential/events/CredentialStoredEvent : com/okta/authfoundation/events/CredentialEvent {
 	public final fun getCredentialIdentifier ()Lcom/okta/authfoundation/credential/CredentialIdentifier;
 	public final fun getTags ()Ljava/util/Map;
 	public final fun getToken ()Lcom/okta/authfoundation/client/TokenInfo;
 }
 
-public final class com/okta/authfoundation/credential/events/DefaultCredentialChangedEvent : com/okta/authfoundation/events/Event {
+public final class com/okta/authfoundation/credential/events/DefaultCredentialChangedEvent : com/okta/authfoundation/events/CredentialEvent {
 	public final fun getCredentialIdentifier ()Lcom/okta/authfoundation/credential/CredentialIdentifier;
 }
 
-public final class com/okta/authfoundation/credential/events/NoAccessTokenAvailableEvent : com/okta/authfoundation/events/Event {
+public final class com/okta/authfoundation/credential/events/NoAccessTokenAvailableEvent : com/okta/authfoundation/events/CredentialEvent {
 	public final fun getCredential ()Lcom/okta/authfoundation/credential/CredentialIdentifier;
 }
 
-public final class com/okta/authfoundation/credential/events/TokenStorageAccessErrorEvent : com/okta/authfoundation/events/Event {
+public final class com/okta/authfoundation/credential/events/TokenStorageAccessErrorEvent : com/okta/authfoundation/events/CredentialEvent {
 	public final fun getException ()Ljava/lang/Exception;
 	public final fun getShouldClearStorageAndTryAgain ()Z
 	public final fun setShouldClearStorageAndTryAgain (Z)V
+	public final fun withShouldClearStorageAndTryAgain (Z)Lcom/okta/authfoundation/credential/events/TokenStorageAccessErrorEvent;
 }
 
 public final class com/okta/authfoundation/credential/jvm/TokenCredentialManager : java/io/Closeable {
 	public fun <init> (Lcom/okta/authfoundation/client/kmp/OAuth2Client;Lcom/okta/authfoundation/credential/kmp/TokenStorage;Lcom/okta/authfoundation/credential/kmp/DefaultCredentialIdStore;)V
+	public fun <init> (Lcom/okta/authfoundation/client/kmp/OAuth2Client;Lcom/okta/authfoundation/credential/kmp/TokenStorage;Lcom/okta/authfoundation/credential/kmp/DefaultCredentialIdStore;Ljava/util/function/Predicate;)V
+	public synthetic fun <init> (Lcom/okta/authfoundation/client/kmp/OAuth2Client;Lcom/okta/authfoundation/credential/kmp/TokenStorage;Lcom/okta/authfoundation/credential/kmp/DefaultCredentialIdStore;Ljava/util/function/Predicate;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun addEventListener (Ljava/util/function/Consumer;)Ljava/io/Closeable;
 	public final fun allIds ()Lcom/okta/authfoundation/client/jvm/AuthFoundationResult;
 	public fun close ()V
@@ -801,7 +798,8 @@ public final class com/okta/authfoundation/credential/kmp/NoOpTokenEncryptionHan
 }
 
 public final class com/okta/authfoundation/credential/kmp/TokenCredentialManager {
-	public fun <init> (Lcom/okta/authfoundation/client/kmp/OAuth2Client;Lcom/okta/authfoundation/credential/kmp/TokenStorage;Lcom/okta/authfoundation/credential/kmp/DefaultCredentialIdStore;)V
+	public fun <init> (Lcom/okta/authfoundation/client/kmp/OAuth2Client;Lcom/okta/authfoundation/credential/kmp/TokenStorage;Lcom/okta/authfoundation/credential/kmp/DefaultCredentialIdStore;Lkotlin/jvm/functions/Function1;)V
+	public synthetic fun <init> (Lcom/okta/authfoundation/client/kmp/OAuth2Client;Lcom/okta/authfoundation/credential/kmp/TokenStorage;Lcom/okta/authfoundation/credential/kmp/DefaultCredentialIdStore;Lkotlin/jvm/functions/Function1;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun allIds-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun find-gIAlu-s (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun findByCredential (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -810,6 +808,7 @@ public final class com/okta/authfoundation/credential/kmp/TokenCredentialManager
 	public final fun getDefault-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun getDefaultIdStore ()Lcom/okta/authfoundation/credential/kmp/DefaultCredentialIdStore;
 	public final fun getEvents ()Lkotlinx/coroutines/flow/SharedFlow;
+	public final fun getOnStorageError ()Lkotlin/jvm/functions/Function1;
 	public final fun metadata-gIAlu-s (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun setDefault-gIAlu-s (Lcom/okta/authfoundation/credential/kmp/Credential;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun setMetadata-gIAlu-s (Lcom/okta/authfoundation/credential/TokenMetadata;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -907,6 +906,9 @@ public final class com/okta/authfoundation/crypto/CryptoProvider_jvmKt {
 	public static final fun sha256Digest ([B)[B
 }
 
+public abstract interface class com/okta/authfoundation/events/CredentialEvent : com/okta/authfoundation/events/Event {
+}
+
 public abstract interface class com/okta/authfoundation/events/Event {
 }
 
@@ -918,6 +920,9 @@ public final class com/okta/authfoundation/events/EventCoordinator {
 
 public abstract interface class com/okta/authfoundation/events/EventHandler {
 	public abstract fun onEvent (Lcom/okta/authfoundation/events/Event;)V
+}
+
+public abstract interface class com/okta/authfoundation/events/TokenEvent : com/okta/authfoundation/events/Event {
 }
 
 public final class com/okta/authfoundation/jwt/Jwks {

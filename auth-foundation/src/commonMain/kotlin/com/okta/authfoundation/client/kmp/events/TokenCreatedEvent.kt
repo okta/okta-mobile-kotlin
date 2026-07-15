@@ -16,7 +16,7 @@
 package com.okta.authfoundation.client.kmp.events
 
 import com.okta.authfoundation.client.TokenInfo
-import com.okta.authfoundation.events.Event
+import com.okta.authfoundation.events.TokenEvent
 
 /**
  * Emitted when a new token is obtained from a token endpoint call,
@@ -29,4 +29,4 @@ import com.okta.authfoundation.events.Event
  */
 class TokenCreatedEvent internal constructor(
     val tokenInfo: TokenInfo,
-) : Event
+) : TokenEvent

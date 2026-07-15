@@ -16,7 +16,7 @@
 package com.okta.authfoundation.credential.events
 
 import android.media.session.MediaSession.Token
-import com.okta.authfoundation.events.Event
+import com.okta.authfoundation.events.CredentialEvent
 
 /**
  * Emitted when the key of a biometric secured [Token] is invalidated.
@@ -30,4 +30,4 @@ class BiometricTokenInvalidatedEvent internal constructor(
      * Whether the invalidated [Token] should be deleted. [true] by default.
      */
     var deleteInvalidatedToken: Boolean = true,
-) : Event
+) : CredentialEvent

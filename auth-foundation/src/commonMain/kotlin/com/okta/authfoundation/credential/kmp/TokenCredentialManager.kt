@@ -37,11 +37,18 @@ import kotlinx.coroutines.flow.asSharedFlow
  * @param client The [OAuth2Client] used for token operations.
  * @param storage The [TokenStorage] for persisting tokens.
  * @param defaultIdStore Store for the default credential ID.
+ * @param onStorageError Optional callback invoked when a storage operation throws. Return `true`
+ *   to retry the failed operation once; return `false` (or omit) to rethrow. The decision is based
+ *   on the thrown [Exception], for example:
+ *   ```kotlin
+ *   onStorageError = { e -> e is android.database.sqlite.SQLiteException }
+ *   ```
  */
 class TokenCredentialManager(
     val client: OAuth2Client,
     storage: TokenStorage,
     val defaultIdStore: DefaultCredentialIdStore,
+    val onStorageError: ((Exception) -> Boolean)? = null,
 ) {
     private val _events =
         MutableSharedFlow<Event>(
@@ -50,7 +57,7 @@ class TokenCredentialManager(
             onBufferOverflow = BufferOverflow.DROP_OLDEST
         )
 
-    internal val dataSource = CredentialDataSource(storage, _events)
+    internal val dataSource = CredentialDataSource(storage, _events, onStorageError)
 
     /**
      * A read-only flow of credential lifecycle events emitted by this manager.

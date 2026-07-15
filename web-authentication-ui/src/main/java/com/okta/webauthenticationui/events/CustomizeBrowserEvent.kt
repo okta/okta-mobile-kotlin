@@ -16,27 +16,31 @@
 package com.okta.webauthenticationui.events
 
 import android.content.pm.PackageManager
-import com.okta.authfoundation.events.Event
 import com.okta.authfoundation.events.EventHandler
 import com.okta.webauthenticationui.WebAuthentication
 
 /**
  * Emitted via [EventHandler.onEvent] when [WebAuthentication.login] or [WebAuthentication.logoutOfBrowser] is invoked.
- *
- * This can be used to customize the browsers used for displaying the Chrome Custom Tabs to the user.
  */
+@Deprecated(
+    message =
+        "Configure browser selection directly on DefaultWebAuthenticationProvider: " +
+            "DefaultWebAuthenticationProvider(preferredBrowsers = listOf(\"com.my.browser\"), queryIntentServicesFlags = 0). " +
+            "This event is still emitted for backward compatibility but will be removed in a future release."
+)
 class CustomizeBrowserEvent internal constructor(
+    /**
+     * The list of browser package names to prefer when selecting which Chrome Custom Tabs intent service is used.
+     */
+    val preferredBrowsers: MutableList<String> = mutableListOf(CHROME_STABLE, CHROME_SYSTEM, CHROME_BETA),
+) : UIEvent {
     /**
      * Used when querying the package manager for Chrome Custom Tabs intent services.
      *
      * See [PackageManager.queryIntentServices] for additional details.
      */
-    var queryIntentServicesFlags: Int = 0,
-    /**
-     * The list of browser package names to prefer when selecting which Chrome Custom Tabs intent service is used.
-     */
-    val preferredBrowsers: MutableList<String> = mutableListOf(CHROME_STABLE, CHROME_SYSTEM, CHROME_BETA),
-) : Event {
+    var queryIntentServicesFlags: Int = 0
+
     private companion object {
         private const val CHROME_STABLE = "com.android.chrome"
         private const val CHROME_SYSTEM = "com.google.android.apps.chrome"

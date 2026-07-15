@@ -15,23 +15,21 @@
  */
 package com.okta.authfoundation.client.kmp.events
 
-import com.okta.authfoundation.events.Event
+import com.okta.authfoundation.events.TokenEvent
 
 /**
- * Emitted when an HTTP 429 (Too Many Requests) response is received from the
- * authorization server.
+ * Emitted when an HTTP 429 (Too Many Requests) response is received from the authorization server.
  *
- * Consumers can collect this event from [com.okta.authfoundation.client.kmp.OAuth2Client.events]
- * to implement observability, logging, or custom retry logic.
+ * The KMP client does not implement retry logic internally — it emits this event and propagates the
+ * error to the caller. Retry behavior is the caller's responsibility; use [retryAfterSeconds] to
+ * honour the server's requested backoff.
  *
  * @param requestUrl the URL of the request that was rate-limited.
- * @param statusCode the HTTP status code (429).
  * @param responseHeaders all response headers from the rate-limited response.
  * @param retryAfterSeconds the parsed `Retry-After` header value in seconds, or `null` if absent.
  */
 class RateLimitExceededEvent internal constructor(
     val requestUrl: String,
-    val statusCode: Int,
     val responseHeaders: Map<String, List<String>>,
     val retryAfterSeconds: Long?,
-) : Event
+) : TokenEvent

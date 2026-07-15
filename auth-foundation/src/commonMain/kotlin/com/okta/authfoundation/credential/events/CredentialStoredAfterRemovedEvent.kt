@@ -16,7 +16,7 @@
 package com.okta.authfoundation.credential.events
 
 import com.okta.authfoundation.credential.CredentialIdentifier
-import com.okta.authfoundation.events.Event
+import com.okta.authfoundation.events.CredentialEvent
 import com.okta.authfoundation.events.EventHandler
 
 /**
@@ -27,4 +27,4 @@ class CredentialStoredAfterRemovedEvent internal constructor(
      * The [CredentialIdentifier] associated with the event.
      */
     val credentialIdentifier: CredentialIdentifier,
-) : Event
+) : CredentialEvent

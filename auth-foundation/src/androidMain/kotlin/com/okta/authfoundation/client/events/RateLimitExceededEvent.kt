@@ -15,8 +15,8 @@
  */
 package com.okta.authfoundation.client.events
 
-import com.okta.authfoundation.events.Event
 import com.okta.authfoundation.events.EventHandler
+import com.okta.authfoundation.events.TokenEvent
 import okhttp3.Request
 import okhttp3.Response
 
@@ -27,6 +27,13 @@ import okhttp3.Response
  * The default implementation retries the request 3 times, with a minimum delay of 1 seconds between each request.
  * See [maxRetries] and [minDelaySeconds]
  */
+@Deprecated(
+    message =
+        "This Android-only event will be removed in a future release. " +
+            "Android consumers using the legacy OAuth2Client can suppress this warning — there is no drop-in replacement on the Android path. " +
+            "If you have migrated to the KMP OAuth2Client, observe com.okta.authfoundation.client.kmp.events.RateLimitExceededEvent " +
+            "via OAuth2Client.events instead (note: the KMP event carries requestUrl/responseHeaders instead of OkHttp Request/Response)."
+)
 class RateLimitExceededEvent internal constructor(
     /**
      * The [Request] that caused the event.
@@ -50,4 +57,4 @@ class RateLimitExceededEvent internal constructor(
      * retrying [request] when a 429 status code is received.
      */
     var minDelaySeconds: Long = 1L,
-) : Event
+) : TokenEvent

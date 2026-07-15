@@ -27,14 +27,18 @@ import kotlin.math.abs
  *
  * Validates: issuer, audience, HTTPS, algorithm (RS256), expiration, issued-at grace period,
  * nonce, max_age, and subject.
+ *
+ * @param issuedAtGracePeriodInSeconds the allowed difference in seconds between the token's `iat`
+ *   claim and the current time. Defaults to 600 seconds (10 minutes).
  */
-class DefaultIdTokenValidator : IdTokenValidator {
+class DefaultIdTokenValidator(
+    val issuedAtGracePeriodInSeconds: Int = 600,
+) : IdTokenValidator {
     override suspend fun validate(
         issuerUrl: String,
         clientId: String,
         idToken: Jwt,
         clock: OidcClock,
-        issuedAtGracePeriodInSeconds: Int,
         parameters: IdTokenValidator.Parameters,
     ) {
         val payload = idToken.deserializeClaims(IdTokenValidationPayload.serializer())

@@ -116,6 +116,22 @@ class DefaultIdTokenValidatorTest {
         }
 
     @Test
+    fun validate_CustomGracePeriod_AllowsIatBeyondDefault() =
+        runTest {
+            // iat=1644347069, clock is 700s away — outside the default 600s window.
+            // A validator configured with a wider grace period must accept this.
+            val farClock = OidcClock { 1644347069L + 700 }
+            val wideValidator = DefaultIdTokenValidator(issuedAtGracePeriodInSeconds = 9999)
+            val jwt = parser.parse(validJwt)
+            wideValidator.validate(
+                issuerUrl = "https://example-test.okta.com/oauth2/default",
+                clientId = "unit_test_client_id",
+                idToken = jwt,
+                clock = farClock
+            )
+        }
+
+    @Test
     fun validate_IssuerWithTrailingSlash_Matches() =
         runTest {
             val jwt = parser.parse(validJwt)

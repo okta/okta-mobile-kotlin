@@ -15,12 +15,12 @@
  */
 package com.okta.webauthenticationui
 
-import com.okta.authfoundation.events.Event
+import com.okta.webauthenticationui.events.UIEvent
 
 /**
  * Events emitted during different Android activity lifecycle stages of [ForegroundActivity].
  */
-sealed interface ForegroundActivityEvent : Event {
+sealed interface ForegroundActivityEvent : UIEvent {
     data object OnCreate : ForegroundActivityEvent
 
     data object OnNewIntent : ForegroundActivityEvent

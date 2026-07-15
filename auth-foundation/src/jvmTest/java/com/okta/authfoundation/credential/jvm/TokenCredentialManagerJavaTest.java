@@ -38,6 +38,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -218,5 +219,39 @@ public class TokenCredentialManagerJavaTest {
     manager.delete(id).getOrThrow();
 
     assertNull("Credential should be null after delete", manager.get(id).getOrNull());
+  }
+
+  @Test
+  public void onStorageError_WithNullPredicate_WorksNormally() {
+    // Verify the @JvmOverloads three-arg constructor (no predicate) is callable from Java.
+    RoomTokenStorage storage =
+        new RoomTokenStorage(database, new NoOpTokenEncryptionHandler(), client.getConfiguration());
+    RoomDefaultCredentialIdStore defaultIdStore = new RoomDefaultCredentialIdStore(database);
+    TokenCredentialManager noCallbackManager =
+        new TokenCredentialManager(client, storage, defaultIdStore);
+
+    AuthFoundationResult<List<String>> result = noCallbackManager.allIds();
+    assertTrue("allIds should succeed with no predicate", result.isSuccess());
+    noCallbackManager.close();
+  }
+
+  @Test
+  public void onStorageError_WithPredicate_NormalOperationUnaffected() {
+    // Verify the Predicate<Exception> -> Kotlin lambda conversion does not break
+    // normal (non-error) storage operations. The predicate is never invoked here
+    // because no exception is thrown; this confirms the wiring doesn't interfere.
+    RoomTokenStorage storage =
+        new RoomTokenStorage(database, new NoOpTokenEncryptionHandler(), client.getConfiguration());
+    RoomDefaultCredentialIdStore defaultIdStore = new RoomDefaultCredentialIdStore(database);
+    Predicate<Exception> predicate = e -> true;
+    TokenCredentialManager predicateManager =
+        new TokenCredentialManager(client, storage, defaultIdStore, predicate);
+
+    TokenData token = predicateManager.createTokenData("predicate-at");
+    predicateManager.store(token).getOrThrow();
+    AuthFoundationResult<List<String>> ids = predicateManager.allIds();
+    assertTrue("allIds should succeed with predicate wired", ids.isSuccess());
+    assertEquals(1, ids.getOrThrow().size());
+    predicateManager.close();
   }
 }

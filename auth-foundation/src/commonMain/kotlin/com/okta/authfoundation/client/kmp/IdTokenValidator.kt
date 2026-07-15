@@ -87,7 +87,6 @@ interface IdTokenValidator {
      * @param clientId the expected client ID (audience).
      * @param idToken the parsed [Jwt] to validate.
      * @param clock the clock for time-based checks.
-     * @param issuedAtGracePeriodInSeconds the grace period for the `iat` claim check (default 600 = 10 minutes).
      * @param parameters optional nonce/maxAge parameters.
      */
     suspend fun validate(
@@ -95,7 +94,6 @@ interface IdTokenValidator {
         clientId: String,
         idToken: Jwt,
         clock: OidcClock,
-        issuedAtGracePeriodInSeconds: Int = 600,
         parameters: Parameters = Parameters(nonce = null, maxAge = null),
     )
 }

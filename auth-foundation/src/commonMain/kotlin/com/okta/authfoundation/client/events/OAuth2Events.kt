@@ -17,7 +17,7 @@ package com.okta.authfoundation.client.events
 
 import com.okta.authfoundation.client.TokenInfo
 import com.okta.authfoundation.client.kmp.OAuth2Client
-import com.okta.authfoundation.events.Event
+import com.okta.authfoundation.events.TokenEvent
 
 /**
  * Emitted when a token has been refreshed via [OAuth2Client.refreshToken].
@@ -25,7 +25,7 @@ import com.okta.authfoundation.events.Event
 class TokenRefreshedEvent(
     /** The new token information returned from the refresh. */
     val tokenInfo: TokenInfo,
-) : Event
+) : TokenEvent
 
 /**
  * Emitted when a token has been revoked via [OAuth2Client.revokeToken].
@@ -33,4 +33,4 @@ class TokenRefreshedEvent(
 class TokenRevokedEvent(
     /** The token string that was revoked. */
     val token: String,
-) : Event
+) : TokenEvent
