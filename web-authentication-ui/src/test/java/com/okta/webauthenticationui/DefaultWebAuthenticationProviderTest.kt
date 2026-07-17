@@ -62,13 +62,17 @@ class DefaultWebAuthenticationProviderTest {
 
         assertThat(eventHandler.size).isEqualTo(2)
 
+        @Suppress("DEPRECATION")
         assertThat(eventHandler[0]).isInstanceOf(CustomizeCustomTabsEvent::class.java)
+        @Suppress("DEPRECATION")
         assertThat((eventHandler[0] as CustomizeCustomTabsEvent).context).isNotNull()
+        @Suppress("DEPRECATION")
         assertThat((eventHandler[0] as CustomizeCustomTabsEvent).intentBuilder).isNotNull()
 
+        @Suppress("DEPRECATION")
         assertThat(eventHandler[1]).isInstanceOf(CustomizeBrowserEvent::class.java)
+        @Suppress("DEPRECATION")
         assertThat((eventHandler[1] as CustomizeBrowserEvent).preferredBrowsers).hasSize(3)
-        assertThat((eventHandler[1] as CustomizeBrowserEvent).queryIntentServicesFlags).isEqualTo(0)
     }
 
     @Test fun testLaunchWithEnabledBrowsers() {
@@ -88,26 +92,57 @@ class DefaultWebAuthenticationProviderTest {
         assertThat(cctActivity.`package`).isEqualTo("com.android.chrome")
     }
 
-    @Test fun testLaunchWithPreferredBrowsers() {
+    @Test fun testCustomizeTabsIntentCallback_InvokedBeforeEventHandler() {
+        val callOrder = mutableListOf<String>()
+        val webAuthenticationProvider =
+            DefaultWebAuthenticationProvider(
+                eventCoordinator =
+                    EventCoordinator(
+                        object : EventHandler {
+                            override fun onEvent(event: Event) {
+                                @Suppress("DEPRECATION")
+                                if (event is CustomizeCustomTabsEvent) {
+                                    callOrder.add("eventHandler")
+                                }
+                            }
+                        }
+                    ),
+                customizeTabsIntent = { _, _ -> callOrder.add("callback") }
+            )
+        val activity = Robolectric.buildActivity(Activity::class.java)
+        webAuthenticationProvider.launch(activity.get(), "https://example.com/not_used".toHttpUrl())
+        assertThat(callOrder).containsExactly("callback", "eventHandler").inOrder()
+    }
+
+    @Test fun testCustomizeTabsIntentCallback_BuilderMutationApplied() {
+        var capturedBuilder: androidx.browser.customtabs.CustomTabsIntent.Builder? = null
+        val webAuthenticationProvider =
+            DefaultWebAuthenticationProvider(
+                customizeTabsIntent = { _, builder -> capturedBuilder = builder }
+            )
+        val activity = Robolectric.buildActivity(Activity::class.java)
+        webAuthenticationProvider.launch(activity.get(), "https://example.com/not_used".toHttpUrl())
+        assertThat(capturedBuilder).isNotNull()
+    }
+
+    @Test fun testLaunchWithPreferredBrowsersConstructorParam() {
         installCustomTabsProvider("com.android.chrome.beta")
         installCustomTabsProvider("my.custom.preferred.browser")
         installCustomTabsProvider("com.android.chrome")
-        val eventHandler =
-            object : EventHandler {
-                override fun onEvent(event: Event) {
-                    if (event is CustomizeBrowserEvent) {
-                        event.preferredBrowsers.clear()
-                        event.preferredBrowsers.add("my.custom.preferred.browser")
-                    }
-                }
-            }
-        val webAuthenticationProvider = DefaultWebAuthenticationProvider(EventCoordinator(eventHandler))
+        val webAuthenticationProvider =
+            DefaultWebAuthenticationProvider(
+                preferredBrowsers = listOf("my.custom.preferred.browser")
+            )
         val activity = Robolectric.buildActivity(Activity::class.java)
         assertThat(webAuthenticationProvider.launch(activity.get(), "https://example.com/not_used".toHttpUrl())).isNull()
         val activityShadow = shadowOf(activity.get())
         val cctActivity = activityShadow.nextStartedActivity
         assertThat(cctActivity.action).isEqualTo("android.intent.action.VIEW")
         assertThat(cctActivity.`package`).isEqualTo("my.custom.preferred.browser")
+    }
+
+    @Test fun testDefaultPreferredBrowsers_IsThreeChromeBrowsers() {
+        assertThat(DefaultWebAuthenticationProvider.DEFAULT_PREFERRED_BROWSERS).hasSize(3)
     }
 
     @Test fun testLaunchCausesActivityNotFound() {

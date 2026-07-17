@@ -28,6 +28,7 @@ import kotlinx.coroutines.flow.transformWhile
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.yield
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Cross-platform data source managing [TokenInfo] storage.
@@ -36,18 +37,23 @@ import kotlinx.coroutines.yield
  * implementations ([CredentialImpl], Android [Credential]).
  *
  * @param storage the [TokenStorage] for persisting tokens.
- * @param eventsFlow optional shared flow for emitting [TokenStorageAccessErrorEvent]. If provided, database exceptions will be caught and emitted.
+ * @param eventsFlow optional shared flow for async broadcast of [TokenStorageAccessErrorEvent].
+ * @param onStorageError optional callback invoked when a storage operation throws. Return `true`
+ *   to clear storage and retry the failed operation once; return `false` to rethrow.
  */
 internal class CredentialDataSource(
     private val storage: TokenStorage,
     private val eventsFlow: MutableSharedFlow<Event>? = null,
+    private val onStorageError: ((Exception) -> Boolean)? = null,
 ) {
     private val cacheMutex = Mutex()
     private val cache = mutableMapOf<String, TokenData>()
     private val orchestratorsMutex = Mutex()
 
-    // Shared state for immutable credential snapshots (T001-T003)
-    private val tokenFlows = mutableMapOf<String, MutableStateFlow<TokenData?>>()
+    // ConcurrentHashMap: computeIfAbsent is atomic, so getTokenFlow (non-suspend) and
+    // emitToken/remove (suspend) can safely access this from different threads/coroutines
+    // without a separate lock.
+    private val tokenFlows = ConcurrentHashMap<String, MutableStateFlow<TokenData?>>()
     private val deletedIds = mutableSetOf<String>()
     private val refreshOrchestrators = mutableMapOf<String, CoalescingOrchestrator<Result<TokenInfo>>>()
 
@@ -56,10 +62,7 @@ internal class CredentialDataSource(
         id: String,
         initialToken: TokenData,
     ): Flow<TokenData> {
-        val flow =
-            synchronized(tokenFlows) {
-                tokenFlows.getOrPut(id) { MutableStateFlow(initialToken) }
-            }
+        val flow = tokenFlows.computeIfAbsent(id) { MutableStateFlow(initialToken) }
         return flow
             .transformWhile {
                 emit(it)
@@ -72,7 +75,7 @@ internal class CredentialDataSource(
         id: String,
         token: TokenData?,
     ) {
-        val flow = synchronized(tokenFlows) { tokenFlows[id] } ?: return
+        val flow = tokenFlows[id] ?: return
         flow.emit(token)
     }
 
@@ -181,7 +184,7 @@ internal class CredentialDataSource(
     /** Removes a token from storage and cleans up shared state. */
     suspend fun remove(id: String) {
         cacheMutex.withLock { cache.remove(id) }
-        synchronized(tokenFlows) { tokenFlows.remove(id) }
+        tokenFlows.remove(id)
         orchestratorsMutex.withLock { refreshOrchestrators.remove(id) }
         wrapStorageOperation {
             storage.remove(id).getOrThrow()
@@ -198,35 +201,27 @@ internal class CredentialDataSource(
     /**
      * Wraps a storage operation with error handling and event emission.
      *
-     * If the operation throws an exception and eventsFlow is available, emits
-     * a [TokenStorageAccessErrorEvent]. If the event's [TokenStorageAccessErrorEvent.shouldClearStorageAndTryAgain]
-     * is true, attempts the operation again.
+     * If the operation throws, [onStorageError] is invoked. Returning `true` retries the operation
+     * once; returning `false` (or omitting the callback) rethrows. [eventsFlow] broadcasts the
+     * error event asynchronously for observability regardless of the retry decision. The event's
+     * [TokenStorageAccessErrorEvent.shouldClearStorageAndTryAgain] reflects the callback decision.
      */
     private suspend fun <T> wrapStorageOperation(operation: suspend () -> T): T =
         try {
             operation()
         } catch (e: Exception) {
-            if (eventsFlow != null) {
-                val event =
-                    TokenStorageAccessErrorEvent(
-                        exception = e,
-                        shouldClearStorageAndTryAgain = false
-                    )
-                // Emit event non-blocking (adds to replay buffer immediately if there's room).
-                // Fall back to suspending emit if needed (buffer full or to wait for subscribers).
-                if (!eventsFlow.tryEmit(event)) {
-                    eventsFlow.emit(event)
-                }
-                // Yield control to allow other coroutines (like recovery handlers) to run.
-                yield()
-
-                // If recovery is requested, attempt the operation again (after theoretical cleanup)
-                if (event.shouldClearStorageAndTryAgain) {
-                    return try {
-                        operation()
-                    } catch (retryException: Exception) {
-                        throw retryException
+            if (eventsFlow != null || onStorageError != null) {
+                val shouldRetry = onStorageError?.invoke(e) == true
+                // Async broadcast for observability — observers cannot influence the retry decision.
+                if (eventsFlow != null) {
+                    val event = TokenStorageAccessErrorEvent(exception = e, shouldClearStorageAndTryAgain = shouldRetry)
+                    if (!eventsFlow.tryEmit(event)) {
+                        eventsFlow.emit(event)
                     }
+                    yield()
+                }
+                if (shouldRetry) {
+                    return operation()
                 } else {
                     throw e
                 }

@@ -17,7 +17,7 @@ package com.okta.authfoundation.credential.events
 
 import com.okta.authfoundation.client.TokenInfo
 import com.okta.authfoundation.credential.CredentialIdentifier
-import com.okta.authfoundation.events.Event
+import com.okta.authfoundation.events.CredentialEvent
 import com.okta.authfoundation.events.EventHandler
 
 /**
@@ -36,4 +36,4 @@ class CredentialStoredEvent internal constructor(
      * The tags associated with the event.
      */
     val tags: Map<String, String>,
-) : Event
+) : CredentialEvent

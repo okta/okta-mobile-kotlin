@@ -208,7 +208,7 @@ internal suspend fun <T> performJsonGetRequest(
         // Check for rate limit (HTTP 429)
         if (response.statusCode == 429) {
             val retryAfter = parseRetryAfterHeader(response.headers["Retry-After"]?.firstOrNull())
-            val event = RateLimitExceededEvent(url, 429, response.headers, retryAfter)
+            val event = RateLimitExceededEvent(url, response.headers, retryAfter)
             onRateLimitExceeded?.invoke(event)
             throw OAuth2ClientResult.Error.RateLimitException(url, retryAfter)
         }
@@ -265,7 +265,7 @@ internal suspend fun <T> performJsonFormPost(
         // Check for rate limit (HTTP 429)
         if (response.statusCode == 429) {
             val retryAfter = parseRetryAfterHeader(response.headers["Retry-After"]?.firstOrNull())
-            val event = RateLimitExceededEvent(url, 429, response.headers, retryAfter)
+            val event = RateLimitExceededEvent(url, response.headers, retryAfter)
             onRateLimitExceeded?.invoke(event)
             throw OAuth2ClientResult.Error.RateLimitException(url, retryAfter)
         }
@@ -317,7 +317,7 @@ internal suspend fun performFormPost(
         // Check for rate limit (HTTP 429)
         if (response.statusCode == 429) {
             val retryAfter = parseRetryAfterHeader(response.headers["Retry-After"]?.firstOrNull())
-            val event = RateLimitExceededEvent(url, 429, response.headers, retryAfter)
+            val event = RateLimitExceededEvent(url, response.headers, retryAfter)
             onRateLimitExceeded?.invoke(event)
             throw OAuth2ClientResult.Error.RateLimitException(url, retryAfter)
         }

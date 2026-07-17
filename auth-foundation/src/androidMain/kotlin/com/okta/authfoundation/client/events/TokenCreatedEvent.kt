@@ -16,8 +16,8 @@
 package com.okta.authfoundation.client.events
 
 import com.okta.authfoundation.credential.Token
-import com.okta.authfoundation.events.Event
 import com.okta.authfoundation.events.EventHandler
+import com.okta.authfoundation.events.TokenEvent
 
 /**
  * Emitted via [EventHandler.onEvent] when a [Token] has been created.
@@ -27,4 +27,4 @@ class TokenCreatedEvent internal constructor(
      * The token that was created.
      */
     val token: Token,
-) : Event
+) : TokenEvent

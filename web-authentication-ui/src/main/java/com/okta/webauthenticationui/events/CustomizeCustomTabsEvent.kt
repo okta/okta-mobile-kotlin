@@ -17,7 +17,6 @@ package com.okta.webauthenticationui.events
 
 import android.content.Context
 import androidx.browser.customtabs.CustomTabsIntent
-import com.okta.authfoundation.events.Event
 import com.okta.authfoundation.events.EventHandler
 import com.okta.webauthenticationui.WebAuthentication
 
@@ -26,6 +25,12 @@ import com.okta.webauthenticationui.WebAuthentication
  *
  * This can be used to customize the [CustomTabsIntent.Builder] before being displayed to the user.
  */
+@Deprecated(
+    message =
+        "Configure the CustomTabsIntent.Builder directly on DefaultWebAuthenticationProvider: " +
+            "DefaultWebAuthenticationProvider(customizeTabsIntent = { context, builder -> builder.setToolbarColor(...) }). " +
+            "This event is still emitted for backward compatibility but will be removed in a future release."
+)
 class CustomizeCustomTabsEvent internal constructor(
     /**
      * The context being used to launch the Chrome Custom Tabs.
@@ -36,4 +41,4 @@ class CustomizeCustomTabsEvent internal constructor(
      * the user.
      */
     val intentBuilder: CustomTabsIntent.Builder,
-) : Event
+) : UIEvent

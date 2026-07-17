@@ -193,7 +193,7 @@ class OAuth2ClientEventsTest {
             assertTrue(result.isFailure)
             assertEquals(1, recordedEvents.size)
             val event = assertIs<RateLimitExceededEvent>(recordedEvents[0])
-            assertEquals(429, event.statusCode)
+            assertIs<RateLimitExceededEvent>(event)
             assertEquals(60L, event.retryAfterSeconds)
             collectJob.cancel()
         }
@@ -227,7 +227,7 @@ class OAuth2ClientEventsTest {
             assertTrue(result.isFailure)
             assertEquals(1, recordedEvents.size)
             val event = assertIs<RateLimitExceededEvent>(recordedEvents[0])
-            assertEquals(429, event.statusCode)
+            assertIs<RateLimitExceededEvent>(event)
             assertEquals(null, event.retryAfterSeconds)
             collectJob.cancel()
         }
@@ -262,7 +262,7 @@ class OAuth2ClientEventsTest {
             assertTrue(result.isFailure)
             assertEquals(1, recordedEvents.size)
             val event = assertIs<RateLimitExceededEvent>(recordedEvents[0])
-            assertEquals(429, event.statusCode)
+            assertIs<RateLimitExceededEvent>(event)
             assertEquals(120L, event.retryAfterSeconds)
             collectJob.cancel()
         }

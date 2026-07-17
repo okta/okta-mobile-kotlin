@@ -205,7 +205,6 @@ class OAuth2ClientSharedConfigTest {
                     clientId: String,
                     idToken: Jwt,
                     clock: OidcClock,
-                    issuedAtGracePeriodInSeconds: Int,
                     parameters: IdTokenValidator.Parameters,
                 ) {
                     // no-op

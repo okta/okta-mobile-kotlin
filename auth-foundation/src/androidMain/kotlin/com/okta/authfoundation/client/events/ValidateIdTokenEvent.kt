@@ -16,13 +16,20 @@
 package com.okta.authfoundation.client.events
 
 import com.okta.authfoundation.credential.Token
-import com.okta.authfoundation.events.Event
 import com.okta.authfoundation.events.EventHandler
+import com.okta.authfoundation.events.TokenEvent
 import com.okta.authfoundation.jwt.Jwt
 
 /**
  * Emitted via [EventHandler.onEvent] when a [Token] is being validated.
  */
+@Deprecated(
+    message =
+        "Configuring the grace period via event mutation is deprecated. " +
+            "Android consumers: replace with AuthFoundationDefaults.idTokenValidator = object : IdTokenValidator { ... } and apply the " +
+            "desired grace period inside your implementation. " +
+            "KMP/JVM consumers: use OAuth2ClientBuilder { idTokenValidator = DefaultIdTokenValidator(issuedAtGracePeriodInSeconds = N) }."
+)
 class ValidateIdTokenEvent internal constructor(
     /**
      * The grace period in seconds that will be permitted when verifying the ID Token [Jwt] `iss` field.
@@ -30,4 +37,4 @@ class ValidateIdTokenEvent internal constructor(
      * *Default:* 10 minutes.
      */
     var issuedAtGracePeriodInSeconds: Int,
-) : Event
+) : TokenEvent

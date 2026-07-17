@@ -28,8 +28,6 @@ import com.okta.authfoundation.events.EventCoordinator
 import com.okta.oauth2.kmp.AuthorizationCodeFlow
 import com.okta.oauth2.kmp.RedirectEndSessionFlow
 import com.okta.webauthenticationui.BuildConfig.SDK_VERSION
-import com.okta.webauthenticationui.events.CustomizeBrowserEvent
-import com.okta.webauthenticationui.events.CustomizeCustomTabsEvent
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import com.okta.authfoundation.client.OAuth2Client as AndroidOAuth2Client
 
@@ -44,8 +42,7 @@ typealias WebAuthenticationClient = WebAuthentication
  *
  * This simple class encapsulates the details of launching the browser, and coordinating with OAuth2 endpoints.
  *
- * To customize the flow, please read more about customization options: [WebAuthenticationProvider], [CustomizeBrowserEvent],
- * [CustomizeCustomTabsEvent].
+ * To customize the flow, please read more about customization options: [WebAuthenticationProvider], [DefaultWebAuthenticationProvider].
  * To further customize the authentication flow, please read more about the underlying flows: [AuthorizationCodeFlow],
  * [RedirectEndSessionFlow].
  */

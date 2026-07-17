@@ -1,3 +1,9 @@
+public abstract interface class com/okta/authfoundation/events/CredentialEvent : com/okta/authfoundation/events/Event {
+}
+
+public abstract interface class com/okta/authfoundation/events/TokenEvent : com/okta/authfoundation/events/Event {
+}
+
 public final class com/okta/authfoundation/AuthFoundation {
 	public static final field INSTANCE Lcom/okta/authfoundation/AuthFoundation;
 	public final fun initializeAndroidContext (Landroid/content/Context;)V
@@ -491,7 +497,7 @@ public final class com/okta/authfoundation/client/dto/OidcUserInfo : com/okta/au
 	public fun deserializeClaims (Lkotlinx/serialization/DeserializationStrategy;)Ljava/lang/Object;
 }
 
-public final class com/okta/authfoundation/client/events/RateLimitExceededEvent : com/okta/authfoundation/events/Event {
+public final class com/okta/authfoundation/client/events/RateLimitExceededEvent : com/okta/authfoundation/events/TokenEvent {
 	public final fun getMaxRetries ()I
 	public final fun getMinDelaySeconds ()J
 	public final fun getRequest ()Lokhttp3/Request;
@@ -501,11 +507,21 @@ public final class com/okta/authfoundation/client/events/RateLimitExceededEvent 
 	public final fun setMinDelaySeconds (J)V
 }
 
-public final class com/okta/authfoundation/client/events/TokenCreatedEvent : com/okta/authfoundation/events/Event {
+public final class com/okta/authfoundation/client/events/TokenCreatedEvent : com/okta/authfoundation/events/TokenEvent {
 	public final fun getToken ()Lcom/okta/authfoundation/credential/Token;
 }
 
-public final class com/okta/authfoundation/client/events/ValidateIdTokenEvent : com/okta/authfoundation/events/Event {
+public final class com/okta/authfoundation/client/events/TokenRefreshedEvent : com/okta/authfoundation/events/TokenEvent {
+	public fun <init> (Lcom/okta/authfoundation/client/TokenInfo;)V
+	public final fun getTokenInfo ()Lcom/okta/authfoundation/client/TokenInfo;
+}
+
+public final class com/okta/authfoundation/client/events/TokenRevokedEvent : com/okta/authfoundation/events/TokenEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun getToken ()Ljava/lang/String;
+}
+
+public final class com/okta/authfoundation/client/events/ValidateIdTokenEvent : com/okta/authfoundation/events/TokenEvent {
 	public final fun getIssuedAtGracePeriodInSeconds ()I
 	public final fun setIssuedAtGracePeriodInSeconds (I)V
 }
@@ -809,46 +825,47 @@ public final class com/okta/authfoundation/credential/TokenType : java/lang/Enum
 	public static fun values ()[Lcom/okta/authfoundation/credential/TokenType;
 }
 
-public final class com/okta/authfoundation/credential/events/BiometricKeyInvalidatedEvent : com/okta/authfoundation/events/Event {
+public final class com/okta/authfoundation/credential/events/BiometricKeyInvalidatedEvent : com/okta/authfoundation/events/CredentialEvent {
 	public final fun getKeyAlias ()Ljava/lang/String;
 }
 
-public final class com/okta/authfoundation/credential/events/BiometricTokenInvalidatedEvent : com/okta/authfoundation/events/Event {
+public final class com/okta/authfoundation/credential/events/BiometricTokenInvalidatedEvent : com/okta/authfoundation/events/CredentialEvent {
 	public final fun getDeleteInvalidatedToken ()Z
 	public final fun getTokenId ()Ljava/lang/String;
 	public final fun setDeleteInvalidatedToken (Z)V
 }
 
-public final class com/okta/authfoundation/credential/events/CredentialCreatedEvent : com/okta/authfoundation/events/Event {
+public final class com/okta/authfoundation/credential/events/CredentialCreatedEvent : com/okta/authfoundation/events/CredentialEvent {
 	public final fun getCredential ()Lcom/okta/authfoundation/credential/Credential;
 }
 
-public final class com/okta/authfoundation/credential/events/CredentialDeletedEvent : com/okta/authfoundation/events/Event {
+public final class com/okta/authfoundation/credential/events/CredentialDeletedEvent : com/okta/authfoundation/events/CredentialEvent {
 	public final fun getCredential ()Lcom/okta/authfoundation/credential/Credential;
 }
 
-public final class com/okta/authfoundation/credential/events/CredentialStoredAfterRemovedEvent : com/okta/authfoundation/events/Event {
+public final class com/okta/authfoundation/credential/events/CredentialStoredAfterRemovedEvent : com/okta/authfoundation/events/CredentialEvent {
 	public final fun getCredential ()Lcom/okta/authfoundation/credential/Credential;
 }
 
-public final class com/okta/authfoundation/credential/events/CredentialStoredEvent : com/okta/authfoundation/events/Event {
+public final class com/okta/authfoundation/credential/events/CredentialStoredEvent : com/okta/authfoundation/events/CredentialEvent {
 	public final fun getCredential ()Lcom/okta/authfoundation/credential/Credential;
 	public final fun getTags ()Ljava/util/Map;
 	public final fun getToken ()Lcom/okta/authfoundation/credential/Token;
 }
 
-public final class com/okta/authfoundation/credential/events/DefaultCredentialChangedEvent : com/okta/authfoundation/events/Event {
+public final class com/okta/authfoundation/credential/events/DefaultCredentialChangedEvent : com/okta/authfoundation/events/CredentialEvent {
 	public final fun getCredential ()Lcom/okta/authfoundation/credential/Credential;
 }
 
-public final class com/okta/authfoundation/credential/events/NoAccessTokenAvailableEvent : com/okta/authfoundation/events/Event {
+public final class com/okta/authfoundation/credential/events/NoAccessTokenAvailableEvent : com/okta/authfoundation/events/CredentialEvent {
 	public final fun getCredential ()Lcom/okta/authfoundation/credential/Credential;
 }
 
-public final class com/okta/authfoundation/credential/events/TokenStorageAccessErrorEvent : com/okta/authfoundation/events/Event {
+public final class com/okta/authfoundation/credential/events/TokenStorageAccessErrorEvent : com/okta/authfoundation/events/CredentialEvent {
 	public final fun getException ()Ljava/lang/Exception;
 	public final fun getShouldClearStorageAndTryAgain ()Z
 	public final fun setShouldClearStorageAndTryAgain (Z)V
+	public final fun withShouldClearStorageAndTryAgain (Z)Lcom/okta/authfoundation/credential/events/TokenStorageAccessErrorEvent;
 }
 
 public abstract class com/okta/authfoundation/credential/storage/TokenDatabase : androidx/room/RoomDatabase {

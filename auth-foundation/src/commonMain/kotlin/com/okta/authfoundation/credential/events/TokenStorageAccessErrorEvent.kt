@@ -15,22 +15,50 @@
  */
 package com.okta.authfoundation.credential.events
 
-import com.okta.authfoundation.events.Event
+import com.okta.authfoundation.events.CredentialEvent
 import com.okta.authfoundation.events.EventHandler
 
 /**
  * Emitted via [EventHandler.onEvent] when a storage call causes an exception.
  *
- * The default implementation automatically clears storage so it can try again, see [shouldClearStorageAndTryAgain].
+ * In the KMP credential system, [shouldClearStorageAndTryAgain] reflects the decision made by the
+ * `onStorageError` callback configured on [com.okta.authfoundation.credential.kmp.TokenCredentialManager].
+ * This event is notification-only on KMP; mutating it does not affect retry behavior.
+ * On Android (legacy path), use [withShouldClearStorageAndTryAgain] to request a retry.
  */
 class TokenStorageAccessErrorEvent internal constructor(
     /**
      * The [Exception] that caused the event.
      */
     val exception: Exception,
+    shouldClearStorageAndTryAgain: Boolean,
+) : CredentialEvent {
+    internal var shouldClearStorageAndTryAgainValue: Boolean = shouldClearStorageAndTryAgain
+
     /**
-     * Allows the app developer to change the behavior of attempted remediation.
-     * If true, the storage implementation will attempt to clear all existing items in storage.
+     * If true, the operation will be (or was) retried.
+     *
+     * On Android (legacy path), setting this to `true` via [withShouldClearStorageAndTryAgain]
+     * requests a retry. On KMP, this reflects the decision already made by the `onStorageError`
+     * callback and mutating it has no effect.
+     *
+     * Prefer [withShouldClearStorageAndTryAgain] over direct assignment.
      */
-    var shouldClearStorageAndTryAgain: Boolean,
-) : Event
+    @set:Deprecated(
+        message = "Use withShouldClearStorageAndTryAgain() instead.",
+        replaceWith = ReplaceWith("withShouldClearStorageAndTryAgain(value)")
+    )
+    var shouldClearStorageAndTryAgain: Boolean
+        get() = shouldClearStorageAndTryAgainValue
+        set(value) {
+            shouldClearStorageAndTryAgainValue = value
+        }
+
+    /**
+     * Sets [shouldClearStorageAndTryAgain] and returns this event for chaining.
+     */
+    fun withShouldClearStorageAndTryAgain(value: Boolean): TokenStorageAccessErrorEvent {
+        shouldClearStorageAndTryAgainValue = value
+        return this
+    }
+}

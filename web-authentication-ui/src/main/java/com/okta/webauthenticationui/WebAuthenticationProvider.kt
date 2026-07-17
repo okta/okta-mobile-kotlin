@@ -16,20 +16,7 @@
 package com.okta.webauthenticationui
 
 import android.app.Activity
-import android.content.ActivityNotFoundException
 import android.content.Context
-import android.content.Intent
-import android.content.pm.PackageManager
-import android.net.Uri
-import android.os.Build
-import android.os.Bundle
-import android.provider.Browser
-import androidx.browser.customtabs.CustomTabsIntent
-import androidx.browser.customtabs.CustomTabsService
-import androidx.core.net.toUri
-import com.okta.authfoundation.events.EventCoordinator
-import com.okta.webauthenticationui.events.CustomizeBrowserEvent
-import com.okta.webauthenticationui.events.CustomizeCustomTabsEvent
 import okhttp3.HttpUrl
 
 /**
@@ -48,61 +35,4 @@ interface WebAuthenticationProvider {
         context: Context,
         url: HttpUrl,
     ): Exception?
-}
-
-internal class DefaultWebAuthenticationProvider(
-    private val eventCoordinator: EventCoordinator,
-) : WebAuthenticationProvider {
-    companion object {
-        const val X_OKTA_USER_AGENT = "X-Okta-User-Agent-Extended"
-
-        val USER_AGENT_HEADER = "web-authentication-ui/${Build.VERSION.SDK_INT} com.okta.webauthenticationui/2.0.0"
-    }
-
-    override fun launch(
-        context: Context,
-        url: HttpUrl,
-    ): Exception? {
-        val intentBuilder: CustomTabsIntent.Builder = CustomTabsIntent.Builder()
-        eventCoordinator.sendEvent(CustomizeCustomTabsEvent(context, intentBuilder))
-        val tabsIntent: CustomTabsIntent = intentBuilder.build()
-
-        val packageBrowser = getBrowser(context)
-        if (packageBrowser != null) {
-            tabsIntent.intent.setPackage(packageBrowser)
-        }
-
-        val headers = Bundle()
-        headers.putString(X_OKTA_USER_AGENT, USER_AGENT_HEADER)
-        tabsIntent.intent.putExtra(Browser.EXTRA_HEADERS, headers)
-
-        try {
-            tabsIntent.launchUrl(context, url.toString().toUri())
-            return null
-        } catch (e: ActivityNotFoundException) {
-            return e
-        }
-    }
-
-    private fun getBrowser(context: Context): String? {
-        val event = CustomizeBrowserEvent()
-        eventCoordinator.sendEvent(event)
-
-        val pm: PackageManager = context.packageManager
-        val serviceIntent = Intent()
-        serviceIntent.action = CustomTabsService.ACTION_CUSTOM_TABS_CONNECTION
-        val resolveInfoList = pm.queryIntentServices(serviceIntent, event.queryIntentServicesFlags)
-        val customTabsBrowsersPackages = mutableSetOf<String>()
-        for (info in resolveInfoList) {
-            customTabsBrowsersPackages.add(info.serviceInfo.packageName)
-        }
-
-        for (browser in event.preferredBrowsers) {
-            if (customTabsBrowsersPackages.contains(browser)) {
-                return browser
-            }
-        }
-
-        return customTabsBrowsersPackages.firstOrNull()
-    }
 }

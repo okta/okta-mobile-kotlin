@@ -32,8 +32,6 @@ import com.okta.authfoundation.client.internal.performFormPost
 import com.okta.authfoundation.client.internal.performJsonFormPost
 import com.okta.authfoundation.client.internal.performJsonGetRequest
 import com.okta.authfoundation.client.kmp.events.TokenCreatedEvent
-import com.okta.authfoundation.client.kmp.events.ValidateAccessTokenEvent
-import com.okta.authfoundation.client.kmp.events.ValidateIdTokenEvent
 import com.okta.authfoundation.events.Event
 import com.okta.authfoundation.jwt.Jwks
 import com.okta.authfoundation.jwt.JwtParser
@@ -65,7 +63,7 @@ import kotlinx.serialization.json.JsonObject
  * val credential = manager.store(tokenData).getOrThrow()
  * ```
  *
- * Use [OAuth2ClientBuilder] to create an instance via the builder pattern.
+ * Use [com.okta.authfoundation.client.OAuth2ClientBuilder] to create an instance via the builder pattern.
  *
  * On Android, the existing OAuth2Client class provides backward-compatible access
  * with additional platform-specific features.
@@ -407,15 +405,11 @@ class OAuth2Client internal constructor(
             val jwt = parser.parse(idTokenStr)
 
             // 1. Validate ID token claims
-            val idTokenEvent = ValidateIdTokenEvent()
-            _events.tryEmit(idTokenEvent)
-
             configuration.idTokenValidator.validate(
                 issuerUrl = configuration.issuerUrl,
                 clientId = configuration.clientId,
                 idToken = jwt,
                 clock = configuration.clock,
-                issuedAtGracePeriodInSeconds = idTokenEvent.issuedAtGracePeriodInSeconds,
                 parameters = IdTokenValidator.Parameters(nonce = nonce, maxAge = maxAge)
             )
 
@@ -435,7 +429,6 @@ class OAuth2Client internal constructor(
             }
 
             // 3. Validate access token hash
-            _events.tryEmit(ValidateAccessTokenEvent())
             configuration.accessTokenValidator.validate(tokenInfo.accessToken, jwt)
 
             // 4. Validate device secret hash (if present)

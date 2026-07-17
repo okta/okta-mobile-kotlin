@@ -22,7 +22,15 @@ interface EventHandler {
     /**
      * A callback that is invoked when an event is emitted.
      *
-     * > Note: events are emitted on the thread they're created on, and no threading guarantees are given.
+     * This method is called **synchronously** on the SDK's calling coroutine. The SDK may read
+     * mutable event properties immediately after this method returns, so any customizations must
+     * be applied before returning.
+     *
+     * > **Implementations must be fast and non-blocking.** Because this is not a `suspend` function,
+     * > any blocking I/O (network, disk, locks) will block the calling coroutine's thread. Handlers
+     * > are intended for lightweight configuration — setting a flag or changing a value.
+     *
+     * > Note: the specific thread or dispatcher this runs on is not guaranteed.
      *
      * @param event the event being emitted.
      */

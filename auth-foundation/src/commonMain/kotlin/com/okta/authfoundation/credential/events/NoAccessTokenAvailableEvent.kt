@@ -16,7 +16,7 @@
 package com.okta.authfoundation.credential.events
 
 import com.okta.authfoundation.credential.CredentialIdentifier
-import com.okta.authfoundation.events.Event
+import com.okta.authfoundation.events.CredentialEvent
 import com.okta.authfoundation.events.EventHandler
 
 /**
@@ -32,4 +32,4 @@ import com.okta.authfoundation.events.EventHandler
 class NoAccessTokenAvailableEvent internal constructor(
     /** The credential associated with the event. */
     val credential: CredentialIdentifier,
-) : Event
+) : CredentialEvent
