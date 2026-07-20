@@ -22,7 +22,23 @@ import com.okta.authfoundation.events.CredentialEvent
 /**
  * Emitted when [KeyPermanentlyInvalidatedException] is thrown when trying to use an invalidated biometric
  * key while fetching a [Token].
+ *
+ * @deprecated Use [Result.failure] with
+ * [com.okta.authfoundation.credential.kmp.BiometricKeyInvalidatedException] returned from
+ * [com.okta.authfoundation.credential.kmp.TokenStorage.getToken] instead. On Android the
+ * invalidated token is auto-deleted by default. For async notification on the KMP path, observe
+ * [com.okta.authfoundation.credential.kmp.TokenCredentialManager.events] and filter for
+ * [com.okta.authfoundation.credential.events.TokenStorageAccessErrorEvent] where
+ * `exception is` [com.okta.authfoundation.credential.kmp.BiometricKeyInvalidatedException].
  */
+@Deprecated(
+    message =
+        "Use Result.failure(BiometricKeyInvalidatedException) from TokenStorage.getToken() instead. " +
+            "On Android, the invalidated token is auto-deleted by default. " +
+            "For async notification on the KMP path, observe TokenCredentialManager.events and " +
+            "filter for TokenStorageAccessErrorEvent where exception is BiometricKeyInvalidatedException.",
+    level = DeprecationLevel.WARNING
+)
 class BiometricKeyInvalidatedEvent internal constructor(
     /**
      * The key with [keyAlias] that got invalidated.

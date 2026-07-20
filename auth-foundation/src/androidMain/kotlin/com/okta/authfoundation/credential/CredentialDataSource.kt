@@ -15,12 +15,12 @@
  */
 package com.okta.authfoundation.credential
 
-import android.security.keystore.KeyPermanentlyInvalidatedException
 import androidx.biometric.BiometricPrompt
 import com.okta.authfoundation.AuthFoundationDefaults
 import com.okta.authfoundation.InternalAuthFoundationApi
 import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.credential.events.CredentialCreatedEvent
+import com.okta.authfoundation.credential.kmp.BiometricKeyInvalidatedException
 import com.okta.authfoundation.jwt.JwtParser
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -98,7 +98,7 @@ class CredentialDataSource(
             val token =
                 try {
                     storage.getToken(id, promptInfo)
-                } catch (ex: KeyPermanentlyInvalidatedException) {
+                } catch (ex: BiometricKeyInvalidatedException) {
                     return null
                 }
             credentialsCache[id] =

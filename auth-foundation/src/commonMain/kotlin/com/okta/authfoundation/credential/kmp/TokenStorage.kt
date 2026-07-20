@@ -77,7 +77,12 @@ interface TokenStorage {
      * Retrieves and decrypts the token with [id].
      *
      * @param id id of the token to be retrieved.
-     * @return [Result.success] with the token, or [Result.failure] with [NoSuchElementException] if not found.
+     * @return [Result.success] with the token, or [Result.failure] with:
+     * - [NoSuchElementException] if the token is not found.
+     * - [com.okta.authfoundation.credential.kmp.BiometricKeyInvalidatedException] (Android only)
+     *   if the biometric key protecting the token has been permanently invalidated. On Android the
+     *   token is auto-deleted by default for backward compatibility; inspect the exception for
+     *   logging or custom handling.
      */
     suspend fun getToken(id: String): Result<TokenInfo>
 }

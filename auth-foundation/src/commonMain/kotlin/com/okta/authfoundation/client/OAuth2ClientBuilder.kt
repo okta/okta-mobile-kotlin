@@ -26,6 +26,7 @@ import com.okta.authfoundation.client.kmp.DefaultIdTokenValidator
 import com.okta.authfoundation.client.kmp.DeviceSecretValidator
 import com.okta.authfoundation.client.kmp.IdTokenValidator
 import com.okta.authfoundation.client.kmp.OAuth2Client
+import com.okta.authfoundation.client.kmp.RateLimitRetryConfig
 import com.okta.authfoundation.util.CoalescingOrchestrator
 import io.ktor.http.URLProtocol
 import io.ktor.http.Url
@@ -130,6 +131,24 @@ class OAuth2ClientBuilder private constructor(
      */
     var endpointOverrides: OAuth2EndpointOverrides? = null
 
+    /**
+     * Optional callback invoked when an HTTP 429 rate-limit response is received.
+     *
+     * Return a [RateLimitRetryConfig] to retry the request, or `null` to surface the failure
+     * immediately. When null (the default), 429 responses are never retried.
+     *
+     * The [retryCount] parameter is 0-based: 0 on the first retry opportunity.
+     *
+     * Example:
+     * ```kotlin
+     * rateLimitRetryCallback = { retryCount ->
+     *     if (retryCount < 3) RateLimitRetryConfig(MaxRetries(3), MinDelaySeconds(1L))
+     *     else null
+     * }
+     * ```
+     */
+    var rateLimitRetryCallback: ((retryCount: Int) -> RateLimitRetryConfig?)? = null
+
     companion object {
         /**
          * Creates an [OAuth2Client] with the given parameters and optional customization.
@@ -223,6 +242,7 @@ class OAuth2ClientBuilder private constructor(
             idTokenValidator = idTokenValidator,
             accessTokenValidator = accessTokenValidator,
             deviceSecretValidator = deviceSecretValidator,
-            endpointOverrides = endpointOverrides
+            endpointOverrides = endpointOverrides,
+            rateLimitRetryCallback = rateLimitRetryCallback
         )
 }

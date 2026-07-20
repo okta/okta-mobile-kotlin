@@ -59,7 +59,21 @@ object AuthFoundationDefaults {
     /** The CoroutineDispatcher which should be used for compute bound tasks. */
     var computeDispatcher: CoroutineContext by NoSetAfterGetWithLazyDefaultFactory { getComputeDispatcher() }
 
-    /** The default EventCoordinator. */
+    /**
+     * The default EventCoordinator.
+     *
+     * @deprecated EventCoordinator is deprecated. Configure rate-limit retry via
+     * [com.okta.authfoundation.client.OAuth2ClientConfiguration.rateLimitRetryCallback] and
+     * observe events via [com.okta.authfoundation.client.kmp.OAuth2Client.events] or
+     * [com.okta.authfoundation.credential.kmp.TokenCredentialManager.events] SharedFlow.
+     */
+    @Deprecated(
+        message =
+            "EventCoordinator is deprecated. Configure rate-limit retry via " +
+                "OAuth2ClientConfiguration.rateLimitRetryCallback and observe events via " +
+                "OAuth2Client.events or TokenCredentialManager.events SharedFlow instead.",
+        level = DeprecationLevel.WARNING
+    )
     var eventCoordinator: EventCoordinator by NoSetAfterGetWithLazyDefaultFactory { getEventCoordinator() }
 
     /** The default OidcClock. */

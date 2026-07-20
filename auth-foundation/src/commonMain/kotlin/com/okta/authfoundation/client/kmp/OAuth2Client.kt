@@ -39,10 +39,12 @@ import com.okta.authfoundation.jwt.SerializableJwks
 import com.okta.authfoundation.util.CoalescingOrchestrator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.serialization.json.JsonObject
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * A cross-platform OAuth2 client for interacting with an Okta Authorization Server.
@@ -113,18 +115,20 @@ class OAuth2Client internal constructor(
                     ?: throw OAuth2ClientResult.Error.OidcEndpointsNotAvailableException()
 
             val result =
-                performJsonGetRequest(
-                    apiExecutor = configuration.apiExecutor,
-                    json = configuration.json,
-                    url = endpoint,
-                    deserializer = JsonObject.serializer(),
-                    headers =
-                        mapOf(
-                            "Accept" to listOf("application/json"),
-                            "Authorization" to listOf("Bearer $accessToken")
-                        ),
-                    onRateLimitExceeded = { event -> _events.tryEmit(event) }
-                )
+                withRateLimitRetry {
+                    performJsonGetRequest(
+                        apiExecutor = configuration.apiExecutor,
+                        json = configuration.json,
+                        url = endpoint,
+                        deserializer = JsonObject.serializer(),
+                        headers =
+                            mapOf(
+                                "Accept" to listOf("application/json"),
+                                "Authorization" to listOf("Bearer $accessToken")
+                            ),
+                        onRateLimitExceeded = { event -> _events.tryEmit(event) }
+                    )
+                }
             when (result) {
                 is OAuth2ClientResult.Success -> {
                     val claimsProvider =
@@ -224,14 +228,16 @@ class OAuth2Client internal constructor(
                     ?: throw OAuth2ClientResult.Error.OidcEndpointsNotAvailableException()
 
             val result =
-                performJsonFormPost(
-                    apiExecutor = configuration.apiExecutor,
-                    json = configuration.json,
-                    url = endpoints.tokenEndpoint,
-                    formParams = formParams,
-                    deserializer = OAuth2TokenResponse.serializer(),
-                    onRateLimitExceeded = { event -> _events.tryEmit(event) }
-                )
+                withRateLimitRetry {
+                    performJsonFormPost(
+                        apiExecutor = configuration.apiExecutor,
+                        json = configuration.json,
+                        url = endpoints.tokenEndpoint,
+                        formParams = formParams,
+                        deserializer = OAuth2TokenResponse.serializer(),
+                        onRateLimitExceeded = { event -> _events.tryEmit(event) }
+                    )
+                }
             when (result) {
                 is OAuth2ClientResult.Success -> {
                     val tokenInfo = result.result.toTokenInfo(configuration.clientId, configuration.issuerUrl)
@@ -269,12 +275,14 @@ class OAuth2Client internal constructor(
                 )
 
             val result =
-                performFormPost(
-                    apiExecutor = configuration.apiExecutor,
-                    url = endpoint,
-                    formParams = formParams,
-                    onRateLimitExceeded = { event -> _events.tryEmit(event) }
-                )
+                withRateLimitRetry {
+                    performFormPost(
+                        apiExecutor = configuration.apiExecutor,
+                        url = endpoint,
+                        formParams = formParams,
+                        onRateLimitExceeded = { event -> _events.tryEmit(event) }
+                    )
+                }
             when (result) {
                 is OAuth2ClientResult.Success -> _events.tryEmit(TokenRevokedEvent(token))
                 is OAuth2ClientResult.Error -> throw result.exception
@@ -309,14 +317,16 @@ class OAuth2Client internal constructor(
                 )
 
             val result =
-                performJsonFormPost(
-                    apiExecutor = configuration.apiExecutor,
-                    json = configuration.json,
-                    url = endpoint,
-                    formParams = formParams,
-                    deserializer = JsonObject.serializer(),
-                    onRateLimitExceeded = { event -> _events.tryEmit(event) }
-                )
+                withRateLimitRetry {
+                    performJsonFormPost(
+                        apiExecutor = configuration.apiExecutor,
+                        json = configuration.json,
+                        url = endpoint,
+                        formParams = formParams,
+                        deserializer = JsonObject.serializer(),
+                        onRateLimitExceeded = { event -> _events.tryEmit(event) }
+                    )
+                }
             when (result) {
                 is OAuth2ClientResult.Success -> IntrospectInfo.fromJsonObject(result.result, configuration.json)
                 is OAuth2ClientResult.Error -> throw result.exception
@@ -343,14 +353,16 @@ class OAuth2Client internal constructor(
                     ?: throw OAuth2ClientResult.Error.OidcEndpointsNotAvailableException()
 
             val result =
-                performJsonFormPost(
-                    apiExecutor = configuration.apiExecutor,
-                    json = configuration.json,
-                    url = endpoint,
-                    formParams = formParams,
-                    deserializer = SerializableDeviceAuthorizationResponse.serializer(),
-                    onRateLimitExceeded = { event -> _events.tryEmit(event) }
-                )
+                withRateLimitRetry {
+                    performJsonFormPost(
+                        apiExecutor = configuration.apiExecutor,
+                        json = configuration.json,
+                        url = endpoint,
+                        formParams = formParams,
+                        deserializer = SerializableDeviceAuthorizationResponse.serializer(),
+                        onRateLimitExceeded = { event -> _events.tryEmit(event) }
+                    )
+                }
             when (result) {
                 is OAuth2ClientResult.Success -> result.result.toDeviceAuthorizationInfo()
                 is OAuth2ClientResult.Error -> throw result.exception
@@ -456,18 +468,51 @@ class OAuth2Client internal constructor(
                 }
 
             val result =
-                performJsonGetRequest(
-                    apiExecutor = configuration.apiExecutor,
-                    json = configuration.json,
-                    url = url,
-                    deserializer = SerializableJwks.serializer(),
-                    onRateLimitExceeded = { event -> _events.tryEmit(event) }
-                )
+                withRateLimitRetry {
+                    performJsonGetRequest(
+                        apiExecutor = configuration.apiExecutor,
+                        json = configuration.json,
+                        url = url,
+                        deserializer = SerializableJwks.serializer(),
+                        onRateLimitExceeded = { event -> _events.tryEmit(event) }
+                    )
+                }
             when (result) {
                 is OAuth2ClientResult.Success -> result.result.toJwks()
                 is OAuth2ClientResult.Error -> throw result.exception
             }
         }
+
+    /**
+     * Wraps a network call with optional rate-limit retry logic.
+     *
+     * When [OAuth2ClientConfiguration.rateLimitRetryCallback] is null (the default), [block] is
+     * executed once with no retry. When set, HTTP 429 failures invoke the callback with the current
+     * retry count (0-based: 0 on the first retry opportunity). There are two independent stop
+     * conditions — whichever triggers first surfaces the 429 failure to the caller:
+     *
+     * 1. The callback returns `null` — stops immediately, no delay.
+     * 2. `retryCount >= config.maxRetries.value` — stops after the configured number of attempts.
+     *
+     * When neither condition applies, the next attempt is delayed by
+     * `max(retryAfterHeader, config.minDelaySeconds.value)` seconds. If the callback throws,
+     * the exception propagates to the caller without retrying.
+     */
+    private suspend fun <T> withRateLimitRetry(block: suspend () -> OAuth2ClientResult<T>): OAuth2ClientResult<T> {
+        val retryCallback = configuration.rateLimitRetryCallback ?: return block()
+        var retryCount = 0
+        while (true) {
+            val result = block()
+            val rateLimitEx =
+                ((result as? OAuth2ClientResult.Error<T>)?.exception as? OAuth2ClientResult.Error.RateLimitException)
+                    ?: return result
+            val config = retryCallback(retryCount) ?: return result
+            if (retryCount >= config.maxRetries.value) return result
+            val delaySeconds = maxOf(rateLimitEx.retryAfterSeconds ?: 0L, config.minDelaySeconds.value)
+            delay(delaySeconds.seconds)
+            retryCount++
+        }
+    }
 
     companion object {
         /**

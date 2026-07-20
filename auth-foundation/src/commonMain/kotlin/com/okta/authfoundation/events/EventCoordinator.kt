@@ -19,7 +19,19 @@ import com.okta.authfoundation.InternalAuthFoundationApi
 
 /**
  * A centralized coordinator of events emitted throughout Auth Foundation and other Okta SDKs.
+ *
+ * @deprecated [EventCoordinator] is deprecated. Use [com.okta.authfoundation.client.kmp.OAuth2Client.events]
+ * or [com.okta.authfoundation.credential.kmp.TokenCredentialManager.events] SharedFlow to observe SDK events.
+ * Configure retry behavior via [com.okta.authfoundation.client.OAuth2ClientConfiguration.rateLimitRetryCallback].
+ * This class will be removed in a future major release.
  */
+@Deprecated(
+    message =
+        "EventCoordinator is deprecated. Use OAuth2Client.events or TokenCredentialManager.events SharedFlow " +
+            "to observe events. Configure rate-limit retry via OAuth2ClientConfiguration.rateLimitRetryCallback. " +
+            "This class will be removed in a future major release.",
+    level = DeprecationLevel.WARNING
+)
 class EventCoordinator(
     /**
      * A list of [EventHandler]s that should be invoked when an event is emitted.

@@ -113,6 +113,9 @@ internal suspend fun <T> OidcConfiguration.internalPerformRequest(
     }
 }
 
+// Deprecated: Configure retry via OAuth2ClientConfiguration.rateLimitRetryCallback on the KMP
+// OAuth2Client instead. This loop is preserved for Android backward compatibility and will be
+// removed in a future major release alongside EventCoordinator removal (Phase 5).
 private suspend fun OidcConfiguration.executeRequest(
     request: Request,
     ignoreRateLimit: (Response) -> Boolean = { false },
