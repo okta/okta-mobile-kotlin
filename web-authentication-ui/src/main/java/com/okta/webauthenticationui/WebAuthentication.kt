@@ -196,7 +196,7 @@ class WebAuthentication private constructor(
     /**
      * Initiates the OIDC Authorization Code redirect flow.
      *
-     * @param context the Android [Activity] [Context] which is used to display the login flow via the configured
+     * @param context the Android [Context] which is used to display the login flow via the configured
      * [WebAuthenticationProvider].
      * @param redirectUrl the redirect URL.
      * @param extraRequestParameters the extra key value pairs to send to the authorize endpoint.
@@ -240,7 +240,7 @@ class WebAuthentication private constructor(
      *
      * > Note: OIDC Logout terminology is nuanced, see [Logout Documentation](https://github.com/okta/okta-mobile-kotlin#logout) for additional details.
      *
-     * @param context the Android [Activity] [Context] which is used to display the logout flow via the configured
+     * @param context the Android [Context] which is used to display the logout flow via the configured
      * [WebAuthenticationProvider].
      * @param redirectUrl the redirect URL.
      * @param idToken the token used to identify the session to log the user out of.
