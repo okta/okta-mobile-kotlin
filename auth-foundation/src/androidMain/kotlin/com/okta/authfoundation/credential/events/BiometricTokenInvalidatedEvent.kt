@@ -20,7 +20,19 @@ import com.okta.authfoundation.events.CredentialEvent
 
 /**
  * Emitted when the key of a biometric secured [Token] is invalidated.
+ *
+ * @deprecated Use [Result.failure] with
+ * [com.okta.authfoundation.credential.kmp.BiometricKeyInvalidatedException] returned from
+ * [com.okta.authfoundation.credential.kmp.TokenStorage.getToken] instead. Check the exception's
+ * [com.okta.authfoundation.credential.kmp.BiometricKeyInvalidatedException.tokenId] and call
+ * `storage.remove(tokenId)` explicitly if deletion is desired.
  */
+@Deprecated(
+    message =
+        "Use Result.failure(BiometricKeyInvalidatedException) from TokenStorage.getToken() instead. " +
+            "Inspect the exception's tokenId and call storage.remove(tokenId) explicitly if deletion is desired.",
+    level = DeprecationLevel.WARNING
+)
 class BiometricTokenInvalidatedEvent internal constructor(
     /**
      * The id of the invalidated [Token].

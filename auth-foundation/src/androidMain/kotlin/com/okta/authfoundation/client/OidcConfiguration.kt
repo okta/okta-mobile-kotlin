@@ -50,7 +50,21 @@ class OidcConfiguration private constructor(
     @property:InternalAuthFoundationApi val computeDispatcher: CoroutineContext = AuthFoundationDefaults.computeDispatcher,
     /** The OidcClock which is used for all time related functions in the SDK. */
     @property:InternalAuthFoundationApi val clock: OidcClock = AuthFoundationDefaults.clock,
-    /** The EventCoordinator which the OAuth2Client should emit events to. */
+    /**
+     * The EventCoordinator which the OAuth2Client should emit events to.
+     *
+     * @deprecated EventCoordinator is deprecated. Configure rate-limit retry via
+     * [com.okta.authfoundation.client.OAuth2ClientConfiguration.rateLimitRetryCallback] and
+     * observe events via [com.okta.authfoundation.client.kmp.OAuth2Client.events] or
+     * [com.okta.authfoundation.credential.kmp.TokenCredentialManager.events] SharedFlow.
+     */
+    @Deprecated(
+        message =
+            "EventCoordinator is deprecated. Configure rate-limit retry via " +
+                "OAuth2ClientConfiguration.rateLimitRetryCallback and observe events via " +
+                "OAuth2Client.events or TokenCredentialManager.events SharedFlow instead.",
+        level = DeprecationLevel.WARNING
+    )
     @Transient @property:InternalAuthFoundationApi val eventCoordinator: EventCoordinator = AuthFoundationDefaults.eventCoordinator,
     /** The IdTokenValidator used to validate the Id Token Jwt when tokens are minted. */
     @property:InternalAuthFoundationApi val idTokenValidator: IdTokenValidator = AuthFoundationDefaults.idTokenValidator,

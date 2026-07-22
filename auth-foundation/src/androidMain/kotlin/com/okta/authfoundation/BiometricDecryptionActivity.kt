@@ -25,6 +25,8 @@ import androidx.biometric.BiometricPrompt
 import androidx.biometric.BiometricPrompt.AuthenticationCallback
 import androidx.biometric.BiometricPrompt.PromptInfo
 import androidx.core.content.ContextCompat
+import com.okta.authfoundation.api.log.LogLevel
+import com.okta.authfoundation.api.log.getDefaultAuthFoundationLogger
 import com.okta.authfoundation.client.ApplicationContextHolder
 import com.okta.authfoundation.util.runCatchingCancellable
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -34,6 +36,8 @@ import javax.crypto.Cipher
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
+
+private val logger = getDefaultAuthFoundationLogger()
 
 class BiometricDecryptionActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -75,9 +79,45 @@ class BiometricDecryptionActivity : AppCompatActivity() {
 
     private fun biometricPrompt(): BiometricPrompt {
         val executor = ContextCompat.getMainExecutor(this)
-        return BiometricPrompt(
-            this,
-            executor,
+        return BiometricPrompt(this, executor, createAuthenticationCallback(::finish))
+    }
+
+    private sealed interface BiometricAction {
+        fun resumeWithException(exception: Exception)
+
+        class Unlock(
+            val continuation: Continuation<Unit>,
+        ) : BiometricAction {
+            override fun resumeWithException(exception: Exception) {
+                continuation.resumeWithException(exception)
+            }
+        }
+
+        class Decrypt(
+            val cipher: Cipher,
+            val encryptedData: ByteArray,
+            val continuation: Continuation<ByteArray>,
+        ) : BiometricAction {
+            override fun resumeWithException(exception: Exception) {
+                continuation.resumeWithException(exception)
+            }
+        }
+    }
+
+    internal companion object {
+        private lateinit var promptInfo: PromptInfo
+        private lateinit var biometricAction: BiometricAction
+        private val accessMutex = Mutex()
+
+        private fun startActivity() {
+            val intent = Intent()
+            intent.setClass(ApplicationContextHolder.appContext, BiometricDecryptionActivity::class.java)
+            intent.action = BiometricDecryptionActivity::class.java.name
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS
+            ApplicationContextHolder.appContext.startActivity(intent)
+        }
+
+        internal fun createAuthenticationCallback(finish: () -> Unit): AuthenticationCallback =
             object : AuthenticationCallback() {
                 override fun onAuthenticationError(
                     errorCode: Int,
@@ -115,52 +155,12 @@ class BiometricDecryptionActivity : AppCompatActivity() {
                 }
 
                 override fun onAuthenticationFailed() {
-                    biometricAction.resumeWithException(
-                        BiometricAuthenticationException(
-                            "Unexpected Biometric error",
-                            BiometricExceptionDetails.OnAuthenticationFailed
-                        )
+                    logger.write(
+                        "Biometric attempt not recognized; prompt remains open for retry.",
+                        logLevel = LogLevel.WARN
                     )
-                    finish()
                 }
             }
-        )
-    }
-
-    private sealed interface BiometricAction {
-        fun resumeWithException(exception: Exception)
-
-        class Unlock(
-            val continuation: Continuation<Unit>,
-        ) : BiometricAction {
-            override fun resumeWithException(exception: Exception) {
-                continuation.resumeWithException(exception)
-            }
-        }
-
-        class Decrypt(
-            val cipher: Cipher,
-            val encryptedData: ByteArray,
-            val continuation: Continuation<ByteArray>,
-        ) : BiometricAction {
-            override fun resumeWithException(exception: Exception) {
-                continuation.resumeWithException(exception)
-            }
-        }
-    }
-
-    internal companion object {
-        private lateinit var promptInfo: PromptInfo
-        private lateinit var biometricAction: BiometricAction
-        private val accessMutex = Mutex()
-
-        private fun startActivity() {
-            val intent = Intent()
-            intent.setClass(ApplicationContextHolder.appContext, BiometricDecryptionActivity::class.java)
-            intent.action = BiometricDecryptionActivity::class.java.name
-            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS
-            ApplicationContextHolder.appContext.startActivity(intent)
-        }
 
         internal suspend fun biometricUnlock(promptInfo: PromptInfo): Result<Unit> =
             accessMutex.withLock {

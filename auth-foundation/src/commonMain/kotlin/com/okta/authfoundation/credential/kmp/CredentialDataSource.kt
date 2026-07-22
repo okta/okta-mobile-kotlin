@@ -173,7 +173,10 @@ internal class CredentialDataSource(
         }
         val token =
             wrapStorageOperation {
-                storage.getToken(id).getOrNull()
+                storage.getToken(id).getOrElse { e ->
+                    if (e is BiometricKeyInvalidatedException) throw e
+                    null
+                }
             } ?: return null
         if (token is TokenData) {
             cacheMutex.withLock { cache[id] = token }
@@ -210,6 +213,7 @@ internal class CredentialDataSource(
         try {
             operation()
         } catch (e: Exception) {
+            if (e is BiometricKeyInvalidatedException) throw e
             if (eventsFlow != null || onStorageError != null) {
                 val shouldRetry = onStorageError?.invoke(e) == true
                 // Async broadcast for observability — observers cannot influence the retry decision.

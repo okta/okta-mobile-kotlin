@@ -22,6 +22,7 @@ import com.okta.authfoundation.client.kmp.DefaultDeviceSecretValidator
 import com.okta.authfoundation.client.kmp.DefaultIdTokenValidator
 import com.okta.authfoundation.client.kmp.DeviceSecretValidator
 import com.okta.authfoundation.client.kmp.IdTokenValidator
+import com.okta.authfoundation.client.kmp.RateLimitRetryConfig
 import kotlinx.serialization.json.Json
 
 /**
@@ -69,4 +70,23 @@ class OAuth2ClientConfiguration internal constructor(
     val deviceSecretValidator: DeviceSecretValidator = DefaultDeviceSecretValidator(),
     /** Optional per-endpoint URL overrides. Non-null fields win over discovery results. */
     val endpointOverrides: OAuth2EndpointOverrides? = null,
+    /**
+     * Optional callback invoked when an HTTP 429 rate-limit response is received.
+     *
+     * The callback receives the current [retryCount] (0-based: 0 on first retry opportunity) and
+     * returns a [RateLimitRetryConfig] to retry, or `null` to stop retrying and surface the
+     * failure to the caller. When this callback is `null` (the default), 429 responses are never
+     * retried and are surfaced as [com.okta.authfoundation.client.OAuth2ClientResult.Error]
+     * immediately.
+     *
+     * If the callback throws, the exception propagates to the caller without retrying.
+     *
+     * ```kotlin
+     * rateLimitRetryCallback = { retryCount ->
+     *     if (retryCount < 3) RateLimitRetryConfig(MaxRetries(3), MinDelaySeconds(1L))
+     *     else null
+     * }
+     * ```
+     */
+    val rateLimitRetryCallback: ((retryCount: Int) -> RateLimitRetryConfig?)? = null,
 )

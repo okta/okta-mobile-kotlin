@@ -25,6 +25,7 @@ import com.okta.authfoundation.client.ApplicationContextHolder
 import com.okta.authfoundation.client.EncryptionTokenProvider
 import com.okta.authfoundation.credential.events.BiometricKeyInvalidatedEvent
 import com.okta.authfoundation.credential.events.BiometricTokenInvalidatedEvent
+import com.okta.authfoundation.credential.kmp.BiometricKeyInvalidatedException
 import com.okta.authfoundation.credential.storage.TokenDatabase
 import com.okta.authfoundation.credential.storage.TokenEntity
 import com.okta.authfoundation.credential.storage.migration.V1ToV2StorageMigrator
@@ -174,7 +175,7 @@ class RoomTokenStorage(
                     }
                 }
             }
-            throw ex
+            throw BiometricKeyInvalidatedException(tokenEntity.id, tokenEntity.keyAlias)
         }
 
     private fun Credential.Security.biometricTimeout(): Int? =
