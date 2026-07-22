@@ -53,6 +53,9 @@ allprojects {
             force(libs.protobuf.java)
             force(libs.woodstox.core)
             force(libs.commons.lang3)
+            force(libs.bcprov.jdk18on)
+            force(libs.bcpkix.jdk18on)
+            force(libs.bcutil.jdk18on)
         }
     }
 
