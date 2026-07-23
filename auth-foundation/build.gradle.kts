@@ -1,5 +1,5 @@
-import org.gradle.api.tasks.compile.JavaCompile
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.abi.ExperimentalAbiValidation
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
@@ -10,8 +10,8 @@ plugins {
     kotlin("plugin.serialization") version libs.versions.kotlin.get()
     id("com.vanniktech.maven.publish.base")
     id("spotless")
-    id("binary-compatibility-validator")
     id("androidx.room")
+    id("binary-compat-validation")
 }
 
 // KMP androidLibrary does not generate BuildConfigs so we generate a BuildInfo.kt file instead.
@@ -37,7 +37,7 @@ val generateBuildInfoTask =
     }
 
 kotlin {
-    androidLibrary {
+    android {
         namespace = "com.okta.authfoundation"
         compileSdk = COMPILE_SDK
         minSdk = MIN_SDK
@@ -187,6 +187,25 @@ kotlin {
             }
         }
     }
+
+    // Only validates the jvm target; KGP's ABI validation filters for KotlinAndroidTarget, but the androidLibrary
+    // target here is a KotlinMultiplatformAndroidLibraryTargetImpl (AGP's KMP android plugin), so it's silently skipped.
+    // The android target's own ABI is covered separately below, via binary-compat-validation.
+    @OptIn(ExperimentalAbiValidation::class)
+    abiValidation {
+        filters {
+            exclude {
+                byNames.add("com.okta.authfoundation.BuildInfo")
+            }
+        }
+    }
+}
+
+binaryCompatValidationExtension {
+    taskNamePrefix.set("android")
+    kotlinCompileTaskName.set("compileAndroidMain")
+    javaCompileTaskName.set("")
+    ignoredClasses.add("com.okta.authfoundation.BuildInfo")
 }
 
 java {
@@ -203,8 +222,4 @@ dependencies {
     add("kspAndroid", libs.room.compiler)
     add("kspJvm", libs.room.compiler)
     coreLibraryDesugaring(libs.core.library.desugaring)
-}
-
-apiValidation {
-    ignoredClasses.add("com.okta.authfoundation.BuildInfo")
 }

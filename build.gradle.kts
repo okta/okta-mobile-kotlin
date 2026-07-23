@@ -31,7 +31,8 @@ plugins {
     alias(libs.plugins.compose.compiler) apply false
     alias(libs.plugins.ksp) apply false
     alias(libs.plugins.androidx.navigation.safeargs) apply false
-    alias(libs.plugins.kotlinx.binary.compatibility.validator) apply false
+    // No apply-false declaration here: buildSrc's own dependency on this artifact (for
+    // AndroidBcvBridgePlugin) already puts it on the classpath for every subproject.
     alias(libs.plugins.androidx.room) apply false
     alias(libs.plugins.kotlin.jvm) apply false
     alias(libs.plugins.kotlin.multiplatform) apply false
@@ -76,7 +77,14 @@ tasks.register("checkLegacyAbi") {
 gradle.projectsEvaluated {
     tasks.named("checkLegacyAbi").configure {
         subprojects.forEach { subproject ->
-            subproject.tasks.findByName("apiCheck")?.let { dependsOn(it) }
+            // checkKotlinAbi: KGP's built-in ABI validation (auth-foundation/oauth2's jvm target).
+            // androidApiCheck: binary-compat-validation, for KMP android targets KGP's validator can't see.
+            // releaseApiCheck: binary-compat-validation, for Android-only modules on AGP built-in Kotlin.
+            listOfNotNull(
+                subproject.tasks.findByName("checkKotlinAbi"),
+                subproject.tasks.findByName("androidApiCheck"),
+                subproject.tasks.findByName("releaseApiCheck")
+            ).forEach { dependsOn(it) }
         }
     }
 }
@@ -84,8 +92,8 @@ gradle.projectsEvaluated {
 subprojects {
     plugins.withId("com.vanniktech.maven.publish.base") {
         configure<MavenPublishBaseExtension> {
-            val snapshot = project.properties["snapshot"]?.toString()?.toBoolean() ?: false
-            val automaticRelease = if (snapshot) false else project.properties["automaticRelease"]?.toString()?.toBoolean() ?: false
+            val snapshot = project.findProperty("snapshot")?.toString()?.toBoolean() ?: false
+            val automaticRelease = if (snapshot) false else project.findProperty("automaticRelease")?.toString()?.toBoolean() ?: false
 
             publishToMavenCentral(automaticRelease)
             if (project.hasProperty("signAllPublications")) signAllPublications()

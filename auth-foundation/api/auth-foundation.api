@@ -1,9 +1,3 @@
-public abstract interface class com/okta/authfoundation/events/CredentialEvent : com/okta/authfoundation/events/Event {
-}
-
-public abstract interface class com/okta/authfoundation/events/TokenEvent : com/okta/authfoundation/events/Event {
-}
-
 public final class com/okta/authfoundation/AuthFoundation {
 	public static final field INSTANCE Lcom/okta/authfoundation/AuthFoundation;
 	public final fun initializeAndroidContext (Landroid/content/Context;)V
@@ -268,23 +262,51 @@ public abstract interface class com/okta/authfoundation/api/http/ApiResponse {
 	public abstract fun getStatusCode ()I
 }
 
-public abstract interface class com/okta/authfoundation/api/http/log/AuthFoundationLogger {
-	public abstract fun write (Ljava/lang/String;Ljava/lang/Throwable;Lcom/okta/authfoundation/api/http/log/LogLevel;)V
-	public static synthetic fun write$default (Lcom/okta/authfoundation/api/http/log/AuthFoundationLogger;Ljava/lang/String;Ljava/lang/Throwable;Lcom/okta/authfoundation/api/http/log/LogLevel;ILjava/lang/Object;)V
+public final class com/okta/authfoundation/api/http/KtorHttpExecutor : com/okta/authfoundation/api/http/ApiExecutor {
+	public fun <init> ()V
+	public fun <init> (Lio/ktor/client/HttpClient;)V
+	public synthetic fun <init> (Lio/ktor/client/HttpClient;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun execute-gIAlu-s (Lcom/okta/authfoundation/api/http/ApiRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun getHttpClient ()Lio/ktor/client/HttpClient;
 }
 
-public final class com/okta/authfoundation/api/http/log/AuthFoundationLogger$DefaultImpls {
-	public static synthetic fun write$default (Lcom/okta/authfoundation/api/http/log/AuthFoundationLogger;Ljava/lang/String;Ljava/lang/Throwable;Lcom/okta/authfoundation/api/http/log/LogLevel;ILjava/lang/Object;)V
+public final class com/okta/authfoundation/api/http/KtorHttpExecutorKt {
+	public static final field CONNECT_TIMEOUT_MILLIS J
+	public static final field REQUEST_TIMEOUT_MILLIS J
 }
 
-public final class com/okta/authfoundation/api/http/log/LogLevel : java/lang/Enum {
-	public static final field DEBUG Lcom/okta/authfoundation/api/http/log/LogLevel;
-	public static final field ERROR Lcom/okta/authfoundation/api/http/log/LogLevel;
-	public static final field INFO Lcom/okta/authfoundation/api/http/log/LogLevel;
-	public static final field WARN Lcom/okta/authfoundation/api/http/log/LogLevel;
+public final class com/okta/authfoundation/api/http/KtorHttpExecutor_androidKt {
+	public static final fun getHttpClientEngine ()Lio/ktor/client/HttpClient;
+}
+
+public final class com/okta/authfoundation/api/log/AndroidAuthFoundationLogger : com/okta/authfoundation/api/log/AuthFoundationLogger {
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun write (Ljava/lang/String;Ljava/lang/Throwable;Lcom/okta/authfoundation/api/log/LogLevel;)V
+}
+
+public final class com/okta/authfoundation/api/log/AndroidAuthFoundationLogger_androidKt {
+	public static final fun getDefaultAuthFoundationLogger ()Lcom/okta/authfoundation/api/log/AuthFoundationLogger;
+}
+
+public abstract interface class com/okta/authfoundation/api/log/AuthFoundationLogger {
+	public abstract fun write (Ljava/lang/String;Ljava/lang/Throwable;Lcom/okta/authfoundation/api/log/LogLevel;)V
+	public static synthetic fun write$default (Lcom/okta/authfoundation/api/log/AuthFoundationLogger;Ljava/lang/String;Ljava/lang/Throwable;Lcom/okta/authfoundation/api/log/LogLevel;ILjava/lang/Object;)V
+}
+
+public final class com/okta/authfoundation/api/log/AuthFoundationLogger$DefaultImpls {
+	public static synthetic fun write$default (Lcom/okta/authfoundation/api/log/AuthFoundationLogger;Ljava/lang/String;Ljava/lang/Throwable;Lcom/okta/authfoundation/api/log/LogLevel;ILjava/lang/Object;)V
+}
+
+public final class com/okta/authfoundation/api/log/LogLevel : java/lang/Enum {
+	public static final field DEBUG Lcom/okta/authfoundation/api/log/LogLevel;
+	public static final field ERROR Lcom/okta/authfoundation/api/log/LogLevel;
+	public static final field INFO Lcom/okta/authfoundation/api/log/LogLevel;
+	public static final field WARN Lcom/okta/authfoundation/api/log/LogLevel;
 	public static fun getEntries ()Lkotlin/enums/EnumEntries;
-	public static fun valueOf (Ljava/lang/String;)Lcom/okta/authfoundation/api/http/log/LogLevel;
-	public static fun values ()[Lcom/okta/authfoundation/api/http/log/LogLevel;
+	public static fun valueOf (Ljava/lang/String;)Lcom/okta/authfoundation/api/log/LogLevel;
+	public static fun values ()[Lcom/okta/authfoundation/api/log/LogLevel;
 }
 
 public abstract interface class com/okta/authfoundation/claims/ClaimsProvider {
@@ -336,6 +358,7 @@ public final class com/okta/authfoundation/client/ApplicationContextHolder {
 }
 
 public abstract interface class com/okta/authfoundation/client/Cache {
+	public abstract fun clear ()V
 	public abstract fun get (Ljava/lang/String;)Ljava/lang/String;
 	public abstract fun set (Ljava/lang/String;Ljava/lang/String;)V
 }
@@ -378,12 +401,6 @@ public final class com/okta/authfoundation/client/IdTokenValidator$Parameters {
 	public final fun getNonce ()Ljava/lang/String;
 }
 
-public final class com/okta/authfoundation/client/NoOpCache : com/okta/authfoundation/client/Cache {
-	public fun <init> ()V
-	public fun get (Ljava/lang/String;)Ljava/lang/String;
-	public fun set (Ljava/lang/String;Ljava/lang/String;)V
-}
-
 public final class com/okta/authfoundation/client/OAuth2Client {
 	public static final field Companion Lcom/okta/authfoundation/client/OAuth2Client$Companion;
 	public final fun endpointNotAvailableError ()Lcom/okta/authfoundation/client/OAuth2ClientResult$Error;
@@ -392,6 +409,7 @@ public final class com/okta/authfoundation/client/OAuth2Client {
 	public final fun getUserInfo (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun introspectToken (Lcom/okta/authfoundation/credential/TokenType;Lcom/okta/authfoundation/credential/Token;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun jwks (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun refreshToken (Lcom/okta/authfoundation/credential/Token;Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun refreshToken (Lcom/okta/authfoundation/credential/Token;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun revokeToken (Lcom/okta/authfoundation/credential/RevokeTokenType;Lcom/okta/authfoundation/credential/Token;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun tokenRequest (Lokhttp3/Request;Ljava/lang/String;Ljava/lang/Integer;Lcom/okta/authfoundation/credential/Token;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -402,6 +420,62 @@ public final class com/okta/authfoundation/client/OAuth2Client$Companion {
 	public final fun create (Lcom/okta/authfoundation/client/OidcConfiguration;Lcom/okta/authfoundation/client/OidcEndpoints;)Lcom/okta/authfoundation/client/OAuth2Client;
 	public final fun createFromConfiguration (Lcom/okta/authfoundation/client/OidcConfiguration;)Lcom/okta/authfoundation/client/OAuth2Client;
 	public final fun getDefault ()Lcom/okta/authfoundation/client/OAuth2Client;
+}
+
+public final class com/okta/authfoundation/client/OAuth2ClientBuilder {
+	public static final field Companion Lcom/okta/authfoundation/client/OAuth2ClientBuilder$Companion;
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getAccessTokenValidator ()Lcom/okta/authfoundation/client/kmp/AccessTokenValidator;
+	public final fun getAcrValues ()Ljava/lang/String;
+	public final fun getApiExecutor ()Lcom/okta/authfoundation/api/http/ApiExecutor;
+	public final fun getAuthorizationServerId ()Ljava/lang/String;
+	public final fun getCache ()Lcom/okta/authfoundation/client/Cache;
+	public final fun getClientSecret ()Ljava/lang/String;
+	public final fun getClock ()Lcom/okta/authfoundation/client/OidcClock;
+	public final fun getComputeDispatcher ()Lkotlin/coroutines/CoroutineContext;
+	public final fun getDeviceSecretValidator ()Lcom/okta/authfoundation/client/kmp/DeviceSecretValidator;
+	public final fun getEndpointOverrides ()Lcom/okta/authfoundation/client/OAuth2EndpointOverrides;
+	public final fun getIdTokenValidator ()Lcom/okta/authfoundation/client/kmp/IdTokenValidator;
+	public final fun getIoDispatcher ()Lkotlin/coroutines/CoroutineContext;
+	public final fun getJson ()Lkotlinx/serialization/json/Json;
+	public final fun getRateLimitRetryCallback ()Lkotlin/jvm/functions/Function1;
+	public final fun setAccessTokenValidator (Lcom/okta/authfoundation/client/kmp/AccessTokenValidator;)V
+	public final fun setAcrValues (Ljava/lang/String;)V
+	public final fun setApiExecutor (Lcom/okta/authfoundation/api/http/ApiExecutor;)V
+	public final fun setAuthorizationServerId (Ljava/lang/String;)V
+	public final fun setCache (Lcom/okta/authfoundation/client/Cache;)V
+	public final fun setClientSecret (Ljava/lang/String;)V
+	public final fun setClock (Lcom/okta/authfoundation/client/OidcClock;)V
+	public final fun setComputeDispatcher (Lkotlin/coroutines/CoroutineContext;)V
+	public final fun setDeviceSecretValidator (Lcom/okta/authfoundation/client/kmp/DeviceSecretValidator;)V
+	public final fun setEndpointOverrides (Lcom/okta/authfoundation/client/OAuth2EndpointOverrides;)V
+	public final fun setIdTokenValidator (Lcom/okta/authfoundation/client/kmp/IdTokenValidator;)V
+	public final fun setIoDispatcher (Lkotlin/coroutines/CoroutineContext;)V
+	public final fun setJson (Lkotlinx/serialization/json/Json;)V
+	public final fun setRateLimitRetryCallback (Lkotlin/jvm/functions/Function1;)V
+}
+
+public final class com/okta/authfoundation/client/OAuth2ClientBuilder$Companion {
+	public final fun create-BWLJW6A (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+	public static synthetic fun create-BWLJW6A$default (Lcom/okta/authfoundation/client/OAuth2ClientBuilder$Companion;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class com/okta/authfoundation/client/OAuth2ClientConfiguration {
+	public final fun getAccessTokenValidator ()Lcom/okta/authfoundation/client/kmp/AccessTokenValidator;
+	public final fun getAcrValues ()Ljava/lang/String;
+	public final fun getApiExecutor ()Lcom/okta/authfoundation/api/http/ApiExecutor;
+	public final fun getAuthorizationServerId ()Ljava/lang/String;
+	public final fun getCache ()Lcom/okta/authfoundation/client/Cache;
+	public final fun getClientId ()Ljava/lang/String;
+	public final fun getClientSecret ()Ljava/lang/String;
+	public final fun getClock ()Lcom/okta/authfoundation/client/OidcClock;
+	public final fun getDefaultScope ()Ljava/lang/String;
+	public final fun getDeviceSecretValidator ()Lcom/okta/authfoundation/client/kmp/DeviceSecretValidator;
+	public final fun getEndpointOverrides ()Lcom/okta/authfoundation/client/OAuth2EndpointOverrides;
+	public final fun getIdTokenValidator ()Lcom/okta/authfoundation/client/kmp/IdTokenValidator;
+	public final fun getIssuerUrl ()Ljava/lang/String;
+	public final fun getJson ()Lkotlinx/serialization/json/Json;
+	public final fun getRateLimitRetryCallback ()Lkotlin/jvm/functions/Function1;
 }
 
 public abstract class com/okta/authfoundation/client/OAuth2ClientResult {
@@ -422,9 +496,28 @@ public final class com/okta/authfoundation/client/OAuth2ClientResult$Error$HttpR
 public final class com/okta/authfoundation/client/OAuth2ClientResult$Error$OidcEndpointsNotAvailableException : java/lang/Exception {
 }
 
+public final class com/okta/authfoundation/client/OAuth2ClientResult$Error$RateLimitException : java/lang/Exception {
+	public final fun getRequestUrl ()Ljava/lang/String;
+	public final fun getRetryAfterSeconds ()Ljava/lang/Long;
+}
+
 public final class com/okta/authfoundation/client/OAuth2ClientResult$Success : com/okta/authfoundation/client/OAuth2ClientResult {
 	public fun <init> (Ljava/lang/Object;)V
 	public final fun getResult ()Ljava/lang/Object;
+}
+
+public final class com/okta/authfoundation/client/OAuth2EndpointOverrides {
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getAuthorizationEndpoint ()Ljava/lang/String;
+	public final fun getDeviceAuthorizationEndpoint ()Ljava/lang/String;
+	public final fun getEndSessionEndpoint ()Ljava/lang/String;
+	public final fun getIntrospectionEndpoint ()Ljava/lang/String;
+	public final fun getJwksUri ()Ljava/lang/String;
+	public final fun getRevocationEndpoint ()Ljava/lang/String;
+	public final fun getTokenEndpoint ()Ljava/lang/String;
+	public final fun getUserInfoEndpoint ()Ljava/lang/String;
 }
 
 public abstract interface class com/okta/authfoundation/client/OidcClock {
@@ -434,6 +527,7 @@ public abstract interface class com/okta/authfoundation/client/OidcClock {
 public final class com/okta/authfoundation/client/OidcConfiguration {
 	public static final field Companion Lcom/okta/authfoundation/client/OidcConfiguration$Companion;
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lcom/okta/authfoundation/client/OAuth2EndpointOverrides;)V
 	public final fun getAccessTokenValidator ()Lcom/okta/authfoundation/client/AccessTokenValidator;
 	public final fun getCacheFactory ()Lkotlin/jvm/functions/Function1;
 	public final fun getClientId ()Ljava/lang/String;
@@ -442,6 +536,7 @@ public final class com/okta/authfoundation/client/OidcConfiguration {
 	public final fun getDefaultScope ()Ljava/lang/String;
 	public final fun getDeviceSecretValidator ()Lcom/okta/authfoundation/client/DeviceSecretValidator;
 	public final fun getDiscoveryUrl ()Ljava/lang/String;
+	public final fun getEndpointOverrides ()Lcom/okta/authfoundation/client/OAuth2EndpointOverrides;
 	public final fun getEventCoordinator ()Lcom/okta/authfoundation/events/EventCoordinator;
 	public final fun getIdTokenValidator ()Lcom/okta/authfoundation/client/IdTokenValidator;
 	public final fun getIoDispatcher ()Lkotlin/coroutines/CoroutineContext;
@@ -478,6 +573,56 @@ public final class com/okta/authfoundation/client/OidcEndpoints {
 	public final fun getRevocationEndpoint ()Lokhttp3/HttpUrl;
 	public final fun getTokenEndpoint ()Lokhttp3/HttpUrl;
 	public final fun getUserInfoEndpoint ()Lokhttp3/HttpUrl;
+}
+
+public abstract interface class com/okta/authfoundation/client/TokenInfo {
+	public abstract fun getAccessToken ()Ljava/lang/String;
+	public abstract fun getClientId ()Ljava/lang/String;
+	public abstract fun getDeviceSecret ()Ljava/lang/String;
+	public abstract fun getExpiresIn ()I
+	public abstract fun getId ()Ljava/lang/String;
+	public abstract fun getIdToken ()Ljava/lang/String;
+	public abstract fun getIssuedTokenType ()Ljava/lang/String;
+	public abstract fun getIssuerUrl ()Ljava/lang/String;
+	public abstract fun getRefreshToken ()Ljava/lang/String;
+	public abstract fun getScope ()Ljava/lang/String;
+	public abstract fun getTokenType ()Ljava/lang/String;
+}
+
+public final class com/okta/authfoundation/client/dto/DeviceAuthorizationInfo {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;II)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()I
+	public final fun component6 ()I
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;II)Lcom/okta/authfoundation/client/dto/DeviceAuthorizationInfo;
+	public static synthetic fun copy$default (Lcom/okta/authfoundation/client/dto/DeviceAuthorizationInfo;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;IIILjava/lang/Object;)Lcom/okta/authfoundation/client/dto/DeviceAuthorizationInfo;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDeviceCode ()Ljava/lang/String;
+	public final fun getExpiresIn ()I
+	public final fun getInterval ()I
+	public final fun getUserCode ()Ljava/lang/String;
+	public final fun getVerificationUri ()Ljava/lang/String;
+	public final fun getVerificationUriComplete ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract class com/okta/authfoundation/client/dto/IntrospectInfo {
+	public synthetic fun <init> (ZLkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getActive ()Z
+}
+
+public final class com/okta/authfoundation/client/dto/IntrospectInfo$Active : com/okta/authfoundation/client/dto/IntrospectInfo, com/okta/authfoundation/claims/ClaimsProvider {
+	public fun availableClaims ()Ljava/util/Set;
+	public fun deserializeClaim (Ljava/lang/String;Lkotlinx/serialization/DeserializationStrategy;)Ljava/lang/Object;
+	public fun deserializeClaims (Lkotlinx/serialization/DeserializationStrategy;)Ljava/lang/Object;
+}
+
+public final class com/okta/authfoundation/client/dto/IntrospectInfo$Inactive : com/okta/authfoundation/client/dto/IntrospectInfo {
+	public static final field INSTANCE Lcom/okta/authfoundation/client/dto/IntrospectInfo$Inactive;
 }
 
 public abstract class com/okta/authfoundation/client/dto/OidcIntrospectInfo {
@@ -532,9 +677,181 @@ public final class com/okta/authfoundation/client/internal/NetworkUtilsKt {
 	public static synthetic fun performRequest$default (Lcom/okta/authfoundation/client/OAuth2Client;Lkotlinx/serialization/DeserializationStrategy;Lokhttp3/Request;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
+public final class com/okta/authfoundation/client/internal/OAuth2Endpoints {
+	public static final field Companion Lcom/okta/authfoundation/client/internal/OAuth2Endpoints$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public final fun getAuthorizationEndpoint ()Ljava/lang/String;
+	public final fun getDeviceAuthorizationEndpoint ()Ljava/lang/String;
+	public final fun getEndSessionEndpoint ()Ljava/lang/String;
+	public final fun getIntrospectionEndpoint ()Ljava/lang/String;
+	public final fun getIssuer ()Ljava/lang/String;
+	public final fun getJwksUri ()Ljava/lang/String;
+	public final fun getRevocationEndpoint ()Ljava/lang/String;
+	public final fun getTokenEndpoint ()Ljava/lang/String;
+	public final fun getUserInfoEndpoint ()Ljava/lang/String;
+	public final fun merge (Lcom/okta/authfoundation/client/OAuth2EndpointOverrides;)Lcom/okta/authfoundation/client/internal/OAuth2Endpoints;
+}
+
+public final class com/okta/authfoundation/client/internal/OAuth2Endpoints$Companion {
+	public final fun allFieldsNonNull (Lcom/okta/authfoundation/client/OAuth2EndpointOverrides;)Z
+}
+
 public final class com/okta/authfoundation/client/internal/SdkVersionsRegistry {
 	public static final field INSTANCE Lcom/okta/authfoundation/client/internal/SdkVersionsRegistry;
 	public final fun register (Ljava/lang/String;)V
+}
+
+public abstract interface class com/okta/authfoundation/client/kmp/AccessTokenValidator {
+	public abstract fun validate (Ljava/lang/String;Lcom/okta/authfoundation/jwt/Jwt;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class com/okta/authfoundation/client/kmp/AccessTokenValidator$Error : java/lang/IllegalStateException {
+	public fun <init> (Ljava/lang/String;)V
+}
+
+public final class com/okta/authfoundation/client/kmp/DefaultAccessTokenValidator : com/okta/authfoundation/client/kmp/AccessTokenValidator {
+	public fun <init> ()V
+	public fun validate (Ljava/lang/String;Lcom/okta/authfoundation/jwt/Jwt;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class com/okta/authfoundation/client/kmp/DefaultDeviceSecretValidator : com/okta/authfoundation/client/kmp/DeviceSecretValidator {
+	public fun <init> ()V
+	public fun validate (Ljava/lang/String;Lcom/okta/authfoundation/jwt/Jwt;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class com/okta/authfoundation/client/kmp/DefaultIdTokenValidator : com/okta/authfoundation/client/kmp/IdTokenValidator {
+	public fun <init> ()V
+	public fun <init> (I)V
+	public synthetic fun <init> (IILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getIssuedAtGracePeriodInSeconds ()I
+	public fun validate (Ljava/lang/String;Ljava/lang/String;Lcom/okta/authfoundation/jwt/Jwt;Lcom/okta/authfoundation/client/OidcClock;Lcom/okta/authfoundation/client/kmp/IdTokenValidator$Parameters;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public abstract interface class com/okta/authfoundation/client/kmp/DeviceSecretValidator {
+	public abstract fun validate (Ljava/lang/String;Lcom/okta/authfoundation/jwt/Jwt;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class com/okta/authfoundation/client/kmp/DeviceSecretValidator$Error : java/lang/IllegalStateException {
+	public fun <init> (Ljava/lang/String;)V
+}
+
+public abstract interface class com/okta/authfoundation/client/kmp/IdTokenValidator {
+	public abstract fun validate (Ljava/lang/String;Ljava/lang/String;Lcom/okta/authfoundation/jwt/Jwt;Lcom/okta/authfoundation/client/OidcClock;Lcom/okta/authfoundation/client/kmp/IdTokenValidator$Parameters;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun validate$default (Lcom/okta/authfoundation/client/kmp/IdTokenValidator;Ljava/lang/String;Ljava/lang/String;Lcom/okta/authfoundation/jwt/Jwt;Lcom/okta/authfoundation/client/OidcClock;Lcom/okta/authfoundation/client/kmp/IdTokenValidator$Parameters;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class com/okta/authfoundation/client/kmp/IdTokenValidator$DefaultImpls {
+	public static synthetic fun validate$default (Lcom/okta/authfoundation/client/kmp/IdTokenValidator;Ljava/lang/String;Ljava/lang/String;Lcom/okta/authfoundation/jwt/Jwt;Lcom/okta/authfoundation/client/OidcClock;Lcom/okta/authfoundation/client/kmp/IdTokenValidator$Parameters;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class com/okta/authfoundation/client/kmp/IdTokenValidator$Error : java/lang/IllegalStateException {
+	public static final field Companion Lcom/okta/authfoundation/client/kmp/IdTokenValidator$Error$Companion;
+	public static final field EXPIRED Ljava/lang/String;
+	public static final field INVALID_AUDIENCE Ljava/lang/String;
+	public static final field INVALID_ISSUER Ljava/lang/String;
+	public static final field INVALID_JWT_ALGORITHM Ljava/lang/String;
+	public static final field INVALID_JWT_SIGNATURE Ljava/lang/String;
+	public static final field INVALID_SUBJECT Ljava/lang/String;
+	public static final field ISSUED_AT_THRESHOLD_NOT_SATISFIED Ljava/lang/String;
+	public static final field ISSUER_NOT_HTTPS Ljava/lang/String;
+	public static final field MAX_AGE_NOT_SATISFIED Ljava/lang/String;
+	public static final field NONCE_MISMATCH Ljava/lang/String;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getIdentifier ()Ljava/lang/String;
+}
+
+public final class com/okta/authfoundation/client/kmp/IdTokenValidator$Error$Companion {
+}
+
+public final class com/okta/authfoundation/client/kmp/IdTokenValidator$Parameters {
+	public fun <init> (Ljava/lang/String;Ljava/lang/Integer;)V
+	public final fun getMaxAge ()Ljava/lang/Integer;
+	public final fun getNonce ()Ljava/lang/String;
+}
+
+public final class com/okta/authfoundation/client/kmp/MaxRetries {
+	public static final synthetic fun box-impl (I)Lcom/okta/authfoundation/client/kmp/MaxRetries;
+	public static fun constructor-impl (I)I
+	public fun equals (Ljava/lang/Object;)Z
+	public static fun equals-impl (ILjava/lang/Object;)Z
+	public static final fun equals-impl0 (II)Z
+	public final fun getValue ()I
+	public fun hashCode ()I
+	public static fun hashCode-impl (I)I
+	public fun toString ()Ljava/lang/String;
+	public static fun toString-impl (I)Ljava/lang/String;
+	public final synthetic fun unbox-impl ()I
+}
+
+public final class com/okta/authfoundation/client/kmp/MinDelaySeconds {
+	public static final synthetic fun box-impl (J)Lcom/okta/authfoundation/client/kmp/MinDelaySeconds;
+	public static fun constructor-impl (J)J
+	public fun equals (Ljava/lang/Object;)Z
+	public static fun equals-impl (JLjava/lang/Object;)Z
+	public static final fun equals-impl0 (JJ)Z
+	public final fun getValue ()J
+	public fun hashCode ()I
+	public static fun hashCode-impl (J)I
+	public fun toString ()Ljava/lang/String;
+	public static fun toString-impl (J)Ljava/lang/String;
+	public final synthetic fun unbox-impl ()J
+}
+
+public final class com/okta/authfoundation/client/kmp/OAuth2Client {
+	public static final field Companion Lcom/okta/authfoundation/client/kmp/OAuth2Client$Companion;
+	public final fun deviceAuthorizationRequest-gIAlu-s (Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun endpointsOrNull (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun getConfiguration ()Lcom/okta/authfoundation/client/OAuth2ClientConfiguration;
+	public final fun getEvents ()Lkotlinx/coroutines/flow/SharedFlow;
+	public final fun getUserInfo-gIAlu-s (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun introspectToken-0E7RQCE (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun jwks-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun refreshToken-0E7RQCE (Ljava/lang/String;Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun refreshToken-gIAlu-s (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun revokeToken-gIAlu-s (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun tokenRequest-BWLJW6A (Ljava/util/Map;Ljava/lang/String;Ljava/lang/Integer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun tokenRequest-BWLJW6A$default (Lcom/okta/authfoundation/client/kmp/OAuth2Client;Ljava/util/Map;Ljava/lang/String;Ljava/lang/Integer;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class com/okta/authfoundation/client/kmp/OAuth2Client$Companion {
+	public final fun createFromConfiguration (Lcom/okta/authfoundation/client/OAuth2ClientConfiguration;)Lcom/okta/authfoundation/client/kmp/OAuth2Client;
+}
+
+public final class com/okta/authfoundation/client/kmp/RateLimitRetryConfig {
+	public synthetic fun <init> (IJLkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1-KHxJZ0A ()I
+	public final fun component2-Klur8Ro ()J
+	public final fun copy-HXtXcCM (IJ)Lcom/okta/authfoundation/client/kmp/RateLimitRetryConfig;
+	public static synthetic fun copy-HXtXcCM$default (Lcom/okta/authfoundation/client/kmp/RateLimitRetryConfig;IJILjava/lang/Object;)Lcom/okta/authfoundation/client/kmp/RateLimitRetryConfig;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getMaxRetries-KHxJZ0A ()I
+	public final fun getMinDelaySeconds-Klur8Ro ()J
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/okta/authfoundation/client/kmp/events/RateLimitExceededEvent : com/okta/authfoundation/events/TokenEvent {
+	public final fun getRequestUrl ()Ljava/lang/String;
+	public final fun getResponseHeaders ()Ljava/util/Map;
+	public final fun getRetryAfterSeconds ()Ljava/lang/Long;
+}
+
+public final class com/okta/authfoundation/client/kmp/events/TokenCreatedEvent : com/okta/authfoundation/events/TokenEvent {
+	public final fun getTokenInfo ()Lcom/okta/authfoundation/client/TokenInfo;
+}
+
+public final class com/okta/authfoundation/credential/AndroidBiometricAuthenticator : com/okta/authfoundation/credential/BiometricAuthenticator {
+	public fun <init> (Landroidx/biometric/BiometricPrompt$PromptInfo;Ljava/security/KeyStore;)V
+	public fun decrypt-0E7RQCE ([BLjava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun decrypt-BWLJW6A ([BLjava/lang/String;[BLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun unlock-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public abstract interface class com/okta/authfoundation/credential/BiometricAuthenticator {
+	public abstract fun decrypt-0E7RQCE ([BLjava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun decrypt-BWLJW6A ([BLjava/lang/String;[BLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun unlock-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class com/okta/authfoundation/credential/BiometricInvocationException : java/lang/IllegalStateException {
@@ -542,14 +859,14 @@ public final class com/okta/authfoundation/credential/BiometricInvocationExcepti
 	public fun getMessage ()Ljava/lang/String;
 }
 
-public final class com/okta/authfoundation/credential/Credential {
+public final class com/okta/authfoundation/credential/Credential : com/okta/authfoundation/credential/CredentialIdentifier {
 	public static final field Companion Lcom/okta/authfoundation/credential/Credential$Companion;
 	public final fun accessTokenInterceptor ()Lokhttp3/Interceptor;
 	public final fun delete ()V
 	public final fun deleteAsync (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getAccessTokenIfValid ()Ljava/lang/String;
-	public final fun getId ()Ljava/lang/String;
+	public fun getId ()Ljava/lang/String;
 	public final fun getTags ()Ljava/util/Map;
 	public final fun getToken ()Lcom/okta/authfoundation/credential/Token;
 	public final fun getTokenFlow ()Lkotlinx/coroutines/flow/Flow;
@@ -558,6 +875,7 @@ public final class com/okta/authfoundation/credential/Credential {
 	public fun hashCode ()I
 	public final fun idToken ()Lcom/okta/authfoundation/jwt/Jwt;
 	public final fun introspectToken (Lcom/okta/authfoundation/credential/TokenType;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun refreshToken (Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun refreshToken (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun revokeAllTokens (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun revokeToken (Lcom/okta/authfoundation/credential/RevokeTokenType;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -666,6 +984,10 @@ public final class com/okta/authfoundation/credential/CredentialDataSource$Compa
 	public final fun getInstance (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
+public abstract interface class com/okta/authfoundation/credential/CredentialIdentifier {
+	public abstract fun getId ()Ljava/lang/String;
+}
+
 public final class com/okta/authfoundation/credential/DefaultTokenEncryptionHandler : com/okta/authfoundation/credential/TokenEncryptionHandler {
 	public fun <init> ()V
 	public fun <init> (Ljava/security/KeyStore;Ljava/security/KeyPairGenerator;)V
@@ -720,19 +1042,22 @@ public final class com/okta/authfoundation/credential/RoomTokenStorage$Companion
 	public final fun getInstance (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
-public final class com/okta/authfoundation/credential/Token {
+public final class com/okta/authfoundation/credential/Token : com/okta/authfoundation/client/TokenInfo {
 	public static final field Companion Lcom/okta/authfoundation/credential/Token$Companion;
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lcom/okta/authfoundation/client/OidcConfiguration;)V
 	public fun equals (Ljava/lang/Object;)Z
-	public final fun getAccessToken ()Ljava/lang/String;
-	public final fun getDeviceSecret ()Ljava/lang/String;
-	public final fun getExpiresIn ()I
-	public final fun getIdToken ()Ljava/lang/String;
-	public final fun getIssuedTokenType ()Ljava/lang/String;
+	public fun getAccessToken ()Ljava/lang/String;
+	public fun getClientId ()Ljava/lang/String;
+	public fun getDeviceSecret ()Ljava/lang/String;
+	public fun getExpiresIn ()I
+	public fun getId ()Ljava/lang/String;
+	public fun getIdToken ()Ljava/lang/String;
+	public fun getIssuedTokenType ()Ljava/lang/String;
+	public fun getIssuerUrl ()Ljava/lang/String;
 	public final fun getOidcConfiguration ()Lcom/okta/authfoundation/client/OidcConfiguration;
-	public final fun getRefreshToken ()Ljava/lang/String;
-	public final fun getScope ()Ljava/lang/String;
-	public final fun getTokenType ()Ljava/lang/String;
+	public fun getRefreshToken ()Ljava/lang/String;
+	public fun getScope ()Ljava/lang/String;
+	public fun getTokenType ()Ljava/lang/String;
 	public fun hashCode ()I
 }
 
@@ -797,6 +1122,27 @@ public final class com/okta/authfoundation/credential/TokenEncryptionHandler$Enc
 	public final fun getEncryptionExtras ()Ljava/util/Map;
 }
 
+public final class com/okta/authfoundation/credential/TokenMetadata {
+	public fun <init> (Ljava/lang/String;Ljava/util/Map;Lcom/okta/authfoundation/jwt/Jwt;Lkotlinx/serialization/json/Json;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/util/Map;Lcom/okta/authfoundation/jwt/Jwt;Lkotlinx/serialization/json/Json;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/lang/String;Ljava/util/Map;Lkotlinx/serialization/json/JsonObject;Lkotlinx/serialization/json/Json;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/util/Map;Lkotlinx/serialization/json/JsonObject;Lkotlinx/serialization/json/Json;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/util/Map;
+	public final fun component3 ()Lkotlinx/serialization/json/JsonObject;
+	public final fun component4 ()Lkotlinx/serialization/json/Json;
+	public final fun copy (Ljava/lang/String;Ljava/util/Map;Lkotlinx/serialization/json/JsonObject;Lkotlinx/serialization/json/Json;)Lcom/okta/authfoundation/credential/TokenMetadata;
+	public static synthetic fun copy$default (Lcom/okta/authfoundation/credential/TokenMetadata;Ljava/lang/String;Ljava/util/Map;Lkotlinx/serialization/json/JsonObject;Lkotlinx/serialization/json/Json;ILjava/lang/Object;)Lcom/okta/authfoundation/credential/TokenMetadata;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getClaimsProvider ()Lcom/okta/authfoundation/claims/ClaimsProvider;
+	public final fun getId ()Ljava/lang/String;
+	public final fun getJson ()Lkotlinx/serialization/json/Json;
+	public final fun getPayloadData ()Lkotlinx/serialization/json/JsonObject;
+	public final fun getTags ()Ljava/util/Map;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
 public abstract interface class com/okta/authfoundation/credential/TokenStorage {
 	public abstract fun add (Lcom/okta/authfoundation/credential/Token;Lcom/okta/authfoundation/credential/Token$Metadata;Lcom/okta/authfoundation/credential/Credential$Security;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun add$default (Lcom/okta/authfoundation/credential/TokenStorage;Lcom/okta/authfoundation/credential/Token;Lcom/okta/authfoundation/credential/Token$Metadata;Lcom/okta/authfoundation/credential/Credential$Security;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
@@ -836,29 +1182,29 @@ public final class com/okta/authfoundation/credential/events/BiometricTokenInval
 }
 
 public final class com/okta/authfoundation/credential/events/CredentialCreatedEvent : com/okta/authfoundation/events/CredentialEvent {
-	public final fun getCredential ()Lcom/okta/authfoundation/credential/Credential;
+	public final fun getCredentialIdentifier ()Lcom/okta/authfoundation/credential/CredentialIdentifier;
 }
 
 public final class com/okta/authfoundation/credential/events/CredentialDeletedEvent : com/okta/authfoundation/events/CredentialEvent {
-	public final fun getCredential ()Lcom/okta/authfoundation/credential/Credential;
+	public final fun getCredentialIdentifier ()Lcom/okta/authfoundation/credential/CredentialIdentifier;
 }
 
 public final class com/okta/authfoundation/credential/events/CredentialStoredAfterRemovedEvent : com/okta/authfoundation/events/CredentialEvent {
-	public final fun getCredential ()Lcom/okta/authfoundation/credential/Credential;
+	public final fun getCredentialIdentifier ()Lcom/okta/authfoundation/credential/CredentialIdentifier;
 }
 
 public final class com/okta/authfoundation/credential/events/CredentialStoredEvent : com/okta/authfoundation/events/CredentialEvent {
-	public final fun getCredential ()Lcom/okta/authfoundation/credential/Credential;
+	public final fun getCredentialIdentifier ()Lcom/okta/authfoundation/credential/CredentialIdentifier;
 	public final fun getTags ()Ljava/util/Map;
-	public final fun getToken ()Lcom/okta/authfoundation/credential/Token;
+	public final fun getToken ()Lcom/okta/authfoundation/client/TokenInfo;
 }
 
 public final class com/okta/authfoundation/credential/events/DefaultCredentialChangedEvent : com/okta/authfoundation/events/CredentialEvent {
-	public final fun getCredential ()Lcom/okta/authfoundation/credential/Credential;
+	public final fun getCredentialIdentifier ()Lcom/okta/authfoundation/credential/CredentialIdentifier;
 }
 
 public final class com/okta/authfoundation/credential/events/NoAccessTokenAvailableEvent : com/okta/authfoundation/events/CredentialEvent {
-	public final fun getCredential ()Lcom/okta/authfoundation/credential/Credential;
+	public final fun getCredential ()Lcom/okta/authfoundation/credential/CredentialIdentifier;
 }
 
 public final class com/okta/authfoundation/credential/events/TokenStorageAccessErrorEvent : com/okta/authfoundation/events/CredentialEvent {
@@ -866,6 +1212,189 @@ public final class com/okta/authfoundation/credential/events/TokenStorageAccessE
 	public final fun getShouldClearStorageAndTryAgain ()Z
 	public final fun setShouldClearStorageAndTryAgain (Z)V
 	public final fun withShouldClearStorageAndTryAgain (Z)Lcom/okta/authfoundation/credential/events/TokenStorageAccessErrorEvent;
+}
+
+public final class com/okta/authfoundation/credential/kmp/BearerTokenPluginConfig {
+	public fun <init> ()V
+	public final fun getAccessTokenProvider ()Lkotlin/jvm/functions/Function1;
+	public final fun getCredential ()Lcom/okta/authfoundation/credential/kmp/Credential;
+	public final fun getEventsFlow ()Lkotlinx/coroutines/flow/MutableSharedFlow;
+	public final fun setAccessTokenProvider (Lkotlin/jvm/functions/Function1;)V
+	public final fun setCredential (Lcom/okta/authfoundation/credential/kmp/Credential;)V
+	public final fun setEventsFlow (Lkotlinx/coroutines/flow/MutableSharedFlow;)V
+}
+
+public final class com/okta/authfoundation/credential/kmp/BearerTokenPluginKt {
+	public static final fun getBearerTokenPlugin ()Lio/ktor/client/plugins/api/ClientPlugin;
+}
+
+public final class com/okta/authfoundation/credential/kmp/BiometricKeyInvalidatedException : java/lang/Exception {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun getKeyAlias ()Ljava/lang/String;
+	public final fun getTokenId ()Ljava/lang/String;
+}
+
+public abstract interface class com/okta/authfoundation/credential/kmp/Credential : com/okta/authfoundation/credential/CredentialIdentifier {
+	public abstract fun accessTokenIfNotExpired ()Ljava/lang/String;
+	public abstract fun deleteAsync-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun getId ()Ljava/lang/String;
+	public abstract fun getTags ()Ljava/util/Map;
+	public abstract fun getToken ()Lcom/okta/authfoundation/client/TokenInfo;
+	public abstract fun getTokenFlow ()Lkotlinx/coroutines/flow/Flow;
+	public abstract fun getUserInfo-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun idToken-d1pmJ48 ()Ljava/lang/Object;
+	public abstract fun introspectToken-gIAlu-s (Lcom/okta/authfoundation/credential/TokenType;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun refreshIfExpired-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun refreshToken-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun refreshToken-gIAlu-s (Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun revokeAllTokens-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun revokeToken-gIAlu-s (Lcom/okta/authfoundation/credential/RevokeTokenType;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun scope ()Ljava/lang/String;
+	public abstract fun setTagsAsync-gIAlu-s (Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class com/okta/authfoundation/credential/kmp/Credential$DefaultImpls {
+	public static fun refreshToken-gIAlu-s (Lcom/okta/authfoundation/credential/kmp/Credential;Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class com/okta/authfoundation/credential/kmp/CredentialImpl : com/okta/authfoundation/credential/kmp/Credential {
+	public fun accessTokenIfNotExpired ()Ljava/lang/String;
+	public fun deleteAsync-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getId ()Ljava/lang/String;
+	public fun getTags ()Ljava/util/Map;
+	public synthetic fun getToken ()Lcom/okta/authfoundation/client/TokenInfo;
+	public fun getToken ()Lcom/okta/authfoundation/credential/kmp/TokenData;
+	public fun getTokenFlow ()Lkotlinx/coroutines/flow/Flow;
+	public fun getUserInfo-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun hashCode ()I
+	public fun idToken-d1pmJ48 ()Ljava/lang/Object;
+	public fun introspectToken-gIAlu-s (Lcom/okta/authfoundation/credential/TokenType;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun refreshIfExpired-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun refreshToken-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun refreshToken-gIAlu-s (Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun revokeAllTokens-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun revokeToken-gIAlu-s (Lcom/okta/authfoundation/credential/RevokeTokenType;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun scope ()Ljava/lang/String;
+	public fun setTagsAsync-gIAlu-s (Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public abstract interface class com/okta/authfoundation/credential/kmp/DefaultCredentialIdStore {
+	public abstract fun clearDefaultCredentialId-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun getDefaultCredentialId-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun setDefaultCredentialId-gIAlu-s (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class com/okta/authfoundation/credential/kmp/EncryptionResult {
+	public fun <init> ([BLjava/util/Map;)V
+	public synthetic fun <init> ([BLjava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()[B
+	public final fun component2 ()Ljava/util/Map;
+	public final fun copy ([BLjava/util/Map;)Lcom/okta/authfoundation/credential/kmp/EncryptionResult;
+	public static synthetic fun copy$default (Lcom/okta/authfoundation/credential/kmp/EncryptionResult;[BLjava/util/Map;ILjava/lang/Object;)Lcom/okta/authfoundation/credential/kmp/EncryptionResult;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCiphertext ()[B
+	public final fun getEncryptionExtras ()Ljava/util/Map;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/okta/authfoundation/credential/kmp/TokenCredentialManager {
+	public fun <init> (Lcom/okta/authfoundation/client/kmp/OAuth2Client;Lcom/okta/authfoundation/credential/kmp/TokenStorage;Lcom/okta/authfoundation/credential/kmp/DefaultCredentialIdStore;Lkotlin/jvm/functions/Function1;)V
+	public synthetic fun <init> (Lcom/okta/authfoundation/client/kmp/OAuth2Client;Lcom/okta/authfoundation/credential/kmp/TokenStorage;Lcom/okta/authfoundation/credential/kmp/DefaultCredentialIdStore;Lkotlin/jvm/functions/Function1;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun allIds-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun find-gIAlu-s (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun findByCredential (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun get-gIAlu-s (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun getClient ()Lcom/okta/authfoundation/client/kmp/OAuth2Client;
+	public final fun getDefault-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun getDefaultIdStore ()Lcom/okta/authfoundation/credential/kmp/DefaultCredentialIdStore;
+	public final fun getEvents ()Lkotlinx/coroutines/flow/SharedFlow;
+	public final fun getOnStorageError ()Lkotlin/jvm/functions/Function1;
+	public final fun metadata-gIAlu-s (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun setDefault-gIAlu-s (Lcom/okta/authfoundation/credential/kmp/Credential;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun setMetadata-gIAlu-s (Lcom/okta/authfoundation/credential/TokenMetadata;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun store-0E7RQCE (Lcom/okta/authfoundation/credential/kmp/TokenData;Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun store-0E7RQCE$default (Lcom/okta/authfoundation/credential/kmp/TokenCredentialManager;Lcom/okta/authfoundation/credential/kmp/TokenData;Ljava/util/Map;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class com/okta/authfoundation/credential/kmp/TokenData : com/okta/authfoundation/client/TokenInfo {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lcom/okta/authfoundation/client/OAuth2ClientConfiguration;J)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lcom/okta/authfoundation/client/OAuth2ClientConfiguration;JILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun accessTokenIfNotExpired ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lcom/okta/authfoundation/credential/kmp/TokenData;
+	public static synthetic fun copy$default (Lcom/okta/authfoundation/credential/kmp/TokenData;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/okta/authfoundation/credential/kmp/TokenData;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getAccessToken ()Ljava/lang/String;
+	public fun getClientId ()Ljava/lang/String;
+	public final fun getConfiguration ()Lcom/okta/authfoundation/client/OAuth2ClientConfiguration;
+	public fun getDeviceSecret ()Ljava/lang/String;
+	public fun getExpiresIn ()I
+	public fun getId ()Ljava/lang/String;
+	public fun getIdToken ()Ljava/lang/String;
+	public final fun getIssuedAt ()J
+	public fun getIssuedTokenType ()Ljava/lang/String;
+	public fun getIssuerUrl ()Ljava/lang/String;
+	public fun getRefreshToken ()Ljava/lang/String;
+	public fun getScope ()Ljava/lang/String;
+	public fun getTokenType ()Ljava/lang/String;
+	public fun hashCode ()I
+}
+
+public abstract interface class com/okta/authfoundation/credential/kmp/TokenEncryptionHandler {
+	public abstract fun decrypt ([BLjava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun encrypt ([BLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public abstract interface class com/okta/authfoundation/credential/kmp/TokenStorage {
+	public abstract fun add-0E7RQCE (Lcom/okta/authfoundation/client/TokenInfo;Lcom/okta/authfoundation/credential/TokenMetadata;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun allIds-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun getToken-gIAlu-s (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun metadata-gIAlu-s (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun remove-gIAlu-s (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun replace-gIAlu-s (Lcom/okta/authfoundation/client/TokenInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun setMetadata-gIAlu-s (Lcom/okta/authfoundation/credential/TokenMetadata;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class com/okta/authfoundation/credential/kmp/storage/RoomDefaultCredentialIdStore : com/okta/authfoundation/credential/kmp/DefaultCredentialIdStore {
+	public static final field DEFAULT_CREDENTIAL_KEY Ljava/lang/String;
+	public fun <init> (Lcom/okta/authfoundation/credential/kmp/storage/TokenDatabase;)V
+	public fun clearDefaultCredentialId-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getDefaultCredentialId-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun setDefaultCredentialId-gIAlu-s (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class com/okta/authfoundation/credential/kmp/storage/RoomTokenStorage : com/okta/authfoundation/credential/kmp/TokenStorage {
+	public fun <init> (Lcom/okta/authfoundation/credential/kmp/storage/TokenDatabase;Lcom/okta/authfoundation/credential/kmp/TokenEncryptionHandler;Lcom/okta/authfoundation/client/OAuth2ClientConfiguration;)V
+	public fun add-0E7RQCE (Lcom/okta/authfoundation/client/TokenInfo;Lcom/okta/authfoundation/credential/TokenMetadata;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun allIds-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getToken-gIAlu-s (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun metadata-gIAlu-s (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun remove-gIAlu-s (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun replace-gIAlu-s (Lcom/okta/authfoundation/client/TokenInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun setMetadata-gIAlu-s (Lcom/okta/authfoundation/credential/TokenMetadata;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public abstract class com/okta/authfoundation/credential/kmp/storage/TokenDatabase : androidx/room/RoomDatabase {
+	public static final field Companion Lcom/okta/authfoundation/credential/kmp/storage/TokenDatabase$Companion;
+	public fun <init> ()V
+}
+
+public final class com/okta/authfoundation/credential/kmp/storage/TokenDatabase$Companion {
+}
+
+public final class com/okta/authfoundation/credential/kmp/storage/TokenDatabaseConstructor : androidx/room/RoomDatabaseConstructor {
+	public static final field INSTANCE Lcom/okta/authfoundation/credential/kmp/storage/TokenDatabaseConstructor;
+	public synthetic fun initialize ()Landroidx/room/RoomDatabase;
+	public fun initialize ()Lcom/okta/authfoundation/credential/kmp/storage/TokenDatabase;
+}
+
+public final class com/okta/authfoundation/credential/kmp/storage/TokenDatabase_Impl : com/okta/authfoundation/credential/kmp/storage/TokenDatabase {
+	public fun <init> ()V
+	public fun clearAllTables ()V
+	public fun createAutoMigrations (Ljava/util/Map;)Ljava/util/List;
+	public synthetic fun createOpenDelegate ()Landroidx/room/RoomOpenDelegateMarker;
+	public fun getRequiredAutoMigrationSpecClasses ()Ljava/util/Set;
 }
 
 public abstract class com/okta/authfoundation/credential/storage/TokenDatabase : androidx/room/RoomDatabase {
@@ -907,6 +1436,14 @@ public final class com/okta/authfoundation/credential/storage/typeconverters/Str
 	public final fun convertToObject (Ljava/lang/String;)Ljava/util/Map;
 }
 
+public final class com/okta/authfoundation/crypto/CryptoProvider_androidKt {
+	public static final fun secureRandomBytes (I)[B
+	public static final fun sha256Digest ([B)[B
+}
+
+public abstract interface class com/okta/authfoundation/events/CredentialEvent : com/okta/authfoundation/events/Event {
+}
+
 public abstract interface class com/okta/authfoundation/events/Event {
 }
 
@@ -918,6 +1455,9 @@ public final class com/okta/authfoundation/events/EventCoordinator {
 
 public abstract interface class com/okta/authfoundation/events/EventHandler {
 	public abstract fun onEvent (Lcom/okta/authfoundation/events/Event;)V
+}
+
+public abstract interface class com/okta/authfoundation/events/TokenEvent : com/okta/authfoundation/events/Event {
 }
 
 public final class com/okta/authfoundation/jwt/Jwks {
@@ -938,12 +1478,7 @@ public final class com/okta/authfoundation/jwt/Jwt : com/okta/authfoundation/cla
 }
 
 public final class com/okta/authfoundation/jwt/JwtParser {
-	public static final field Companion Lcom/okta/authfoundation/jwt/JwtParser$Companion;
 	public final fun parse (Ljava/lang/String;)Lcom/okta/authfoundation/jwt/Jwt;
-}
-
-public final class com/okta/authfoundation/jwt/JwtParser$Companion {
-	public final fun create ()Lcom/okta/authfoundation/jwt/JwtParser;
 }
 
 public final class com/okta/authfoundation/util/AesEncryptionHandler {
@@ -952,7 +1487,7 @@ public final class com/okta/authfoundation/util/AesEncryptionHandler {
 	public fun <init> (Landroid/security/keystore/KeyGenParameterSpec;)V
 	public synthetic fun <init> (Landroid/security/keystore/KeyGenParameterSpec;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun decryptString-IoAF18A (Ljava/lang/String;)Ljava/lang/Object;
-	public final fun encryptString (Ljava/lang/String;)Ljava/lang/String;
+	public final fun encryptString-IoAF18A (Ljava/lang/String;)Ljava/lang/Object;
 	public final fun resetEncryptionKey ()V
 }
 
@@ -963,13 +1498,7 @@ public final class com/okta/authfoundation/util/AndroidKeystoreUtil {
 	public static final field INSTANCE Lcom/okta/authfoundation/util/AndroidKeystoreUtil;
 	public final fun deleteKey (Ljava/lang/String;)V
 	public final fun getKeyStore ()Ljava/security/KeyStore;
-	public final fun getOrCreateAesKey (Landroid/security/keystore/KeyGenParameterSpec;)Ljava/security/Key;
+	public final fun getOrCreateAesKey-IoAF18A (Landroid/security/keystore/KeyGenParameterSpec;)Ljava/lang/Object;
 	public final fun getRsaKeyPairGenerator ()Ljava/security/KeyPairGenerator;
-}
-
-public final class com/okta/authfoundation/util/CoalescingOrchestrator {
-	public fun <init> (Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;)V
-	public synthetic fun <init> (Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun get (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 

@@ -19,7 +19,6 @@ authFoundation = "2.0.5"
 bouncycastle = "1.85"
 commonsIo = "2.22.0"
 commons-lang3 = "3.20.0"
-compatibilityValidator = "0.18.1"
 coreKtx = "1.19.0"
 coreLibraryDesugaring = "2.1.5"
 coroutines = "1.11.0"
@@ -37,7 +36,6 @@ json = "20260719"
 jsoup = "1.22.2"
 junit = "4.13.2"
 kotlin = "2.4.10"
-kotlinBinaryCompatibility = "0.18.1"
 kotlinSerialization = "1.11.0"
 kotlinxDatetime = "0.8.0"
 koverGradlePlugin = "0.9.9"
@@ -131,7 +129,6 @@ jjwt-impl = { module = "io.jsonwebtoken:jjwt-impl", version.ref = "jjwtApi" }
 json = { module = "org.json:json", version.ref = "json" }
 jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup" }
 junit = { module = "junit:junit", version.ref = "junit" }
-kotlin-binary-compatibility-plugin = { module = "org.jetbrains.kotlinx:binary-compatibility-validator", version.ref = "kotlinBinaryCompatibility" }
 kotlin-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 kotlin-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinSerialization" }
 kotlin-serialization-okio = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json-okio", version.ref = "kotlinSerialization" }
@@ -234,7 +231,6 @@ google-services = { id = "com.google.gms.google-services", version.ref = "google
 kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "koverGradlePlugin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
-kotlinx-binary-compatibility-validator = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version.ref = "compatibilityValidator" }
 sonarqube = { id = "org.sonarqube", version.ref = "sonarqubeGradlePlugin" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }

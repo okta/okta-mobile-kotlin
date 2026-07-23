@@ -6,7 +6,7 @@ plugins {
     id("com.google.devtools.ksp")
     id("kotlin-parcelize")
     id("spotless")
-    id("binary-compatibility-validator")
+    id("binary-compat-validation")
     id("com.vanniktech.maven.publish.base")
     kotlin("plugin.serialization") version libs.versions.kotlin.get()
 }
@@ -49,7 +49,7 @@ kotlin {
     }
 }
 
-apiValidation {
+binaryCompatValidationExtension {
     ignoredClasses.add("com.okta.idx.kotlin.BuildConfig")
 }
 
