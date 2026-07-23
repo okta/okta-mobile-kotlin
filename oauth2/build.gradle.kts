@@ -40,7 +40,6 @@ kotlin {
 
         optimization {
             consumerKeepRules.publish = true
-            consumerKeepRules.files.add(project.file("consumer-rules.pro"))
         }
 
         withHostTestBuilder {
