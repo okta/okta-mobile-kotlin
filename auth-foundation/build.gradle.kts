@@ -47,7 +47,6 @@ kotlin {
 
         optimization {
             consumerKeepRules.publish = true
-            consumerKeepRules.files.add(project.file("consumer-rules.pro"))
         }
 
         withHostTestBuilder {
@@ -204,13 +203,6 @@ dependencies {
     add("kspAndroid", libs.room.compiler)
     add("kspJvm", libs.room.compiler)
     coreLibraryDesugaring(libs.core.library.desugaring)
-}
-
-tasks.named<Jar>("jvmJar") {
-    from(project.file("consumer-rules.pro")) {
-        into("META-INF/proguard")
-        rename { "${project.name}.pro" }
-    }
 }
 
 apiValidation {
