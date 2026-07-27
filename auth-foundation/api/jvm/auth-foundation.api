@@ -275,7 +275,6 @@ public abstract interface class com/okta/authfoundation/client/Cache {
 
 public final class com/okta/authfoundation/client/OAuth2ClientBuilder {
 	public static final field Companion Lcom/okta/authfoundation/client/OAuth2ClientBuilder$Companion;
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getAccessTokenValidator ()Lcom/okta/authfoundation/client/kmp/AccessTokenValidator;
 	public final fun getAcrValues ()Ljava/lang/String;
 	public final fun getApiExecutor ()Lcom/okta/authfoundation/api/http/ApiExecutor;
@@ -462,7 +461,6 @@ public final class com/okta/authfoundation/client/internal/OAuth2Endpoints$Compa
 
 public final class com/okta/authfoundation/client/jvm/AuthFoundationResult {
 	public static final field Companion Lcom/okta/authfoundation/client/jvm/AuthFoundationResult$Companion;
-	public synthetic fun <init> (Ljava/lang/Object;Ljava/lang/Throwable;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun exceptionOrNull ()Ljava/lang/Throwable;
 	public static final fun failure (Ljava/lang/Throwable;)Lcom/okta/authfoundation/client/jvm/AuthFoundationResult;
 	public final fun getOrNull ()Ljava/lang/Object;
@@ -905,7 +903,6 @@ public abstract interface class com/okta/authfoundation/credential/kmp/TokenStor
 }
 
 public final class com/okta/authfoundation/credential/kmp/storage/RoomDefaultCredentialIdStore : com/okta/authfoundation/credential/kmp/DefaultCredentialIdStore {
-	public static final field DEFAULT_CREDENTIAL_KEY Ljava/lang/String;
 	public fun <init> (Lcom/okta/authfoundation/credential/kmp/storage/TokenDatabase;)V
 	public fun clearDefaultCredentialId-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun getDefaultCredentialId-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;

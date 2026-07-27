@@ -70,7 +70,7 @@ val generateAppConfig =
     }
 
 kotlin {
-    androidLibrary {
+    android {
         namespace = "com.okta.directauth.app"
         compileSdk = COMPILE_SDK
         minSdk = 28

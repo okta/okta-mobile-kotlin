@@ -6,7 +6,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     id("com.android.library")
     alias(libs.plugins.dokka)
-    id("binary-compatibility-validator")
+    id("binary-compat-validation")
     id("spotless")
     id("com.vanniktech.maven.publish.base")
 }
@@ -51,7 +51,7 @@ androidComponents {
     }
 }
 
-apiValidation {
+binaryCompatValidationExtension {
     ignoredClasses.add("com.okta.legacytokenmigration.BuildConfig")
 }
 

@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     alias(libs.plugins.android.library)
     kotlin("plugin.serialization") version libs.versions.kotlin.get()
-    id("binary-compatibility-validator")
+    id("binary-compat-validation")
     id("spotless")
 }
 
@@ -43,6 +43,10 @@ kotlin {
         jvmTarget = JvmTarget.fromTarget(JVM_TARGET)
         freeCompilerArgs.add("-opt-in=com.okta.authfoundation.InternalAuthFoundationApi")
     }
+}
+
+binaryCompatValidationExtension {
+    ignoredClasses.add("com.okta.nativeauthentication.BuildConfig")
 }
 
 dependencies {

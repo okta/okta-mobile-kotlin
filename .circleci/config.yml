@@ -151,7 +151,7 @@ jobs:
       - android/restore_gradle_cache
       - run:
           name: Run API Check
-          command: ./gradlew checkLegacyAbi --no-daemon
+          command: ./gradlew :checkLegacyAbi --no-daemon
       - android/save_gradle_cache
 
 workflows:

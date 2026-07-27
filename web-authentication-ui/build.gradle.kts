@@ -4,7 +4,7 @@ plugins {
     id("com.android.library")
     alias(libs.plugins.dokka)
     id("kotlin-parcelize")
-    id("binary-compatibility-validator")
+    id("binary-compat-validation")
     kotlin("plugin.serialization") version libs.versions.kotlin.get()
     id("com.vanniktech.maven.publish.base")
     id("spotless")
@@ -60,7 +60,7 @@ androidComponents {
     }
 }
 
-apiValidation {
+binaryCompatValidationExtension {
     ignoredClasses.add("com.okta.webauthenticationui.BuildConfig")
 }
 
