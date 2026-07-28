@@ -19,10 +19,10 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.okta.authfoundation.client.OAuth2ClientResult
-import com.okta.authfoundation.credential.Credential
-import com.okta.oauth2.ResourceOwnerFlow
+import com.okta.oauth2.kmp.ResourceOwnerFlow
 import kotlinx.coroutines.launch
+import sample.okta.android.SampleApplication
+import sample.okta.android.toTokenData
 import timber.log.Timber
 
 internal class ResourceOwnerViewModel : ViewModel() {
@@ -36,19 +36,19 @@ internal class ResourceOwnerViewModel : ViewModel() {
         _state.value = ResourceOwnerState.Loading
 
         viewModelScope.launch {
-            val resourceOwnerFlow = ResourceOwnerFlow()
-            when (val result = resourceOwnerFlow.start(username, password)) {
-                is OAuth2ClientResult.Error -> {
-                    Timber.e(result.exception, "Failed to start resource owner flow.")
+            val resourceOwnerFlow = ResourceOwnerFlow(SampleApplication.oAuth2Client)
+            resourceOwnerFlow.start(username, password).fold(
+                onFailure = { exception ->
+                    Timber.e(exception, "Failed to start resource owner flow.")
                     _state.value = ResourceOwnerState.Error("An error occurred.")
-                }
-
-                is OAuth2ClientResult.Success -> {
-                    val credential = Credential.store(token = result.result)
-                    Credential.setDefaultAsync(credential)
+                },
+                onSuccess = { tokenInfo ->
+                    val tokenData = tokenInfo.toTokenData(SampleApplication.oAuth2Client.configuration)
+                    val credential = SampleApplication.credentialManager.store(tokenData).getOrThrow()
+                    SampleApplication.credentialManager.setDefault(credential)
                     _state.value = ResourceOwnerState.Token
                 }
-            }
+            )
         }
     }
 }

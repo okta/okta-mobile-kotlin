@@ -73,7 +73,9 @@ public final class com/okta/webauthenticationui/WebAuthentication {
 	public fun <init> (Lcom/okta/webauthenticationui/WebAuthenticationProvider;)V
 	public synthetic fun <init> (Lcom/okta/webauthenticationui/WebAuthenticationProvider;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun login (Landroid/content/Context;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun login (Landroid/content/Context;Ljava/lang/String;Ljava/util/Map;Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun login$default (Lcom/okta/webauthenticationui/WebAuthentication;Landroid/content/Context;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun login$default (Lcom/okta/webauthenticationui/WebAuthentication;Landroid/content/Context;Ljava/lang/String;Ljava/util/Map;Ljava/util/List;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public final fun logoutOfBrowser (Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 

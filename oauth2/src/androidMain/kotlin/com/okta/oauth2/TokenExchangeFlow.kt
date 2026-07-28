@@ -30,7 +30,17 @@ import okhttp3.Request
  * As an example, consider [SSO for Native Apps](https://developer.okta.com/docs/guides/configure-native-sso/main/#native-sso-flow) where a client exchanges the ID and the Device Secret tokens to get access to the resource.
  *
  * See the [specification](https://openid.net/specs/openid-connect-native-sso-1_0.html)
+ *
+ * @deprecated This Android-only TokenExchangeFlow is deprecated in favor of the KMP variant, which works on
+ * Android and JVM. Use [com.okta.oauth2.kmp.TokenExchangeFlow] instead.
  */
+@Deprecated(
+    message =
+        "The Android-only TokenExchangeFlow is deprecated in favor of the KMP variant, which works on " +
+            "Android and JVM. Use com.okta.oauth2.kmp.TokenExchangeFlow instead. This class will be removed " +
+            "in a future major release.",
+    level = DeprecationLevel.WARNING
+)
 class TokenExchangeFlow(
     private val client: OAuth2Client,
 ) {
@@ -58,8 +68,28 @@ class TokenExchangeFlow(
      * @param idToken the id token for the user to create a new token for.
      * @param deviceSecret the [Token.deviceSecret] obtained via another authentication flow.
      * @param audience the audience of the authorization server. Defaults to `api://default`.
+     * @param scope the scopes to request during sign in.
+     */
+    @Suppress("DEPRECATION")
+    suspend fun start(
+        idToken: String,
+        deviceSecret: String,
+        audience: String = "api://default",
+        scope: List<String>,
+    ): OAuth2ClientResult<Token> = start(idToken, deviceSecret, audience, scope.joinToString(" "))
+
+    /**
+     * Initiates the Token Exchange flow.
+     *
+     * @param idToken the id token for the user to create a new token for.
+     * @param deviceSecret the [Token.deviceSecret] obtained via another authentication flow.
+     * @param audience the audience of the authorization server. Defaults to `api://default`.
      * @param scope the scopes to request during sign in. Defaults to the configured [client] [OidcConfiguration.defaultScope].
      */
+    @Deprecated(
+        message = "Use the overload accepting scope as a List<String> instead.",
+        replaceWith = ReplaceWith("start(idToken, deviceSecret, audience, scope.split(\" \"))")
+    )
     suspend fun start(
         idToken: String,
         deviceSecret: String,

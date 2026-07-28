@@ -778,11 +778,13 @@ public abstract interface class com/okta/authfoundation/credential/kmp/Credentia
 	public abstract fun revokeAllTokens-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun revokeToken-gIAlu-s (Lcom/okta/authfoundation/credential/RevokeTokenType;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun scope ()Ljava/lang/String;
+	public fun scopes ()Ljava/util/List;
 	public abstract fun setTagsAsync-gIAlu-s (Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class com/okta/authfoundation/credential/kmp/Credential$DefaultImpls {
 	public static fun refreshToken-gIAlu-s (Lcom/okta/authfoundation/credential/kmp/Credential;Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static fun scopes (Lcom/okta/authfoundation/credential/kmp/Credential;)Ljava/util/List;
 }
 
 public final class com/okta/authfoundation/credential/kmp/CredentialImpl : com/okta/authfoundation/credential/kmp/Credential {
@@ -804,6 +806,7 @@ public final class com/okta/authfoundation/credential/kmp/CredentialImpl : com/o
 	public fun revokeAllTokens-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun revokeToken-gIAlu-s (Lcom/okta/authfoundation/credential/RevokeTokenType;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun scope ()Ljava/lang/String;
+	public fun scopes ()Ljava/util/List;
 	public fun setTagsAsync-gIAlu-s (Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
@@ -890,6 +893,11 @@ public final class com/okta/authfoundation/credential/kmp/TokenData : com/okta/a
 public abstract interface class com/okta/authfoundation/credential/kmp/TokenEncryptionHandler {
 	public abstract fun decrypt ([BLjava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun encrypt ([BLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class com/okta/authfoundation/credential/kmp/TokenEncryptionKeyInvalidatedException : java/lang/Exception {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun getKeyAlias ()Ljava/lang/String;
 }
 
 public abstract interface class com/okta/authfoundation/credential/kmp/TokenStorage {

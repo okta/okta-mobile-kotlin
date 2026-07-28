@@ -2,7 +2,9 @@ public abstract interface class com/okta/oauth2/kmp/AuthorizationCodeFlow {
 	public static final field Companion Lcom/okta/oauth2/kmp/AuthorizationCodeFlow$Companion;
 	public abstract fun resume-0E7RQCE (Ljava/lang/String;Lcom/okta/oauth2/kmp/AuthorizationCodeFlowContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun start-BWLJW6A (Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun start-BWLJW6A (Ljava/lang/String;Ljava/util/Map;Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun start-BWLJW6A$default (Lcom/okta/oauth2/kmp/AuthorizationCodeFlow;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun start-BWLJW6A$default (Lcom/okta/oauth2/kmp/AuthorizationCodeFlow;Ljava/lang/String;Ljava/util/Map;Ljava/util/List;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public final class com/okta/oauth2/kmp/AuthorizationCodeFlow$Companion {
@@ -10,7 +12,9 @@ public final class com/okta/oauth2/kmp/AuthorizationCodeFlow$Companion {
 }
 
 public final class com/okta/oauth2/kmp/AuthorizationCodeFlow$DefaultImpls {
+	public static fun start-BWLJW6A (Lcom/okta/oauth2/kmp/AuthorizationCodeFlow;Ljava/lang/String;Ljava/util/Map;Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun start-BWLJW6A$default (Lcom/okta/oauth2/kmp/AuthorizationCodeFlow;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun start-BWLJW6A$default (Lcom/okta/oauth2/kmp/AuthorizationCodeFlow;Ljava/lang/String;Ljava/util/Map;Ljava/util/List;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public final class com/okta/oauth2/kmp/AuthorizationCodeFlow$MissingResultCodeException : java/lang/Exception {
@@ -47,6 +51,7 @@ public abstract interface class com/okta/oauth2/kmp/DeviceAuthorizationFlow {
 	public static final field Companion Lcom/okta/oauth2/kmp/DeviceAuthorizationFlow$Companion;
 	public abstract fun resume-gIAlu-s (Lcom/okta/oauth2/kmp/DeviceAuthorizationFlowContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun start-gIAlu-s (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun start-gIAlu-s (Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun start-gIAlu-s$default (Lcom/okta/oauth2/kmp/DeviceAuthorizationFlow;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
@@ -55,6 +60,7 @@ public final class com/okta/oauth2/kmp/DeviceAuthorizationFlow$Companion {
 }
 
 public final class com/okta/oauth2/kmp/DeviceAuthorizationFlow$DefaultImpls {
+	public static fun start-gIAlu-s (Lcom/okta/oauth2/kmp/DeviceAuthorizationFlow;Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun start-gIAlu-s$default (Lcom/okta/oauth2/kmp/DeviceAuthorizationFlow;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
@@ -131,6 +137,7 @@ public final class com/okta/oauth2/kmp/RedirectEndSessionFlowContext {
 public abstract interface class com/okta/oauth2/kmp/ResourceOwnerFlow {
 	public static final field Companion Lcom/okta/oauth2/kmp/ResourceOwnerFlow$Companion;
 	public abstract fun start-BWLJW6A (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun start-BWLJW6A (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun start-BWLJW6A$default (Lcom/okta/oauth2/kmp/ResourceOwnerFlow;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
@@ -139,13 +146,16 @@ public final class com/okta/oauth2/kmp/ResourceOwnerFlow$Companion {
 }
 
 public final class com/okta/oauth2/kmp/ResourceOwnerFlow$DefaultImpls {
+	public static fun start-BWLJW6A (Lcom/okta/oauth2/kmp/ResourceOwnerFlow;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun start-BWLJW6A$default (Lcom/okta/oauth2/kmp/ResourceOwnerFlow;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public abstract interface class com/okta/oauth2/kmp/SessionTokenFlow {
 	public static final field Companion Lcom/okta/oauth2/kmp/SessionTokenFlow$Companion;
 	public abstract fun start-yxL6bBk (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun start-yxL6bBk (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun start-yxL6bBk$default (Lcom/okta/oauth2/kmp/SessionTokenFlow;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun start-yxL6bBk$default (Lcom/okta/oauth2/kmp/SessionTokenFlow;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Ljava/util/List;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public final class com/okta/oauth2/kmp/SessionTokenFlow$Companion {
@@ -153,13 +163,17 @@ public final class com/okta/oauth2/kmp/SessionTokenFlow$Companion {
 }
 
 public final class com/okta/oauth2/kmp/SessionTokenFlow$DefaultImpls {
+	public static fun start-yxL6bBk (Lcom/okta/oauth2/kmp/SessionTokenFlow;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun start-yxL6bBk$default (Lcom/okta/oauth2/kmp/SessionTokenFlow;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun start-yxL6bBk$default (Lcom/okta/oauth2/kmp/SessionTokenFlow;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Ljava/util/List;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public abstract interface class com/okta/oauth2/kmp/TokenExchangeFlow {
 	public static final field Companion Lcom/okta/oauth2/kmp/TokenExchangeFlow$Companion;
 	public abstract fun start-yxL6bBk (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun start-yxL6bBk (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun start-yxL6bBk$default (Lcom/okta/oauth2/kmp/TokenExchangeFlow;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun start-yxL6bBk$default (Lcom/okta/oauth2/kmp/TokenExchangeFlow;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public final class com/okta/oauth2/kmp/TokenExchangeFlow$Companion {
@@ -167,7 +181,9 @@ public final class com/okta/oauth2/kmp/TokenExchangeFlow$Companion {
 }
 
 public final class com/okta/oauth2/kmp/TokenExchangeFlow$DefaultImpls {
+	public static fun start-yxL6bBk (Lcom/okta/oauth2/kmp/TokenExchangeFlow;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun start-yxL6bBk$default (Lcom/okta/oauth2/kmp/TokenExchangeFlow;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun start-yxL6bBk$default (Lcom/okta/oauth2/kmp/TokenExchangeFlow;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public final class com/okta/oauth2/kmp/jvm/AuthorizationCodeFlow : java/io/Closeable {
@@ -177,7 +193,9 @@ public final class com/okta/oauth2/kmp/jvm/AuthorizationCodeFlow : java/io/Close
 	public final fun start (Ljava/lang/String;Lcom/okta/oauth2/kmp/BrowserRedirectHandler;)Ljava/util/concurrent/CompletableFuture;
 	public final fun start (Ljava/lang/String;Lcom/okta/oauth2/kmp/BrowserRedirectHandler;Ljava/util/Map;)Ljava/util/concurrent/CompletableFuture;
 	public final fun start (Ljava/lang/String;Lcom/okta/oauth2/kmp/BrowserRedirectHandler;Ljava/util/Map;Ljava/lang/String;)Ljava/util/concurrent/CompletableFuture;
+	public final fun start (Ljava/lang/String;Lcom/okta/oauth2/kmp/BrowserRedirectHandler;Ljava/util/Map;Ljava/util/List;)Ljava/util/concurrent/CompletableFuture;
 	public static synthetic fun start$default (Lcom/okta/oauth2/kmp/jvm/AuthorizationCodeFlow;Ljava/lang/String;Lcom/okta/oauth2/kmp/BrowserRedirectHandler;Ljava/util/Map;Ljava/lang/String;ILjava/lang/Object;)Ljava/util/concurrent/CompletableFuture;
+	public static synthetic fun start$default (Lcom/okta/oauth2/kmp/jvm/AuthorizationCodeFlow;Ljava/lang/String;Lcom/okta/oauth2/kmp/BrowserRedirectHandler;Ljava/util/Map;Ljava/util/List;ILjava/lang/Object;)Ljava/util/concurrent/CompletableFuture;
 }
 
 public final class com/okta/oauth2/kmp/jvm/DeviceAuthorizationFlow : java/io/Closeable {
@@ -186,6 +204,7 @@ public final class com/okta/oauth2/kmp/jvm/DeviceAuthorizationFlow : java/io/Clo
 	public fun close ()V
 	public final fun resume (Lcom/okta/oauth2/kmp/DeviceAuthorizationFlowContext;)Ljava/util/concurrent/CompletableFuture;
 	public final fun start (Ljava/lang/String;)Ljava/util/concurrent/CompletableFuture;
+	public final fun start (Ljava/util/List;)Ljava/util/concurrent/CompletableFuture;
 	public static synthetic fun start$default (Lcom/okta/oauth2/kmp/jvm/DeviceAuthorizationFlow;Ljava/lang/String;ILjava/lang/Object;)Ljava/util/concurrent/CompletableFuture;
 }
 
@@ -204,6 +223,7 @@ public final class com/okta/oauth2/kmp/jvm/ResourceOwnerFlow : java/io/Closeable
 	public fun close ()V
 	public final fun start (Ljava/lang/String;Ljava/lang/String;)Ljava/util/concurrent/CompletableFuture;
 	public final fun start (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/util/concurrent/CompletableFuture;
+	public final fun start (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;)Ljava/util/concurrent/CompletableFuture;
 	public static synthetic fun start$default (Lcom/okta/oauth2/kmp/jvm/ResourceOwnerFlow;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Ljava/util/concurrent/CompletableFuture;
 }
 
@@ -214,7 +234,9 @@ public final class com/okta/oauth2/kmp/jvm/SessionTokenFlow : java/io/Closeable 
 	public final fun start (Ljava/lang/String;Ljava/lang/String;)Ljava/util/concurrent/CompletableFuture;
 	public final fun start (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)Ljava/util/concurrent/CompletableFuture;
 	public final fun start (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;)Ljava/util/concurrent/CompletableFuture;
+	public final fun start (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Ljava/util/List;)Ljava/util/concurrent/CompletableFuture;
 	public static synthetic fun start$default (Lcom/okta/oauth2/kmp/jvm/SessionTokenFlow;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;ILjava/lang/Object;)Ljava/util/concurrent/CompletableFuture;
+	public static synthetic fun start$default (Lcom/okta/oauth2/kmp/jvm/SessionTokenFlow;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Ljava/util/List;ILjava/lang/Object;)Ljava/util/concurrent/CompletableFuture;
 }
 
 public final class com/okta/oauth2/kmp/jvm/TokenExchangeFlow : java/io/Closeable {
@@ -224,6 +246,8 @@ public final class com/okta/oauth2/kmp/jvm/TokenExchangeFlow : java/io/Closeable
 	public final fun start (Ljava/lang/String;Ljava/lang/String;)Ljava/util/concurrent/CompletableFuture;
 	public final fun start (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/util/concurrent/CompletableFuture;
 	public final fun start (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/util/concurrent/CompletableFuture;
+	public final fun start (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;)Ljava/util/concurrent/CompletableFuture;
 	public static synthetic fun start$default (Lcom/okta/oauth2/kmp/jvm/TokenExchangeFlow;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Ljava/util/concurrent/CompletableFuture;
+	public static synthetic fun start$default (Lcom/okta/oauth2/kmp/jvm/TokenExchangeFlow;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;ILjava/lang/Object;)Ljava/util/concurrent/CompletableFuture;
 }
 

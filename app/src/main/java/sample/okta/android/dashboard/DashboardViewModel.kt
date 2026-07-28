@@ -21,10 +21,11 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.okta.authfoundation.client.OAuth2ClientResult
-import com.okta.authfoundation.client.dto.OidcIntrospectInfo
-import com.okta.authfoundation.credential.Credential
+import com.okta.authfoundation.client.dto.IntrospectInfo
 import com.okta.authfoundation.credential.RevokeTokenType
+import com.okta.authfoundation.credential.TokenMetadata
 import com.okta.authfoundation.credential.TokenType
+import com.okta.authfoundation.credential.kmp.Credential
 import com.okta.webauthenticationui.WebAuthentication
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -54,14 +55,15 @@ internal class DashboardViewModel(
 
     init {
         viewModelScope.launch {
+            val credentialManager = SampleApplication.credentialManager
             val cred =
                 if (credentialTagNameValue == null) {
-                    Credential.getDefaultAsync()
+                    credentialManager.getDefault().getOrThrow()
                 } else {
-                    Credential
-                        .findAsync {
-                            it.tags[SampleHelper.CREDENTIAL_NAME_TAG_KEY] == credentialTagNameValue
-                        }.firstOrNull() ?: Credential.getDefaultAsync()
+                    credentialManager
+                        .find { metadata: TokenMetadata -> metadata.tags[SampleHelper.CREDENTIAL_NAME_TAG_KEY] == credentialTagNameValue }
+                        .getOrThrow()
+                        .firstOrNull() ?: credentialManager.getDefault().getOrThrow()
                 }
             cred?.let { setCredential(it) } ?: run {
                 _credentialLiveData.value = CredentialState.LoggedOut
@@ -82,30 +84,23 @@ internal class DashboardViewModel(
         tokenType: RevokeTokenType,
     ) {
         performRequest(buttonId) { credential ->
-            when (credential.revokeToken(tokenType)) {
-                is OAuth2ClientResult.Error -> {
-                    RequestState.Result("Failed to revoke token.")
-                }
-
-                is OAuth2ClientResult.Success -> {
-                    RequestState.Result("Token Revoked.")
-                }
-            }
+            credential.revokeToken(tokenType).fold(
+                onFailure = { RequestState.Result("Failed to revoke token.") },
+                onSuccess = { RequestState.Result("Token Revoked.") }
+            )
         }
     }
 
     fun refresh(buttonId: Int) {
         performRequest(buttonId) { credential ->
-            when (credential.refreshToken()) {
-                is OAuth2ClientResult.Error -> {
-                    RequestState.Result("Failed to refresh token.")
-                }
-
-                is OAuth2ClientResult.Success -> {
-                    _credentialLiveData.value = CredentialState.Loaded(credential) // Update the UI.
+            credential.refreshToken().fold(
+                onFailure = { RequestState.Result("Failed to refresh token.") },
+                onSuccess = { refreshed ->
+                    this.credential = refreshed
+                    _credentialLiveData.value = CredentialState.Loaded(refreshed) // Update the UI.
                     RequestState.Result("Token Refreshed.")
                 }
-            }
+            )
         }
     }
 
@@ -114,20 +109,16 @@ internal class DashboardViewModel(
         tokenType: TokenType,
     ) {
         performRequest(buttonId) { credential ->
-            when (val result = credential.introspectToken(tokenType)) {
-                is OAuth2ClientResult.Error -> {
-                    RequestState.Result("Failed to introspect token.")
-                }
-
-                is OAuth2ClientResult.Success -> {
-                    val successResult = result.result
-                    if (successResult is OidcIntrospectInfo.Active) {
-                        RequestState.Result(successResult.deserializeClaims(JsonObject.serializer()).asMap().displayableKeyValues())
+            credential.introspectToken(tokenType).fold(
+                onFailure = { RequestState.Result("Failed to introspect token.") },
+                onSuccess = { info ->
+                    if (info is IntrospectInfo.Active) {
+                        RequestState.Result(info.deserializeClaims(JsonObject.serializer()).asMap().displayableKeyValues())
                     } else {
                         RequestState.Result(mapOf("active" to "false").displayableKeyValues())
                     }
                 }
-            }
+            )
         }
     }
 
@@ -148,7 +139,7 @@ internal class DashboardViewModel(
                 }
 
                 is OAuth2ClientResult.Success -> {
-                    credential.delete()
+                    credential.deleteAsync()
                     _requestStateLiveData.value = RequestState.Result("Logout successful!")
                 }
             }
@@ -184,16 +175,15 @@ internal class DashboardViewModel(
     }
 
     private suspend fun getUserInfo() {
-        when (val userInfoResult = credential.getUserInfo()) {
-            is OAuth2ClientResult.Error -> {
-                Timber.e(userInfoResult.exception, "Failed to fetch user info.")
+        credential.getUserInfo().fold(
+            onFailure = { exception ->
+                Timber.e(exception, "Failed to fetch user info.")
                 _userInfoLiveData.postValue(emptyMap())
+            },
+            onSuccess = { userInfo ->
+                _userInfoLiveData.postValue(userInfo.deserializeClaims(JsonObject.serializer()).asMap())
             }
-
-            is OAuth2ClientResult.Success -> {
-                _userInfoLiveData.postValue(userInfoResult.result.deserializeClaims(JsonObject.serializer()).asMap())
-            }
-        }
+        )
     }
 
     sealed class RequestState {
@@ -214,7 +204,7 @@ internal class DashboardViewModel(
 
     fun deleteCredential() {
         viewModelScope.launch {
-            credential.delete()
+            credential.deleteAsync()
         }
     }
 }

@@ -44,6 +44,16 @@ interface DeviceAuthorizationFlow {
     suspend fun start(scope: String? = null): Result<DeviceAuthorizationFlowContext>
 
     /**
+     * Initiates the device authorization flow.
+     *
+     * @param scope the OAuth2 scopes to request.
+     * @return [Result.success] with a [DeviceAuthorizationFlowContext], or [Result.failure] with:
+     * - [com.okta.authfoundation.client.OAuth2ClientResult.Error.OidcEndpointsNotAvailableException] if the device authorization endpoint is unavailable.
+     * - Other exceptions for network or parse failures.
+     */
+    suspend fun start(scope: List<String>): Result<DeviceAuthorizationFlowContext> = start(scope.joinToString(" "))
+
+    /**
      * Polls the token endpoint until the user authorizes or the session expires.
      *
      * Should be called repeatedly after [start]. Retries automatically on

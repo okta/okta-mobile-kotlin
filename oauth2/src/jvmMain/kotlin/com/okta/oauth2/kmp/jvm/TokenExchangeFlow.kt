@@ -61,10 +61,34 @@ class TokenExchangeFlow(
      * @param idToken the ID token for the user.
      * @param deviceSecret the device secret from a previous authentication flow.
      * @param audience optional audience; pass null to omit from the request.
+     * @param scope the scopes to request.
+     * @return a [CompletableFuture] that completes with [TokenInfo] on success,
+     *   or completes exceptionally on failure.
+     */
+    fun start(
+        idToken: String,
+        deviceSecret: String,
+        audience: String? = null,
+        scope: List<String>,
+    ): CompletableFuture<TokenInfo> =
+        coroutineScope.future {
+            delegate.start(idToken, deviceSecret, audience, scope).getOrThrow()
+        }
+
+    /**
+     * Initiates the token exchange flow asynchronously.
+     *
+     * @param idToken the ID token for the user.
+     * @param deviceSecret the device secret from a previous authentication flow.
+     * @param audience optional audience; pass null to omit from the request.
      * @param scope the scopes to request. Defaults to the client's configured default scope when null.
      * @return a [CompletableFuture] that completes with [TokenInfo] on success,
      *   or completes exceptionally on failure.
      */
+    @Deprecated(
+        message = "Use the overload accepting scope as a List<String> instead.",
+        replaceWith = ReplaceWith("start(idToken, deviceSecret, audience, scope.split(\" \"))")
+    )
     @JvmOverloads
     fun start(
         idToken: String,

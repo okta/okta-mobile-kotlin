@@ -56,7 +56,19 @@ import java.util.Objects
  * Note: [Credential] itself never invokes biometric authentication directly; all biometric-gated token
  * decryption is delegated entirely to [TokenEncryptionHandler] (which, in turn, uses
  * [BiometricAuthenticator]/[AndroidBiometricAuthenticator]).
+ *
+ * @deprecated Credential is deprecated in favor of the KMP variant, which works on Android and JVM. Use
+ * [com.okta.authfoundation.credential.kmp.TokenCredentialManager] to manage credentials, and
+ * [com.okta.authfoundation.credential.kmp.Credential] for the resulting immutable snapshots.
  */
+@Deprecated(
+    message =
+        "Credential is deprecated in favor of the KMP variant, which works on Android and JVM. Use " +
+            "com.okta.authfoundation.credential.kmp.TokenCredentialManager to manage credentials, and " +
+            "com.okta.authfoundation.credential.kmp.Credential for the resulting immutable snapshots. " +
+            "This class will be removed in a future major release.",
+    level = DeprecationLevel.WARNING
+)
 class Credential internal constructor(
     token: Token,
     internal val client: OAuth2Client = OAuth2Client.createFromConfiguration(token.oidcConfiguration),
@@ -533,6 +545,11 @@ class Credential internal constructor(
      * Returns the scopes associated with the associated [Token] if present, otherwise the default scopes associated with the [OAuth2Client].
      */
     fun scope(): String = token.scope ?: client.configuration.defaultScope
+
+    /**
+     * Returns the scopes associated with the associated [Token] if present, otherwise the default scopes associated with the [OAuth2Client], as a list.
+     */
+    fun scopes(): List<String> = scope().split(" ").filter { it.isNotBlank() }
 
     /**
      * Retrieve the [Jwt] associated with the [Token.idToken] field.

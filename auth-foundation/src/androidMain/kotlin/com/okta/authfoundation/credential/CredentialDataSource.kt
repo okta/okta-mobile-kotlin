@@ -26,6 +26,13 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.util.Collections
 
+@Deprecated(
+    message =
+        "CredentialDataSource is deprecated in favor of com.okta.authfoundation.credential.kmp.CredentialDataSource, " +
+            "used internally by com.okta.authfoundation.credential.kmp.TokenCredentialManager. This class will be " +
+            "removed in a future major release.",
+    level = DeprecationLevel.WARNING
+)
 @InternalAuthFoundationApi
 class CredentialDataSource(
     private val storage: TokenStorage,

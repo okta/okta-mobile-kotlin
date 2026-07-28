@@ -49,6 +49,25 @@ interface TokenExchangeFlow {
         scope: String? = null,
     ): Result<TokenInfo>
 
+    /**
+     * Initiates the token exchange flow.
+     *
+     * @param idToken the ID token for the user.
+     * @param deviceSecret the device secret obtained from a previous authentication flow.
+     * @param audience the audience of the authorization server. Defaults to `api://default`.
+     * @param scope the OAuth2 scopes to request.
+     * @return [Result.success] with [TokenInfo] on success, or [Result.failure] with:
+     * - [com.okta.authfoundation.client.OAuth2ClientResult.Error.OidcEndpointsNotAvailableException] if endpoints are unavailable.
+     * - [com.okta.authfoundation.client.OAuth2ClientResult.Error.HttpResponseException] on server errors.
+     * - Other exceptions for network or parsing failures.
+     */
+    suspend fun start(
+        idToken: String,
+        deviceSecret: String,
+        audience: String? = null,
+        scope: List<String>,
+    ): Result<TokenInfo> = start(idToken, deviceSecret, audience, scope.joinToString(" "))
+
     companion object {
         /**
          * Creates a [TokenExchangeFlow] backed by the given [OAuth2Client].

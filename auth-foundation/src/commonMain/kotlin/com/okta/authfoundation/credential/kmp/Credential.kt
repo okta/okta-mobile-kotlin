@@ -209,4 +209,7 @@ interface Credential : CredentialIdentifier {
 
     /** Returns the scopes associated with the token, or the client's default scopes. Pure read. */
     fun scope(): String
+
+    /** Returns the scopes associated with the token, or the client's default scopes, as a list. Pure read. */
+    fun scopes(): List<String> = scope().split(" ").filter { it.isNotBlank() }
 }

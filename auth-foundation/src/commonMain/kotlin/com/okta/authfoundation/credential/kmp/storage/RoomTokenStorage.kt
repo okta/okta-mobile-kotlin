@@ -18,8 +18,10 @@ package com.okta.authfoundation.credential.kmp.storage
 import com.okta.authfoundation.client.OAuth2ClientConfiguration
 import com.okta.authfoundation.client.TokenInfo
 import com.okta.authfoundation.credential.TokenMetadata
+import com.okta.authfoundation.credential.kmp.BiometricKeyInvalidatedException
 import com.okta.authfoundation.credential.kmp.TokenData
 import com.okta.authfoundation.credential.kmp.TokenEncryptionHandler
+import com.okta.authfoundation.credential.kmp.TokenEncryptionKeyInvalidatedException
 import com.okta.authfoundation.credential.kmp.TokenStorage
 
 /**
@@ -136,11 +138,15 @@ class RoomTokenStorage(
                     ?: throw NoSuchElementException("No token with id $id exists.")
 
             val decryptedAccessToken =
-                encryptionHandler
-                    .decrypt(
-                        entity.accessToken,
-                        entity.encryptionExtras
-                    ).decodeToString()
+                try {
+                    encryptionHandler
+                        .decrypt(
+                            entity.accessToken,
+                            entity.encryptionExtras
+                        ).decodeToString()
+                } catch (ex: TokenEncryptionKeyInvalidatedException) {
+                    throw BiometricKeyInvalidatedException(id, ex.keyAlias)
+                }
 
             TokenData(
                 id = entity.id,

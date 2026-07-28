@@ -21,12 +21,13 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.okta.authfoundation.client.OAuth2ClientResult
-import com.okta.authfoundation.credential.Credential
+import com.okta.authfoundation.credential.kmp.TokenData
 import com.okta.webauthenticationui.WebAuthentication
 import kotlinx.coroutines.launch
 import sample.okta.android.BuildConfig
 import sample.okta.android.SampleApplication
 import sample.okta.android.SampleHelper
+import sample.okta.android.toTokenData
 import timber.log.Timber
 
 class BrowserViewModel : ViewModel() {
@@ -63,8 +64,10 @@ class BrowserViewModel : ViewModel() {
                 }
 
                 is OAuth2ClientResult.Success -> {
-                    val credential = Credential.store(result.result)
-                    Credential.setDefaultAsync(credential)
+                    val credentialManager = SampleApplication.credentialManager
+                    val tokenData = result.result.toTokenData(SampleApplication.oAuth2Client.configuration)
+                    val credential = credentialManager.store(tokenData).getOrThrow()
+                    credentialManager.setDefault(credential)
                     _state.value = BrowserState.Token
                 }
             }

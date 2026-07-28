@@ -33,6 +33,13 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
 
+@Deprecated(
+    message =
+        "RoomTokenStorage is deprecated in favor of com.okta.authfoundation.credential.kmp.storage.RoomTokenStorage, " +
+            "used by the KMP TokenCredentialManager. On Android, back it with AndroidTokenEncryptionHandler for " +
+            "Keystore/biometric-backed encryption. This class will be removed in a future major release.",
+    level = DeprecationLevel.WARNING
+)
 @InternalAuthFoundationApi
 class RoomTokenStorage(
     tokenDatabase: TokenDatabase,

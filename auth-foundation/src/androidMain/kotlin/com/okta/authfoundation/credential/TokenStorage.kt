@@ -24,7 +24,17 @@ import com.okta.authfoundation.AuthFoundationDefaults
  * A default implementation is provided, but for advanced use-cases, you may implement this protocol yourself and pass an instance to [AuthFoundationDefaults.tokenStorageFactory].
  *
  * Warning: When implementing a custom [TokenStorage] class, it's vitally important that you do not directly invoke any of these methods yourself. These methods are intended to be called on-demand by the other AuthFoundation classes, and the behavior is undefined if these methods are called directly by the developer.
+ *
+ * @deprecated TokenStorage is deprecated in favor of [com.okta.authfoundation.credential.kmp.TokenStorage],
+ * used by the KMP TokenCredentialManager/RoomTokenStorage.
  */
+@Deprecated(
+    message =
+        "TokenStorage is deprecated in favor of com.okta.authfoundation.credential.kmp.TokenStorage, used by " +
+            "the KMP TokenCredentialManager/RoomTokenStorage. This interface will be removed in a future " +
+            "major release.",
+    level = DeprecationLevel.WARNING
+)
 interface TokenStorage {
     /**
      * @return All token IDs.

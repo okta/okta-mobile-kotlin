@@ -26,7 +26,17 @@ import okhttp3.Request
 /**
  * [SessionTokenFlow] encapsulates the behavior required to authentication using a session token obtained from the Okta Legacy Authn
  * APIs.
+ *
+ * @deprecated This Android-only SessionTokenFlow is deprecated in favor of the KMP variant, which works on
+ * Android and JVM. Use [com.okta.oauth2.kmp.SessionTokenFlow] instead.
  */
+@Deprecated(
+    message =
+        "The Android-only SessionTokenFlow is deprecated in favor of the KMP variant, which works on " +
+            "Android and JVM. Use com.okta.oauth2.kmp.SessionTokenFlow instead. This class will be removed " +
+            "in a future major release.",
+    level = DeprecationLevel.WARNING
+)
 class SessionTokenFlow(
     private val client: OAuth2Client,
 ) {
@@ -49,8 +59,29 @@ class SessionTokenFlow(
      * @param redirectUrl the redirect URL.
      * @param extraRequestParameters the extra key value pairs to send to the authorize endpoint.
      *  See [Authorize Documentation](https://developer.okta.com/docs/reference/api/oidc/#authorize) for parameter options.
+     * @param scope the scopes to request during sign in.
+     */
+    @Suppress("DEPRECATION")
+    suspend fun start(
+        sessionToken: String,
+        redirectUrl: String,
+        extraRequestParameters: Map<String, String> = emptyMap(),
+        scope: List<String>,
+    ): OAuth2ClientResult<Token> = start(sessionToken, redirectUrl, extraRequestParameters, scope.joinToString(" "))
+
+    /**
+     * Initiates the Session Token Flow.
+     *
+     * @param sessionToken the session token obtained from Okta legacy Authn APIs.
+     * @param redirectUrl the redirect URL.
+     * @param extraRequestParameters the extra key value pairs to send to the authorize endpoint.
+     *  See [Authorize Documentation](https://developer.okta.com/docs/reference/api/oidc/#authorize) for parameter options.
      * @param scope the scopes to request during sign in. Defaults to the configured [client] [OidcConfiguration.defaultScope].
      */
+    @Deprecated(
+        message = "Use the overload accepting scope as a List<String> instead.",
+        replaceWith = ReplaceWith("start(sessionToken, redirectUrl, extraRequestParameters, scope.split(\" \"))")
+    )
     suspend fun start(
         sessionToken: String,
         redirectUrl: String,
