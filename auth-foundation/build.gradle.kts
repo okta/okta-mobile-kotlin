@@ -144,9 +144,6 @@ kotlin {
 
         jvmTest {
             dependencies {
-                implementation(libs.ktor.client.mock)
-                implementation(libs.kotlin.test)
-                implementation(libs.coroutines.test)
                 implementation(libs.junit)
                 implementation(libs.room.testing)
                 implementation(libs.androidx.sqlite.bundled)
@@ -155,12 +152,10 @@ kotlin {
 
         getByName("androidHostTest") {
             dependencies {
-                implementation(libs.coroutines.test)
                 implementation(libs.androidx.test.core)
                 implementation(libs.androidx.test.ext.junit)
                 implementation(libs.junit)
                 implementation(libs.truth)
-                implementation(libs.kotlin.test)
                 implementation(libs.mockito.core)
                 implementation(libs.mockito.kotlin)
                 implementation(libs.mockk.android)
@@ -178,12 +173,10 @@ kotlin {
             dependencies {
                 implementation(libs.junit)
                 implementation(libs.truth)
-                implementation(libs.kotlin.test)
                 implementation(libs.androidx.test.core)
                 implementation(libs.androidx.test.ext.junit)
                 implementation(libs.androidx.test.runner)
                 implementation(libs.androidx.test.rules)
-                implementation(libs.coroutines.test)
             }
         }
     }

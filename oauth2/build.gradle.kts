@@ -123,8 +123,6 @@ kotlin {
 
         jvmTest {
             dependencies {
-                implementation(libs.kotlin.test)
-                implementation(libs.coroutines.test)
                 implementation(libs.junit)
             }
         }
@@ -132,10 +130,8 @@ kotlin {
         getByName("androidHostTest") {
             resources.srcDir("src/test/resources")
             dependencies {
-                implementation(libs.coroutines.test)
                 implementation(libs.junit)
                 implementation(libs.truth)
-                implementation(libs.kotlin.test)
                 implementation(libs.mockito.core)
                 implementation(libs.mockito.kotlin)
                 implementation(libs.robolectric)

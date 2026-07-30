@@ -1,6 +1,6 @@
 # Okta Direct Authentication
 
-Authenticate users using Okta's Direct Authentication API, enabling native sign-in experiences supporting Multi-Factor Authentication (MFA).
+Authenticate users using Okta's Direct Authentication API and build native sign-in experiences with multifactor authentication (MFA) support.
 
 ## Table of Contents
 
@@ -23,7 +23,7 @@ Authenticate users using Okta's Direct Authentication API, enabling native sign-
 
 ## Overview
 
-This library provides the classes and methods necessary to implement native sign-in, directed by the developer, to follow specific workflows to meet your application's user experience.
+This library provides the classes and methods needed to implement native, developer-directed sign-in flows that fit your application's user experience.
 
 Unlike browser-based authentication flows, Direct Authentication gives you full control over the UI while leveraging Okta's authentication backend. This enables you to build fully native sign-in experiences that support:
 
@@ -31,7 +31,7 @@ Unlike browser-based authentication flows, Direct Authentication gives you full 
 - One-Time Passcode (OTP)
 - Out-of-Band authentication (Push, SMS, Voice)
 - WebAuthn/Passkeys
-- Multi-Factor Authentication (MFA)
+- multifactor authentication (MFA)
 - Self-Service Password Recovery (SSPR)
 
 ## Requirements

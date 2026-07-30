@@ -1,12 +1,22 @@
 # Sample App
 
-This is a sample Android application demonstrating how to use the [OktaOAuth2](../oauth2) module along with [WebAuthenticationUI](../web-authentication-ui) and [AuthFoundation](../auth-foundation). It
+This is a sample Android application demonstrating how to use the [oauth2](../oauth2) module along with [web-authentication-ui](../web-authentication-ui) and [auth-foundation](../auth-foundation). It
 showcases several OAuth 2.0 flows including:
 
 - **Browser-based login** (Authorization Code Flow via Chrome Custom Tab)
 - **Resource Owner Password** flow
 - **Device Authorization** flow
 - **Token Exchange** flow
+
+## Table of Contents
+
+- [Prerequisites](#prerequisites)
+- [Okta Server Setup](#okta-server-setup)
+  - [1. Create an Okta Application](#1-create-an-okta-application)
+  - [2. Locate Your Authorization Server](#2-locate-your-authorization-server)
+- [Configuring `local.properties`](#configuring-localproperties)
+- [Running the Sample](#running-the-sample)
+- [Project Structure](#project-structure)
 
 ## Prerequisites
 

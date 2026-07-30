@@ -23,7 +23,7 @@ Standard OAuth2 authentication flows for Kotlin Multiplatform (Android + JVM), i
 
 ## Overview
 
-This module provides KMP flow classes for standard OAuth2 grant types. All flows are in the `com.okta.oauth2.kmp` package, return Kotlin `Result` types, and require an `OAuth2Client` from the `auth-foundation` module.
+This module provides KMP flow classes for standard OAuth2 grant types. All flows live in the `com.okta.oauth2.kmp` package, return Kotlin `Result` types, and require an `OAuth2Client` from the `auth-foundation` module.
 
 Each flow follows a consistent pattern:
 - **Single-step flows** (`ResourceOwnerFlow`, `TokenExchangeFlow`, `SessionTokenFlow`) — call `start()` and get a `Result<TokenInfo>`.
@@ -37,15 +37,51 @@ Each flow follows a consistent pattern:
 
 ## Installation
 
-**Current Version: 3.0.0**
+**Current Version: 2.0.4**
 
 Add the dependency to your `build.gradle.kts`:
 
 ```kotlin
 dependencies {
-    implementation("com.okta.kotlin:oauth2:3.0.0")
+    implementation("com.okta.kotlin:oauth2:2.0.4")
 }
 ```
+
+## Migrating from Android-only APIs to KMP APIs
+
+The older Android-only OAuth2 APIs remain available for compatibility, but new code should use the KMP packages in `com.okta.oauth2.kmp.*` and the explicit KMP `OAuth2Client` from `auth-foundation`.
+
+#### Flow classes
+
+Android-only:
+
+```kotlin
+import com.okta.oauth2.ResourceOwnerFlow
+
+val flow = ResourceOwnerFlow()
+```
+
+KMP:
+
+```kotlin
+import com.okta.authfoundation.client.OAuth2ClientBuilder
+import com.okta.oauth2.kmp.ResourceOwnerFlow
+
+val client = OAuth2ClientBuilder.create(
+    issuerUrl = "https://your-org.okta.com",
+    clientId = "your-client-id",
+    scope = listOf("openid", "profile")
+).getOrThrow()
+
+val flow = ResourceOwnerFlow(client)
+```
+
+The same rename applies to `DeviceAuthorizationFlow`, `SessionTokenFlow`, `TokenExchangeFlow`, `AuthorizationCodeFlow`, and `RedirectEndSessionFlow`. Prefer `com.okta.oauth2.kmp.*` imports, pass an explicit KMP `OAuth2Client`, and use `com.okta.oauth2.kmp.jvm.*` for the Java wrappers.
+
+#### Browser redirect handling
+
+- Android: use `web-authentication-ui` for browser-based redirect flows.
+- JVM: use `LocalhostBrowserRedirectHandler`.
 
 ## Getting Started
 
@@ -270,15 +306,17 @@ flow.resume(uri = capturedRedirectUri, flowContext = context).fold(
 Here's a complete ViewModel example managing all OAuth2 flows:
 
 ```kotlin
+import com.okta.directauth.app.AppConfig
+
 class OAuth2ViewModel : ViewModel() {
 
     private val client = OAuth2ClientBuilder
         .create(
-            issuerUrl = BuildConfig.ISSUER,
-            clientId = BuildConfig.CLIENT_ID,
+            issuerUrl = AppConfig.ISSUER,
+            clientId = AppConfig.CLIENT_ID,
             scope = listOf("openid", "profile", "email", "offline_access")
         ) {
-            authorizationServerId = BuildConfig.AUTHORIZATION_SERVER_ID
+            authorizationServerId = AppConfig.AUTHORIZATION_SERVER_ID
         }.getOrThrow()
 
     private val _flowState = MutableStateFlow<OAuth2FlowState>(OAuth2FlowState.Idle)
@@ -333,7 +371,7 @@ class OAuth2ViewModel : ViewModel() {
         cancelAndLaunch {
             _flowState.value = OAuth2FlowState.Loading
             val flow = SessionTokenFlow(client)
-            flow.start(sessionToken, BuildConfig.REDIRECT_URI, scope = "openid profile email offline_access").fold(
+            flow.start(sessionToken, AppConfig.SIGN_IN_REDIRECT_URI, scope = "openid profile email offline_access").fold(
                 onSuccess = { _flowState.value = OAuth2FlowState.Authenticated(it) },
                 onFailure = { _flowState.value = OAuth2FlowState.Error(it.message ?: "Unknown error") }
             )
@@ -360,20 +398,17 @@ The `oauth2` module provides Java-compatible wrappers using `CompletableFuture`.
 ### Creating an OAuth2Client (Java)
 
 ```java
-import com.okta.authfoundation.client.OAuth2ClientBuilder;
+import com.okta.authfoundation.client.jvm.OAuth2ClientBuilder;
 import com.okta.authfoundation.client.kmp.OAuth2Client;
-import java.util.List;
 
-OAuth2Client client = OAuth2ClientBuilder.Companion
-    .create(
+OAuth2Client client =
+    new OAuth2ClientBuilder(
         "https://your-org.okta.com",
         "your-client-id",
-        List.of("openid", "profile", "email", "offline_access"),
-        builder -> {
-            builder.setAuthorizationServerId("default");
-            return kotlin.Unit.INSTANCE;
-        }
-    ).getOrThrow();
+        java.util.List.of("openid", "profile", "email", "offline_access"))
+        .setAuthorizationServerId("default")
+        .build()
+        .getOrThrow();
 ```
 
 ### Resource Owner Flow (Java)
@@ -431,7 +466,8 @@ flow.close();
 import com.okta.oauth2.kmp.jvm.TokenExchangeFlow;
 
 TokenExchangeFlow flow = new TokenExchangeFlow(client);
-flow.start("existing-id-token", "existing-device-secret")
+flow.start("existing-id-token", "existing-device-secret", null,
+        java.util.List.of("openid", "profile", "email", "offline_access"))
     .thenAccept(tokenInfo -> {
         String accessToken = tokenInfo.getAccessToken();
     });
@@ -486,6 +522,12 @@ The app launches a **Home Menu** where you choose between Direct Authentication 
 - **Session Token Flow** -- Exchange a pre-obtained session token for OAuth2 tokens via server-side redirect
 
 See the [okta-direct-auth-shared README](../okta-direct-auth-shared/README.md) for full setup and configuration instructions.
+
+### Java CLI
+
+The `okta-direct-auth-java-cli-sample` module is a pure Java CLI sample that demonstrates the Java-friendly `oauth2` wrappers alongside direct authentication.
+
+See the [Java CLI sample README](../okta-direct-auth-java-cli-sample/README.md) for setup and usage details.
 
 ## Additional Resources
 

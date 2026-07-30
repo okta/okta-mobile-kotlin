@@ -66,7 +66,6 @@ dependencies {
     implementation(libs.androidx.annotation)
 
     testImplementation(libs.androidx.test.core.ktx)
-    testImplementation(libs.junit)
     testImplementation(libs.kotlin.test)
     testImplementation(libs.mockk.android)
     testImplementation(libs.mockk.agent)
