@@ -15,6 +15,7 @@
  */
 package com.okta.authfoundation.claims
 
+import com.okta.authfoundation.client.kmp.AudienceSerializer
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.builtins.ListSerializer
@@ -119,10 +120,15 @@ val ClaimsProvider.active: Boolean?
         return deserializeClaim("active", Boolean.serializer())
     }
 
-/** The audience of the token. */
-val ClaimsProvider.audience: String?
+/**
+ * The audience(s) of the token.
+ *
+ * Per RFC 7519 §4.1.3 and OIDC Core 1.0 §3.1.3.7, the `aud` claim may be either a single string or a
+ * JSON array of strings; both forms are normalized into a [List].
+ */
+val ClaimsProvider.audience: List<String>?
     get() {
-        return deserializeClaim("aud", String.serializer())
+        return deserializeClaim("aud", AudienceSerializer)
     }
 
 /** The ID of the client associated with the token. */

@@ -17,6 +17,7 @@ package com.okta.authfoundation.client
 
 import com.google.common.truth.Truth.assertThat
 import com.okta.authfoundation.jwt.IdTokenClaims
+import com.okta.authfoundation.jwt.IdTokenClaimsWithAudienceList
 import com.okta.authfoundation.jwt.JwtBuilder.Companion.createJwtBuilder
 import com.okta.testhelpers.OktaRule
 import kotlinx.coroutines.runBlocking
@@ -77,6 +78,32 @@ class DefaultIdTokenValidatorTest {
     @Test fun testInvalidAudience() {
         val idTokenClaims = IdTokenClaims(audience = "mismatch")
         assertFailsWithMessage("Invalid audience.", IdTokenValidator.Error.INVALID_AUDIENCE, idTokenClaims)
+    }
+
+    @Test fun testAudienceArrayContainingClientIdPasses(): Unit =
+        runBlocking {
+            val client = oktaRule.createOAuth2Client(oktaRule.createEndpoints("https://example-test.okta.com".toHttpUrl().newBuilder()))
+            val idTokenClaims = IdTokenClaimsWithAudienceList(audience = listOf("unit_test_client_id", "other_aud"))
+            val idToken = client.createJwtBuilder().createJwt(claims = idTokenClaims)
+            idTokenValidator.validate(client, idToken, IdTokenValidator.Parameters(null, null))
+        }
+
+    @Test fun testAudienceArrayNotContainingClientIdThrows() {
+        val idTokenClaims = IdTokenClaimsWithAudienceList(audience = listOf("other_client_1", "other_client_2"))
+        try {
+            val client = oktaRule.createOAuth2Client(oktaRule.createEndpoints("https://example-test.okta.com".toHttpUrl().newBuilder()))
+            runBlocking {
+                idTokenValidator.validate(
+                    client,
+                    client.createJwtBuilder().createJwt(claims = idTokenClaims),
+                    IdTokenValidator.Parameters(null, null)
+                )
+            }
+            fail()
+        } catch (e: IdTokenValidator.Error) {
+            assertThat(e).hasMessageThat().isEqualTo("Invalid audience.")
+            assertThat(e.identifier).isEqualTo(IdTokenValidator.Error.INVALID_AUDIENCE)
+        }
     }
 
     @Test fun testInvalidHttps() {
