@@ -166,7 +166,14 @@ class DefaultClaimsProviderTest {
         val claims: JsonObject = json.decodeFromString("""{"aud":"bar"}""")
         val subject = DefaultClaimsProvider(claims, json)
         val result = subject.audience
-        assertThat(result).isEqualTo("bar")
+        assertThat(result).isEqualTo(listOf("bar"))
+    }
+
+    @Test fun `test audience as array`() {
+        val claims: JsonObject = json.decodeFromString("""{"aud":["bar","baz"]}""")
+        val subject = DefaultClaimsProvider(claims, json)
+        val result = subject.audience
+        assertThat(result).isEqualTo(listOf("bar", "baz"))
     }
 
     @Test fun `test clientId`() {

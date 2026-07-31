@@ -17,8 +17,18 @@ package com.okta.authfoundation.client.kmp
 
 import com.okta.authfoundation.client.OidcClock
 import com.okta.authfoundation.jwt.Jwt
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.descriptors.buildClassSerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonDecoder
+import kotlinx.serialization.json.JsonEncoder
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.jsonPrimitive
 import kotlin.math.abs
 
 /**
@@ -48,7 +58,7 @@ class DefaultIdTokenValidator(
         if (normalizedTokenIssuer != normalizedIssuer) {
             throw IdTokenValidator.Error("Invalid issuer.", IdTokenValidator.Error.INVALID_ISSUER)
         }
-        if (payload.aud != clientId) {
+        if (clientId !in payload.aud) {
             throw IdTokenValidator.Error("Invalid audience.", IdTokenValidator.Error.INVALID_AUDIENCE)
         }
         if (!payload.iss.startsWith("https://")) {
@@ -92,10 +102,40 @@ class DefaultIdTokenValidator(
 @Serializable
 internal class IdTokenValidationPayload(
     @SerialName("iss") val iss: String,
-    @SerialName("aud") val aud: String,
+    @SerialName("aud") @Serializable(with = AudienceSerializer::class) val aud: List<String>,
     @SerialName("exp") val exp: Int,
     @SerialName("iat") val iat: Int,
     @SerialName("nonce") val nonce: String? = null,
     @SerialName("auth_time") val authTime: Int? = null,
     @SerialName("sub") val sub: String? = null,
 )
+
+/**
+ * The `aud` claim is permitted by RFC 7519 §4.1.3 and OIDC Core 1.0 §3.1.3.7 to be either a single
+ * string or a JSON array of strings. This serializer normalizes either form into a [List] of strings.
+ */
+internal object AudienceSerializer : KSerializer<List<String>> {
+    override val descriptor: SerialDescriptor = buildClassSerialDescriptor("Audience")
+
+    override fun serialize(
+        encoder: Encoder,
+        value: List<String>,
+    ) {
+        val jsonEncoder = encoder as? JsonEncoder ?: error("AudienceSerializer only supports JSON.")
+        val element =
+            if (value.size == 1) {
+                JsonPrimitive(value.first())
+            } else {
+                JsonArray(value.map { JsonPrimitive(it) })
+            }
+        jsonEncoder.encodeJsonElement(element)
+    }
+
+    override fun deserialize(decoder: Decoder): List<String> {
+        val jsonDecoder = decoder as? JsonDecoder ?: error("AudienceSerializer only supports JSON.")
+        return when (val element = jsonDecoder.decodeJsonElement()) {
+            is JsonArray -> element.map { it.jsonPrimitive.content }
+            else -> listOf(element.jsonPrimitive.content)
+        }
+    }
+}

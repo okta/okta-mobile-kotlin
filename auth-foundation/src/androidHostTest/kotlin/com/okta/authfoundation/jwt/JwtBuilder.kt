@@ -102,3 +102,25 @@ class IdTokenClaims(
     @SerialName("ds_hash") val deviceSecretHash: String? = "DAeLOFRqifysbgsrbOgbog",
     @SerialName("nonce") val nonce: String? = null,
 )
+
+/** Same shape as [IdTokenClaims], but with `aud` as a JSON array — RFC 7519 §4.1.3 permits both forms. */
+@Serializable
+class IdTokenClaimsWithAudienceList(
+    @SerialName("sub") val subject: String? = "00ub41z7mgzNqryMv696",
+    @SerialName("name") val name: String? = "Okta User",
+    @SerialName("email") val email: String? = "okta.user@example.com",
+    @SerialName("ver") val version: Int? = 1,
+    @SerialName("iss") val issuer: String? = "https://example-test.okta.com/oauth2/default",
+    @SerialName("aud") val audience: List<String> = listOf("unit_test_client_id"),
+    @SerialName("iat") val issuedAt: Long? = 1644347069,
+    @SerialName("exp") val expiresAt: Long? = 1644350669,
+    @SerialName("jti") val jwtId: String? = "ID.55cxBtdYl8l6arKISPBwd0yOT-9UCTaXaQTXt2laRLs",
+    @SerialName("amr") val authenticationMethods: List<String>? = listOf("pwd"),
+    @SerialName("idp") val identityProvider: String? = "00o8fou7sRaGGwdn4696",
+    @SerialName("sid") val sessionId: String? = "idxWxklp_4kSxuC_nU1pXD-nA",
+    @SerialName("preferred_username") val preferredUsername: String? = "jaynewstrom@example.com",
+    @SerialName("auth_time") val authTime: Long? = 1644347068,
+    @SerialName("at_hash") val accessTokenHash: String? = "gMcGTbhGT1G_ldsHoJsPzQ",
+    @SerialName("ds_hash") val deviceSecretHash: String? = "DAeLOFRqifysbgsrbOgbog",
+    @SerialName("nonce") val nonce: String? = null,
+)

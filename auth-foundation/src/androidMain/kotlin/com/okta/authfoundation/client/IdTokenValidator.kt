@@ -16,6 +16,7 @@
 package com.okta.authfoundation.client
 
 import com.okta.authfoundation.client.events.ValidateIdTokenEvent
+import com.okta.authfoundation.client.kmp.AudienceSerializer
 import com.okta.authfoundation.credential.Token
 import com.okta.authfoundation.jwt.Jwt
 import kotlinx.serialization.SerialName
@@ -118,7 +119,7 @@ internal class DefaultIdTokenValidator : IdTokenValidator {
         if (idTokenPayload.iss.toHttpUrl() != client.endpointsOrNull()?.issuer) {
             throw IdTokenValidator.Error("Invalid issuer.", IdTokenValidator.Error.INVALID_ISSUER)
         }
-        if (idTokenPayload.aud != client.configuration.clientId) {
+        if (client.configuration.clientId !in idTokenPayload.aud) {
             throw IdTokenValidator.Error("Invalid audience.", IdTokenValidator.Error.INVALID_AUDIENCE)
         }
         if (!idTokenPayload.iss.startsWith("https://")) {
@@ -162,7 +163,7 @@ internal class DefaultIdTokenValidator : IdTokenValidator {
 @Serializable
 internal class IdTokenValidationPayload(
     @SerialName("iss") val iss: String,
-    @SerialName("aud") val aud: String,
+    @SerialName("aud") @Serializable(with = AudienceSerializer::class) val aud: List<String>,
     @SerialName("exp") val exp: Int,
     @SerialName("iat") val iat: Int,
     @SerialName("nonce") val nonce: String? = null,
