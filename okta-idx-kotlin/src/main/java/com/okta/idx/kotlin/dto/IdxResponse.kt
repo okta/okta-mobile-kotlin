@@ -41,7 +41,7 @@ class IdxResponse internal constructor(
      * They should be displayed to the user in the context of the remediation form itself.
      */
     val messages: IdxMessageCollection,
-    /** Indicates whether or not the user has logged in successfully. If this is `true`, this response object should be exchanged for access tokens utilizing the `exchangeCode` method. */
+    /** Indicates whether the user has authenticated successfully. When `true`, retrieve the [IdxRemediation.Type.ISSUE] remediation from [remediations] and pass it to [com.okta.idx.kotlin.client.InteractionCodeFlow.exchangeInteractionCodeForTokens] to obtain tokens. */
     val isLoginSuccessful: Boolean,
 ) {
     /**

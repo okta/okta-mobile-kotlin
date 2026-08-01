@@ -40,10 +40,10 @@ interface TokenExchangeFlow {
      *
      * @param idToken the ID token for the user.
      * @param deviceSecret the device secret obtained from a previous authentication flow.
-     * @param audience the resource server audience to request. When null (the default), no `audience` parameter
-     * is sent and the authorization server applies its own default.
      * @param scope the scopes to request. If omitted, the client's configured
      * default scopes are used.
+     * @param audience the resource server audience to request. When null (the default), no `audience` parameter
+     * is sent and the authorization server applies its own default.
      * @return [Result.success] with [TokenInfo] on success, or [Result.failure] with:
      * - [com.okta.authfoundation.client.OAuth2ClientResult.Error.OidcEndpointsNotAvailableException] if endpoints are unavailable.
      * - [com.okta.authfoundation.client.OAuth2ClientResult.Error.HttpResponseException] on server errors.

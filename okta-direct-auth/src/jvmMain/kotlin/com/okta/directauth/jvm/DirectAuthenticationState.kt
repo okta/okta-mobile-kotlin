@@ -30,6 +30,8 @@ import com.okta.directauth.model.DirectAuthenticationState as KotlinDirectAuthen
  *
  * Use [state] to access the underlying Kotlin [KotlinDirectAuthenticationState].
  *
+ * Kotlin callers should use [com.okta.directauth.model.DirectAuthenticationState] instead.
+ *
  * @param state The underlying Kotlin [KotlinDirectAuthenticationState].
  */
 sealed class DirectAuthenticationState(
@@ -52,7 +54,7 @@ sealed class DirectAuthenticationState(
     /**
      * The authentication process is still pending and awaiting user action.
      *
-     * @param timestamp The time in milliseconds when the authorization became pending.
+     * @param timestamp The time in epoch seconds when the authorization became pending.
      */
     class AuthorizationPending internal constructor(
         delegate: KotlinDirectAuthenticationState.AuthorizationPending,

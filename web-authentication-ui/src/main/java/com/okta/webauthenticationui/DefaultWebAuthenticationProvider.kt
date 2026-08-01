@@ -52,6 +52,10 @@ import okhttp3.HttpUrl
 class DefaultWebAuthenticationProvider
     @JvmOverloads
     constructor(
+        /**
+         * @param eventCoordinator legacy hook that still receives the deprecated [CustomizeBrowserEvent]/[CustomizeCustomTabsEvent];
+         * new code should use the parameters below instead.
+         */
         private val eventCoordinator: EventCoordinator = EventCoordinator(emptyList()),
         /**
          * The list of browser package names to prefer when selecting which Chrome Custom Tabs
@@ -81,9 +85,11 @@ class DefaultWebAuthenticationProvider
         private val customizeTabsIntent: ((context: Context, builder: CustomTabsIntent.Builder) -> Unit)? = null,
     ) : WebAuthenticationProvider {
         companion object {
+            /** HTTP header name used to send the Okta SDK user-agent string to the authorize endpoint. */
             const val X_OKTA_USER_AGENT = "X-Okta-User-Agent-Extended"
 
-            val USER_AGENT_HEADER = "web-authentication-ui/${Build.VERSION.SDK_INT} com.okta.webauthenticationui/2.0.0"
+            /** The `X-Okta-User-Agent-Extended` header value sent with authorize requests. */
+            val USER_AGENT_HEADER = "web-authentication-ui/${Build.VERSION.SDK_INT} com.okta.webauthenticationui/3.0.0"
 
             private const val CHROME_STABLE = "com.android.chrome"
             private const val CHROME_SYSTEM = "com.google.android.apps.chrome"

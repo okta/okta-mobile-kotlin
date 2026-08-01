@@ -34,8 +34,6 @@ import com.okta.authfoundation.client.kmp.OAuth2Client
  * result.onSuccess { tokenInfo -> println("Access token: ${tokenInfo.accessToken}") }
  * result.onFailure { error -> println("Authentication failed: $error") }
  * ```
- *
- * @see ResourceOwnerFlowImpl
  */
 interface ResourceOwnerFlow {
     /**

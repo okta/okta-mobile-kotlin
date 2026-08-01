@@ -3,9 +3,11 @@
 ## Unreleased
 
 Per-module versions are now tracked and released independently. The sections below cover
-`auth-foundation`, `oauth2`, `web-authentication-ui`, and `okta-direct-auth` changes accumulated
-since each module's last release. `okta-idx-kotlin` (currently 3.1.1) is unaffected and not
-included here.
+`auth-foundation`, `oauth2`, and `web-authentication-ui` changes accumulated since each module's
+last release. `okta-direct-auth` and `okta-idx-kotlin` each maintain their own `CHANGELOG.md`
+(`okta-direct-auth/CHANGELOG.md`, `okta-idx-kotlin/CHANGELOG.md`) and are not duplicated here —
+see `okta-direct-auth/CHANGELOG.md` for its upcoming 1.0.0 changes. `okta-idx-kotlin` (currently
+3.1.1) is additionally unaffected by this release wave.
 
 ### Release checklist (next steps)
 
@@ -17,7 +19,35 @@ included here.
    CLAUDE.md's API Compatibility section).
 3. Move this "Unreleased" section into dated, per-module entries once each release is actually
    tagged and published (see the existing per-module tags: `auth-foundation@2.0.5`,
-   `okta-direct-auth@0.0.1`, `okta-idx-kotlin@3.1.1`).
+   `okta-direct-auth@0.0.1`, `okta-idx-kotlin@3.1.1`). Replace each `### <module> 3.0.0` heading
+   with a top-level, dated `## <module> 3.0.0 - <release date>` heading plus a commit-compare
+   link, matching the `[Commits](...)` links on older entries further down this file:
+
+   ```
+   ## auth-foundation 3.0.0 - <release date>
+
+   [Commits](https://github.com/okta/okta-mobile-kotlin/compare/auth-foundation@2.0.5...auth-foundation@3.0.0)
+
+   #### Breaking changes
+   ...
+   ```
+
+   `oauth2` and `web-authentication-ui` are being tagged independently for the first time with
+   this release, so there's no prior `oauth2@2.0.4`/`web-authentication-ui@2.0.4` tag to compare
+   from — use commit `e70ffa5c` (the last commit before either module's version left 2.0.4)
+   instead:
+
+   ```
+   ## oauth2 3.0.0 - <release date>
+
+   [Commits](https://github.com/okta/okta-mobile-kotlin/compare/e70ffa5c...oauth2@3.0.0)
+   ```
+
+   ```
+   ## web-authentication-ui 3.0.0 - <release date>
+
+   [Commits](https://github.com/okta/okta-mobile-kotlin/compare/e70ffa5c...web-authentication-ui@3.0.0)
+   ```
 
 ### auth-foundation 3.0.0
 
@@ -36,7 +66,7 @@ major release with breaking changes to the credential-event and cache APIs.
   replaced by `getCredentialIdentifier(): CredentialIdentifier`.
 - `NoAccessTokenAvailableEvent.getCredential()` return type changed from `Credential` to
   `CredentialIdentifier`.
-- `CredentialStoredEvent.getToken()` return type changed from `Token` to `TokenInfo`.
+- `CredentialStoredEvent.getToken()` return type changed from `Token` to `TokenInfo?` (now nullable).
 - `JwtParser.Companion.create()` — the only public factory for `JwtParser` — removed.
 - `CoalescingOrchestrator` changed from public to internal.
 - `com.okta.authfoundation.api.http.log.AuthFoundationLogger`/`LogLevel` relocated to
@@ -83,9 +113,6 @@ major release with breaking changes to the credential-event and cache APIs.
 - Uncaught `ProviderException` in `AndroidKeystoreUtil.getOrCreateAesKey` (#403).
 - `CoalescingOrchestrator` reimplemented with `Mutex` instead of `synchronized`, removing a
   thread-blocking lock inside suspend functions (#400).
-- `Credential.refreshToken(extraRequestParameters)`'s default implementation now returns
-  `Result.failure(NotImplementedError)` for a non-empty map instead of silently ignoring the extra
-  parameters and delegating to `refreshToken()`.
 
 ### oauth2 3.0.0
 
@@ -147,43 +174,6 @@ major release with breaking changes to the credential-event and cache APIs.
   `OidcConfiguration`-based path (#406).
 - `ForegroundActivityEvent`/`CustomizeBrowserEvent`/`CustomizeCustomTabsEvent` reparented under a
   new `UIEvent` marker interface — still `Event` subtypes, non-breaking (#407).
-
-### okta-direct-auth 1.0.0
-
-Graduating from beta (0.0.1) to the first stable release.
-
-#### Breaking changes
-- `DirectAuthenticationState.Authenticated.token` type changed from
-  `com.okta.authfoundation.credential.Token` to `com.okta.authfoundation.client.TokenInfo`.
-- `DirectAuthContinuation.WebAuthn.challengeData` changed from a `String` property to a
-  `challengeData(): Result<String>` function; `proceed(authenticationResponseJson: String)`
-  (previously an unimplemented stub) removed, replaced by `proceed(WebAuthnCeremonyHandler)` and
-  `proceed(WebAuthnAssertionResponse)`.
-- `com.okta.directauth.http.KtorHttpExecutor` removed — relocated to
-  `com.okta.authfoundation.api.http.KtorHttpExecutor`.
-- `com.okta.directauth.log.AuthFoundationLoggerImpl` removed from the public API — relocated into
-  `auth-foundation`.
-- `UNKNOWN_ERROR` constant removed from `InternalErrorCodeKt`.
-- The builder's logger accessor type changed to the relocated
-  `com.okta.authfoundation.api.log.AuthFoundationLogger`.
-
-#### Added
-- WebAuthn/passkey support: `WebAuthnCeremonyHandler`, `WebAuthnAssertionResponse`,
-  `AuthenticatorEnrollment`, `AndroidWebAuthnCeremonyHandler`, `PrimaryFactor.WebAuthn`,
-  `DirectAuthTokenRequest.WebAuthn`/`WebAuthnMfa` (#374).
-- Full Java-compatible `CompletableFuture` API under `com.okta.directauth.jvm`: `DirectAuthResult`,
-  `DirectAuthenticationFlow`, `DirectAuthenticationFlowBuilder`, and MFA/OOB/Prompt/Transfer/WebAuthn
-  continuation wrappers (#376).
-- Java CLI sample app demonstrating Direct Authentication end-to-end (#377).
-- Cross-platform (KMP) credential management integration (#381).
-- New 3-arg builder `create(issuerUrl, clientId, scope)` overload; new 2-arg MFA `challenge`/
-  `resume` overloads, added alongside the existing ones.
-- ABI validation rolled out (#411).
-
-#### Changed
-- Module converted from an Android-only build to Kotlin Multiplatform (Android + JVM) (#368, #369).
-- Internal `ApiResponseExt` extension functions refactored into `StepHandlers` — internal-only, no
-  public API impact (#366).
 
 ## [2.0.3] - 2025-02-18
 - Make SDK defaults configurable by third party SDKs [#323](https://github.com/okta/okta-mobile-kotlin/pull/323)

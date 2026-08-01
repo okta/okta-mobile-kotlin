@@ -15,4 +15,11 @@
  */
 package com.okta.authfoundation.events
 
+/**
+ * Root marker interface for all events emitted by Auth Foundation and other Okta SDKs.
+ *
+ * Collected from [com.okta.authfoundation.client.kmp.OAuth2Client.events] and
+ * [com.okta.authfoundation.credential.kmp.TokenCredentialManager.events]. Filter by the
+ * [TokenEvent] and [CredentialEvent] sub-interfaces to narrow to a lifecycle category.
+ */
 interface Event

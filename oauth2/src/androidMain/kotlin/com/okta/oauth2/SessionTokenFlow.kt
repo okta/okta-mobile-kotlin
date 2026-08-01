@@ -26,9 +26,6 @@ import okhttp3.Request
 /**
  * [SessionTokenFlow] encapsulates the behavior required to authentication using a session token obtained from the Okta Legacy Authn
  * APIs.
- *
- * @deprecated This Android-only SessionTokenFlow is deprecated in favor of the KMP variant, which works on
- * Android and JVM. Use [com.okta.oauth2.kmp.SessionTokenFlow] instead.
  */
 @Deprecated(
     message =

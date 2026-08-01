@@ -35,7 +35,7 @@ import com.okta.oauth2.kmp.SessionTokenFlow as KotlinSessionTokenFlow
  * Typical Java usage:
  * ```java
  * SessionTokenFlow flow = new SessionTokenFlow(kmpClient);
- * TokenInfo token = flow.start(sessionToken, redirectUrl).get();
+ * TokenInfo token = flow.start(sessionToken, redirectUrl, scope).get();
  * flow.close();
  * ```
  *
@@ -60,8 +60,8 @@ class SessionTokenFlow(
      *
      * @param sessionToken the session token obtained from the Okta legacy Authn API.
      * @param redirectUrl the redirect URL registered with the authorization server.
-     * @param extraRequestParameters additional key-value pairs appended to the authorization URL.
      * @param scope the scopes to request.
+     * @param extraRequestParameters additional key-value pairs appended to the authorization URL.
      * @return a [CompletableFuture] that completes with [TokenInfo] on success,
      *   or completes exceptionally on failure.
      */

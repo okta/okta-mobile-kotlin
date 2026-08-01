@@ -31,12 +31,11 @@ import io.ktor.http.Url
 import kotlin.time.Clock
 
 /**
- * A builder used to configure and create an instance of [DirectAuthenticationFlow].
+ * Configures a [DirectAuthenticationFlow].
  *
- * This class provides a fluent API for setting the necessary parameters for the
- * Direct Authentication flow, such as the issuer URL, client ID, and scopes.
- *
- * An instance of this builder should be created using the [create] factory method.
+ * Rather than instantiating this builder directly, call [create] and configure the instance
+ * inside the trailing lambda, e.g.
+ * `DirectAuthenticationFlowBuilder.create(issuerUrl, clientId, scope) { clientSecret = "..." }`.
  */
 class DirectAuthenticationFlowBuilder private constructor() {
     /**
@@ -106,7 +105,8 @@ class DirectAuthenticationFlowBuilder private constructor() {
      * existing logging framework, such as Timber or a custom solution. It can also be
      * replaced with a mock implementation for testing purposes.
      *
-     * Defaults to an instance of [com.okta.authfoundation.api.log.AuthFoundationLogger] which logs to Android's Logcat.
+     * Defaults to the platform default logger (Android: Logcat; JVM: standard output/SLF4J-style).
+     * See [getDefaultAuthFoundationLogger].
      */
     var logger: AuthFoundationLogger = getDefaultAuthFoundationLogger()
 

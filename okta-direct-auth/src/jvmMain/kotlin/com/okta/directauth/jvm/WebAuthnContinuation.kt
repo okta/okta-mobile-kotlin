@@ -44,12 +44,15 @@ class WebAuthnContinuation(
     /**
      * Retrieves the raw JSON string representing the WebAuthn challenge data.
      *
-     * @return A [Result] containing the challenge data JSON string on success.
+     * @return A [Result] containing the challenge data JSON string on success. If the challenge
+     * data cannot be extracted or serialized to JSON, a [Result.failure] is returned containing
+     * the exception details.
      */
     fun challengeData(): Result<String> = delegate.challengeData()
 
     /**
-     * The list of authenticator enrollments returned from the server.
+     * The list of authenticator enrollments returned from the server, or `null` if the challenge
+     * response did not include any.
      */
     val authenticatorEnrollment = delegate.authenticatorEnrollment
 

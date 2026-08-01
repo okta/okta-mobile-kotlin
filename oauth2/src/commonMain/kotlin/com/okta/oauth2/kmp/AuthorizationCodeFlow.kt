@@ -21,6 +21,11 @@ import com.okta.authfoundation.client.kmp.OAuth2Client
 /**
  * Encapsulates the behavior required to authenticate using the OIDC Authorization Code flow with PKCE.
  *
+ * Call [start] to obtain an [AuthorizationCodeFlowContext] whose [AuthorizationCodeFlowContext.url] you open
+ * with a [BrowserRedirectHandler]. Once the browser redirects back to the registered redirect URI, pass that
+ * captured URI along with the same [AuthorizationCodeFlowContext] to [resume] to exchange the authorization
+ * code for tokens.
+ *
  * See [Authorization Code Flow documentation](https://developer.okta.com/docs/guides/implement-grant-type/authcodepkce/main/)
  */
 interface AuthorizationCodeFlow {
@@ -30,9 +35,10 @@ interface AuthorizationCodeFlow {
     val client: OAuth2Client
 
     /**
-     * Thrown by [resume] when the authorization server returns an error.
+     * Thrown by [resume] when the redirect could not be validated or the authorization server returned an error.
      *
-     * @property errorId the OAuth2 error code returned by the server.
+     * @property errorId the error code. For server errors this is the OAuth2 error code from the redirect; for
+     * a failed CSRF/state check it is the SDK-generated value `"state_mismatch"`.
      */
     class ResumeException(
         message: String,
@@ -53,9 +59,9 @@ interface AuthorizationCodeFlow {
      * Initiates the Authorization Code redirect flow.
      *
      * @param redirectUrl the registered redirect URI for this client.
-     * @param extraRequestParameters additional query parameters for the authorization endpoint.
      * @param scope the scopes to request. If omitted, the client's configured
      * default scopes are used.
+     * @param extraRequestParameters additional query parameters for the authorization endpoint.
      * @return a [Result] containing an [AuthorizationCodeFlowContext] with the authorization URL and state.
      */
     suspend fun start(
@@ -69,7 +75,9 @@ interface AuthorizationCodeFlow {
      *
      * @param uri the redirect URI received from the browser after authorization.
      * @param flowContext the [AuthorizationCodeFlowContext] returned by [start].
-     * @return a [Result] containing [TokenInfo] on success.
+     * @return a [Result] containing [TokenInfo] on success. On failure the [Result] wraps
+     * [RedirectSchemeMismatchException] (redirect URI didn't match), [MissingResultCodeException] (no `code`
+     * in the redirect), or [ResumeException] (state mismatch or a server-returned error).
      */
     suspend fun resume(
         uri: String,

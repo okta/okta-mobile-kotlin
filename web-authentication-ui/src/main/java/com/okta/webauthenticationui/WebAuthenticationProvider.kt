@@ -21,6 +21,9 @@ import okhttp3.HttpUrl
 
 /**
  * Used to launch the OIDC redirect flow associated with a [WebAuthentication].
+ *
+ * Most integrators should use [DefaultWebAuthenticationProvider]; implement this only to fully
+ * control how the authorize URL is presented.
  */
 interface WebAuthenticationProvider {
     /**
@@ -29,7 +32,7 @@ interface WebAuthenticationProvider {
      * @param context the Android [Activity] [Context] which is used to display the flow.
      * @param url the url the instance should display.
      *
-     * @return the exception causing the launch to fail.
+     * @return `null` if the flow launched successfully, or the [Exception] that caused the launch to fail.
      */
     fun launch(
         context: Context,

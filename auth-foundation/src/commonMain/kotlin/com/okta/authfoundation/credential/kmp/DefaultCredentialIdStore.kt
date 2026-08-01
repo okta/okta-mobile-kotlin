@@ -20,7 +20,7 @@ package com.okta.authfoundation.credential.kmp
  *
  * On Android, the existing [DefaultCredentialIdDataStore] provides an encrypted DataStore-based
  * implementation. For cross-platform persistent storage, use
- * [RoomDefaultCredentialIdStore][com.okta.authfoundation.credential.storage.RoomDefaultCredentialIdStore].
+ * [RoomDefaultCredentialIdStore][com.okta.authfoundation.credential.kmp.storage.RoomDefaultCredentialIdStore].
  */
 interface DefaultCredentialIdStore {
     /** Returns the current default credential ID, or null if none is set. */

@@ -28,10 +28,13 @@ do not have an account manager, please reach out to oie@okta.com for more inform
 
 ## Installation
 
-Add the `Okta IDX Kotlin` dependency to your `build.gradle` file:
+Add the `Okta IDX Kotlin` dependency to your `build.gradle.kts` file:
 
-```gradle
-implementation 'com.okta.kotlin:okta-idx-kotlin:3.1.1'
+```kotlin
+dependencies {
+    implementation(platform("com.okta.kotlin:bom:3.0.0"))
+    implementation("com.okta.kotlin:okta-idx-kotlin")
+}
 ```
 
 See the [CHANGELOG](CHANGELOG.md) for the most recent changes.

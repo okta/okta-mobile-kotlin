@@ -70,6 +70,10 @@ class IdxAuthenticator internal constructor(
 ) {
     /**
      * Marker interface for [IdxAuthenticator] capabilities.
+     *
+     * Capabilities are retrieved from [IdxAuthenticator.capabilities] via a typed accessor, e.g. `capabilities.get<SomeCapability>()`.
+     *
+     * @see IdxCapabilityCollection.get
      */
     interface Capability
 

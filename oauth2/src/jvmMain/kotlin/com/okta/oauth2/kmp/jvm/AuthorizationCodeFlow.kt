@@ -39,7 +39,7 @@ import com.okta.oauth2.kmp.AuthorizationCodeFlow as KotlinAuthorizationCodeFlow
  * Typical Java usage:
  * ```java
  * AuthorizationCodeFlow flow = new AuthorizationCodeFlow(kmpClient);
- * TokenInfo token = flow.start(redirectUrl, browserHandler).get();
+ * TokenInfo token = flow.start(redirectUrl, browserHandler, scope).get();
  * flow.close();
  * ```
  *
@@ -67,8 +67,8 @@ class AuthorizationCodeFlow(
      *
      * @param redirectUrl the registered redirect URI for this client.
      * @param browserRedirectHandler handles opening the browser and capturing the redirect.
-     * @param extraRequestParameters additional authorization endpoint parameters.
      * @param scope the scopes to request.
+     * @param extraRequestParameters additional authorization endpoint parameters.
      * @return a [CompletableFuture] that completes with [TokenInfo] on success,
      *   or completes exceptionally on failure.
      */

@@ -31,6 +31,9 @@ import java.util.UUID
  * A helper class to migrate tokens from the [Legacy OIDC SDK](https://github.com/okta/okta-oidc-android) to Auth Foundations
  * [Credential].
  *
+ * [migrate] is idempotent — it records completion in private SharedPreferences and returns [Result.PreviouslyMigrated] on subsequent
+ * calls, so it is safe to invoke on every app start.
+ *
  * See [migrate.md](https://github.com/okta/okta-mobile-kotlin/blob/master/migrate.md) for more information.
  */
 object LegacyTokenMigration {
@@ -39,14 +42,20 @@ object LegacyTokenMigration {
     private const val SHARED_PREFERENCE_MIGRATED_TOKEN_ID_KEY = "com.okta.legacytokenmigration.token.id"
 
     /**
-     * Attempts to migrate a token from a [SessionClient] to a [Token]. The resulting [Token] can be stored using [Credential.store],
-     * and can be set as default using [Credential.setDefaultAsync] or [Credential.default].
+     * Migrates the token held by a legacy [SessionClient] into a new [Credential], persisting it to the [CredentialDataSource], and
+     * clears the legacy [SessionClient].
+     *
+     * On success/previously-migrated, look the stored credential up with `Credential.with(result.tokenId)` and optionally make it the
+     * default via `Credential.default = ...` / `Credential.setDefaultAsync(...)`.
      *
      * @param context used for storing the status of previous migrations in Shared Preferences.
      * @param sessionClient a configured session client with the stored tokens from a previous authentication where the token will be
      *  migrated from.
      *
-     * @return a [Result] with the outcome of the migration.
+     * @return a [Result]: [Result.SuccessfullyMigrated] (new credential created), [Result.PreviouslyMigrated] (migration already ran
+     *  previously), [Result.MissingLegacyToken] (the [SessionClient] had no token), or [Result.Error] (an exception occurred —
+     *  inspect `exception`). This function never throws for these cases; it is safe to call from any dispatcher (it switches to
+     *  `Dispatchers.IO` internally).
      */
     suspend fun migrate(
         context: Context,
@@ -95,12 +104,15 @@ object LegacyTokenMigration {
     @VisibleForTesting internal fun SharedPreferences.hasMarkedTokensAsMigrated(): Boolean = getBoolean(SHARED_PREFERENCE_HAS_MIGRATED_KEY, false)
 
     /**
-     * Describes the result from [LegacyTokenMigration.migrate].
+     * The exhaustive set of outcomes from [LegacyTokenMigration.migrate]. Branch on it with an exhaustive `when` to handle success,
+     * prior migration, a missing legacy token, and errors.
      */
     sealed class Result {
         /**
          * The token was previously migrated. No changes were made as a result of the [LegacyTokenMigration.migrate] call. The migrated token was
          * stored in [CredentialDataSource] with the returned [tokenId].
+         *
+         * @property tokenId The id of the stored [Credential]; retrieve it with `Credential.with(tokenId)`.
          */
         data class PreviouslyMigrated(
             val tokenId: String,
@@ -112,16 +124,18 @@ object LegacyTokenMigration {
          */
         class Error internal constructor(
             /**
-             *
+             * The exception that caused migration to fail — e.g. an error thrown while reading tokens from the [SessionClient], or a
+             * failure persisting the new [Credential]. Migration state is left untouched, so the call can be safely retried.
              */
             val exception: Exception,
         ) : Result()
 
         /**
-         * The token migrated successfully.
-         * The [Credential] supplied to the [LegacyTokenMigration.migrate] call now stores the token.
-         * The [SessionClient] supplied to the [LegacyTokenMigration.migrate] call has been cleared, and should no longer be used.
-         * The migrated token is stored in [CredentialDataSource] with the returned [tokenId]
+         * The token migrated successfully. A new [Credential] was created and stored in the [CredentialDataSource]; reference it with
+         * the returned [tokenId] via `Credential.with(tokenId)`. The [SessionClient] passed to [migrate] has been cleared and must not
+         * be used again.
+         *
+         * @property tokenId The id of the stored [Credential]; retrieve it with `Credential.with(tokenId)`.
          */
         data class SuccessfullyMigrated(
             val tokenId: String,

@@ -30,9 +30,6 @@ import okhttp3.Request
  * As an example, consider [SSO for Native Apps](https://developer.okta.com/docs/guides/configure-native-sso/main/#native-sso-flow) where a client exchanges the ID and the Device Secret tokens to get access to the resource.
  *
  * See the [specification](https://openid.net/specs/openid-connect-native-sso-1_0.html)
- *
- * @deprecated This Android-only TokenExchangeFlow is deprecated in favor of the KMP variant, which works on
- * Android and JVM. Use [com.okta.oauth2.kmp.TokenExchangeFlow] instead.
  */
 @Deprecated(
     message =

@@ -174,14 +174,18 @@ class WebAuthentication private constructor(
     internal var redirectCoordinator: RedirectCoordinator = SingletonRedirectCoordinator
 
     /**
-     * Used in a [OAuth2ClientResult.Error.exception].
+     * Surfaced as the failure cause of a [login] or [logoutOfBrowser] call — inside a failed [Result]
+     * for the [List]-scope [login] overload, or as [OAuth2ClientResult.Error.exception] for
+     * [logoutOfBrowser] and the deprecated [String]-scope [login] overload.
      *
      * Indicates the requested flow was cancelled.
      */
     class FlowCancelledException internal constructor() : Exception("Flow cancelled.")
 
     /**
-     * Used in a [OAuth2ClientResult.Error.exception].
+     * Surfaced as the failure cause of a [login] or [logoutOfBrowser] call — inside a failed [Result]
+     * for the [List]-scope [login] overload, or as [OAuth2ClientResult.Error.exception] for
+     * [logoutOfBrowser] and the deprecated [String]-scope [login] overload.
      *
      * Indicates that [login] or [logoutOfBrowser] was called while another flow was already in
      * progress. Only one redirect flow can be active at a time.
@@ -189,14 +193,15 @@ class WebAuthentication private constructor(
     class FlowAlreadyInProgressException internal constructor() : Exception("Another flow is already in progress.")
 
     /**
-     * Initiates the OIDC Authorization Code redirect flow.
+     * Initiates the OIDC Authorization Code redirect flow. Suspends until the browser redirect
+     * completes or the user cancels. Preferred over the [String]-scope overload.
      *
      * @param context the Android [Activity] [Context] which is used to display the login flow via the configured
      * [WebAuthenticationProvider].
      * @param redirectUrl the redirect URL.
+     * @param scope the scopes to request during sign in.
      * @param extraRequestParameters the extra key value pairs to send to the authorize endpoint.
      *  See [Authorize Documentation](https://developer.okta.com/docs/reference/api/oidc/#authorize) for parameter options.
-     * @param scope the scopes to request during sign in.
      * @return a [Result] containing [TokenInfo] on success, or a failed [Result] wrapping a
      *  [FlowCancelledException] if the user dismissed the browser, a [FlowAlreadyInProgressException]
      *  if another redirect flow was already in progress, or the underlying authorize/token exchange error.
@@ -239,9 +244,13 @@ class WebAuthentication private constructor(
      * @param context the Android [Activity] [Context] which is used to display the login flow via the configured
      * [WebAuthenticationProvider].
      * @param redirectUrl the redirect URL.
-     * @param scope the scopes to request during sign in. Defaults to the configured client's default scope.
      * @param extraRequestParameters the extra key value pairs to send to the authorize endpoint.
      *  See [Authorize Documentation](https://developer.okta.com/docs/reference/api/oidc/#authorize) for parameter options.
+     * @param scope the scopes to request during sign in. Defaults to the configured client's default scope.
+     * @return an [OAuth2ClientResult]: [OAuth2ClientResult.Success] wrapping the [Token] on success, or
+     *  [OAuth2ClientResult.Error] wrapping a [FlowCancelledException] if the user dismissed the browser, a
+     *  [FlowAlreadyInProgressException] if another redirect flow was already in progress, or the underlying
+     *  authorize/token exchange error.
      */
     @Deprecated(
         message =
@@ -267,6 +276,8 @@ class WebAuthentication private constructor(
      * [WebAuthenticationProvider].
      * @param redirectUrl the redirect URL.
      * @param idToken the token used to identify the session to log the user out of.
+     * @return an [OAuth2ClientResult]: [OAuth2ClientResult.Success] of [Unit] on completed logout, or
+     *  [OAuth2ClientResult.Error] (e.g. [FlowCancelledException], [FlowAlreadyInProgressException]).
      */
     suspend fun logoutOfBrowser(
         context: Context,

@@ -36,6 +36,8 @@ class IdxCapabilityCollection<C> internal constructor(
 ) : Set<C> by capabilities {
     /**
      * Returns a capability based on its type.
+     *
+     * For example: `val poll = remediation.capabilities.get<IdxPollRemediationCapability>()`.
      */
     inline fun <reified Capability : C> get(): Capability? {
         val matched = firstOrNull { it is Capability } ?: return null
@@ -176,7 +178,7 @@ class IdxTotpCapability internal constructor(
     /** The shared secret associated with the authenticator used for setup without a QR code. */
     val sharedSecret: String?,
 ) : IdxAuthenticator.Capability {
-    /** The [Bitmap] associated with the QR code TOTP registration information. */
+    /** @return the decoded QR-code [Bitmap], or `null` if the embedded image data could not be decoded. */
     fun asImage(): Bitmap? {
         val bytes = imageData.substringAfter("data:image/png;base64,").decodeBase64()?.toByteArray() ?: return null
         return BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
@@ -268,7 +270,7 @@ class IdxWebAuthnRegistrationCapability internal constructor(
 /**
  * Describes the WebAuthn authentication capability associated with an [IdxAuthenticator].
  *
- * @property challengeData The JSON string containing the public key credential creation options for WebAuthn activation.
+ * @property challengeData The JSON string containing the public key credential request (assertion) options for WebAuthn authentication.
  */
 class IdxWebAuthnAuthenticationCapability internal constructor(
     private val _challengeData: String,
@@ -311,7 +313,7 @@ class IdxWebAuthnAuthenticationCapability internal constructor(
      * @param authenticationResponseJson JSON string containing the authentication response.
      * @return `Result<IdxRemediation>` with the updated remediation.
      * @throws IllegalArgumentException if required fields are missing in the authenticationResponseJson or IdxRemediation.Form.
-     * @throws IllegalArgumentException if the authenticationResponseJson contains invalid .
+     * @throws IllegalArgumentException if the authenticationResponseJson is missing required response fields (clientDataJson/clientDataJSON, authenticatorData, signature).
      * @throws JSONException if the JSON string is invalid. Or if the authenticationResponseJson does not contain the expected fields.
      */
     fun withAuthenticationResponseJson(

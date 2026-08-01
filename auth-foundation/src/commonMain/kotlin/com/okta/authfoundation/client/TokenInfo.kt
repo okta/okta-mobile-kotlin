@@ -15,6 +15,15 @@
  */
 package com.okta.authfoundation.client
 
+/**
+ * Read-only view of an OAuth2 token set (access token, optional refresh token, ID token, and
+ * device secret) plus the identity of the client and issuer that minted it.
+ *
+ * This is the cross-platform token contract returned by [com.okta.authfoundation.client.kmp.OAuth2Client]
+ * and stored via [com.okta.authfoundation.credential.kmp.TokenCredentialManager]. The default
+ * implementation is [com.okta.authfoundation.credential.kmp.TokenData]; on Android the deprecated
+ * [com.okta.authfoundation.credential.Token] also implements it.
+ */
 interface TokenInfo {
     /**
      * Unique identifier for this token.

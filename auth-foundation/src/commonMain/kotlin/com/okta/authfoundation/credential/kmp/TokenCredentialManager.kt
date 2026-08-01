@@ -72,7 +72,8 @@ class TokenCredentialManager(
     /**
      * Stores a new credential with the given [token] and optional [tags].
      *
-     * @return [Result.success] with the stored [Credential].
+     * @return [Result.success] with the stored [Credential], or [Result.failure] wrapping any
+     * exception thrown while persisting the credential to storage.
      */
     suspend fun store(
         token: TokenData,

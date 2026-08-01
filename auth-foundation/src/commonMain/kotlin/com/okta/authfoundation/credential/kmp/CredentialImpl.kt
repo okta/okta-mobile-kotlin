@@ -47,8 +47,9 @@ import kotlinx.coroutines.flow.MutableSharedFlow
  * Shared mutable state (deletion tracking, token flows, refresh deduplication) is managed by
  * [CredentialDataSource], keyed by credential [id].
  *
- * Used on JVM and other non-Android KMP targets. On Android, the existing
- * [Credential][com.okta.authfoundation.credential.Credential] class provides a mutable adapter.
+ * Used on JVM and other non-Android KMP targets. The Android-only
+ * [Credential][com.okta.authfoundation.credential.Credential] is a separate, deprecated type
+ * that shares only the [CredentialIdentifier] contract — it does not implement this interface.
  */
 @OptIn(InternalAuthFoundationApi::class)
 class CredentialImpl internal constructor(

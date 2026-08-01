@@ -69,6 +69,10 @@ class IdxRemediation internal constructor(
 
     /**
      * Marker interface for [IdxRemediation] capabilities.
+     *
+     * Capabilities are retrieved from [IdxRemediation.capabilities] via a typed accessor, e.g. `capabilities.get<SomeCapability>()`.
+     *
+     * @see IdxCapabilityCollection.get
      */
     interface Capability
 
@@ -193,7 +197,11 @@ class IdxRemediation internal constructor(
              */
             operator fun get(name: String): Field? = form?.get(name)
 
-            /** The value to send, if a default is provided from the Identity Engine. */
+            /**
+             * The value to send for this field. A default may be provided by the Identity Engine.
+             *
+             * @throws IllegalStateException if assigned when [isMutable] is `false`.
+             */
             var value: Any?
                 set(value) {
                     if (!isMutable) {

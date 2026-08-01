@@ -30,9 +30,6 @@ import okhttp3.Request
  * This simple authentication flow permits a user to authenticate using a simple username and password. As such, the configuration is straightforward.
  *
  * > Important: Resource Owner authentication does not support MFA or other more secure authentication models, and is not recommended for production applications.
- *
- * @deprecated This Android-only ResourceOwnerFlow is deprecated in favor of the KMP variant, which works on
- * Android and JVM. Use [com.okta.oauth2.kmp.ResourceOwnerFlow] instead.
  */
 @Deprecated(
     message =

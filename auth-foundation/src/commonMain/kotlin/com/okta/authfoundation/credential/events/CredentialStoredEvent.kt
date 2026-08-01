@@ -21,7 +21,7 @@ import com.okta.authfoundation.events.CredentialEvent
 import com.okta.authfoundation.events.EventHandler
 
 /**
- * Emitted via [EventHandler.onEvent] after a [CredentialIdentifier] is updated due to a [CredentialIdentifier.replaceToken] invocation.
+ * Emitted via [EventHandler.onEvent] after a [CredentialIdentifier] is updated when a credential's token is replaced.
  */
 class CredentialStoredEvent internal constructor(
     /**

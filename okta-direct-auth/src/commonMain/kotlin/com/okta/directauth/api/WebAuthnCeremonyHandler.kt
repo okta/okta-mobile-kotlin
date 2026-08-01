@@ -23,6 +23,16 @@ import com.okta.directauth.model.WebAuthnAssertionResponse
  * Platform implementations call the native WebAuthn API (e.g., Android Credential Manager)
  * with the server-provided challenge data and return the assertion response.
  *
+ * The full handshake, orchestrated by [com.okta.directauth.model.DirectAuthContinuation.WebAuthn],
+ * runs as follows: the server issues a challenge, which is obtained as raw JSON via
+ * `DirectAuthContinuation.WebAuthn.challengeData()`; that JSON is passed to this handler's
+ * [performAssertion], which invokes the platform's native WebAuthn API to run the ceremony
+ * (e.g., prompting for biometrics or a security key) and returns a [WebAuthnAssertionResponse];
+ * `DirectAuthContinuation.WebAuthn.proceed()` then exchanges that assertion response with the
+ * server for tokens.
+ *
+ * Most Android apps should use `AndroidWebAuthnCeremonyHandler` rather than implementing this
+ * interface directly.
  */
 interface WebAuthnCeremonyHandler {
     /**
