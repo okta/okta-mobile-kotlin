@@ -51,6 +51,7 @@ allprojects {
             force(libs.netty.codec.http)
             force(libs.netty.codec.http2)
             force(libs.netty.handler)
+            force(libs.netty.handler.proxy)
             force(libs.protobuf.java)
             force(libs.woodstox.core)
             force(libs.commons.lang3)
