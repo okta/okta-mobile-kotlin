@@ -49,7 +49,19 @@ typealias OidcClient = OAuth2Client
  * This is for low level access, and it's typically preferred to use a [Credential], which streamlines usage.
  *
  * [Okta Developer Docs](https://developer.okta.com/docs/reference/api/oidc)
+ *
+ * @deprecated This Android-only OAuth2Client is deprecated in favor of the KMP variant, which works on
+ * Android and JVM. Build one via [com.okta.authfoundation.client.OAuth2ClientBuilder.create] and use
+ * [com.okta.authfoundation.client.kmp.OAuth2Client] instead.
  */
+@Deprecated(
+    message =
+        "The Android-only OAuth2Client is deprecated in favor of the KMP variant, which works on Android " +
+            "and JVM. Build one via OAuth2ClientBuilder.create(issuerUrl, clientId, scope) and use " +
+            "com.okta.authfoundation.client.kmp.OAuth2Client instead. This class will be removed in a " +
+            "future major release.",
+    level = DeprecationLevel.WARNING
+)
 class OAuth2Client private constructor(
     @property:InternalAuthFoundationApi val configuration: OidcConfiguration,
     internal val endpoints: CoalescingOrchestrator<OAuth2ClientResult<OidcEndpoints>>,

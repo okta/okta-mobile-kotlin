@@ -201,8 +201,30 @@ class WebAuthentication private constructor(
      * @param redirectUrl the redirect URL.
      * @param extraRequestParameters the extra key value pairs to send to the authorize endpoint.
      *  See [Authorize Documentation](https://developer.okta.com/docs/reference/api/oidc/#authorize) for parameter options.
+     * @param scope the scopes to request during sign in.
+     */
+    @Suppress("DEPRECATION")
+    suspend fun login(
+        context: Context,
+        redirectUrl: String,
+        extraRequestParameters: Map<String, String> = emptyMap(),
+        scope: List<String>,
+    ): OAuth2ClientResult<Token> = login(context, redirectUrl, extraRequestParameters, scope.joinToString(" "))
+
+    /**
+     * Initiates the OIDC Authorization Code redirect flow.
+     *
+     * @param context the Android [Activity] [Context] which is used to display the login flow via the configured
+     * [WebAuthenticationProvider].
+     * @param redirectUrl the redirect URL.
+     * @param extraRequestParameters the extra key value pairs to send to the authorize endpoint.
+     *  See [Authorize Documentation](https://developer.okta.com/docs/reference/api/oidc/#authorize) for parameter options.
      * @param scope the scopes to request during sign in. Defaults to the configured client's default scope.
      */
+    @Deprecated(
+        message = "Use the overload accepting scope as a List<String> instead.",
+        replaceWith = ReplaceWith("login(context, redirectUrl, extraRequestParameters, scope.split(\" \"))")
+    )
     suspend fun login(
         context: Context,
         redirectUrl: String,

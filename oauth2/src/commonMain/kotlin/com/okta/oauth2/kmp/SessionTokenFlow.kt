@@ -43,6 +43,22 @@ interface SessionTokenFlow {
         scope: String? = null,
     ): Result<TokenInfo>
 
+    /**
+     * Initiates the session token flow and returns a [TokenInfo] on success.
+     *
+     * @param sessionToken the session token obtained from Okta legacy Authn APIs.
+     * @param redirectUrl the redirect URL registered with the authorization server.
+     * @param extraRequestParameters additional key-value pairs appended to the authorization URL.
+     * @param scope the scopes to request.
+     * @return [Result.success] with [TokenInfo] on success, or [Result.failure] on error.
+     */
+    suspend fun start(
+        sessionToken: String,
+        redirectUrl: String,
+        extraRequestParameters: Map<String, String> = emptyMap(),
+        scope: List<String>,
+    ): Result<TokenInfo> = start(sessionToken, redirectUrl, extraRequestParameters, scope.joinToString(" "))
+
     companion object {
         /**
          * Creates a [SessionTokenFlow] backed by the given [OAuth2Client].

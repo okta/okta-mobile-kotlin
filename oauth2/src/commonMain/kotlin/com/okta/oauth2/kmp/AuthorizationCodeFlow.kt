@@ -59,6 +59,20 @@ interface AuthorizationCodeFlow {
     ): Result<AuthorizationCodeFlowContext>
 
     /**
+     * Initiates the Authorization Code redirect flow.
+     *
+     * @param redirectUrl the registered redirect URI for this client.
+     * @param extraRequestParameters additional query parameters for the authorization endpoint.
+     * @param scope the scopes to request.
+     * @return a [Result] containing an [AuthorizationCodeFlowContext] with the authorization URL and state.
+     */
+    suspend fun start(
+        redirectUrl: String,
+        extraRequestParameters: Map<String, String> = emptyMap(),
+        scope: List<String>,
+    ): Result<AuthorizationCodeFlowContext> = start(redirectUrl, extraRequestParameters, scope.joinToString(" "))
+
+    /**
      * Completes the Authorization Code redirect flow by exchanging the authorization code for tokens.
      *
      * @param uri the redirect URI received from the browser after authorization.

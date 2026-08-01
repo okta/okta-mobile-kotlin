@@ -30,7 +30,17 @@ import okhttp3.Request
  * This simple authentication flow permits a user to authenticate using a simple username and password. As such, the configuration is straightforward.
  *
  * > Important: Resource Owner authentication does not support MFA or other more secure authentication models, and is not recommended for production applications.
+ *
+ * @deprecated This Android-only ResourceOwnerFlow is deprecated in favor of the KMP variant, which works on
+ * Android and JVM. Use [com.okta.oauth2.kmp.ResourceOwnerFlow] instead.
  */
+@Deprecated(
+    message =
+        "The Android-only ResourceOwnerFlow is deprecated in favor of the KMP variant, which works on " +
+            "Android and JVM. Use com.okta.oauth2.kmp.ResourceOwnerFlow instead. This class will be removed " +
+            "in a future major release.",
+    level = DeprecationLevel.WARNING
+)
 class ResourceOwnerFlow(
     private val client: OAuth2Client,
 ) {
@@ -57,8 +67,26 @@ class ResourceOwnerFlow(
      *
      * @param username the username
      * @param password the password
+     * @param scope the scopes to request during sign in.
+     */
+    @Suppress("DEPRECATION")
+    suspend fun start(
+        username: String,
+        password: String,
+        scope: List<String>,
+    ): OAuth2ClientResult<Token> = start(username, password, scope.joinToString(" "))
+
+    /**
+     * Initiates the Resource Owner flow.
+     *
+     * @param username the username
+     * @param password the password
      * @param scope the scopes to request during sign in. Defaults to the configured [client] [OidcConfiguration.defaultScope].
      */
+    @Deprecated(
+        message = "Use the overload accepting scope as a List<String> instead.",
+        replaceWith = ReplaceWith("start(username, password, scope.split(\" \"))")
+    )
     suspend fun start(
         username: String,
         password: String,

@@ -15,7 +15,35 @@
  */
 package sample.okta.android
 
+import com.okta.authfoundation.client.OAuth2ClientConfiguration
+import com.okta.authfoundation.client.TokenInfo
+import com.okta.authfoundation.credential.kmp.TokenData
+
 internal object SampleHelper {
     const val CREDENTIAL_NAME_TAG_KEY: String = "sample.okta.android.credential.name"
     const val DEFAULT_SCOPE: String = "openid email profile offline_access"
 }
+
+/**
+ * The KMP flows (and [WebAuthentication][com.okta.webauthenticationui.WebAuthentication], via the legacy
+ * Android [com.okta.authfoundation.credential.Token], which also implements [TokenInfo]) return a
+ * [TokenInfo] whose concrete runtime type is not [TokenData]. This app stores credentials via the KMP
+ * [com.okta.authfoundation.credential.kmp.TokenCredentialManager], which requires a [TokenData] snapshot,
+ * so every freshly-minted token must be converted explicitly rather than cast.
+ *
+ * [issuedAt] defaults to "now" since this is always called immediately after a token is minted.
+ */
+internal fun TokenInfo.toTokenData(configuration: OAuth2ClientConfiguration): TokenData =
+    TokenData(
+        id = id,
+        tokenType = tokenType,
+        expiresIn = expiresIn,
+        accessToken = accessToken,
+        scope = scope,
+        refreshToken = refreshToken,
+        idToken = idToken,
+        deviceSecret = deviceSecret,
+        issuedTokenType = issuedTokenType,
+        configuration = configuration,
+        issuedAt = configuration.clock.currentTimeEpochSecond()
+    )

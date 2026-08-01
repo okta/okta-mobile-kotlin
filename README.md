@@ -499,6 +499,103 @@ val oauthFlow = WebAuthentication(client)
 
 `WebAuthenticationClient` has been renamed to `WebAuthentication`.
 
+## Migrating from Android-only APIs to KMP APIs
+
+The original Android-only APIs in `auth-foundation` and `oauth2` (`OAuth2Client`, `OidcConfiguration`, `Credential`, `CredentialDataSource`, and the `com.okta.oauth2.*` flow classes) are deprecated in favor of Kotlin Multiplatform (KMP) equivalents that work identically on Android and JVM. The deprecated classes remain functional — there's no forced migration — but new code should prefer the KMP variants below.
+
+#### Client initialization
+
+Android-only:
+```kotlin
+OidcConfiguration.default = OidcConfiguration(
+  clientId = "{clientId}",
+  defaultScope = "openid email profile offline_access",
+  issuer = "https://{yourOktaOrg}.okta.com/oauth2/default"
+)
+val client = OAuth2Client.default
+```
+
+KMP:
+```kotlin
+val client = OAuth2ClientBuilder.create(
+  issuerUrl = "https://{yourOktaOrg}.okta.com",
+  clientId = "{clientId}",
+  scope = listOf("openid", "email", "profile", "offline_access"),
+) {
+  authorizationServerId = "default"
+}.getOrThrow()
+```
+
+#### Credential storage
+
+Android-only `Credential` is a mutable, static-companion-driven class backed by `CredentialDataSource`. The KMP `Credential` is an **immutable snapshot** managed by an explicit `TokenCredentialManager` instance — methods that mutate state (`refreshToken()`, `setTagsAsync()`, etc.) return a *new* `Credential` snapshot rather than mutating in place.
+
+Android-only:
+```kotlin
+val credential = Credential.store(token = result.result)
+Credential.setDefaultAsync(credential)
+// ...
+val refreshed = credential.refreshToken() // mutates `credential` in place
+```
+
+KMP (Android app, with Keystore/biometric-backed storage via `AndroidTokenEncryptionHandler`):
+```kotlin
+val database = createTokenDatabase(context)
+val storage = RoomTokenStorage(
+  database,
+  AndroidTokenEncryptionHandler(requireBiometric = true, userAuthenticationTimeout = 0),
+  client.configuration
+)
+val credentialManager = TokenCredentialManager(client, storage, RoomDefaultCredentialIdStore(database))
+
+// A flow's Result<TokenInfo> is not necessarily a TokenData at runtime — convert explicitly, don't cast.
+val tokenInfo: TokenInfo = resourceOwnerFlow.start(username, password).getOrThrow()
+val tokenData = TokenData(
+  id = tokenInfo.id, tokenType = tokenInfo.tokenType, expiresIn = tokenInfo.expiresIn,
+  accessToken = tokenInfo.accessToken, scope = tokenInfo.scope, refreshToken = tokenInfo.refreshToken,
+  idToken = tokenInfo.idToken, deviceSecret = tokenInfo.deviceSecret, issuedTokenType = tokenInfo.issuedTokenType,
+  configuration = client.configuration, issuedAt = client.configuration.clock.currentTimeEpochSecond()
+)
+val credential = credentialManager.store(tokenData).getOrThrow()
+credentialManager.setDefault(credential)
+// ...
+val refreshed = credential.refreshToken().getOrThrow() // returns a *new* snapshot; `credential` is now stale
+```
+
+On non-Android JVM targets, use `createEncryptedTokenStorage(configuration, dbPath)` from `com.okta.authfoundation.credential.kmp.storage` (JVM-only Keystore/biometric gating is not applicable there) or the Java-friendly `com.okta.authfoundation.credential.jvm.TokenCredentialManager` wrapper.
+
+> Note: `AndroidTokenEncryptionHandler`-backed storage encrypts only the access-token column (like the JVM path) — it does not whole-database encrypt the underlying SQLite file the way the legacy SQLCipher-backed `RoomTokenStorage` did. Use a custom `TokenEncryptionHandler` if whole-database encryption is a requirement.
+
+#### OAuth flows
+
+Android-only:
+```kotlin
+val resourceOwnerFlow = ResourceOwnerFlow() // com.okta.oauth2.ResourceOwnerFlow
+val result = resourceOwnerFlow.start(username, password) // OAuth2ClientResult<Token>
+```
+
+KMP:
+```kotlin
+val resourceOwnerFlow = ResourceOwnerFlow(client) // com.okta.oauth2.kmp.ResourceOwnerFlow
+val result = resourceOwnerFlow.start(username, password) // Result<TokenInfo>
+```
+
+The same rename applies to `DeviceAuthorizationFlow`, `SessionTokenFlow`, `TokenExchangeFlow`, `AuthorizationCodeFlow`, and `RedirectEndSessionFlow` — swap the `com.okta.oauth2.*` import for `com.okta.oauth2.kmp.*`, and pass an explicit KMP `OAuth2Client` instead of relying on `OidcConfiguration.default`. `WebAuthentication` already uses the KMP client internally regardless of which constructor you use.
+
+#### Scope as a list
+
+Scope parameters that previously only accepted a space-delimited `String` now also accept a `List<String>`, for consistency with `OAuth2ClientBuilder.create(scope: List<String>)`:
+
+```kotlin
+// Deprecated
+resourceOwnerFlow.start(username, password, scope = "openid profile")
+
+// Preferred
+resourceOwnerFlow.start(username, password, scope = listOf("openid", "profile"))
+```
+
+This applies to `start(...)`/`login(...)` on all the flow classes above. Fields that mirror the OAuth2 wire format (`TokenInfo.scope`, `Token.scope`) remain `String?`, since the token endpoint always returns scope as a single space-delimited string per [RFC 6749 §3.3](https://datatracker.ietf.org/doc/html/rfc6749#section-3.3).
+
 ## Troubleshooting
 
 - java.lang.NoClassDefFoundError: Failed resolution of: Ljava/time/Instant;

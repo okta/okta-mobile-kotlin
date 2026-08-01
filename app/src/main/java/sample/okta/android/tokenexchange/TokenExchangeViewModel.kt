@@ -19,11 +19,12 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.okta.authfoundation.client.OAuth2ClientResult
-import com.okta.authfoundation.credential.Credential
-import com.okta.oauth2.TokenExchangeFlow
+import com.okta.authfoundation.credential.TokenMetadata
+import com.okta.oauth2.kmp.TokenExchangeFlow
 import kotlinx.coroutines.launch
+import sample.okta.android.SampleApplication
 import sample.okta.android.SampleHelper
+import sample.okta.android.toTokenData
 import timber.log.Timber
 
 class TokenExchangeViewModel : ViewModel() {
@@ -42,12 +43,14 @@ class TokenExchangeViewModel : ViewModel() {
         _state.value = TokenExchangeState.Loading
 
         viewModelScope.launch {
-            val credential = Credential.getDefaultAsync()
+            val credentialManager = SampleApplication.credentialManager
+            val credential = credentialManager.getDefault().getOrThrow()
             val tokenExchangeCredential =
-                Credential
-                    .findAsync { it.tags[SampleHelper.CREDENTIAL_NAME_TAG_KEY] == NAME_TAG_VALUE }
+                credentialManager
+                    .find { metadata: TokenMetadata -> metadata.tags[SampleHelper.CREDENTIAL_NAME_TAG_KEY] == NAME_TAG_VALUE }
+                    .getOrThrow()
                     .firstOrNull()
-            val tokenExchangeFlow = TokenExchangeFlow()
+            val tokenExchangeFlow = TokenExchangeFlow(SampleApplication.oAuth2Client)
             val idToken = credential?.token?.idToken
             if (idToken == null) {
                 _state.value = TokenExchangeState.Error("Missing Id Token")
@@ -58,21 +61,21 @@ class TokenExchangeViewModel : ViewModel() {
                 _state.value = TokenExchangeState.Error("Missing Device Secret")
                 return@launch
             }
-            when (val result = tokenExchangeFlow.start(idToken, deviceSecret)) {
-                is OAuth2ClientResult.Error -> {
-                    Timber.e(result.exception, "Failed to start token exchange flow.")
+            tokenExchangeFlow.start(idToken, deviceSecret).fold(
+                onFailure = { exception ->
+                    Timber.e(exception, "Failed to start token exchange flow.")
                     _state.value = TokenExchangeState.Error("An error occurred.")
-                }
-
-                is OAuth2ClientResult.Success -> {
-                    tokenExchangeCredential?.delete()
-                    Credential.store(
-                        result.result,
+                },
+                onSuccess = { tokenInfo ->
+                    tokenExchangeCredential?.deleteAsync()
+                    val tokenData = tokenInfo.toTokenData(SampleApplication.oAuth2Client.configuration)
+                    credentialManager.store(
+                        tokenData,
                         tags = mapOf(Pair(SampleHelper.CREDENTIAL_NAME_TAG_KEY, NAME_TAG_VALUE))
                     )
                     _state.value = TokenExchangeState.Token(NAME_TAG_VALUE)
                 }
-            }
+            )
         }
     }
 }

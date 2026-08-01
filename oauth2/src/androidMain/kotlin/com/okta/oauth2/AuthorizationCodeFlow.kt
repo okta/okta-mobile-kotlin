@@ -31,7 +31,19 @@ import java.util.UUID
  * [AuthorizationCodeFlow] encapsulates the behavior required to authentication using an OIDC Browser redirect flow.
  *
  * See [Authorization Code Flow documentation](https://developer.okta.com/docs/guides/implement-grant-type/authcodepkce/main/#about-the-authorization-code-grant-with-pkce)
+ *
+ * @deprecated This Android-only AuthorizationCodeFlow is deprecated in favor of the KMP variant, which works
+ * on Android and JVM. Use [com.okta.oauth2.kmp.AuthorizationCodeFlow] instead, or the higher-level
+ * [com.okta.webauthenticationui.WebAuthentication] which is already KMP-backed.
  */
+@Deprecated(
+    message =
+        "The Android-only AuthorizationCodeFlow is deprecated in favor of the KMP variant, which works on " +
+            "Android and JVM. Use com.okta.oauth2.kmp.AuthorizationCodeFlow instead, or the higher-level " +
+            "com.okta.webauthenticationui.WebAuthentication which is already KMP-backed. This class will be " +
+            "removed in a future major release.",
+    level = DeprecationLevel.WARNING
+)
 class AuthorizationCodeFlow(
     private val client: OAuth2Client,
 ) {
@@ -104,8 +116,30 @@ class AuthorizationCodeFlow(
      * @param redirectUrl the redirect URL.
      * @param extraRequestParameters the extra key value pairs to send to the authorize endpoint.
      *  See [Authorize Documentation](https://developer.okta.com/docs/reference/api/oidc/#authorize) for parameter options.
+     * @param scope the scopes to request during sign in.
+     */
+    @Suppress("DEPRECATION")
+    suspend fun start(
+        redirectUrl: String,
+        extraRequestParameters: Map<String, String> = emptyMap(),
+        scope: List<String>,
+        state: String = UUID.randomUUID().toString(),
+    ): OAuth2ClientResult<Context> = start(redirectUrl, extraRequestParameters, scope.joinToString(" "), state)
+
+    /**
+     * Initiates the OIDC Authorization Code redirect flow.
+     *
+     * See [AuthorizationCodeFlow.resume] for completing the flow.
+     *
+     * @param redirectUrl the redirect URL.
+     * @param extraRequestParameters the extra key value pairs to send to the authorize endpoint.
+     *  See [Authorize Documentation](https://developer.okta.com/docs/reference/api/oidc/#authorize) for parameter options.
      * @param scope the scopes to request during sign in. Defaults to the configured [OAuth2Client] [OidcConfiguration.defaultScope].
      */
+    @Deprecated(
+        message = "Use the overload accepting scope as a List<String> instead.",
+        replaceWith = ReplaceWith("start(redirectUrl, extraRequestParameters, scope.split(\" \"), state)")
+    )
     suspend fun start(
         redirectUrl: String,
         extraRequestParameters: Map<String, String> = emptyMap(),

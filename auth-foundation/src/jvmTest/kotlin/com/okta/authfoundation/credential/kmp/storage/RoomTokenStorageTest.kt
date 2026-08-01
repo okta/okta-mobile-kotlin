@@ -19,14 +19,17 @@ import androidx.room.Room
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import com.okta.authfoundation.credential.TestOAuth2ClientConfiguration
 import com.okta.authfoundation.credential.TokenMetadata
+import com.okta.authfoundation.credential.kmp.BiometricKeyInvalidatedException
 import com.okta.authfoundation.credential.kmp.EncryptionResult
 import com.okta.authfoundation.credential.kmp.TokenData
 import com.okta.authfoundation.credential.kmp.TokenEncryptionHandler
+import com.okta.authfoundation.credential.kmp.TokenEncryptionKeyInvalidatedException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.runTest
 import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
@@ -206,6 +209,18 @@ class RoomTokenStorageTest {
             assertTrue(storage.allIds().getOrThrow().isEmpty())
         }
 
+    @Test
+    fun getToken_ThrowsBiometricKeyInvalidatedException_WhenHandlerSignalsKeyInvalidated() =
+        runTest {
+            val invalidatingStorage = RoomTokenStorage(database, KeyInvalidatingEncryptionHandler("test-alias"), configuration)
+            invalidatingStorage.add(createTestToken(), createTestMetadata()).getOrThrow()
+
+            val result = invalidatingStorage.getToken("test-id")
+            val exception = assertFailsWith<BiometricKeyInvalidatedException> { result.getOrThrow() }
+            assertEquals("test-id", exception.tokenId)
+            assertEquals("test-alias", exception.keyAlias)
+        }
+
     private class PassthroughEncryptionHandler : TokenEncryptionHandler {
         override suspend fun encrypt(plaintext: ByteArray): EncryptionResult = EncryptionResult(ciphertext = plaintext)
 
@@ -224,5 +239,17 @@ class RoomTokenStorageTest {
             ciphertext: ByteArray,
             encryptionExtras: Map<String, String>,
         ): ByteArray = ciphertext.map { (it.toInt() xor key.toInt()).toByte() }.toByteArray()
+    }
+
+    /** Simulates a platform [TokenEncryptionHandler] whose key was permanently invalidated. */
+    private class KeyInvalidatingEncryptionHandler(
+        private val keyAlias: String,
+    ) : TokenEncryptionHandler {
+        override suspend fun encrypt(plaintext: ByteArray): EncryptionResult = EncryptionResult(ciphertext = plaintext)
+
+        override suspend fun decrypt(
+            ciphertext: ByteArray,
+            encryptionExtras: Map<String, String>,
+        ): ByteArray = throw TokenEncryptionKeyInvalidatedException(keyAlias)
     }
 }

@@ -60,10 +60,26 @@ class DeviceAuthorizationFlow(
     /**
      * Initiates the device authorization flow asynchronously.
      *
+     * @param scope the scopes to request.
+     * @return a [CompletableFuture] that completes with [DeviceAuthorizationFlowContext] on success,
+     *   or completes exceptionally on failure.
+     */
+    fun start(scope: List<String>): CompletableFuture<DeviceAuthorizationFlowContext> =
+        coroutineScope.future {
+            delegate.start(scope).getOrThrow()
+        }
+
+    /**
+     * Initiates the device authorization flow asynchronously.
+     *
      * @param scope the scopes to request. Defaults to the client's configured default scope when null.
      * @return a [CompletableFuture] that completes with [DeviceAuthorizationFlowContext] on success,
      *   or completes exceptionally on failure.
      */
+    @Deprecated(
+        message = "Use the overload accepting scope as a List<String> instead.",
+        replaceWith = ReplaceWith("start(scope.split(\" \"))")
+    )
     fun start(scope: String? = null): CompletableFuture<DeviceAuthorizationFlowContext> =
         coroutineScope.future {
             delegate.start(scope).getOrThrow()

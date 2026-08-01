@@ -30,7 +30,17 @@ import java.util.Objects
 
 /**
  * Token information representing a user's access to a resource server, including access token, refresh token, and other related information.
+ *
+ * @deprecated Token is deprecated in favor of [com.okta.authfoundation.client.TokenInfo] (KMP) /
+ * [com.okta.authfoundation.credential.kmp.TokenData], used by the KMP OAuth2Client and TokenCredentialManager.
  */
+@Deprecated(
+    message =
+        "Token is deprecated in favor of com.okta.authfoundation.client.TokenInfo (KMP) / " +
+            "com.okta.authfoundation.credential.kmp.TokenData, used by the KMP OAuth2Client and " +
+            "TokenCredentialManager. This class will be removed in a future major release.",
+    level = DeprecationLevel.WARNING
+)
 @Serializable
 class Token @OptIn(ExperimentalSerializationApi::class) private constructor(
     override val id: String,

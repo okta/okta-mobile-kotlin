@@ -33,7 +33,18 @@ import kotlin.coroutines.CoroutineContext
  * Configuration options for an OAuth2Client.
  *
  * This class is used to define the configuration, as defined in your Okta application settings, that will be used to interact with the OIDC Authorization Server.
+ *
+ * @deprecated OidcConfiguration is deprecated in favor of the KMP [com.okta.authfoundation.client.OAuth2ClientBuilder],
+ * which works on Android and JVM.
  */
+@Deprecated(
+    message =
+        "OidcConfiguration is deprecated in favor of the KMP OAuth2ClientBuilder, which works on Android " +
+            "and JVM. Use OAuth2ClientBuilder.create(issuerUrl, clientId, scope) to build a " +
+            "com.okta.authfoundation.client.kmp.OAuth2Client instead. This class will be removed in a " +
+            "future major release.",
+    level = DeprecationLevel.WARNING
+)
 @Serializable
 class OidcConfiguration private constructor(
     /** The application's client ID. */

@@ -18,6 +18,7 @@ package com.okta.authfoundation.credential
 import androidx.biometric.BiometricPrompt.PromptInfo
 import com.okta.authfoundation.BiometricDecryptionActivity
 import com.okta.authfoundation.InternalAuthFoundationApi
+import com.okta.authfoundation.credential.kmp.KeystoreEnvelopeCrypto
 import com.okta.authfoundation.util.runCatchingCancellable
 import java.security.InvalidKeyException
 import java.security.KeyStore
@@ -66,7 +67,7 @@ class AndroidBiometricAuthenticator(
         val privateKey =
             keyStore.getKey(keyAlias, null)
                 ?: throw InvalidKeyException("No key found for alias: $keyAlias")
-        return DefaultTokenEncryptionHandler.getRsaCipher().apply { init(Cipher.DECRYPT_MODE, privateKey) }
+        return KeystoreEnvelopeCrypto.getRsaCipher().apply { init(Cipher.DECRYPT_MODE, privateKey) }
     }
 
     private fun aesCipher(
@@ -76,8 +77,8 @@ class AndroidBiometricAuthenticator(
         val secretKey =
             keyStore.getKey(keyAlias, null)
                 ?: throw InvalidKeyException("No key found for alias: $keyAlias")
-        return DefaultTokenEncryptionHandler.getAesCipher().apply {
-            init(Cipher.DECRYPT_MODE, secretKey, GCMParameterSpec(DefaultTokenEncryptionHandler.GCM_TAG_LENGTH_BITS, iv))
+        return KeystoreEnvelopeCrypto.getAesCipher().apply {
+            init(Cipher.DECRYPT_MODE, secretKey, GCMParameterSpec(KeystoreEnvelopeCrypto.GCM_TAG_LENGTH_BITS, iv))
         }
     }
 }

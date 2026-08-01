@@ -60,10 +60,32 @@ class ResourceOwnerFlow(
      *
      * @param username the user's username or email.
      * @param password the user's password.
+     * @param scope the scopes to request.
+     * @return a [CompletableFuture] that completes with [TokenInfo] on success,
+     *   or completes exceptionally on failure.
+     */
+    fun start(
+        username: String,
+        password: String,
+        scope: List<String>,
+    ): CompletableFuture<TokenInfo> =
+        coroutineScope.future {
+            delegate.start(username, password, scope).getOrThrow()
+        }
+
+    /**
+     * Initiates the Resource Owner flow asynchronously.
+     *
+     * @param username the user's username or email.
+     * @param password the user's password.
      * @param scope the scopes to request. Defaults to the client's configured default scope when null.
      * @return a [CompletableFuture] that completes with [TokenInfo] on success,
      *   or completes exceptionally on failure.
      */
+    @Deprecated(
+        message = "Use the overload accepting scope as a List<String> instead.",
+        replaceWith = ReplaceWith("start(username, password, scope.split(\" \"))")
+    )
     @JvmOverloads
     fun start(
         username: String,

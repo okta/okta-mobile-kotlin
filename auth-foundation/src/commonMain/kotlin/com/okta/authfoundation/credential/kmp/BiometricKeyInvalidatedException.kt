@@ -23,13 +23,19 @@ package com.okta.authfoundation.credential.kmp
  * [TokenStorage.getToken] instead of the platform-specific
  * `KeyPermanentlyInvalidatedException`.
  *
- * On Android, the invalidated token is **auto-deleted by default** for backward compatibility
- * (matching the legacy `BiometricTokenInvalidatedEvent.deleteInvalidatedToken = true` default).
- * Callers can inspect [tokenId] and [keyAlias] for logging or custom logic; deletion is no
- * longer required unless the app has suppressed the legacy event's default behavior.
+ * On the legacy Android-only `com.okta.authfoundation.credential.RoomTokenStorage` path, the
+ * invalidated token is **auto-deleted by default** for backward compatibility (matching the
+ * legacy `BiometricTokenInvalidatedEvent.deleteInvalidatedToken = true` default); deletion is no
+ * longer required there unless the app has suppressed the legacy event's default behavior.
+ *
+ * On the KMP `TokenCredentialManager`/[TokenStorage] path — including
+ * [AndroidTokenEncryptionHandler][com.okta.authfoundation.credential.kmp.AndroidTokenEncryptionHandler]-backed
+ * storage — there is no auto-delete: the caller must inspect [tokenId] and explicitly remove the
+ * token from storage (e.g. via `TokenCredentialManager.get(tokenId)`'s associated credential) if
+ * that behavior is desired.
  *
  * @param tokenId the ID of the token whose biometric key was invalidated.
- * @param keyAlias the Android keystore alias of the invalidated key.
+ * @param keyAlias the platform-specific alias of the invalidated key.
  */
 class BiometricKeyInvalidatedException(
     val tokenId: String,

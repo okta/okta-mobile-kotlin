@@ -19,7 +19,6 @@ import android.os.Bundle
 import android.view.View
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
-import com.okta.authfoundation.credential.Credential
 import kotlinx.coroutines.launch
 import sample.okta.android.databinding.FragmentLaunchBinding
 import sample.okta.android.util.BaseFragment
@@ -35,7 +34,11 @@ internal class LaunchFragment :
         super.onViewCreated(view, savedInstanceState)
 
         lifecycleScope.launch {
-            if (Credential.allIdsAsync().isNotEmpty()) {
+            if (SampleApplication.credentialManager
+                    .allIds()
+                    .getOrThrow()
+                    .isNotEmpty()
+            ) {
                 binding.loggedInTextView.visibility = View.VISIBLE
                 binding.dashboardButton.visibility = View.VISIBLE
                 binding.dashboardButton.setOnClickListener {

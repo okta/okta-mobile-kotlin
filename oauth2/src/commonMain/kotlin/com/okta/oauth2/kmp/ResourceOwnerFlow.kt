@@ -53,6 +53,21 @@ interface ResourceOwnerFlow {
         scope: String? = null,
     ): Result<TokenInfo>
 
+    /**
+     * Initiates the Resource Owner flow by exchanging credentials for tokens.
+     *
+     * @param username the user's username or email.
+     * @param password the user's password.
+     * @param scope the scopes to request.
+     * @return [Result.success] with [TokenInfo] on successful authentication,
+     *   or [Result.failure] with the error.
+     */
+    suspend fun start(
+        username: String,
+        password: String,
+        scope: List<String>,
+    ): Result<TokenInfo> = start(username, password, scope.joinToString(" "))
+
     companion object {
         /**
          * Creates a [ResourceOwnerFlow] backed by the given [client].

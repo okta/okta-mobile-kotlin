@@ -21,10 +21,13 @@ import android.content.Context
 import androidx.biometric.BiometricPrompt
 import com.okta.authfoundation.AuthFoundation
 import com.okta.authfoundation.client.OAuth2ClientBuilder
-import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.client.kmp.OAuth2Client
-import com.okta.authfoundation.credential.Credential
 import com.okta.authfoundation.credential.TokenDbRecoveryUtil
+import com.okta.authfoundation.credential.kmp.AndroidTokenEncryptionHandler
+import com.okta.authfoundation.credential.kmp.TokenCredentialManager
+import com.okta.authfoundation.credential.kmp.storage.RoomDefaultCredentialIdStore
+import com.okta.authfoundation.credential.kmp.storage.RoomTokenStorage
+import com.okta.authfoundation.credential.kmp.storage.createTokenDatabase
 import timber.log.Timber
 
 class SampleApplication : Application() {
@@ -40,6 +43,28 @@ class SampleApplication : Application() {
                     scope = SampleHelper.DEFAULT_SCOPE.split(" ")
                 ).getOrThrow()
         }
+
+        /** Backs biometric-gated decryption for [credentialManager]. */
+        val tokenEncryptionHandler: AndroidTokenEncryptionHandler by lazy {
+            AndroidTokenEncryptionHandler(
+                requireBiometric = true,
+                userAuthenticationTimeout = 0,
+                promptInfo =
+                    BiometricPrompt.PromptInfo
+                        .Builder()
+                        .setTitle("Authenticate")
+                        .setSubtitle("Verify your identity to access your account")
+                        .setNegativeButtonText("Cancel")
+                        .build()
+            )
+        }
+
+        val credentialManager: TokenCredentialManager by lazy {
+            val database = createTokenDatabase(context)
+            val storage = RoomTokenStorage(database, tokenEncryptionHandler, oAuth2Client.configuration)
+            val defaultIdStore = RoomDefaultCredentialIdStore(database)
+            TokenCredentialManager(oAuth2Client, storage, defaultIdStore)
+        }
     }
 
     override fun onCreate() {
@@ -50,20 +75,6 @@ class SampleApplication : Application() {
         Timber.plant(Timber.DebugTree())
 
         AuthFoundation.initializeAndroidContext(this)
-        OidcConfiguration.default =
-            OidcConfiguration(
-                clientId = BuildConfig.CLIENT_ID,
-                defaultScope = SampleHelper.DEFAULT_SCOPE,
-                issuer = BuildConfig.ISSUER
-            )
-        Credential.Security.standard = Credential.Security.BiometricStrong(userAuthenticationTimeout = 0)
-        Credential.Security.promptInfo =
-            BiometricPrompt.PromptInfo
-                .Builder()
-                .setTitle("Authenticate")
-                .setSubtitle("Verify your identity to access your account")
-                .setNegativeButtonText("Cancel")
-                .build()
         // Use this in case token database is corrupted due to automatic backup/restore
         TokenDbRecoveryUtil.setupDatabaseRecovery()
     }

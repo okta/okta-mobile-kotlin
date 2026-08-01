@@ -19,10 +19,11 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.okta.authfoundation.client.OAuth2ClientResult
-import com.okta.authfoundation.credential.Credential
-import com.okta.oauth2.DeviceAuthorizationFlow
+import com.okta.oauth2.kmp.DeviceAuthorizationFlow
+import com.okta.oauth2.kmp.DeviceAuthorizationFlowContext
 import kotlinx.coroutines.launch
+import sample.okta.android.SampleApplication
+import sample.okta.android.toTokenData
 import timber.log.Timber
 
 internal class DeviceAuthorizationViewModel : ViewModel() {
@@ -37,37 +38,36 @@ internal class DeviceAuthorizationViewModel : ViewModel() {
         _state.value = DeviceAuthorizationState.Loading
 
         viewModelScope.launch {
-            val deviceAuthorizationFlow = DeviceAuthorizationFlow()
-            when (val result = deviceAuthorizationFlow.start()) {
-                is OAuth2ClientResult.Error -> {
-                    Timber.e(result.exception, "Failed to start device authorization flow.")
+            val deviceAuthorizationFlow = DeviceAuthorizationFlow(SampleApplication.oAuth2Client)
+            deviceAuthorizationFlow.start().fold(
+                onFailure = { exception ->
+                    Timber.e(exception, "Failed to start device authorization flow.")
                     _state.value = DeviceAuthorizationState.Error("An error occurred.")
+                },
+                onSuccess = { flowContext ->
+                    _state.value = DeviceAuthorizationState.Polling(flowContext.userCode, flowContext.verificationUri)
+                    resume(deviceAuthorizationFlow, flowContext)
                 }
-
-                is OAuth2ClientResult.Success -> {
-                    _state.value = DeviceAuthorizationState.Polling(result.result.userCode, result.result.verificationUri)
-                    resume(deviceAuthorizationFlow, result.result)
-                }
-            }
+            )
         }
     }
 
     private suspend fun resume(
         deviceAuthorizationFlow: DeviceAuthorizationFlow,
-        flowContext: DeviceAuthorizationFlow.Context,
+        flowContext: DeviceAuthorizationFlowContext,
     ) {
-        when (val result = deviceAuthorizationFlow.resume(flowContext)) {
-            is OAuth2ClientResult.Error -> {
-                Timber.e(result.exception, "Failed to resume device authorization flow.")
+        deviceAuthorizationFlow.resume(flowContext).fold(
+            onFailure = { exception ->
+                Timber.e(exception, "Failed to resume device authorization flow.")
                 _state.value = DeviceAuthorizationState.Error("An error occurred.")
-            }
-
-            is OAuth2ClientResult.Success -> {
-                val credential = Credential.store(token = result.result)
-                Credential.setDefaultAsync(credential)
+            },
+            onSuccess = { tokenInfo ->
+                val tokenData = tokenInfo.toTokenData(SampleApplication.oAuth2Client.configuration)
+                val credential = SampleApplication.credentialManager.store(tokenData).getOrThrow()
+                SampleApplication.credentialManager.setDefault(credential)
                 _state.value = DeviceAuthorizationState.Token
             }
-        }
+        )
     }
 }
 

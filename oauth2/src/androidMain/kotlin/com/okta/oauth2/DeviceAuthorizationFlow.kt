@@ -36,7 +36,17 @@ import okhttp3.Request
  * 2. A simple user code they can easily enter on that secondary device.
  *
  * Upon visiting that URL and entering in the code, the user is prompted to sign in using their standard credentials. Upon completing authentication, the device automatically signs the user in, without any direct interaction on the user's part.
+ *
+ * @deprecated This Android-only DeviceAuthorizationFlow is deprecated in favor of the KMP variant, which
+ * works on Android and JVM. Use [com.okta.oauth2.kmp.DeviceAuthorizationFlow] instead.
  */
+@Deprecated(
+    message =
+        "The Android-only DeviceAuthorizationFlow is deprecated in favor of the KMP variant, which works on " +
+            "Android and JVM. Use com.okta.oauth2.kmp.DeviceAuthorizationFlow instead. This class will be " +
+            "removed in a future major release.",
+    level = DeprecationLevel.WARNING
+)
 class DeviceAuthorizationFlow(
     private val client: OAuth2Client,
 ) {
@@ -118,8 +128,28 @@ class DeviceAuthorizationFlow(
      * @param extraRequestParameters the extra key value pairs to send to the device authorize endpoint.
      *  See [Device Authorize Documentation](https://developer.okta.com/docs/reference/api/oidc/#device-authorize) for parameter
      *  options.
+     * @param scope the scopes to request during sign in.
+     */
+    @Suppress("DEPRECATION")
+    suspend fun start(
+        extraRequestParameters: Map<String, String> = emptyMap(),
+        scope: List<String>,
+    ): OAuth2ClientResult<Context> = start(extraRequestParameters, scope.joinToString(" "))
+
+    /**
+     * Initiates a device authorization flow.
+     *
+     * See [DeviceAuthorizationFlow.resume] for completing the flow.
+     *
+     * @param extraRequestParameters the extra key value pairs to send to the device authorize endpoint.
+     *  See [Device Authorize Documentation](https://developer.okta.com/docs/reference/api/oidc/#device-authorize) for parameter
+     *  options.
      * @param scope the scopes to request during sign in. Defaults to the configured [OAuth2Client] [OidcConfiguration.defaultScope].
      */
+    @Deprecated(
+        message = "Use the overload accepting scope as a List<String> instead.",
+        replaceWith = ReplaceWith("start(extraRequestParameters, scope.split(\" \"))")
+    )
     suspend fun start(
         extraRequestParameters: Map<String, String> = emptyMap(),
         scope: String = client.configuration.defaultScope,
