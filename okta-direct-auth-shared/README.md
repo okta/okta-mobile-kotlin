@@ -1,6 +1,26 @@
 # Okta Direct Authentication App
 
-This application demonstrates how to use the Okta Direct Authentication SDK for Android to build a custom authentication experience.
+This sample application demonstrates how to use the Okta Direct Authentication SDK to build a custom authentication experience.
+
+## Table of Contents
+
+- [Features](#features)
+  - [Direct Authentication](#direct-authentication)
+  - [OAuth2 Flows](#oauth2-flows)
+- [Setup](#setup)
+  - [Okta Configuration](#okta-configuration)
+    - [1. Enable Authenticators](#1-enable-authenticators)
+    - [2. Create an App Integration](#2-create-an-app-integration)
+    - [3. Configure the Authorization Server Policy](#3-configure-the-authorization-server-policy)
+    - [4. Configure the App Sign-on Policy](#4-configure-the-app-sign-on-policy)
+    - [5. Enroll a Test User](#5-enroll-a-test-user)
+  - [Local Configuration](#local-configuration)
+  - [Self-Service Password Recovery (SSPR)](#self-service-password-recovery-sspr)
+- [Build and Run](#build-and-run)
+  - [Android](#android)
+  - [Desktop](#desktop)
+  - [Using the App](#using-the-app)
+  - [OAuth2 Flow Notes](#oauth2-flow-notes)
 
 ## Features
 

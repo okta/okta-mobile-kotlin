@@ -1,5 +1,190 @@
 # Changelog
 
+## Unreleased
+
+Per-module versions are now tracked and released independently. The sections below cover
+`auth-foundation`, `oauth2`, `web-authentication-ui`, and `okta-direct-auth` changes accumulated
+since each module's last release. `okta-idx-kotlin` (currently 3.1.1) is unaffected and not
+included here.
+
+### Release checklist (next steps)
+
+1. Release `auth-foundation` first (or in the same batch), since `oauth2`, `web-authentication-ui`,
+   and `okta-direct-auth` all depend on it — avoid a window where a dependent module's new version
+   points at an `auth-foundation` version that isn't published yet.
+2. Re-run the ABI dump-update tasks so the committed `.api` files reflect the new baseline for the
+   *next* release cycle (`updateKotlinAbi`/`androidApiDump`/`releaseApiDump` per module, per
+   CLAUDE.md's API Compatibility section).
+3. Move this "Unreleased" section into dated, per-module entries once each release is actually
+   tagged and published (see the existing per-module tags: `auth-foundation@2.0.5`,
+   `okta-direct-auth@0.0.1`, `okta-idx-kotlin@3.1.1`).
+
+### auth-foundation 3.0.0
+
+Converted from an Android-only library to a Kotlin Multiplatform module (Android + JVM). This is a
+major release with breaking changes to the credential-event and cache APIs.
+
+#### Breaking changes
+- Module artifact shape changed from a single Android AAR to a KMP artifact (Android + JVM
+  variants). Consumers pulling `auth-foundation` directly (not via a flow module) may need to
+  re-resolve dependencies.
+- `Cache` interface gained a new abstract `clear()` method with no default implementation — any
+  custom `Cache` implementation must add it to keep compiling.
+- `NoOpCache` changed from public to internal.
+- `CredentialCreatedEvent`, `CredentialDeletedEvent`, `CredentialStoredAfterRemovedEvent`,
+  `CredentialStoredEvent`, and `DefaultCredentialChangedEvent`: `getCredential(): Credential` removed,
+  replaced by `getCredentialIdentifier(): CredentialIdentifier`.
+- `NoAccessTokenAvailableEvent.getCredential()` return type changed from `Credential` to
+  `CredentialIdentifier`.
+- `CredentialStoredEvent.getToken()` return type changed from `Token` to `TokenInfo`.
+- `JwtParser.Companion.create()` — the only public factory for `JwtParser` — removed.
+- `CoalescingOrchestrator` changed from public to internal.
+- `com.okta.authfoundation.api.http.log.AuthFoundationLogger`/`LogLevel` relocated to
+  `com.okta.authfoundation.api.log.*`.
+- `@InternalAuthFoundationApi`-annotated `AesEncryptionHandler.encryptString` and
+  `AndroidKeystoreUtil.getOrCreateAesKey` signatures changed to return `Result` (lower real-world
+  impact, but a binary break for anyone using the internal API).
+- `ClaimsProvider.audience` return type changed from `String?` to `List<String>?`, since per
+  RFC 7519 §4.1.3 / OIDC Core 1.0 §3.1.3.7 the `aud` claim may be either a single string or a JSON
+  array of strings (#414).
+- `Credential.scope()` return type changed from `String` to `List<String>`; the redundant
+  `Credential.scopes(): List<String>` accessor was removed (merged into `scope()`).
+- `OAuth2ClientConfiguration.defaultScope` return type changed from `String` to `List<String>`.
+
+#### Added
+- KMP `OAuth2Client`, `OAuth2ClientBuilder`, `OAuth2ClientConfiguration`, `OAuth2EndpointOverrides`
+  (#379, #380, #383, #398).
+- Cross-platform credential management: `TokenCredentialManager`, KMP `Credential`,
+  `CredentialIdentifier`, `TokenData`/`TokenInfo`, `TokenMetadata` (#381).
+- Room-based KMP persistent storage with pluggable encryption (`RoomTokenStorage`,
+  `TokenEncryptionHandler`) (#382).
+- Cross-platform User-Agent header and ID token validation (#384).
+- KMP crypto abstraction, `PkceGenerator`, URL utilities, `BrowserRedirectHandler` (#387).
+- HTTP-date parsing in `parseRetryAfterHeader` per RFC 7231 §7.1.3 (#388).
+- EC key JWT validation, `refreshToken` extra params, custom endpoint overrides via
+  `OAuth2EndpointOverrides` (#398).
+- Biometric authentication support for the KMP credential path (#405).
+- Typed rate-limit retry configuration (`RateLimitRetryConfig`, `MaxRetries`, `MinDelaySeconds`,
+  `rateLimitRetryCallback` on the builder), replacing the mutable `EventCoordinator`-based retry
+  config on the KMP path (#407, #408).
+- New event categories: `CredentialEvent`/`TokenEvent` marker interfaces, plus new
+  `TokenRefreshedEvent`, `TokenRevokedEvent`, `RateLimitException` (#407).
+- ABI validation (KGP native for the jvm target, `android-bcv-bridge` for the android target)
+  rolled out (#411).
+- Deprecated the Android-only APIs (`OidcConfiguration`, `OAuth2Client.default`, Android
+  `Credential`, `com.okta.oauth2.*`) in favor of the KMP equivalents, with migration guidance in
+  `auth-foundation/README.md`.
+- ID token validation (Android and KMP `DefaultIdTokenValidator`) now accepts the `aud` claim as
+  either a single string or a JSON array, checking that the client ID is contained in the audience
+  list rather than requiring an exact string match (#414).
+
+#### Fixed
+- NPE when `getCertificate()` returns null in `TokenEncryptionHandler` (#402).
+- Uncaught `ProviderException` in `AndroidKeystoreUtil.getOrCreateAesKey` (#403).
+- `CoalescingOrchestrator` reimplemented with `Mutex` instead of `synchronized`, removing a
+  thread-blocking lock inside suspend functions (#400).
+- `Credential.refreshToken(extraRequestParameters)`'s default implementation now returns
+  `Result.failure(NotImplementedError)` for a non-empty map instead of silently ignoring the extra
+  parameters and delegating to `refreshToken()`.
+
+### oauth2 3.0.0
+
+#### Breaking changes
+- Removed the `String`-scope overloads of `start(...)` on `AuthorizationCodeFlow`,
+  `DeviceAuthorizationFlow`, `ResourceOwnerFlow`, `SessionTokenFlow`, and `TokenExchangeFlow` —
+  scopes must now be passed as `List<String>`.
+- Reordered the `scope`/extra-params parameters in `AuthorizationCodeFlow.start` and
+  `SessionTokenFlow.start` (scope now precedes the extra-params map), affecting positional
+  (non-named-argument) call sites.
+- All six KMP flow interfaces (`AuthorizationCodeFlow`, `DeviceAuthorizationFlow`,
+  `RedirectEndSessionFlow`, `ResourceOwnerFlow`, `SessionTokenFlow`, `TokenExchangeFlow`) gained a
+  new abstract `getClient(): OAuth2Client` accessor — any custom implementation of these interfaces
+  must add it to keep compiling.
+
+#### Added
+- Entire `com.okta.oauth2.kmp` package: KMP `ResourceOwnerFlow`, `DeviceAuthorizationFlow`,
+  `TokenExchangeFlow`, `AuthorizationCodeFlow`, `SessionTokenFlow`, `RedirectEndSessionFlow`
+  (#389–#394).
+- Java-compatible `CompletableFuture` wrappers for all six flows under `com.okta.oauth2.kmp.jvm`
+  (#395, #404).
+- `LocalhostBrowserRedirectHandler` and other KMP crypto/URL utilities for JVM browser redirects
+  (#387).
+- Android compat extensions bridging the new KMP flows to existing Android call sites (#395).
+- Scopes are requested as `List<String>` on `AuthorizationCodeFlow`, `DeviceAuthorizationFlow`,
+  `ResourceOwnerFlow`, `SessionTokenFlow`, and `TokenExchangeFlow` (`RedirectEndSessionFlow` has no
+  scope parameter).
+- Public `getClient(): OAuth2Client` accessor on all six KMP flow interfaces.
+- ABI validation rolled out for both the jvm and android targets (#411).
+- Deprecated the Android-only flow classes (`com.okta.oauth2.*`) in favor of `com.okta.oauth2.kmp.*`,
+  with migration guidance in `oauth2/README.md`.
+
+#### Changed
+- Module converted from an Android-only build to Kotlin Multiplatform (Android + JVM) (#386).
+
+### web-authentication-ui 3.0.0
+
+#### Breaking changes
+- `WebAuthentication.authorizationCodeFlow` and `.redirectEndSessionFlow` changed from public `var`
+  properties to internal, removing their public getters/setters (#406).
+- The `login(..., scope: List<String>, ...)` overload added in #406 had its `scope`/extra-params
+  parameters reordered (scope now precedes the extra-params map) — source- and binary-incompatible
+  for existing callers of that overload.
+
+#### Added
+- New `WebAuthentication(OAuth2Client, WebAuthenticationProvider)` constructor accepting the KMP
+  `OAuth2Client`, added alongside the existing constructors (#406).
+- New `login(..., scope: List<String>, ...)` overload alongside the existing `String` overload
+  (#406).
+- `DefaultWebAuthenticationProvider` (+ companion), `WebAuthentication.FlowAlreadyInProgressException`,
+  `events.UIEvent` marker interface (#406, #407).
+- ABI validation rolled out (#411).
+
+#### Fixed
+- Step-up redirect race condition in `DefaultRedirectCoordinator` (#401).
+
+#### Changed
+- Internally now uses the KMP `AuthorizationCodeFlow`; deprecated the Android-only
+  `OidcConfiguration`-based path (#406).
+- `ForegroundActivityEvent`/`CustomizeBrowserEvent`/`CustomizeCustomTabsEvent` reparented under a
+  new `UIEvent` marker interface — still `Event` subtypes, non-breaking (#407).
+
+### okta-direct-auth 1.0.0
+
+Graduating from beta (0.0.1) to the first stable release.
+
+#### Breaking changes
+- `DirectAuthenticationState.Authenticated.token` type changed from
+  `com.okta.authfoundation.credential.Token` to `com.okta.authfoundation.client.TokenInfo`.
+- `DirectAuthContinuation.WebAuthn.challengeData` changed from a `String` property to a
+  `challengeData(): Result<String>` function; `proceed(authenticationResponseJson: String)`
+  (previously an unimplemented stub) removed, replaced by `proceed(WebAuthnCeremonyHandler)` and
+  `proceed(WebAuthnAssertionResponse)`.
+- `com.okta.directauth.http.KtorHttpExecutor` removed — relocated to
+  `com.okta.authfoundation.api.http.KtorHttpExecutor`.
+- `com.okta.directauth.log.AuthFoundationLoggerImpl` removed from the public API — relocated into
+  `auth-foundation`.
+- `UNKNOWN_ERROR` constant removed from `InternalErrorCodeKt`.
+- The builder's logger accessor type changed to the relocated
+  `com.okta.authfoundation.api.log.AuthFoundationLogger`.
+
+#### Added
+- WebAuthn/passkey support: `WebAuthnCeremonyHandler`, `WebAuthnAssertionResponse`,
+  `AuthenticatorEnrollment`, `AndroidWebAuthnCeremonyHandler`, `PrimaryFactor.WebAuthn`,
+  `DirectAuthTokenRequest.WebAuthn`/`WebAuthnMfa` (#374).
+- Full Java-compatible `CompletableFuture` API under `com.okta.directauth.jvm`: `DirectAuthResult`,
+  `DirectAuthenticationFlow`, `DirectAuthenticationFlowBuilder`, and MFA/OOB/Prompt/Transfer/WebAuthn
+  continuation wrappers (#376).
+- Java CLI sample app demonstrating Direct Authentication end-to-end (#377).
+- Cross-platform (KMP) credential management integration (#381).
+- New 3-arg builder `create(issuerUrl, clientId, scope)` overload; new 2-arg MFA `challenge`/
+  `resume` overloads, added alongside the existing ones.
+- ABI validation rolled out (#411).
+
+#### Changed
+- Module converted from an Android-only build to Kotlin Multiplatform (Android + JVM) (#368, #369).
+- Internal `ApiResponseExt` extension functions refactored into `StepHandlers` — internal-only, no
+  public API impact (#366).
+
 ## [2.0.3] - 2025-02-18
 - Make SDK defaults configurable by third party SDKs [#323](https://github.com/okta/okta-mobile-kotlin/pull/323)
 - Update dependencies

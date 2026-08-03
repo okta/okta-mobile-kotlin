@@ -23,7 +23,7 @@ Standard OAuth2 authentication flows for Kotlin Multiplatform (Android + JVM), i
 
 ## Overview
 
-This module provides KMP flow classes for standard OAuth2 grant types. All flows are in the `com.okta.oauth2.kmp` package, return Kotlin `Result` types, and require an `OAuth2Client` from the `auth-foundation` module.
+This module provides KMP flow classes for standard OAuth2 grant types. All flows live in the `com.okta.oauth2.kmp` package, return Kotlin `Result` types, and require an `OAuth2Client` from the `auth-foundation` module.
 
 Each flow follows a consistent pattern:
 - **Single-step flows** (`ResourceOwnerFlow`, `TokenExchangeFlow`, `SessionTokenFlow`) — call `start()` and get a `Result<TokenInfo>`.
@@ -46,6 +46,42 @@ dependencies {
     implementation("com.okta.kotlin:oauth2:3.0.0")
 }
 ```
+
+## Migrating from Android-only APIs to KMP APIs
+
+The older Android-only OAuth2 APIs remain available for compatibility, but new code should use the KMP packages in `com.okta.oauth2.kmp.*` and the explicit KMP `OAuth2Client` from `auth-foundation`.
+
+#### Flow classes
+
+Android-only:
+
+```kotlin
+import com.okta.oauth2.ResourceOwnerFlow
+
+val flow = ResourceOwnerFlow()
+```
+
+KMP:
+
+```kotlin
+import com.okta.authfoundation.client.OAuth2ClientBuilder
+import com.okta.oauth2.kmp.ResourceOwnerFlow
+
+val client = OAuth2ClientBuilder.create(
+    issuerUrl = "https://your-org.okta.com",
+    clientId = "your-client-id",
+    scope = listOf("openid", "profile")
+).getOrThrow()
+
+val flow = ResourceOwnerFlow(client)
+```
+
+The same rename applies to `DeviceAuthorizationFlow`, `SessionTokenFlow`, `TokenExchangeFlow`, `AuthorizationCodeFlow`, and `RedirectEndSessionFlow`. Prefer `com.okta.oauth2.kmp.*` imports, pass an explicit KMP `OAuth2Client`, and use `com.okta.oauth2.kmp.jvm.*` for the Java wrappers.
+
+#### Browser redirect handling
+
+- Android: use `web-authentication-ui` for browser-based redirect flows.
+- JVM: use `LocalhostBrowserRedirectHandler`.
 
 ## Getting Started
 
@@ -107,7 +143,7 @@ val flow = ResourceOwnerFlow(client)
 flow.start(
     username = "user@example.com",
     password = "user-password",
-    scope = "openid profile email offline_access"
+    scope = listOf("openid", "profile", "email", "offline_access")
 ).fold(
     onSuccess = { tokenInfo ->
         val accessToken = tokenInfo.accessToken
@@ -131,7 +167,7 @@ import com.okta.oauth2.kmp.DeviceAuthorizationFlow
 val flow = DeviceAuthorizationFlow(client)
 
 // Step 1: Request a device code
-val context = flow.start(scope = "openid profile email offline_access").getOrThrow()
+val context = flow.start(scope = listOf("openid", "profile", "email", "offline_access")).getOrThrow()
 
 // Step 2: Display the user code and verification URI to the user
 println("Go to: ${context.verificationUri}")
@@ -171,7 +207,7 @@ val flow = AuthorizationCodeFlow(client)
 // Step 1: Build the authorization URL
 val context = flow.start(
     redirectUrl = "your-app-scheme:/callback",
-    scope = "openid profile email offline_access"
+    scope = listOf("openid", "profile", "email", "offline_access")
 ).getOrThrow()
 
 // Step 2: Open context.url in a browser (platform-specific)
@@ -202,7 +238,7 @@ val flow = TokenExchangeFlow(client)
 flow.start(
     idToken = "existing-id-token",
     deviceSecret = "existing-device-secret",
-    scope = "openid profile email offline_access"
+    scope = listOf("openid", "profile", "email", "offline_access")
 ).fold(
     onSuccess = { tokenInfo ->
         val accessToken = tokenInfo.accessToken
@@ -226,7 +262,7 @@ val flow = SessionTokenFlow(client)
 flow.start(
     sessionToken = "session-token-from-authn-api",
     redirectUrl = "your-app-scheme:/callback",
-    scope = "openid profile email offline_access"
+    scope = listOf("openid", "profile", "email", "offline_access")
 ).fold(
     onSuccess = { tokenInfo ->
         val accessToken = tokenInfo.accessToken
@@ -270,15 +306,17 @@ flow.resume(uri = capturedRedirectUri, flowContext = context).fold(
 Here's a complete ViewModel example managing all OAuth2 flows:
 
 ```kotlin
+import com.okta.directauth.app.AppConfig
+
 class OAuth2ViewModel : ViewModel() {
 
     private val client = OAuth2ClientBuilder
         .create(
-            issuerUrl = BuildConfig.ISSUER,
-            clientId = BuildConfig.CLIENT_ID,
+            issuerUrl = AppConfig.ISSUER,
+            clientId = AppConfig.CLIENT_ID,
             scope = listOf("openid", "profile", "email", "offline_access")
         ) {
-            authorizationServerId = BuildConfig.AUTHORIZATION_SERVER_ID
+            authorizationServerId = AppConfig.AUTHORIZATION_SERVER_ID
         }.getOrThrow()
 
     private val _flowState = MutableStateFlow<OAuth2FlowState>(OAuth2FlowState.Idle)
@@ -290,7 +328,7 @@ class OAuth2ViewModel : ViewModel() {
         cancelAndLaunch {
             _flowState.value = OAuth2FlowState.Loading
             val flow = ResourceOwnerFlow(client)
-            flow.start(username, password, "openid profile email offline_access").fold(
+            flow.start(username, password, listOf("openid", "profile", "email", "offline_access")).fold(
                 onSuccess = { _flowState.value = OAuth2FlowState.Authenticated(it) },
                 onFailure = { _flowState.value = OAuth2FlowState.Error(it.message ?: "Unknown error") }
             )
@@ -301,7 +339,7 @@ class OAuth2ViewModel : ViewModel() {
         cancelAndLaunch {
             _flowState.value = OAuth2FlowState.Loading
             val flow = DeviceAuthorizationFlow(client)
-            val context = flow.start("openid profile email offline_access").getOrElse { error ->
+            val context = flow.start(listOf("openid", "profile", "email", "offline_access")).getOrElse { error ->
                 _flowState.value = OAuth2FlowState.Error(error.message ?: "Unknown error")
                 return@cancelAndLaunch
             }
@@ -322,7 +360,7 @@ class OAuth2ViewModel : ViewModel() {
         cancelAndLaunch {
             _flowState.value = OAuth2FlowState.Loading
             val flow = TokenExchangeFlow(client)
-            flow.start(idToken, deviceSecret, scope = "openid profile email offline_access").fold(
+            flow.start(idToken, deviceSecret, scope = listOf("openid", "profile", "email", "offline_access")).fold(
                 onSuccess = { _flowState.value = OAuth2FlowState.Authenticated(it) },
                 onFailure = { _flowState.value = OAuth2FlowState.Error(it.message ?: "Unknown error") }
             )
@@ -333,7 +371,7 @@ class OAuth2ViewModel : ViewModel() {
         cancelAndLaunch {
             _flowState.value = OAuth2FlowState.Loading
             val flow = SessionTokenFlow(client)
-            flow.start(sessionToken, BuildConfig.REDIRECT_URI, scope = "openid profile email offline_access").fold(
+            flow.start(sessionToken, AppConfig.SIGN_IN_REDIRECT_URI, scope = listOf("openid", "profile", "email", "offline_access")).fold(
                 onSuccess = { _flowState.value = OAuth2FlowState.Authenticated(it) },
                 onFailure = { _flowState.value = OAuth2FlowState.Error(it.message ?: "Unknown error") }
             )
@@ -360,20 +398,17 @@ The `oauth2` module provides Java-compatible wrappers using `CompletableFuture`.
 ### Creating an OAuth2Client (Java)
 
 ```java
-import com.okta.authfoundation.client.OAuth2ClientBuilder;
+import com.okta.authfoundation.client.jvm.OAuth2ClientBuilder;
 import com.okta.authfoundation.client.kmp.OAuth2Client;
-import java.util.List;
 
-OAuth2Client client = OAuth2ClientBuilder.Companion
-    .create(
+OAuth2Client client =
+    new OAuth2ClientBuilder(
         "https://your-org.okta.com",
         "your-client-id",
-        List.of("openid", "profile", "email", "offline_access"),
-        builder -> {
-            builder.setAuthorizationServerId("default");
-            return kotlin.Unit.INSTANCE;
-        }
-    ).getOrThrow();
+        java.util.List.of("openid", "profile", "email", "offline_access"))
+        .setAuthorizationServerId("default")
+        .build()
+        .getOrThrow();
 ```
 
 ### Resource Owner Flow (Java)
@@ -382,7 +417,7 @@ OAuth2Client client = OAuth2ClientBuilder.Companion
 import com.okta.oauth2.kmp.jvm.ResourceOwnerFlow;
 
 ResourceOwnerFlow flow = new ResourceOwnerFlow(client);
-flow.start("user@example.com", "user-password", "openid profile email offline_access")
+flow.start("user@example.com", "user-password", java.util.List.of("openid", "profile", "email", "offline_access"))
     .thenAccept(tokenInfo -> {
         String accessToken = tokenInfo.getAccessToken();
     });
@@ -396,7 +431,7 @@ import com.okta.oauth2.kmp.jvm.DeviceAuthorizationFlow;
 import com.okta.oauth2.kmp.DeviceAuthorizationFlowContext;
 
 DeviceAuthorizationFlow flow = new DeviceAuthorizationFlow(client);
-flow.start("openid profile email offline_access")
+flow.start(java.util.List.of("openid", "profile", "email", "offline_access"))
     .thenCompose(context -> {
         System.out.println("Go to: " + context.getVerificationUri());
         System.out.println("Enter code: " + context.getUserCode());
@@ -418,7 +453,9 @@ import com.okta.oauth2.kmp.LocalhostBrowserRedirectHandler;
 
 AuthorizationCodeFlow flow = new AuthorizationCodeFlow(client);
 BrowserRedirectHandler handler = new LocalhostBrowserRedirectHandler(8080, "/callback");
-flow.start("http://localhost:8080/callback", handler)
+flow.start("http://localhost:8080/callback", handler,
+        java.util.List.of("openid", "profile", "email", "offline_access"),
+        java.util.Collections.emptyMap())
     .thenAccept(tokenInfo -> {
         String accessToken = tokenInfo.getAccessToken();
     });
@@ -431,7 +468,9 @@ flow.close();
 import com.okta.oauth2.kmp.jvm.TokenExchangeFlow;
 
 TokenExchangeFlow flow = new TokenExchangeFlow(client);
-flow.start("existing-id-token", "existing-device-secret")
+flow.start("existing-id-token", "existing-device-secret",
+        java.util.List.of("openid", "profile", "email", "offline_access"),
+        null)
     .thenAccept(tokenInfo -> {
         String accessToken = tokenInfo.getAccessToken();
     });
@@ -444,7 +483,9 @@ flow.close();
 import com.okta.oauth2.kmp.jvm.SessionTokenFlow;
 
 SessionTokenFlow flow = new SessionTokenFlow(client);
-flow.start("session-token-from-authn-api", "http://localhost:8080/callback")
+flow.start("session-token-from-authn-api", "http://localhost:8080/callback",
+        java.util.List.of("openid", "profile", "email", "offline_access"),
+        java.util.Collections.emptyMap())
     .thenAccept(tokenInfo -> {
         String accessToken = tokenInfo.getAccessToken();
     });
@@ -486,6 +527,12 @@ The app launches a **Home Menu** where you choose between Direct Authentication 
 - **Session Token Flow** -- Exchange a pre-obtained session token for OAuth2 tokens via server-side redirect
 
 See the [okta-direct-auth-shared README](../okta-direct-auth-shared/README.md) for full setup and configuration instructions.
+
+### Java CLI
+
+The `okta-direct-auth-java-cli-sample` module is a pure Java CLI sample that demonstrates the Java-friendly `oauth2` wrappers alongside direct authentication.
+
+See the [Java CLI sample README](../okta-direct-auth-java-cli-sample/README.md) for setup and usage details.
 
 ## Additional Resources
 
