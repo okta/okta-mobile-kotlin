@@ -97,7 +97,7 @@ class CredentialTokenLifecycleTest {
         val config =
             OAuth2ClientConfiguration(
                 clientId = "test-client-id",
-                defaultScope = "openid",
+                defaultScope = listOf("openid"),
                 issuerUrl = "https://test.okta.com",
                 apiExecutor = apiExecutor,
                 clock = TestConfiguration.FixedClock(1_000_000L),
@@ -231,7 +231,7 @@ class CredentialTokenLifecycleTest {
             val config =
                 OAuth2ClientConfiguration(
                     clientId = "test",
-                    defaultScope = "openid",
+                    defaultScope = listOf("openid"),
                     issuerUrl = "https://test.okta.com",
                     apiExecutor = exec,
                     clock = clock,
@@ -282,7 +282,7 @@ class CredentialTokenLifecycleTest {
             val config =
                 OAuth2ClientConfiguration(
                     clientId = "test",
-                    defaultScope = "openid",
+                    defaultScope = listOf("openid"),
                     issuerUrl = "https://test.okta.com",
                     apiExecutor = failingExecutor(),
                     clock = clock,
@@ -337,7 +337,7 @@ class CredentialTokenLifecycleTest {
             val config =
                 OAuth2ClientConfiguration(
                     clientId = "test",
-                    defaultScope = "openid",
+                    defaultScope = listOf("openid"),
                     issuerUrl = "https://test.okta.com",
                     apiExecutor = exec,
                     clock = clock,

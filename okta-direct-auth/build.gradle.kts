@@ -1,3 +1,4 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.abi.ExperimentalAbiValidation
 
 plugins {
@@ -35,7 +36,15 @@ val generateBuildInfoTask =
     }
 
 kotlin {
-    jvm()
+    jvm {
+        compilations.all {
+            compileTaskProvider.configure {
+                compilerOptions {
+                    jvmTarget = JvmTarget.fromTarget(JVM_TARGET)
+                }
+            }
+        }
+    }
 
     android {
         namespace = "com.okta.directauth"
@@ -54,6 +63,14 @@ kotlin {
             sourceSetTreeName = "test"
         }.configure {
             instrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        }
+
+        compilations.all {
+            compileTaskProvider.configure {
+                compilerOptions {
+                    jvmTarget = JvmTarget.fromTarget(JVM_TARGET)
+                }
+            }
         }
     }
 

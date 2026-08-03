@@ -71,7 +71,7 @@ private class FakeCredential(
 
     override fun idToken(): Result<Jwt> = error("not implemented")
 
-    override fun scope(): String = tokenData.scope ?: ""
+    override fun scope(): List<String> = tokenData.scope?.split(" ") ?: emptyList()
 }
 
 class BearerTokenPluginTest {

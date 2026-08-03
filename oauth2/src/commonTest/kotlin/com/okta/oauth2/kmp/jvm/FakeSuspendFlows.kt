@@ -15,7 +15,9 @@
  */
 package com.okta.oauth2.kmp.jvm
 
+import com.okta.authfoundation.client.OAuth2ClientBuilder
 import com.okta.authfoundation.client.TokenInfo
+import com.okta.authfoundation.client.kmp.OAuth2Client
 import com.okta.oauth2.kmp.AuthorizationCodeFlowContext
 import com.okta.oauth2.kmp.BrowserRedirectHandler
 import com.okta.oauth2.kmp.DeviceAuthorizationFlowContext
@@ -36,30 +38,44 @@ import com.okta.oauth2.kmp.TokenExchangeFlow as KotlinTokenExchangeFlow
  * Java [TestFlowFactory] passes to each flow's constructor.
  */
 internal object FakeSuspendFlows {
+    private val fakeClient: OAuth2Client =
+        OAuth2ClientBuilder
+            .create(
+                issuerUrl = "https://example.okta.com",
+                clientId = "test-client-id",
+                scope = listOf("openid")
+            ).getOrThrow()
+
     @JvmStatic
     fun successResourceOwnerDelegate(): KotlinResourceOwnerFlow =
         object : KotlinResourceOwnerFlow {
+            override val client: OAuth2Client = fakeClient
+
             override suspend fun start(
                 username: String,
                 password: String,
-                scope: String?,
+                scope: List<String>,
             ): Result<TokenInfo> = Result.success(FakeTokenInfo())
         }
 
     @JvmStatic
     fun failingResourceOwnerDelegate(): KotlinResourceOwnerFlow =
         object : KotlinResourceOwnerFlow {
+            override val client: OAuth2Client = fakeClient
+
             override suspend fun start(
                 username: String,
                 password: String,
-                scope: String?,
+                scope: List<String>,
             ): Result<TokenInfo> = Result.failure(IllegalArgumentException("invalid_grant"))
         }
 
     @JvmStatic
     fun successDeviceAuthorizationDelegate(): KotlinDeviceAuthorizationFlow =
         object : KotlinDeviceAuthorizationFlow {
-            override suspend fun start(scope: String?): Result<DeviceAuthorizationFlowContext> =
+            override val client: OAuth2Client = fakeClient
+
+            override suspend fun start(scope: List<String>): Result<DeviceAuthorizationFlowContext> =
                 Result.success(
                     DeviceAuthorizationFlowContext(
                         verificationUri = "https://example.okta.com/activate",
@@ -77,7 +93,9 @@ internal object FakeSuspendFlows {
     @JvmStatic
     fun failingDeviceAuthorizationDelegate(): KotlinDeviceAuthorizationFlow =
         object : KotlinDeviceAuthorizationFlow {
-            override suspend fun start(scope: String?): Result<DeviceAuthorizationFlowContext> = Result.failure(IllegalStateException("OIDC Endpoints not available."))
+            override val client: OAuth2Client = fakeClient
+
+            override suspend fun start(scope: List<String>): Result<DeviceAuthorizationFlowContext> = Result.failure(IllegalStateException("OIDC Endpoints not available."))
 
             override suspend fun resume(flowContext: DeviceAuthorizationFlowContext): Result<TokenInfo> = Result.failure(IllegalStateException("access_denied"))
         }
@@ -85,50 +103,60 @@ internal object FakeSuspendFlows {
     @JvmStatic
     fun successTokenExchangeDelegate(): KotlinTokenExchangeFlow =
         object : KotlinTokenExchangeFlow {
+            override val client: OAuth2Client = fakeClient
+
             override suspend fun start(
                 idToken: String,
                 deviceSecret: String,
+                scope: List<String>,
                 audience: String?,
-                scope: String?,
             ): Result<TokenInfo> = Result.success(FakeTokenInfo())
         }
 
     @JvmStatic
     fun failingTokenExchangeDelegate(): KotlinTokenExchangeFlow =
         object : KotlinTokenExchangeFlow {
+            override val client: OAuth2Client = fakeClient
+
             override suspend fun start(
                 idToken: String,
                 deviceSecret: String,
+                scope: List<String>,
                 audience: String?,
-                scope: String?,
             ): Result<TokenInfo> = Result.failure(IllegalStateException("invalid_grant"))
         }
 
     @JvmStatic
     fun successSessionTokenDelegate(): KotlinSessionTokenFlow =
         object : KotlinSessionTokenFlow {
+            override val client: OAuth2Client = fakeClient
+
             override suspend fun start(
                 sessionToken: String,
                 redirectUrl: String,
+                scope: List<String>,
                 extraRequestParameters: Map<String, String>,
-                scope: String?,
             ): Result<TokenInfo> = Result.success(FakeTokenInfo())
         }
 
     @JvmStatic
     fun failingSessionTokenDelegate(): KotlinSessionTokenFlow =
         object : KotlinSessionTokenFlow {
+            override val client: OAuth2Client = fakeClient
+
             override suspend fun start(
                 sessionToken: String,
                 redirectUrl: String,
+                scope: List<String>,
                 extraRequestParameters: Map<String, String>,
-                scope: String?,
             ): Result<TokenInfo> = Result.failure(IllegalStateException("OIDC Endpoints not available."))
         }
 
     @JvmStatic
     fun successRedirectEndSessionDelegate(redirectUri: String): KotlinRedirectEndSessionFlow =
         object : KotlinRedirectEndSessionFlow {
+            override val client: OAuth2Client = fakeClient
+
             override suspend fun start(
                 idToken: String,
                 redirectUrl: String,
@@ -151,6 +179,8 @@ internal object FakeSuspendFlows {
     @JvmStatic
     fun failingRedirectEndSessionDelegate(): KotlinRedirectEndSessionFlow =
         object : KotlinRedirectEndSessionFlow {
+            override val client: OAuth2Client = fakeClient
+
             override suspend fun start(
                 idToken: String,
                 redirectUrl: String,
@@ -172,10 +202,12 @@ internal object FakeSuspendFlows {
     @JvmStatic
     fun successAuthorizationCodeDelegate(): KotlinAuthorizationCodeFlow =
         object : KotlinAuthorizationCodeFlow {
+            override val client: OAuth2Client = fakeClient
+
             override suspend fun start(
                 redirectUrl: String,
+                scope: List<String>,
                 extraRequestParameters: Map<String, String>,
-                scope: String?,
             ): Result<AuthorizationCodeFlowContext> =
                 Result.success(
                     AuthorizationCodeFlowContext(
@@ -197,10 +229,12 @@ internal object FakeSuspendFlows {
     @JvmStatic
     fun failingAuthorizationCodeDelegate(): KotlinAuthorizationCodeFlow =
         object : KotlinAuthorizationCodeFlow {
+            override val client: OAuth2Client = fakeClient
+
             override suspend fun start(
                 redirectUrl: String,
+                scope: List<String>,
                 extraRequestParameters: Map<String, String>,
-                scope: String?,
             ): Result<AuthorizationCodeFlowContext> = Result.failure(IllegalStateException("OIDC Endpoints not available."))
 
             override suspend fun resume(

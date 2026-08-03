@@ -42,8 +42,15 @@ sealed class OAuth2ClientResult<T> {
          * The response failed due to no [OidcEndpoints].
          *
          * This can happen due to a misconfigured setup, or just a common HTTP error.
+         *
+         * @param cause the underlying error from endpoint discovery (e.g. a network failure,
+         *   HTTP error, or parsing error), if one is available.
          */
-        class OidcEndpointsNotAvailableException internal constructor() : Exception("OIDC Endpoints not available.")
+        class OidcEndpointsNotAvailableException internal constructor(
+            cause: Throwable?,
+        ) : Exception("OIDC Endpoints not available.", cause) {
+            internal constructor() : this(cause = null)
+        }
 
         /**
          * The request was rate-limited by the Authorization Server (HTTP 429).

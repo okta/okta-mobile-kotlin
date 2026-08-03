@@ -19,12 +19,14 @@ import com.okta.authfoundation.api.http.ApiExecutor
 import com.okta.authfoundation.api.http.ApiRequest
 import com.okta.authfoundation.api.http.ApiResponse
 import com.okta.authfoundation.client.OAuth2ClientBuilder
+import com.okta.authfoundation.client.OAuth2ClientResult
 import com.okta.oauth2.internal.parseQueryParameter
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertNotNull
+import kotlin.test.assertSame
 import kotlin.test.assertTrue
 
 class AuthorizationCodeFlowImplTest {
@@ -83,23 +85,11 @@ class AuthorizationCodeFlowImplTest {
     }
 
     @Test
-    fun start_WithNullScope_UsesClientDefaultScope() =
-        runTest {
-            val flow = createFlowWithScope(listOf("openid", "profile"))
-
-            val result = flow.start(redirectUrl = "com.example.app:/callback")
-
-            assertTrue(result.isSuccess)
-            val url = result.getOrThrow().url
-            assertEquals("openid profile", parseQueryParameter(url, "scope"))
-        }
-
-    @Test
     fun start_WithExplicitScope_UsesExplicitScope() =
         runTest {
             val flow = createFlow()
 
-            val result = flow.start(redirectUrl = "com.example.app:/callback", scope = "openid offline_access")
+            val result = flow.start(redirectUrl = "com.example.app:/callback", scope = listOf("openid", "offline_access"))
 
             assertTrue(result.isSuccess)
             val url = result.getOrThrow().url
@@ -111,7 +101,7 @@ class AuthorizationCodeFlowImplTest {
         runTest {
             val flow = createFlow()
 
-            val result = flow.start(redirectUrl = "com.example.app:/callback", scope = "openid")
+            val result = flow.start(redirectUrl = "com.example.app:/callback", scope = listOf("openid"))
 
             assertTrue(result.isSuccess)
             val context = result.getOrThrow()
@@ -163,9 +153,34 @@ class AuthorizationCodeFlowImplTest {
                     .getOrThrow()
             val flow = AuthorizationCodeFlowImpl(client)
 
-            val result = flow.start(redirectUrl = "com.example.app:/callback")
+            val result = flow.start(redirectUrl = "com.example.app:/callback", scope = listOf("openid"))
 
             assertTrue(result.isFailure)
+        }
+
+    @Test
+    fun start_WhenDiscoveryFails_PreservesOriginalCause() =
+        runTest {
+            val discoveryFailure = IllegalStateException("network unreachable")
+            val apiExecutor =
+                object : ApiExecutor {
+                    override suspend fun execute(request: ApiRequest): Result<ApiResponse> = Result.failure(discoveryFailure)
+                }
+            val client =
+                OAuth2ClientBuilder
+                    .create(
+                        issuerUrl = "https://example.okta.com/oauth2/default",
+                        clientId = "test-client-id",
+                        scope = listOf("openid")
+                    ) { this.apiExecutor = apiExecutor }
+                    .getOrThrow()
+            val flow = AuthorizationCodeFlowImpl(client)
+
+            val result = flow.start(redirectUrl = "com.example.app:/callback", scope = listOf("openid"))
+
+            assertTrue(result.isFailure)
+            val exception = assertIs<OAuth2ClientResult.Error.OidcEndpointsNotAvailableException>(result.exceptionOrNull())
+            assertSame(discoveryFailure, exception.cause)
         }
 
     @Test
@@ -173,7 +188,7 @@ class AuthorizationCodeFlowImplTest {
         runTest {
             val flow = createFlow()
             val context =
-                flow.start(redirectUrl = "com.example.app:/callback", scope = "openid").getOrThrow()
+                flow.start(redirectUrl = "com.example.app:/callback", scope = listOf("openid")).getOrThrow()
             val uriWithWrongState = "com.example.app:/callback?code=auth-code&state=wrong-state"
 
             val result = flow.resume(uriWithWrongState, context)
@@ -188,7 +203,7 @@ class AuthorizationCodeFlowImplTest {
         runTest {
             val flow = createFlow()
             val context =
-                flow.start(redirectUrl = "com.example.app:/callback", scope = "openid").getOrThrow()
+                flow.start(redirectUrl = "com.example.app:/callback", scope = listOf("openid")).getOrThrow()
             val uriWithWrongScheme = "com.other.app:/callback?code=auth-code&state=${context.state}"
 
             val result = flow.resume(uriWithWrongScheme, context)
@@ -202,7 +217,7 @@ class AuthorizationCodeFlowImplTest {
         runTest {
             val flow = createFlow()
             val context =
-                flow.start(redirectUrl = "com.example.app:/callback", scope = "openid").getOrThrow()
+                flow.start(redirectUrl = "com.example.app:/callback", scope = listOf("openid")).getOrThrow()
             val uriWithError = "com.example.app:/callback?error=access_denied&error_description=Access+denied&state=${context.state}"
 
             val result = flow.resume(uriWithError, context)
@@ -217,7 +232,7 @@ class AuthorizationCodeFlowImplTest {
         runTest {
             val flow = createFlow()
             val context =
-                flow.start(redirectUrl = "com.example.app:/callback", scope = "openid").getOrThrow()
+                flow.start(redirectUrl = "com.example.app:/callback", scope = listOf("openid")).getOrThrow()
             val uriWithoutCode = "com.example.app:/callback?state=${context.state}"
 
             val result = flow.resume(uriWithoutCode, context)

@@ -1,4 +1,5 @@
 import Modules.AUTH_FOUNDATION
+import Modules.DIRECT_AUTH
 import Modules.IDX_KOTLIN
 import Modules.LEGACY_TOKEN_MIGRATION
 import Modules.OAUTH2
@@ -13,7 +14,7 @@ dependencies {
     constraints {
         project.rootProject.subprojects.forEach { subproject ->
             when (subproject.name) {
-                AUTH_FOUNDATION.moduleName, WEB_AUTHENTICATION_UI.moduleName, OAUTH2.moduleName, LEGACY_TOKEN_MIGRATION.moduleName, IDX_KOTLIN.moduleName -> api(subproject)
+                AUTH_FOUNDATION.moduleName, WEB_AUTHENTICATION_UI.moduleName, OAUTH2.moduleName, LEGACY_TOKEN_MIGRATION.moduleName, IDX_KOTLIN.moduleName, DIRECT_AUTH.moduleName -> api(subproject)
             }
         }
     }

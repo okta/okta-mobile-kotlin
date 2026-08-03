@@ -163,7 +163,7 @@ class CredentialKmpTest {
     fun scope_ReturnsTokenScope() =
         runTest {
             val credential = createCredential()
-            assertEquals("openid profile", credential.scope())
+            assertEquals(listOf("openid", "profile"), credential.scope())
         }
 
     @Test

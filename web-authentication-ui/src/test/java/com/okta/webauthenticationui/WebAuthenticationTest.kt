@@ -20,12 +20,14 @@ import android.net.Uri
 import com.google.common.truth.Truth.assertThat
 import com.okta.authfoundation.client.OAuth2ClientResult
 import com.okta.authfoundation.client.TokenInfo
+import com.okta.authfoundation.client.kmp.OAuth2Client
 import com.okta.authfoundation.credential.Token
 import com.okta.oauth2.kmp.AuthorizationCodeFlow
 import com.okta.oauth2.kmp.AuthorizationCodeFlowContext
 import com.okta.oauth2.kmp.RedirectEndSessionFlow
 import com.okta.oauth2.kmp.RedirectEndSessionFlowContext
 import com.okta.testhelpers.OktaRule
+import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.test.runTest
@@ -91,10 +93,12 @@ class WebAuthenticationTest {
         resumeResult: Result<TokenInfo> = Result.success(loginTokenInfo),
     ): AuthorizationCodeFlow =
         object : AuthorizationCodeFlow {
+            override val client: OAuth2Client = mockk(relaxed = true)
+
             override suspend fun start(
                 redirectUrl: String,
+                scope: List<String>,
                 extraRequestParameters: Map<String, String>,
-                scope: String?,
             ): Result<AuthorizationCodeFlowContext> = startResult
 
             override suspend fun resume(
@@ -108,6 +112,8 @@ class WebAuthenticationTest {
         resumeResult: Result<Unit> = Result.success(Unit),
     ): RedirectEndSessionFlow =
         object : RedirectEndSessionFlow {
+            override val client: OAuth2Client = mockk(relaxed = true)
+
             override suspend fun start(
                 idToken: String,
                 redirectUrl: String,
@@ -159,7 +165,43 @@ class WebAuthenticationTest {
             assertThat(token.idToken).isEqualTo(loginTokenInfo.idToken)
             assertThat(token.deviceSecret).isEqualTo("exampleDeviceSecret")
             assertThat(token.issuedTokenType).isEqualTo("urn:ietf:params:oauth:token-type:access_token")
-            assertThat(token.oidcConfiguration).isSameInstanceAs(oktaRule.configuration)
+            assertThat(token.clientId).isEqualTo(loginTokenInfo.clientId)
+            assertThat(token.issuerUrl).isEqualTo("${loginTokenInfo.issuerUrl}/.well-known/openid-configuration")
+        }
+
+    @Test fun testLoginWithScopeList(): Unit =
+        runTest {
+            val webAuthenticationProvider = mock<WebAuthenticationProvider>()
+            val webAuthentication = WebAuthentication(webAuthenticationProvider)
+            val context = mock<Context>()
+
+            val redirectCoordinator = DefaultRedirectCoordinator(this)
+            webAuthentication.redirectCoordinator = redirectCoordinator
+            webAuthentication.authorizationCodeFlow = authorizationCodeFlowStub()
+
+            val initializeCountDownLatch = CountDownLatch(1)
+            redirectCoordinator.initializerContinuationListeningCallback = {
+                initializeCountDownLatch.countDown()
+            }
+            val redirectCountDownLatch = CountDownLatch(1)
+            redirectCoordinator.redirectContinuationListeningCallback = {
+                redirectCountDownLatch.countDown()
+            }
+            val loginResultDeferred =
+                async(Dispatchers.IO) {
+                    webAuthentication.login(context, "unitTest:/login", scope = listOf("openid", "profile"))
+                }
+            assertThat(initializeCountDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
+            val initializationResult = redirectCoordinator.runInitializationFunction() as RedirectInitializationResult.Success<*>
+
+            assertThat(redirectCountDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
+            val state = initializationResult.url.queryParameter("state")
+            val uri = Uri.parse("unitTest:/login?state=$state&code=ExampleCode")
+            redirectCoordinator.emit(uri)
+
+            val tokenInfo = loginResultDeferred.await().getOrThrow()
+            assertThat(tokenInfo.accessToken).isEqualTo("exampleAccessToken")
+            assertThat(tokenInfo.refreshToken).isEqualTo("exampleRefreshToken")
         }
 
     @Test fun testLoginResumeError(): Unit =

@@ -220,7 +220,7 @@ class CredentialImpl internal constructor(
             snapshot
         }
 
-    override fun scope(): String = token.scope ?: client.configuration.defaultScope
+    override fun scope(): List<String> = token.scope?.split(" ")?.filter { it.isNotBlank() } ?: client.configuration.defaultScope
 
     /**
      * Replaces the current token in storage and returns a new immutable snapshot.

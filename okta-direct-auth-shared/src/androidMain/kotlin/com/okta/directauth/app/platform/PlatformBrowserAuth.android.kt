@@ -36,18 +36,9 @@ actual suspend fun platformBrowserLogin(
     platformContext: Any?,
     client: OAuth2Client,
     redirectUrl: String,
-    scope: String,
+    scope: List<String>,
 ): Result<TokenInfo> {
     val context = platformContext as Context
-    val webAuthentication = WebAuthentication()
-    return when (val result = webAuthentication.login(context = context, redirectUrl = redirectUrl, scope = scope)) {
-        is OAuth2ClientResult.Success<Token> -> {
-            // Token implements TokenInfo, so this cast is safe
-            Result.success(result.result)
-        }
-
-        is OAuth2ClientResult.Error<Token> -> {
-            Result.failure(result.exception)
-        }
-    }
+    val webAuthentication = WebAuthentication(client)
+    return webAuthentication.login(context = context, redirectUrl = redirectUrl, scope = scope)
 }

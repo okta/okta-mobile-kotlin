@@ -39,7 +39,7 @@ internal class DeviceAuthorizationViewModel : ViewModel() {
 
         viewModelScope.launch {
             val deviceAuthorizationFlow = DeviceAuthorizationFlow(SampleApplication.oAuth2Client)
-            deviceAuthorizationFlow.start().fold(
+            deviceAuthorizationFlow.start(SampleApplication.oAuth2Client.configuration.defaultScope).fold(
                 onFailure = { exception ->
                     Timber.e(exception, "Failed to start device authorization flow.")
                     _state.value = DeviceAuthorizationState.Error("An error occurred.")

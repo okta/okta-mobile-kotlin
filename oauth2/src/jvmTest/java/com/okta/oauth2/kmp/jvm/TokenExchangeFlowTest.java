@@ -21,6 +21,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import com.okta.authfoundation.client.TokenInfo;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -38,7 +39,11 @@ public class TokenExchangeFlowTest {
       throws ExecutionException, InterruptedException, TimeoutException {
     try (TokenExchangeFlow flow = TestFlowFactory.createSuccessTokenExchangeFlow()) {
       CompletableFuture<TokenInfo> future =
-          flow.start("id-token", "device-secret", null, "openid profile email offline_access");
+          flow.start(
+              "id-token",
+              "device-secret",
+              List.of("openid", "profile", "email", "offline_access"),
+              null);
       assertNotNull("Future should not be null", future);
 
       TokenInfo tokenInfo = future.get(5, TimeUnit.SECONDS);
@@ -49,21 +54,11 @@ public class TokenExchangeFlowTest {
   }
 
   @Test
-  public void start_WithDefaults_UsesDefaultScope()
-      throws ExecutionException, InterruptedException, TimeoutException {
-    try (TokenExchangeFlow flow = TestFlowFactory.createSuccessTokenExchangeFlow()) {
-      // Uses @JvmOverloads defaults — only required params
-      CompletableFuture<TokenInfo> future = flow.start("id-token", "device-secret");
-      TokenInfo tokenInfo = future.get(5, TimeUnit.SECONDS);
-      assertNotNull("TokenInfo should not be null", tokenInfo);
-    }
-  }
-
-  @Test
   public void start_WithError_CompletesExceptionally()
       throws TimeoutException, InterruptedException {
     try (TokenExchangeFlow flow = TestFlowFactory.createFailingTokenExchangeFlow()) {
-      CompletableFuture<TokenInfo> future = flow.start("id-token", "device-secret");
+      CompletableFuture<TokenInfo> future =
+          flow.start("id-token", "device-secret", List.of("openid"), null);
       try {
         future.get(5, TimeUnit.SECONDS);
         fail("Should have thrown ExecutionException");

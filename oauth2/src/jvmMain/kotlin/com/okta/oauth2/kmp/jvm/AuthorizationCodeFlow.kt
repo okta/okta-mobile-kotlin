@@ -72,55 +72,20 @@ class AuthorizationCodeFlow(
      * @return a [CompletableFuture] that completes with [TokenInfo] on success,
      *   or completes exceptionally on failure.
      */
-    fun start(
-        redirectUrl: String,
-        browserRedirectHandler: BrowserRedirectHandler,
-        extraRequestParameters: Map<String, String> = emptyMap(),
-        scope: List<String>,
-    ): CompletableFuture<TokenInfo> =
-        coroutineScope.future {
-            val flowContext =
-                delegate
-                    .start(
-                        redirectUrl = redirectUrl,
-                        extraRequestParameters = extraRequestParameters,
-                        scope = scope
-                    ).getOrThrow()
-            val redirectUri = browserRedirectHandler.handleRedirect(flowContext.url)
-            delegate.resume(redirectUri, flowContext).getOrThrow()
-        }
-
-    /**
-     * Performs the full Authorization Code flow asynchronously.
-     *
-     * Opens [redirectUrl] in a browser via [browserRedirectHandler], waits for the
-     * redirect callback, and exchanges the authorization code for tokens.
-     *
-     * @param redirectUrl the registered redirect URI for this client.
-     * @param browserRedirectHandler handles opening the browser and capturing the redirect.
-     * @param extraRequestParameters additional authorization endpoint parameters.
-     * @param scope the scopes to request. Defaults to the client's configured default scope when null.
-     * @return a [CompletableFuture] that completes with [TokenInfo] on success,
-     *   or completes exceptionally on failure.
-     */
-    @Deprecated(
-        message = "Use the overload accepting scope as a List<String> instead.",
-        replaceWith = ReplaceWith("start(redirectUrl, browserRedirectHandler, extraRequestParameters, scope.split(\" \"))")
-    )
     @JvmOverloads
     fun start(
         redirectUrl: String,
         browserRedirectHandler: BrowserRedirectHandler,
+        scope: List<String>,
         extraRequestParameters: Map<String, String> = emptyMap(),
-        scope: String? = null,
     ): CompletableFuture<TokenInfo> =
         coroutineScope.future {
             val flowContext =
                 delegate
                     .start(
                         redirectUrl = redirectUrl,
-                        extraRequestParameters = extraRequestParameters,
-                        scope = scope
+                        scope = scope,
+                        extraRequestParameters = extraRequestParameters
                     ).getOrThrow()
             val redirectUri = browserRedirectHandler.handleRedirect(flowContext.url)
             delegate.resume(redirectUri, flowContext).getOrThrow()

@@ -35,7 +35,7 @@ actual suspend fun platformBrowserLogin(
     platformContext: Any?,
     client: OAuth2Client,
     redirectUrl: String,
-    scope: String,
+    scope: List<String>,
 ): Result<TokenInfo> =
     runCatching {
         val desktopRedirectUri = AppConfig.DESKTOP_SIGN_IN_REDIRECT_URI

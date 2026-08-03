@@ -29,8 +29,8 @@ import com.okta.authfoundation.client.kmp.OAuth2Client
  *
  * Example usage:
  * ```kotlin
- * val flow = ResourceOwnerFlowImpl(client)
- * val result = flow.start("user@example.com", "password", "openid profile")
+ * val flow = ResourceOwnerFlow(client)
+ * val result = flow.start("user@example.com", "password", listOf("openid", "profile"))
  * result.onSuccess { tokenInfo -> println("Access token: ${tokenInfo.accessToken}") }
  * result.onFailure { error -> println("Authentication failed: $error") }
  * ```
@@ -39,34 +39,24 @@ import com.okta.authfoundation.client.kmp.OAuth2Client
  */
 interface ResourceOwnerFlow {
     /**
-     * Initiates the Resource Owner flow by exchanging credentials for tokens.
-     *
-     * @param username the user's username or email.
-     * @param password the user's password.
-     * @param scope the scopes to request. Defaults to the client's configured default scope when null.
-     * @return [Result.success] with [TokenInfo] on successful authentication,
-     *   or [Result.failure] with the error.
+     * The [OAuth2Client] instance used for token requests.
      */
-    suspend fun start(
-        username: String,
-        password: String,
-        scope: String? = null,
-    ): Result<TokenInfo>
+    val client: OAuth2Client
 
     /**
      * Initiates the Resource Owner flow by exchanging credentials for tokens.
      *
      * @param username the user's username or email.
      * @param password the user's password.
-     * @param scope the scopes to request.
-     * @return [Result.success] with [TokenInfo] on successful authentication,
-     *   or [Result.failure] with the error.
+     * @param scope the scopes to request. If omitted, the client's configured
+     * default scopes are used.
+     * @return [Result.success] with [TokenInfo] on successful authentication, or [Result.failure] with the error.
      */
     suspend fun start(
         username: String,
         password: String,
-        scope: List<String>,
-    ): Result<TokenInfo> = start(username, password, scope.joinToString(" "))
+        scope: List<String> = client.configuration.defaultScope,
+    ): Result<TokenInfo>
 
     companion object {
         /**

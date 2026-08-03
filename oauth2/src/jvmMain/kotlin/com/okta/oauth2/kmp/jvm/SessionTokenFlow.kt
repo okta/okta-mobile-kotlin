@@ -65,39 +65,15 @@ class SessionTokenFlow(
      * @return a [CompletableFuture] that completes with [TokenInfo] on success,
      *   or completes exceptionally on failure.
      */
-    fun start(
-        sessionToken: String,
-        redirectUrl: String,
-        extraRequestParameters: Map<String, String> = emptyMap(),
-        scope: List<String>,
-    ): CompletableFuture<TokenInfo> =
-        coroutineScope.future {
-            delegate.start(sessionToken, redirectUrl, extraRequestParameters, scope).getOrThrow()
-        }
-
-    /**
-     * Initiates the Session Token flow asynchronously.
-     *
-     * @param sessionToken the session token obtained from the Okta legacy Authn API.
-     * @param redirectUrl the redirect URL registered with the authorization server.
-     * @param extraRequestParameters additional key-value pairs appended to the authorization URL.
-     * @param scope the space-delimited scopes to request. Defaults to the client's configured default scope when null.
-     * @return a [CompletableFuture] that completes with [TokenInfo] on success,
-     *   or completes exceptionally on failure.
-     */
-    @Deprecated(
-        message = "Use the overload accepting scope as a List<String> instead.",
-        replaceWith = ReplaceWith("start(sessionToken, redirectUrl, extraRequestParameters, scope.split(\" \"))")
-    )
     @JvmOverloads
     fun start(
         sessionToken: String,
         redirectUrl: String,
+        scope: List<String>,
         extraRequestParameters: Map<String, String> = emptyMap(),
-        scope: String? = null,
     ): CompletableFuture<TokenInfo> =
         coroutineScope.future {
-            delegate.start(sessionToken, redirectUrl, extraRequestParameters, scope).getOrThrow()
+            delegate.start(sessionToken, redirectUrl, scope, extraRequestParameters).getOrThrow()
         }
 
     override fun close() {

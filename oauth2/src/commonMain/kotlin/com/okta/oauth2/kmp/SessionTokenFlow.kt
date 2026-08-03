@@ -28,20 +28,9 @@ import com.okta.authfoundation.client.kmp.OAuth2Client
  */
 interface SessionTokenFlow {
     /**
-     * Initiates the session token flow and returns a [TokenInfo] on success.
-     *
-     * @param sessionToken the session token obtained from Okta legacy Authn APIs.
-     * @param redirectUrl the redirect URL registered with the authorization server.
-     * @param extraRequestParameters additional key-value pairs appended to the authorization URL.
-     * @param scope the space-delimited scopes to request. Defaults to the client's configured default scope when null.
-     * @return [Result.success] with [TokenInfo] on success, or [Result.failure] on error.
+     * The [OAuth2Client] instance used for token requests.
      */
-    suspend fun start(
-        sessionToken: String,
-        redirectUrl: String,
-        extraRequestParameters: Map<String, String> = emptyMap(),
-        scope: String? = null,
-    ): Result<TokenInfo>
+    val client: OAuth2Client
 
     /**
      * Initiates the session token flow and returns a [TokenInfo] on success.
@@ -49,15 +38,16 @@ interface SessionTokenFlow {
      * @param sessionToken the session token obtained from Okta legacy Authn APIs.
      * @param redirectUrl the redirect URL registered with the authorization server.
      * @param extraRequestParameters additional key-value pairs appended to the authorization URL.
-     * @param scope the scopes to request.
+     * @param scope the scopes to request. If omitted, the client's configured
+     * default scopes are used.
      * @return [Result.success] with [TokenInfo] on success, or [Result.failure] on error.
      */
     suspend fun start(
         sessionToken: String,
         redirectUrl: String,
+        scope: List<String> = client.configuration.defaultScope,
         extraRequestParameters: Map<String, String> = emptyMap(),
-        scope: List<String>,
-    ): Result<TokenInfo> = start(sessionToken, redirectUrl, extraRequestParameters, scope.joinToString(" "))
+    ): Result<TokenInfo>
 
     companion object {
         /**

@@ -15,7 +15,9 @@
  */
 package com.okta.oauth2.kmp
 
+import com.okta.authfoundation.client.OAuth2ClientBuilder
 import com.okta.authfoundation.client.TokenInfo
+import com.okta.authfoundation.client.kmp.OAuth2Client
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -23,12 +25,22 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 class DeviceAuthorizationFlowTest {
+    private val fakeClient: OAuth2Client =
+        OAuth2ClientBuilder
+            .create(
+                issuerUrl = "https://example.okta.com",
+                clientId = "test-client-id",
+                scope = listOf("openid")
+            ).getOrThrow()
+
     @Test
     fun start_ReturnsFlowContext() =
         runTest {
             val mockFlow =
                 object : DeviceAuthorizationFlow {
-                    override suspend fun start(scope: String?): Result<DeviceAuthorizationFlowContext> =
+                    override val client: OAuth2Client = fakeClient
+
+                    override suspend fun start(scope: List<String>): Result<DeviceAuthorizationFlowContext> =
                         Result.success(
                             DeviceAuthorizationFlowContext(
                                 verificationUri = "https://example.okta.com/activate",
@@ -43,7 +55,7 @@ class DeviceAuthorizationFlowTest {
                     override suspend fun resume(flowContext: DeviceAuthorizationFlowContext): Result<TokenInfo> = Result.failure(NotImplementedError())
                 }
 
-            val result = mockFlow.start("openid")
+            val result = mockFlow.start(listOf("openid"))
 
             assertTrue(result.isSuccess)
             val ctx = result.getOrNull()
@@ -59,7 +71,9 @@ class DeviceAuthorizationFlowTest {
             val fakeToken = FakeTokenInfo()
             val mockFlow =
                 object : DeviceAuthorizationFlow {
-                    override suspend fun start(scope: String?): Result<DeviceAuthorizationFlowContext> = Result.failure(NotImplementedError())
+                    override val client: OAuth2Client = fakeClient
+
+                    override suspend fun start(scope: List<String>): Result<DeviceAuthorizationFlowContext> = Result.failure(NotImplementedError())
 
                     override suspend fun resume(flowContext: DeviceAuthorizationFlowContext): Result<TokenInfo> = Result.success(fakeToken)
                 }
@@ -84,7 +98,9 @@ class DeviceAuthorizationFlowTest {
         runTest {
             val mockFlow =
                 object : DeviceAuthorizationFlow {
-                    override suspend fun start(scope: String?): Result<DeviceAuthorizationFlowContext> = Result.failure(NotImplementedError())
+                    override val client: OAuth2Client = fakeClient
+
+                    override suspend fun start(scope: List<String>): Result<DeviceAuthorizationFlowContext> = Result.failure(NotImplementedError())
 
                     override suspend fun resume(flowContext: DeviceAuthorizationFlowContext): Result<TokenInfo> = Result.failure(IllegalStateException("access_denied"))
                 }
@@ -109,12 +125,14 @@ class DeviceAuthorizationFlowTest {
         runTest {
             val mockFlow =
                 object : DeviceAuthorizationFlow {
-                    override suspend fun start(scope: String?): Result<DeviceAuthorizationFlowContext> = Result.failure(IllegalStateException("OIDC Endpoints not available."))
+                    override val client: OAuth2Client = fakeClient
+
+                    override suspend fun start(scope: List<String>): Result<DeviceAuthorizationFlowContext> = Result.failure(IllegalStateException("OIDC Endpoints not available."))
 
                     override suspend fun resume(flowContext: DeviceAuthorizationFlowContext): Result<TokenInfo> = Result.failure(NotImplementedError())
                 }
 
-            val result = mockFlow.start("openid")
+            val result = mockFlow.start(listOf("openid"))
 
             assertTrue(result.isFailure)
         }

@@ -25,14 +25,14 @@ import com.okta.authfoundation.client.kmp.OAuth2Client
  * @param client the [OAuth2Client] instance used for token requests.
  */
 internal class TokenExchangeFlowImpl(
-    private val client: OAuth2Client,
+    override val client: OAuth2Client,
 ) : TokenExchangeFlow {
     @OptIn(InternalAuthFoundationApi::class)
     override suspend fun start(
         idToken: String,
         deviceSecret: String,
+        scope: List<String>,
         audience: String?,
-        scope: String?,
     ): Result<TokenInfo> {
         val formParams =
             buildMap {
@@ -43,7 +43,7 @@ internal class TokenExchangeFlowImpl(
                 put("actor_token", deviceSecret)
                 put("client_id", client.configuration.clientId)
                 put("grant_type", "urn:ietf:params:oauth:grant-type:token-exchange")
-                put("scope", scope ?: client.configuration.defaultScope)
+                put("scope", scope.joinToString(" "))
             }
         return client.tokenRequest(formParams = formParams)
     }

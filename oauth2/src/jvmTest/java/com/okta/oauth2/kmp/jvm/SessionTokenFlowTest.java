@@ -22,6 +22,7 @@ import static org.junit.Assert.fail;
 
 import com.okta.authfoundation.client.TokenInfo;
 import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -39,7 +40,11 @@ public class SessionTokenFlowTest {
       throws ExecutionException, InterruptedException, TimeoutException {
     try (SessionTokenFlow flow = TestFlowFactory.createSuccessSessionTokenFlow()) {
       CompletableFuture<TokenInfo> future =
-          flow.start("example-session-token", "com.example.app:/callback");
+          flow.start(
+              "example-session-token",
+              "com.example.app:/callback",
+              List.of("openid"),
+              Collections.emptyMap());
       assertNotNull("Future should not be null", future);
 
       TokenInfo tokenInfo = future.get(5, TimeUnit.SECONDS);
@@ -57,8 +62,8 @@ public class SessionTokenFlowTest {
           flow.start(
               "example-session-token",
               "com.example.app:/callback",
-              Collections.emptyMap(),
-              "openid profile email");
+              List.of("openid", "profile", "email"),
+              Collections.emptyMap());
       TokenInfo tokenInfo = future.get(5, TimeUnit.SECONDS);
       assertNotNull("TokenInfo should not be null", tokenInfo);
     }
@@ -68,7 +73,9 @@ public class SessionTokenFlowTest {
   public void start_WithError_CompletesExceptionally()
       throws TimeoutException, InterruptedException {
     try (SessionTokenFlow flow = TestFlowFactory.createFailingSessionTokenFlow()) {
-      CompletableFuture<TokenInfo> future = flow.start("bad-token", "com.example.app:/callback");
+      CompletableFuture<TokenInfo> future =
+          flow.start(
+              "bad-token", "com.example.app:/callback", List.of("openid"), Collections.emptyMap());
       try {
         future.get(5, TimeUnit.SECONDS);
         fail("Should have thrown ExecutionException");

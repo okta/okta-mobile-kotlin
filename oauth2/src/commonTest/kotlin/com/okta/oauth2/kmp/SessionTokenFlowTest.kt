@@ -15,7 +15,9 @@
  */
 package com.okta.oauth2.kmp
 
+import com.okta.authfoundation.client.OAuth2ClientBuilder
 import com.okta.authfoundation.client.TokenInfo
+import com.okta.authfoundation.client.kmp.OAuth2Client
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -23,21 +25,31 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 class SessionTokenFlowTest {
+    private val fakeClient: OAuth2Client =
+        OAuth2ClientBuilder
+            .create(
+                issuerUrl = "https://example.okta.com",
+                clientId = "test-client-id",
+                scope = listOf("openid")
+            ).getOrThrow()
+
     @Test
     fun start_WhenSuccess_ReturnsTokenInfo() =
         runTest {
             val fakeToken = FakeTokenInfo()
             val mockFlow =
                 object : SessionTokenFlow {
+                    override val client: OAuth2Client = fakeClient
+
                     override suspend fun start(
                         sessionToken: String,
                         redirectUrl: String,
+                        scope: List<String>,
                         extraRequestParameters: Map<String, String>,
-                        scope: String?,
                     ): Result<TokenInfo> = Result.success(fakeToken)
                 }
 
-            val result = mockFlow.start("example-session-token", "com.example.app:/callback")
+            val result = mockFlow.start("example-session-token", "com.example.app:/callback", scope = listOf("openid"))
 
             assertTrue(result.isSuccess)
             val tokenInfo = result.getOrNull()
@@ -51,15 +63,17 @@ class SessionTokenFlowTest {
         runTest {
             val mockFlow =
                 object : SessionTokenFlow {
+                    override val client: OAuth2Client = fakeClient
+
                     override suspend fun start(
                         sessionToken: String,
                         redirectUrl: String,
+                        scope: List<String>,
                         extraRequestParameters: Map<String, String>,
-                        scope: String?,
                     ): Result<TokenInfo> = Result.failure(IllegalStateException("OIDC Endpoints not available."))
                 }
 
-            val result = mockFlow.start("example-session-token", "com.example.app:/callback")
+            val result = mockFlow.start("example-session-token", "com.example.app:/callback", scope = listOf("openid"))
 
             assertTrue(result.isFailure)
             assertTrue(result.exceptionOrNull()?.message?.contains("OIDC Endpoints not available.") == true)
@@ -70,15 +84,17 @@ class SessionTokenFlowTest {
         runTest {
             val mockFlow =
                 object : SessionTokenFlow {
+                    override val client: OAuth2Client = fakeClient
+
                     override suspend fun start(
                         sessionToken: String,
                         redirectUrl: String,
+                        scope: List<String>,
                         extraRequestParameters: Map<String, String>,
-                        scope: String?,
                     ): Result<TokenInfo> = Result.failure(IllegalStateException("No location header in response."))
                 }
 
-            val result = mockFlow.start("example-session-token", "com.example.app:/callback")
+            val result = mockFlow.start("example-session-token", "com.example.app:/callback", scope = listOf("openid"))
 
             assertTrue(result.isFailure)
             assertTrue(result.exceptionOrNull()?.message?.contains("No location header") == true)
@@ -90,11 +106,13 @@ class SessionTokenFlowTest {
             var capturedExtraParams: Map<String, String>? = null
             val mockFlow =
                 object : SessionTokenFlow {
+                    override val client: OAuth2Client = fakeClient
+
                     override suspend fun start(
                         sessionToken: String,
                         redirectUrl: String,
+                        scope: List<String>,
                         extraRequestParameters: Map<String, String>,
-                        scope: String?,
                     ): Result<TokenInfo> {
                         capturedExtraParams = extraRequestParameters
                         return Result.success(FakeTokenInfo())
@@ -105,7 +123,7 @@ class SessionTokenFlowTest {
                 sessionToken = "example-session-token",
                 redirectUrl = "com.example.app:/callback",
                 extraRequestParameters = mapOf("extraOne" to "bar"),
-                scope = "openid profile email"
+                scope = listOf("openid", "profile", "email")
             )
 
             assertNotNull(capturedExtraParams)

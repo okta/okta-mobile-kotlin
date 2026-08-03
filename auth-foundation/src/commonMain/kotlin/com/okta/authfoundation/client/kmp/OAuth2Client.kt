@@ -111,7 +111,7 @@ class OAuth2Client internal constructor(
     suspend fun getUserInfo(accessToken: String): Result<OidcUserInfo> =
         runCatching {
             val endpoint =
-                endpointsOrNull()?.userInfoEndpoint
+                endpointsOrThrow().userInfoEndpoint
                     ?: throw OAuth2ClientResult.Error.OidcEndpointsNotAvailableException()
 
             val result =
@@ -223,9 +223,7 @@ class OAuth2Client internal constructor(
         maxAge: Int? = null,
     ): Result<TokenInfo> =
         runCatching {
-            val endpoints =
-                endpointsOrNull()
-                    ?: throw OAuth2ClientResult.Error.OidcEndpointsNotAvailableException()
+            val endpoints = endpointsOrThrow()
 
             val result =
                 withRateLimitRetry {
@@ -265,7 +263,7 @@ class OAuth2Client internal constructor(
     suspend fun revokeToken(token: String): Result<Unit> =
         runCatching {
             val endpoint =
-                endpointsOrNull()?.revocationEndpoint
+                endpointsOrThrow().revocationEndpoint
                     ?: throw OAuth2ClientResult.Error.OidcEndpointsNotAvailableException()
 
             val formParams =
@@ -306,7 +304,7 @@ class OAuth2Client internal constructor(
     ): Result<IntrospectInfo> =
         runCatching {
             val endpoint =
-                endpointsOrNull()?.introspectionEndpoint
+                endpointsOrThrow().introspectionEndpoint
                     ?: throw OAuth2ClientResult.Error.OidcEndpointsNotAvailableException()
 
             val formParams =
@@ -349,7 +347,7 @@ class OAuth2Client internal constructor(
     suspend fun deviceAuthorizationRequest(formParams: Map<String, String>): Result<DeviceAuthorizationInfo> =
         runCatching {
             val endpoint =
-                endpointsOrNull()?.deviceAuthorizationEndpoint
+                endpointsOrThrow().deviceAuthorizationEndpoint
                     ?: throw OAuth2ClientResult.Error.OidcEndpointsNotAvailableException()
 
             val result =
@@ -383,6 +381,24 @@ class OAuth2Client internal constructor(
     suspend fun endpointsOrNull(): OAuth2Endpoints? =
         when (val result = endpointsOrchestrator.get()) {
             is OAuth2ClientResult.Error -> null
+            is OAuth2ClientResult.Success -> result.result
+        }
+
+    /**
+     * Resolves [OAuth2Endpoints], or throws [OAuth2ClientResult.Error.OidcEndpointsNotAvailableException]
+     * with the original discovery failure attached as its cause.
+     *
+     * Flow implementations (e.g. in the `oauth2` module) should use this instead of [endpointsOrNull]
+     * when they need to surface a discovery failure to the caller, so the original cause
+     * (DNS failure, HTTP error, TLS error, etc.) isn't lost behind a generic "not available" message.
+     * [OidcEndpointsNotAvailableException][OAuth2ClientResult.Error.OidcEndpointsNotAvailableException]'s
+     * constructor is internal to this module, so this is exposed as the supported way for other
+     * modules to get the same cause-preserving behavior without constructing the exception themselves.
+     */
+    @InternalAuthFoundationApi
+    suspend fun endpointsOrThrow(): OAuth2Endpoints =
+        when (val result = endpointsOrchestrator.get()) {
+            is OAuth2ClientResult.Error -> throw OAuth2ClientResult.Error.OidcEndpointsNotAvailableException(result.exception)
             is OAuth2ClientResult.Success -> result.result
         }
 
@@ -457,7 +473,7 @@ class OAuth2Client internal constructor(
     private suspend fun fetchJwks(): Result<Jwks> =
         runCatching {
             val jwksUri =
-                endpointsOrNull()?.jwksUri
+                endpointsOrThrow().jwksUri
                     ?: throw OAuth2ClientResult.Error.OidcEndpointsNotAvailableException()
 
             val url =

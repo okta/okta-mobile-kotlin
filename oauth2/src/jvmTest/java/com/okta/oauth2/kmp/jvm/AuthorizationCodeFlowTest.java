@@ -23,6 +23,7 @@ import static org.junit.Assert.fail;
 import com.okta.authfoundation.client.TokenInfo;
 import com.okta.oauth2.kmp.BrowserRedirectHandler;
 import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -45,7 +46,11 @@ public class AuthorizationCodeFlowTest {
       throws ExecutionException, InterruptedException, TimeoutException {
     try (AuthorizationCodeFlow flow = TestFlowFactory.createSuccessAuthorizationCodeFlow()) {
       CompletableFuture<TokenInfo> future =
-          flow.start("com.example.app:/callback", FAKE_REDIRECT_HANDLER);
+          flow.start(
+              "com.example.app:/callback",
+              FAKE_REDIRECT_HANDLER,
+              List.of("openid"),
+              Collections.emptyMap());
       assertNotNull("Future should not be null", future);
 
       TokenInfo tokenInfo = future.get(5, TimeUnit.SECONDS);
@@ -63,20 +68,8 @@ public class AuthorizationCodeFlowTest {
           flow.start(
               "com.example.app:/callback",
               FAKE_REDIRECT_HANDLER,
-              Collections.emptyMap(),
-              "openid profile email");
-      TokenInfo tokenInfo = future.get(5, TimeUnit.SECONDS);
-      assertNotNull("TokenInfo should not be null", tokenInfo);
-    }
-  }
-
-  @Test
-  public void start_WithDefaults_UsesDefaultScopeAndNoExtraParams()
-      throws ExecutionException, InterruptedException, TimeoutException {
-    try (AuthorizationCodeFlow flow = TestFlowFactory.createSuccessAuthorizationCodeFlow()) {
-      // Uses @JvmOverloads defaults — only redirectUrl and browserRedirectHandler required
-      CompletableFuture<TokenInfo> future =
-          flow.start("com.example.app:/callback", FAKE_REDIRECT_HANDLER);
+              List.of("openid", "profile", "email"),
+              Collections.emptyMap());
       TokenInfo tokenInfo = future.get(5, TimeUnit.SECONDS);
       assertNotNull("TokenInfo should not be null", tokenInfo);
     }
@@ -87,7 +80,11 @@ public class AuthorizationCodeFlowTest {
       throws TimeoutException, InterruptedException {
     try (AuthorizationCodeFlow flow = TestFlowFactory.createFailingAuthorizationCodeFlow()) {
       CompletableFuture<TokenInfo> future =
-          flow.start("com.example.app:/callback", FAKE_REDIRECT_HANDLER);
+          flow.start(
+              "com.example.app:/callback",
+              FAKE_REDIRECT_HANDLER,
+              List.of("openid"),
+              Collections.emptyMap());
       try {
         future.get(5, TimeUnit.SECONDS);
         fail("Should have thrown ExecutionException");

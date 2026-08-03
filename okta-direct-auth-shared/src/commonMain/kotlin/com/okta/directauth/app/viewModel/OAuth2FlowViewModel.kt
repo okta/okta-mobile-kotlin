@@ -49,9 +49,7 @@ import kotlinx.coroutines.launch
 class OAuth2FlowViewModel :
     ViewModel(),
     LogScope {
-    companion object {
-        private const val DEFAULT_SCOPE = "openid profile email offline_access"
-    }
+    private val defaultScope = listOf("openid", "profile", "email", "offline_access")
 
     override val logTag = "OAuth2FlowViewModel"
 
@@ -67,7 +65,7 @@ class OAuth2FlowViewModel :
             .create(
                 issuerUrl = AppConfig.ISSUER,
                 clientId = AppConfig.CLIENT_ID,
-                scope = DEFAULT_SCOPE.split(" ")
+                scope = defaultScope
             ) {
                 authorizationServerId = AppConfig.AUTHORIZATION_SERVER_ID
                 apiExecutor =
@@ -95,7 +93,7 @@ class OAuth2FlowViewModel :
             _flowState.value = OAuth2FlowState.Loading
             log("Starting Resource Owner flow for user: $username")
             val flow = ResourceOwnerFlow(client)
-            flow.start(username, password, DEFAULT_SCOPE).fold(
+            flow.start(username, password, defaultScope).fold(
                 onSuccess = { tokenInfo ->
                     log("Resource Owner flow succeeded")
                     _flowState.value = OAuth2FlowState.Authenticated(tokenInfo)
@@ -119,7 +117,7 @@ class OAuth2FlowViewModel :
             _flowState.value = OAuth2FlowState.Loading
             log("Starting Device Authorization flow")
             val flow = DeviceAuthorizationFlow(client)
-            flow.start(DEFAULT_SCOPE).fold(
+            flow.start(defaultScope).fold(
                 onSuccess = { context ->
                     log("Device code received: ${context.userCode}")
                     _flowState.value =
@@ -161,7 +159,7 @@ class OAuth2FlowViewModel :
         cancelAndLaunch {
             _flowState.value = OAuth2FlowState.BrowserAuthWaiting
             log("Starting Browser Auth flow")
-            platformBrowserLogin(platformContext, client, AppConfig.SIGN_IN_REDIRECT_URI, DEFAULT_SCOPE).fold(
+            platformBrowserLogin(platformContext, client, AppConfig.SIGN_IN_REDIRECT_URI, defaultScope).fold(
                 onSuccess = { tokenInfo ->
                     log("Browser Auth flow succeeded")
                     _flowState.value = OAuth2FlowState.Authenticated(tokenInfo)
@@ -188,7 +186,7 @@ class OAuth2FlowViewModel :
             _flowState.value = OAuth2FlowState.Loading
             log("Starting Token Exchange flow")
             val flow = TokenExchangeFlow(client)
-            flow.start(idToken, deviceSecret, scope = DEFAULT_SCOPE).fold(
+            flow.start(idToken, deviceSecret, scope = defaultScope).fold(
                 onSuccess = { tokenInfo ->
                     log("Token Exchange flow succeeded")
                     _flowState.value = OAuth2FlowState.Authenticated(tokenInfo)
@@ -213,7 +211,7 @@ class OAuth2FlowViewModel :
             _flowState.value = OAuth2FlowState.Loading
             log("Starting Session Token flow")
             val flow = SessionTokenFlow(client)
-            flow.start(sessionToken, AppConfig.SIGN_IN_REDIRECT_URI, scope = DEFAULT_SCOPE).fold(
+            flow.start(sessionToken, AppConfig.SIGN_IN_REDIRECT_URI, scope = defaultScope).fold(
                 onSuccess = { tokenInfo ->
                     log("Session Token flow succeeded")
                     _flowState.value = OAuth2FlowState.Authenticated(tokenInfo)

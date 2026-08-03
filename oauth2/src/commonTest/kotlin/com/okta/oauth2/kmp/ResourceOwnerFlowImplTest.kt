@@ -91,23 +91,11 @@ class ResourceOwnerFlowImplTest {
     }
 
     @Test
-    fun start_WithNullScope_UsesClientDefaultScope() =
-        runTest {
-            val (flow, getRequest) = createFlowWithScope(listOf("openid", "profile"), 200 to tokenResponse)
-
-            val result = flow.start("user@example.com", "password")
-
-            assertTrue(result.isSuccess)
-            val params = assertIs<ApiFormRequest>(getRequest()).formParameters().mapValues { (_, v) -> v.first() }
-            assertEquals("openid profile", params["scope"])
-        }
-
-    @Test
     fun start_WithExplicitScope_UsesExplicitScope() =
         runTest {
             val (flow, getRequest) = createFlowWithScope(listOf("openid", "profile"), 200 to tokenResponse)
 
-            val result = flow.start("user@example.com", "password", scope = "openid offline_access")
+            val result = flow.start("user@example.com", "password", scope = listOf("openid", "offline_access"))
 
             assertTrue(result.isSuccess)
             val params = assertIs<ApiFormRequest>(getRequest()).formParameters().mapValues { (_, v) -> v.first() }
@@ -119,7 +107,7 @@ class ResourceOwnerFlowImplTest {
         runTest {
             val (flow, getRequest) = createFlow(200 to tokenResponse)
 
-            flow.start("user@example.com", "s3cr3t")
+            flow.start("user@example.com", "s3cr3t", scope = listOf("openid"))
 
             val formRequest = assertIs<ApiFormRequest>(getRequest())
             assertEquals(
@@ -139,7 +127,7 @@ class ResourceOwnerFlowImplTest {
             val errorResponse = """{"error":"invalid_grant","error_description":"Invalid credentials"}"""
             val (flow, _) = createFlow(400 to errorResponse)
 
-            val result = flow.start("user@example.com", "wrong")
+            val result = flow.start("user@example.com", "wrong", scope = listOf("openid"))
 
             assertTrue(result.isFailure)
         }

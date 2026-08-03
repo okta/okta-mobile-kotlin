@@ -21,6 +21,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import com.okta.authfoundation.client.TokenInfo;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -37,7 +38,8 @@ public class ResourceOwnerFlowTest {
   public void start_ReturnsCompletableFutureWithTokenInfo()
       throws ExecutionException, InterruptedException, TimeoutException {
     try (ResourceOwnerFlow flow = TestFlowFactory.createSuccessResourceOwnerFlow()) {
-      CompletableFuture<TokenInfo> future = flow.start("user@example.com", "password", "openid");
+      CompletableFuture<TokenInfo> future =
+          flow.start("user@example.com", "password", List.of("openid"));
       assertNotNull("Future should not be null", future);
 
       TokenInfo tokenInfo = future.get(5, TimeUnit.SECONDS);
@@ -51,7 +53,8 @@ public class ResourceOwnerFlowTest {
   public void start_WithError_CompletesExceptionally()
       throws TimeoutException, InterruptedException {
     try (ResourceOwnerFlow flow = TestFlowFactory.createFailingResourceOwnerFlow()) {
-      CompletableFuture<TokenInfo> future = flow.start("user@example.com", "wrong", "openid");
+      CompletableFuture<TokenInfo> future =
+          flow.start("user@example.com", "wrong", List.of("openid"));
       try {
         future.get(5, TimeUnit.SECONDS);
         fail("Should have thrown ExecutionException");

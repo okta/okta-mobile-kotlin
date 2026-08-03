@@ -81,7 +81,6 @@ dependencies {
     implementation(libs.app.compat)
     implementation(libs.okio.jvm)
 
-    testImplementation(libs.junit)
     testImplementation(libs.truth)
     testImplementation(libs.kotlin.test)
     testImplementation(libs.coroutines.test)

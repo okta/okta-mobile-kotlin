@@ -183,20 +183,41 @@ interface Credential : CredentialIdentifier {
     /**
      * Refreshes the token with additional form body parameters and returns a **new** credential snapshot.
      *
-     * Unlike [refreshToken], this overload **bypasses the coalescing orchestrator** — each call
-     * always makes a new network request. Use the no-parameter overload when deduplication is desired.
+     * The coalescing orchestrator used by [refreshToken] caches a single in-flight request per credential
+     * ID; it has no way to represent per-call parameters, so a request carrying [extraRequestParameters]
+     * can't share that cache. An implementation that supports non-empty parameters must therefore make its
+     * own network request for every call, bypassing the orchestrator.
      *
      * Reserved keys (`grant_type`, `client_id`, `refresh_token`) are silently filtered out of
      * [extraRequestParameters] and cannot be overridden.
+     *
+     * This interface ships a default implementation with two behaviors, depending on [extraRequestParameters]:
+     * - **Empty map:** delegates to [refreshToken] — there's nothing extra to send, so this *does* go
+     *   through the coalescing orchestrator, same as calling [refreshToken] directly.
+     * - **Non-empty map:** fails with [NotImplementedError]. The default implementation has no network
+     *   logic of its own to forward extra parameters — implementations that need to support this must
+     *   override the method; see [CredentialImpl] for the reference implementation that does.
      *
      * @param extraRequestParameters additional form parameters to forward to the token endpoint
      *   (e.g., `mapOf("acr_values" to "urn:okta:loa:2fa:any")`).
      * @return [Result.success] with a new [Credential] snapshot containing the refreshed token,
      *   or [Result.failure] with:
      * - [IllegalStateException] if no refresh token is available on this credential.
+     * - [NotImplementedError] if [extraRequestParameters] is non-empty and this method has not been
+     *   overridden with a real implementation.
      * - Other exceptions if the refresh network request fails.
      */
-    suspend fun refreshToken(extraRequestParameters: Map<String, String>): Result<Credential> = refreshToken()
+    suspend fun refreshToken(extraRequestParameters: Map<String, String>): Result<Credential> =
+        if (extraRequestParameters.isEmpty()) {
+            refreshToken()
+        } else {
+            Result.failure(
+                NotImplementedError(
+                    "Credential.refreshToken(extraRequestParameters) has no default implementation for a " +
+                        "non-empty extraRequestParameters map; override this method to support it."
+                )
+            )
+        }
 
     /**
      * Retrieves the parsed [Jwt] from the ID token.
@@ -208,8 +229,5 @@ interface Credential : CredentialIdentifier {
     fun idToken(): Result<Jwt>
 
     /** Returns the scopes associated with the token, or the client's default scopes. Pure read. */
-    fun scope(): String
-
-    /** Returns the scopes associated with the token, or the client's default scopes, as a list. Pure read. */
-    fun scopes(): List<String> = scope().split(" ").filter { it.isNotBlank() }
+    fun scope(): List<String>
 }
