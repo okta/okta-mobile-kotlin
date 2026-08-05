@@ -37,7 +37,7 @@ internal class ResourceOwnerViewModel : ViewModel() {
 
         viewModelScope.launch {
             val resourceOwnerFlow = ResourceOwnerFlow(SampleApplication.oAuth2Client)
-            resourceOwnerFlow.start(username, password).fold(
+            resourceOwnerFlow.start(username, password, SampleApplication.oAuth2Client.configuration.defaultScope).fold(
                 onFailure = { exception ->
                     Timber.e(exception, "Failed to start resource owner flow.")
                     _state.value = ResourceOwnerState.Error("An error occurred.")

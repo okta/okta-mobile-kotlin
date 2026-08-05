@@ -34,7 +34,7 @@ class OAuth2ClientBuilderTest {
         assertTrue(result.isSuccess)
         val client = result.getOrThrow()
         assertEquals("test-client-id", client.configuration.clientId)
-        assertEquals("openid profile", client.configuration.defaultScope)
+        assertEquals(listOf("openid", "profile"), client.configuration.defaultScope)
         assertEquals("https://example.okta.com", client.configuration.issuerUrl)
         assertNull(client.configuration.authorizationServerId)
     }

@@ -61,7 +61,7 @@ class TokenExchangeViewModel : ViewModel() {
                 _state.value = TokenExchangeState.Error("Missing Device Secret")
                 return@launch
             }
-            tokenExchangeFlow.start(idToken, deviceSecret).fold(
+            tokenExchangeFlow.start(idToken, deviceSecret, SampleApplication.oAuth2Client.configuration.defaultScope).fold(
                 onFailure = { exception ->
                     Timber.e(exception, "Failed to start token exchange flow.")
                     _state.value = TokenExchangeState.Error("An error occurred.")

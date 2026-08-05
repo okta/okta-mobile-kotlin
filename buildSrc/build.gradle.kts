@@ -12,7 +12,7 @@ repositories {
 
 dependencies {
     //noinspection UseTomlInstead
-    implementation("com.diffplug.spotless:spotless-plugin-gradle:8.8.0")
+    implementation("com.diffplug.spotless:spotless-plugin-gradle:8.9.0")
     implementation("org.owasp:dependency-check-gradle:12.2.0")
     // Pinned exactly to the version applied elsewhere in the project (gradle/libs.versions.toml).
     // BinaryCompatValidationPlugin depends on kotlinx.validation.KotlinApiBuildTask/KotlinApiCompareTask,

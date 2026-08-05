@@ -16,70 +16,8 @@
 package com.okta.oauth2.internal
 
 import com.okta.authfoundation.api.http.ApiExecutor
-import com.okta.authfoundation.api.http.ApiFormRequest
 import com.okta.authfoundation.api.http.ApiRequest
 import com.okta.authfoundation.api.http.ApiRequestMethod
-import kotlinx.serialization.DeserializationStrategy
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
-
-@Serializable
-private class ErrorResponse(
-    @SerialName("error") val error: String? = null,
-    @SerialName("error_description") val errorDescription: String? = null,
-)
-
-/**
- * Executes a JSON form POST request and deserializes the response body.
- *
- * Uses only public [ApiExecutor] APIs to remain accessible from the oauth2 module.
- *
- * @param apiExecutor the HTTP executor.
- * @param json the JSON serializer.
- * @param url the endpoint URL.
- * @param formParams the form parameters to POST.
- * @param deserializer the response deserializer.
- * @return [Result.success] with the deserialized value, or [Result.failure] on HTTP or parse error.
- */
-internal suspend fun <T> performJsonFormPost(
-    apiExecutor: ApiExecutor,
-    json: Json,
-    url: String,
-    formParams: Map<String, String>,
-    deserializer: DeserializationStrategy<T>,
-): Result<T> =
-    runCatching {
-        val request =
-            object : ApiFormRequest {
-                override fun method(): ApiRequestMethod = ApiRequestMethod.POST
-
-                override fun headers(): Map<String, List<String>> = mapOf("Accept" to listOf("application/json"))
-
-                override fun url(): String = url
-
-                override fun contentType(): String = "application/x-www-form-urlencoded"
-
-                override fun formParameters(): Map<String, List<String>> = formParams.mapValues { (_, v) -> listOf(v) }
-            }
-        val response = apiExecutor.execute(request).getOrThrow()
-        val body =
-            response.body?.decodeToString()
-                ?: throw IllegalStateException("Empty response body")
-
-        if (response.statusCode !in 200..299) {
-            val errorResponse =
-                try {
-                    json.decodeFromString(ErrorResponse.serializer(), body)
-                } catch (_: Exception) {
-                    null
-                }
-            val message = errorResponse?.errorDescription ?: errorResponse?.error ?: "HTTP Error: status code - ${response.statusCode}"
-            throw IllegalStateException(message)
-        }
-
-        json.decodeFromString(deserializer, body)
-    }
 
 /**
  * Executes a GET request and returns the `Location` response header without following redirects.

@@ -70,7 +70,7 @@ class RateLimitRetryTest {
         val config =
             OAuth2ClientConfiguration(
                 clientId = "test-client",
-                defaultScope = "openid",
+                defaultScope = listOf("openid"),
                 issuerUrl = "https://example.okta.com",
                 apiExecutor = executor,
                 clock = testClock,

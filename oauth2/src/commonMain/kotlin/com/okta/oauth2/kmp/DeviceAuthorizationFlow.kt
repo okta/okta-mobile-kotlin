@@ -27,31 +27,27 @@ import com.okta.authfoundation.client.kmp.OAuth2Client
  *
  * ```kotlin
  * val flow = DeviceAuthorizationFlow(client)
- * val ctx = flow.start().getOrThrow()
+ * val ctx = flow.start(listOf("openid", "profile", "offline_access")).getOrThrow()
  * println("Visit ${ctx.verificationUriComplete} and enter ${ctx.userCode}")
  * val tokenInfo = flow.resume(ctx).getOrThrow()
  * ```
  */
 interface DeviceAuthorizationFlow {
     /**
-     * Initiates the device authorization flow.
-     *
-     * @param scope the OAuth2 scopes to request. Defaults to the client's configured default scope when null.
-     * @return [Result.success] with a [DeviceAuthorizationFlowContext], or [Result.failure] with:
-     * - [com.okta.authfoundation.client.OAuth2ClientResult.Error.OidcEndpointsNotAvailableException] if the device authorization endpoint is unavailable.
-     * - Other exceptions for network or parse failures.
+     * The [OAuth2Client] instance used for token requests.
      */
-    suspend fun start(scope: String? = null): Result<DeviceAuthorizationFlowContext>
+    val client: OAuth2Client
 
     /**
      * Initiates the device authorization flow.
      *
-     * @param scope the OAuth2 scopes to request.
+     * @param scope the scopes to request. If omitted, the client's configured
+     * default scopes are used.
      * @return [Result.success] with a [DeviceAuthorizationFlowContext], or [Result.failure] with:
      * - [com.okta.authfoundation.client.OAuth2ClientResult.Error.OidcEndpointsNotAvailableException] if the device authorization endpoint is unavailable.
      * - Other exceptions for network or parse failures.
      */
-    suspend fun start(scope: List<String>): Result<DeviceAuthorizationFlowContext> = start(scope.joinToString(" "))
+    suspend fun start(scope: List<String> = client.configuration.defaultScope): Result<DeviceAuthorizationFlowContext>
 
     /**
      * Polls the token endpoint until the user authorizes or the session expires.

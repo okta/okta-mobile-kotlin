@@ -15,7 +15,9 @@
  */
 package com.okta.oauth2.kmp
 
+import com.okta.authfoundation.client.OAuth2ClientBuilder
 import com.okta.authfoundation.client.TokenInfo
+import com.okta.authfoundation.client.kmp.OAuth2Client
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -24,15 +26,25 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 class AuthorizationCodeFlowTest {
+    private val fakeClient: OAuth2Client =
+        OAuth2ClientBuilder
+            .create(
+                issuerUrl = "https://example.okta.com",
+                clientId = "test-client-id",
+                scope = listOf("openid")
+            ).getOrThrow()
+
     @Test
     fun start_WhenSuccess_ReturnsContext() =
         runTest {
             val mockFlow =
                 object : AuthorizationCodeFlow {
+                    override val client: OAuth2Client = fakeClient
+
                     override suspend fun start(
                         redirectUrl: String,
+                        scope: List<String>,
                         extraRequestParameters: Map<String, String>,
-                        scope: String?,
                     ): Result<AuthorizationCodeFlowContext> =
                         Result.success(
                             AuthorizationCodeFlowContext(
@@ -51,7 +63,7 @@ class AuthorizationCodeFlowTest {
                     ): Result<TokenInfo> = Result.success(FakeTokenInfo())
                 }
 
-            val result = mockFlow.start("com.example.app:/callback")
+            val result = mockFlow.start("com.example.app:/callback", scope = listOf("openid"))
 
             assertTrue(result.isSuccess)
             val context = result.getOrNull()
@@ -66,10 +78,12 @@ class AuthorizationCodeFlowTest {
             val fakeToken = FakeTokenInfo()
             val mockFlow =
                 object : AuthorizationCodeFlow {
+                    override val client: OAuth2Client = fakeClient
+
                     override suspend fun start(
                         redirectUrl: String,
+                        scope: List<String>,
                         extraRequestParameters: Map<String, String>,
-                        scope: String?,
                     ): Result<AuthorizationCodeFlowContext> =
                         Result.success(
                             AuthorizationCodeFlowContext(
@@ -112,10 +126,12 @@ class AuthorizationCodeFlowTest {
         runTest {
             val mockFlow =
                 object : AuthorizationCodeFlow {
+                    override val client: OAuth2Client = fakeClient
+
                     override suspend fun start(
                         redirectUrl: String,
+                        scope: List<String>,
                         extraRequestParameters: Map<String, String>,
-                        scope: String?,
                     ): Result<AuthorizationCodeFlowContext> = Result.failure(IllegalStateException())
 
                     override suspend fun resume(
@@ -153,10 +169,12 @@ class AuthorizationCodeFlowTest {
         runTest {
             val mockFlow =
                 object : AuthorizationCodeFlow {
+                    override val client: OAuth2Client = fakeClient
+
                     override suspend fun start(
                         redirectUrl: String,
+                        scope: List<String>,
                         extraRequestParameters: Map<String, String>,
-                        scope: String?,
                     ): Result<AuthorizationCodeFlowContext> = Result.failure(IllegalStateException())
 
                     override suspend fun resume(
@@ -191,10 +209,12 @@ class AuthorizationCodeFlowTest {
         runTest {
             val mockFlow =
                 object : AuthorizationCodeFlow {
+                    override val client: OAuth2Client = fakeClient
+
                     override suspend fun start(
                         redirectUrl: String,
+                        scope: List<String>,
                         extraRequestParameters: Map<String, String>,
-                        scope: String?,
                     ): Result<AuthorizationCodeFlowContext> = Result.failure(IllegalStateException())
 
                     override suspend fun resume(
@@ -224,10 +244,12 @@ class AuthorizationCodeFlowTest {
         runTest {
             val mockFlow =
                 object : AuthorizationCodeFlow {
+                    override val client: OAuth2Client = fakeClient
+
                     override suspend fun start(
                         redirectUrl: String,
+                        scope: List<String>,
                         extraRequestParameters: Map<String, String>,
-                        scope: String?,
                     ): Result<AuthorizationCodeFlowContext> = Result.failure(IllegalStateException("OIDC Endpoints not available."))
 
                     override suspend fun resume(
@@ -236,7 +258,7 @@ class AuthorizationCodeFlowTest {
                     ): Result<TokenInfo> = Result.failure(IllegalStateException())
                 }
 
-            val result = mockFlow.start("com.example.app:/callback")
+            val result = mockFlow.start("com.example.app:/callback", scope = listOf("openid"))
 
             assertTrue(result.isFailure)
             assertTrue(result.exceptionOrNull()?.message?.contains("OIDC Endpoints not available.") == true)

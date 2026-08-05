@@ -44,7 +44,7 @@ import java.util.concurrent.CompletableFuture;
  */
 public final class WrapperOAuth2Flows implements OAuth2Flows {
   private final OAuth2Client client;
-  private final String scope;
+  private final List<String> scope;
   private final String redirectUrl;
   private final int redirectPort;
   private final String redirectPath;
@@ -60,14 +60,14 @@ public final class WrapperOAuth2Flows implements OAuth2Flows {
    * Creates a {@link WrapperOAuth2Flows}.
    *
    * @param client the shared OAuth2 client
-   * @param scopes the OAuth2 scopes to request
+   * @param scope the OAuth2 scopes to request
    * @param signInRedirectUri the loopback redirect URI (e.g. {@code
    *     http://localhost:8080/callback})
    * @throws IllegalArgumentException if {@code signInRedirectUri} is not a valid http loopback URI
    */
-  public WrapperOAuth2Flows(OAuth2Client client, List<String> scopes, String signInRedirectUri) {
+  public WrapperOAuth2Flows(OAuth2Client client, List<String> scope, String signInRedirectUri) {
     this.client = client;
-    this.scope = String.join(" ", scopes);
+    this.scope = scope;
     this.redirectUrl = signInRedirectUri;
 
     try {
@@ -132,21 +132,21 @@ public final class WrapperOAuth2Flows implements OAuth2Flows {
     LocalhostBrowserRedirectHandler handler =
         new LocalhostBrowserRedirectHandler(redirectPort, redirectPath);
     AuthorizationCodeFlow flow = new AuthorizationCodeFlow(client);
-    return flow.start(redirectUrl, handler, Collections.emptyMap(), scope)
+    return flow.start(redirectUrl, handler, scope, Collections.emptyMap())
         .whenComplete((r, t) -> closeQuietly(flow));
   }
 
   @Override
   public CompletableFuture<TokenInfo> tokenExchange(String idToken, String deviceSecret) {
     TokenExchangeFlow flow = new TokenExchangeFlow(client);
-    return flow.start(idToken, deviceSecret, null, scope)
+    return flow.start(idToken, deviceSecret, scope, null)
         .whenComplete((r, t) -> closeQuietly(flow));
   }
 
   @Override
   public CompletableFuture<TokenInfo> sessionToken(String sessionToken) {
     SessionTokenFlow flow = new SessionTokenFlow(client);
-    return flow.start(sessionToken, redirectUrl, Collections.emptyMap(), scope)
+    return flow.start(sessionToken, redirectUrl, scope, Collections.emptyMap())
         .whenComplete((r, t) -> closeQuietly(flow));
   }
 

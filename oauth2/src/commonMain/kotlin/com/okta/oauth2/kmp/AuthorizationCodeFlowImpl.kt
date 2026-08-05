@@ -26,17 +26,15 @@ import io.ktor.http.takeFrom
 
 @OptIn(InternalAuthFoundationApi::class)
 internal class AuthorizationCodeFlowImpl(
-    private val client: OAuth2Client,
+    override val client: OAuth2Client,
 ) : AuthorizationCodeFlow {
     override suspend fun start(
         redirectUrl: String,
+        scope: List<String>,
         extraRequestParameters: Map<String, String>,
-        scope: String?,
     ): Result<AuthorizationCodeFlowContext> =
         runCatching {
-            val endpoints =
-                client.endpointsOrNull()
-                    ?: throw IllegalStateException("OIDC Endpoints not available.")
+            val endpoints = client.endpointsOrThrow()
             val authorizationEndpoint =
                 endpoints.authorizationEndpoint
                     ?: throw IllegalStateException("Authorization endpoint not available.")
@@ -55,7 +53,7 @@ internal class AuthorizationCodeFlowImpl(
             urlBuilder.parameters.append("code_challenge", PkceGenerator.codeChallenge(codeVerifier))
             urlBuilder.parameters.append("code_challenge_method", PkceGenerator.CODE_CHALLENGE_METHOD)
             urlBuilder.parameters.append("client_id", client.configuration.clientId)
-            urlBuilder.parameters.append("scope", scope ?: client.configuration.defaultScope)
+            urlBuilder.parameters.append("scope", scope.joinToString(" "))
             urlBuilder.parameters.append("redirect_uri", redirectUrl)
             urlBuilder.parameters.append("response_type", "code")
             urlBuilder.parameters.append("state", state)

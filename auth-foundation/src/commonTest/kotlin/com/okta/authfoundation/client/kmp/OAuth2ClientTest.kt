@@ -272,6 +272,38 @@ class OAuth2ClientTest {
         }
 
     @Test
+    fun tokenRequest_WithFailedDiscovery_PreservesOriginalCause() =
+        runTest {
+            val config =
+                OAuth2ClientBuilder
+                    .create(
+                        issuerUrl = "https://example.okta.com/oauth2/default",
+                        clientId = "test-client-id",
+                        scope = listOf("openid")
+                    ) {
+                        apiExecutor = mockApiExecutor("")
+                    }.getOrThrow()
+                    .configuration
+
+            val discoveryFailure = IllegalStateException("DNS resolution failed")
+            val client =
+                OAuth2Client(
+                    configuration = config,
+                    endpointsOrchestrator =
+                        CoalescingOrchestrator(
+                            factory = { OAuth2ClientResult.Error(discoveryFailure) },
+                            keepDataInMemory = { false }
+                        )
+                )
+
+            val result = client.tokenRequest(mapOf("grant_type" to "authorization_code"))
+
+            assertTrue(result.isFailure)
+            val exception = assertIs<OAuth2ClientResult.Error.OidcEndpointsNotAvailableException>(result.exceptionOrNull())
+            assertSame(discoveryFailure, exception.cause)
+        }
+
+    @Test
     fun operations_withNoEndpoints_returnError() =
         runTest {
             val config =

@@ -35,7 +35,7 @@ class OAuth2ClientConfiguration internal constructor(
     /** The application's client ID. */
     val clientId: String,
     /** The default access scopes required by the client. */
-    val defaultScope: String,
+    val defaultScope: List<String>,
     /**
      * The effective issuer URL used for OIDC discovery and token validation.
      *

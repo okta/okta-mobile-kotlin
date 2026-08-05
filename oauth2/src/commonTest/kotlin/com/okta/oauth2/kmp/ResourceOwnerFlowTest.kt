@@ -15,7 +15,9 @@
  */
 package com.okta.oauth2.kmp
 
+import com.okta.authfoundation.client.OAuth2ClientBuilder
 import com.okta.authfoundation.client.TokenInfo
+import com.okta.authfoundation.client.kmp.OAuth2Client
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -23,25 +25,35 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 class ResourceOwnerFlowTest {
+    private val fakeClient: OAuth2Client =
+        OAuth2ClientBuilder
+            .create(
+                issuerUrl = "https://example.okta.com",
+                clientId = "test-client-id",
+                scope = listOf("openid")
+            ).getOrThrow()
+
     @Test
     fun start_WithValidCredentials_ReturnsTokenInfo() =
         runTest {
             val capturedParams = mutableMapOf<String, String?>()
             val mockFlow =
                 object : ResourceOwnerFlow {
+                    override val client: OAuth2Client = fakeClient
+
                     override suspend fun start(
                         username: String,
                         password: String,
-                        scope: String?,
+                        scope: List<String>,
                     ): Result<TokenInfo> {
                         capturedParams["username"] = username
                         capturedParams["password"] = password
-                        capturedParams["scope"] = scope
+                        capturedParams["scope"] = scope.joinToString(" ")
                         return Result.success(FakeTokenInfo())
                     }
                 }
 
-            val result = mockFlow.start("user@example.com", "secret", "openid profile")
+            val result = mockFlow.start("user@example.com", "secret", listOf("openid", "profile"))
 
             assertTrue(result.isSuccess)
             assertNotNull(result.getOrNull())
@@ -55,14 +67,16 @@ class ResourceOwnerFlowTest {
         runTest {
             val mockFlow =
                 object : ResourceOwnerFlow {
+                    override val client: OAuth2Client = fakeClient
+
                     override suspend fun start(
                         username: String,
                         password: String,
-                        scope: String?,
+                        scope: List<String>,
                     ): Result<TokenInfo> = Result.failure(IllegalArgumentException("invalid_grant"))
                 }
 
-            val result = mockFlow.start("user@example.com", "wrong", "openid")
+            val result = mockFlow.start("user@example.com", "wrong", listOf("openid"))
 
             assertTrue(result.isFailure)
             assertEquals("invalid_grant", result.exceptionOrNull()?.message)
@@ -73,14 +87,16 @@ class ResourceOwnerFlowTest {
         runTest {
             val mockFlow =
                 object : ResourceOwnerFlow {
+                    override val client: OAuth2Client = fakeClient
+
                     override suspend fun start(
                         username: String,
                         password: String,
-                        scope: String?,
+                        scope: List<String>,
                     ): Result<TokenInfo> = Result.failure(java.io.IOException("Network unreachable"))
                 }
 
-            val result = mockFlow.start("user@example.com", "pass", "openid")
+            val result = mockFlow.start("user@example.com", "pass", listOf("openid"))
 
             assertTrue(result.isFailure)
             assertTrue(result.exceptionOrNull() is java.io.IOException)

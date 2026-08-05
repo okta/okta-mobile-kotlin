@@ -68,13 +68,6 @@ dependencies {
 
     testImplementation(libs.androidx.test.ext.junit)
     testImplementation(libs.coroutines.test)
-    testImplementation(libs.junit)
-    testImplementation(libs.okhttp.mock.web.server)
-    testImplementation(libs.okhttp.tls)
-    testImplementation(libs.okio.core)
-    testImplementation(libs.okio.jvm)
-    testImplementation(libs.truth)
-    testImplementation(libs.jackson.databind)
     testImplementation(libs.robolectric)
     testImplementation(libs.bcprov.jdk18on)
     testImplementation(libs.json)

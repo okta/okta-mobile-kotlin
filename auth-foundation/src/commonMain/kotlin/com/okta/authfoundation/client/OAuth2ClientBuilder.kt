@@ -66,7 +66,7 @@ import kotlin.time.Clock
 class OAuth2ClientBuilder private constructor(
     private val issuerUrl: String,
     private val clientId: String,
-    private val scope: String,
+    private val scope: List<String>,
 ) {
     /** The HTTP executor used for all network requests. */
     var apiExecutor: ApiExecutor = KtorHttpExecutor()
@@ -180,7 +180,7 @@ class OAuth2ClientBuilder private constructor(
                 require(clientId.isNotBlank()) { "clientId must be set and not empty." }
                 require(scope.isNotEmpty()) { "scope must be set and not empty." }
 
-                val builder = OAuth2ClientBuilder(issuerUrl, clientId, scope.joinToString(" "))
+                val builder = OAuth2ClientBuilder(issuerUrl, clientId, scope)
                 buildAction?.invoke(builder)
 
                 // Validate endpoint override URLs

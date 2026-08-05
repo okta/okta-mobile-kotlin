@@ -27,13 +27,13 @@ import com.okta.oauth2.internal.performGetCaptureLocationHeader
  */
 @OptIn(InternalAuthFoundationApi::class)
 internal class SessionTokenFlowImpl(
-    private val client: OAuth2Client,
+    override val client: OAuth2Client,
 ) : SessionTokenFlow {
     override suspend fun start(
         sessionToken: String,
         redirectUrl: String,
+        scope: List<String>,
         extraRequestParameters: Map<String, String>,
-        scope: String?,
     ): Result<TokenInfo> =
         runCatching {
             val authorizationCodeFlow = AuthorizationCodeFlowImpl(client)

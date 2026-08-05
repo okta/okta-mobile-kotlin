@@ -26,6 +26,11 @@ import com.okta.authfoundation.client.kmp.OAuth2Client
  */
 interface RedirectEndSessionFlow {
     /**
+     * The [OAuth2Client] instance used for token requests.
+     */
+    val client: OAuth2Client
+
+    /**
      * Initiates the redirect end-session flow.
      *
      * @param idToken the ID token hint identifying the session to log out.

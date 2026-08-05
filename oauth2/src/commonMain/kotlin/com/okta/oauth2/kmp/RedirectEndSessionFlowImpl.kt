@@ -24,7 +24,7 @@ import io.ktor.http.takeFrom
 
 @OptIn(InternalAuthFoundationApi::class)
 internal class RedirectEndSessionFlowImpl(
-    private val client: OAuth2Client,
+    override val client: OAuth2Client,
 ) : RedirectEndSessionFlow {
     override suspend fun start(
         idToken: String,
@@ -32,9 +32,7 @@ internal class RedirectEndSessionFlowImpl(
         extraRequestParameters: Map<String, String>,
     ): Result<RedirectEndSessionFlowContext> =
         runCatching {
-            val endpoints =
-                client.endpointsOrNull()
-                    ?: throw IllegalStateException("OIDC Endpoints not available.")
+            val endpoints = client.endpointsOrThrow()
             val endSessionEndpoint =
                 endpoints.endSessionEndpoint
                     ?: throw IllegalStateException("End session endpoint not available.")

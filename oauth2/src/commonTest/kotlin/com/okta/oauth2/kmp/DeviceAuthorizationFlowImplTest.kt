@@ -117,7 +117,7 @@ class DeviceAuthorizationFlowImplTest {
         runTest {
             // Responses: [discovery, deviceAuthResponse]
             val flow = createFlow(discoveryWithDevice, 200 to deviceAuthResponse)
-            val result = flow.start("openid profile")
+            val result = flow.start(listOf("openid", "profile"))
 
             assertTrue(result.isSuccess)
             val ctx = result.getOrThrow()
@@ -134,51 +134,10 @@ class DeviceAuthorizationFlowImplTest {
         runTest {
             // Responses: [discovery without device endpoint] — no further calls expected
             val flow = createFlow(discoveryWithoutDevice)
-            val result = flow.start("openid")
+            val result = flow.start(listOf("openid"))
 
             assertTrue(result.isFailure)
             assertIs<OAuth2ClientResult.Error.OidcEndpointsNotAvailableException>(result.exceptionOrNull())
-        }
-
-    @Test
-    fun start_WithNullScope_UsesClientDefaultScope() =
-        runTest {
-            var capturedRequest: ApiRequest? = null
-            var callIndex = 0
-            val responses = listOf(200 to discoveryWithDevice, 200 to deviceAuthResponse)
-            val apiExecutor =
-                object : ApiExecutor {
-                    override suspend fun execute(request: ApiRequest): Result<ApiResponse> {
-                        val (statusCode, body) = responses[callIndex % responses.size]
-                        if (callIndex == 1) capturedRequest = request
-                        callIndex++
-                        return Result.success(
-                            object : ApiResponse {
-                                override val statusCode = statusCode
-                                override val body = body.toByteArray()
-                                override val headers: Map<String, List<String>> = emptyMap()
-                                override val contentLength = body.length.toLong()
-                                override val contentType = "application/json"
-                            }
-                        )
-                    }
-                }
-            val client =
-                OAuth2ClientBuilder
-                    .create(
-                        issuerUrl = "https://example.okta.com/oauth2/default",
-                        clientId = "test-client-id",
-                        scope = listOf("openid", "profile")
-                    ) {
-                        this.apiExecutor = apiExecutor
-                    }.getOrThrow()
-            val flow = DeviceAuthorizationFlowImpl(client)
-
-            val result = flow.start()
-
-            assertTrue(result.isSuccess)
-            val params = assertIs<ApiFormRequest>(capturedRequest).formParameters().mapValues { (_, v) -> v.first() }
-            assertEquals("openid profile", params["scope"])
         }
 
     @Test
@@ -215,7 +174,7 @@ class DeviceAuthorizationFlowImplTest {
                     }.getOrThrow()
             val flow = DeviceAuthorizationFlowImpl(client)
 
-            val result = flow.start("openid offline_access")
+            val result = flow.start(listOf("openid", "offline_access"))
 
             assertTrue(result.isSuccess)
             val params = assertIs<ApiFormRequest>(capturedRequest).formParameters().mapValues { (_, v) -> v.first() }
@@ -256,7 +215,7 @@ class DeviceAuthorizationFlowImplTest {
                     }.getOrThrow()
             val flow = DeviceAuthorizationFlowImpl(client)
 
-            flow.start("openid profile")
+            flow.start(listOf("openid", "profile"))
 
             val formRequest = assertIs<ApiFormRequest>(capturedRequest)
             assertEquals(

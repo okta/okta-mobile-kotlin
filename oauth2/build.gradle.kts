@@ -56,6 +56,7 @@ kotlin {
         compilations.all {
             compileTaskProvider.configure {
                 compilerOptions {
+                    jvmTarget = JvmTarget.fromTarget(JVM_TARGET)
                     freeCompilerArgs.addAll(
                         listOf(
                             "-opt-in=kotlin.RequiresOptIn",
@@ -123,8 +124,6 @@ kotlin {
 
         jvmTest {
             dependencies {
-                implementation(libs.kotlin.test)
-                implementation(libs.coroutines.test)
                 implementation(libs.junit)
             }
         }
@@ -132,10 +131,8 @@ kotlin {
         getByName("androidHostTest") {
             resources.srcDir("src/test/resources")
             dependencies {
-                implementation(libs.coroutines.test)
                 implementation(libs.junit)
                 implementation(libs.truth)
-                implementation(libs.kotlin.test)
                 implementation(libs.mockito.core)
                 implementation(libs.mockito.kotlin)
                 implementation(libs.robolectric)
@@ -164,6 +161,11 @@ binaryCompatValidationExtension {
     kotlinCompileTaskName.set("compileAndroidMain")
     javaCompileTaskName.set("")
     ignoredClasses.add("com.okta.oauth2.BuildInfo")
+}
+
+java {
+    sourceCompatibility = SOURCE_COMPATIBILITY
+    targetCompatibility = TARGET_COMPATIBILITY
 }
 
 dependencies {

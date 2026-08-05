@@ -115,21 +115,11 @@ dependencies {
     implementation(libs.androidx.credentials.play.services.auth)
     implementation(libs.jackson.databind)
 
-    testImplementation(libs.junit)
-    testImplementation(libs.okhttp.mock.web.server)
-    testImplementation(libs.okhttp.tls)
-    testImplementation(libs.okio.core)
-    testImplementation(libs.okio.jvm)
-    testImplementation(libs.truth)
     testImplementation(project(":test-utils"))
 
     androidTestUtil(libs.androidx.test.orchestrator)
 
     androidTestImplementation(libs.jackson.yaml)
-    androidTestImplementation(libs.okhttp.tls)
-    androidTestImplementation(libs.okio.core)
-    androidTestImplementation(libs.okio.jvm)
-    androidTestImplementation(libs.junit)
     androidTestImplementation(libs.androidx.test.core)
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.androidx.test.navigation)
@@ -141,11 +131,17 @@ dependencies {
     androidTestImplementation(libs.espresso.contrib)
     androidTestImplementation(libs.espresso.intents)
     androidTestImplementation(libs.jsoup)
-    androidTestImplementation(libs.truth)
     androidTestImplementation(project(":test-utils"))
     androidTestImplementation(libs.cucumber.android)
 
     androidTestImplementation(libs.okta.management.sdk) {
         exclude(group = "org.bouncycastle")
+    }
+
+    constraints {
+        // cucumber-android pulls this in as a version range, which forces Gradle to query every
+        // declared repository (including the public mavenCentral() fallback) to find the best match.
+        // Pin to the exact version already resolvable.
+        androidTestImplementation("io.cucumber:query:12.2.0")
     }
 }

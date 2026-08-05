@@ -319,7 +319,7 @@ public final class com/okta/authfoundation/client/OAuth2ClientConfiguration {
 	public final fun getClientId ()Ljava/lang/String;
 	public final fun getClientSecret ()Ljava/lang/String;
 	public final fun getClock ()Lcom/okta/authfoundation/client/OidcClock;
-	public final fun getDefaultScope ()Ljava/lang/String;
+	public final fun getDefaultScope ()Ljava/util/List;
 	public final fun getDeviceSecretValidator ()Lcom/okta/authfoundation/client/kmp/DeviceSecretValidator;
 	public final fun getEndpointOverrides ()Lcom/okta/authfoundation/client/OAuth2EndpointOverrides;
 	public final fun getIdTokenValidator ()Lcom/okta/authfoundation/client/kmp/IdTokenValidator;
@@ -590,6 +590,7 @@ public final class com/okta/authfoundation/client/kmp/OAuth2Client {
 	public static final field Companion Lcom/okta/authfoundation/client/kmp/OAuth2Client$Companion;
 	public final fun deviceAuthorizationRequest-gIAlu-s (Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun endpointsOrNull (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun endpointsOrThrow (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun getConfiguration ()Lcom/okta/authfoundation/client/OAuth2ClientConfiguration;
 	public final fun getEvents ()Lkotlinx/coroutines/flow/SharedFlow;
 	public final fun getUserInfo-gIAlu-s (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -777,14 +778,12 @@ public abstract interface class com/okta/authfoundation/credential/kmp/Credentia
 	public fun refreshToken-gIAlu-s (Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun revokeAllTokens-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun revokeToken-gIAlu-s (Lcom/okta/authfoundation/credential/RevokeTokenType;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun scope ()Ljava/lang/String;
-	public fun scopes ()Ljava/util/List;
+	public abstract fun scope ()Ljava/util/List;
 	public abstract fun setTagsAsync-gIAlu-s (Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class com/okta/authfoundation/credential/kmp/Credential$DefaultImpls {
 	public static fun refreshToken-gIAlu-s (Lcom/okta/authfoundation/credential/kmp/Credential;Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static fun scopes (Lcom/okta/authfoundation/credential/kmp/Credential;)Ljava/util/List;
 }
 
 public final class com/okta/authfoundation/credential/kmp/CredentialImpl : com/okta/authfoundation/credential/kmp/Credential {
@@ -805,8 +804,7 @@ public final class com/okta/authfoundation/credential/kmp/CredentialImpl : com/o
 	public fun refreshToken-gIAlu-s (Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun revokeAllTokens-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun revokeToken-gIAlu-s (Lcom/okta/authfoundation/credential/RevokeTokenType;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun scope ()Ljava/lang/String;
-	public fun scopes ()Ljava/util/List;
+	public fun scope ()Ljava/util/List;
 	public fun setTagsAsync-gIAlu-s (Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 

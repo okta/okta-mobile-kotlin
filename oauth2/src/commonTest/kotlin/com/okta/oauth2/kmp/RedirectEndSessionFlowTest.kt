@@ -15,6 +15,8 @@
  */
 package com.okta.oauth2.kmp
 
+import com.okta.authfoundation.client.OAuth2ClientBuilder
+import com.okta.authfoundation.client.kmp.OAuth2Client
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -22,11 +24,21 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 class RedirectEndSessionFlowTest {
+    private val fakeClient: OAuth2Client =
+        OAuth2ClientBuilder
+            .create(
+                issuerUrl = "https://example.okta.com",
+                clientId = "test-client-id",
+                scope = listOf("openid")
+            ).getOrThrow()
+
     @Test
     fun start_WhenSuccess_ReturnsFlowContext() =
         runTest {
             val mockFlow =
                 object : RedirectEndSessionFlow {
+                    override val client: OAuth2Client = fakeClient
+
                     override suspend fun start(
                         idToken: String,
                         redirectUrl: String,
@@ -60,6 +72,8 @@ class RedirectEndSessionFlowTest {
         runTest {
             val mockFlow =
                 object : RedirectEndSessionFlow {
+                    override val client: OAuth2Client = fakeClient
+
                     override suspend fun start(
                         idToken: String,
                         redirectUrl: String,
@@ -90,6 +104,8 @@ class RedirectEndSessionFlowTest {
         runTest {
             val mockFlow =
                 object : RedirectEndSessionFlow {
+                    override val client: OAuth2Client = fakeClient
+
                     override suspend fun start(
                         idToken: String,
                         redirectUrl: String,
@@ -113,6 +129,8 @@ class RedirectEndSessionFlowTest {
         runTest {
             val mockFlow =
                 object : RedirectEndSessionFlow {
+                    override val client: OAuth2Client = fakeClient
+
                     override suspend fun start(
                         idToken: String,
                         redirectUrl: String,
@@ -149,6 +167,8 @@ class RedirectEndSessionFlowTest {
         runTest {
             val mockFlow =
                 object : RedirectEndSessionFlow {
+                    override val client: OAuth2Client = fakeClient
+
                     override suspend fun start(
                         idToken: String,
                         redirectUrl: String,
@@ -181,6 +201,8 @@ class RedirectEndSessionFlowTest {
             var capturedExtraParams: Map<String, String>? = null
             val mockFlow =
                 object : RedirectEndSessionFlow {
+                    override val client: OAuth2Client = fakeClient
+
                     override suspend fun start(
                         idToken: String,
                         redirectUrl: String,

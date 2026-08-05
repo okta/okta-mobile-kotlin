@@ -49,8 +49,7 @@ typealias WebAuthenticationClient = WebAuthentication
 class WebAuthentication private constructor(
     private val authorizationCodeFlowFactory: () -> AuthorizationCodeFlow,
     private val redirectEndSessionFlowFactory: () -> RedirectEndSessionFlow,
-    private val tokenOidcConfiguration: OidcConfiguration,
-    private val defaultScopeValue: String,
+    private val defaultScopeValue: List<String>,
     private val webAuthenticationProvider: WebAuthenticationProvider,
 ) {
     companion object {
@@ -75,12 +74,6 @@ class WebAuthentication private constructor(
     ) : this(
         authorizationCodeFlowFactory = { AuthorizationCodeFlow(oAuth2Client) },
         redirectEndSessionFlowFactory = { RedirectEndSessionFlow(oAuth2Client) },
-        tokenOidcConfiguration =
-            OidcConfiguration(
-                clientId = oAuth2Client.configuration.clientId,
-                defaultScope = oAuth2Client.configuration.defaultScope,
-                issuer = oAuth2Client.configuration.issuerUrl
-            ),
         defaultScopeValue = oAuth2Client.configuration.defaultScope,
         webAuthenticationProvider = webAuthenticationProvider
     )
@@ -146,8 +139,10 @@ class WebAuthentication private constructor(
     ) : this(
         authorizationCodeFlowFactory = { AuthorizationCodeFlow(client) },
         redirectEndSessionFlowFactory = { RedirectEndSessionFlow(client) },
-        tokenOidcConfiguration = client.configuration,
-        defaultScopeValue = client.configuration.defaultScope,
+        defaultScopeValue =
+            client.configuration.defaultScope
+                .split(" ")
+                .filter { it.isNotBlank() },
         webAuthenticationProvider = webAuthenticationProvider
     )
 
@@ -202,39 +197,20 @@ class WebAuthentication private constructor(
      * @param extraRequestParameters the extra key value pairs to send to the authorize endpoint.
      *  See [Authorize Documentation](https://developer.okta.com/docs/reference/api/oidc/#authorize) for parameter options.
      * @param scope the scopes to request during sign in.
+     * @return a [Result] containing [TokenInfo] on success, or a failed [Result] wrapping a
+     *  [FlowCancelledException] if the user dismissed the browser, a [FlowAlreadyInProgressException]
+     *  if another redirect flow was already in progress, or the underlying authorize/token exchange error.
      */
-    @Suppress("DEPRECATION")
     suspend fun login(
         context: Context,
         redirectUrl: String,
-        extraRequestParameters: Map<String, String> = emptyMap(),
         scope: List<String>,
-    ): OAuth2ClientResult<Token> = login(context, redirectUrl, extraRequestParameters, scope.joinToString(" "))
-
-    /**
-     * Initiates the OIDC Authorization Code redirect flow.
-     *
-     * @param context the Android [Activity] [Context] which is used to display the login flow via the configured
-     * [WebAuthenticationProvider].
-     * @param redirectUrl the redirect URL.
-     * @param extraRequestParameters the extra key value pairs to send to the authorize endpoint.
-     *  See [Authorize Documentation](https://developer.okta.com/docs/reference/api/oidc/#authorize) for parameter options.
-     * @param scope the scopes to request during sign in. Defaults to the configured client's default scope.
-     */
-    @Deprecated(
-        message = "Use the overload accepting scope as a List<String> instead.",
-        replaceWith = ReplaceWith("login(context, redirectUrl, extraRequestParameters, scope.split(\" \"))")
-    )
-    suspend fun login(
-        context: Context,
-        redirectUrl: String,
         extraRequestParameters: Map<String, String> = emptyMap(),
-        scope: String = defaultScopeValue,
-    ): OAuth2ClientResult<Token> {
+    ): Result<TokenInfo> {
         val initializationResult =
             redirectCoordinator.initialize(webAuthenticationProvider, context) {
                 authorizationCodeFlow
-                    .start(redirectUrl, extraRequestParameters, scope)
+                    .start(redirectUrl, scope, extraRequestParameters)
                     .mapCatching { flowContext ->
                         RedirectInitializationResult.Success(flowContext.url.toHttpUrl(), flowContext)
                     }.getOrElse { e ->
@@ -244,18 +220,43 @@ class WebAuthentication private constructor(
 
         val flowContext =
             when (initializationResult) {
-                is RedirectInitializationResult.Error -> return OAuth2ClientResult.Error(initializationResult.exception)
+                is RedirectInitializationResult.Error -> return Result.failure(initializationResult.exception)
                 is RedirectInitializationResult.Success -> initializationResult.flowContext
             }
 
         val uri =
             when (val redirectResult = redirectCoordinator.listenForResult()) {
-                is RedirectResult.Error -> return OAuth2ClientResult.Error(redirectResult.exception)
+                is RedirectResult.Error -> return Result.failure(redirectResult.exception)
                 is RedirectResult.Redirect -> redirectResult.uri
             }
 
-        return authorizationCodeFlow.resume(uri.toString(), flowContext).mapToOAuth2ClientResult { it.toToken() }
+        return authorizationCodeFlow.resume(uri.toString(), flowContext)
     }
+
+    /**
+     * Initiates the OIDC Authorization Code redirect flow.
+     *
+     * @param context the Android [Activity] [Context] which is used to display the login flow via the configured
+     * [WebAuthenticationProvider].
+     * @param redirectUrl the redirect URL.
+     * @param scope the scopes to request during sign in. Defaults to the configured client's default scope.
+     * @param extraRequestParameters the extra key value pairs to send to the authorize endpoint.
+     *  See [Authorize Documentation](https://developer.okta.com/docs/reference/api/oidc/#authorize) for parameter options.
+     */
+    @Deprecated(
+        message =
+            "Use the overload accepting scope as a List<String> instead. Note that overload " +
+                "returns Result<TokenInfo> rather than OAuth2ClientResult<Token>, so it isn't a " +
+                "drop-in replacement — it cannot be offered as an automatic ReplaceWith."
+    )
+    suspend fun login(
+        context: Context,
+        redirectUrl: String,
+        extraRequestParameters: Map<String, String> = emptyMap(),
+        scope: String = defaultScopeValue.joinToString(" "),
+    ): OAuth2ClientResult<Token> =
+        login(context, redirectUrl, scope.split(" "), extraRequestParameters)
+            .mapToOAuth2ClientResult { it.toToken() }
 
     /**
      * Initiates the OIDC logout redirect flow.
@@ -303,19 +304,7 @@ class WebAuthentication private constructor(
 
     private fun Throwable.asException(): Exception = this as? Exception ?: RuntimeException(this)
 
-    private fun TokenInfo.toToken(): Token =
-        Token(
-            id = id,
-            tokenType = tokenType,
-            expiresIn = expiresIn,
-            accessToken = accessToken,
-            scope = scope,
-            refreshToken = refreshToken,
-            idToken = idToken,
-            deviceSecret = deviceSecret,
-            issuedTokenType = issuedTokenType,
-            oidcConfiguration = tokenOidcConfiguration
-        )
+    private fun TokenInfo.toToken(): Token = legacyToken(this, defaultScopeValue.joinToString(" "))
 
     private fun <T, R> Result<T>.mapToOAuth2ClientResult(transform: (T) -> R): OAuth2ClientResult<R> =
         fold(
@@ -323,3 +312,36 @@ class WebAuthentication private constructor(
             onFailure = { OAuth2ClientResult.Error(it.asException()) }
         )
 }
+
+/**
+ * Builds the deprecated [Token] from [tokenInfo]. This is the only place in [WebAuthentication] that
+ * references [Token] or [OidcConfiguration] — none of its constructors (preferred KMP-backed or
+ * deprecated Android-only) store either type.
+ *
+ * [tokenInfo]'s own [TokenInfo.clientId] and [TokenInfo.issuerUrl] are used directly, so this works
+ * uniformly whether [tokenInfo] came from a KMP [com.okta.authfoundation.client.kmp.OAuth2Client] or
+ * from a deprecated Android-only one (bridged the same way as [com.okta.oauth2.kmp.AuthorizationCodeFlow]'s
+ * own Android-client compatibility factory).
+ */
+@Suppress("DEPRECATION")
+private fun legacyToken(
+    tokenInfo: TokenInfo,
+    defaultScope: String,
+): Token =
+    Token(
+        id = tokenInfo.id,
+        tokenType = tokenInfo.tokenType,
+        expiresIn = tokenInfo.expiresIn,
+        accessToken = tokenInfo.accessToken,
+        scope = tokenInfo.scope,
+        refreshToken = tokenInfo.refreshToken,
+        idToken = tokenInfo.idToken,
+        deviceSecret = tokenInfo.deviceSecret,
+        issuedTokenType = tokenInfo.issuedTokenType,
+        oidcConfiguration =
+            OidcConfiguration(
+                clientId = tokenInfo.clientId,
+                defaultScope = defaultScope,
+                issuer = tokenInfo.issuerUrl
+            )
+    )

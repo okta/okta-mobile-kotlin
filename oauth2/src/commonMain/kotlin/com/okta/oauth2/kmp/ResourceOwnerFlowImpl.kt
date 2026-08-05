@@ -25,13 +25,13 @@ import com.okta.authfoundation.client.kmp.OAuth2Client
  * @param client the [OAuth2Client] instance used for token requests.
  */
 internal class ResourceOwnerFlowImpl(
-    private val client: OAuth2Client,
+    override val client: OAuth2Client,
 ) : ResourceOwnerFlow {
     @OptIn(InternalAuthFoundationApi::class)
     override suspend fun start(
         username: String,
         password: String,
-        scope: String?,
+        scope: List<String>,
     ): Result<TokenInfo> =
         client.tokenRequest(
             formParams =
@@ -39,7 +39,7 @@ internal class ResourceOwnerFlowImpl(
                     "grant_type" to "password",
                     "username" to username,
                     "password" to password,
-                    "scope" to (scope ?: client.configuration.defaultScope),
+                    "scope" to scope.joinToString(" "),
                     "client_id" to client.configuration.clientId
                 )
         )

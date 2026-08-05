@@ -86,23 +86,11 @@ class TokenExchangeFlowImplTest {
     }
 
     @Test
-    fun start_WithNullScope_UsesClientDefaultScope() =
-        runTest {
-            val (flow, getRequest) = createFlowWithScope(listOf("openid", "profile"), 200 to tokenResponse)
-
-            val result = flow.start("id-token", "device-secret")
-
-            assertTrue(result.isSuccess)
-            val params = assertIs<ApiFormRequest>(getRequest()).formParameters().mapValues { (_, v) -> v.first() }
-            assertEquals("openid profile", params["scope"])
-        }
-
-    @Test
     fun start_WithExplicitScope_UsesExplicitScope() =
         runTest {
             val (flow, getRequest) = createFlow(200 to tokenResponse)
 
-            val result = flow.start("id-token", "device-secret", scope = "openid offline_access")
+            val result = flow.start("id-token", "device-secret", scope = listOf("openid", "offline_access"))
 
             assertTrue(result.isSuccess)
             val params = assertIs<ApiFormRequest>(getRequest()).formParameters().mapValues { (_, v) -> v.first() }
@@ -114,7 +102,7 @@ class TokenExchangeFlowImplTest {
         runTest {
             val (flow, getRequest) = createFlow(200 to tokenResponse)
 
-            flow.start("my-id-token", "my-device-secret")
+            flow.start("my-id-token", "my-device-secret", scope = listOf("openid"))
 
             val formRequest = assertIs<ApiFormRequest>(getRequest())
             val params = formRequest.formParameters().mapValues { (_, v) -> v.first() }
@@ -131,7 +119,7 @@ class TokenExchangeFlowImplTest {
         runTest {
             val (flow, getRequest) = createFlow(200 to tokenResponse)
 
-            flow.start("id-token", "device-secret", audience = "api://custom")
+            flow.start("id-token", "device-secret", audience = "api://custom", scope = listOf("openid"))
 
             val params = assertIs<ApiFormRequest>(getRequest()).formParameters().mapValues { (_, v) -> v.first() }
             assertEquals("api://custom", params["audience"])
@@ -142,7 +130,7 @@ class TokenExchangeFlowImplTest {
         runTest {
             val (flow, getRequest) = createFlow(200 to tokenResponse)
 
-            flow.start("id-token", "device-secret")
+            flow.start("id-token", "device-secret", scope = listOf("openid"))
 
             val params = assertIs<ApiFormRequest>(getRequest()).formParameters()
             assertNull(params["audience"])

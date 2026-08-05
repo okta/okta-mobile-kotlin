@@ -15,7 +15,9 @@
  */
 package com.okta.oauth2.kmp
 
+import com.okta.authfoundation.client.OAuth2ClientBuilder
 import com.okta.authfoundation.client.TokenInfo
+import com.okta.authfoundation.client.kmp.OAuth2Client
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -23,21 +25,31 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 class TokenExchangeFlowTest {
+    private val fakeClient: OAuth2Client =
+        OAuth2ClientBuilder
+            .create(
+                issuerUrl = "https://example.okta.com",
+                clientId = "test-client-id",
+                scope = listOf("openid")
+            ).getOrThrow()
+
     @Test
     fun start_WhenSuccess_ReturnsTokenInfo() =
         runTest {
             val fakeToken = FakeTokenInfo()
             val mockFlow =
                 object : TokenExchangeFlow {
+                    override val client: OAuth2Client = fakeClient
+
                     override suspend fun start(
                         idToken: String,
                         deviceSecret: String,
+                        scope: List<String>,
                         audience: String?,
-                        scope: String?,
                     ): Result<TokenInfo> = Result.success(fakeToken)
                 }
 
-            val result = mockFlow.start("id-token", "device-secret")
+            val result = mockFlow.start("id-token", "device-secret", scope = listOf("openid"))
 
             assertTrue(result.isSuccess)
             val tokenInfo = result.getOrNull()
@@ -51,15 +63,17 @@ class TokenExchangeFlowTest {
         runTest {
             val mockFlow =
                 object : TokenExchangeFlow {
+                    override val client: OAuth2Client = fakeClient
+
                     override suspend fun start(
                         idToken: String,
                         deviceSecret: String,
+                        scope: List<String>,
                         audience: String?,
-                        scope: String?,
                     ): Result<TokenInfo> = Result.failure(IllegalStateException("invalid_grant"))
                 }
 
-            val result = mockFlow.start("id-token", "device-secret")
+            val result = mockFlow.start("id-token", "device-secret", scope = listOf("openid"))
 
             assertTrue(result.isFailure)
             assertTrue(result.exceptionOrNull()?.message?.contains("invalid_grant") == true)
@@ -70,15 +84,17 @@ class TokenExchangeFlowTest {
         runTest {
             val mockFlow =
                 object : TokenExchangeFlow {
+                    override val client: OAuth2Client = fakeClient
+
                     override suspend fun start(
                         idToken: String,
                         deviceSecret: String,
+                        scope: List<String>,
                         audience: String?,
-                        scope: String?,
                     ): Result<TokenInfo> = Result.failure(IllegalStateException("OIDC Endpoints not available."))
                 }
 
-            val result = mockFlow.start("id-token", "device-secret")
+            val result = mockFlow.start("id-token", "device-secret", scope = listOf("openid"))
 
             assertTrue(result.isFailure)
         }
@@ -89,18 +105,20 @@ class TokenExchangeFlowTest {
             var capturedAudience: String? = null
             val mockFlow =
                 object : TokenExchangeFlow {
+                    override val client: OAuth2Client = fakeClient
+
                     override suspend fun start(
                         idToken: String,
                         deviceSecret: String,
+                        scope: List<String>,
                         audience: String?,
-                        scope: String?,
                     ): Result<TokenInfo> {
                         capturedAudience = audience
                         return Result.success(FakeTokenInfo())
                     }
                 }
 
-            mockFlow.start("id-token", "device-secret", audience = "api://custom")
+            mockFlow.start("id-token", "device-secret", audience = "api://custom", scope = listOf("openid"))
 
             assertEquals("api://custom", capturedAudience)
         }

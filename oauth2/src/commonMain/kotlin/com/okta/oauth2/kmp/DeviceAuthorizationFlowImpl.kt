@@ -27,17 +27,17 @@ import kotlinx.coroutines.delay
  * @param client the [OAuth2Client] instance used for token requests.
  */
 internal class DeviceAuthorizationFlowImpl(
-    private val client: OAuth2Client,
+    override val client: OAuth2Client,
 ) : DeviceAuthorizationFlow {
     internal var delayFunction: suspend (Long) -> Unit = ::delay
 
-    override suspend fun start(scope: String?): Result<DeviceAuthorizationFlowContext> =
+    override suspend fun start(scope: List<String>): Result<DeviceAuthorizationFlowContext> =
         client
             .deviceAuthorizationRequest(
                 formParams =
                     mapOf(
                         "client_id" to client.configuration.clientId,
-                        "scope" to (scope ?: client.configuration.defaultScope)
+                        "scope" to scope.joinToString(" ")
                     )
             ).map { info ->
                 DeviceAuthorizationFlowContext(
@@ -53,8 +53,7 @@ internal class DeviceAuthorizationFlowImpl(
     @OptIn(InternalAuthFoundationApi::class)
     override suspend fun resume(flowContext: DeviceAuthorizationFlowContext): Result<TokenInfo> =
         runCatching {
-            client.endpointsOrNull()
-                ?: throw IllegalStateException("OIDC Endpoints not available.")
+            client.endpointsOrThrow()
 
             val formParams =
                 mapOf(

@@ -34,5 +34,5 @@ expect suspend fun platformBrowserLogin(
     platformContext: Any?,
     client: OAuth2Client,
     redirectUrl: String,
-    scope: String,
+    scope: List<String>,
 ): Result<TokenInfo>

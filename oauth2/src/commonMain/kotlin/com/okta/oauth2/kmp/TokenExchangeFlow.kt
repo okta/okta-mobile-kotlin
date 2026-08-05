@@ -26,36 +26,24 @@ import com.okta.authfoundation.client.kmp.OAuth2Client
  *
  * ```kotlin
  * val flow = TokenExchangeFlow(client)
- * val tokenInfo = flow.start(idToken = "...", deviceSecret = "...").getOrThrow()
+ * val tokenInfo = flow.start(idToken = "...", deviceSecret = "...", scope = listOf("openid")).getOrThrow()
  * ```
  */
 interface TokenExchangeFlow {
     /**
-     * Initiates the token exchange flow.
-     *
-     * @param idToken the ID token for the user.
-     * @param deviceSecret the device secret obtained from a previous authentication flow.
-     * @param audience the audience of the authorization server. Defaults to `api://default`.
-     * @param scope the OAuth2 scopes to request. Defaults to the client's configured default scope when null.
-     * @return [Result.success] with [TokenInfo] on success, or [Result.failure] with:
-     * - [com.okta.authfoundation.client.OAuth2ClientResult.Error.OidcEndpointsNotAvailableException] if endpoints are unavailable.
-     * - [com.okta.authfoundation.client.OAuth2ClientResult.Error.HttpResponseException] on server errors.
-     * - Other exceptions for network or parsing failures.
+     * The [OAuth2Client] instance used for token requests.
      */
-    suspend fun start(
-        idToken: String,
-        deviceSecret: String,
-        audience: String? = null,
-        scope: String? = null,
-    ): Result<TokenInfo>
+    val client: OAuth2Client
 
     /**
      * Initiates the token exchange flow.
      *
      * @param idToken the ID token for the user.
      * @param deviceSecret the device secret obtained from a previous authentication flow.
-     * @param audience the audience of the authorization server. Defaults to `api://default`.
-     * @param scope the OAuth2 scopes to request.
+     * @param audience the resource server audience to request. When null (the default), no `audience` parameter
+     * is sent and the authorization server applies its own default.
+     * @param scope the scopes to request. If omitted, the client's configured
+     * default scopes are used.
      * @return [Result.success] with [TokenInfo] on success, or [Result.failure] with:
      * - [com.okta.authfoundation.client.OAuth2ClientResult.Error.OidcEndpointsNotAvailableException] if endpoints are unavailable.
      * - [com.okta.authfoundation.client.OAuth2ClientResult.Error.HttpResponseException] on server errors.
@@ -64,9 +52,9 @@ interface TokenExchangeFlow {
     suspend fun start(
         idToken: String,
         deviceSecret: String,
+        scope: List<String> = client.configuration.defaultScope,
         audience: String? = null,
-        scope: List<String>,
-    ): Result<TokenInfo> = start(idToken, deviceSecret, audience, scope.joinToString(" "))
+    ): Result<TokenInfo>
 
     companion object {
         /**

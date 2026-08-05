@@ -38,7 +38,7 @@ internal object TestConfiguration {
     ): OAuth2ClientConfiguration =
         OAuth2ClientConfiguration(
             clientId = clientId,
-            defaultScope = "openid profile",
+            defaultScope = listOf("openid", "profile"),
             issuerUrl = issuerUrl,
             apiExecutor = NoOpApiExecutor,
             clock = clock,

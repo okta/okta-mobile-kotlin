@@ -22,6 +22,7 @@ import static org.junit.Assert.fail;
 
 import com.okta.authfoundation.client.TokenInfo;
 import com.okta.oauth2.kmp.DeviceAuthorizationFlowContext;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -39,7 +40,7 @@ public class DeviceAuthorizationFlowTest {
       throws ExecutionException, InterruptedException, TimeoutException {
     try (DeviceAuthorizationFlow flow = TestFlowFactory.createSuccessDeviceAuthorizationFlow()) {
       CompletableFuture<DeviceAuthorizationFlowContext> future =
-          flow.start("openid profile email offline_access");
+          flow.start(List.of("openid", "profile", "email", "offline_access"));
       assertNotNull("Future should not be null", future);
 
       DeviceAuthorizationFlowContext ctx = future.get(5, TimeUnit.SECONDS);
@@ -54,7 +55,7 @@ public class DeviceAuthorizationFlowTest {
   public void resume_ReturnsCompletableFutureWithTokenInfo()
       throws ExecutionException, InterruptedException, TimeoutException {
     try (DeviceAuthorizationFlow flow = TestFlowFactory.createSuccessDeviceAuthorizationFlow()) {
-      DeviceAuthorizationFlowContext ctx = flow.start("openid").get(5, TimeUnit.SECONDS);
+      DeviceAuthorizationFlowContext ctx = flow.start(List.of("openid")).get(5, TimeUnit.SECONDS);
       CompletableFuture<TokenInfo> future = flow.resume(ctx);
       assertNotNull("Future should not be null", future);
 
@@ -69,7 +70,7 @@ public class DeviceAuthorizationFlowTest {
   public void start_WithError_CompletesExceptionally()
       throws TimeoutException, InterruptedException {
     try (DeviceAuthorizationFlow flow = TestFlowFactory.createFailingDeviceAuthorizationFlow()) {
-      CompletableFuture<DeviceAuthorizationFlowContext> future = flow.start("openid");
+      CompletableFuture<DeviceAuthorizationFlowContext> future = flow.start(List.of("openid"));
       try {
         future.get(5, TimeUnit.SECONDS);
         fail("Should have thrown ExecutionException");
@@ -90,7 +91,8 @@ public class DeviceAuthorizationFlowTest {
         DeviceAuthorizationFlow failingResume =
             TestFlowFactory.createFailingDeviceAuthorizationFlow()) {
       // Get a valid context from the success flow
-      DeviceAuthorizationFlowContext ctx = successStart.start("openid").get(5, TimeUnit.SECONDS);
+      DeviceAuthorizationFlowContext ctx =
+          successStart.start(List.of("openid")).get(5, TimeUnit.SECONDS);
 
       // Resume with the failing flow
       CompletableFuture<TokenInfo> future = failingResume.resume(ctx);
