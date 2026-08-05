@@ -3,13 +3,23 @@
 # Okta IDX Android
 
 Okta Identity Engine support for Android, enabling dynamic policies and interaction code flows.
-The use of this SDK enables you to build or support a myriad of different authentication flows and approaches.
+This SDK helps you build or support a wide range of authentication flows and approaches.
 
-* [Introduction](#introduction)
-* [Installation](#installation)
-* [Need help?](#need-help)
-* [IDX Kotlin SDK Documentation](#idx-kotlin-sdk-documentation)
-* [Contributing](#contributing)
+## Table of Contents
+
+- [Introduction](#introduction)
+- [Installation](#installation)
+- [Need help?](#need-help)
+- [IDX Kotlin SDK Documentation](#idx-kotlin-sdk-documentation)
+  - [idx-kotlin Overview](#idx-kotlin-overview)
+  - [InteractionCodeFlow](#interactioncodeflow)
+    - [Constructing InteractionCodeFlow](#constructing-interactioncodeflow)
+    - [InteractionCodeFlow.start](#interactioncodeflowstart)
+    - [InteractionCodeFlow.resume](#interactioncodeflowresume)
+    - [InteractionCodeFlow.proceed](#interactioncodeflowproceed)
+    - [InteractionCodeFlow.exchangeInteractionCodeForTokens](#interactioncodeflowexchangeinteractioncodefortokens)
+    - [InteractionCodeFlow.evaluateRedirectUri](#interactioncodeflowevaluateredirecturi)
+- [Contributing](#contributing)
 
 ## Introduction
 > :grey_exclamation: This SDK requires usage of the Okta Identity Engine.

@@ -1,4 +1,14 @@
-# Installation & Running The App
+# Installation and Running the App
+
+## Table of Contents
+
+- [Prerequisites](#prerequisites)
+  - [Okta Admin Dashboard](#okta-admin-dashboard)
+  - [Android Studio](#android-studio)
+- [Configuration](#configuration)
+- [Running This Sample](#running-this-sample)
+  - [Running tests with mock data](#running-tests-with-mock-data)
+    - [Running end to end tests](#running-end-to-end-tests)
 
 ## Prerequisites
 

@@ -2,641 +2,141 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 # Okta Mobile Kotlin
-> _”Make the easy things simple and make the hard things possible.”_
 
-The Okta Mobile SDKs are a suite of libraries that intends to replace our legacy mobile SDKs, with the aim to streamline development, ease maintenance and feature development, and enable new use cases that were previously difficult or impractical to implement. We are building a platform to support the development of many SDKs, allowing application developers to choose which SDKs they need.
+Okta Mobile Kotlin is a Kotlin Multiplatform SDK for Okta authentication. The repository centers on KMP libraries for Android and JVM, with a few Android-only support modules and shared sample apps.
 
-The Okta Mobile Kotlin SDK is a Kotlin Multiplatform (KMP) library targeting Android and JVM, with select modules supporting JS and WASM.
+## Table of Contents
 
-## SDK Overview
+- [Documentation](#documentation)
+- [Repository layout](#repository-layout)
+- [Installation](#installation)
+- [KMP migration](#kmp-migration)
+- [Building locally](#building-locally)
+- [Need help?](#need-help)
+- [Contributing](#contributing)
 
-This SDK consists of several different libraries, each with detailed documentation.
+## Documentation
 
-- [AuthFoundation](auth-foundation) *(Android, JVM)* -- Common classes for managing credentials and used as a foundation for other libraries.
-- [OktaOAuth2](oauth2) *(Android, JVM)* -- OAuth2 authentication capabilities for authenticating users.
-- [WebAuthenticationUI](web-authentication-ui) *(Android only)* -- Authenticate users using web-based OIDC flows via Chrome Custom Tabs.
-- [OktaIdx](okta-idx-kotlin/README.md) *(Android only)* -- Okta's Identity Engine support using Okta's IDX API for native browserless authentication.
-- [OktaDirectAuth](okta-direct-auth/README.md) *(Android, JVM)* -- Direct Authentication capabilities for advanced browserless authentication, including Java compatibility with `CompletableFuture` async API.
-- [Android Sample App](app/README.md) *(Android only)* -- Android sample application demonstrating OAuth2 flows using the SDK.
-- [Java CLI Sample](okta-direct-auth-java-cli-sample/README.md) *(JVM only)* -- Pure Java CLI application demonstrating Direct Authentication with `CompletableFuture` API, including MFA and password recovery.
+New to the SDK? Start with `auth-foundation` (every library builds on it), then pick the flow
+module that matches how you want users to sign in.
 
-## Support Policy
+**Libraries**
 
-### Legacy okta-oidc-android support
+- **[`auth-foundation/README.md`](auth-foundation/README.md)** — Start here. The core module every other library depends on: how to build an `OAuth2Client`, store and refresh credentials (immutable KMP snapshots via `TokenCredentialManager`, SQLCipher-encrypted Room storage on Android), use biometric-backed storage, and customize networking and rate-limit retries. Also holds the guide for migrating from the deprecated Android-only APIs to the KMP `*.kmp.*` packages.
+- **[`oauth2/README.md`](oauth2/README.md)** — Reach for this when you drive a standard OAuth2 grant yourself: Resource Owner Password, Device Authorization, Authorization Code + PKCE, Token Exchange (Native SSO), Session Token, and Redirect End Session. Per-flow Kotlin `Result` examples plus Java `CompletableFuture` wrappers, and the Android-only → KMP migration guide.
+- **[`web-authentication-ui/README.md`](web-authentication-ui/README.md)** — Use when you want browser-based sign-in/sign-out handled for you: launches a Chrome Custom Tab and wraps `oauth2`'s Authorization Code and Redirect End Session flows. Android-only.
+- **[`okta-direct-auth/README.md`](okta-direct-auth/README.md)** — Choose this to build a fully native (no browser) sign-in UI on Okta's Direct Authentication API: password, OTP, out-of-band push/SMS/voice, WebAuthn/passkeys, MFA, and self-service password recovery. Covers the coroutine `StateFlow` API and the Java `CompletableFuture` API.
+- **[`okta-idx-kotlin/README.md`](okta-idx-kotlin/README.md)** — Use when you need Okta Identity Engine's dynamic, policy-driven sign-in via the interaction code flow — the SDK walks you through server-defined remediations step by step. Documents `InteractionCodeFlow` (`start`/`resume`/`proceed`/`exchangeInteractionCodeForTokens`). Android-only.
 
-We intend to support okta-oidc-android with critical bug and security fixes for the foreseeable future. Once the Kotlin Mobile SDK is generally available, all new features will be built on top of okta-mobile-kotlin and will replace okta-oidc-android.
+**Sample apps**
 
-## Unlocking use cases
-Okta is busy adding new functionality to its identity platform. We're excited to unlock these new capabilities for Android. These SDKs are built on top of [Kotlin](https://kotlinlang.org/), [Kotlin Coroutines](https://kotlinlang.org/docs/coroutines-overview.html), and [OkHttp](https://github.com/square/okhttp). We are doubling down on our developer experience, providing seamless ways to log in, store, and access OAuth tokens. We are building an initial set of functionality unlocking new OAuth flows that were not possible before, including:
-* [Token Exchange](https://datatracker.ietf.org/doc/html/rfc8693)
-* [Device Authorization Grant](https://datatracker.ietf.org/doc/html/rfc8628)
-* [Okta Identity Engine](https://github.com/okta/okta-idx-android)
+- **[`app/README.md`](app/README.md)** — Android sample wiring `oauth2` + `web-authentication-ui` + `auth-foundation` together: browser sign-in (Authorization Code via Chrome Custom Tabs), Resource Owner Password, Device Authorization, and Token Exchange, with a post-login dashboard. Copy from here for a typical Android OAuth2 integration.
+- **[`dynamic-app/README.md`](dynamic-app/README.md)** — Android sample for the `okta-idx-kotlin` interaction code flow: builds its sign-in UI dynamically from server remediations. Look here (rather than `app`) when integrating Identity Engine, and for the Cucumber/e2e test setup.
+- **[`okta-direct-auth-shared/README.md`](okta-direct-auth-shared/README.md)** — The setup reference for the Compose Multiplatform direct-auth sample (Android + desktop runners): full Okta org configuration and `local.properties` for both the Direct Auth and OAuth2 flows the sample demonstrates.
+- **[`okta-direct-auth-java-cli-sample/README.md`](okta-direct-auth-java-cli-sample/README.md)** — Pure-Java (no Kotlin) CLI exercising the `CompletableFuture` wrappers for both `okta-direct-auth` and all five `oauth2` flows. The reference to follow if you integrate from Java.
 
-# Installation
+## Repository layout
 
-Add the `Okta Mobile Kotlin` dependencies to your `build.gradle` file:
+### Publishable libraries
 
-```gradle
-// Ensure all dependencies are compatible using the Bill of Materials (BOM).
-implementation(platform('com.okta.kotlin:bom:2.0.3'))
+| Module | Target | Purpose |
+| --- | --- | --- |
+| `auth-foundation` | KMP (Android + JVM) | Core SDK — `OAuth2Client`, credential/token storage (encrypted Room on Android), and shared config every other module depends on |
+| `oauth2` | KMP (Android + JVM) | Standard OAuth2 grant flows (Auth Code + PKCE, Device, Resource Owner, Token Exchange, Session Token, End Session) with Kotlin `Result` + Java `CompletableFuture` wrappers |
+| [`web-authentication-ui`](web-authentication-ui/README.md) | Android | Browser-based OIDC sign-in/sign-out via Chrome Custom Tabs; wraps oauth2's Authorization Code and Redirect End Session flows |
+| `legacy-token-migration` | Android | One-time migration of tokens from the legacy Okta OIDC Android SDK's `SessionClient` into a `Credential` |
+| `okta-idx-kotlin` | Android | Okta Identity Engine interaction code flow — policy-driven, server-remediation sign-in |
+| `okta-direct-auth` | KMP (Android + JVM) | Native (browser-less) Direct Authentication — password, OTP, OOB, WebAuthn, MFA, SSPR |
+| `bom` | Java platform | Bill of materials aligning `auth-foundation`, `oauth2`, `web-authentication-ui`, `legacy-token-migration`, `okta-idx-kotlin`, and `okta-direct-auth` versions |
 
-// Add the dependencies to your project.
-implementation('com.okta.kotlin:auth-foundation')
-implementation('com.okta.kotlin:oauth2')
-implementation('com.okta.kotlin:web-authentication-ui')
+### Shared, sample, and internal modules
+
+| Module | Purpose |
+| --- | --- |
+| `okta-direct-auth-shared` | Shared Compose Multiplatform UI + flow logic for the direct-auth sample; consumed by the Android and desktop runners. Its README holds the sample's Okta setup instructions |
+| `app` | Android sample: browser sign-in plus Resource Owner, Device Authorization, and Token Exchange using `oauth2` / `web-authentication-ui` / `auth-foundation` |
+| `okta-direct-auth-android-app` | Android (Compose) runner that hosts the `okta-direct-auth-shared` sample |
+| `okta-direct-auth-desktop-app` | Desktop/JVM (Compose) runner that hosts the `okta-direct-auth-shared` sample |
+| `okta-direct-auth-java-cli-sample` | Pure-Java CLI exercising the `CompletableFuture` wrappers for `okta-direct-auth` and `oauth2` |
+| `session-token-sample` | Android sample exchanging an Okta Authn-API session token for tokens via `SessionTokenFlow` |
+| `legacy-token-migration-sample` | Android sample demonstrating `legacy-token-migration` from the legacy Okta OIDC Android SDK |
+| `dynamic-app` | Android sample for the `okta-idx-kotlin` interaction code flow (dynamic, remediation-driven UI) |
+| `docs`, `test-helpers`, `test-utils`, `suppress-internal-dokka-plugin` | Internal only — Dokka API-docs aggregation (`docs`), MockWebServer/coroutine test fixtures (`test-helpers`, `test-utils`), and a Dokka plugin that hides `@InternalApi` from published docs |
+
+## Installation
+
+Use the BOM to keep versions aligned:
+
+```kotlin
+dependencies {
+    implementation(platform("com.okta.kotlin:bom:3.0.0"))
+    implementation("com.okta.kotlin:auth-foundation")
+    implementation("com.okta.kotlin:oauth2")
+    implementation("com.okta.kotlin:web-authentication-ui")
+    implementation("com.okta.kotlin:okta-direct-auth")
+}
 ```
 
-See the [CHANGELOG](CHANGELOG.md) for the most recent changes.
+### Maven / plain Java projects
 
-If you're migrating from [okta-oidc-android](https://github.com/okta/okta-oidc-android) see [migrate.md](migrate.md) for more information.
+The BOM is a Gradle `java-platform`, which publishes as a standard Maven BOM — import it the same way:
 
-# Okta Mobile SDK for Kotlin
+```xml
+<dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>com.okta.kotlin</groupId>
+            <artifactId>bom</artifactId>
+            <version>3.0.0</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+    </dependencies>
+</dependencyManagement>
+```
 
-## Release status
+`auth-foundation`, `oauth2`, and `okta-direct-auth` are Kotlin Multiplatform (Android + JVM) artifacts. Their plain `<artifactId>` (e.g. `auth-foundation`) resolves to a Gradle-Module-Metadata-only umbrella with no compiled classes — Gradle uses it to auto-select a target, but Maven doesn't understand Gradle Module Metadata's variant resolution, so a Maven build needs to depend on the JVM-target artifact directly, with a `-jvm` suffix:
 
-This library uses semantic versioning and follows Okta's [Library Version Policy][okta-library-versioning].
+```xml
+<dependencies>
+    <dependency>
+        <groupId>com.okta.kotlin</groupId>
+        <artifactId>auth-foundation-jvm</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>com.okta.kotlin</groupId>
+        <artifactId>oauth2-jvm</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>com.okta.kotlin</groupId>
+        <artifactId>okta-direct-auth-jvm</artifactId>
+    </dependency>
+</dependencies>
+```
 
-The latest release can always be found on the [releases page][github-releases].
+See [`okta-direct-auth-java-cli-sample`](okta-direct-auth-java-cli-sample/README.md) for a working pure-Java example. `web-authentication-ui`, `legacy-token-migration`, and `okta-idx-kotlin` are Android-only (single-variant AARs) — use their plain `<artifactId>` as-is, but note they require an Android runtime/toolchain regardless of build tool.
+
+## KMP migration
+
+New code should use the KMP APIs in `com.okta.authfoundation.client.kmp.*`, `com.okta.authfoundation.credential.kmp.*`, and `com.okta.oauth2.kmp.*`. See [`auth-foundation/README.md`](auth-foundation/README.md) and [`oauth2/README.md`](oauth2/README.md) for the module-specific migration guides and examples.
+
+## Building locally
+
+```bash
+./gradlew build
+./gradlew spotlessCheck
+./gradlew :auth-foundation:testAndroidHostTest :auth-foundation:jvmTest :oauth2:testAndroidHostTest :oauth2:jvmTest :okta-direct-auth:testAndroidHostTest :okta-direct-auth:jvmTest
+```
 
 ## Need help?
 
-If you run into problems using the SDK, you can:
+This library uses semantic versioning and follows Okta's [Library Version Policy][okta-library-versioning].
 
-* Ask questions on the [Okta Developer Forums][devforum]
-* Post [issues][github-issues] here on GitHub (for code errors)
+- See the [CHANGELOG](CHANGELOG.md) for the most recent changes, and the [releases page][github-releases] for published versions.
+- Ask questions on the [Okta Developer Forums][devforum].
+- Report bugs or request features by opening an [issue][github-issues].
 
-## Getting Started
-
-To get started, you will need:
-
-* An Okta account, called an _organization_ (sign up for a free [developer organization](https://developer.okta.com/signup) if you need one).
-* An Okta Application, configured as a Native App. This is done from the Okta Developer Console. When following the wizard, use the default properties. They are designed to work with our sample applications.
-* Android Studio
-
-## Usage Guide
-
-This SDK consists of several different libraries, each with their own detailed documentation.
-
-SDKs are split between two primary use cases:
-- Minting tokens (authentication)
-  - Okta supports many OAuth flows, our Android SDKs support the following: Authorization Code, Interaction Code, Refresh Token, Resource Owner Password, Device Authorization, and Token Exchange.
-- Managing the token lifecycle (refresh, storage, validation, etc)
-
-### Auto backup rules
-
-This SDK uses on-device encryption keys to store data. Because of this, the SDK files should not be backed up. This SDK provides backup rules to exclude files automatically.
-But, if your application provides its own backup rules by specifying `android:dataExtractionRules` or `android:fullBackupContent`, please include SDK backup rules as specified in [data_extraction_rules](auth-foundation/src/main/res/xml/data_extraction_rules.xml) and [full_backup_content](auth-foundation/src/main/res/xml/full_backup_content.xml).
-
-### Kotlin Coroutines
-[Kotlin Coroutines](https://kotlinlang.org/docs/coroutines-overview.html) are used extensively throughout the SDKs. All methods can be used via any thread (including the main thread), and will switch to a background thread internally when performing network IO or expensive computation.
-
-### Web Authentication using OIDC redirect
-
-The simplest way to integrate authentication in your app is with OIDC through a web browser, using the Authorization Code Flow grant.
-
-#### Configure your OAuth Settings
-
-Before authenticating your user, you need to set your default `OidcConfiguration` using the settings defined in your application in the Okta Developer Console.
-
-```kotlin
-import android.content.Context
-import com.okta.authfoundation.AuthFoundation
-import com.okta.authfoundation.client.OidcConfiguration
-
-val context: Context = TODO("Supplied by the developer.")
-AuthFoundation.initializeAndroidContext(context)
-OidcConfiguration.default = OidcConfiguration(
-  clientId = "{clientId}",
-  defaultScope = "openid email profile offline_access",
-  issuer = "https://{yourOktaOrg}.okta.com/oauth2/default"
-)
-```
-
-#### Create a Web Authentication Client
-
-We will create a `WebAuthentication` and use it to perform authentication.
-
-This launches a [Chrome Custom Tab](https://developer.chrome.com/docs/android/custom-tabs/) to display the login form, and once complete, redirects back to the application.
-
-```kotlin
-import android.content.Context
-import com.okta.authfoundation.credential.Credential
-import com.okta.oauth2.AuthorizationCodeFlow
-import com.okta.webauthenticationui.WebAuthentication
-
-val context: Context = TODO("Supplied by the developer.")
-val credential: Credential
-val redirectUrl: String = TODO("signInRedirectUri supplied by the developer.")
-val auth = WebAuthentication()
-when (val result = auth.login(context, redirectUrl)) {
-    is OAuth2ClientResult.Error -> {
-        // Timber.e(result.exception, "Failed to login.")
-        // TODO: Display an error to the user.
-    }
-    is OAuth2ClientResult.Success -> {
-      credential = Credential.store(token = result.result)
-      Credential.setDefaultCredential(credential)
-      // The credential instance is now initialized! You can use the `Credential` to make calls to OAuth endpoints, or to sign requests!
-    }
-}
-```
-
-Next we need to be sure our application handles the redirect. Add the following snippet to your `build.gradle`:
-
-Note: you will need to replace the `{redirectUriScheme}` with your applications redirect scheme. For example, a `signInRedirectUri` of `com.okta.sample.android:/login` would mean replacing `{redirectUriScheme}` with `com.okta.sample.android`.
-
-```groovy
-android {
-  defaultConfig {
-    manifestPlaceholders = [
-      "webAuthenticationRedirectScheme": "{redirectUriScheme}"
-    ]
-  }
-}
-```
-
-### Device Authorization Flow
-
-[DeviceAuthorizationFlow](oauth2/src/main/java/com/okta/oauth2/DeviceAuthorizationFlow.kt) can be used to perform [OAuth 2.0 Device Authorization Grant](https://datatracker.ietf.org/doc/html/rfc8628).
-
-The Device Authorization Flow is designed for Internet connected devices that either lack a browser to perform a user-agent based authorization or are input constrained to the extent that requiring the user to input text in order to authenticate during the authorization flow is impractical.
-
-```kotlin
-import com.okta.authfoundation.credential.Credential
-import com.okta.oauth2.DeviceAuthorizationFlow
-
-val credential: Credential
-val deviceAuthorizationFlow = DeviceAuthorizationFlow()
-
-when (val result = deviceAuthorizationFlow.start()) {
-  is OAuth2ClientResult.Error -> {
-    // Timber.e(result.exception, "Failed to login.")
-    // TODO: Display an error to the user.
-  }
-  is OAuth2ClientResult.Success -> {
-    val flowContext: DeviceAuthorizationFlow.Context = result.result
-    // TODO: Show the user the code and uri to complete the login via `flowContext.userCode` and `flowContext.verificationUri`.
-
-    // Poll the Authorization Server. When the user completes their login, this will complete.
-    when (val resumeResult = deviceAuthorizationFlow.resume(flowContext)) {
-      is OAuth2ClientResult.Error -> {
-        // Timber.e(resumeResult.exception, "Failed to login.")
-        // TODO: Display an error to the user.
-      }
-      is OAuth2ClientResult.Success -> {
-        credential = Credential.store(token = result.result)
-        Credential.setDefaultCredential(credential)
-        // The credential instance is now initialized! You can use the `Credential` to make calls to OAuth endpoints, or to sign requests!
-      }
-    }
-  }
-}
-```
-
-### Token Exchange Flow
-
-[TokenExchangeFlow](oauth2/src/main/java/com/okta/oauth2/TokenExchangeFlow.kt) can be used to perform [OIDC Native SSO](https://openid.net/specs/openid-connect-native-sso-1_0.html).
-
-The Token Exchange Flow exchanges an ID Token and a Device Secret for a new set of tokens.
-
-```kotlin
-import com.okta.authfoundation.client.OAuth2Client
-import com.okta.authfoundation.credential.Credential
-import com.okta.oauth2.TokenExchangeFlow
-
-val tokenExchangeFlow = TokenExchangeFlow()
-when (val result = tokenExchangeFlow.start(idToken, deviceSecret)) {
-  is OAuth2ClientResult.Error -> {
-      // Timber.e(result.exception, "Failed to login.")
-      // TODO: Display an error to the user.
-  }
-  is OAuth2ClientResult.Success -> {
-    val tokenExchangeCredential = Credential.store(result.result)
-    // The credential instance is now initialized! You can use the `Credential` to make calls to OAuth endpoints, or to sign requests!
-  }
-}
-```
-
-> Note: You'll want to ensure you have 2 *DIFFERENT* `Credential`s. The first needs to have the `idToken`, and `deviceSecret` minted via a `WebAuthenticationClient`. The second will be used in the `TokenExchangeFlow`.
-
-### Logout
-
-There are multiple terms that might be confused when logging a user out.
-
-- `Credential.delete` - Clears the in memory reference to the `Token` and removes the information from `TokenStorage`, the `Credential` can no longer be used.
-- `Credential.revokeAllTokens` - Revokes all available tokens from the Authorization Server.
-- `Credential.revokeToken`/`OAuth2Client.revokeToken` - Revokes the specified `RevokeTokenType` from the Authorization Server.
-- `WebAuthenticationClient.logoutOfBrowser` - Removes the Okta session if the user was logged in via the OIDC Browser redirect flow. Also revokes the associated `Token`(s) minted via this flow.
-
-> Notes:
-> - `Credential.delete` does not revoke a token
-> - `Credential.revokeToken`/`Credential.revokeAllTokens`/`OAuth2Client.revokeToken` does not remove the `Token` from memory, or `TokenStorage`. It also does not invalidate the browser session if the `Token` was minted via the OIDC Browser redirect flow.
-> - `WebAuthenticationClient.logoutOfBrowser` revokes the `Token`, but does not remove it from memory or `TokenStorage`
-> - Revoking a `RevokeTokenType.ACCESS_TOKEN` does not revoke the associated `Token.refreshToken` or `Token.deviceSecret`
-> - Revoking a `RevokeTokenType.DEVICE_SECRET` does not revoke the associated `Token.accessToken` or `Token.refreshToken`
-> - Revoking a `RevokeTokenType.REFRESH_TOKEN` *DOES* revoke the associated `Token.accessToken` AND `Token.refreshToken`
-
-### Using a Credential to determine user authentication status
-There are a few options to determine the status of a user authentication. Each option has unique pros and cons and should be chosen based on the needs of your use case.
-
-- Non null default credential: `Credential.default != null`
-- Non empty credential allIds: `Credential.allIds.isNotEmpty()`
-- getValidAccessToken: `Credential.default?.getValidAccessToken() != null`
-- Custom implementation: `Credential.default?.token`, `Credential.default?.refresh()`, and `Credential.default?.getAccessTokenIfValid()`
-
-Details on each approach are below.
-
-#### Determine authentication status via non null Credential
-`Credential`s require a `Token`. If there are no `Credential`s present, then no `Token` has been stored. Note that `Credential.default` can throw a `BiometricInvocationException` if the `Credential` was stored using `Credential.Security.Biometric<Strong/StrongOrDeviceCredential>`.
-
-#### Determine authentication by checking if any Credentials exist
-`Credential.allIds` lists list of all ids of stored `Credential`s. If it returns an empty list, there are no stored `Credential`s.
-
-#### Determine authentication status via getValidAccessToken
-`Credential` has a method called `getValidAccessToken` which checks to see if the credential has a token, and has a valid access token. If the access token is expired, and a refresh token exists, a `refresh` is implicitly called on the `Credential`. If the implicit `refresh` is successful, `getValidAccessToken` returns the new access token. There are two main down sides to this approach. First, it's a `suspend fun` and could make network calls. Second, the failure is not returned, an error could occur due to a network error, a missing token, a missing refresh token, or a configuration error.
-
-#### Determine authentication status via custom implementation
-If your use case requires insight into errors and the current state of the `Credential`, you can use implement it to your needs with the primitives `Credential` provides. See the documentation for the associated properties and methods: `Credential.token`, `Credential.refresh()`, `Credential.getAccessTokenIfValid()`.
-
-### Biometric Credentials
-The SDK has built-in support for handling Biometric encryption. To set the default token encryption as Biometric, `Credential.Security.standard` can be set to `Credential.Security.BiometricStrong` or `Credential.Security.BiometricStrongOrDeviceCredential`. Biometric encryption also requires setting `Credential.Security.promptInfo`.
-
-> Notes:
-> - The SDK does not check which biometrics are enrolled on the user's device. Please check this using https://developer.android.com/reference/android/hardware/biometrics/BiometricManager#canAuthenticate(int) before setting the appropriate security level
-> - The SDK automatically deletes Token entries stored using invalidated biometric keys.
-> - Biometric Credentials should only be fetched using async APIs in `Credential` class, otherwise `BiometricInvocationException` will be thrown.
-
-#### Setting Biometric security for new Credentials globally
-
-```kotlin
-Credential.Security.standard = Credential.Security.BiometricStrong()
-Credential.Security.promptInfo = BiometricPrompt.PromptInfo.Builder()
-  .setTitle("Title")
-  .setNegativeButtonText("Cancel Button")
-  .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG) // Verify the authenticator is supported by device using BiometricManager.canAuthenticate
-  .build()
-```
-
-#### Setting Biometric security for a single Credential
-
-```kotlin
-val token = TODO("Supplied by user")
-val credential = Credential.store(token, security = Credential.Security.BiometricStrong())
-```
-
-#### Auth-per-use Biometric keys
-The SDK uses Biometric keys with a timeout of 5 seconds by default. This allows apps to invoke Biometrics once, and perform operations on multiple Biometric `Credential`s. Auth-per-use Biometric `Credential`s are also supported using the following:
-
-```kotlin
-// Globally
-Credential.Security.standard = Credential.Security.BiometricStrong(userAuthenticationTimeout = 0)
-// or per-Credential
-val token = TODO("Supplied by user")
-val credential = Credential.store(token, security = Credential.Security.BiometricStrong(userAuthenticationTimeout = 0))
-```
-
-#### Biometric exceptions
-Android `BiometricPrompt` can fail due to `AuthenticationCallback.onAuthenticationFailed` and `AuthenticationCallback.onAuthenticationError`. See this relevant Android developer doc: [BiometricPrompt.AuthenticationCallback](https://developer.android.com/reference/kotlin/androidx/biometric/BiometricPrompt.AuthenticationCallback)
-
-`AuthenticationCallback.onAuthenticationError` can return error codes to recover from different Biometric situations, as listed here: https://developer.android.com/reference/kotlin/androidx/biometric/BiometricPrompt#ERROR_CANCELED()
-
-When using Biometric security, `Credential` fetching functions can throw `BiometricAuthenticationException`, and the relevant errors can be queried as follows:
-
-```kotlin
-val credential = try {
-    Credential.getDefaultAsync()
-} catch (ex: BiometricAuthenticationException) {
-    when (val details = ex.biometricExceptionDetails) {
-      is BiometricExceptionDetails.OnAuthenticationFailed -> {
-        TODO("onAuthenticationFailed has no error codes or messages")
-      }
-      is BiometricExceptionDetails.OnAuthenticationError -> {
-        val errorMessage = details.errString
-        // Error code from https://developer.android.com/reference/kotlin/androidx/biometric/BiometricPrompt#constants_1
-        val errorCode = details.errorCode
-      }
-    }
-}
-```
-
-### Networking customization
-
-The Okta Mobile Kotlin SDKs should provide all the required networking by default, however, if you would like to customize networking
-behavior, that is also possible.
-
-The SDK uses [OkHttp](https://github.com/square/okhttp) as the API for performing network requests.
-The SDK also uses OkHttp as the default implementation for performing network requests.
-If you intent to customize networking behavior, there are a few options:
-- Add an [Interceptor](https://square.github.io/okhttp/4.x/okhttp/okhttp3/-interceptor/) to the `OkHttpClient` you provide to
-`AuthFoundationDefaults.okHttpClientFactory`
-- Return a custom implementation of `Call.Factory` when initializing the SDK in `AuthFoundationDefaults.okHttpClientFactory`
-
-#### OkHttp Interceptor
-
-Configuring the `OkHttpClient` with an `Interceptor` is the recommend approach to customizing the networking behavior.
-Adding an interceptor allows you to listen for requests and responses, customize requests before they are sent, and customize responses
-before they are processed by the SDK.
-
-#### Custom Call Factory
-
-Providing a custom call factory is an advanced use case, and is not recommended. The possibilities are endless, including the ability to
-replace the engine that executes the HTTP requests.
-
-### Rate Limit Handling
-
-The Okta API will return 429 responses if too many requests are made within a given time. Please see [Rate Limiting at Okta] for a complete
-list of which endpoints are rate limited. This SDK automatically retries requests on 429 errors. The default configuration is as follows:
-
-| Configuration Option | Description |
-| ---------------------- | -------------- |
-| maxRetries         | The number of times to retry. The default value is `3`. |
-| minDelaySeconds    | The minimum amount of time to wait between each retry. The default value is `1` second. |
-
-#### Configuring retry parameters
-
-To configure retry parameters, an `EventHandler` must be registered before creating an `OidcConfiguration`. In the `EventHandler`,
-`RateLimitExceededEvent` events will be emitted any time a request receives a response with 429 status code. `minDelaySeconds` and
-`maxRetries` can be adjusted based on details provided by the event.
-
-```kotlin
-import com.okta.authfoundation.AuthFoundationDefaults
-import com.okta.authfoundation.client.OidcConfiguration
-import com.okta.authfoundation.client.events.RateLimitExceededEvent
-import com.okta.authfoundation.events.EventCoordinator
-import com.okta.authfoundation.events.EventHandler
-
-AuthFoundationDefaults.eventCoordinator = EventCoordinator(
-  object : EventHandler {
-    override fun onEvent(event: Any) {
-      when (event) {
-        is RateLimitExceededEvent -> {
-          // Event info
-          val retriedRequest = event.request // Request that triggered the event
-          val responseWith429Code = event.response// 429 response to the request. Note: Only access the response body using response.peekBody
-          val retryCount = event.retryCount // Number of retries for this request so far
-
-          // User configurable flags
-          event.minDelaySeconds = 1L // User configurable delay, in seconds, for retrying the request again
-          event.maxRetries = 3 // User configurable max retries for this request
-        }
-      }
-    }
-  }
-)
-
-val oidcConfiguration = OidcConfiguration(
-  clientId = "{clientId}",
-  defaultScope = "openid email profile offline_access",
-)
-```
-
-## Migrating from okta-mobile-kotlin 1.x to 2.x
-
-### Token migration
-
-The process for Token migration varies based on use of custom `TokenStorage` or encryption spec when creating `CredentialDataSource` in 1.x. Token migration is handled automatically in the simplest case without user intervention:
-
-```kotlin
-client.createCredentialDataSource(context)
-```
-
-#### Migration with custom KeyGenParameterSpec
-
-1.x:
-```kotlin
-val keyGenParameterSpec: KeyGenParameterSpec = TODO("Supplied by user")
-client.createCredentialDataSource(context, keyGenParameterSpec)
-```
-2.x:
-```kotlin
-val keyGenParameterSpec: KeyGenParameterSpec = TODO("Supplied by user")
-V1ToV2StorageMigrator.legacyKeyGenParameterSpec = keyGenParameterSpec
-```
-
-#### Migration with custom TokenStorage
-
-1.x:
-```kotlin
-val customTokenStorage: TokenStorage = TODO("Supplied by user")
-client.createCredentialDataSource(customTokenStorage)
-```
-
-2.x:
-```kotlin
-// Convert custom TokenStorage implementation to LegacyTokenStorage
-val legacyTokenStorage: LegacyTokenStorage = TODO("Supplied by user")
-V1ToV2StorageMigrator.legacyStorage = legacyTokenStorage
-```
-
-### API migration
-
-#### Credential changes
-
-`CredentialBootstrap`, `CredentialDataSource`, and `Credential` contain several changes over 1.x. `Credential`s can no longer contain a null `Token`. Because of this change from 1.x, the flow for creating `Credential` without `Token`, followed by calling `Credential.storeToken` can no longer be used.
-When creating a new `Credential` with `Credential.store`, a `Token` must be provided.
-
-1.x would create a new `Credential` with null `Token` if no default `Credential` existed when calling `CredentialBootstrap.defaultCredential()`. In 2.x, default `Credential` can be fetched using `Credential.default` or `Credential.getDefaultAsync()`. Both of those have a type of `Credential?` instead of `Credential`, and return `null` if no default `Credential` exists.
-
-1.x contained `Credential` handling APIs in `CredentialBootstrap` and `CredentialDataSource`. All `Credential` management calls have been moved to `Credential` in 2.x. `CredentialBootstrap` has been deleted, and `CredentialDataSource` is private in 2.x.
-
-1.x provided `suspend` functions for handling creation and management of any `Credential`s. 2.x provides synchronous `Credential` management functions in addition to `suspend` functions.
-
-#### Initialization changes
-
-The SDK initialization calls in 1.x were as follows:
-
-```kotlin
-val context: Context = TODO("Supplied by the developer.")
-val oidcConfiguration = OidcConfiguration(
-    clientId = "{clientId}",
-    defaultScope = "openid email profile offline_access",
-)
-val client = OidcClient.createFromDiscoveryUrl(
-    oidcConfiguration,
-    "https://{yourOktaOrg}.okta.com/oauth2/default/.well-known/openid-configuration".toHttpUrl(),
-)
-CredentialBootstrap.initialize(client.createCredentialDataSource(context))
-```
-
-In 2.x, this is changed to:
-```kotlin
-val context: Context = TODO("Supplied by the developer.")
-AuthFoundation.initializeAndroidContext(context)
-OidcConfiguration.default = OidcConfiguration(
-  clientId = "{clientId}",
-  defaultScope = "openid email profile offline_access",
-  issuer = "https://{yourOktaOrg}.okta.com/oauth2/default" // Note that 1.x required .well-known/openid-configuration link. 2.x automatically handles this
-)
-```
-
-#### OAuth flows
-
-In 1.x, OAuth flows were created as follows:
-
-```kotlin
-val oauthFlow = CredentialBootstrap.oidcClient.createWebAuthenticationClient() // or createTokenExchangeFlow, createDeviceAuthorizationFlow etc
-```
-
-In 2.x, this has been changed to:
-
-```kotlin
-val oauthFlow = WebAuthentication() // or TokenExchangeFlow, SessionTokenFlow, DeviceAuthorizationFlow, or AuthorizationCodeFlow
-```
-
-By default, all OAuth flows use `OAuth2Client` associated with `OidcConfiguration.default`. Custom `OAuth2Client` or `OidcConfiguration` can be passed into OAuth flows as follows:
-
-```kotlin
-// Custom OidcConfiguration
-val oidcConfiguration: OidcConfiguration = TODO("Supplied by user")
-val oauthFlow = WebAuthentication(oidcConfiguration)
-
-// Custom OAuth2Client
-val client: OAuth2Client = TODO("Supplied by user")
-val oauthFlow = WebAuthentication(client)
-```
-
-#### WebAuthenticationUi
-
-`WebAuthenticationClient` has been renamed to `WebAuthentication`.
-
-## Migrating from Android-only APIs to KMP APIs
-
-The original Android-only APIs in `auth-foundation` and `oauth2` (`OAuth2Client`, `OidcConfiguration`, `Credential`, `CredentialDataSource`, and the `com.okta.oauth2.*` flow classes) are deprecated in favor of Kotlin Multiplatform (KMP) equivalents that work identically on Android and JVM. The deprecated classes remain functional — there's no forced migration — but new code should prefer the KMP variants below.
-
-#### Client initialization
-
-Android-only:
-```kotlin
-OidcConfiguration.default = OidcConfiguration(
-  clientId = "{clientId}",
-  defaultScope = "openid email profile offline_access",
-  issuer = "https://{yourOktaOrg}.okta.com/oauth2/default"
-)
-val client = OAuth2Client.default
-```
-
-KMP:
-```kotlin
-val client = OAuth2ClientBuilder.create(
-  issuerUrl = "https://{yourOktaOrg}.okta.com",
-  clientId = "{clientId}",
-  scope = listOf("openid", "email", "profile", "offline_access"),
-) {
-  authorizationServerId = "default"
-}.getOrThrow()
-```
-
-#### Credential storage
-
-Android-only `Credential` is a mutable, static-companion-driven class backed by `CredentialDataSource`. The KMP `Credential` is an **immutable snapshot** managed by an explicit `TokenCredentialManager` instance — methods that mutate state (`refreshToken()`, `setTagsAsync()`, etc.) return a *new* `Credential` snapshot rather than mutating in place.
-
-Android-only:
-```kotlin
-val credential = Credential.store(token = result.result)
-Credential.setDefaultAsync(credential)
-// ...
-val refreshed = credential.refreshToken() // mutates `credential` in place
-```
-
-KMP (Android app, with Keystore/biometric-backed storage via `AndroidTokenEncryptionHandler`):
-```kotlin
-val database = createTokenDatabase(context)
-val storage = RoomTokenStorage(
-  database,
-  AndroidTokenEncryptionHandler(requireBiometric = true, userAuthenticationTimeout = 0),
-  client.configuration
-)
-val credentialManager = TokenCredentialManager(client, storage, RoomDefaultCredentialIdStore(database))
-
-// A flow's Result<TokenInfo> is not necessarily a TokenData at runtime — convert explicitly, don't cast.
-val tokenInfo: TokenInfo = resourceOwnerFlow.start(username, password).getOrThrow()
-val tokenData = TokenData(
-  id = tokenInfo.id, tokenType = tokenInfo.tokenType, expiresIn = tokenInfo.expiresIn,
-  accessToken = tokenInfo.accessToken, scope = tokenInfo.scope, refreshToken = tokenInfo.refreshToken,
-  idToken = tokenInfo.idToken, deviceSecret = tokenInfo.deviceSecret, issuedTokenType = tokenInfo.issuedTokenType,
-  configuration = client.configuration, issuedAt = client.configuration.clock.currentTimeEpochSecond()
-)
-val credential = credentialManager.store(tokenData).getOrThrow()
-credentialManager.setDefault(credential)
-// ...
-val refreshed = credential.refreshToken().getOrThrow() // returns a *new* snapshot; `credential` is now stale
-```
-
-On non-Android JVM targets, use `createEncryptedTokenStorage(configuration, dbPath)` from `com.okta.authfoundation.credential.kmp.storage` (JVM-only Keystore/biometric gating is not applicable there) or the Java-friendly `com.okta.authfoundation.credential.jvm.TokenCredentialManager` wrapper.
-
-> Note: `AndroidTokenEncryptionHandler`-backed storage encrypts only the access-token column (like the JVM path) — it does not whole-database encrypt the underlying SQLite file the way the legacy SQLCipher-backed `RoomTokenStorage` did. Use a custom `TokenEncryptionHandler` if whole-database encryption is a requirement.
-
-#### OAuth flows
-
-Android-only:
-```kotlin
-val resourceOwnerFlow = ResourceOwnerFlow() // com.okta.oauth2.ResourceOwnerFlow
-val result = resourceOwnerFlow.start(username, password) // OAuth2ClientResult<Token>
-```
-
-KMP:
-```kotlin
-val resourceOwnerFlow = ResourceOwnerFlow(client) // com.okta.oauth2.kmp.ResourceOwnerFlow
-val result = resourceOwnerFlow.start(username, password) // Result<TokenInfo>
-```
-
-The same rename applies to `DeviceAuthorizationFlow`, `SessionTokenFlow`, `TokenExchangeFlow`, `AuthorizationCodeFlow`, and `RedirectEndSessionFlow` — swap the `com.okta.oauth2.*` import for `com.okta.oauth2.kmp.*`, and pass an explicit KMP `OAuth2Client` instead of relying on `OidcConfiguration.default`. `WebAuthentication` already uses the KMP client internally regardless of which constructor you use.
-
-#### Scope as a list
-
-Scope parameters that previously only accepted a space-delimited `String` now also accept a `List<String>`, for consistency with `OAuth2ClientBuilder.create(scope: List<String>)`:
-
-```kotlin
-// Deprecated
-resourceOwnerFlow.start(username, password, scope = "openid profile")
-
-// Preferred
-resourceOwnerFlow.start(username, password, scope = listOf("openid", "profile"))
-```
-
-This applies to `start(...)`/`login(...)` on all the flow classes above. Fields that mirror the OAuth2 wire format (`TokenInfo.scope`, `Token.scope`) remain `String?`, since the token endpoint always returns scope as a single space-delimited string per [RFC 6749 §3.3](https://datatracker.ietf.org/doc/html/rfc6749#section-3.3).
-
-## Troubleshooting
-
-- java.lang.NoClassDefFoundError: Failed resolution of: Ljava/time/Instant;
-  - Fix: configure [Core Library Desugaring](https://developer.android.com/studio/write/java8-support#library-desugaring)
-
-### FlowCancelledException
-
-FlowCancelledException is supposed to be thrown in cases where the user has decided to cancel the login flow, usually by quitting the browser login window. It can sometimes be incorrectly thrown in the following cases:
-- Using the Android system webview while logging out. The webview doesn't store the session after a successful login, so logging out never redirects, and the user is forced to cancel logout process
-- Deleting the browser cache after logging in, then attempting to log out. Similar to the above, it is important for browser to store the login state to logout successfully, otherwise the browser can not provide the logout redirect.
-- Browser providing empty redirect results, followed by well-defined results. This has been observed in some older devices and browsers. This problem can be worked around by setting AuthFoundationDefaults.loginCancellationDebounceTime
-
-## Running the sample
-
-The sample is designed to show what is possible when using the SDK.
-
-### Configuring the sample
-
-Add the following keys to `local.properties` in the root directory of the project with the contents created from the Okta admin dashboard:
-```
-issuer=https://YOUR_ORG.okta.com/oauth2/default
-clientId=test-client-id
-signInRedirectUri=com.okta.sample.android:/login
-signOutRedirectUri=com.okta.sample.android:/logout
-legacySignInRedirectUri=com.okta.sample.android.legacy:/login
-legacySignOutRedirectUri=com.okta.sample.android.legacy:/logout
-```
-
-> Notes:
-> - issuer - is your authorization server, usually https://your_okta_domain.okta.com/oauth2/default, but custom authorization servers are supported. See https://your_okta_domain.okta.com/admin/oauth2/as for available authorization servers.
-> - clientId - is your applications client id, created in your Okta admin dashboard
-> - signInRedirectUri - is used for browser redirect, and should follow the format of reverse domain name notation + /login, ie: com.okta.sample.android:/login
-> - signOutRedirectUri - is used for browser redirect, and should follow the format of reverse domain name notation + /logout, ie: com.okta.sample.android:/logout
-
-### Launching the sample
-
-You can open this sample in Android Studio or build it using Gradle.
-
-```
-./gradlew :app:assembleDebug
-```
+If you're migrating from the legacy [okta-oidc-android](https://github.com/okta/okta-oidc-android) SDK, see [migrate.md](migrate.md). (For moving from the deprecated Android-only APIs in this repo to the KMP APIs, see [KMP migration](#kmp-migration) above instead.)
 
 ## Contributing
 
@@ -645,6 +145,4 @@ We are happy to accept contributions and PRs! Please see the [contribution guide
 [devforum]: https://devforum.okta.com/
 [github-issues]: https://github.com/okta/okta-mobile-kotlin/issues
 [github-releases]: https://github.com/okta/okta-mobile-kotlin/releases
-[Rate Limiting at Okta]: https://developer.okta.com/docs/api/getting_started/rate-limits
 [okta-library-versioning]: https://developer.okta.com/code/library-versions
-[Rate Limiting at Okta]: https://developer.okta.com/docs/api/getting_started/rate-limits

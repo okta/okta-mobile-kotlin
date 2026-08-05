@@ -3,7 +3,30 @@
 A pure Java CLI application demonstrating two Okta authentication approaches:
 
 1. **Direct Authentication** — the `okta-direct-auth` CompletableFuture API (password, OTP, MFA, SSPR)
-2. **OAuth2 Flows** — all five OAuth2 standard flows via the `oauth2` module's Java-friendly wrappers
+2. **OAuth2 flows** — all five OAuth2 standard flows via the `oauth2` module's Java-friendly wrappers
+
+## Table of Contents
+
+- [Prerequisites](#prerequisites)
+- [Configuration](#configuration)
+- [Org Setup](#org-setup)
+- [Build](#build)
+- [Run](#run)
+- [CLI Options](#cli-options)
+- [Usage Examples](#usage-examples)
+  - [Mode selection](#mode-selection)
+  - [Direct Authentication — password sign-in](#direct-authentication--password-sign-in)
+  - [OAuth2 — Resource Owner Password](#oauth2--resource-owner-password)
+  - [OAuth2 — Device Authorization](#oauth2--device-authorization)
+  - [OAuth2 — Browser Sign-In](#oauth2--browser-sign-in)
+- [Features](#features)
+  - [Direct Authentication](#direct-authentication)
+  - [OAuth2 Flows (Java-friendly wrappers)](#oauth2-flows-java-friendly-wrappers)
+  - [Shared](#shared)
+- [Tests](#tests)
+- [Known Limitations](#known-limitations)
+  - [Browser Sign-In requires a desktop environment](#browser-sign-in-requires-a-desktop-environment)
+  - [Concurrent instances and username persistence](#concurrent-instances-and-username-persistence)
 
 ## Prerequisites
 
