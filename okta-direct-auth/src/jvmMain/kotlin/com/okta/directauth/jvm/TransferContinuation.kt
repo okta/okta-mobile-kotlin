@@ -19,7 +19,9 @@ import com.okta.directauth.model.DirectAuthContinuation
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.future.future
+import java.io.Closeable
 import java.util.concurrent.CompletableFuture
 
 /**
@@ -27,11 +29,16 @@ import java.util.concurrent.CompletableFuture
  *
  * Provides an async method for polling the status of an out-of-band authentication.
  *
+ * Must be [closed][close] when no longer needed to release coroutine resources — in particular,
+ * to stop an in-flight [proceedAsync] poll loop, which can otherwise run for up to
+ * [expirationInSeconds] seconds.
+ *
  * @param delegate The underlying Kotlin [DirectAuthContinuation.Transfer] instance.
  */
 class TransferContinuation(
     private val delegate: DirectAuthContinuation.Transfer,
-) : DirectAuthenticationState(delegate) {
+) : DirectAuthenticationState(delegate),
+    Closeable {
     private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     /**
@@ -53,4 +60,14 @@ class TransferContinuation(
         coroutineScope.future {
             delegate.proceed().toJvm()
         }
+
+    /**
+     * Closes this continuation, cancelling the in-flight [proceedAsync] poll if any.
+     *
+     * The pending [CompletableFuture] will complete exceptionally with
+     * [java.util.concurrent.CancellationException].
+     */
+    override fun close() {
+        coroutineScope.cancel()
+    }
 }

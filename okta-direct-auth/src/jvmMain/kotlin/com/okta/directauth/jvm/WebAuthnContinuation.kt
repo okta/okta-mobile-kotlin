@@ -21,7 +21,9 @@ import com.okta.directauth.model.WebAuthnAssertionResponse
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.future.future
+import java.io.Closeable
 import java.util.concurrent.CompletableFuture
 
 /**
@@ -29,11 +31,14 @@ import java.util.concurrent.CompletableFuture
  *
  * Provides async methods for completing a WebAuthn ceremony.
  *
+ * Must be [closed][close] when no longer needed to release coroutine resources.
+ *
  * @param delegate The underlying Kotlin [DirectAuthContinuation.WebAuthn] instance.
  */
 class WebAuthnContinuation(
     private val delegate: DirectAuthContinuation.WebAuthn,
-) : DirectAuthenticationState(delegate) {
+) : DirectAuthenticationState(delegate),
+    Closeable {
     private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     /**
@@ -69,4 +74,14 @@ class WebAuthnContinuation(
         coroutineScope.future {
             delegate.proceed(assertionResponse).toJvm()
         }
+
+    /**
+     * Closes this continuation, cancelling the in-flight [proceedAsync] call if any.
+     *
+     * The pending [CompletableFuture] will complete exceptionally with
+     * [java.util.concurrent.CancellationException].
+     */
+    override fun close() {
+        coroutineScope.cancel()
+    }
 }

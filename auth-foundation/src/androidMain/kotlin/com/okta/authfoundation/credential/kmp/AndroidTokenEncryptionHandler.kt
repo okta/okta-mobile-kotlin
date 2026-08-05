@@ -108,15 +108,16 @@ class AndroidTokenEncryptionHandler(
 
     override suspend fun encrypt(plaintext: ByteArray): EncryptionResult {
         ensureKeyExists()
-        val publicRsaKey =
+        val certificatePublicKey =
             keyStore.getCertificate(keyAlias)?.publicKey
                 ?: throw KeyPermanentlyInvalidatedException("No public key found for alias $keyAlias")
 
         // workaround for using public key from
         // https://developer.android.com/reference/android/security/keystore/KeyGenParameterSpec.html#known-issues
-        KeyFactory
-            .getInstance(publicRsaKey.algorithm)
-            .generatePublic(X509EncodedKeySpec(publicRsaKey.encoded))
+        val publicRsaKey =
+            KeyFactory
+                .getInstance(certificatePublicKey.algorithm)
+                .generatePublic(X509EncodedKeySpec(certificatePublicKey.encoded))
 
         val envelope = KeystoreEnvelopeCrypto.encrypt(plaintext, publicRsaKey)
         return EncryptionResult(envelope.ciphertext, envelope.extras)

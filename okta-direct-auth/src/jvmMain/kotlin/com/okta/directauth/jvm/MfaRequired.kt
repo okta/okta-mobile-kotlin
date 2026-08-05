@@ -20,7 +20,9 @@ import com.okta.directauth.model.SecondaryFactor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.future.future
+import java.io.Closeable
 import java.util.concurrent.CompletableFuture
 import com.okta.directauth.model.DirectAuthenticationState as KotlinDirectAuthenticationState
 
@@ -29,11 +31,14 @@ import com.okta.directauth.model.DirectAuthenticationState as KotlinDirectAuthen
  *
  * Provides async methods for MFA challenge and resume operations.
  *
+ * Must be [closed][close] when no longer needed to release coroutine resources.
+ *
  * @param delegate The underlying Kotlin [KotlinDirectAuthenticationState.MfaRequired] instance.
  */
 class MfaRequired(
     private val delegate: KotlinDirectAuthenticationState.MfaRequired,
-) : com.okta.directauth.jvm.DirectAuthenticationState(delegate) {
+) : com.okta.directauth.jvm.DirectAuthenticationState(delegate),
+    Closeable {
     private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     /**
@@ -87,4 +92,14 @@ class MfaRequired(
         coroutineScope.future {
             delegate.resume(secondaryFactor, challengeTypesSupported).toJvm()
         }
+
+    /**
+     * Closes this continuation, cancelling any in-flight [challengeAsync]/[resumeAsync] call.
+     *
+     * The pending [CompletableFuture] will complete exceptionally with
+     * [java.util.concurrent.CancellationException].
+     */
+    override fun close() {
+        coroutineScope.cancel()
+    }
 }
