@@ -36,9 +36,6 @@ import okhttp3.Request
  * 2. A simple user code they can easily enter on that secondary device.
  *
  * Upon visiting that URL and entering in the code, the user is prompted to sign in using their standard credentials. Upon completing authentication, the device automatically signs the user in, without any direct interaction on the user's part.
- *
- * @deprecated This Android-only DeviceAuthorizationFlow is deprecated in favor of the KMP variant, which
- * works on Android and JVM. Use [com.okta.oauth2.kmp.DeviceAuthorizationFlow] instead.
  */
 @Deprecated(
     message =

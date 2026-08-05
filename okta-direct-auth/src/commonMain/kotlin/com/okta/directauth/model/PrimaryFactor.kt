@@ -25,7 +25,8 @@ sealed interface SecondaryFactor : PrimaryFactor
  * Represents an authentication factor used in a Direct Authentication flow.
  *
  * Factors are categorized as either Primary or Secondary to support multi-stage
- * authentication workflows.
+ * authentication workflows. Every [SecondaryFactor] is also a valid primary factor;
+ * only [Password] is primary-only.
  */
 sealed interface PrimaryFactor {
     /**
@@ -58,6 +59,11 @@ sealed interface PrimaryFactor {
     /**
      * A WebAuthn factor, used for phishing-resistant authentication with hardware
      * authenticators or biometrics.
+     *
+     * Using this factor causes the flow to enter a
+     * [com.okta.directauth.model.DirectAuthContinuation.WebAuthn] state; call its `proceed()`
+     * with a [com.okta.directauth.api.WebAuthnCeremonyHandler] (e.g. `AndroidWebAuthnCeremonyHandler`)
+     * to run the passkey ceremony and exchange the assertion for tokens.
      */
     data object WebAuthn : SecondaryFactor
 }

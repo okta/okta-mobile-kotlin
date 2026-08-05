@@ -11,6 +11,7 @@ This module is **Android only**.
 ## Table of Contents
 
 - [Installation](#installation)
+- [Usage](#usage)
 - [Redirect scheme configuration](#redirect-scheme-configuration)
 - [Troubleshooting](#troubleshooting)
 
@@ -18,11 +19,48 @@ This module is **Android only**.
 
 ```kotlin
 dependencies {
-    implementation(platform("com.okta.kotlin:bom:2.0.5"))
+    implementation(platform("com.okta.kotlin:bom:3.0.0"))
     implementation("com.okta.kotlin:auth-foundation")
     implementation("com.okta.kotlin:oauth2")
     implementation("com.okta.kotlin:web-authentication-ui")
 }
+```
+
+## Usage
+
+Construct `WebAuthentication` with a KMP `OAuth2Client` from `auth-foundation`, then call `login`
+from an `Activity` context to sign in, and `logoutOfBrowser` to sign out:
+
+```kotlin
+import com.okta.authfoundation.client.OAuth2ClientBuilder
+import com.okta.webauthenticationui.WebAuthentication
+
+val client = OAuth2ClientBuilder.create(
+    issuerUrl = "https://your-org.okta.com",
+    clientId = "your-client-id",
+    scope = listOf("openid", "profile", "email", "offline_access")
+).getOrThrow()
+
+val webAuthentication = WebAuthentication(client)
+
+// Sign in (call from an Activity):
+val tokenInfo = webAuthentication.login(
+    context = activity,
+    redirectUrl = "com.okta.sample.android:/login",
+    scope = listOf("openid", "profile", "email", "offline_access")
+).getOrElse { error ->
+    // Handle error, e.g. WebAuthentication.FlowCancelledException if the user dismissed the browser
+    return
+}
+val accessToken = tokenInfo.accessToken
+
+// Sign out, using the idToken obtained from login above:
+val idToken = tokenInfo.idToken ?: return
+webAuthentication.logoutOfBrowser(
+    context = activity,
+    redirectUrl = "com.okta.sample.android:/logout",
+    idToken = idToken
+)
 ```
 
 ## Redirect scheme configuration

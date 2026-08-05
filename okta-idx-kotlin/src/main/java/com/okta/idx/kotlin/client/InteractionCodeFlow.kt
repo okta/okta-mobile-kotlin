@@ -43,8 +43,17 @@ import com.okta.idx.kotlin.dto.v1.Response as V1Response
 
 /**
  * The InteractionCodeFlow class is used to define and initiate an authentication workflow utilizing the Okta Identity Engine.
+ *
+ * Usage: call [start] to begin the workflow, then [resume] to retrieve the initial [IdxResponse]. From there, repeatedly set the
+ * desired form field values on a remediation and call [proceed] to advance through the workflow until [IdxResponse.isLoginSuccessful]
+ * is `true`, then call [exchangeInteractionCodeForTokens] to obtain tokens. All of these are `suspend` functions and must be called
+ * from a coroutine. An [InteractionCodeFlow] instance is stateful: it retains the context created by [start] and must not be reused
+ * concurrently for unrelated authentication attempts.
+ *
+ * @constructor Initializes a new [InteractionCodeFlow], using the given [client].
  */
 class InteractionCodeFlow(
+    /** The [OAuth2Client] used to make authorization-server requests for this flow. */
     val client: OAuth2Client,
 ) {
     companion object {
@@ -112,6 +121,10 @@ class InteractionCodeFlow(
      * Resumes the authentication state to identify the available remediation steps.
      *
      * This method is usually performed after an InteractionCodeFlow is created, but can also be called at any time to identify what next remediation steps are available to the user.
+     *
+     * Must be called after [start]; otherwise returns an [OAuth2ClientResult.Error].
+     *
+     * @return [OAuth2ClientResult.Success] wrapping the current [IdxResponse], or [OAuth2ClientResult.Error] on failure.
      */
     suspend fun resume(): OAuth2ClientResult<IdxResponse> {
         if (!::flowContext.isInitialized) {
@@ -132,9 +145,12 @@ class InteractionCodeFlow(
     }
 
     /**
-     * Executes the remediation option and proceeds through the workflow using the supplied form parameters.
+     * Executes the given remediation and advances the workflow using the values currently set on its form fields.
      *
-     * This method is used to proceed through the authentication flow, using the data assigned to the nested fields' `value` to make selections.
+     * Set each required [IdxRemediation.Form.Field.value] (and `selectedOption` for option fields) before calling.
+     *
+     * @param remediation the remediation to submit, obtained from [IdxResponse.remediations].
+     * @return [OAuth2ClientResult.Success] wrapping the next [IdxResponse], or [OAuth2ClientResult.Error] on failure.
      */
     suspend fun proceed(remediation: IdxRemediation): OAuth2ClientResult<IdxResponse> {
         val request =
@@ -167,7 +183,10 @@ class InteractionCodeFlow(
     }
 
     /**
-     * Exchange the IdxRemediation.Type.ISSUE remediation type for tokens.
+     * Exchanges the [IdxRemediation.Type.ISSUE] remediation for tokens once [IdxResponse.isLoginSuccessful] is `true`.
+     *
+     * @param remediation the [IdxRemediation.Type.ISSUE] remediation from the successful [IdxResponse].
+     * @return [OAuth2ClientResult.Success] wrapping the [Token], or [OAuth2ClientResult.Error] whose exception is an [IllegalStateException] if the flow was not started or the remediation is not of type [IdxRemediation.Type.ISSUE].
      */
     suspend fun exchangeInteractionCodeForTokens(remediation: IdxRemediation): OAuth2ClientResult<Token> {
         if (!::flowContext.isInitialized) {
@@ -189,6 +208,9 @@ class InteractionCodeFlow(
 
     /**
      * Evaluates the given redirect url to determine what next steps can be performed. This is usually used when receiving a redirection from an IDP authentication flow.
+     *
+     * @param uri the redirect [Uri] received from the browser or IDP redirection.
+     * @return [IdxRedirectResult.Tokens] if the redirect completed authentication and tokens were exchanged, [IdxRedirectResult.InteractionRequired] if further interaction is needed and the resumed [IdxResponse] is returned, or [IdxRedirectResult.Error] if the redirect could not be handled or the underlying request failed.
      */
     suspend fun evaluateRedirectUri(uri: Uri): IdxRedirectResult {
         if (!::flowContext.isInitialized) {

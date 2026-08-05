@@ -61,6 +61,12 @@ internal data class WebAuthnChallengeResponse(
 /**
  * Represents an authenticator enrollment returned from the Okta server
  * as part of a WebAuthn challenge response.
+ *
+ * @property credentialId Base64url-encoded identifier of a passkey the user has already
+ * registered; used to scope the WebAuthn assertion to enrolled credentials.
+ * @property displayName A human-readable name for the enrolled authenticator, if the server
+ * provided one.
+ * @property profile Additional server-supplied metadata about the enrollment, if any.
  */
 @Serializable
 data class AuthenticatorEnrollment(

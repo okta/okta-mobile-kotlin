@@ -34,6 +34,8 @@ import com.okta.directauth.api.DirectAuthenticationFlow as KotlinDirectAuthentic
  * This class provides async methods returning [CompletableFuture] and
  * a listener-based API for observing authentication state changes.
  *
+ * Kotlin callers should use the coroutine-based [com.okta.directauth.api.DirectAuthenticationFlow] instead.
+ *
  * @param delegate The underlying Kotlin [KotlinDirectAuthenticationFlow] instance.
  */
 class DirectAuthenticationFlow internal constructor(
@@ -82,6 +84,9 @@ class DirectAuthenticationFlow internal constructor(
 
     /**
      * Registers a listener that is notified whenever the authentication state changes.
+     *
+     * The listener is invoked on a background thread; dispatch to your UI thread if you
+     * update UI in response.
      *
      * @param listener A [Consumer] that receives [DirectAuthenticationState] updates.
      * @return A [Closeable] that, when closed, removes the listener.

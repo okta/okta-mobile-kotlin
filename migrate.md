@@ -36,12 +36,12 @@ when (val result = LegacyTokenMigration.migrate(context, sessionClient)) {
     is LegacyTokenMigration.Result.PreviouslyMigrated -> {
         TODO("Contains ${result.tokenId} for referencing stored token in CredentialDataSource")
         // Optionally set this as default Credential as follows
-        Credential.with(result.tokenId())?.let { Credential.setDefaultCredential(it) }
+        Credential.with(result.tokenId)?.let { Credential.default = it }
     }
     is LegacyTokenMigration.Result.SuccessfullyMigrated -> {
         TODO("Contains ${result.tokenId} for referencing stored token in CredentialDataSource")
         // Optionally set this as default Credential as follows
-        Credential.with(result.tokenId())?.let { Credential.setDefaultCredential(it) }
+        Credential.with(result.tokenId)?.let { Credential.default = it }
     }
 }
 ```

@@ -20,7 +20,7 @@ import com.okta.authfoundation.events.CredentialEvent
 import com.okta.authfoundation.events.EventHandler
 
 /**
- * Emitted via [EventHandler.onEvent] when a [CredentialIdentifier] has been created via a createCredential call.
+ * Emitted via [EventHandler.onEvent] when a credential has been created (e.g. via `TokenCredentialManager.store`).
  */
 class CredentialCreatedEvent internal constructor(
     /**

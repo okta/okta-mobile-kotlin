@@ -29,10 +29,15 @@ class IdxUser internal constructor(
     /** Profile information for this user, if available. */
     val profile: Profile?,
 ) {
+    /** Profile information about the user being authenticated, when the server provides it. */
     class Profile internal constructor(
+        /** The user's given (first) name, if available. */
         val firstName: String?,
+        /** The user's family (last) name, if available. */
         val lastName: String?,
+        /** The user's configured time zone, if available. */
         val timeZone: TimeZone?,
+        /** The user's configured locale, if available. */
         val locale: Locale?,
     )
 }

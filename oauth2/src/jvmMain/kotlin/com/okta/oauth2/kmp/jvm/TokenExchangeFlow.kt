@@ -35,7 +35,7 @@ import com.okta.oauth2.kmp.TokenExchangeFlow as KotlinTokenExchangeFlow
  * Typical Java usage:
  * ```java
  * TokenExchangeFlow flow = new TokenExchangeFlow(kmpClient);
- * TokenInfo token = flow.start(idToken, deviceSecret, null, scope).get();
+ * TokenInfo token = flow.start(idToken, deviceSecret, scope, null).get();
  * flow.close();
  * ```
  *
@@ -60,8 +60,8 @@ class TokenExchangeFlow(
      *
      * @param idToken the ID token for the user.
      * @param deviceSecret the device secret from a previous authentication flow.
-     * @param audience optional audience; pass null to omit from the request.
      * @param scope the scopes to request.
+     * @param audience optional audience; pass null to omit from the request.
      * @return a [CompletableFuture] that completes with [TokenInfo] on success,
      *   or completes exceptionally on failure.
      */

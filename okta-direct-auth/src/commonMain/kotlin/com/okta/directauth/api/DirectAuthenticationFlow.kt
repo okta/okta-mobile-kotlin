@@ -22,12 +22,17 @@ import kotlinx.coroutines.flow.StateFlow
 /**
  * The primary interface for interacting with the Okta Direct Authentication API.
  *
- * This interface defines the contract for initiating an authentication flow. An instance
- * of this interface can be created using the `DirectAuthenticationFlow.create` builder.
+ * This interface defines the contract for initiating an authentication flow. An instance is
+ * created via [com.okta.directauth.DirectAuthenticationFlowBuilder.create]. Kotlin callers
+ * should prefer this coroutine-based API; Java callers should use
+ * [com.okta.directauth.jvm.DirectAuthenticationFlow], which exposes CompletableFuture-based
+ * methods.
  */
 interface DirectAuthenticationFlow {
     /**
-     * Indicates authentication flow state
+     * A [StateFlow] emitting the current [DirectAuthenticationState]; collect it to observe
+     * every transition driven by `start()`, `reset()`, and the various
+     * `proceed()`/`challenge()`/`resume()` calls. Starts at [DirectAuthenticationState.Idle].
      */
     val authenticationState: StateFlow<DirectAuthenticationState>
 
@@ -41,7 +46,10 @@ interface DirectAuthenticationFlow {
      * @param loginHint A hint to the authorization server about the user's identity,
      *  such as a username or email address.
      * @param primaryFactor The initial authentication factor to use (e.g., a [PrimaryFactor.Password]).
-     * @return The [DirectAuthenticationState] of the flow
+     * @return the resulting [DirectAuthenticationState] — [DirectAuthenticationState.Authenticated] on immediate
+     * success, [DirectAuthenticationState.MfaRequired] or a [com.okta.directauth.model.DirectAuthContinuation] when
+     * more steps are needed, or a [com.okta.directauth.model.DirectAuthenticationError] on failure. Errors are
+     * returned as states, never thrown (cancellation excepted). Suspends until the server responds.
      */
     suspend fun start(
         loginHint: String,
@@ -49,9 +57,10 @@ interface DirectAuthenticationFlow {
     ): DirectAuthenticationState
 
     /**
-     * Resets the direct authentication flow
+     * Resets the direct authentication flow.
      *
-     * @return The [DirectAuthenticationState] of the flow
+     * @return [DirectAuthenticationState.Idle]. This is not a suspending call; it both returns and
+     * emits (via [authenticationState]) the idle state synchronously.
      */
     fun reset(): DirectAuthenticationState
 }

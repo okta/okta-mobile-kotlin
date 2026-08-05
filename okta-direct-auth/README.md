@@ -31,24 +31,22 @@ Unlike browser-based authentication flows, Direct Authentication gives you full 
 - One-Time Passcode (OTP)
 - Out-of-Band authentication (Push, SMS, Voice)
 - WebAuthn/Passkeys
-- multifactor authentication (MFA)
+- Multi-Factor authentication (MFA)
 - Self-Service Password Recovery (SSPR)
 
 ## Requirements
 
-- Android API 23+
+- Android API 26+ (Android target) or Java 11+ (JVM target) — you only need the one matching your platform
 - Okta org with Direct Authentication enabled
 - Client application configured for Direct Authentication grant types
 
 ## Installation
 
-**Current Version: 0.0.1**
-
-Add the dependency to your `build.gradle.kts`:
-
 ```kotlin
 dependencies {
-    implementation("com.okta.kotlin:okta-direct-auth:0.0.1")
+    implementation(platform("com.okta.kotlin:bom:3.0.0"))
+    implementation("com.okta.kotlin:auth-foundation")
+    implementation("com.okta.kotlin:okta-direct-auth")
 }
 ```
 
@@ -149,8 +147,8 @@ Start authentication by calling `start()` with a username and primary factor:
 import com.okta.directauth.model.PrimaryFactor
 
 directAuth.start(
-    username = "user@example.com",
-    factor = PrimaryFactor.Password("user-password")
+    loginHint = "user@example.com",
+    primaryFactor = PrimaryFactor.Password("user-password")
 )
 ```
 
@@ -158,8 +156,8 @@ directAuth.start(
 
 ```kotlin
 directAuth.start(
-    username = "user@example.com",
-    factor = PrimaryFactor.Otp("123456")
+    loginHint = "user@example.com",
+    primaryFactor = PrimaryFactor.Otp("123456")
 )
 ```
 
@@ -170,20 +168,20 @@ import com.okta.directauth.model.OobChannel
 
 // Okta Verify Push
 directAuth.start(
-    username = "user@example.com",
-    factor = PrimaryFactor.Oob(OobChannel.PUSH)
+    loginHint = "user@example.com",
+    primaryFactor = PrimaryFactor.Oob(OobChannel.PUSH)
 )
 
 // SMS
 directAuth.start(
-    username = "user@example.com",
-    factor = PrimaryFactor.Oob(OobChannel.SMS)
+    loginHint = "user@example.com",
+    primaryFactor = PrimaryFactor.Oob(OobChannel.SMS)
 )
 
 // Voice Call
 directAuth.start(
-    username = "user@example.com",
-    factor = PrimaryFactor.Oob(OobChannel.VOICE)
+    loginHint = "user@example.com",
+    primaryFactor = PrimaryFactor.Oob(OobChannel.VOICE)
 )
 ```
 
@@ -191,8 +189,8 @@ directAuth.start(
 
 ```kotlin
 directAuth.start(
-    username = "user@example.com",
-    factor = PrimaryFactor.WebAuthn
+    loginHint = "user@example.com",
+    primaryFactor = PrimaryFactor.WebAuthn
 )
 ```
 
@@ -207,20 +205,20 @@ when (val state = directAuth.authenticationState.value) {
     is DirectAuthenticationState.MfaRequired -> {
         // Resume with OTP
         state.resume(
-            factor = PrimaryFactor.Otp("123456"),
-            grantTypesForChallengeTypes = listOf(ChallengeGrantType.OtpMfa)
+            secondaryFactor = PrimaryFactor.Otp("123456"),
+            challengeTypesSupported = listOf(ChallengeGrantType.OtpMfa)
         )
 
         // Or resume with Push notification
         state.resume(
-            factor = PrimaryFactor.Oob(OobChannel.PUSH),
-            grantTypesForChallengeTypes = listOf(ChallengeGrantType.OobMfa)
+            secondaryFactor = PrimaryFactor.Oob(OobChannel.PUSH),
+            challengeTypesSupported = listOf(ChallengeGrantType.OobMfa)
         )
 
         // Or resume with WebAuthn
         state.resume(
-            factor = PrimaryFactor.WebAuthn,
-            grantTypesForChallengeTypes = listOf(ChallengeGrantType.WebAuthnMfa)
+            secondaryFactor = PrimaryFactor.WebAuthn,
+            challengeTypesSupported = listOf(ChallengeGrantType.WebAuthnMfa)
         )
     }
 }
@@ -323,16 +321,19 @@ Authentication errors are emitted as `DirectAuthenticationError`:
 when (val state = directAuth.authenticationState.value) {
     is DirectAuthenticationError -> {
         when (state) {
-            is DirectAuthenticationError.OAuth2Error -> {
-                val errorCode = state.error
+            is DirectAuthenticationError.HttpError.Oauth2Error -> {
+                val error = state.error
                 val errorDescription = state.errorDescription
+                val statusCode = state.httpStatusCode
             }
-            is DirectAuthenticationError.HttpError -> {
-                val statusCode = state.statusCode
+            is DirectAuthenticationError.HttpError.ApiError -> {
+                val errorCode = state.errorCode
+                val errorSummary = state.errorSummary
+                val statusCode = state.httpStatusCode
             }
             is DirectAuthenticationError.InternalError -> {
                 val errorCode = state.errorCode
-                val exception = state.exception
+                val throwable = state.throwable
             }
         }
     }
@@ -540,10 +541,25 @@ if (state instanceof PromptContinuation) {
 
 ### Handling Errors (Java)
 
+Error states are exposed as subtypes of `DirectAuthenticationState.Error` (a Java-friendly wrapper
+distinct from the Kotlin `DirectAuthenticationError`):
+
 ```java
-if (state instanceof DirectAuthenticationState.Error) {
-    DirectAuthenticationState.Error error = (DirectAuthenticationState.Error) state;
-    // Check specific error subtypes
+if (state instanceof DirectAuthenticationState.Error.InternalError) {
+    DirectAuthenticationState.Error.InternalError error =
+        (DirectAuthenticationState.Error.InternalError) state;
+    String errorCode = error.getErrorCode();
+    Throwable throwable = error.getThrowable();
+} else if (state instanceof DirectAuthenticationState.Error.HttpError.Oauth2Error) {
+    DirectAuthenticationState.Error.HttpError.Oauth2Error error =
+        (DirectAuthenticationState.Error.HttpError.Oauth2Error) state;
+    String oauthError = error.getError();
+    String description = error.getErrorDescription();
+} else if (state instanceof DirectAuthenticationState.Error.HttpError.ApiError) {
+    DirectAuthenticationState.Error.HttpError.ApiError error =
+        (DirectAuthenticationState.Error.HttpError.ApiError) state;
+    String errorCode = error.getErrorCode();
+    String errorSummary = error.getErrorSummary();
 }
 ```
 

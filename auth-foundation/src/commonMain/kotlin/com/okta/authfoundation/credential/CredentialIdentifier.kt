@@ -18,9 +18,9 @@ package com.okta.authfoundation.credential
 /**
  * Minimal identity contract for credentials.
  *
- * Both the cross-platform [Credential] and the Android-specific
- * [Credential][com.okta.authfoundation.credential.Credential] implement this interface,
- * allowing credential lifecycle events to reference either type.
+ * Both the cross-platform [Credential][com.okta.authfoundation.credential.kmp.Credential] and
+ * the Android-specific [Credential][com.okta.authfoundation.credential.Credential] implement
+ * this interface, allowing credential lifecycle events to reference either type.
  */
 interface CredentialIdentifier {
     /** Unique identifier for this credential. */

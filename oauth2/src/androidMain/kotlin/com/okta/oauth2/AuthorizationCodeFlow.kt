@@ -31,10 +31,6 @@ import java.util.UUID
  * [AuthorizationCodeFlow] encapsulates the behavior required to authentication using an OIDC Browser redirect flow.
  *
  * See [Authorization Code Flow documentation](https://developer.okta.com/docs/guides/implement-grant-type/authcodepkce/main/#about-the-authorization-code-grant-with-pkce)
- *
- * @deprecated This Android-only AuthorizationCodeFlow is deprecated in favor of the KMP variant, which works
- * on Android and JVM. Use [com.okta.oauth2.kmp.AuthorizationCodeFlow] instead, or the higher-level
- * [com.okta.webauthenticationui.WebAuthentication] which is already KMP-backed.
  */
 @Deprecated(
     message =

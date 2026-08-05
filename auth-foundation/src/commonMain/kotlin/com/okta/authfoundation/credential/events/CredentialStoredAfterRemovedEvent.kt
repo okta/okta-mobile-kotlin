@@ -20,7 +20,7 @@ import com.okta.authfoundation.events.CredentialEvent
 import com.okta.authfoundation.events.EventHandler
 
 /**
- * Emitted via [EventHandler.onEvent] when a [CredentialIdentifier.replaceToken] was invoked after a [CredentialIdentifier.delete] call.
+ * Emitted via [EventHandler.onEvent] when a credential's token is replaced after the credential was deleted.
  */
 class CredentialStoredAfterRemovedEvent internal constructor(
     /**

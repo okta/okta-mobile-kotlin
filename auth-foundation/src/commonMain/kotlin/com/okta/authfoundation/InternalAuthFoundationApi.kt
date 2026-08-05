@@ -15,6 +15,7 @@
  */
 package com.okta.authfoundation
 
+/** Marks an API as internal to Okta SDKs; not covered by compatibility guarantees. */
 @Retention(value = AnnotationRetention.BINARY)
 @Target(
     AnnotationTarget.CLASS,

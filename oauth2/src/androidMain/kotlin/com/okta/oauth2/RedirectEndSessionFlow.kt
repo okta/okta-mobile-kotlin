@@ -28,10 +28,6 @@ import java.util.UUID
  * [RedirectEndSessionFlow] encapsulates the behavior required to logout using an OIDC Browser redirect flow.
  *
  * > Note: OIDC Logout terminology is nuanced, see [Logout Documentation](https://github.com/okta/okta-mobile-kotlin#logout) for additional details.
- *
- * @deprecated This Android-only RedirectEndSessionFlow is deprecated in favor of the KMP variant, which
- * works on Android and JVM. Use [com.okta.oauth2.kmp.RedirectEndSessionFlow] instead, or the higher-level
- * [com.okta.webauthenticationui.WebAuthentication.logoutOfBrowser] which is already KMP-backed.
  */
 @Deprecated(
     message =

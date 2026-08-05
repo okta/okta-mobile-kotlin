@@ -30,9 +30,9 @@ import kotlinx.coroutines.flow.Flow
  * Instances are **immutable snapshots**: [token], [tags], and [id] never change after construction.
  * Methods that modify credential state return a [Result] containing a new [Credential] snapshot.
  *
- * On Android, the existing [Credential][com.okta.authfoundation.credential.Credential] class
- * implements this interface while preserving mutable internal behavior as a transitional adapter.
- * On JVM and other KMP targets, [CredentialImpl] provides the default immutable implementation.
+ * On JVM and other KMP targets, [CredentialImpl] is the implementation. The Android-only
+ * [Credential][com.okta.authfoundation.credential.Credential] is a separate, deprecated type
+ * that shares only the [CredentialIdentifier] contract — it does not implement this interface.
  */
 interface Credential : CredentialIdentifier {
     /** Unique identifier for this credential. */

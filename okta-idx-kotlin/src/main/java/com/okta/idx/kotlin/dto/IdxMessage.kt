@@ -32,9 +32,9 @@ class IdxMessage internal constructor(
     /** The type of message received from the server. */
     val type: Severity,
     /**
-     * A localization key representing this message.
+     * A localization key representing this message, or `null` if the server did not supply one.
      *
-     * This allows the text represented by this message to be customized or localized as needed.
+     * When present, this allows the text represented by this message to be customized or localized. When `null`, fall back to [message].
      */
     val localizationKey: String?,
     /** The default text for this message. */

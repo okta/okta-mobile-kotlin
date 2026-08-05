@@ -27,6 +27,8 @@ import com.okta.directauth.DirectAuthenticationFlowBuilder as KotlinBuilder
  * This builder provides method-chaining setters for optional parameters and delegates
  * to the Kotlin [KotlinBuilder] for the actual construction.
  *
+ * Kotlin callers should use [com.okta.directauth.DirectAuthenticationFlowBuilder] instead.
+ *
  * @param issuerUrl The base URL of the Authorization Server.
  * @param clientId The client ID of the application.
  * @param scope The OAuth 2.0 scopes the application is requesting.

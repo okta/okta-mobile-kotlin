@@ -55,7 +55,7 @@ sealed interface DirectAuthenticationState {
      * This state indicates that the authentication process is still pending and awaiting user action.
      * Such as waiting for the user to complete an out-of-band (OOB) authentication step.
      *
-     * @param timestamp The time in milliseconds when the authorization became pending.
+     * @param timestamp The time in epoch seconds when the authorization became pending.
      */
     class AuthorizationPending internal constructor(
         val timestamp: Long,

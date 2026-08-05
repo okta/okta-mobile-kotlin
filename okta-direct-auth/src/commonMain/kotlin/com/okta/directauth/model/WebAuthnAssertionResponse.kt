@@ -22,6 +22,10 @@ package com.okta.directauth.model
  * assertion (authentication) ceremony. The values are base64url-encoded as specified by the
  * WebAuthn standard.
  *
+ * These fields map 1:1 to the platform authenticator's `AuthenticatorAssertionResponse`
+ * (clientDataJSON/authenticatorData/signature/userHandle), for developers hand-rolling the
+ * ceremony instead of using a [com.okta.directauth.api.WebAuthnCeremonyHandler].
+ *
  * @param clientDataJSON The base64url-encoded client data JSON from the authenticator response.
  * @param authenticatorData The base64url-encoded authenticator data.
  * @param signature The base64url-encoded signature.

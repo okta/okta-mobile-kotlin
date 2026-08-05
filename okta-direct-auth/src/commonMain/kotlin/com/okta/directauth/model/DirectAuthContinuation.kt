@@ -30,14 +30,6 @@ import kotlin.time.Duration.Companion.seconds
 /**
  * Represents a state in the Direct Authentication flow where further action is required to proceed.
  *
- * This is a special type of [DirectAuthenticationState] that indicates the flow is paused,
- * pending input from the user or another client-side process.
- *
- * In the case of a failure, the state will be an instance of [DirectAuthenticationError].
- * This can be an [DirectAuthenticationError.HttpError] for API-related issues (e.g., invalid
- * credentials) or an [DirectAuthenticationError.InternalError] for unexpected client-side
- * problems (e.g., network failures, response parsing errors).
- *
  * @param context The [DirectAuthenticationContext] associated with this state.
  * @param mfaContext An optional context for MFA flows, which may be present if the continuation
  * is part of a multi-factor sequence.
@@ -140,7 +132,9 @@ sealed class DirectAuthContinuation(
             }
 
         /**
-         * The list of authenticator enrollments returned from the Okta server.
+         * The list of authenticator enrollments returned from the Okta server, or `null` if the
+         * challenge response did not include any. Use these to scope or disambiguate which
+         * enrolled passkey the WebAuthn ceremony should target.
          */
         val authenticatorEnrollment = webAuthnChallengeResponse.authenticatorEnrollments
 

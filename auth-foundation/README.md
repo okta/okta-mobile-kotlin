@@ -21,7 +21,7 @@ AuthFoundation is the core Okta Mobile Kotlin module for Kotlin Multiplatform au
 
 ```kotlin
 dependencies {
-    implementation(platform("com.okta.kotlin:bom:2.0.5"))
+    implementation(platform("com.okta.kotlin:bom:3.0.0"))
     implementation("com.okta.kotlin:auth-foundation")
 }
 ```

@@ -21,6 +21,9 @@ import com.okta.authfoundation.client.kmp.OAuth2Client
 /**
  * Implements the Session Token authentication flow.
  *
+ * Use this flow to exchange a session token issued by the legacy Okta Authn API for OIDC tokens, for example
+ * when migrating a user session established through the Authn API into this SDK's token-based flows.
+ *
  * Exchanges a session token (obtained from the Okta legacy Authn API) for OAuth2 tokens by:
  * 1. Building an authorization URL with the session token as an extra parameter.
  * 2. Making a GET request to the authorization URL and capturing the redirect `Location` header.
@@ -37,9 +40,9 @@ interface SessionTokenFlow {
      *
      * @param sessionToken the session token obtained from Okta legacy Authn APIs.
      * @param redirectUrl the redirect URL registered with the authorization server.
-     * @param extraRequestParameters additional key-value pairs appended to the authorization URL.
      * @param scope the scopes to request. If omitted, the client's configured
      * default scopes are used.
+     * @param extraRequestParameters additional key-value pairs appended to the authorization URL.
      * @return [Result.success] with [TokenInfo] on success, or [Result.failure] on error.
      */
     suspend fun start(

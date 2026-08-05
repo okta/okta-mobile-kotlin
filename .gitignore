@@ -10,3 +10,4 @@ build/
 local.properties
 e2eCredentials.yaml
 /htmlReport
+/.release-drafts/
