@@ -156,7 +156,9 @@ sealed class DirectAuthContinuation(
         suspend fun proceed(handler: WebAuthnCeremonyHandler): DirectAuthenticationState {
             val data =
                 challengeData().getOrElse {
-                    return DirectAuthenticationError.InternalError(EXCEPTION, "Challenge data retrieval failed: ${it.message}", it)
+                    val error = DirectAuthenticationError.InternalError(EXCEPTION, "Challenge data retrieval failed: ${it.message}", it)
+                    context.authenticationStateFlow.value = error
+                    return error
                 }
             val assertionResponse =
                 handler.performAssertion(data).getOrElse {

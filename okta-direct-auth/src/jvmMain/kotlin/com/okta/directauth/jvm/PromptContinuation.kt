@@ -19,7 +19,9 @@ import com.okta.directauth.model.DirectAuthContinuation
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.future.future
+import java.io.Closeable
 import java.util.concurrent.CompletableFuture
 
 /**
@@ -27,11 +29,14 @@ import java.util.concurrent.CompletableFuture
  *
  * Provides an async method for submitting a user-provided code.
  *
+ * Must be [closed][close] when no longer needed to release coroutine resources.
+ *
  * @param delegate The underlying Kotlin [DirectAuthContinuation.Prompt] instance.
  */
 class PromptContinuation(
     private val delegate: DirectAuthContinuation.Prompt,
-) : DirectAuthenticationState(delegate) {
+) : DirectAuthenticationState(delegate),
+    Closeable {
     private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     /**
@@ -49,4 +54,14 @@ class PromptContinuation(
         coroutineScope.future {
             delegate.proceed(code).toJvm()
         }
+
+    /**
+     * Closes this continuation, cancelling the in-flight [proceedAsync] call if any.
+     *
+     * The pending [CompletableFuture] will complete exceptionally with
+     * [java.util.concurrent.CancellationException].
+     */
+    override fun close() {
+        coroutineScope.cancel()
+    }
 }

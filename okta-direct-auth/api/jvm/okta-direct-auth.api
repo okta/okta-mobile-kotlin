@@ -223,36 +223,41 @@ public final class com/okta/directauth/jvm/DirectAuthenticationState$Error$Inter
 public final class com/okta/directauth/jvm/DirectAuthenticationState$Idle : com/okta/directauth/jvm/DirectAuthenticationState {
 }
 
-public final class com/okta/directauth/jvm/MfaRequired : com/okta/directauth/jvm/DirectAuthenticationState {
+public final class com/okta/directauth/jvm/MfaRequired : com/okta/directauth/jvm/DirectAuthenticationState, java/io/Closeable {
 	public fun <init> (Lcom/okta/directauth/model/DirectAuthenticationState$MfaRequired;)V
 	public final fun challengeAsync (Lcom/okta/directauth/model/SecondaryFactor;)Ljava/util/concurrent/CompletableFuture;
 	public final fun challengeAsync (Lcom/okta/directauth/model/SecondaryFactor;Ljava/util/List;)Ljava/util/concurrent/CompletableFuture;
+	public fun close ()V
 	public final fun resumeAsync (Lcom/okta/directauth/model/SecondaryFactor;)Ljava/util/concurrent/CompletableFuture;
 	public final fun resumeAsync (Lcom/okta/directauth/model/SecondaryFactor;Ljava/util/List;)Ljava/util/concurrent/CompletableFuture;
 }
 
-public final class com/okta/directauth/jvm/OobPendingContinuation : com/okta/directauth/jvm/DirectAuthenticationState {
+public final class com/okta/directauth/jvm/OobPendingContinuation : com/okta/directauth/jvm/DirectAuthenticationState, java/io/Closeable {
 	public fun <init> (Lcom/okta/directauth/model/DirectAuthContinuation$OobPending;)V
+	public fun close ()V
 	public final fun getExpirationInSeconds ()I
 	public final fun proceedAsync ()Ljava/util/concurrent/CompletableFuture;
 }
 
-public final class com/okta/directauth/jvm/PromptContinuation : com/okta/directauth/jvm/DirectAuthenticationState {
+public final class com/okta/directauth/jvm/PromptContinuation : com/okta/directauth/jvm/DirectAuthenticationState, java/io/Closeable {
 	public fun <init> (Lcom/okta/directauth/model/DirectAuthContinuation$Prompt;)V
+	public fun close ()V
 	public final fun getExpirationInSeconds ()I
 	public final fun proceedAsync (Ljava/lang/String;)Ljava/util/concurrent/CompletableFuture;
 }
 
-public final class com/okta/directauth/jvm/TransferContinuation : com/okta/directauth/jvm/DirectAuthenticationState {
+public final class com/okta/directauth/jvm/TransferContinuation : com/okta/directauth/jvm/DirectAuthenticationState, java/io/Closeable {
 	public fun <init> (Lcom/okta/directauth/model/DirectAuthContinuation$Transfer;)V
+	public fun close ()V
 	public final fun getBindingCode ()Ljava/lang/String;
 	public final fun getExpirationInSeconds ()I
 	public final fun proceedAsync ()Ljava/util/concurrent/CompletableFuture;
 }
 
-public final class com/okta/directauth/jvm/WebAuthnContinuation : com/okta/directauth/jvm/DirectAuthenticationState {
+public final class com/okta/directauth/jvm/WebAuthnContinuation : com/okta/directauth/jvm/DirectAuthenticationState, java/io/Closeable {
 	public fun <init> (Lcom/okta/directauth/model/DirectAuthContinuation$WebAuthn;)V
 	public final fun challengeData-d1pmJ48 ()Ljava/lang/Object;
+	public fun close ()V
 	public final fun getAuthenticatorEnrollment ()Ljava/util/List;
 	public final fun proceedAsync (Lcom/okta/directauth/api/WebAuthnCeremonyHandler;)Ljava/util/concurrent/CompletableFuture;
 	public final fun proceedAsync (Lcom/okta/directauth/model/WebAuthnAssertionResponse;)Ljava/util/concurrent/CompletableFuture;

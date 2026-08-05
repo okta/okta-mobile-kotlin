@@ -39,7 +39,7 @@ import java.util.concurrent.ConcurrentHashMap
  * @param storage the [TokenStorage] for persisting tokens.
  * @param eventsFlow optional shared flow for async broadcast of [TokenStorageAccessErrorEvent].
  * @param onStorageError optional callback invoked when a storage operation throws. Return `true`
- *   to clear storage and retry the failed operation once; return `false` to rethrow.
+ *   to retry the failed operation once; return `false` to rethrow.
  */
 internal class CredentialDataSource(
     private val storage: TokenStorage,

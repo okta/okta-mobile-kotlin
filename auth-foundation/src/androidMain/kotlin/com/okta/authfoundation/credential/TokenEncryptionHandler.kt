@@ -193,13 +193,14 @@ class DefaultTokenEncryptionHandler(
         token: Token,
         security: Credential.Security,
     ): TokenEncryptionHandler.EncryptionResult {
-        val publicRsaKey = keyStore.getCertificate(security.keyAlias)?.publicKey ?: throw KeyPermanentlyInvalidatedException()
+        val certificatePublicKey = keyStore.getCertificate(security.keyAlias)?.publicKey ?: throw KeyPermanentlyInvalidatedException()
 
         // workaround for using public key from
         // https://developer.android.com/reference/android/security/keystore/KeyGenParameterSpec.html#known-issues
-        KeyFactory
-            .getInstance(publicRsaKey.algorithm)
-            .generatePublic(X509EncodedKeySpec(publicRsaKey.encoded))
+        val publicRsaKey =
+            KeyFactory
+                .getInstance(certificatePublicKey.algorithm)
+                .generatePublic(X509EncodedKeySpec(certificatePublicKey.encoded))
 
         val serializedToken =
             OidcConfiguration.defaultJson().encodeToString(Token.serializer(), token)

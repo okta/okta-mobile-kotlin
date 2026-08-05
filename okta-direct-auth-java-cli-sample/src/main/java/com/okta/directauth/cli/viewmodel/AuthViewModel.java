@@ -369,12 +369,17 @@ public final class AuthViewModel implements Closeable {
     } catch (Exception e) {
       CliLogger.error(TAG, "Operation timed out or failed", e);
       notifyError("Operation timed out or failed");
+      // future.get(timeout) only stops waiting — it doesn't cancel the underlying work. Close the
+      // continuation so an OobPendingContinuation/TransferContinuation poll loop doesn't keep
+      // running in the background for its full expirationInSeconds.
+      closeIfCloseable(currentAuthState);
       return null;
     }
   }
 
   @Override
   public void close() {
+    closeIfCloseable(currentAuthState);
     signInFlow.close();
     if (recoveryFlow != null) {
       recoveryFlow.close();
@@ -383,7 +388,11 @@ public final class AuthViewModel implements Closeable {
 
   private void handleAuthState(DirectAuthenticationState state) {
     CliLogger.debug(TAG, "Auth state received: " + state.getClass().getSimpleName());
+    DirectAuthenticationState previous = this.currentAuthState;
     this.currentAuthState = state;
+    if (previous != state) {
+      closeIfCloseable(previous);
+    }
     notifyAuthStateChanged(state);
 
     if (state instanceof DirectAuthenticationState.Authenticated) {
@@ -433,6 +442,22 @@ public final class AuthViewModel implements Closeable {
   private void notifyError(String message) {
     for (AuthViewModelListener listener : listeners) {
       listener.onError(message);
+    }
+  }
+
+  /**
+   * Closes {@code state} if it's a {@link Closeable} continuation wrapper, cancelling any in-flight
+   * {@code *Async} call it's backing.
+   *
+   * @param state the state to close, or null
+   */
+  private static void closeIfCloseable(DirectAuthenticationState state) {
+    if (state instanceof Closeable) {
+      try {
+        ((Closeable) state).close();
+      } catch (IOException ignored) {
+        // These wrappers never actually throw; Closeable's method signature just declares it.
+      }
     }
   }
 
