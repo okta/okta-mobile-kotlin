@@ -59,7 +59,11 @@ class OAuth2ClientConfiguration internal constructor(
      */
     val authorizationServerId: String?,
     /** Optional client secret for confidential clients. */
-    val clientSecret: String?,
+    val clientSecret: String = "",
+    /** Optional client assertion JWT type for private_key_jwt authentication. */
+    val clientAssertionType: String = "",
+    /** Optional client assertion JWT for private_key_jwt authentication. */
+    val clientAssertion: String = "",
     /** Optional ACR values. */
     val acrValues: String?,
     /** Validator for ID tokens. ID tokens are validated after token refresh. */
@@ -70,6 +74,18 @@ class OAuth2ClientConfiguration internal constructor(
     val deviceSecretValidator: DeviceSecretValidator = DefaultDeviceSecretValidator(),
     /** Optional per-endpoint URL overrides. Non-null fields win over discovery results. */
     val endpointOverrides: OAuth2EndpointOverrides? = null,
+    /**
+     * Enables Pushed Authorization Requests (PAR) for browser-based authorization flows.
+     *
+     * When enabled (default), supported flows can use PAR when a custom authorization server
+     * advertises a PAR endpoint.
+     */
+    val enablePushedAuthorizationRequests: Boolean = true,
+    /**
+     * Allows browser-based authorization flows to fall back to the classic authorization request
+     * URL when PAR is optional but unavailable or the push request fails.
+     */
+    val allowPushedAuthorizationRequestFallback: Boolean = true,
     /**
      * Optional callback invoked when an HTTP 429 rate-limit response is received.
      *
@@ -89,4 +105,22 @@ class OAuth2ClientConfiguration internal constructor(
      * ```
      */
     val rateLimitRetryCallback: ((retryCount: Int) -> RateLimitRetryConfig?)? = null,
-)
+) {
+    fun clientAuthenticationFormParameters(): Map<String, String> =
+        when {
+            clientAssertionType.isNotBlank() || clientAssertion.isNotBlank() -> {
+                mapOf(
+                    "client_assertion_type" to clientAssertionType,
+                    "client_assertion" to clientAssertion
+                )
+            }
+
+            clientSecret.isNotBlank() -> {
+                mapOf("client_secret" to clientSecret)
+            }
+
+            else -> {
+                emptyMap()
+            }
+        }
+}

@@ -99,7 +99,13 @@ class OAuth2ClientBuilder private constructor(
     var authorizationServerId: String? = null
 
     /** Optional client secret for confidential clients. */
-    var clientSecret: String? = null
+    var clientSecret: String = ""
+
+    /** Optional client assertion JWT type for private_key_jwt authentication. */
+    var clientAssertionType: String = ""
+
+    /** Optional client assertion JWT for private_key_jwt authentication. */
+    var clientAssertion: String = ""
 
     /** Optional ACR values. */
     var acrValues: String? = null
@@ -130,6 +136,20 @@ class OAuth2ClientBuilder private constructor(
      * @see OAuth2EndpointOverrides
      */
     var endpointOverrides: OAuth2EndpointOverrides? = null
+
+    /**
+     * Enables Pushed Authorization Requests (PAR) for browser-based authorization flows.
+     *
+     * PAR is automatically considered only for custom authorization servers that advertise
+     * `pushed_authorization_request_endpoint`.
+     */
+    var enablePushedAuthorizationRequests: Boolean = true
+
+    /**
+     * Allows browser-based authorization flows to fall back to the classic authorization URL
+     * when PAR is optional and unavailable/fails.
+     */
+    var allowPushedAuthorizationRequestFallback: Boolean = true
 
     /**
      * Optional callback invoked when an HTTP 429 rate-limit response is received.
@@ -183,19 +203,26 @@ class OAuth2ClientBuilder private constructor(
                 val builder = OAuth2ClientBuilder(issuerUrl, clientId, scope)
                 buildAction?.invoke(builder)
 
+                require(builder.clientSecret.isBlank() || (builder.clientAssertionType.isBlank() && builder.clientAssertion.isBlank())) {
+                    "clientSecret cannot be combined with clientAssertionType/clientAssertion."
+                }
+                require(builder.clientAssertionType.isBlank() == builder.clientAssertion.isBlank()) {
+                    "clientAssertionType and clientAssertion must either both be set or both be blank."
+                }
+
                 // Validate endpoint override URLs
                 builder.endpointOverrides?.let { overrides ->
                     fun validateOverrideUrl(
                         value: String?,
                         fieldName: String,
                     ) {
-                        if (value == null) return
-                        require(
-                            runCatching {
-                                val url = Url(value)
-                                url.protocol == URLProtocol.HTTPS && url.host.isNotBlank()
-                            }.getOrDefault(false)
-                        ) { "endpointOverrides.$fieldName must be a valid https URL." }
+                        value?.let {
+                            require(
+                                runCatching {
+                                    with(Url(value)) { protocol == URLProtocol.HTTPS && host.isNotBlank() }
+                                }.getOrDefault(false)
+                            ) { "endpointOverrides.$fieldName must be a valid https URL." }
+                        }
                     }
                     validateOverrideUrl(overrides.authorizationEndpoint, "authorizationEndpoint")
                     validateOverrideUrl(overrides.tokenEndpoint, "tokenEndpoint")
@@ -238,11 +265,15 @@ class OAuth2ClientBuilder private constructor(
             cache = cache,
             authorizationServerId = authorizationServerId,
             clientSecret = clientSecret,
+            clientAssertionType = clientAssertionType,
+            clientAssertion = clientAssertion,
             acrValues = acrValues,
             idTokenValidator = idTokenValidator,
             accessTokenValidator = accessTokenValidator,
             deviceSecretValidator = deviceSecretValidator,
             endpointOverrides = endpointOverrides,
+            enablePushedAuthorizationRequests = enablePushedAuthorizationRequests,
+            allowPushedAuthorizationRequestFallback = allowPushedAuthorizationRequestFallback,
             rateLimitRetryCallback = rateLimitRetryCallback
         )
 }

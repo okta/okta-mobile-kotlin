@@ -169,10 +169,12 @@ public final class com/okta/directauth/jvm/DirectAuthenticationFlowBuilder {
 	public final fun build ()Lcom/okta/directauth/jvm/DirectAuthResult;
 	public final fun setAcrValues (Ljava/util/List;)Lcom/okta/directauth/jvm/DirectAuthenticationFlowBuilder;
 	public final fun setAdditionalParameters (Ljava/util/Map;)Lcom/okta/directauth/jvm/DirectAuthenticationFlowBuilder;
+	public final fun setApiExecutor (Lcom/okta/authfoundation/api/http/ApiExecutor;)Lcom/okta/directauth/jvm/DirectAuthenticationFlowBuilder;
 	public final fun setAuthorizationServerId (Ljava/lang/String;)Lcom/okta/directauth/jvm/DirectAuthenticationFlowBuilder;
 	public final fun setClientSecret (Ljava/lang/String;)Lcom/okta/directauth/jvm/DirectAuthenticationFlowBuilder;
 	public final fun setClock (Lcom/okta/authfoundation/client/OidcClock;)Lcom/okta/directauth/jvm/DirectAuthenticationFlowBuilder;
 	public final fun setIntent (Lcom/okta/directauth/model/DirectAuthenticationIntent;)Lcom/okta/directauth/jvm/DirectAuthenticationFlowBuilder;
+	public final fun setLogger (Lcom/okta/authfoundation/api/log/AuthFoundationLogger;)Lcom/okta/directauth/jvm/DirectAuthenticationFlowBuilder;
 	public final fun setSupportedGrantTypes (Ljava/util/List;)Lcom/okta/directauth/jvm/DirectAuthenticationFlowBuilder;
 }
 

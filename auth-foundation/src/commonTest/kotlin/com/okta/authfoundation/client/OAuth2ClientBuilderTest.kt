@@ -116,6 +116,8 @@ class OAuth2ClientBuilderTest {
             ) {
                 clock = customClock
                 authorizationServerId = "custom-as"
+                enablePushedAuthorizationRequests = false
+                allowPushedAuthorizationRequestFallback = false
             }
 
         assertTrue(result.isSuccess)
@@ -123,6 +125,72 @@ class OAuth2ClientBuilderTest {
         assertEquals(12345L, client.configuration.clock.currentTimeEpochSecond())
         assertEquals("custom-as", client.configuration.authorizationServerId)
         assertEquals("https://example.okta.com/oauth2/custom-as", client.configuration.issuerUrl)
+        assertEquals(false, client.configuration.enablePushedAuthorizationRequests)
+        assertEquals(false, client.configuration.allowPushedAuthorizationRequestFallback)
+    }
+
+    @Test
+    fun create_WithClientSecret_StoresClientSecret() {
+        val result =
+            OAuth2ClientBuilder.create(
+                issuerUrl = "https://example.okta.com",
+                clientId = "test-client-id",
+                scope = listOf("openid")
+            ) {
+                clientSecret = "test-client-secret"
+            }
+
+        assertTrue(result.isSuccess)
+        assertEquals("test-client-secret", result.getOrThrow().configuration.clientSecret)
+    }
+
+    @Test
+    fun create_WithClientAssertion_StoresClientAssertion() {
+        val result =
+            OAuth2ClientBuilder.create(
+                issuerUrl = "https://example.okta.com",
+                clientId = "test-client-id",
+                scope = listOf("openid")
+            ) {
+                clientAssertionType = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
+                clientAssertion = "test-signed-jwt"
+            }
+
+        assertTrue(result.isSuccess)
+        val config = result.getOrThrow().configuration
+        assertEquals("urn:ietf:params:oauth:client-assertion-type:jwt-bearer", config.clientAssertionType)
+        assertEquals("test-signed-jwt", config.clientAssertion)
+    }
+
+    @Test
+    fun create_WithClientSecretAndClientAssertion_Fails() {
+        val result =
+            OAuth2ClientBuilder.create(
+                issuerUrl = "https://example.okta.com",
+                clientId = "test-client-id",
+                scope = listOf("openid")
+            ) {
+                clientSecret = "test-client-secret"
+                clientAssertionType = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
+                clientAssertion = "test-signed-jwt"
+            }
+
+        assertTrue(result.isFailure)
+        assertTrue(result.exceptionOrNull() is IllegalArgumentException)
+    }
+
+    @Test
+    fun create_WithDefaultParConfiguration_UsesEnabledWithFallback() {
+        val client =
+            OAuth2ClientBuilder
+                .create(
+                    issuerUrl = "https://example.okta.com",
+                    clientId = "test-client-id",
+                    scope = listOf("openid")
+                ).getOrThrow()
+
+        assertTrue(client.configuration.enablePushedAuthorizationRequests)
+        assertTrue(client.configuration.allowPushedAuthorizationRequestFallback)
     }
 
     @Test
@@ -189,6 +257,80 @@ class OAuth2ClientBuilderTest {
         assertTrue(error is IllegalArgumentException)
         assertTrue(error.message!!.contains("https"))
     }
+
+    @Test
+    fun clientAuthenticationFormParameters_WithClientSecret_ReturnsClientSecret() {
+        val config =
+            OAuth2ClientConfiguration(
+                clientId = "test-client-id",
+                defaultScope = listOf("openid"),
+                issuerUrl = "https://example.okta.com",
+                apiExecutor = noOpApiExecutor(),
+                clock = OidcClock { 0L },
+                json = kotlinx.serialization.json.Json { ignoreUnknownKeys = true },
+                cache = NoOpCache(),
+                authorizationServerId = null,
+                clientSecret = "test-client-secret",
+                clientAssertionType = "",
+                clientAssertion = "",
+                acrValues = null
+            )
+
+        assertEquals(mapOf("client_secret" to "test-client-secret"), config.clientAuthenticationFormParameters())
+    }
+
+    @Test
+    fun clientAuthenticationFormParameters_WithClientAssertion_ReturnsAssertionFields() {
+        val config =
+            OAuth2ClientConfiguration(
+                clientId = "test-client-id",
+                defaultScope = listOf("openid"),
+                issuerUrl = "https://example.okta.com",
+                apiExecutor = noOpApiExecutor(),
+                clock = OidcClock { 0L },
+                json = kotlinx.serialization.json.Json { ignoreUnknownKeys = true },
+                cache = NoOpCache(),
+                authorizationServerId = null,
+                clientSecret = "",
+                clientAssertionType = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+                clientAssertion = "test-signed-jwt",
+                acrValues = null
+            )
+
+        assertEquals(
+            mapOf(
+                "client_assertion_type" to "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+                "client_assertion" to "test-signed-jwt"
+            ),
+            config.clientAuthenticationFormParameters()
+        )
+    }
+
+    @Test
+    fun clientAuthenticationFormParameters_WithNoClientAuth_ReturnsEmptyMap() {
+        val config =
+            OAuth2ClientConfiguration(
+                clientId = "test-client-id",
+                defaultScope = listOf("openid"),
+                issuerUrl = "https://example.okta.com",
+                apiExecutor = noOpApiExecutor(),
+                clock = OidcClock { 0L },
+                json = kotlinx.serialization.json.Json { ignoreUnknownKeys = true },
+                cache = NoOpCache(),
+                authorizationServerId = null,
+                clientSecret = "",
+                clientAssertionType = "",
+                clientAssertion = "",
+                acrValues = null
+            )
+
+        assertTrue(config.clientAuthenticationFormParameters().isEmpty())
+    }
+
+    private fun noOpApiExecutor(): com.okta.authfoundation.api.http.ApiExecutor =
+        object : com.okta.authfoundation.api.http.ApiExecutor {
+            override suspend fun execute(request: com.okta.authfoundation.api.http.ApiRequest): Result<com.okta.authfoundation.api.http.ApiResponse> = error("Not used in this test")
+        }
 
     @Test
     fun create_WithBlankClientId_Fails() {

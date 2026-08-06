@@ -34,6 +34,8 @@ class OAuth2Endpoints(
     val revocationEndpoint: String?,
     val endSessionEndpoint: String?,
     val deviceAuthorizationEndpoint: String?,
+    val pushedAuthorizationRequestEndpoint: String? = null,
+    val requirePushedAuthorizationRequests: Boolean = false,
 ) {
     companion object {
         /**
@@ -68,7 +70,9 @@ class OAuth2Endpoints(
             introspectionEndpoint = overrides.introspectionEndpoint ?: introspectionEndpoint,
             revocationEndpoint = overrides.revocationEndpoint ?: revocationEndpoint,
             endSessionEndpoint = overrides.endSessionEndpoint ?: endSessionEndpoint,
-            deviceAuthorizationEndpoint = overrides.deviceAuthorizationEndpoint ?: deviceAuthorizationEndpoint
+            deviceAuthorizationEndpoint = overrides.deviceAuthorizationEndpoint ?: deviceAuthorizationEndpoint,
+            pushedAuthorizationRequestEndpoint = pushedAuthorizationRequestEndpoint,
+            requirePushedAuthorizationRequests = requirePushedAuthorizationRequests
         )
     }
 }
@@ -84,6 +88,8 @@ internal class SerializableOAuth2Endpoints(
     @SerialName("revocation_endpoint") val revocationEndpoint: String? = null,
     @SerialName("end_session_endpoint") val endSessionEndpoint: String? = null,
     @SerialName("device_authorization_endpoint") val deviceAuthorizationEndpoint: String? = null,
+    @SerialName("pushed_authorization_request_endpoint") val pushedAuthorizationRequestEndpoint: String? = null,
+    @SerialName("require_pushed_authorization_requests") val requirePushedAuthorizationRequests: Boolean = false,
 ) {
     @OptIn(InternalAuthFoundationApi::class)
     fun toEndpoints(): OAuth2Endpoints =
@@ -96,6 +102,8 @@ internal class SerializableOAuth2Endpoints(
             introspectionEndpoint = introspectionEndpoint,
             revocationEndpoint = revocationEndpoint,
             endSessionEndpoint = endSessionEndpoint,
-            deviceAuthorizationEndpoint = deviceAuthorizationEndpoint
+            deviceAuthorizationEndpoint = deviceAuthorizationEndpoint,
+            pushedAuthorizationRequestEndpoint = pushedAuthorizationRequestEndpoint,
+            requirePushedAuthorizationRequests = requirePushedAuthorizationRequests
         )
 }

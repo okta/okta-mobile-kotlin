@@ -82,6 +82,15 @@ android {
 
 ## Troubleshooting
 
+### PAR with custom authorization servers
+
+`WebAuthentication` uses `AuthorizationCodeFlow` under the hood, so PAR support is automatic for
+custom authorization servers (`authorizationServerId` set on `OAuth2ClientBuilder`) that advertise
+`pushed_authorization_request_endpoint`.
+
+- Optional PAR: falls back to the classic browser authorization URL when PAR is unavailable.
+- Required PAR (`require_pushed_authorization_requests=true`): browser sign-in fails if PAR cannot complete.
+
 ### `FlowCancelledException`
 
 `WebAuthentication.FlowCancelledException` is meant to be thrown when the user cancels the login

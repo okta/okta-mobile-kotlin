@@ -17,6 +17,8 @@ package com.okta.directauth.jvm
 
 import com.okta.authfoundation.ChallengeGrantType
 import com.okta.authfoundation.GrantType
+import com.okta.authfoundation.api.http.ApiExecutor
+import com.okta.authfoundation.api.log.AuthFoundationLogger
 import com.okta.authfoundation.client.OidcClock
 import com.okta.directauth.model.DirectAuthenticationIntent
 import com.okta.directauth.DirectAuthenticationFlowBuilder as KotlinBuilder
@@ -52,6 +54,8 @@ class DirectAuthenticationFlowBuilder(
             ChallengeGrantType.WebAuthnMfa
         )
     private var acrValues: List<String> = emptyList()
+    private var apiExecutor: ApiExecutor? = null
+    private var logger: AuthFoundationLogger? = null
     private var clock: OidcClock? = null
     private var additionalParameters: Map<String, String> = emptyMap()
 
@@ -111,6 +115,28 @@ class DirectAuthenticationFlowBuilder(
         }
 
     /**
+     * Sets the HTTP client executor used to make network requests.
+     *
+     * @param apiExecutor The [ApiExecutor] to use.
+     * @return This builder for chaining.
+     */
+    fun setApiExecutor(apiExecutor: ApiExecutor): DirectAuthenticationFlowBuilder =
+        apply {
+            this.apiExecutor = apiExecutor
+        }
+
+    /**
+     * Sets the logger used by the SDK to output diagnostic information.
+     *
+     * @param logger The [AuthFoundationLogger] to use.
+     * @return This builder for chaining.
+     */
+    fun setLogger(logger: AuthFoundationLogger): DirectAuthenticationFlowBuilder =
+        apply {
+            this.logger = logger
+        }
+
+    /**
      * Sets the clock used for time-sensitive operations.
      *
      * @param clock The [OidcClock] to use.
@@ -145,6 +171,8 @@ class DirectAuthenticationFlowBuilder(
                 directAuthenticationIntent = this@DirectAuthenticationFlowBuilder.intent
                 supportedGrantType = this@DirectAuthenticationFlowBuilder.supportedGrantTypes
                 acrValues = this@DirectAuthenticationFlowBuilder.acrValues
+                this@DirectAuthenticationFlowBuilder.apiExecutor?.let { apiExecutor = it }
+                this@DirectAuthenticationFlowBuilder.logger?.let { logger = it }
                 this@DirectAuthenticationFlowBuilder.clock?.let { clock = it }
                 additionalParameter = this@DirectAuthenticationFlowBuilder.additionalParameters
             }

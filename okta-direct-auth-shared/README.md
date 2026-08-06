@@ -73,6 +73,17 @@ Modify your authorization server's access policy to permit the direct authentica
 *   In the **"IF Grant type is"** section, click **Advanced**.
 *   Select the same grant types you enabled in Step 2 (including both direct auth and OAuth2 grant types), then click **Update Rule**.
 
+#### 3a. Enable PAR (for Browser Sign-In demo)
+Use a custom authorization server (typically `default`) and enable PAR in the server settings:
+
+*   In **Security > API > Authorization Servers**, open your custom authorization server.
+*   In **Settings**, enable Pushed Authorization Requests (PAR).
+*   Keep `authorizationServerId=<your_authorization_server_id>` in `local.properties` (for example, `default`).
+*   PAR behavior for Browser Sign-In:
+    *   If the server advertises PAR and it succeeds, the sample uses `request_uri`.
+    *   If PAR is optional and unavailable/fails, it falls back to the classic browser authorize URL.
+    *   If metadata requires PAR, Browser Sign-In fails when PAR cannot be completed.
+
 #### 4. Configure the App Sign-on Policy
 Set up a policy to define your application's authentication requirements.
 
@@ -149,6 +160,7 @@ When the app launches, you'll see a **Home Menu** with the following options:
 ### OAuth2 Flow Notes
 
 *   **Browser Sign In** requires `signInRedirectUri` to be configured in `local.properties` and registered in your Okta app's redirect URIs.
+*   **Browser Sign In + PAR** requires using a custom authorization server (`authorizationServerId` set, such as `default`) with PAR enabled in Okta.
 *   **Session Token Flow** requires `signInRedirectUri` for the server-side redirect. To obtain a session token, use the [Okta Authentication API](https://developer.okta.com/docs/reference/api/authn/) (e.g., via `curl` or another tool).
 *   **Token Exchange** requires tokens from a prior authentication that included the `device_sso` scope to obtain a device secret.
 *   **Device Authorization** requires the `urn:ietf:params:oauth:grant-type:device_code` grant type enabled on your authorization server.

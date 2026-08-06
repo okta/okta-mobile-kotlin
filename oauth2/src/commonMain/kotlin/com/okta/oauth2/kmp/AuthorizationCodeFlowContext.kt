@@ -24,10 +24,14 @@ package com.okta.oauth2.kmp
  * @property state the random state parameter for CSRF protection (internal).
  * @property nonce the random nonce for replay protection (internal).
  * @property maxAge the max_age value from the request if provided (internal).
+ * @property usedPushedAuthorizationRequest true when start() used PAR and built a request_uri URL.
+ * @property pushedAuthorizationRequestUri the request_uri returned by PAR when available.
  */
 data class AuthorizationCodeFlowContext(
     val url: String,
     val redirectUrl: String,
+    val usedPushedAuthorizationRequest: Boolean = false,
+    val pushedAuthorizationRequestUri: String? = null,
     internal val codeVerifier: String,
     internal val state: String,
     internal val nonce: String,

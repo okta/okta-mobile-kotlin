@@ -138,6 +138,35 @@ class TokenCredentialManager
                 .let { AuthFoundationResult.fromKotlinResult(it) }
 
         /**
+         * Updates metadata for an existing credential.
+         */
+        fun setMetadata(metadata: TokenMetadata): AuthFoundationResult<Unit> =
+            runCatching { runBlocking { delegate.setMetadata(metadata).getOrThrow() } }
+                .let { AuthFoundationResult.fromKotlinResult(it) }
+
+        /**
+         * Returns all credentials whose [TokenMetadata] matches the given [predicate].
+         *
+         * @param predicate A [Predicate] that receives [TokenMetadata] and returns `true` for
+         *   credentials to include.
+         */
+        fun find(predicate: Predicate<TokenMetadata>): AuthFoundationResult<List<Credential>> =
+            runCatching {
+                runBlocking { delegate.find { metadata: TokenMetadata -> predicate.test(metadata) }.getOrThrow() }
+            }.let { AuthFoundationResult.fromKotlinResult(it) }
+
+        /**
+         * Returns all credentials matching the given [predicate].
+         *
+         * @param predicate A [Predicate] that receives [Credential] and returns `true` for
+         *   credentials to include.
+         */
+        fun findByCredential(predicate: Predicate<Credential>): AuthFoundationResult<List<Credential>> =
+            runCatching {
+                runBlocking { delegate.find { credential: Credential -> predicate.test(credential) }.getOrThrow() }
+            }.let { AuthFoundationResult.fromKotlinResult(it) }
+
+        /**
          * Deletes a credential by ID.
          */
         fun delete(id: String): AuthFoundationResult<Unit> =

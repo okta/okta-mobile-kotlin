@@ -69,6 +69,11 @@ Org setup is identical to the current Direct Auth sample except for the OAuth2 a
    | Token Exchange | `urn:ietf:params:oauth:grant-type:token-exchange` |
    | Session Token | `authorization_code` (PKCE) + session token support |
 
+3. **Enable PAR on a custom authorization server** for Browser Sign-In PAR demos:
+   - Use a custom authorization server (for example, `default`) and keep `authorizationServerId=default` in configuration.
+   - In Okta Admin, open **Security > API > Authorization Servers > _your server_ > Settings**, then enable PAR.
+   - Confirm discovery metadata includes `pushed_authorization_request_endpoint`. If `require_pushed_authorization_requests=true`, Browser Sign-In requires PAR and will fail when PAR cannot be completed.
+
 > **Note**: Tokens are displayed in-memory for demonstration purposes only and are not persisted.
 
 ## Build
@@ -207,6 +212,7 @@ Select option: 3
 Opening browser for sign-in. Waiting for redirect...
 # System browser opens to Okta sign-in page.
 # After sign-in, the CLI captures the loopback redirect automatically.
+# If PAR is enabled on the custom auth server, Browser Sign-In uses request_uri automatically.
 
 === Authentication Successful ===
 ...

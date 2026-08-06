@@ -237,7 +237,8 @@ public final class OAuth2ConsoleView implements OAuth2ViewModelListener {
         viewModel.startDeviceAuthorization();
         return true;
       case BROWSER_SIGN_IN:
-        output.println("Opening browser for sign-in. Waiting for redirect...");
+        output.println(
+            "Opening browser for sign-in (Auth Code + PKCE; PAR when supported). Waiting for redirect...");
         viewModel.startBrowserSignIn();
         return true;
       default:

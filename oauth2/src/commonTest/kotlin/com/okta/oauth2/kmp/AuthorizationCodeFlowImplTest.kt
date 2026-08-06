@@ -16,6 +16,7 @@
 package com.okta.oauth2.kmp
 
 import com.okta.authfoundation.api.http.ApiExecutor
+import com.okta.authfoundation.api.http.ApiFormRequest
 import com.okta.authfoundation.api.http.ApiRequest
 import com.okta.authfoundation.api.http.ApiResponse
 import com.okta.authfoundation.client.OAuth2ClientBuilder
@@ -24,8 +25,10 @@ import com.okta.oauth2.internal.parseQueryParameter
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertSame
 import kotlin.test.assertTrue
 
@@ -46,6 +49,27 @@ class AuthorizationCodeFlowImplTest {
             "expires_in": 3600,
             "access_token": "test-access-token",
             "scope": "openid profile"
+        }
+        """.trimIndent()
+
+    private val discoveryWithParOptional =
+        """
+        {
+            "issuer": "https://example.okta.com/oauth2/default",
+            "authorization_endpoint": "https://example.okta.com/oauth2/default/v1/authorize",
+            "token_endpoint": "https://example.okta.com/oauth2/default/v1/token",
+            "pushed_authorization_request_endpoint": "https://example.okta.com/oauth2/default/v1/par"
+        }
+        """.trimIndent()
+
+    private val discoveryWithParRequired =
+        """
+        {
+            "issuer": "https://example.okta.com/oauth2/default",
+            "authorization_endpoint": "https://example.okta.com/oauth2/default/v1/authorize",
+            "token_endpoint": "https://example.okta.com/oauth2/default/v1/token",
+            "pushed_authorization_request_endpoint": "https://example.okta.com/oauth2/default/v1/par",
+            "require_pushed_authorization_requests": true
         }
         """.trimIndent()
 
@@ -239,5 +263,159 @@ class AuthorizationCodeFlowImplTest {
 
             assertTrue(result.isFailure)
             assertIs<AuthorizationCodeFlow.MissingResultCodeException>(result.exceptionOrNull())
+        }
+
+    @Test
+    fun start_WhenParSupported_UsesRequestUriAuthorizationUrl() =
+        runTest {
+            val requests = mutableListOf<ApiRequest>()
+            val apiExecutor =
+                object : ApiExecutor {
+                    override suspend fun execute(request: ApiRequest): Result<ApiResponse> {
+                        requests.add(request)
+                        val body =
+                            when {
+                                request.url().endsWith(".well-known/openid-configuration") -> {
+                                    discoveryWithParOptional
+                                }
+
+                                request.url().endsWith("/v1/par") -> {
+                                    """
+                                    {
+                                        "request_uri": "urn:okta:request:abc123",
+                                        "expires_in": 90
+                                    }
+                                    """.trimIndent()
+                                }
+
+                                else -> {
+                                    tokenResponse
+                                }
+                            }
+                        return Result.success(
+                            object : ApiResponse {
+                                override val statusCode = 200
+                                override val body = body.toByteArray()
+                                override val headers: Map<String, List<String>> = emptyMap()
+                                override val contentLength = body.length.toLong()
+                                override val contentType = "application/json"
+                            }
+                        )
+                    }
+                }
+            val client =
+                OAuth2ClientBuilder
+                    .create(
+                        issuerUrl = "https://example.okta.com",
+                        clientId = "test-client-id",
+                        scope = listOf("openid")
+                    ) {
+                        authorizationServerId = "default"
+                        this.apiExecutor = apiExecutor
+                    }.getOrThrow()
+            val flow = AuthorizationCodeFlowImpl(client)
+
+            val result = flow.start(redirectUrl = "com.example.app:/callback", scope = listOf("openid"))
+
+            assertTrue(result.isSuccess)
+            val context = result.getOrThrow()
+            assertTrue(context.usedPushedAuthorizationRequest)
+            assertEquals("urn:okta:request:abc123", context.pushedAuthorizationRequestUri)
+            assertEquals("urn:okta:request:abc123", parseQueryParameter(context.url, "request_uri"))
+            assertEquals("test-client-id", parseQueryParameter(context.url, "client_id"))
+            assertNull(parseQueryParameter(context.url, "response_type"))
+
+            val parRequest = requests.first { it.url().endsWith("/v1/par") } as ApiFormRequest
+            val form = parRequest.formParameters().mapValues { it.value.first() }
+            assertEquals("code", form["response_type"])
+            assertEquals("com.example.app:/callback", form["redirect_uri"])
+            assertNotNull(form["state"])
+            assertNotNull(form["nonce"])
+        }
+
+    @Test
+    fun start_WhenParOptionalAndParRequestFails_FallsBackToClassicAuthorizationUrl() =
+        runTest {
+            val apiExecutor =
+                object : ApiExecutor {
+                    override suspend fun execute(request: ApiRequest): Result<ApiResponse> {
+                        val (statusCode, body) =
+                            when {
+                                request.url().endsWith(".well-known/openid-configuration") -> 200 to discoveryWithParOptional
+                                request.url().endsWith("/v1/par") -> 400 to """{"error":"invalid_request"}"""
+                                else -> 200 to tokenResponse
+                            }
+                        return Result.success(
+                            object : ApiResponse {
+                                override val statusCode = statusCode
+                                override val body = body.toByteArray()
+                                override val headers: Map<String, List<String>> = emptyMap()
+                                override val contentLength = body.length.toLong()
+                                override val contentType = "application/json"
+                            }
+                        )
+                    }
+                }
+            val client =
+                OAuth2ClientBuilder
+                    .create(
+                        issuerUrl = "https://example.okta.com",
+                        clientId = "test-client-id",
+                        scope = listOf("openid")
+                    ) {
+                        authorizationServerId = "default"
+                        this.apiExecutor = apiExecutor
+                    }.getOrThrow()
+            val flow = AuthorizationCodeFlowImpl(client)
+
+            val result = flow.start(redirectUrl = "com.example.app:/callback", scope = listOf("openid"))
+
+            assertTrue(result.isSuccess)
+            val context = result.getOrThrow()
+            assertFalse(context.usedPushedAuthorizationRequest)
+            assertNull(context.pushedAuthorizationRequestUri)
+            assertEquals("code", parseQueryParameter(context.url, "response_type"))
+            assertNull(parseQueryParameter(context.url, "request_uri"))
+        }
+
+    @Test
+    fun start_WhenParRequiredAndParRequestFails_ReturnsParRequiredException() =
+        runTest {
+            val apiExecutor =
+                object : ApiExecutor {
+                    override suspend fun execute(request: ApiRequest): Result<ApiResponse> {
+                        val (statusCode, body) =
+                            when {
+                                request.url().endsWith(".well-known/openid-configuration") -> 200 to discoveryWithParRequired
+                                request.url().endsWith("/v1/par") -> 500 to ""
+                                else -> 200 to tokenResponse
+                            }
+                        return Result.success(
+                            object : ApiResponse {
+                                override val statusCode = statusCode
+                                override val body = body.toByteArray()
+                                override val headers: Map<String, List<String>> = emptyMap()
+                                override val contentLength = body.length.toLong()
+                                override val contentType = "application/json"
+                            }
+                        )
+                    }
+                }
+            val client =
+                OAuth2ClientBuilder
+                    .create(
+                        issuerUrl = "https://example.okta.com",
+                        clientId = "test-client-id",
+                        scope = listOf("openid")
+                    ) {
+                        authorizationServerId = "default"
+                        this.apiExecutor = apiExecutor
+                    }.getOrThrow()
+            val flow = AuthorizationCodeFlowImpl(client)
+
+            val result = flow.start(redirectUrl = "com.example.app:/callback", scope = listOf("openid"))
+
+            assertTrue(result.isFailure)
+            assertIs<AuthorizationCodeFlow.PushedAuthorizationRequiredException>(result.exceptionOrNull())
         }
 }

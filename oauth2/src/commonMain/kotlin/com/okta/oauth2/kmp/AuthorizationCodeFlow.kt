@@ -56,6 +56,22 @@ interface AuthorizationCodeFlow {
     class MissingResultCodeException : Exception()
 
     /**
+     * Thrown by [start] when PAR is required by the authorization server but cannot be used.
+     */
+    class PushedAuthorizationRequiredException(
+        message: String,
+        cause: Throwable? = null,
+    ) : Exception(message, cause)
+
+    /**
+     * Thrown by [start] when a PAR request fails and fallback is disabled.
+     */
+    class PushedAuthorizationRequestException(
+        message: String,
+        cause: Throwable? = null,
+    ) : Exception(message, cause)
+
+    /**
      * Initiates the Authorization Code redirect flow.
      *
      * @param redirectUrl the registered redirect URI for this client.
@@ -63,6 +79,9 @@ interface AuthorizationCodeFlow {
      * default scopes are used.
      * @param extraRequestParameters additional query parameters for the authorization endpoint.
      * @return a [Result] containing an [AuthorizationCodeFlowContext] with the authorization URL and state.
+     *
+     * When PAR is enabled in [OAuth2Client.configuration] and supported by a custom authorization server,
+     * the returned authorization URL is composed with `request_uri`.
      */
     suspend fun start(
         redirectUrl: String,

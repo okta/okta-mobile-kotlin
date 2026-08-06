@@ -67,6 +67,7 @@ class OAuth2ClientTest {
     private fun createClient(
         apiExecutor: ApiExecutor,
         endpoints: OAuth2Endpoints = testEndpoints,
+        buildAction: OAuth2ClientBuilder.() -> Unit = {},
     ): OAuth2Client {
         val config =
             OAuth2ClientBuilder
@@ -76,6 +77,7 @@ class OAuth2ClientTest {
                     scope = listOf("openid", "profile")
                 ) {
                     this.apiExecutor = apiExecutor
+                    buildAction.invoke(this)
                 }.getOrThrow()
                 .configuration
 
@@ -103,6 +105,25 @@ class OAuth2ClientTest {
                 )
         }
 
+    private fun capturingApiExecutor(
+        responseBody: String,
+        requests: MutableList<ApiRequest>,
+    ): ApiExecutor =
+        object : ApiExecutor {
+            override suspend fun execute(request: ApiRequest): Result<ApiResponse> {
+                requests.add(request)
+                return Result.success(
+                    object : ApiResponse {
+                        override val statusCode: Int = 200
+                        override val body: ByteArray = responseBody.toByteArray()
+                        override val headers: Map<String, List<String>> = emptyMap()
+                        override val contentLength: Long = responseBody.length.toLong()
+                        override val contentType: String = "application/json"
+                    }
+                )
+            }
+        }
+
     @Test
     fun refreshToken_returnsTokenInfo() =
         runTest {
@@ -128,6 +149,38 @@ class OAuth2ClientTest {
             assertEquals("new-access-token", tokenInfo.accessToken)
             assertEquals("openid profile", tokenInfo.scope)
             assertEquals("new-refresh-token", tokenInfo.refreshToken)
+        }
+
+    @Test
+    fun refreshToken_WithClientSecret_AddsClientSecretToTokenRequest() =
+        runTest {
+            val requests = mutableListOf<ApiRequest>()
+            val client =
+                createClient(
+                    capturingApiExecutor(
+                        """
+                        {
+                            "token_type": "Bearer",
+                            "expires_in": 3600,
+                            "access_token": "new-access-token",
+                            "scope": "openid profile",
+                            "refresh_token": "new-refresh-token",
+                            "id_token": null
+                        }
+                        """.trimIndent(),
+                        requests
+                    )
+                ) {
+                    clientSecret = "test-client-secret"
+                }
+
+            val result = client.refreshToken("old-refresh-token")
+
+            assertTrue(result.isSuccess)
+            val form = (requests.single() as com.okta.authfoundation.api.http.ApiFormRequest).formParameters().mapValues { it.value.first() }
+            assertEquals("test-client-secret", form["client_secret"])
+            assertEquals("test-client-id", form["client_id"])
+            assertEquals("refresh_token", form["grant_type"])
         }
 
     @Test
@@ -236,6 +289,86 @@ class OAuth2ClientTest {
             assertEquals("tr-access-token", tokenInfo.accessToken)
             assertEquals("openid profile", tokenInfo.scope)
             assertEquals("tr-refresh-token", tokenInfo.refreshToken)
+        }
+
+    @Test
+    fun tokenRequest_WithClientSecret_AddsClientSecretToTokenRequest() =
+        runTest {
+            val requests = mutableListOf<ApiRequest>()
+            val client =
+                createClient(
+                    capturingApiExecutor(
+                        """
+                        {
+                            "token_type": "Bearer",
+                            "expires_in": 3600,
+                            "access_token": "tr-access-token",
+                            "scope": "openid profile",
+                            "refresh_token": "tr-refresh-token",
+                            "id_token": null
+                        }
+                        """.trimIndent(),
+                        requests
+                    )
+                ) {
+                    clientSecret = "test-client-secret"
+                }
+
+            val result =
+                client.tokenRequest(
+                    mapOf(
+                        "client_id" to "test-client-id",
+                        "grant_type" to "authorization_code",
+                        "code" to "auth-code-123"
+                    )
+                )
+
+            assertTrue(result.isSuccess)
+            val form = (requests.single() as com.okta.authfoundation.api.http.ApiFormRequest).formParameters().mapValues { it.value.first() }
+            assertEquals("test-client-secret", form["client_secret"])
+            assertEquals("test-client-id", form["client_id"])
+        }
+
+    @Test
+    fun tokenRequest_WithClientAssertion_AddsAssertionFieldsToTokenRequest() =
+        runTest {
+            val requests = mutableListOf<ApiRequest>()
+            val clientAssertionType = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
+            val clientAssertion = "test-signed-jwt"
+            val client =
+                createClient(
+                    capturingApiExecutor(
+                        """
+                        {
+                            "token_type": "Bearer",
+                            "expires_in": 3600,
+                            "access_token": "tr-access-token",
+                            "scope": "openid profile",
+                            "refresh_token": "tr-refresh-token",
+                            "id_token": null
+                        }
+                        """.trimIndent(),
+                        requests
+                    )
+                ) {
+                    this.clientAssertionType = clientAssertionType
+                    this.clientAssertion = clientAssertion
+                }
+
+            val result =
+                client.tokenRequest(
+                    mapOf(
+                        "client_id" to "test-client-id",
+                        "grant_type" to "authorization_code",
+                        "code" to "auth-code-123"
+                    )
+                )
+
+            assertTrue(result.isSuccess)
+            val form = (requests.single() as com.okta.authfoundation.api.http.ApiFormRequest).formParameters().mapValues { it.value.first() }
+            assertEquals(clientAssertionType, form["client_assertion_type"])
+            assertEquals(clientAssertion, form["client_assertion"])
+            assertEquals("test-client-id", form["client_id"])
         }
 
     @Test

@@ -36,7 +36,7 @@ object TestOAuth2ClientConfiguration {
             json = kotlinx.serialization.json.Json { ignoreUnknownKeys = true },
             cache = NoOpCache,
             authorizationServerId = null,
-            clientSecret = null,
+            clientSecret = "",
             acrValues = null
         )
 

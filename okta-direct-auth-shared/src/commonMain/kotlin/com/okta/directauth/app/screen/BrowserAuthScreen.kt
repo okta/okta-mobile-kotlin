@@ -61,7 +61,7 @@ fun BrowserAuthScreen(
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = "Browser Sign In",
+            text = "Browser Sign In (PAR)",
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.fillMaxWidth(),
@@ -69,7 +69,7 @@ fun BrowserAuthScreen(
         )
         Spacer(modifier = Modifier.height(Dimens.spaceMedium))
         Text(
-            text = "Sign in using your browser via Authorization Code + PKCE flow.",
+            text = "Sign in using your browser via Authorization Code + PKCE. PAR is used when supported.",
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center
         )

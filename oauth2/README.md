@@ -9,6 +9,7 @@ Standard OAuth2 authentication flows for Kotlin Multiplatform (Android + JVM), i
 - [Installation](#installation)
 - [Getting Started](#getting-started)
   - [Creating an OAuth2Client](#creating-an-oauth2client)
+  - [Pushed Authorization Requests (PAR)](#pushed-authorization-requests-par)
 - [Authentication Flows](#authentication-flows)
   - [Resource Owner Flow](#resource-owner-flow)
   - [Device Authorization Flow](#device-authorization-flow)
@@ -101,6 +102,31 @@ val client: OAuth2Client =
             // Optional: specify authorization server ID for custom auth servers
             authorizationServerId = "default"
         }.getOrThrow()
+```
+
+### Pushed Authorization Requests (PAR)
+
+When you use a **custom authorization server** (`authorizationServerId` is set), `AuthorizationCodeFlow`
+automatically uses PAR if discovery advertises `pushed_authorization_request_endpoint`.
+
+- If PAR is supported, `start()` pushes the authorization parameters to PAR and returns a browser URL
+  containing `request_uri`.
+- If PAR is optional and unavailable/fails, the flow falls back to the classic authorization URL.
+- If PAR is required by server metadata (`require_pushed_authorization_requests=true`) and cannot
+  be completed, `start()` fails with `PushedAuthorizationRequiredException`.
+
+You can control this behavior in `OAuth2ClientBuilder`:
+
+```kotlin
+val client = OAuth2ClientBuilder.create(
+    issuerUrl = "https://your-org.okta.com",
+    clientId = "your-client-id",
+    scope = listOf("openid", "profile")
+) {
+    authorizationServerId = "default"
+    enablePushedAuthorizationRequests = true
+    allowPushedAuthorizationRequestFallback = true
+}.getOrThrow()
 ```
 
 #### Custom Endpoint Overrides
