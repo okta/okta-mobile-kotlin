@@ -1,55 +1,8 @@
 # Changelog
 
-## Unreleased
+## auth-foundation 3.0.0 - 2026-08-05
 
-Per-module versions are now tracked and released independently. The sections below cover
-`auth-foundation`, `oauth2`, and `web-authentication-ui` changes accumulated since each module's
-last release. `okta-direct-auth` and `okta-idx-kotlin` each maintain their own `CHANGELOG.md`
-(`okta-direct-auth/CHANGELOG.md`, `okta-idx-kotlin/CHANGELOG.md`) and are not duplicated here —
-see `okta-direct-auth/CHANGELOG.md` for its upcoming 1.0.0 changes. `okta-idx-kotlin` (currently
-3.1.1) is additionally unaffected by this release wave.
-
-### Release checklist (next steps)
-
-1. Release `auth-foundation` first (or in the same batch), since `oauth2`, `web-authentication-ui`,
-   and `okta-direct-auth` all depend on it — avoid a window where a dependent module's new version
-   points at an `auth-foundation` version that isn't published yet.
-2. Re-run the ABI dump-update tasks so the committed `.api` files reflect the new baseline for the
-   *next* release cycle (`updateKotlinAbi`/`androidApiDump`/`releaseApiDump` per module, per
-   CLAUDE.md's API Compatibility section).
-3. Move this "Unreleased" section into dated, per-module entries once each release is actually
-   tagged and published (see the existing per-module tags: `auth-foundation@2.0.5`,
-   `okta-direct-auth@0.0.1`, `okta-idx-kotlin@3.1.1`). Replace each `### <module> 3.0.0` heading
-   with a top-level, dated `## <module> 3.0.0 - <release date>` heading plus a commit-compare
-   link, matching the `[Commits](...)` links on older entries further down this file:
-
-   ```
-   ## auth-foundation 3.0.0 - <release date>
-
-   [Commits](https://github.com/okta/okta-mobile-kotlin/compare/auth-foundation@2.0.5...auth-foundation@3.0.0)
-
-   #### Breaking changes
-   ...
-   ```
-
-   `oauth2` and `web-authentication-ui` are being tagged independently for the first time with
-   this release, so there's no prior `oauth2@2.0.4`/`web-authentication-ui@2.0.4` tag to compare
-   from — use commit `e70ffa5c` (the last commit before either module's version left 2.0.4)
-   instead:
-
-   ```
-   ## oauth2 3.0.0 - <release date>
-
-   [Commits](https://github.com/okta/okta-mobile-kotlin/compare/e70ffa5c...oauth2@3.0.0)
-   ```
-
-   ```
-   ## web-authentication-ui 3.0.0 - <release date>
-
-   [Commits](https://github.com/okta/okta-mobile-kotlin/compare/e70ffa5c...web-authentication-ui@3.0.0)
-   ```
-
-### auth-foundation 3.0.0
+[Commits](https://github.com/okta/okta-mobile-kotlin/compare/auth-foundation@2.0.5...auth-foundation@3.0.0)
 
 Converted from an Android-only library to a Kotlin Multiplatform module (Android + JVM). This is a
 major release with breaking changes to the credential-event and cache APIs.
@@ -114,7 +67,9 @@ major release with breaking changes to the credential-event and cache APIs.
 - `CoalescingOrchestrator` reimplemented with `Mutex` instead of `synchronized`, removing a
   thread-blocking lock inside suspend functions (#400).
 
-### oauth2 3.0.0
+## oauth2 3.0.0 - 2026-08-05
+
+[Commits](https://github.com/okta/okta-mobile-kotlin/compare/e70ffa5c...oauth2@3.0.0)
 
 #### Breaking changes
 - Removed the `String`-scope overloads of `start(...)` on `AuthorizationCodeFlow`,
@@ -148,7 +103,9 @@ major release with breaking changes to the credential-event and cache APIs.
 #### Changed
 - Module converted from an Android-only build to Kotlin Multiplatform (Android + JVM) (#386).
 
-### web-authentication-ui 3.0.0
+## web-authentication-ui 3.0.0 - 2026-08-05
+
+[Commits](https://github.com/okta/okta-mobile-kotlin/compare/e70ffa5c...web-authentication-ui@3.0.0)
 
 #### Breaking changes
 - `WebAuthentication.authorizationCodeFlow` and `.redirectEndSessionFlow` changed from public `var`

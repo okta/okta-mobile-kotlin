@@ -1,4 +1,4 @@
-## [1.0.0] - Unreleased
+## [1.0.0] - 2026-08-05
 
 Graduating from beta (0.0.1) to the first stable release.
 
