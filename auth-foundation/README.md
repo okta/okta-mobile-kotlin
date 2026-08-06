@@ -164,7 +164,7 @@ import com.okta.authfoundation.client.kmp.events.RateLimitExceededEvent
 scope.launch {
     client.events.collect { event ->
         if (event is RateLimitExceededEvent) {
-            // event.requestUrl, event.responseHeaders, event.retryAfterSeconds
+            println(event.retryAfterSeconds)
         }
     }
 }
@@ -189,6 +189,67 @@ AuthFoundation also owns the shared client configuration features:
 
 The older Android-only APIs still exist for compatibility, but new code should prefer the KMP packages in `com.okta.authfoundation.client.kmp` and `com.okta.authfoundation.credential.kmp`.
 
+### Migrating `RoomTokenStorage` to KMP
+
+If your app currently uses the legacy Android `com.okta.authfoundation.credential.RoomTokenStorage`, migrate to the KMP storage stack in `com.okta.authfoundation.credential.kmp.storage`:
+
+1. Replace the deprecated Android singleton/helper with a platform-specific `TokenDatabase` created via `createTokenDatabase(...)`.
+2. Replace `RoomTokenStorage.getInstance()` with an explicit `RoomTokenStorage(database, encryptionHandler, configuration)`.
+3. On Android, use `AndroidTokenEncryptionHandler` with `createEncryptedTokenStorage(...)` when you want Keystore-backed token encryption.
+4. Update callers to use `TokenCredentialManager` and the KMP `TokenStorage` / `DefaultCredentialIdStore` types.
+
+Important: the sample setup below does **not** automatically migrate rows from the legacy SQLCipher database.
+Legacy Android storage uses a different database file (`token_database`) than KMP storage (`common_token_database`),
+so existing installs need an explicit one-time migration step (or a forced sign-in).
+
+Complete Android example (assuming `context` and `client` from earlier sections):
+
+```kotlin
+import com.okta.authfoundation.credential.kmp.AndroidTokenEncryptionHandler
+import com.okta.authfoundation.credential.kmp.TokenCredentialManager
+import com.okta.authfoundation.credential.kmp.storage.RoomDefaultCredentialIdStore
+import com.okta.authfoundation.credential.kmp.storage.RoomTokenStorage
+import com.okta.authfoundation.credential.kmp.storage.createTokenDatabase
+
+val database = createTokenDatabase(context)
+val encryptionHandler = AndroidTokenEncryptionHandler()
+val storage = RoomTokenStorage(database, encryptionHandler, client.configuration)
+val defaultIdStore = RoomDefaultCredentialIdStore(database)
+
+val manager = TokenCredentialManager(client, storage, defaultIdStore)
+```
+
+If you need to preserve existing user sessions from legacy SQLCipher storage, run a one-time migration before using
+the new `TokenCredentialManager`:
+
+```kotlin
+import com.okta.authfoundation.credential.RoomTokenStorage as LegacyRoomTokenStorage
+import com.okta.authfoundation.credential.TokenMetadata
+import com.okta.authfoundation.credential.kmp.storage.RoomTokenStorage as KmpRoomTokenStorage
+
+suspend fun migrateLegacySqlCipherTokensOnce(
+    legacyStorage: LegacyRoomTokenStorage,
+    kmpStorage: KmpRoomTokenStorage,
+) {
+    for (id in legacyStorage.allIds()) {
+        val legacyToken = legacyStorage.getToken(id = id, promptInfo = null)
+        val legacyMetadata = legacyStorage.metadata(id)
+        val metadata =
+            TokenMetadata(
+                id = id,
+                tags = legacyMetadata?.tags.orEmpty(),
+                payloadData = legacyMetadata?.payloadData
+            )
+        kmpStorage.add(legacyToken, metadata).getOrThrow()
+    }
+}
+```
+
+If your legacy storage used biometric gating, pass the same `PromptInfo` used by your old token reads instead of
+`promptInfo = null`.
+
+For Android apps that want the simplest path, prefer `createEncryptedTokenStorage(...)`.
+
 ## Android-only legacy APIs
 
 Legacy Android-specific APIs remain functional for existing integrations, but they are no longer the preferred path.
@@ -205,4 +266,4 @@ Legacy Android-specific APIs remain functional for existing integrations, but th
   [Core Library Desugaring](https://developer.android.com/studio/write/java8-support#library-desugaring)
   to make them available on all supported API levels.
 
-[rate-limiting]: https://developer.okta.com/docs/api/getting_started/rate-limits
+[rate-limiting]: https://developer.okta.com/docs/reference/rate-limits/
