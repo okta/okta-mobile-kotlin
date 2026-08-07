@@ -478,6 +478,7 @@ public final class com/okta/authfoundation/client/jvm/AuthFoundationResult$Compa
 public final class com/okta/authfoundation/client/jvm/OAuth2ClientBuilder {
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;)V
 	public final fun build ()Lcom/okta/authfoundation/client/jvm/AuthFoundationResult;
+	public final fun setAccessTokenValidator (Lcom/okta/authfoundation/client/kmp/AccessTokenValidator;)Lcom/okta/authfoundation/client/jvm/OAuth2ClientBuilder;
 	public final fun setAcrValues (Ljava/lang/String;)Lcom/okta/authfoundation/client/jvm/OAuth2ClientBuilder;
 	public final fun setApiExecutor (Lcom/okta/authfoundation/api/http/ApiExecutor;)Lcom/okta/authfoundation/client/jvm/OAuth2ClientBuilder;
 	public final fun setAuthorizationServerId (Ljava/lang/String;)Lcom/okta/authfoundation/client/jvm/OAuth2ClientBuilder;
@@ -485,8 +486,12 @@ public final class com/okta/authfoundation/client/jvm/OAuth2ClientBuilder {
 	public final fun setClientSecret (Ljava/lang/String;)Lcom/okta/authfoundation/client/jvm/OAuth2ClientBuilder;
 	public final fun setClock (Lcom/okta/authfoundation/client/OidcClock;)Lcom/okta/authfoundation/client/jvm/OAuth2ClientBuilder;
 	public final fun setComputeDispatcher (Lkotlin/coroutines/CoroutineContext;)Lcom/okta/authfoundation/client/jvm/OAuth2ClientBuilder;
+	public final fun setDeviceSecretValidator (Lcom/okta/authfoundation/client/kmp/DeviceSecretValidator;)Lcom/okta/authfoundation/client/jvm/OAuth2ClientBuilder;
 	public final fun setEndpointOverrides (Lcom/okta/authfoundation/client/OAuth2EndpointOverrides;)Lcom/okta/authfoundation/client/jvm/OAuth2ClientBuilder;
+	public final fun setIdTokenValidator (Lcom/okta/authfoundation/client/kmp/IdTokenValidator;)Lcom/okta/authfoundation/client/jvm/OAuth2ClientBuilder;
 	public final fun setIoDispatcher (Lkotlin/coroutines/CoroutineContext;)Lcom/okta/authfoundation/client/jvm/OAuth2ClientBuilder;
+	public final fun setJson (Lkotlinx/serialization/json/Json;)Lcom/okta/authfoundation/client/jvm/OAuth2ClientBuilder;
+	public final fun setRateLimitRetryCallback (Lkotlin/jvm/functions/Function1;)Lcom/okta/authfoundation/client/jvm/OAuth2ClientBuilder;
 }
 
 public abstract interface class com/okta/authfoundation/client/kmp/AccessTokenValidator {
@@ -734,10 +739,13 @@ public final class com/okta/authfoundation/credential/jvm/TokenCredentialManager
 	public final fun createTokenData (Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lcom/okta/authfoundation/credential/kmp/TokenData;
 	public static synthetic fun createTokenData$default (Lcom/okta/authfoundation/credential/jvm/TokenCredentialManager;Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/okta/authfoundation/credential/kmp/TokenData;
 	public final fun delete (Ljava/lang/String;)Lcom/okta/authfoundation/client/jvm/AuthFoundationResult;
+	public final fun find (Ljava/util/function/Predicate;)Lcom/okta/authfoundation/client/jvm/AuthFoundationResult;
+	public final fun findByCredential (Ljava/util/function/Predicate;)Lcom/okta/authfoundation/client/jvm/AuthFoundationResult;
 	public final fun get (Ljava/lang/String;)Lcom/okta/authfoundation/client/jvm/AuthFoundationResult;
 	public final fun getDefault ()Lcom/okta/authfoundation/client/jvm/AuthFoundationResult;
 	public final fun metadata (Ljava/lang/String;)Lcom/okta/authfoundation/client/jvm/AuthFoundationResult;
 	public final fun setDefault (Lcom/okta/authfoundation/credential/kmp/Credential;)Lcom/okta/authfoundation/client/jvm/AuthFoundationResult;
+	public final fun setMetadata (Lcom/okta/authfoundation/credential/TokenMetadata;)Lcom/okta/authfoundation/client/jvm/AuthFoundationResult;
 	public final fun store (Lcom/okta/authfoundation/credential/kmp/TokenData;)Lcom/okta/authfoundation/client/jvm/AuthFoundationResult;
 	public final fun store (Lcom/okta/authfoundation/credential/kmp/TokenData;Ljava/util/Map;)Lcom/okta/authfoundation/client/jvm/AuthFoundationResult;
 	public static synthetic fun store$default (Lcom/okta/authfoundation/credential/jvm/TokenCredentialManager;Lcom/okta/authfoundation/credential/kmp/TokenData;Ljava/util/Map;ILjava/lang/Object;)Lcom/okta/authfoundation/client/jvm/AuthFoundationResult;

@@ -211,6 +211,60 @@ public class TokenCredentialManagerJavaTest {
   }
 
   @Test
+  public void setMetadata_UpdatesExistingCredentialTags() {
+    TokenData token = manager.createTokenData("set-metadata-at");
+    Credential credential = manager.store(token).getOrThrow();
+    TokenMetadata original = manager.metadata(credential.getId()).getOrThrow();
+
+    TokenMetadata updated =
+        new TokenMetadata(
+            original.getId(),
+            Collections.singletonMap("env", "updated"),
+            original.getPayloadData(),
+            original.getJson());
+
+    assertTrue("setMetadata should succeed", manager.setMetadata(updated).isSuccess());
+    assertEquals("updated", manager.metadata(credential.getId()).getOrThrow().getTags().get("env"));
+  }
+
+  @Test
+  public void find_ByMetadataPredicate_ReturnsMatchingCredentials() {
+    Credential matching =
+        manager.store(manager.createTokenData("find-metadata-match")).getOrThrow();
+    manager.store(manager.createTokenData("find-metadata-nomatch")).getOrThrow();
+    TokenMetadata original = manager.metadata(matching.getId()).getOrThrow();
+    manager
+        .setMetadata(
+            new TokenMetadata(
+                original.getId(),
+                Collections.singletonMap("env", "prod"),
+                original.getPayloadData(),
+                original.getJson()))
+        .getOrThrow();
+
+    List<Credential> results =
+        manager
+            .find((Predicate<TokenMetadata>) m -> "prod".equals(m.getTags().get("env")))
+            .getOrThrow();
+
+    assertEquals(1, results.size());
+    assertEquals(matching.getId(), results.get(0).getId());
+  }
+
+  @Test
+  public void findByCredential_ReturnsMatchingCredentials() {
+    Credential matching =
+        manager.store(manager.createTokenData("find-credential-match")).getOrThrow();
+    manager.store(manager.createTokenData("find-credential-nomatch")).getOrThrow();
+
+    List<Credential> results =
+        manager.findByCredential(c -> matching.getId().equals(c.getId())).getOrThrow();
+
+    assertEquals(1, results.size());
+    assertEquals(matching.getId(), results.get(0).getId());
+  }
+
+  @Test
   public void delete_RemovesCredential() {
     TokenData token = manager.createTokenData("delete-at");
     Credential credential = manager.store(token).getOrThrow();

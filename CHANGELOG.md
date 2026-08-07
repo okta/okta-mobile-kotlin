@@ -1,5 +1,21 @@
 # Changelog
 
+## auth-foundation Unreleased
+
+#### Added
+- `OAuth2ClientBuilder` (jvm wrapper) gained `setJson`, `setIdTokenValidator`,
+  `setAccessTokenValidator`, `setDeviceSecretValidator`, and `setRateLimitRetryCallback`, restoring
+  parity with the commonMain `OAuth2ClientBuilder`/`OAuth2ClientConfiguration`.
+- `TokenCredentialManager` (jvm wrapper) gained `setMetadata(TokenMetadata)`,
+  `find(Predicate<TokenMetadata>)`, and `findByCredential(Predicate<Credential>)`, restoring parity
+  with the commonMain `TokenCredentialManager`.
+
+#### Fixed
+- `OAuth2ClientBuilder` (jvm wrapper)'s `clientSecret` was tracked internally as a nullable
+  `String?` and only forwarded to the underlying KMP builder when set, diverging from
+  `OAuth2ClientConfiguration.clientSecret`'s actual non-null `String` type (default `""`). It's now
+  tracked as `String = ""` and always forwarded.
+
 ## web-authentication-ui Unreleased
 
 #### Added

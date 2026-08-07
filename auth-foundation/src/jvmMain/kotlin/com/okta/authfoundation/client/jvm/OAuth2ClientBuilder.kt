@@ -19,7 +19,12 @@ import com.okta.authfoundation.api.http.ApiExecutor
 import com.okta.authfoundation.client.Cache
 import com.okta.authfoundation.client.OAuth2ClientBuilder
 import com.okta.authfoundation.client.OidcClock
+import com.okta.authfoundation.client.kmp.AccessTokenValidator
+import com.okta.authfoundation.client.kmp.DeviceSecretValidator
+import com.okta.authfoundation.client.kmp.IdTokenValidator
 import com.okta.authfoundation.client.kmp.OAuth2Client
+import com.okta.authfoundation.client.kmp.RateLimitRetryConfig
+import kotlinx.serialization.json.Json
 import kotlin.coroutines.CoroutineContext
 
 /**
@@ -46,11 +51,16 @@ class OAuth2ClientBuilder(
     private var clock: OidcClock? = null
     private var ioDispatcher: CoroutineContext? = null
     private var computeDispatcher: CoroutineContext? = null
+    private var json: Json? = null
     private var cache: Cache? = null
     private var authorizationServerId: String? = null
-    private var clientSecret: String? = null
+    private var clientSecret: String = ""
     private var acrValues: String? = null
+    private var idTokenValidator: IdTokenValidator? = null
+    private var accessTokenValidator: AccessTokenValidator? = null
+    private var deviceSecretValidator: DeviceSecretValidator? = null
     private var endpointOverrides: com.okta.authfoundation.client.OAuth2EndpointOverrides? = null
+    private var rateLimitRetryCallback: ((retryCount: Int) -> RateLimitRetryConfig?)? = null
 
     /**
      * Sets the HTTP executor used for all network requests.
@@ -94,6 +104,17 @@ class OAuth2ClientBuilder(
     fun setComputeDispatcher(dispatcher: CoroutineContext): com.okta.authfoundation.client.jvm.OAuth2ClientBuilder =
         apply {
             this.computeDispatcher = dispatcher
+        }
+
+    /**
+     * Sets the JSON serializer used for encoding/decoding responses.
+     *
+     * @param json The [Json] instance to use.
+     * @return This builder for chaining.
+     */
+    fun setJson(json: Json): com.okta.authfoundation.client.jvm.OAuth2ClientBuilder =
+        apply {
+            this.json = json
         }
 
     /**
@@ -145,6 +166,39 @@ class OAuth2ClientBuilder(
         }
 
     /**
+     * Sets the ID token validator. When set, ID tokens are validated after token refresh.
+     *
+     * @param idTokenValidator The [IdTokenValidator] to use.
+     * @return This builder for chaining.
+     */
+    fun setIdTokenValidator(idTokenValidator: IdTokenValidator): com.okta.authfoundation.client.jvm.OAuth2ClientBuilder =
+        apply {
+            this.idTokenValidator = idTokenValidator
+        }
+
+    /**
+     * Sets the access token validator. When set, access tokens are validated via `at_hash` claim.
+     *
+     * @param accessTokenValidator The [AccessTokenValidator] to use.
+     * @return This builder for chaining.
+     */
+    fun setAccessTokenValidator(accessTokenValidator: AccessTokenValidator): com.okta.authfoundation.client.jvm.OAuth2ClientBuilder =
+        apply {
+            this.accessTokenValidator = accessTokenValidator
+        }
+
+    /**
+     * Sets the device secret validator. When set, device secrets are validated via `ds_hash` claim.
+     *
+     * @param deviceSecretValidator The [DeviceSecretValidator] to use.
+     * @return This builder for chaining.
+     */
+    fun setDeviceSecretValidator(deviceSecretValidator: DeviceSecretValidator): com.okta.authfoundation.client.jvm.OAuth2ClientBuilder =
+        apply {
+            this.deviceSecretValidator = deviceSecretValidator
+        }
+
+    /**
      * Sets optional per-endpoint URL overrides.
      *
      * When provided, each non-null field in [overrides] replaces the corresponding URL from
@@ -160,6 +214,21 @@ class OAuth2ClientBuilder(
         }
 
     /**
+     * Sets the callback invoked when an HTTP 429 rate-limit response is received.
+     *
+     * Return a [RateLimitRetryConfig] from [rateLimitRetryCallback] to retry the request, or `null`
+     * to surface the failure immediately. The `retryCount` parameter is 0-based: 0 on the first
+     * retry opportunity.
+     *
+     * @param rateLimitRetryCallback The callback to invoke on a 429 response.
+     * @return This builder for chaining.
+     */
+    fun setRateLimitRetryCallback(rateLimitRetryCallback: (retryCount: Int) -> RateLimitRetryConfig?): com.okta.authfoundation.client.jvm.OAuth2ClientBuilder =
+        apply {
+            this.rateLimitRetryCallback = rateLimitRetryCallback
+        }
+
+    /**
      * Creates an [OAuth2Client] instance with the configured parameters.
      *
      * @return A [AuthFoundationResult] containing the [OAuth2Client] on success, or an exception on failure.
@@ -171,11 +240,16 @@ class OAuth2ClientBuilder(
                 this@OAuth2ClientBuilder.clock?.let { clock = it }
                 this@OAuth2ClientBuilder.ioDispatcher?.let { ioDispatcher = it }
                 this@OAuth2ClientBuilder.computeDispatcher?.let { computeDispatcher = it }
+                this@OAuth2ClientBuilder.json?.let { json = it }
                 this@OAuth2ClientBuilder.cache?.let { cache = it }
                 this@OAuth2ClientBuilder.authorizationServerId?.let { authorizationServerId = it }
-                this@OAuth2ClientBuilder.clientSecret?.let { clientSecret = it }
+                clientSecret = this@OAuth2ClientBuilder.clientSecret
                 this@OAuth2ClientBuilder.acrValues?.let { acrValues = it }
+                this@OAuth2ClientBuilder.idTokenValidator?.let { idTokenValidator = it }
+                this@OAuth2ClientBuilder.accessTokenValidator?.let { accessTokenValidator = it }
+                this@OAuth2ClientBuilder.deviceSecretValidator?.let { deviceSecretValidator = it }
                 this@OAuth2ClientBuilder.endpointOverrides?.let { endpointOverrides = it }
+                this@OAuth2ClientBuilder.rateLimitRetryCallback?.let { rateLimitRetryCallback = it }
             }
         return AuthFoundationResult.fromKotlinResult(kotlinResult)
     }
