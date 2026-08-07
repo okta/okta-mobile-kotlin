@@ -19,6 +19,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import com.okta.authfoundation.client.ClientAssertion;
 import com.okta.authfoundation.client.kmp.DefaultAccessTokenValidator;
 import com.okta.authfoundation.client.kmp.DefaultDeviceSecretValidator;
 import com.okta.authfoundation.client.kmp.DefaultIdTokenValidator;
@@ -90,6 +91,44 @@ public class OAuth2ClientBuilderJavaTest {
             .getOrThrow();
 
     assertNotNull("Client should not be null after chaining all optional setters", client);
+  }
+
+  @Test
+  public void build_WithClientAssertionProvider_InvokesProviderPerRequest() {
+    OAuth2Client client =
+        new OAuth2ClientBuilder(BASE_URL, CLIENT_ID, Arrays.asList(SCOPE.split(" ")))
+            .setClientAssertionProvider(
+                audience ->
+                    new ClientAssertion(
+                        "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+                        "jwt-for-" + audience))
+            .build()
+            .getOrThrow();
+
+    ClientAssertion assertion =
+        client
+            .getConfiguration()
+            .getClientAssertionProvider()
+            .provide("https://example.okta.com/v1/token");
+    assertEquals("urn:ietf:params:oauth:client-assertion-type:jwt-bearer", assertion.getType());
+    assertEquals("jwt-for-https://example.okta.com/v1/token", assertion.getAssertion());
+  }
+
+  @Test
+  public void build_WithParSettings_StoresParSettings() {
+    OAuth2Client client =
+        new OAuth2ClientBuilder(BASE_URL, CLIENT_ID, Arrays.asList(SCOPE.split(" ")))
+            .setAuthorizationServerId("default")
+            .setEnablePushedAuthorizationRequests(true)
+            .setAllowPushedAuthorizationRequestFallback(false)
+            .build()
+            .getOrThrow();
+
+    assertTrue(
+        "PAR should be enabled", client.getConfiguration().getEnablePushedAuthorizationRequests());
+    assertTrue(
+        "PAR fallback should be disabled",
+        !client.getConfiguration().getAllowPushedAuthorizationRequestFallback());
   }
 
   @Test

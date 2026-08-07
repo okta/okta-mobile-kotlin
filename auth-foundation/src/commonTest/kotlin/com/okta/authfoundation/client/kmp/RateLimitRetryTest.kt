@@ -77,7 +77,7 @@ class RateLimitRetryTest {
                 json = Json { ignoreUnknownKeys = true },
                 cache = noOpCache,
                 authorizationServerId = null,
-                clientSecret = null,
+                clientSecret = "",
                 acrValues = null,
                 rateLimitRetryCallback = retryCallback
             )

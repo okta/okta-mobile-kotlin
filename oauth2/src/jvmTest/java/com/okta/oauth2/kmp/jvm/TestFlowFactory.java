@@ -100,4 +100,22 @@ public final class TestFlowFactory {
   public static AuthorizationCodeFlow createFailingAuthorizationCodeFlow() {
     return new AuthorizationCodeFlow(FakeSuspendFlows.failingAuthorizationCodeDelegate());
   }
+
+  /**
+   * Creates an {@link AuthorizationCodeFlow} whose {@code start} fails with {@link
+   * com.okta.oauth2.kmp.AuthorizationCodeFlow.PushedAuthorizationRequiredException}, as when PAR is
+   * mandated by the authorization server but unavailable.
+   */
+  public static AuthorizationCodeFlow createParRequiredAuthorizationCodeFlow() {
+    return new AuthorizationCodeFlow(FakeSuspendFlows.parRequiredAuthorizationCodeDelegate());
+  }
+
+  /**
+   * Creates an {@link AuthorizationCodeFlow} whose {@code start} fails with {@link
+   * com.okta.oauth2.kmp.AuthorizationCodeFlow.PushedAuthorizationRequestException}, as when PAR is
+   * optional, the PAR request fails, and fallback is disabled.
+   */
+  public static AuthorizationCodeFlow createParRequestFailedAuthorizationCodeFlow() {
+    return new AuthorizationCodeFlow(FakeSuspendFlows.parRequestFailedAuthorizationCodeDelegate());
+  }
 }

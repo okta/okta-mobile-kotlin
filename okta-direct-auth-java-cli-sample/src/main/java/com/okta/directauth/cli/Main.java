@@ -174,11 +174,20 @@ public final class Main implements Callable<Integer> {
 
     // --- Build OAuth2 client and flows ---
     CliLogger.info(TAG, "Building OAuth2 client (scopes: " + OAUTH2_SCOPES + ")");
-    AuthFoundationResult<OAuth2Client> oauth2ClientResult =
+    OAuth2ClientBuilder oauth2ClientBuilder =
         new OAuth2ClientBuilder(issuer, clientId, OAUTH2_SCOPES)
             .setAuthorizationServerId(authorizationServerId)
-            .build();
-
+            .setEnablePushedAuthorizationRequests(true)
+            // PAR is tried opportunistically ("PAR when supported" in the CLI's sign-in prompt):
+            // fall back to the classic authorization URL if the org/auth server doesn't actually
+            // have PAR working, rather than failing the demo outright. Fallback is off by default
+            // in the SDK (fail-closed) precisely so a real app has to make this choice
+            // deliberately.
+            .setAllowPushedAuthorizationRequestFallback(true);
+    // Testing only: reads a client secret or private_key_jwt key from local.properties at
+    // runtime. See ClientAuthentication for why this must not be done in a shipped app.
+    ClientAuthentication.configure(oauth2ClientBuilder, clientId);
+    AuthFoundationResult<OAuth2Client> oauth2ClientResult = oauth2ClientBuilder.build();
     if (oauth2ClientResult.isFailure()) {
       Throwable cause = oauth2ClientResult.exceptionOrNull();
       CliLogger.error(TAG, "Failed to create OAuth2 client", cause);

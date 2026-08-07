@@ -104,7 +104,7 @@ class CredentialTokenLifecycleTest {
                 json = Json { ignoreUnknownKeys = true },
                 cache = TestConfiguration.create().cache,
                 authorizationServerId = null,
-                clientSecret = null,
+                clientSecret = "",
                 acrValues = null
             )
         return OAuth2Client(
@@ -238,7 +238,7 @@ class CredentialTokenLifecycleTest {
                     json = Json { ignoreUnknownKeys = true },
                     cache = TestConfiguration.create().cache,
                     authorizationServerId = null,
-                    clientSecret = null,
+                    clientSecret = "",
                     acrValues = null
                 )
             val client =
@@ -289,7 +289,7 @@ class CredentialTokenLifecycleTest {
                     json = Json { ignoreUnknownKeys = true },
                     cache = TestConfiguration.create().cache,
                     authorizationServerId = null,
-                    clientSecret = null,
+                    clientSecret = "",
                     acrValues = null
                 )
             val client =
@@ -344,7 +344,7 @@ class CredentialTokenLifecycleTest {
                     json = Json { ignoreUnknownKeys = true },
                     cache = TestConfiguration.create().cache,
                     authorizationServerId = null,
-                    clientSecret = null,
+                    clientSecret = "",
                     acrValues = null
                 )
             val client =

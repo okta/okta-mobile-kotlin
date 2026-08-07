@@ -45,7 +45,7 @@ internal object TestConfiguration {
             json = Json { ignoreUnknownKeys = true },
             cache = NoOpCache,
             authorizationServerId = null,
-            clientSecret = null,
+            clientSecret = "",
             acrValues = null
         )
 

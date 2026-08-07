@@ -39,16 +39,6 @@ class AuthorizationCodeFlowImplTest {
         }
         """.trimIndent()
 
-    private val tokenResponse =
-        """
-        {
-            "token_type": "Bearer",
-            "expires_in": 3600,
-            "access_token": "test-access-token",
-            "scope": "openid profile"
-        }
-        """.trimIndent()
-
     private fun createFlow(vararg apiResponses: Pair<Int, String>) = createFlowWithScope(listOf("openid", "profile"), *apiResponses)
 
     private fun createFlowWithScope(
@@ -240,4 +230,6 @@ class AuthorizationCodeFlowImplTest {
             assertTrue(result.isFailure)
             assertIs<AuthorizationCodeFlow.MissingResultCodeException>(result.exceptionOrNull())
         }
+
+    // PAR-specific behavior is covered by AuthorizationCodeFlowParTest.
 }

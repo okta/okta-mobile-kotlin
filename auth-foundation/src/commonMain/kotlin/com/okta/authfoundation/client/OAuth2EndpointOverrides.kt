@@ -52,14 +52,22 @@ package com.okta.authfoundation.client
  * @param revocationEndpoint override URL for the revocation endpoint, or `null` to use discovery.
  * @param endSessionEndpoint override URL for the end-session (logout) endpoint, or `null` to use discovery.
  * @param deviceAuthorizationEndpoint override URL for the device authorization endpoint, or `null` to use discovery.
+ * @param pushedAuthorizationRequestEndpoint override URL for the Pushed Authorization Request (PAR)
+ *   endpoint, or `null` to use discovery. Not counted toward the skip-discovery optimization above —
+ *   PAR is opt-in via [OAuth2ClientBuilder.enablePushedAuthorizationRequests], so leaving this `null`
+ *   never blocks skipping discovery for the other 8 fields. Set this when all-8-fields skip-discovery
+ *   is used together with PAR, since discovery (the normal source of this endpoint) is bypassed.
  */
-class OAuth2EndpointOverrides(
-    val authorizationEndpoint: String? = null,
-    val tokenEndpoint: String? = null,
-    val userInfoEndpoint: String? = null,
-    val jwksUri: String? = null,
-    val introspectionEndpoint: String? = null,
-    val revocationEndpoint: String? = null,
-    val endSessionEndpoint: String? = null,
-    val deviceAuthorizationEndpoint: String? = null,
-)
+class OAuth2EndpointOverrides
+    @JvmOverloads
+    constructor(
+        val authorizationEndpoint: String? = null,
+        val tokenEndpoint: String? = null,
+        val userInfoEndpoint: String? = null,
+        val jwksUri: String? = null,
+        val introspectionEndpoint: String? = null,
+        val revocationEndpoint: String? = null,
+        val endSessionEndpoint: String? = null,
+        val deviceAuthorizationEndpoint: String? = null,
+        val pushedAuthorizationRequestEndpoint: String? = null,
+    )

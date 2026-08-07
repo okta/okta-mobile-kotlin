@@ -17,6 +17,7 @@ package com.okta.authfoundation.client.jvm
 
 import com.okta.authfoundation.api.http.ApiExecutor
 import com.okta.authfoundation.client.Cache
+import com.okta.authfoundation.client.ClientAssertionProvider
 import com.okta.authfoundation.client.OAuth2ClientBuilder
 import com.okta.authfoundation.client.OidcClock
 import com.okta.authfoundation.client.kmp.AccessTokenValidator
@@ -55,12 +56,15 @@ class OAuth2ClientBuilder(
     private var cache: Cache? = null
     private var authorizationServerId: String? = null
     private var clientSecret: String = ""
+    private var clientAssertionProvider: ClientAssertionProvider? = null
     private var acrValues: String? = null
     private var idTokenValidator: IdTokenValidator? = null
     private var accessTokenValidator: AccessTokenValidator? = null
     private var deviceSecretValidator: DeviceSecretValidator? = null
     private var endpointOverrides: com.okta.authfoundation.client.OAuth2EndpointOverrides? = null
     private var rateLimitRetryCallback: ((retryCount: Int) -> RateLimitRetryConfig?)? = null
+    private var enablePushedAuthorizationRequests: Boolean? = null
+    private var allowPushedAuthorizationRequestFallback: Boolean? = null
 
     /**
      * Sets the HTTP executor used for all network requests.
@@ -155,6 +159,21 @@ class OAuth2ClientBuilder(
         }
 
     /**
+     * Sets the provider for private_key_jwt (or similar JWT-based) client authentication.
+     *
+     * Invoked fresh for every token/PAR request — never cached or reused by the SDK — so the
+     * returned assertion can carry a unique `jti` and a correctly scoped `aud`/`exp`. Cannot be
+     * combined with [setClientSecret].
+     *
+     * @param clientAssertionProvider The [ClientAssertionProvider] to use.
+     * @return This builder for chaining.
+     */
+    fun setClientAssertionProvider(clientAssertionProvider: ClientAssertionProvider): com.okta.authfoundation.client.jvm.OAuth2ClientBuilder =
+        apply {
+            this.clientAssertionProvider = clientAssertionProvider
+        }
+
+    /**
      * Sets the ACR values.
      *
      * @param acrValues The ACR values string.
@@ -229,6 +248,37 @@ class OAuth2ClientBuilder(
         }
 
     /**
+     * Enables Pushed Authorization Requests (PAR) for browser-based authorization flows.
+     *
+     * PAR is used whenever the discovered authorization server metadata advertises a
+     * `pushed_authorization_request_endpoint` — this applies to the org authorization server as
+     * well as custom ones. Defaults to `false`.
+     *
+     * @param enablePushedAuthorizationRequests Whether PAR should be used when available.
+     * @return This builder for chaining.
+     */
+    fun setEnablePushedAuthorizationRequests(enablePushedAuthorizationRequests: Boolean): com.okta.authfoundation.client.jvm.OAuth2ClientBuilder =
+        apply {
+            this.enablePushedAuthorizationRequests = enablePushedAuthorizationRequests
+        }
+
+    /**
+     * Allows browser-based authorization flows to fall back to the classic authorization URL
+     * when PAR is optional and unavailable/fails.
+     *
+     * Defaults to `false` (fail-closed): a PAR failure surfaces as a thrown exception instead of
+     * silently downgrading to a request that omits PAR's protections. Pass `true` to allow that
+     * downgrade instead — the PAR failure's cause is not otherwise surfaced when it does.
+     *
+     * @param allowPushedAuthorizationRequestFallback Whether fallback is allowed.
+     * @return This builder for chaining.
+     */
+    fun setAllowPushedAuthorizationRequestFallback(allowPushedAuthorizationRequestFallback: Boolean): com.okta.authfoundation.client.jvm.OAuth2ClientBuilder =
+        apply {
+            this.allowPushedAuthorizationRequestFallback = allowPushedAuthorizationRequestFallback
+        }
+
+    /**
      * Creates an [OAuth2Client] instance with the configured parameters.
      *
      * @return A [AuthFoundationResult] containing the [OAuth2Client] on success, or an exception on failure.
@@ -244,12 +294,15 @@ class OAuth2ClientBuilder(
                 this@OAuth2ClientBuilder.cache?.let { cache = it }
                 this@OAuth2ClientBuilder.authorizationServerId?.let { authorizationServerId = it }
                 clientSecret = this@OAuth2ClientBuilder.clientSecret
+                this@OAuth2ClientBuilder.clientAssertionProvider?.let { clientAssertionProvider = it }
                 this@OAuth2ClientBuilder.acrValues?.let { acrValues = it }
                 this@OAuth2ClientBuilder.idTokenValidator?.let { idTokenValidator = it }
                 this@OAuth2ClientBuilder.accessTokenValidator?.let { accessTokenValidator = it }
                 this@OAuth2ClientBuilder.deviceSecretValidator?.let { deviceSecretValidator = it }
                 this@OAuth2ClientBuilder.endpointOverrides?.let { endpointOverrides = it }
                 this@OAuth2ClientBuilder.rateLimitRetryCallback?.let { rateLimitRetryCallback = it }
+                this@OAuth2ClientBuilder.enablePushedAuthorizationRequests?.let { enablePushedAuthorizationRequests = it }
+                this@OAuth2ClientBuilder.allowPushedAuthorizationRequestFallback?.let { allowPushedAuthorizationRequestFallback = it }
             }
         return AuthFoundationResult.fromKotlinResult(kotlinResult)
     }

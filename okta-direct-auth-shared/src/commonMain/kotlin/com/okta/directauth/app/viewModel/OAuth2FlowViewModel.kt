@@ -23,6 +23,7 @@ import com.okta.authfoundation.client.OAuth2ClientBuilder
 import com.okta.authfoundation.client.kmp.OAuth2Client
 import com.okta.directauth.app.AppConfig
 import com.okta.directauth.app.model.OAuth2FlowState
+import com.okta.directauth.app.platform.configureClientAuthentication
 import com.okta.directauth.app.platform.platformBrowserLogin
 import com.okta.directauth.app.util.AppLogger
 import com.okta.directauth.app.util.LogScope
@@ -68,6 +69,16 @@ class OAuth2FlowViewModel :
                 scope = defaultScope
             ) {
                 authorizationServerId = AppConfig.AUTHORIZATION_SERVER_ID
+                enablePushedAuthorizationRequests = true
+                // PAR is tried opportunistically here: fall back to the classic authorization URL
+                // if the org/auth server doesn't actually have PAR working, rather than failing
+                // the demo outright. Fallback is off by default in the SDK (fail-closed) precisely
+                // so a real app has to make this choice deliberately.
+                allowPushedAuthorizationRequestFallback = true
+                // Testing only: reads a client secret or private_key_jwt key from
+                // local.properties at runtime. See configureClientAuthentication for
+                // why this must not be done in a shipped app.
+                configureClientAuthentication(clientId = AppConfig.CLIENT_ID)
                 apiExecutor =
                     KtorHttpExecutor(
                         getHttpClientEngine().config {

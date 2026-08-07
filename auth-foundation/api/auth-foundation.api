@@ -363,6 +363,17 @@ public abstract interface class com/okta/authfoundation/client/Cache {
 	public abstract fun set (Ljava/lang/String;Ljava/lang/String;)V
 }
 
+public final class com/okta/authfoundation/client/ClientAssertion {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun getAssertion ()Ljava/lang/String;
+	public final fun getType ()Ljava/lang/String;
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class com/okta/authfoundation/client/ClientAssertionProvider {
+	public abstract fun provide (Ljava/lang/String;)Lcom/okta/authfoundation/client/ClientAssertion;
+}
+
 public abstract interface class com/okta/authfoundation/client/DeviceSecretValidator {
 	public abstract fun validate (Lcom/okta/authfoundation/client/OAuth2Client;Ljava/lang/String;Lcom/okta/authfoundation/jwt/Jwt;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
@@ -427,13 +438,16 @@ public final class com/okta/authfoundation/client/OAuth2ClientBuilder {
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getAccessTokenValidator ()Lcom/okta/authfoundation/client/kmp/AccessTokenValidator;
 	public final fun getAcrValues ()Ljava/lang/String;
+	public final fun getAllowPushedAuthorizationRequestFallback ()Z
 	public final fun getApiExecutor ()Lcom/okta/authfoundation/api/http/ApiExecutor;
 	public final fun getAuthorizationServerId ()Ljava/lang/String;
 	public final fun getCache ()Lcom/okta/authfoundation/client/Cache;
+	public final fun getClientAssertionProvider ()Lcom/okta/authfoundation/client/ClientAssertionProvider;
 	public final fun getClientSecret ()Ljava/lang/String;
 	public final fun getClock ()Lcom/okta/authfoundation/client/OidcClock;
 	public final fun getComputeDispatcher ()Lkotlin/coroutines/CoroutineContext;
 	public final fun getDeviceSecretValidator ()Lcom/okta/authfoundation/client/kmp/DeviceSecretValidator;
+	public final fun getEnablePushedAuthorizationRequests ()Z
 	public final fun getEndpointOverrides ()Lcom/okta/authfoundation/client/OAuth2EndpointOverrides;
 	public final fun getIdTokenValidator ()Lcom/okta/authfoundation/client/kmp/IdTokenValidator;
 	public final fun getIoDispatcher ()Lkotlin/coroutines/CoroutineContext;
@@ -441,13 +455,16 @@ public final class com/okta/authfoundation/client/OAuth2ClientBuilder {
 	public final fun getRateLimitRetryCallback ()Lkotlin/jvm/functions/Function1;
 	public final fun setAccessTokenValidator (Lcom/okta/authfoundation/client/kmp/AccessTokenValidator;)V
 	public final fun setAcrValues (Ljava/lang/String;)V
+	public final fun setAllowPushedAuthorizationRequestFallback (Z)V
 	public final fun setApiExecutor (Lcom/okta/authfoundation/api/http/ApiExecutor;)V
 	public final fun setAuthorizationServerId (Ljava/lang/String;)V
 	public final fun setCache (Lcom/okta/authfoundation/client/Cache;)V
+	public final fun setClientAssertionProvider (Lcom/okta/authfoundation/client/ClientAssertionProvider;)V
 	public final fun setClientSecret (Ljava/lang/String;)V
 	public final fun setClock (Lcom/okta/authfoundation/client/OidcClock;)V
 	public final fun setComputeDispatcher (Lkotlin/coroutines/CoroutineContext;)V
 	public final fun setDeviceSecretValidator (Lcom/okta/authfoundation/client/kmp/DeviceSecretValidator;)V
+	public final fun setEnablePushedAuthorizationRequests (Z)V
 	public final fun setEndpointOverrides (Lcom/okta/authfoundation/client/OAuth2EndpointOverrides;)V
 	public final fun setIdTokenValidator (Lcom/okta/authfoundation/client/kmp/IdTokenValidator;)V
 	public final fun setIoDispatcher (Lkotlin/coroutines/CoroutineContext;)V
@@ -461,16 +478,21 @@ public final class com/okta/authfoundation/client/OAuth2ClientBuilder$Companion 
 }
 
 public final class com/okta/authfoundation/client/OAuth2ClientConfiguration {
+	public final fun clientAuthenticationFormParameters (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun getAccessTokenValidator ()Lcom/okta/authfoundation/client/kmp/AccessTokenValidator;
 	public final fun getAcrValues ()Ljava/lang/String;
+	public final fun getAllowPushedAuthorizationRequestFallback ()Z
 	public final fun getApiExecutor ()Lcom/okta/authfoundation/api/http/ApiExecutor;
 	public final fun getAuthorizationServerId ()Ljava/lang/String;
 	public final fun getCache ()Lcom/okta/authfoundation/client/Cache;
+	public final fun getClientAssertionProvider ()Lcom/okta/authfoundation/client/ClientAssertionProvider;
 	public final fun getClientId ()Ljava/lang/String;
 	public final fun getClientSecret ()Ljava/lang/String;
 	public final fun getClock ()Lcom/okta/authfoundation/client/OidcClock;
+	public final fun getComputeDispatcher ()Lkotlin/coroutines/CoroutineContext;
 	public final fun getDefaultScope ()Ljava/util/List;
 	public final fun getDeviceSecretValidator ()Lcom/okta/authfoundation/client/kmp/DeviceSecretValidator;
+	public final fun getEnablePushedAuthorizationRequests ()Z
 	public final fun getEndpointOverrides ()Lcom/okta/authfoundation/client/OAuth2EndpointOverrides;
 	public final fun getIdTokenValidator ()Lcom/okta/authfoundation/client/kmp/IdTokenValidator;
 	public final fun getIssuerUrl ()Ljava/lang/String;
@@ -508,13 +530,22 @@ public final class com/okta/authfoundation/client/OAuth2ClientResult$Success : c
 
 public final class com/okta/authfoundation/client/OAuth2EndpointOverrides {
 	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getAuthorizationEndpoint ()Ljava/lang/String;
 	public final fun getDeviceAuthorizationEndpoint ()Ljava/lang/String;
 	public final fun getEndSessionEndpoint ()Ljava/lang/String;
 	public final fun getIntrospectionEndpoint ()Ljava/lang/String;
 	public final fun getJwksUri ()Ljava/lang/String;
+	public final fun getPushedAuthorizationRequestEndpoint ()Ljava/lang/String;
 	public final fun getRevocationEndpoint ()Ljava/lang/String;
 	public final fun getTokenEndpoint ()Ljava/lang/String;
 	public final fun getUserInfoEndpoint ()Ljava/lang/String;
@@ -679,13 +710,16 @@ public final class com/okta/authfoundation/client/internal/NetworkUtilsKt {
 
 public final class com/okta/authfoundation/client/internal/OAuth2Endpoints {
 	public static final field Companion Lcom/okta/authfoundation/client/internal/OAuth2Endpoints$Companion;
-	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Z)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getAuthorizationEndpoint ()Ljava/lang/String;
 	public final fun getDeviceAuthorizationEndpoint ()Ljava/lang/String;
 	public final fun getEndSessionEndpoint ()Ljava/lang/String;
 	public final fun getIntrospectionEndpoint ()Ljava/lang/String;
 	public final fun getIssuer ()Ljava/lang/String;
 	public final fun getJwksUri ()Ljava/lang/String;
+	public final fun getPushedAuthorizationRequestEndpoint ()Ljava/lang/String;
+	public final fun getRequirePushedAuthorizationRequests ()Z
 	public final fun getRevocationEndpoint ()Ljava/lang/String;
 	public final fun getTokenEndpoint ()Ljava/lang/String;
 	public final fun getUserInfoEndpoint ()Ljava/lang/String;

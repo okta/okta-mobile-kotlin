@@ -123,7 +123,7 @@ fun HomeMenuScreen(
             onClick = onBrowserAuth,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text(text = "Browser Sign In")
+            Text(text = "Browser Sign In (PAR)")
         }
         Spacer(modifier = Modifier.height(Dimens.spaceSmall))
 

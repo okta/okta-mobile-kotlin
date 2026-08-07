@@ -24,6 +24,13 @@ val authorizationServerId = localProperties.getProperty("authorizationServerId")
 val signInRedirectUri = localProperties.getProperty("signInRedirectUri") ?: ""
 val desktopSignInRedirectUri = localProperties.getProperty("desktopSignInRedirectUri") ?: ""
 
+// Confidential-client testing only (see PlatformClientAuthentication.kt) — baked in for Android
+// only because an installed app has no access to the developer machine's local.properties at
+// runtime. Never do this for a real app; a secret embedded in a shipped APK can be extracted from
+// it.
+val clientSecret = localProperties.getProperty("clientSecret") ?: ""
+val clientAssertionPrivateKeyPem = localProperties.getProperty("clientAssertionPrivateKeyPem") ?: ""
+
 val isCi = System.getenv("CI")?.toBoolean() ?: false
 if (!isCi && (issuer.isEmpty() || clientId.isEmpty() || authorizationServerId.isEmpty())) {
     throw GradleException(
@@ -36,6 +43,17 @@ if (!isCi && (issuer.isEmpty() || clientId.isEmpty() || authorizationServerId.is
             "Direct Auth configuration: https://developer.okta.com/docs/guides/configure-direct-auth-grants"
     )
 }
+
+// Escapes a value for embedding inside a double-quoted Kotlin string literal in generated source
+// (needed for clientAssertionPrivateKeyPem, which may contain literal newlines).
+fun escapeForKotlinStringLiteral(value: String): String =
+    value
+        .replace("\\", "\\\\")
+        .replace("$", "\\$")
+        .replace("\"", "\\\"")
+        .replace("\r\n", "\\n")
+        .replace("\n", "\\n")
+        .replace("\r", "\\n")
 
 // Generate AppConfig.kt with local.properties values for all KMP targets (replaces Android BuildConfig).
 val generateAppConfig =
@@ -63,6 +81,8 @@ val generateAppConfig =
             |    const val AUTHORIZATION_SERVER_ID: String = "$authorizationServerId"
             |    const val SIGN_IN_REDIRECT_URI: String = "$signInRedirectUri"
             |    const val DESKTOP_SIGN_IN_REDIRECT_URI: String = "$desktopSignInRedirectUri"
+            |    const val CLIENT_SECRET: String = "${escapeForKotlinStringLiteral(clientSecret)}"
+            |    const val CLIENT_ASSERTION_PRIVATE_KEY_PEM: String = "${escapeForKotlinStringLiteral(clientAssertionPrivateKeyPem)}"
             |}
                 """.trimMargin()
             )

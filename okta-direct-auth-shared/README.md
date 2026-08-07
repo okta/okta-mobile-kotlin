@@ -15,6 +15,7 @@ This sample application demonstrates how to use the Okta Direct Authentication S
     - [4. Configure the App Sign-on Policy](#4-configure-the-app-sign-on-policy)
     - [5. Enroll a Test User](#5-enroll-a-test-user)
   - [Local Configuration](#local-configuration)
+  - [Confidential client authentication (local testing only)](#confidential-client-authentication-local-testing-only)
   - [Self-Service Password Recovery (SSPR)](#self-service-password-recovery-sspr)
 - [Build and Run](#build-and-run)
   - [Android](#android)
@@ -73,6 +74,17 @@ Modify your authorization server's access policy to permit the direct authentica
 *   In the **"IF Grant type is"** section, click **Advanced**.
 *   Select the same grant types you enabled in Step 2 (including both direct auth and OAuth2 grant types), then click **Update Rule**.
 
+#### 3a. Enable PAR (for Browser Sign-In demo)
+Use a custom authorization server (typically `default`) and enable PAR in the server settings:
+
+*   In **Security > API > Authorization Servers**, open your custom authorization server.
+*   In **Settings**, enable Pushed Authorization Requests (PAR).
+*   Keep `authorizationServerId=<your_authorization_server_id>` in `local.properties` (for example, `default`).
+*   PAR behavior for Browser Sign-In:
+    *   If the server advertises PAR and it succeeds, the sample uses `request_uri`.
+    *   If PAR is optional and unavailable/fails, it falls back to the classic browser authorize URL.
+    *   If metadata requires PAR, Browser Sign-In fails when PAR cannot be completed.
+
 #### 4. Configure the App Sign-on Policy
 Set up a policy to define your application's authentication requirements.
 
@@ -108,6 +120,63 @@ Ensure your test user is enrolled in the authenticators you intend to use.
     *   `desktopSignInRedirectUri`: **Desktop only.** Localhost redirect URI for Browser Sign-In and Session Token flows (e.g., `http://localhost:8080/callback`). Register this in your Okta app's **Sign-in redirect URIs**.
 
     > **Note**: `signInRedirectUri` and `desktopSignInRedirectUri` are only required for the Browser Sign-In and Session Token flows. If you only plan to use Direct Authentication, Resource Owner, Device Authorization, or Token Exchange flows, you can omit both.
+
+### Confidential client authentication (local testing only)
+
+Browser Sign-In builds a public `OAuth2Client` by default — the correct and only recommended setup
+for a distributed Android or desktop app. To try this sample against a **confidential** client (for
+example, to exercise PAR with `private_key_jwt` or `client_secret` authentication), add one of the
+following to `local.properties`:
+
+```properties
+clientSecret=your-client-secret
+```
+
+or, for `private_key_jwt` (generate a PKCS#8 key with
+`openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 | openssl pkcs8 -topk8 -nocrypt`,
+then paste it on one line with newlines escaped as `\n`):
+
+```properties
+clientAssertionPrivateKeyPem=-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBg...\n-----END PRIVATE KEY-----\n
+```
+
+If both are set, the private_key_jwt assertion takes precedence. If neither is set, the client
+stays public and Browser Sign-In behaves exactly as before. See `configureClientAuthentication`
+(`src/commonMain/.../platform/PlatformClientAuthentication.kt` and its two platform actuals) for
+how each platform applies this — the two platforms get there very differently:
+
+*   **Desktop** (`src/jvmMain`) reads `local.properties` directly **at runtime**, deliberately not
+    via the `AppConfig` pattern used for the rest of this sample's config, so the secret is never
+    baked into a build artifact.
+*   **Android** (`src/androidMain`) has no access to the developer machine's `local.properties` at
+    runtime, so it reads the same two values from `AppConfig` instead — baked into the APK at
+    build time by the `generateAppConfig` Gradle task, the same way `local.properties`'s
+    non-secret values (issuer, client ID, etc.) already are.
+
+On both platforms, the private_key_jwt path registers a `ClientAssertionProvider` rather than a
+static assertion string: the SDK invokes it fresh for every token/PAR request, so each signed JWT
+gets a unique `jti` and an `aud` scoped to the exact endpoint being called — required by
+[Okta's client authentication guide](https://developer.okta.com/docs/api/openapi/okta-oauth/guides/client-auth),
+which only allows a given `jti` to be used once.
+
+> **SECURITY**: This exists only to make the confidential-client and PAR code paths easy to try
+> locally, on either platform. A client secret or private key must **never** ship inside a mobile
+> app, desktop app, or any other binary distributed to end users — anything embedded in a shipped
+> artifact can be extracted from it, no matter how it's obfuscated or which of the two mechanisms
+> above put it there. Confidential-client authentication only makes sense for a client that can
+> actually keep a secret, such as a backend service. For a real deployment, load the secret from a
+> proper secrets manager or KMS/HSM-backed signer (e.g. AWS Secrets Manager, HashiCorp Vault,
+> Google Secret Manager, or your cloud provider's KMS for a private_key_jwt signer) — never from a
+> checked-in or checked-out properties file. Keep `local.properties` out of version control (it
+> already is, via `.gitignore`) and out of any CI build artifact.
+>
+> **For an enterprise-managed mobile deployment** (not a public app-store app): an MDM's managed
+> app configuration (Android Enterprise managed configurations, or an iOS/iPadOS managed app
+> configuration) can push the secret to the device at runtime instead of baking it into the
+> APK/IPA, and lets it be rotated or revoked centrally without shipping a new build. This only
+> raises the bar, though — it doesn't remove the exposure the way a server-side secret does. The
+> secret still ends up in the app's sandbox on an end-user (if corporate-owned) device and can
+> still be extracted by an attacker who compromises that device.
 
 ### Self-Service Password Recovery (SSPR)
 
@@ -149,6 +218,7 @@ When the app launches, you'll see a **Home Menu** with the following options:
 ### OAuth2 Flow Notes
 
 *   **Browser Sign In** requires `signInRedirectUri` to be configured in `local.properties` and registered in your Okta app's redirect URIs.
+*   **Browser Sign In + PAR** requires using a custom authorization server (`authorizationServerId` set, such as `default`) with PAR enabled in Okta.
 *   **Session Token Flow** requires `signInRedirectUri` for the server-side redirect. To obtain a session token, use the [Okta Authentication API](https://developer.okta.com/docs/reference/api/authn/) (e.g., via `curl` or another tool).
 *   **Token Exchange** requires tokens from a prior authentication that included the `device_sso` scope to obtain a device secret.
 *   **Device Authorization** requires the `urn:ietf:params:oauth:grant-type:device_code` grant type enabled on your authorization server.

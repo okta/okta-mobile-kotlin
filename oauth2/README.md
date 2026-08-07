@@ -9,6 +9,7 @@ Standard OAuth2 authentication flows for Kotlin Multiplatform (Android + JVM), i
 - [Installation](#installation)
 - [Getting Started](#getting-started)
   - [Creating an OAuth2Client](#creating-an-oauth2client)
+  - [Pushed Authorization Requests (PAR)](#pushed-authorization-requests-par)
 - [Authentication Flows](#authentication-flows)
   - [Resource Owner Flow](#resource-owner-flow)
   - [Device Authorization Flow](#device-authorization-flow)
@@ -101,6 +102,40 @@ val client: OAuth2Client =
             // Optional: specify authorization server ID for custom auth servers
             authorizationServerId = "default"
         }.getOrThrow()
+```
+
+### Pushed Authorization Requests (PAR)
+
+PAR is opt-in and disabled by default. Set `enablePushedAuthorizationRequests = true` and
+`AuthorizationCodeFlow` uses PAR whenever the discovered authorization server metadata advertises a
+`pushed_authorization_request_endpoint` — this applies to the org authorization server as well as
+custom ones, and is not gated on `authorizationServerId`. Independently of this setting, a server
+that advertises `require_pushed_authorization_requests` always uses PAR.
+
+- If PAR is supported, `start()` pushes the authorization parameters to PAR and returns a browser URL
+  containing `request_uri`.
+- If PAR is optional and unavailable/fails, `start()` fails with `PushedAuthorizationRequestException`
+  by default (fail-closed). Set `allowPushedAuthorizationRequestFallback = true` to instead fall back
+  to the classic authorization URL — the underlying PAR failure isn't otherwise surfaced (no logging
+  or event) when that fallback succeeds.
+- If PAR is required by server metadata (`require_pushed_authorization_requests=true`) and cannot
+  be completed, `start()` fails with `PushedAuthorizationRequiredException` regardless of
+  `allowPushedAuthorizationRequestFallback`.
+
+You can control this behavior in `OAuth2ClientBuilder`:
+
+```kotlin
+val client = OAuth2ClientBuilder.create(
+    issuerUrl = "https://your-org.okta.com",
+    clientId = "your-client-id",
+    scope = listOf("openid", "profile")
+) {
+    authorizationServerId = "default"
+    enablePushedAuthorizationRequests = true
+    // Optional: fall back to the classic authorization URL if PAR fails and isn't required,
+    // instead of failing start() with PushedAuthorizationRequestException.
+    // allowPushedAuthorizationRequestFallback = true
+}.getOrThrow()
 ```
 
 #### Custom Endpoint Overrides

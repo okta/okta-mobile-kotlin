@@ -71,5 +71,6 @@ private fun OAuth2EndpointOverrides.toOAuth2Endpoints(issuer: String): OAuth2End
         introspectionEndpoint = introspectionEndpoint,
         revocationEndpoint = revocationEndpoint,
         endSessionEndpoint = endSessionEndpoint,
-        deviceAuthorizationEndpoint = deviceAuthorizationEndpoint
+        deviceAuthorizationEndpoint = deviceAuthorizationEndpoint,
+        pushedAuthorizationRequestEndpoint = pushedAuthorizationRequestEndpoint
     )
