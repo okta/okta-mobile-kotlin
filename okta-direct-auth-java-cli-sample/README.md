@@ -57,10 +57,11 @@ desktopSignInRedirectUri=http://localhost:8080/callback
 
 ### Confidential client authentication (local testing only)
 
-Browser Sign-In builds a plain `OAuth2ClientBuilder` — a public client by default, which is the
-correct and only recommended setup for a distributed CLI or desktop app. To try this sample against
-a **confidential** client (for example, to exercise PAR with `private_key_jwt` or `client_secret`
-authentication), `ClientAuthentication` reads one of the following from `local.properties`
+Both the Direct Authentication and Browser Sign-In (OAuth2) builders are public clients by
+default — the correct and only recommended setup for a distributed CLI or desktop app. To try
+either against a **confidential** client (for example, to exercise PAR with `private_key_jwt` or
+`client_secret` authentication, or to run Direct Authentication as a confidential client),
+`ClientAuthentication` reads one of the following from `local.properties`
 **at runtime** — never bake either of these into `AppConfig` or any other compiled constant:
 
 ```properties
@@ -75,12 +76,14 @@ then paste it on one line with newlines escaped as `\n`):
 clientAssertionPrivateKeyPem=-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBg...\n-----END PRIVATE KEY-----\n
 ```
 
-If both are set, the private_key_jwt assertion takes precedence. If neither is set, the client
-stays public and Browser Sign-In behaves exactly as before.
+If both are set, the private_key_jwt assertion takes precedence. If neither is set, both clients
+stay public and Direct Authentication/Browser Sign-In behave exactly as before.
 
 The private_key_jwt path registers a `ClientAssertionProvider` rather than a static assertion
-string: the SDK invokes it fresh for every token/PAR request, so each signed JWT gets a unique
-`jti` and an `aud` scoped to the exact endpoint being called — required by
+string: the SDK invokes it fresh for every client-authenticated request — every token/PAR request
+for the OAuth2 builder, and every token/challenge/oob-authenticate/primary-authenticate request
+(including each iteration of an OOB poll) for the Direct Authentication builder — so each signed
+JWT gets a unique `jti` and an `aud` scoped to the exact endpoint being called — required by
 [Okta's client authentication guide](https://developer.okta.com/docs/api/openapi/okta-oauth/guides/client-auth),
 which only allows a given `jti` to be used once.
 

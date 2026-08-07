@@ -68,10 +68,11 @@ sealed class DirectAuthContinuation(
             runCatching {
                 withTimeout(bindingContext.expiresIn.seconds) {
                     while (isActive) {
+                        val clientAssertion = context.resolveClientAssertion(context.endpointUrl("token"))
                         val request =
                             mfaContext?.let {
-                                DirectAuthTokenRequest.OobMfa(context, bindingContext.oobCode, it)
-                            } ?: DirectAuthTokenRequest.Oob(context, bindingContext.oobCode)
+                                DirectAuthTokenRequest.OobMfa(context, bindingContext.oobCode, it, clientAssertion = clientAssertion)
+                            } ?: DirectAuthTokenRequest.Oob(context, bindingContext.oobCode, clientAssertion = clientAssertion)
 
                         val currentState = TokenStepHandler(request, context).process()
 
@@ -173,10 +174,11 @@ sealed class DirectAuthContinuation(
          * @return The next [DirectAuthenticationState] in the flow.
          */
         suspend fun proceed(assertionResponse: WebAuthnAssertionResponse): DirectAuthenticationState {
+            val clientAssertion = context.resolveClientAssertion(context.endpointUrl("token"))
             val request =
                 mfaContext?.let {
-                    DirectAuthTokenRequest.WebAuthnMfa(context, mfaContext, assertionResponse)
-                } ?: DirectAuthTokenRequest.WebAuthn(context, assertionResponse)
+                    DirectAuthTokenRequest.WebAuthnMfa(context, mfaContext, assertionResponse, clientAssertion)
+                } ?: DirectAuthTokenRequest.WebAuthn(context, assertionResponse, clientAssertion)
 
             val result =
                 runCatching { TokenStepHandler(request, context).process() }.getOrElse {
@@ -216,10 +218,11 @@ sealed class DirectAuthContinuation(
          * @return The next [DirectAuthenticationState] in the flow.
          */
         suspend fun proceed(code: String): DirectAuthenticationState {
+            val clientAssertion = context.resolveClientAssertion(context.endpointUrl("token"))
             val request =
                 mfaContext?.let {
-                    DirectAuthTokenRequest.OobMfa(context, bindingContext.oobCode, it, code)
-                } ?: DirectAuthTokenRequest.Oob(context, bindingContext.oobCode, code)
+                    DirectAuthTokenRequest.OobMfa(context, bindingContext.oobCode, it, code, clientAssertion)
+                } ?: DirectAuthTokenRequest.Oob(context, bindingContext.oobCode, code, clientAssertion)
 
             val result =
                 runCatching { TokenStepHandler(request, context).process() }.getOrElse {

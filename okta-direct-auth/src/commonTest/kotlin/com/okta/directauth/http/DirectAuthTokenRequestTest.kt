@@ -21,6 +21,7 @@ import com.okta.authfoundation.api.http.ApiRequestMethod
 import com.okta.authfoundation.api.http.KtorHttpExecutor
 import com.okta.authfoundation.api.log.AuthFoundationLogger
 import com.okta.authfoundation.api.log.LogLevel
+import com.okta.authfoundation.client.ClientAssertion
 import com.okta.directauth.apiErrorClientMockEngine
 import com.okta.directauth.authorizationPendingMockEngine
 import com.okta.directauth.emptyResponseMockEngine
@@ -142,6 +143,24 @@ class DirectAuthTokenRequestTest {
         assertEquals(listOf(GrantType.Password.value), formParameters["grant_type"])
         assertEquals(listOf("test_user"), formParameters["username"])
         assertEquals(listOf("test_password"), formParameters["password"])
+    }
+
+    @Test
+    fun passwordRequest_usesClientAssertionInsteadOfClientSecret() {
+        val assertionContext = context.copy(clientSecret = "")
+        val clientAssertion = ClientAssertion("urn:ietf:params:oauth:client-assertion-type:jwt-bearer", "test-signed-jwt")
+        val request =
+            DirectAuthTokenRequest.Password(
+                context = assertionContext,
+                username = "test_user",
+                password = "test_password",
+                clientAssertion = clientAssertion
+            )
+
+        val formParameters = request.formParameters()
+        assertEquals(listOf("urn:ietf:params:oauth:client-assertion-type:jwt-bearer"), formParameters["client_assertion_type"])
+        assertEquals(listOf("test-signed-jwt"), formParameters["client_assertion"])
+        assertFalse(formParameters.containsKey("client_secret"))
     }
 
     @Test

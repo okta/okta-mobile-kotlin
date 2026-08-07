@@ -1,3 +1,14 @@
+## [Unreleased]
+
+### Added
+
+- `DirectAuthenticationFlowBuilder.clientAssertionProvider`/`computeDispatcher` (and the
+  corresponding `jvm.DirectAuthenticationFlowBuilder.setClientAssertionProvider`/
+  `setComputeDispatcher`) for `private_key_jwt` client authentication. The provider is invoked
+  fresh for every client-authenticated request the flow makes — including each iteration of an
+  OOB poll — so the returned assertion can carry a unique `jti` and a correctly scoped, non-expired
+  `exp`/`aud`. Mutually exclusive with `clientSecret`.
+
 ## [1.0.0] - 2026-08-05
 
 Graduating from beta (0.0.1) to the first stable release.

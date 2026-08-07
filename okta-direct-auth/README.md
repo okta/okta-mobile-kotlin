@@ -74,6 +74,43 @@ val directAuth: DirectAuthenticationFlow =
         }.getOrThrow()
 ```
 
+If your application is registered as a confidential client, authenticate with either a client secret:
+
+```kotlin
+val confidentialFlow: DirectAuthenticationFlow =
+    DirectAuthenticationFlowBuilder
+        .create(
+            issuerUrl = "https://your-org.okta.com",
+            clientId = "your-client-id",
+            scope = listOf("openid", "profile", "email")
+        ) {
+            clientSecret = "your-client-secret"
+        }.getOrThrow()
+```
+
+...or, mutually exclusive with `clientSecret`, a `private_key_jwt` assertion provider. It's invoked fresh for every request the flow makes — including each iteration of an OOB poll — so the returned assertion can carry a unique `jti` and a correctly scoped, non-expired `exp`/`aud`:
+
+```kotlin
+import com.okta.authfoundation.client.ClientAssertion
+import com.okta.authfoundation.client.ClientAssertionProvider
+
+val confidentialFlow: DirectAuthenticationFlow =
+    DirectAuthenticationFlowBuilder
+        .create(
+            issuerUrl = "https://your-org.okta.com",
+            clientId = "your-client-id",
+            scope = listOf("openid", "profile", "email")
+        ) {
+            clientAssertionProvider =
+                ClientAssertionProvider { audience ->
+                    ClientAssertion(
+                        type = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+                        assertion = signJwt(issuer = "your-client-id", subject = "your-client-id", audience = audience)
+                    )
+                }
+        }.getOrThrow()
+```
+
 For self-service password recovery flows, create a separate flow with the recovery intent:
 
 ```kotlin
@@ -464,6 +501,24 @@ DirectAuthResult<DirectAuthenticationFlow> result =
         .build();
 
 DirectAuthenticationFlow flow = result.getOrThrow();
+```
+
+If your application is registered as a confidential client, authenticate with either `setClientSecret` or, mutually exclusive with it, `setClientAssertionProvider` — invoked fresh for every request the flow makes (including each iteration of an OOB poll) so the returned assertion can carry a unique `jti` and a correctly scoped, non-expired `exp`/`aud`:
+
+```java
+import com.okta.authfoundation.client.ClientAssertion;
+
+DirectAuthResult<DirectAuthenticationFlow> result =
+    new DirectAuthenticationFlowBuilder(
+            "https://your-org.okta.com",
+            "your-client-id",
+            List.of("openid", "profile", "email"))
+        .setClientAssertionProvider(
+            audience ->
+                new ClientAssertion(
+                    "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+                    signJwt("your-client-id", "your-client-id", audience)))
+        .build();
 ```
 
 ### Starting Authentication (Java)

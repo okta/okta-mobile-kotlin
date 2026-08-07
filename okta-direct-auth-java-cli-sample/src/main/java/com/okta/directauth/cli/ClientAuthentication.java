@@ -16,7 +16,9 @@
 package com.okta.directauth.cli;
 
 import com.okta.authfoundation.client.ClientAssertion;
+import com.okta.authfoundation.client.ClientAssertionProvider;
 import com.okta.authfoundation.client.jvm.OAuth2ClientBuilder;
+import com.okta.directauth.jvm.DirectAuthenticationFlowBuilder;
 import io.jsonwebtoken.Jwts;
 import java.io.File;
 import java.io.FileInputStream;
@@ -32,15 +34,20 @@ import java.util.Base64;
 import java.util.Date;
 import java.util.Properties;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 /**
  * Reads confidential-client credentials (a client secret or a private_key_jwt signing key) from
- * {@code local.properties} at runtime and applies them to an {@link OAuth2ClientBuilder}, so this
- * CLI can demonstrate Pushed Authorization Requests (PAR) and other confidential-client features
- * against a confidential OAuth2 client.
+ * {@code local.properties} at runtime and applies them to an {@link OAuth2ClientBuilder} or a
+ * {@link DirectAuthenticationFlowBuilder}, so this CLI can demonstrate Pushed Authorization
+ * Requests (PAR), Direct Authentication, and other confidential-client features against a
+ * confidential OAuth2 client.
  *
- * <p>The private_key_jwt path registers a {@code ClientAssertionProvider}, which the SDK invokes
- * fresh for every token/PAR request. This matters for spec compliance — per <a
+ * <p>The private_key_jwt path registers a {@link ClientAssertionProvider}, which the SDK invokes
+ * fresh for every client-authenticated request — every token/PAR request for {@link
+ * OAuth2ClientBuilder}, and every token/challenge/oob-authenticate/primary-authenticate request
+ * (including each iteration of an OOB poll) for {@link DirectAuthenticationFlowBuilder}. This
+ * matters for spec compliance — per <a
  * href="https://developer.okta.com/docs/api/openapi/okta-oauth/guides/client-auth">Okta's client
  * authentication guide</a>, a `jti` may only be used once and `aud` must be the exact endpoint URL
  * being called, neither of which a single statically-built assertion can satisfy across more than
@@ -103,6 +110,49 @@ final class ClientAuthentication {
    * unit-tested without touching the filesystem.
    */
   static void configure(OAuth2ClientBuilder builder, String clientId, Properties localProperties) {
+    applyLocalClientCredentials(
+        clientId, localProperties, builder::setClientSecret, builder::setClientAssertionProvider);
+  }
+
+  /**
+   * Applies a client secret or private_key_jwt client assertion provider to {@code builder}, if
+   * either is present in {@code local.properties}. Does nothing if neither is configured, leaving
+   * the client a public client (the default for this sample).
+   *
+   * <p>The private_key_jwt provider registered here is invoked fresh for every client-authenticated
+   * request the Direct Authentication flow makes — including each iteration of an OOB poll — not
+   * just once, since a single statically-built assertion could not satisfy the `jti`/`aud`
+   * requirements across more than one request.
+   *
+   * @param builder the builder to configure
+   * @param clientId the OAuth 2.0 client ID, used as the {@code iss}/{@code sub} claims of a
+   *     private_key_jwt assertion
+   */
+  static void configure(DirectAuthenticationFlowBuilder builder, String clientId) {
+    configure(builder, clientId, findLocalProperties());
+  }
+
+  /**
+   * Overload taking an already-loaded {@link Properties}, so the credential-selection logic can be
+   * unit-tested without touching the filesystem.
+   */
+  static void configure(
+      DirectAuthenticationFlowBuilder builder, String clientId, Properties localProperties) {
+    applyLocalClientCredentials(
+        clientId, localProperties, builder::setClientSecret, builder::setClientAssertionProvider);
+  }
+
+  /**
+   * Shared credential-selection logic for both {@link OAuth2ClientBuilder} and {@link
+   * DirectAuthenticationFlowBuilder}: reads {@code clientSecret}/{@code
+   * clientAssertionPrivateKeyPem} from {@code localProperties} and applies whichever is present via
+   * {@code setClientSecret}/{@code setClientAssertionProvider}.
+   */
+  private static void applyLocalClientCredentials(
+      String clientId,
+      Properties localProperties,
+      Consumer<String> setClientSecret,
+      Consumer<ClientAssertionProvider> setClientAssertionProvider) {
     String clientSecret = localProperties.getProperty(CLIENT_SECRET_PROPERTY, "").trim();
     String clientAssertionPem =
         localProperties.getProperty(CLIENT_ASSERTION_PEM_PROPERTY, "").trim();
@@ -115,7 +165,7 @@ final class ClientAuthentication {
                 + "using the private_key_jwt assertion and ignoring clientSecret.");
       }
       PrivateKey privateKey = parsePkcs8PrivateKey(clientAssertionPem);
-      builder.setClientAssertionProvider(
+      setClientAssertionProvider.accept(
           audience ->
               new ClientAssertion(
                   JWT_BEARER_CLIENT_ASSERTION_TYPE,
@@ -125,7 +175,7 @@ final class ClientAuthentication {
           "Using a private_key_jwt client assertion provider from local.properties (testing"
               + " only; a fresh JWT is signed for every request).");
     } else if (!clientSecret.isEmpty()) {
-      builder.setClientSecret(clientSecret);
+      setClientSecret.accept(clientSecret);
       CliLogger.info(TAG, "Using a client_secret from local.properties (testing only).");
     } else {
       CliLogger.debug(

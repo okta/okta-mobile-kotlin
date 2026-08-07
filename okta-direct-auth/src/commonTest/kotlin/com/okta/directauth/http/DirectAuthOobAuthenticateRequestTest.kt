@@ -20,6 +20,7 @@ import com.okta.authfoundation.api.http.ApiRequestMethod
 import com.okta.authfoundation.api.http.KtorHttpExecutor
 import com.okta.authfoundation.api.log.AuthFoundationLogger
 import com.okta.authfoundation.api.log.LogLevel
+import com.okta.authfoundation.client.ClientAssertion
 import com.okta.directauth.http.handlers.OobStepHandler
 import com.okta.directauth.model.BindingMethod
 import com.okta.directauth.model.DirectAuthContinuation
@@ -128,6 +129,25 @@ class DirectAuthOobAuthenticateRequestTest {
         assertEquals(listOf("test_user"), formParameters["login_hint"])
         assertEquals(listOf("sms"), formParameters["channel_hint"])
         assertEquals(listOf("test_client_secret"), formParameters["client_secret"])
+    }
+
+    @Test
+    fun oobAuthenticateRequest_WithClientAssertionUsesAssertionParameters() {
+        val customContext = context.copy(clientSecret = "")
+        val clientAssertion = ClientAssertion("urn:ietf:params:oauth:client-assertion-type:jwt-bearer", "test-signed-jwt")
+
+        val request =
+            DirectAuthOobAuthenticateRequest(
+                context = customContext,
+                loginHint = "test_user",
+                oobChannel = OobChannel.SMS,
+                clientAssertion = clientAssertion
+            )
+
+        val formParameters = request.formParameters()
+        assertEquals(listOf("urn:ietf:params:oauth:client-assertion-type:jwt-bearer"), formParameters["client_assertion_type"])
+        assertEquals(listOf("test-signed-jwt"), formParameters["client_assertion"])
+        assertFalse(formParameters.containsKey("client_secret"))
     }
 
     @Test

@@ -18,6 +18,8 @@ package com.okta.directauth.jvm;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import com.okta.authfoundation.api.log.JvmAuthFoundationLogger;
+import com.okta.authfoundation.client.ClientAssertion;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -60,6 +62,34 @@ public class BuilderApiTest {
             .getOrThrow();
 
     assertNotNull("Flow should not be null after chaining", flow);
+    flow.close();
+  }
+
+  @Test
+  public void build_WithClientAssertionProviderSetter_Succeeds() {
+    DirectAuthenticationFlow flow =
+        new DirectAuthenticationFlowBuilder(ISSUER_URL, CLIENT_ID, SCOPE)
+            .setClientAssertionProvider(
+                audience ->
+                    new ClientAssertion(
+                        "urn:ietf:params:oauth:client-assertion-type:jwt-bearer", "signed-jwt"))
+            .build()
+            .getOrThrow();
+
+    assertNotNull("Flow should not be null after setting client assertion provider", flow);
+    flow.close();
+  }
+
+  @Test
+  public void build_WithApiExecutorAndLogger_Succeeds() {
+    DirectAuthenticationFlow flow =
+        new DirectAuthenticationFlowBuilder(ISSUER_URL, CLIENT_ID, SCOPE)
+            .setApiExecutor(TestHelpers.createMockApiExecutor())
+            .setLogger(new JvmAuthFoundationLogger("BuilderApiTest"))
+            .build()
+            .getOrThrow();
+
+    assertNotNull("Flow should not be null after setting apiExecutor and logger", flow);
     flow.close();
   }
 
