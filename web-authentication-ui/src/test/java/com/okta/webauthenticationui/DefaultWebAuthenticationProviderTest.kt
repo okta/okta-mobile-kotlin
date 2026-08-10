@@ -18,12 +18,16 @@ package com.okta.webauthenticationui
 import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.ActivityInfo
 import android.content.pm.ResolveInfo
 import android.content.pm.ServiceInfo
 import android.net.Uri
 import android.provider.Browser
+import androidx.activity.result.ActivityResultLauncher
+import androidx.browser.auth.AuthTabIntent
 import androidx.browser.customtabs.CustomTabsService
+import androidx.core.net.toUri
 import com.google.common.truth.Truth.assertThat
 import com.okta.authfoundation.events.Event
 import com.okta.authfoundation.events.EventCoordinator
@@ -34,6 +38,13 @@ import com.okta.webauthenticationui.events.CustomizeCustomTabsEvent
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.kotlin.any
+import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.doThrow
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoInteractions
+import org.mockito.kotlin.whenever
 import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
@@ -151,6 +162,116 @@ class DefaultWebAuthenticationProviderTest {
         val webAuthenticationProvider = DefaultWebAuthenticationProvider(EventCoordinator(emptyList()))
         val exception = webAuthenticationProvider.launch(activity.get(), "https://example.com/not_used".toHttpUrl())
         assertThat(exception).isInstanceOf(ActivityNotFoundException::class.java)
+    }
+
+    @Test fun testLaunchAuthTabWhenSupported() {
+        installAuthTabProvider("com.android.chrome")
+        val activity = Robolectric.buildActivity(Activity::class.java)
+        val webAuthenticationProvider = DefaultWebAuthenticationProvider(EventCoordinator(emptyList()))
+        val launcher = mock<ActivityResultLauncher<Intent>>()
+        val exception =
+            webAuthenticationProvider.launchAuthTab(
+                activity.get(),
+                "https://example.com/authorize".toHttpUrl(),
+                "unitTest:/callback",
+                launcher
+            )
+        assertThat(exception).isNull()
+
+        val captor = argumentCaptor<Intent>()
+        verify(launcher).launch(captor.capture())
+        val intent = captor.firstValue
+        assertThat(intent.`package`).isEqualTo("com.android.chrome")
+        assertThat(intent.data).isEqualTo("https://example.com/authorize".toUri())
+        assertThat(intent.getStringExtra(AuthTabIntent.EXTRA_REDIRECT_SCHEME)).isEqualTo("unitTest")
+        val headers = intent.extras!!.getBundle(Browser.EXTRA_HEADERS)
+        assertThat(headers!!.getString(DefaultWebAuthenticationProvider.X_OKTA_USER_AGENT)).isEqualTo(DefaultWebAuthenticationProvider.USER_AGENT_HEADER)
+    }
+
+    @Test fun testLaunchAuthTabWithHttpsRedirect() {
+        installAuthTabProvider("com.android.chrome")
+        val activity = Robolectric.buildActivity(Activity::class.java)
+        val webAuthenticationProvider = DefaultWebAuthenticationProvider(EventCoordinator(emptyList()))
+        val launcher = mock<ActivityResultLauncher<Intent>>()
+        webAuthenticationProvider.launchAuthTab(
+            activity.get(),
+            "https://example.com/authorize".toHttpUrl(),
+            "https://app.example.com/callback",
+            launcher
+        )
+
+        val captor = argumentCaptor<Intent>()
+        verify(launcher).launch(captor.capture())
+        val intent = captor.firstValue
+        assertThat(intent.getStringExtra(AuthTabIntent.EXTRA_HTTPS_REDIRECT_HOST)).isEqualTo("app.example.com")
+        assertThat(intent.getStringExtra(AuthTabIntent.EXTRA_HTTPS_REDIRECT_PATH)).isEqualTo("/callback")
+    }
+
+    @Test fun testLaunchAuthTabFallsBackToCustomTabsWhenUnsupported() {
+        installCustomTabsProvider("com.android.chrome")
+        val activity = Robolectric.buildActivity(Activity::class.java)
+        val webAuthenticationProvider = DefaultWebAuthenticationProvider(EventCoordinator(emptyList()))
+        val launcher = mock<ActivityResultLauncher<Intent>>()
+        val exception =
+            webAuthenticationProvider.launchAuthTab(
+                activity.get(),
+                "https://example.com/authorize".toHttpUrl(),
+                "unitTest:/callback",
+                launcher
+            )
+        assertThat(exception).isNull()
+        verifyNoInteractions(launcher)
+
+        val activityShadow = shadowOf(activity.get())
+        val cctActivity = activityShadow.nextStartedActivity
+        assertThat(cctActivity.action).isEqualTo("android.intent.action.VIEW")
+        assertThat(cctActivity.`package`).isEqualTo("com.android.chrome")
+    }
+
+    @Test fun testLaunchAuthTabCausesActivityNotFound() {
+        installAuthTabProvider("com.android.chrome")
+        val activity = Robolectric.buildActivity(Activity::class.java)
+        val webAuthenticationProvider = DefaultWebAuthenticationProvider(EventCoordinator(emptyList()))
+        val launcher = mock<ActivityResultLauncher<Intent>>()
+        doThrow(ActivityNotFoundException("From Test!")).whenever(launcher).launch(any())
+        val exception =
+            webAuthenticationProvider.launchAuthTab(
+                activity.get(),
+                "https://example.com/authorize".toHttpUrl(),
+                "unitTest:/callback",
+                launcher
+            )
+        assertThat(exception).isInstanceOf(ActivityNotFoundException::class.java)
+        assertThat(exception).hasMessageThat().isEqualTo("From Test!")
+    }
+
+    @Test fun testCustomizeAuthTabIntentCallback_BuilderMutationApplied() {
+        installAuthTabProvider("com.android.chrome")
+        var capturedBuilder: AuthTabIntent.Builder? = null
+        val webAuthenticationProvider =
+            DefaultWebAuthenticationProvider(
+                customizeAuthTabIntent = { _, builder -> capturedBuilder = builder }
+            )
+        val activity = Robolectric.buildActivity(Activity::class.java)
+        webAuthenticationProvider.launchAuthTab(
+            activity.get(),
+            "https://example.com/authorize".toHttpUrl(),
+            "unitTest:/callback",
+            mock()
+        )
+        assertThat(capturedBuilder).isNotNull()
+    }
+
+    private fun installAuthTabProvider(packageName: String) {
+        installBrowser(packageName)
+        val intent = Intent().setAction(CustomTabsService.ACTION_CUSTOM_TABS_CONNECTION)
+        val resolveInfo = ResolveInfo()
+        resolveInfo.serviceInfo = ServiceInfo()
+        resolveInfo.serviceInfo.packageName = packageName
+        resolveInfo.filter = IntentFilter().apply { addCategory(CustomTabsService.CATEGORY_AUTH_TAB) }
+        val packageManager = shadowOf(RuntimeEnvironment.getApplication().packageManager)
+        @Suppress("DEPRECATION")
+        packageManager.addResolveInfoForIntent(intent, resolveInfo)
     }
 
     // Copyright 2019 Google Inc. All Rights Reserved.

@@ -71,7 +71,7 @@ class ForegroundActivityTest {
         val activity = controller.get()
         val redirectCoordinator =
             mock<RedirectCoordinator> {
-                on { launchWebAuthenticationProvider(any(), any()) } doReturn true
+                on { launchWebAuthenticationProvider(any(), any(), any()) } doReturn true
                 onBlocking { runInitializationFunction() } doAnswer {
                     RedirectInitializationResult.Success(mockUrl, Any())
                 }
@@ -79,7 +79,7 @@ class ForegroundActivityTest {
         ForegroundViewModel.redirectCoordinator = redirectCoordinator
         controller.create().resume()
 
-        verify(redirectCoordinator).launchWebAuthenticationProvider(any(), any())
+        verify(redirectCoordinator).launchWebAuthenticationProvider(any(), any(), any())
         assertThat(activity.isFinishing).isFalse()
         verify(redirectCoordinator, never()).emit(anyOrNull())
         verify(redirectCoordinator, never()).emitError(any())
@@ -93,18 +93,18 @@ class ForegroundActivityTest {
         val deferred = CompletableDeferred<RedirectInitializationResult<Any>>()
         val redirectCoordinator =
             mock<RedirectCoordinator> {
-                on { launchWebAuthenticationProvider(any(), any()) } doReturn true
+                on { launchWebAuthenticationProvider(any(), any(), any()) } doReturn true
                 onBlocking { runInitializationFunction() } doSuspendableAnswer {
                     deferred.await()
                 }
             }
         ForegroundViewModel.redirectCoordinator = redirectCoordinator
         controller.create().resume().pause()
-        verify(redirectCoordinator, never()).launchWebAuthenticationProvider(any(), any())
+        verify(redirectCoordinator, never()).launchWebAuthenticationProvider(any(), any(), any())
         deferred.complete(RedirectInitializationResult.Success(mockUrl, Any()))
         controller.resume()
 
-        verify(redirectCoordinator).launchWebAuthenticationProvider(any(), any())
+        verify(redirectCoordinator).launchWebAuthenticationProvider(any(), any(), any())
         assertThat(activity.isFinishing).isFalse()
         verify(redirectCoordinator, never()).emit(anyOrNull())
         verify(redirectCoordinator, never()).emitError(any())
@@ -117,7 +117,7 @@ class ForegroundActivityTest {
         val activity = controller.get()
         val redirectCoordinator =
             mock<RedirectCoordinator> {
-                on { launchWebAuthenticationProvider(any(), any()) } doReturn false
+                on { launchWebAuthenticationProvider(any(), any(), any()) } doReturn false
                 onBlocking { runInitializationFunction() } doAnswer {
                     RedirectInitializationResult.Success(mockUrl, Any())
                 }
@@ -136,7 +136,7 @@ class ForegroundActivityTest {
         val activity = controller.get()
         val redirectCoordinator =
             mock<RedirectCoordinator> {
-                on { launchWebAuthenticationProvider(any(), any()) } doReturn true
+                on { launchWebAuthenticationProvider(any(), any(), any()) } doReturn true
                 onBlocking { runInitializationFunction() } doAnswer {
                     RedirectInitializationResult.Success(mockUrl, Any())
                 }
@@ -157,7 +157,7 @@ class ForegroundActivityTest {
         val activity = controller.get()
         val redirectCoordinator =
             mock<RedirectCoordinator> {
-                on { launchWebAuthenticationProvider(any(), any()) } doReturn true
+                on { launchWebAuthenticationProvider(any(), any(), any()) } doReturn true
                 onBlocking { runInitializationFunction() } doAnswer {
                     RedirectInitializationResult.Success(mockUrl, Any())
                 }
@@ -181,7 +181,7 @@ class ForegroundActivityTest {
         val activity = controller.get()
         val redirectCoordinator =
             mock<RedirectCoordinator> {
-                on { launchWebAuthenticationProvider(any(), any()) } doReturn true
+                on { launchWebAuthenticationProvider(any(), any(), any()) } doReturn true
                 onBlocking { runInitializationFunction() } doAnswer {
                     RedirectInitializationResult.Error<Any>(IllegalStateException("From Test!"))
                 }
@@ -189,7 +189,7 @@ class ForegroundActivityTest {
         ForegroundViewModel.redirectCoordinator = redirectCoordinator
         controller.create().resume()
 
-        verify(redirectCoordinator, never()).launchWebAuthenticationProvider(any(), any())
+        verify(redirectCoordinator, never()).launchWebAuthenticationProvider(any(), any(), any())
         assertThat(activity.isFinishing).isTrue()
         verify(redirectCoordinator, never()).emit(anyOrNull())
         verify(redirectCoordinator, never()).emitError(any())
@@ -202,7 +202,7 @@ class ForegroundActivityTest {
         val controller = Robolectric.buildActivity(ForegroundActivity::class.java, intent)
         val redirectCoordinator =
             mockk<RedirectCoordinator> {
-                every { launchWebAuthenticationProvider(any(), any()) } returns true
+                every { launchWebAuthenticationProvider(any(), any(), any()) } returns true
                 coEvery { runInitializationFunction() } answers {
                     RedirectInitializationResult.Success(mockUrl, Any())
                 }

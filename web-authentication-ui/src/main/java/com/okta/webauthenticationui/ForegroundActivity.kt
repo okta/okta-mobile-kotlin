@@ -19,9 +19,11 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.viewModels
 import androidx.annotation.VisibleForTesting
 import androidx.appcompat.app.AppCompatActivity
+import androidx.browser.auth.AuthTabIntent
 import androidx.lifecycle.Observer
 import com.okta.authfoundation.AuthFoundationDefaults
 
@@ -46,6 +48,14 @@ internal class ForegroundActivity : AppCompatActivity() {
 
     @VisibleForTesting
     val viewModel by viewModels<ForegroundViewModel>()
+
+    // Must be registered unconditionally before the activity is created, per the AuthTabIntent contract.
+    @VisibleForTesting
+    val authTabLauncher: ActivityResultLauncher<Intent> =
+        AuthTabIntent.registerActivityResultLauncher(this) { result ->
+            viewModel.onAuthTabResult(result.resultCode, result.resultUri)
+            finish()
+        }
 
     private val eventCoordinator = AuthFoundationDefaults.eventCoordinator
 
@@ -110,7 +120,7 @@ internal class ForegroundActivity : AppCompatActivity() {
                 }
 
                 is ForegroundViewModel.State.LaunchBrowser -> {
-                    viewModel.launchBrowser(this, state.urlString)
+                    viewModel.launchBrowser(this, state.urlString, authTabLauncher)
                 }
 
                 ForegroundViewModel.State.AwaitingInitialization -> {
