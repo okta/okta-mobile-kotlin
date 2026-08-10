@@ -264,10 +264,10 @@ class WebAuthentication private constructor(
         context: Context,
         redirectUrl: String,
         extraRequestParameters: Map<String, String> = emptyMap(),
-        isEphemeralBrowsing: Boolean = false,
+        enableEphemeralBrowsing: Boolean = false,
         scope: String = defaultScopeValue.joinToString(" "),
     ): OAuth2ClientResult<Token> =
-        login(context, redirectUrl, scope.split(" "), isEphemeralBrowsing, extraRequestParameters)
+        login(context, redirectUrl, scope.split(" "), enableEphemeralBrowsing, extraRequestParameters)
             .mapToOAuth2ClientResult { it.toToken() }
 
     /**

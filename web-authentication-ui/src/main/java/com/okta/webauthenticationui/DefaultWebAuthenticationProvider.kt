@@ -103,12 +103,12 @@ class DefaultWebAuthenticationProvider
         override fun launch(
             context: Context,
             url: HttpUrl,
-            isEphemeralBrowsing: Boolean,
+            enableEphemeralBrowsing: Boolean,
         ): Exception? {
             val intentBuilder: CustomTabsIntent.Builder = CustomTabsIntent.Builder()
             val packageBrowser = getBrowser(context)
 
-            if (isEphemeralBrowsing) {
+            if (enableEphemeralBrowsing) {
                 packageBrowser?.let {
                     if (CustomTabsClient.isEphemeralBrowsingSupported(context, it)) {
                         intentBuilder.setEphemeralBrowsingEnabled(true)
