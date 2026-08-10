@@ -22,6 +22,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.provider.Browser
+import androidx.browser.customtabs.CustomTabsClient
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.browser.customtabs.CustomTabsService
 import androidx.core.net.toUri
@@ -102,14 +103,23 @@ class DefaultWebAuthenticationProvider
         override fun launch(
             context: Context,
             url: HttpUrl,
+            isEphemeralBrowsing: Boolean,
         ): Exception? {
             val intentBuilder: CustomTabsIntent.Builder = CustomTabsIntent.Builder()
+            val packageBrowser = getBrowser(context)
+
+            if (isEphemeralBrowsing) {
+                packageBrowser?.let {
+                    if (CustomTabsClient.isEphemeralBrowsingSupported(context, it)) {
+                        intentBuilder.setEphemeralBrowsingEnabled(true)
+                    }
+                }
+            }
             customizeTabsIntent?.invoke(context, intentBuilder)
             @Suppress("DEPRECATION")
             eventCoordinator.sendEvent(CustomizeCustomTabsEvent(context, intentBuilder))
             val tabsIntent: CustomTabsIntent = intentBuilder.build()
 
-            val packageBrowser = getBrowser(context)
             if (packageBrowser != null) {
                 tabsIntent.intent.setPackage(packageBrowser)
             }

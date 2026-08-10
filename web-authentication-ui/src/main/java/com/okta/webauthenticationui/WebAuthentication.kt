@@ -201,6 +201,7 @@ class WebAuthentication private constructor(
      * @param redirectUrl the redirect URL.
      * @param scope the scopes to request during sign in.
      * @param extraRequestParameters the extra key value pairs to send to the authorize endpoint.
+     * @param enableEphemeralBrowsing whether to enable ephemeral browsing mode, if supported by the browser.
      *  See [Authorize Documentation](https://developer.okta.com/docs/reference/api/oidc/#authorize) for parameter options.
      * @return a [Result] containing [TokenInfo] on success, or a failed [Result] wrapping a
      *  [FlowCancelledException] if the user dismissed the browser, a [FlowAlreadyInProgressException]
@@ -210,10 +211,11 @@ class WebAuthentication private constructor(
         context: Context,
         redirectUrl: String,
         scope: List<String>,
+        enableEphemeralBrowsing: Boolean = false,
         extraRequestParameters: Map<String, String> = emptyMap(),
     ): Result<TokenInfo> {
         val initializationResult =
-            redirectCoordinator.initialize(webAuthenticationProvider, context) {
+            redirectCoordinator.initialize(webAuthenticationProvider, context, enableEphemeralBrowsing) {
                 authorizationCodeFlow
                     .start(redirectUrl, scope, extraRequestParameters)
                     .mapCatching { flowContext ->
@@ -262,9 +264,10 @@ class WebAuthentication private constructor(
         context: Context,
         redirectUrl: String,
         extraRequestParameters: Map<String, String> = emptyMap(),
+        isEphemeralBrowsing: Boolean = false,
         scope: String = defaultScopeValue.joinToString(" "),
     ): OAuth2ClientResult<Token> =
-        login(context, redirectUrl, scope.split(" "), extraRequestParameters)
+        login(context, redirectUrl, scope.split(" "), isEphemeralBrowsing, extraRequestParameters)
             .mapToOAuth2ClientResult { it.toToken() }
 
     /**

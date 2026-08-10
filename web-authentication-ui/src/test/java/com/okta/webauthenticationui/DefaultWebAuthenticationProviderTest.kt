@@ -45,7 +45,7 @@ class DefaultWebAuthenticationProviderTest {
     @Test fun testLaunch() {
         val activity = Robolectric.buildActivity(Activity::class.java)
         val webAuthenticationProvider = DefaultWebAuthenticationProvider(EventCoordinator(emptyList()))
-        assertThat(webAuthenticationProvider.launch(activity.get(), "https://example.com/not_used".toHttpUrl())).isNull()
+        assertThat(webAuthenticationProvider.launch(activity.get(), "https://example.com/not_used".toHttpUrl(), false)).isNull()
         val activityShadow = shadowOf(activity.get())
         val cctActivity = activityShadow.nextStartedActivity
         assertThat(cctActivity.action).isEqualTo("android.intent.action.VIEW")
@@ -58,21 +58,21 @@ class DefaultWebAuthenticationProviderTest {
         val activity = Robolectric.buildActivity(Activity::class.java)
         val eventHandler = RecordingEventHandler()
         val webAuthenticationProvider = DefaultWebAuthenticationProvider(EventCoordinator(eventHandler))
-        assertThat(webAuthenticationProvider.launch(activity.get(), "https://example.com/not_used".toHttpUrl())).isNull()
+        assertThat(webAuthenticationProvider.launch(activity.get(), "https://example.com/not_used".toHttpUrl(), false)).isNull()
 
         assertThat(eventHandler.size).isEqualTo(2)
 
         @Suppress("DEPRECATION")
-        assertThat(eventHandler[0]).isInstanceOf(CustomizeCustomTabsEvent::class.java)
+        assertThat(eventHandler[0]).isInstanceOf(CustomizeBrowserEvent::class.java)
         @Suppress("DEPRECATION")
-        assertThat((eventHandler[0] as CustomizeCustomTabsEvent).context).isNotNull()
+        assertThat((eventHandler[0] as CustomizeBrowserEvent).preferredBrowsers).hasSize(3)
         @Suppress("DEPRECATION")
-        assertThat((eventHandler[0] as CustomizeCustomTabsEvent).intentBuilder).isNotNull()
+        assertThat(eventHandler[1]).isInstanceOf(CustomizeCustomTabsEvent::class.java)
 
         @Suppress("DEPRECATION")
-        assertThat(eventHandler[1]).isInstanceOf(CustomizeBrowserEvent::class.java)
+        assertThat((eventHandler[1] as CustomizeCustomTabsEvent).context).isNotNull()
         @Suppress("DEPRECATION")
-        assertThat((eventHandler[1] as CustomizeBrowserEvent).preferredBrowsers).hasSize(3)
+        assertThat((eventHandler[1] as CustomizeCustomTabsEvent).intentBuilder).isNotNull()
     }
 
     @Test fun testLaunchWithEnabledBrowsers() {
@@ -85,7 +85,7 @@ class DefaultWebAuthenticationProviderTest {
         )
         val activity = Robolectric.buildActivity(Activity::class.java)
         val webAuthenticationProvider = DefaultWebAuthenticationProvider(EventCoordinator(emptyList()))
-        assertThat(webAuthenticationProvider.launch(activity.get(), "https://example.com/not_used".toHttpUrl())).isNull()
+        assertThat(webAuthenticationProvider.launch(activity.get(), "https://example.com/not_used".toHttpUrl(), false)).isNull()
         val activityShadow = shadowOf(activity.get())
         val cctActivity = activityShadow.nextStartedActivity
         assertThat(cctActivity.action).isEqualTo("android.intent.action.VIEW")
@@ -110,7 +110,7 @@ class DefaultWebAuthenticationProviderTest {
                 customizeTabsIntent = { _, _ -> callOrder.add("callback") }
             )
         val activity = Robolectric.buildActivity(Activity::class.java)
-        webAuthenticationProvider.launch(activity.get(), "https://example.com/not_used".toHttpUrl())
+        webAuthenticationProvider.launch(activity.get(), "https://example.com/not_used".toHttpUrl(), false)
         assertThat(callOrder).containsExactly("callback", "eventHandler").inOrder()
     }
 
@@ -121,7 +121,7 @@ class DefaultWebAuthenticationProviderTest {
                 customizeTabsIntent = { _, builder -> capturedBuilder = builder }
             )
         val activity = Robolectric.buildActivity(Activity::class.java)
-        webAuthenticationProvider.launch(activity.get(), "https://example.com/not_used".toHttpUrl())
+        webAuthenticationProvider.launch(activity.get(), "https://example.com/not_used".toHttpUrl(), false)
         assertThat(capturedBuilder).isNotNull()
     }
 
@@ -134,7 +134,7 @@ class DefaultWebAuthenticationProviderTest {
                 preferredBrowsers = listOf("my.custom.preferred.browser")
             )
         val activity = Robolectric.buildActivity(Activity::class.java)
-        assertThat(webAuthenticationProvider.launch(activity.get(), "https://example.com/not_used".toHttpUrl())).isNull()
+        assertThat(webAuthenticationProvider.launch(activity.get(), "https://example.com/not_used".toHttpUrl(), false)).isNull()
         val activityShadow = shadowOf(activity.get())
         val cctActivity = activityShadow.nextStartedActivity
         assertThat(cctActivity.action).isEqualTo("android.intent.action.VIEW")
@@ -149,7 +149,7 @@ class DefaultWebAuthenticationProviderTest {
         shadowOf(RuntimeEnvironment.getApplication()).checkActivities(true)
         val activity = Robolectric.buildActivity(Activity::class.java)
         val webAuthenticationProvider = DefaultWebAuthenticationProvider(EventCoordinator(emptyList()))
-        val exception = webAuthenticationProvider.launch(activity.get(), "https://example.com/not_used".toHttpUrl())
+        val exception = webAuthenticationProvider.launch(activity.get(), "https://example.com/not_used".toHttpUrl(), false)
         assertThat(exception).isInstanceOf(ActivityNotFoundException::class.java)
     }
 

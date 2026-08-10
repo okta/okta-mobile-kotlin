@@ -37,5 +37,6 @@ interface WebAuthenticationProvider {
     fun launch(
         context: Context,
         url: HttpUrl,
+        isEphemeralBrowsing: Boolean = false,
     ): Exception?
 }

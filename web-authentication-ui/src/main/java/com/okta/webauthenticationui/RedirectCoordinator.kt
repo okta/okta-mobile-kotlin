@@ -54,6 +54,7 @@ internal class DefaultRedirectCoordinator(
     @Volatile private var webAuthenticationProvider: WebAuthenticationProvider? = null
 
     private var emitErrorJob: Job? = null
+    private var isEphemeralBrowsing: Boolean = false
 
     private val flowMutex = Mutex()
 
@@ -63,6 +64,7 @@ internal class DefaultRedirectCoordinator(
     override suspend fun <T> initialize(
         webAuthenticationProvider: WebAuthenticationProvider,
         context: Context,
+        isEphemeralBrowsing: Boolean,
         initializer: suspend () -> RedirectInitializationResult<T>,
     ): RedirectInitializationResult<T> {
         currentCoroutineContext().ensureActive()
@@ -74,7 +76,7 @@ internal class DefaultRedirectCoordinator(
             this.webAuthenticationProvider = webAuthenticationProvider
             this.initializer = initializer
         }
-
+        this.isEphemeralBrowsing = isEphemeralBrowsing
         if (context is ComponentActivity) {
             if (!context.lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
                 reset()
@@ -122,7 +124,7 @@ internal class DefaultRedirectCoordinator(
         webAuthenticationProvider = null
 
         if (localWebAuthenticationProvider != null) {
-            val exception = localWebAuthenticationProvider.launch(context, url)
+            val exception = localWebAuthenticationProvider.launch(context, url, isEphemeralBrowsing = isEphemeralBrowsing)
             if (exception == null) {
                 return true
             } else {
@@ -180,6 +182,7 @@ internal interface RedirectCoordinator {
     suspend fun <T> initialize(
         webAuthenticationProvider: WebAuthenticationProvider,
         context: Context,
+        isEphemeralBrowsing: Boolean = false,
         initializer: suspend () -> RedirectInitializationResult<T>,
     ): RedirectInitializationResult<T>
 
