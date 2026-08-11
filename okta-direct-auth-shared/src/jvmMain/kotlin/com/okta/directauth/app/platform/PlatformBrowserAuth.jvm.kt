@@ -30,12 +30,16 @@ import java.net.URI
  *
  * Uses [AppConfig.DESKTOP_SIGN_IN_REDIRECT_URI] (e.g. `http://localhost:8080/callback`)
  * rather than the Android custom-scheme URI passed via [redirectUrl].
+ *
+ * [enableEphemeralBrowsing] has no effect here: this opens the system default browser directly,
+ * with no Custom Tabs/incognito concept to configure.
  */
 actual suspend fun platformBrowserLogin(
     platformContext: Any?,
     client: OAuth2Client,
     redirectUrl: String,
     scope: List<String>,
+    enableEphemeralBrowsing: Boolean,
 ): Result<TokenInfo> =
     runCatching {
         val desktopRedirectUri = AppConfig.DESKTOP_SIGN_IN_REDIRECT_URI

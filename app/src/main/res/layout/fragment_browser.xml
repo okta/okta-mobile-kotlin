@@ -34,6 +34,14 @@
             android:text="@string/add_device_sso_scope"
             />
 
+        <com.google.android.material.checkbox.MaterialCheckBox
+            android:id="@+id/use_ephemeral_browsing_check_box"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:checked="false"
+            android:text="@string/use_ephemeral_browsing"
+            />
+
         <ProgressBar
             android:id="@+id/progress_bar"
             android:layout_width="50dp"

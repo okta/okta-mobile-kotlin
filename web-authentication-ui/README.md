@@ -13,6 +13,7 @@ This module is **Android only**.
 - [Installation](#installation)
 - [Usage](#usage)
 - [Redirect scheme configuration](#redirect-scheme-configuration)
+- [Ephemeral browsing](#ephemeral-browsing)
 - [Troubleshooting](#troubleshooting)
 
 ## Installation
@@ -79,6 +80,24 @@ android {
     }
 }
 ```
+
+## Ephemeral browsing
+
+To request an **ephemeral browsing session** (no cookies or session data persisted from or to the
+browser, useful when a device is shared between accounts and you want to avoid silently reusing a
+previous user's browser session), set `customizeTabsIntent` on `DefaultWebAuthenticationProvider`:
+
+```kotlin
+val webAuthentication = WebAuthentication(
+    client,
+    DefaultWebAuthenticationProvider(
+        customizeTabsIntent = { _, builder -> builder.setEphemeralBrowsingEnabled(true) }
+    )
+)
+```
+
+Browsers that don't support ephemeral browsing silently ignore the flag rather than failing, so it's
+always safe to set.
 
 ## Troubleshooting
 

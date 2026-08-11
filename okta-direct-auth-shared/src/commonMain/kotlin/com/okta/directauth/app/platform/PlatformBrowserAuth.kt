@@ -28,6 +28,9 @@ import com.okta.authfoundation.client.kmp.OAuth2Client
  * @param client the shared OAuth2Client for this flow
  * @param redirectUrl the registered redirect URI
  * @param scope the OAuth2 scopes to request
+ * @param enableEphemeralBrowsing whether to request an ephemeral browsing session (no persisted
+ * cookies/session data). Only meaningful on Android; ignored on JVM Desktop, which opens the system
+ * default browser directly and has no Custom Tabs/incognito concept.
  * @return [Result] wrapping the [TokenInfo] on success or an exception on failure
  */
 expect suspend fun platformBrowserLogin(
@@ -35,4 +38,5 @@ expect suspend fun platformBrowserLogin(
     client: OAuth2Client,
     redirectUrl: String,
     scope: List<String>,
+    enableEphemeralBrowsing: Boolean = false,
 ): Result<TokenInfo>
