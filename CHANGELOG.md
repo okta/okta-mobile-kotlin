@@ -1,5 +1,13 @@
 # Changelog
 
+## web-authentication-ui Unreleased
+
+#### Added
+- `DefaultWebAuthenticationProvider` now launches via Chrome's Auth Tab (`androidx.browser.auth.AuthTabIntent`)
+  when the resolved browser supports it, falling back to Chrome Custom Tabs otherwise. New
+  `customizeAuthTabIntent` constructor parameter, symmetric with the existing `customizeTabsIntent`
+  (#372).
+
 ## auth-foundation 3.0.0 - 2026-08-05
 
 [Commits](https://github.com/okta/okta-mobile-kotlin/compare/auth-foundation@2.0.5...auth-foundation@3.0.0)

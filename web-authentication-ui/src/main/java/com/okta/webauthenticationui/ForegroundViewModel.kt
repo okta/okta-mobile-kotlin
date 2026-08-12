@@ -16,9 +16,12 @@
 package com.okta.webauthenticationui
 
 import android.app.Activity
+import android.content.Intent
 import android.net.Uri
 import android.os.Parcelable
+import androidx.activity.result.ActivityResultLauncher
 import androidx.annotation.VisibleForTesting
+import androidx.browser.auth.AuthTabIntent
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -76,9 +79,10 @@ internal class ForegroundViewModel(
     fun launchBrowser(
         activity: Activity,
         urlString: String,
+        authTabLauncher: ActivityResultLauncher<Intent>,
     ) {
         savedStateHandle[LIVE_DATA_KEY] = State.AwaitingBrowserCallback
-        if (!redirectCoordinator.launchWebAuthenticationProvider(activity, urlString.toHttpUrl())) {
+        if (!redirectCoordinator.launchWebAuthenticationProvider(activity, urlString.toHttpUrl(), authTabLauncher)) {
             activity.finish()
         }
     }
@@ -92,6 +96,22 @@ internal class ForegroundViewModel(
 
     fun onRedirect(data: Uri?) {
         redirectCoordinator.emit(data)
+    }
+
+    /**
+     * Handles the result of a launched Auth Tab. [resultCode]/[resultUri] are the unwrapped fields of
+     * `AuthTabIntent.AuthResult` — passed as primitives (rather than the result type itself) since that
+     * type has a package-private constructor and can't be constructed from tests.
+     */
+    fun onAuthTabResult(
+        resultCode: Int,
+        resultUri: Uri?,
+    ) {
+        if (resultCode == AuthTabIntent.RESULT_OK) {
+            redirectCoordinator.emit(resultUri)
+        } else {
+            redirectCoordinator.emit(null)
+        }
     }
 
     fun flowCancelled() {

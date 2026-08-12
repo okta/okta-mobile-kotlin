@@ -22,6 +22,9 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.provider.Browser
+import androidx.activity.result.ActivityResultLauncher
+import androidx.browser.auth.AuthTabIntent
+import androidx.browser.customtabs.CustomTabsClient
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.browser.customtabs.CustomTabsService
 import androidx.core.net.toUri
@@ -32,12 +35,14 @@ import okhttp3.HttpUrl
 
 /**
  * Default [WebAuthenticationProvider] implementation that launches the OIDC redirect flow using
- * Chrome Custom Tabs.
+ * Chrome Custom Tabs, preferring Chrome's Auth Tab (a Custom Tabs variant purpose-built for auth
+ * redirect flows) when the resolved browser supports it.
  *
  * Browser selection and tab appearance are configured via constructor parameters rather than event
  * handlers. Use [preferredBrowsers] to control which browser is chosen, [queryIntentServicesFlags]
- * to adjust the package-manager query, and [customizeTabsIntent] to style the Chrome Custom Tab
- * (toolbar color, animations, close button icon, etc.).
+ * to adjust the package-manager query, [customizeTabsIntent] to style the Chrome Custom Tab
+ * (toolbar color, animations, close button icon, etc.), and [customizeAuthTabIntent] for the
+ * equivalent Auth Tab customization.
  *
  * ```kotlin
  * val provider = DefaultWebAuthenticationProvider(
@@ -83,13 +88,28 @@ class DefaultWebAuthenticationProvider
          * ```
          */
         private val customizeTabsIntent: ((context: Context, builder: CustomTabsIntent.Builder) -> Unit)? = null,
-    ) : WebAuthenticationProvider {
+        /**
+         * Optional callback to customize the [androidx.browser.auth.AuthTabIntent.Builder] before
+         * the Auth Tab is launched. Only invoked when the resolved browser supports Auth Tab; has no
+         * effect when falling back to Chrome Custom Tabs.
+         *
+         * ```kotlin
+         * DefaultWebAuthenticationProvider(
+         *     customizeAuthTabIntent = { _, builder ->
+         *         builder.setEphemeralBrowsingEnabled(true)
+         *     }
+         * )
+         * ```
+         */
+        private val customizeAuthTabIntent: ((context: Context, builder: AuthTabIntent.Builder) -> Unit)? = null,
+    ) : WebAuthenticationProvider,
+        AuthTabWebAuthenticationProvider {
         companion object {
             /** HTTP header name used to send the Okta SDK user-agent string to the authorize endpoint. */
             const val X_OKTA_USER_AGENT = "X-Okta-User-Agent-Extended"
 
             /** The `X-Okta-User-Agent-Extended` header value sent with authorize requests. */
-            val USER_AGENT_HEADER = "web-authentication-ui/${Build.VERSION.SDK_INT} com.okta.webauthenticationui/3.0.0"
+            val USER_AGENT_HEADER = "web-authentication-ui/${Build.VERSION.SDK_INT} com.okta.webauthenticationui/${BuildConfig.VERSION}"
 
             private const val CHROME_STABLE = "com.android.chrome"
             private const val CHROME_SYSTEM = "com.google.android.apps.chrome"
@@ -123,6 +143,41 @@ class DefaultWebAuthenticationProvider
                 return null
             } catch (e: ActivityNotFoundException) {
                 return e
+            }
+        }
+
+        override fun launchAuthTab(
+            context: Context,
+            url: HttpUrl,
+            redirectUrl: String,
+            launcher: ActivityResultLauncher<Intent>,
+        ): Exception? {
+            val packageBrowser = getBrowser(context)
+            if (packageBrowser == null || !CustomTabsClient.isAuthTabSupported(context, packageBrowser)) {
+                return launch(context, url)
+            }
+
+            val intentBuilder = AuthTabIntent.Builder()
+            customizeAuthTabIntent?.invoke(context, intentBuilder)
+            val authTabIntent = intentBuilder.build()
+            authTabIntent.intent.setPackage(packageBrowser)
+
+            val headers = Bundle()
+            headers.putString(X_OKTA_USER_AGENT, USER_AGENT_HEADER)
+            authTabIntent.intent.putExtra(Browser.EXTRA_HEADERS, headers)
+
+            val redirectUri = redirectUrl.toUri()
+            val authorizeUri = url.toString().toUri()
+
+            return try {
+                if (redirectUri.scheme == "https" || redirectUri.scheme == "http") {
+                    authTabIntent.launch(launcher, authorizeUri, redirectUri.host.orEmpty(), redirectUri.path.orEmpty())
+                } else {
+                    authTabIntent.launch(launcher, authorizeUri, redirectUri.scheme.orEmpty())
+                }
+                null
+            } catch (e: ActivityNotFoundException) {
+                e
             }
         }
 

@@ -21,6 +21,7 @@ android {
         consumerProguardFiles("consumer-rules.pro")
 
         buildConfigField("String", "SDK_VERSION", "\"okta-web-authentication-ui-kotlin/$WEB_AUTHENTICATION_UI_VERSION\"")
+        buildConfigField("String", "VERSION", "\"$WEB_AUTHENTICATION_UI_VERSION\"")
     }
 
     buildTypes {

@@ -1,4 +1,4 @@
-public final class com/okta/webauthenticationui/DefaultWebAuthenticationProvider : com/okta/webauthenticationui/WebAuthenticationProvider {
+public final class com/okta/webauthenticationui/DefaultWebAuthenticationProvider : com/okta/webauthenticationui/AuthTabWebAuthenticationProvider, com/okta/webauthenticationui/WebAuthenticationProvider {
 	public static final field Companion Lcom/okta/webauthenticationui/DefaultWebAuthenticationProvider$Companion;
 	public static final field X_OKTA_USER_AGENT Ljava/lang/String;
 	public fun <init> ()V
@@ -6,10 +6,12 @@ public final class com/okta/webauthenticationui/DefaultWebAuthenticationProvider
 	public fun <init> (Lcom/okta/authfoundation/events/EventCoordinator;Ljava/util/List;)V
 	public fun <init> (Lcom/okta/authfoundation/events/EventCoordinator;Ljava/util/List;I)V
 	public fun <init> (Lcom/okta/authfoundation/events/EventCoordinator;Ljava/util/List;ILkotlin/jvm/functions/Function2;)V
-	public synthetic fun <init> (Lcom/okta/authfoundation/events/EventCoordinator;Ljava/util/List;ILkotlin/jvm/functions/Function2;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lcom/okta/authfoundation/events/EventCoordinator;Ljava/util/List;ILkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;)V
+	public synthetic fun <init> (Lcom/okta/authfoundation/events/EventCoordinator;Ljava/util/List;ILkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getPreferredBrowsers ()Ljava/util/List;
 	public final fun getQueryIntentServicesFlags ()I
 	public fun launch (Landroid/content/Context;Lokhttp3/HttpUrl;)Ljava/lang/Exception;
+	public fun launchAuthTab (Landroid/content/Context;Lokhttp3/HttpUrl;Ljava/lang/String;Landroidx/activity/result/ActivityResultLauncher;)Ljava/lang/Exception;
 }
 
 public final class com/okta/webauthenticationui/DefaultWebAuthenticationProvider$Companion {

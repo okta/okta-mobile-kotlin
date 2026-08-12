@@ -213,7 +213,7 @@ class WebAuthentication private constructor(
         extraRequestParameters: Map<String, String> = emptyMap(),
     ): Result<TokenInfo> {
         val initializationResult =
-            redirectCoordinator.initialize(webAuthenticationProvider, context) {
+            redirectCoordinator.initialize(webAuthenticationProvider, context, redirectUrl) {
                 authorizationCodeFlow
                     .start(redirectUrl, scope, extraRequestParameters)
                     .mapCatching { flowContext ->
@@ -285,7 +285,7 @@ class WebAuthentication private constructor(
         idToken: String,
     ): OAuth2ClientResult<Unit> {
         val initializationResult =
-            redirectCoordinator.initialize(webAuthenticationProvider, context) {
+            redirectCoordinator.initialize(webAuthenticationProvider, context, redirectUrl) {
                 redirectEndSessionFlow
                     .start(idToken, redirectUrl)
                     .mapCatching { flowContext ->

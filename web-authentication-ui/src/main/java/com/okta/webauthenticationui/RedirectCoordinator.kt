@@ -16,8 +16,10 @@
 package com.okta.webauthenticationui
 
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import androidx.activity.ComponentActivity
+import androidx.activity.result.ActivityResultLauncher
 import androidx.annotation.VisibleForTesting
 import androidx.lifecycle.Lifecycle
 import com.okta.authfoundation.AuthFoundationDefaults
@@ -53,6 +55,8 @@ internal class DefaultRedirectCoordinator(
 
     @Volatile private var webAuthenticationProvider: WebAuthenticationProvider? = null
 
+    @Volatile private var redirectUrl: String? = null
+
     private var emitErrorJob: Job? = null
 
     private val flowMutex = Mutex()
@@ -63,6 +67,7 @@ internal class DefaultRedirectCoordinator(
     override suspend fun <T> initialize(
         webAuthenticationProvider: WebAuthenticationProvider,
         context: Context,
+        redirectUrl: String,
         initializer: suspend () -> RedirectInitializationResult<T>,
     ): RedirectInitializationResult<T> {
         currentCoroutineContext().ensureActive()
@@ -72,6 +77,7 @@ internal class DefaultRedirectCoordinator(
             }
             isFlowActive = true
             this.webAuthenticationProvider = webAuthenticationProvider
+            this.redirectUrl = redirectUrl
             this.initializer = initializer
         }
 
@@ -117,12 +123,20 @@ internal class DefaultRedirectCoordinator(
     override fun launchWebAuthenticationProvider(
         context: Context,
         url: HttpUrl,
+        authTabLauncher: ActivityResultLauncher<Intent>,
     ): Boolean {
         val localWebAuthenticationProvider = webAuthenticationProvider
+        val localRedirectUrl = redirectUrl
         webAuthenticationProvider = null
+        redirectUrl = null
 
-        if (localWebAuthenticationProvider != null) {
-            val exception = localWebAuthenticationProvider.launch(context, url)
+        if (localWebAuthenticationProvider != null && localRedirectUrl != null) {
+            val exception =
+                if (localWebAuthenticationProvider is AuthTabWebAuthenticationProvider) {
+                    localWebAuthenticationProvider.launchAuthTab(context, url, localRedirectUrl, authTabLauncher)
+                } else {
+                    localWebAuthenticationProvider.launch(context, url)
+                }
             if (exception == null) {
                 return true
             } else {
@@ -173,6 +187,7 @@ internal class DefaultRedirectCoordinator(
         redirectContinuation = null
         redirectContinuationListeningCallback = null
         webAuthenticationProvider = null
+        redirectUrl = null
     }
 }
 
@@ -180,6 +195,7 @@ internal interface RedirectCoordinator {
     suspend fun <T> initialize(
         webAuthenticationProvider: WebAuthenticationProvider,
         context: Context,
+        redirectUrl: String,
         initializer: suspend () -> RedirectInitializationResult<T>,
     ): RedirectInitializationResult<T>
 
@@ -190,6 +206,7 @@ internal interface RedirectCoordinator {
     fun launchWebAuthenticationProvider(
         context: Context,
         url: HttpUrl,
+        authTabLauncher: ActivityResultLauncher<Intent>,
     ): Boolean
 
     fun emitError(exception: Exception)
