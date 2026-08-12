@@ -23,7 +23,8 @@ import okhttp3.HttpUrl
  * Used to launch the OIDC redirect flow associated with a [WebAuthentication].
  *
  * Most integrators should use [DefaultWebAuthenticationProvider]; implement this only to fully
- * control how the authorize URL is presented.
+ * control how the authorize URL is presented. Only [launch] is abstract; [launchCustomTab] has a
+ * default implementation built on it, so implementations only need to provide [launch].
  */
 interface WebAuthenticationProvider {
     /**
@@ -34,8 +35,32 @@ interface WebAuthenticationProvider {
      *
      * @return `null` if the flow launched successfully, or the [Exception] that caused the launch to fail.
      */
+    @Deprecated(
+        message = "Use launchCustomTab(context, url) to receive a Result-based outcome.",
+        replaceWith = ReplaceWith("launchCustomTab(context, url)")
+    )
     fun launch(
         context: Context,
         url: HttpUrl,
     ): Exception?
+
+    /**
+     * Launches the OIDC redirect flow associated with a [WebAuthentication] and wraps launch
+     * success/failure in a [Result].
+     *
+     * Has a default implementation that delegates to the deprecated [launch], so existing
+     * [WebAuthenticationProvider] implementations keep compiling unchanged; override this instead
+     * of [launch] in new implementations.
+     *
+     * @param context the Android [Activity] [Context] used to display the flow.
+     * @param url the authorize URL the instance should display.
+     *
+     * @return [Result.success] when the flow launches successfully, or [Result.failure] with the
+     * launch exception when it fails.
+     */
+    @Suppress("DEPRECATION")
+    fun launchCustomTab(
+        context: Context,
+        url: HttpUrl,
+    ): Result<Unit> = launch(context, url)?.let { Result.failure(it) } ?: Result.success(Unit)
 }

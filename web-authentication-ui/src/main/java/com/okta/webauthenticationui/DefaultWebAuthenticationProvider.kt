@@ -40,9 +40,9 @@ import okhttp3.HttpUrl
  *
  * Browser selection and tab appearance are configured via constructor parameters rather than event
  * handlers. Use [preferredBrowsers] to control which browser is chosen, [queryIntentServicesFlags]
- * to adjust the package-manager query, [customizeTabsIntent] to style the Chrome Custom Tab
- * (toolbar color, animations, close button icon, etc.), and [customizeAuthTabIntent] for the
- * equivalent Auth Tab customization.
+ * to adjust the package-manager query, [browserSelector] to fully override browser selection,
+ * [customizeTabsIntent] to style the Chrome Custom Tab (toolbar color, animations, close button
+ * icon, etc.), and [customizeAuthTabIntent] for the equivalent Auth Tab customization.
  *
  * ```kotlin
  * val provider = DefaultWebAuthenticationProvider(
@@ -54,161 +54,192 @@ import okhttp3.HttpUrl
  * val webAuth = WebAuthentication(client, provider)
  * ```
  */
-class DefaultWebAuthenticationProvider
-    @JvmOverloads
-    constructor(
-        /**
-         * @param eventCoordinator legacy hook that still receives the deprecated [CustomizeBrowserEvent]/[CustomizeCustomTabsEvent];
-         * new code should use the parameters below instead.
-         */
-        private val eventCoordinator: EventCoordinator = EventCoordinator(emptyList()),
-        /**
-         * The list of browser package names to prefer when selecting which Chrome Custom Tabs
-         * implementation is used. Checked in order; the first installed match wins.
-         *
-         * Defaults to Chrome Stable, Chrome System, and Chrome Beta.
-         */
-        val preferredBrowsers: List<String> = DEFAULT_PREFERRED_BROWSERS,
-        /**
-         * Flags passed to [android.content.pm.PackageManager.queryIntentServices] when querying for Chrome Custom
-         * Tabs intent services.
-         */
-        val queryIntentServicesFlags: Int = 0,
-        /**
-         * Optional callback to customize the [androidx.browser.customtabs.CustomTabsIntent.Builder] before the Chrome Custom
-         * Tab is launched. Use this to set toolbar color, animations, close button icon, and any
-         * other [androidx.browser.customtabs.CustomTabsIntent.Builder] options.
-         *
-         * ```kotlin
-         * DefaultWebAuthenticationProvider(
-         *     customizeTabsIntent = { context, builder ->
-         *         builder.setToolbarColor(ContextCompat.getColor(context, R.color.brand_primary))
-         *     }
-         * )
-         * ```
-         */
-        private val customizeTabsIntent: ((context: Context, builder: CustomTabsIntent.Builder) -> Unit)? = null,
-        /**
-         * Optional callback to customize the [androidx.browser.auth.AuthTabIntent.Builder] before
-         * the Auth Tab is launched. Only invoked when the resolved browser supports Auth Tab; has no
-         * effect when falling back to Chrome Custom Tabs.
-         *
-         * ```kotlin
-         * DefaultWebAuthenticationProvider(
-         *     customizeAuthTabIntent = { _, builder ->
-         *         builder.setEphemeralBrowsingEnabled(true)
-         *     }
-         * )
-         * ```
-         */
-        private val customizeAuthTabIntent: ((context: Context, builder: AuthTabIntent.Builder) -> Unit)? = null,
-    ) : WebAuthenticationProvider,
-        AuthTabWebAuthenticationProvider {
-        companion object {
-            /** HTTP header name used to send the Okta SDK user-agent string to the authorize endpoint. */
-            const val X_OKTA_USER_AGENT = "X-Okta-User-Agent-Extended"
+class DefaultWebAuthenticationProvider @JvmOverloads constructor(
+    /**
+     * @param eventCoordinator legacy hook that still receives the deprecated [CustomizeBrowserEvent]/[CustomizeCustomTabsEvent];
+     * new code should use the parameters below instead.
+     */
+    private val eventCoordinator: EventCoordinator = EventCoordinator(emptyList()),
+    /**
+     * The list of browser package names to prefer when selecting which Chrome Custom Tabs
+     * implementation is used. Checked in order; the first installed match wins.
+     *
+     * Defaults to Chrome Stable, Chrome System, and Chrome Beta. Ignored if [browserSelector] is
+     * overridden.
+     */
+    val preferredBrowsers: List<String> = DEFAULT_PREFERRED_BROWSERS,
+    /**
+     * Flags passed to [android.content.pm.PackageManager.queryIntentServices] when querying for Chrome Custom
+     * Tabs intent services. Ignored if [browserSelector] is overridden.
+     */
+    val queryIntentServicesFlags: Int = 0,
+    /**
+     * Optional callback to customize the [androidx.browser.customtabs.CustomTabsIntent.Builder] before the Chrome Custom
+     * Tab is launched. Use this to set toolbar color, animations, close button icon, and any
+     * other [androidx.browser.customtabs.CustomTabsIntent.Builder] options.
+     *
+     * ```kotlin
+     * DefaultWebAuthenticationProvider(
+     *     customizeTabsIntent = { context, builder ->
+     *         builder.setToolbarColor(ContextCompat.getColor(context, R.color.brand_primary))
+     *     }
+     * )
+     * ```
+     */
+    private val customizeTabsIntent: ((context: Context, builder: CustomTabsIntent.Builder) -> Unit)? = null,
+    /**
+     * Optional callback to customize the [androidx.browser.auth.AuthTabIntent.Builder] before
+     * the Auth Tab is launched. Only invoked when the resolved browser supports Auth Tab; has no
+     * effect when falling back to Chrome Custom Tabs.
+     *
+     * ```kotlin
+     * DefaultWebAuthenticationProvider(
+     *     customizeAuthTabIntent = { _, builder ->
+     *         builder.setEphemeralBrowsingEnabled(true)
+     *     }
+     * )
+     * ```
+     */
+    private val customizeAuthTabIntent: ((context: Context, builder: AuthTabIntent.Builder) -> Unit)? = null,
+    /**
+     * [BrowserSelector] used to pick which browser package hosts the Chrome Custom Tab. Defaults
+     * to the built-in selector, which honors [preferredBrowsers] and [queryIntentServicesFlags].
+     * Override this to fully replace browser-selection logic, e.g. for testing.
+     */
+    private val browserSelector: BrowserSelector = defaultBrowserSelector(eventCoordinator, preferredBrowsers, queryIntentServicesFlags),
+) : WebAuthenticationProvider,
+    AuthTabWebAuthenticationProvider {
+    companion object {
+        /** HTTP header name used to send the Okta SDK user-agent string to the authorize endpoint. */
+        const val X_OKTA_USER_AGENT = "X-Okta-User-Agent-Extended"
 
-            /** The `X-Okta-User-Agent-Extended` header value sent with authorize requests. */
-            val USER_AGENT_HEADER = "web-authentication-ui/${Build.VERSION.SDK_INT} com.okta.webauthenticationui/${BuildConfig.VERSION}"
+        /** The `X-Okta-User-Agent-Extended` header value sent with authorize requests. */
+        val USER_AGENT_HEADER = "web-authentication-ui/${Build.VERSION.SDK_INT} com.okta.webauthenticationui/${BuildConfig.VERSION}"
 
-            private const val CHROME_STABLE = "com.android.chrome"
-            private const val CHROME_SYSTEM = "com.google.android.apps.chrome"
-            private const val CHROME_BETA = "com.android.chrome.beta"
+        private const val CHROME_STABLE = "com.android.chrome"
+        private const val CHROME_SYSTEM = "com.google.android.apps.chrome"
+        private const val CHROME_BETA = "com.android.chrome.beta"
 
-            /** The default preferred browser list: Chrome Stable, Chrome System, Chrome Beta. */
-            val DEFAULT_PREFERRED_BROWSERS: List<String> = listOf(CHROME_STABLE, CHROME_SYSTEM, CHROME_BETA)
-        }
+        /** The default preferred browser list: Chrome Stable, Chrome System, Chrome Beta. */
+        val DEFAULT_PREFERRED_BROWSERS: List<String> = listOf(CHROME_STABLE, CHROME_SYSTEM, CHROME_BETA)
 
-        override fun launch(
-            context: Context,
-            url: HttpUrl,
-        ): Exception? {
-            val intentBuilder: CustomTabsIntent.Builder = CustomTabsIntent.Builder()
-            customizeTabsIntent?.invoke(context, intentBuilder)
-            @Suppress("DEPRECATION")
-            eventCoordinator.sendEvent(CustomizeCustomTabsEvent(context, intentBuilder))
-            val tabsIntent: CustomTabsIntent = intentBuilder.build()
+        private val BROWSER_VALIDATION_URIS = listOf("http://".toUri(), "https://".toUri())
 
-            val packageBrowser = getBrowser(context)
-            if (packageBrowser != null) {
-                tabsIntent.intent.setPackage(packageBrowser)
+        private fun defaultBrowserSelector(
+            eventCoordinator: EventCoordinator,
+            preferredBrowsers: List<String>,
+            queryIntentServicesFlags: Int,
+        ): BrowserSelector =
+            BrowserSelector { context ->
+                // Initialize the event from the constructor params so existing EventCoordinator
+                // handlers that mutate CustomizeBrowserEvent continue to work as before.
+                // New callers should use the constructor params directly instead of handling the event.
+                @Suppress("DEPRECATION")
+                val event = CustomizeBrowserEvent(preferredBrowsers = preferredBrowsers.toMutableList())
+                @Suppress("DEPRECATION")
+                event.queryIntentServicesFlags = queryIntentServicesFlags
+                @Suppress("DEPRECATION")
+                eventCoordinator.sendEvent(event)
+
+                val pm: PackageManager = context.packageManager
+                val serviceIntent = Intent(CustomTabsService.ACTION_CUSTOM_TABS_CONNECTION)
+
+                @Suppress("DEPRECATION")
+                val resolveInfoList = pm.queryIntentServices(serviceIntent, event.queryIntentServicesFlags)
+                val customTabsBrowserPackages = resolveInfoList.mapNotNull { it.serviceInfo?.packageName }.toSet()
+
+                // Some non-browser apps (e.g. embedded webview shells) also implement the Custom Tabs
+                // service, so each candidate is confirmed to actually handle http(s) links before use.
+                @Suppress("DEPRECATION")
+                val preferredBrowser =
+                    event.preferredBrowsers.firstOrNull { packageName ->
+                        customTabsBrowserPackages.contains(packageName) && isBrowserPackage(pm, packageName)
+                    }
+                val selectedBrowser = preferredBrowser ?: customTabsBrowserPackages.firstOrNull { isBrowserPackage(pm, it) }
+
+                selectedBrowser?.let { Result.success(it) } ?: Result.failure(NoBrowserFoundException())
             }
 
-            val headers = Bundle()
-            headers.putString(X_OKTA_USER_AGENT, USER_AGENT_HEADER)
-            tabsIntent.intent.putExtra(Browser.EXTRA_HEADERS, headers)
-
-            try {
-                tabsIntent.launchUrl(context, url.toString().toUri())
-                return null
-            } catch (e: ActivityNotFoundException) {
-                return e
+        private fun isBrowserPackage(
+            pm: PackageManager,
+            packageName: String,
+        ): Boolean =
+            BROWSER_VALIDATION_URIS.any { uri ->
+                val intent =
+                    Intent(Intent.ACTION_VIEW, uri).apply {
+                        addCategory(Intent.CATEGORY_BROWSABLE)
+                        setPackage(packageName)
+                    }
+                pm.queryIntentActivities(intent, 0).isNotEmpty()
             }
-        }
+    }
 
-        override fun launchAuthTab(
-            context: Context,
-            url: HttpUrl,
-            redirectUrl: String,
-            launcher: ActivityResultLauncher<Intent>,
-        ): Exception? {
-            val packageBrowser = getBrowser(context)
-            if (packageBrowser == null || !CustomTabsClient.isAuthTabSupported(context, packageBrowser)) {
-                return launch(context, url)
-            }
+    @Deprecated("Use launchCustomTab(context, url) to receive a Result-based outcome.", replaceWith = ReplaceWith("launchCustomTab(context, url)"))
+    override fun launch(
+        context: Context,
+        url: HttpUrl,
+    ): Exception? = launchCustomTab(context, url).fold({ null }, { it as? Exception ?: Exception(it) })
 
-            val intentBuilder = AuthTabIntent.Builder()
-            customizeAuthTabIntent?.invoke(context, intentBuilder)
-            val authTabIntent = intentBuilder.build()
-            authTabIntent.intent.setPackage(packageBrowser)
+    override fun launchCustomTab(
+        context: Context,
+        url: HttpUrl,
+    ): Result<Unit> {
+        val intentBuilder: CustomTabsIntent.Builder = CustomTabsIntent.Builder()
+        customizeTabsIntent?.invoke(context, intentBuilder)
+        @Suppress("DEPRECATION")
+        eventCoordinator.sendEvent(CustomizeCustomTabsEvent(context, intentBuilder))
+        val tabsIntent: CustomTabsIntent = intentBuilder.build()
 
-            val headers = Bundle()
-            headers.putString(X_OKTA_USER_AGENT, USER_AGENT_HEADER)
-            authTabIntent.intent.putExtra(Browser.EXTRA_HEADERS, headers)
+        val browserResult = browserSelector.selectBrowser(context)
+        browserResult.getOrNull()?.let { tabsIntent.intent.setPackage(it) }
 
-            val redirectUri = redirectUrl.toUri()
-            val authorizeUri = url.toString().toUri()
+        val headers = Bundle()
+        headers.putString(X_OKTA_USER_AGENT, USER_AGENT_HEADER)
+        tabsIntent.intent.putExtra(Browser.EXTRA_HEADERS, headers)
 
-            return try {
-                if (redirectUri.scheme == "https" || redirectUri.scheme == "http") {
-                    authTabIntent.launch(launcher, authorizeUri, redirectUri.host.orEmpty(), redirectUri.path.orEmpty())
-                } else {
-                    authTabIntent.launch(launcher, authorizeUri, redirectUri.scheme.orEmpty())
-                }
-                null
-            } catch (e: ActivityNotFoundException) {
-                e
-            }
-        }
-
-        private fun getBrowser(context: Context): String? {
-            // Initialize the event from the constructor params so existing EventCoordinator
-            // handlers that mutate CustomizeBrowserEvent continue to work as before.
-            // New callers should use the constructor params directly instead of handling the event.
-            @Suppress("DEPRECATION")
-            val event = CustomizeBrowserEvent(preferredBrowsers = preferredBrowsers.toMutableList())
-            @Suppress("DEPRECATION")
-            event.queryIntentServicesFlags = queryIntentServicesFlags
-            @Suppress("DEPRECATION")
-            eventCoordinator.sendEvent(event)
-
-            val pm: PackageManager = context.packageManager
-            val serviceIntent = Intent()
-            serviceIntent.action = CustomTabsService.ACTION_CUSTOM_TABS_CONNECTION
-            @Suppress("DEPRECATION")
-            val resolveInfoList = pm.queryIntentServices(serviceIntent, event.queryIntentServicesFlags)
-            val customTabsBrowsersPackages = mutableSetOf<String>()
-            for (info in resolveInfoList) {
-                customTabsBrowsersPackages.add(info.serviceInfo.packageName)
-            }
-
-            @Suppress("DEPRECATION")
-            for (browser in event.preferredBrowsers) {
-                if (customTabsBrowsersPackages.contains(browser)) {
-                    return browser
-                }
-            }
-
-            return customTabsBrowsersPackages.firstOrNull()
+        try {
+            tabsIntent.launchUrl(context, url.toString().toUri())
+            return Result.success(Unit)
+        } catch (e: ActivityNotFoundException) {
+            // If browser selection already failed (e.g. NoBrowserFoundException), that's a more
+            // specific and actionable cause than the generic ActivityNotFoundException from the
+            // unrestricted launch attempt above, so it's surfaced instead.
+            return Result.failure(browserResult.exceptionOrNull() as? Exception ?: e)
         }
     }
+
+    override fun launchAuthTab(
+        context: Context,
+        url: HttpUrl,
+        redirectUrl: String,
+        launcher: ActivityResultLauncher<Intent>,
+    ): Result<Unit> {
+        val packageBrowser = browserSelector.selectBrowser(context).getOrNull()
+        if (packageBrowser == null || !CustomTabsClient.isAuthTabSupported(context, packageBrowser)) {
+            return launchCustomTab(context, url)
+        }
+
+        val intentBuilder = AuthTabIntent.Builder()
+        customizeAuthTabIntent?.invoke(context, intentBuilder)
+        val authTabIntent = intentBuilder.build()
+        authTabIntent.intent.setPackage(packageBrowser)
+
+        val headers = Bundle()
+        headers.putString(X_OKTA_USER_AGENT, USER_AGENT_HEADER)
+        authTabIntent.intent.putExtra(Browser.EXTRA_HEADERS, headers)
+
+        val redirectUri = redirectUrl.toUri()
+        val authorizeUri = url.toString().toUri()
+
+        return try {
+            if (redirectUri.scheme == "https" || redirectUri.scheme == "http") {
+                authTabIntent.launch(launcher, authorizeUri, redirectUri.host.orEmpty(), redirectUri.path.orEmpty())
+            } else {
+                authTabIntent.launch(launcher, authorizeUri, redirectUri.scheme.orEmpty())
+            }
+            Result.success(Unit)
+        } catch (e: ActivityNotFoundException) {
+            Result.failure(e)
+        }
+    }
+}

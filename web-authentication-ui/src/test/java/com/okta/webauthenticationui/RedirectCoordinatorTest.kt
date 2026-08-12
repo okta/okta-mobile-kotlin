@@ -240,7 +240,7 @@ class RedirectCoordinatorTest {
         testScope.runTest {
             val webAuthenticationProvider =
                 mock<WebAuthenticationProvider> {
-                    on { launch(any(), any()) } doReturn null
+                    on { launchCustomTab(any(), any()) } doReturn Result.success(Unit)
                 }
             val activityController = Robolectric.buildActivity(ComponentActivity::class.java)
             activityController.create().start().resume()
@@ -258,7 +258,7 @@ class RedirectCoordinatorTest {
             assertThat(initializerCountDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
             subject.runInitializationFunction()
             assertThat(subject.launchWebAuthenticationProvider(launchedFromActivity, url, mock())).isTrue()
-            verify(webAuthenticationProvider).launch(launchedFromActivity, url)
+            verify(webAuthenticationProvider).launchCustomTab(launchedFromActivity, url)
             val foregroundActivity = shadowOf(launchedFromActivity).nextStartedActivity
             assertThat(foregroundActivity.component?.className).isEqualTo(ForegroundActivity::class.java.name)
         }
@@ -278,7 +278,7 @@ class RedirectCoordinatorTest {
                 subject.initialize(webAuthenticationProvider, launchedFromActivity, "https://example.com/redirect") {
                     RedirectInitializationResult.Success("https://example.com/oauth".toHttpUrl(), Any())
                 }
-            verify(webAuthenticationProvider, never()).launch(anyOrNull(), anyOrNull())
+            verify(webAuthenticationProvider, never()).launchCustomTab(anyOrNull(), anyOrNull())
             assertThat(result).isInstanceOf(RedirectInitializationResult.Error::class.java)
             val errorResult = result as RedirectInitializationResult.Error
             assertThat(errorResult.exception).hasMessageThat().isEqualTo("Activity is not resumed.")
@@ -288,7 +288,7 @@ class RedirectCoordinatorTest {
         testScope.runTest {
             val webAuthenticationProvider =
                 mock<WebAuthenticationProvider> {
-                    on { launch(any(), any()) } doReturn null
+                    on { launchCustomTab(any(), any()) } doReturn Result.success(Unit)
                 }
             val initializerCountDownLatch = CountDownLatch(1)
             subject.initializerContinuationListeningCallback = {
@@ -302,7 +302,7 @@ class RedirectCoordinatorTest {
             assertThat(initializerCountDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
             subject.runInitializationFunction()
             assertThat(subject.launchWebAuthenticationProvider(mock(), mock(), mock())).isTrue()
-            verify(webAuthenticationProvider).launch(any(), any())
+            verify(webAuthenticationProvider).launchCustomTab(any(), any())
         }
 
     @Test fun testLaunchWebAuthenticationProviderPrefersAuthTab(): Unit =
@@ -310,7 +310,7 @@ class RedirectCoordinatorTest {
             val webAuthenticationProvider =
                 mock<WebAuthenticationProvider>(extraInterfaces = arrayOf(AuthTabWebAuthenticationProvider::class))
             val authTabProvider = webAuthenticationProvider as AuthTabWebAuthenticationProvider
-            whenever(authTabProvider.launchAuthTab(any(), any(), any(), any())).thenReturn(null)
+            whenever(authTabProvider.launchAuthTab(any(), any(), any(), any())).thenReturn(Result.success(Unit))
             val context = mock<Context>()
             val url = "https://example.com/oauth".toHttpUrl()
             val launcher = mock<ActivityResultLauncher<Intent>>()
@@ -327,7 +327,7 @@ class RedirectCoordinatorTest {
             subject.runInitializationFunction()
             assertThat(subject.launchWebAuthenticationProvider(context, url, launcher)).isTrue()
             verify(authTabProvider).launchAuthTab(context, url, "https://example.com/redirect", launcher)
-            verify(webAuthenticationProvider, never()).launch(any(), any())
+            verify(webAuthenticationProvider, never()).launchCustomTab(any(), any())
         }
 
     @Test fun testLaunchWebAuthenticationProviderActivityNotFound(): Unit =
@@ -335,7 +335,7 @@ class RedirectCoordinatorTest {
             val resultDeferred = listenRedirectAsync()
             val webAuthenticationProvider =
                 mock<WebAuthenticationProvider> {
-                    on { launch(any(), any()) } doReturn ActivityNotFoundException("From Test!")
+                    on { launchCustomTab(any(), any()) } doReturn Result.failure(ActivityNotFoundException("From Test!"))
                 }
             val initializerCountDownLatch = CountDownLatch(1)
             subject.initializerContinuationListeningCallback = {
@@ -349,7 +349,7 @@ class RedirectCoordinatorTest {
             assertThat(initializerCountDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
             subject.runInitializationFunction()
             assertThat(subject.launchWebAuthenticationProvider(mock(), mock(), mock())).isFalse()
-            verify(webAuthenticationProvider).launch(any(), any())
+            verify(webAuthenticationProvider).launchCustomTab(any(), any())
             val result = resultDeferred.await()
             assertThat(result).isInstanceOf(RedirectResult.Error::class.java)
             val error = result as RedirectResult.Error
@@ -357,11 +357,71 @@ class RedirectCoordinatorTest {
             assertThat(error.exception).hasMessageThat().isEqualTo("From Test!")
         }
 
+    @Test fun testLaunchWebAuthenticationProviderNoBrowserFound(): Unit =
+        testScope.runTest {
+            // RedirectCoordinator treats WebAuthenticationProvider.launchCustomTab() failures
+            // opaquely — it requires no changes to surface NoBrowserFoundException (or any other
+            // exception type) distinctly through RedirectResult.Error/OAuth2ClientResult.Error.
+            val resultDeferred = listenRedirectAsync()
+            val webAuthenticationProvider =
+                mock<WebAuthenticationProvider> {
+                    on { launchCustomTab(any(), any()) } doReturn Result.failure(NoBrowserFoundException())
+                }
+            val initializerCountDownLatch = CountDownLatch(1)
+            subject.initializerContinuationListeningCallback = {
+                initializerCountDownLatch.countDown()
+            }
+            launch(Dispatchers.IO) {
+                subject.initialize(webAuthenticationProvider, mock(), "https://example.com/redirect") {
+                    RedirectInitializationResult.Success(mock(), Any())
+                }
+            }
+            assertThat(initializerCountDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
+            subject.runInitializationFunction()
+            assertThat(subject.launchWebAuthenticationProvider(mock(), mock(), mock())).isFalse()
+            verify(webAuthenticationProvider).launchCustomTab(any(), any())
+            val result = resultDeferred.await()
+            assertThat(result).isInstanceOf(RedirectResult.Error::class.java)
+            val error = result as RedirectResult.Error
+            assertThat(error.exception).isInstanceOf(NoBrowserFoundException::class.java)
+        }
+
+    @Test fun testLaunchWebAuthenticationProviderWrapsNonExceptionThrowableFailure(): Unit =
+        testScope.runTest {
+            // WebAuthenticationProvider is externally implementable, so launchCustomTab() can fail
+            // with any Throwable, not just an Exception. emitError()/RedirectResult.Error require an
+            // Exception, so a non-Exception Throwable must be wrapped rather than crashing with a
+            // ClassCastException.
+            val resultDeferred = listenRedirectAsync()
+            val originalThrowable = Throwable("From Test!")
+            val webAuthenticationProvider =
+                mock<WebAuthenticationProvider> {
+                    on { launchCustomTab(any(), any()) } doReturn Result.failure(originalThrowable)
+                }
+            val initializerCountDownLatch = CountDownLatch(1)
+            subject.initializerContinuationListeningCallback = {
+                initializerCountDownLatch.countDown()
+            }
+            launch(Dispatchers.IO) {
+                subject.initialize(webAuthenticationProvider, mock(), "https://example.com/redirect") {
+                    RedirectInitializationResult.Success(mock(), Any())
+                }
+            }
+            assertThat(initializerCountDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
+            subject.runInitializationFunction()
+            assertThat(subject.launchWebAuthenticationProvider(mock(), mock(), mock())).isFalse()
+            val result = resultDeferred.await()
+            assertThat(result).isInstanceOf(RedirectResult.Error::class.java)
+            val error = result as RedirectResult.Error
+            assertThat(error.exception).isNotSameInstanceAs(originalThrowable)
+            assertThat(error.exception).hasCauseThat().isSameInstanceAs(originalThrowable)
+        }
+
     @Test fun testInitializeDoesNothingWhenCancelled(): Unit =
         testScope.runTest {
             val webAuthenticationProvider =
                 mock<WebAuthenticationProvider> {
-                    on { launch(any(), any()) } doReturn null
+                    on { launchCustomTab(any(), any()) } doReturn Result.success(Unit)
                 }
             val launchedFromActivity = Robolectric.buildActivity(Activity::class.java).get()
             subject.initializerContinuationListeningCallback = {
@@ -380,7 +440,7 @@ class RedirectCoordinatorTest {
             assertThat(startedCountDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
             job.cancel()
             cancelledCountDownLatch.countDown()
-            verify(webAuthenticationProvider, never()).launch(any(), any())
+            verify(webAuthenticationProvider, never()).launchCustomTab(any(), any())
             val foregroundActivity = shadowOf(launchedFromActivity).nextStartedActivity
             assertThat(foregroundActivity).isNull()
         }

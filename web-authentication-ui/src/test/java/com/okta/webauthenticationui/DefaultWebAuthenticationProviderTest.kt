@@ -53,10 +53,11 @@ import org.robolectric.shadows.ShadowResolveInfo
 
 @RunWith(RobolectricTestRunner::class)
 class DefaultWebAuthenticationProviderTest {
-    @Test fun testLaunch() {
+    @Test
+    fun testLaunch() {
         val activity = Robolectric.buildActivity(Activity::class.java)
         val webAuthenticationProvider = DefaultWebAuthenticationProvider(EventCoordinator(emptyList()))
-        assertThat(webAuthenticationProvider.launch(activity.get(), "https://example.com/not_used".toHttpUrl())).isNull()
+        assertThat(webAuthenticationProvider.launchCustomTab(activity.get(), "https://example.com/not_used".toHttpUrl()).isSuccess).isTrue()
         val activityShadow = shadowOf(activity.get())
         val cctActivity = activityShadow.nextStartedActivity
         assertThat(cctActivity.action).isEqualTo("android.intent.action.VIEW")
@@ -65,11 +66,12 @@ class DefaultWebAuthenticationProviderTest {
         assertThat(cctActivity.`package`).isNull()
     }
 
-    @Test fun testLaunchCallsEventHandler() {
+    @Test
+    fun testLaunchCallsEventHandler() {
         val activity = Robolectric.buildActivity(Activity::class.java)
         val eventHandler = RecordingEventHandler()
         val webAuthenticationProvider = DefaultWebAuthenticationProvider(EventCoordinator(eventHandler))
-        assertThat(webAuthenticationProvider.launch(activity.get(), "https://example.com/not_used".toHttpUrl())).isNull()
+        assertThat(webAuthenticationProvider.launchCustomTab(activity.get(), "https://example.com/not_used".toHttpUrl()).isSuccess).isTrue()
 
         assertThat(eventHandler.size).isEqualTo(2)
 
@@ -86,7 +88,8 @@ class DefaultWebAuthenticationProviderTest {
         assertThat((eventHandler[1] as CustomizeBrowserEvent).preferredBrowsers).hasSize(3)
     }
 
-    @Test fun testLaunchWithEnabledBrowsers() {
+    @Test
+    fun testLaunchWithEnabledBrowsers() {
         installCustomTabsProvider("com.android.chrome.beta")
         installCustomTabsProvider("com.android.chrome")
         ShadowResolveInfo.newResolveInfo(
@@ -96,14 +99,15 @@ class DefaultWebAuthenticationProviderTest {
         )
         val activity = Robolectric.buildActivity(Activity::class.java)
         val webAuthenticationProvider = DefaultWebAuthenticationProvider(EventCoordinator(emptyList()))
-        assertThat(webAuthenticationProvider.launch(activity.get(), "https://example.com/not_used".toHttpUrl())).isNull()
+        assertThat(webAuthenticationProvider.launchCustomTab(activity.get(), "https://example.com/not_used".toHttpUrl()).isSuccess).isTrue()
         val activityShadow = shadowOf(activity.get())
         val cctActivity = activityShadow.nextStartedActivity
         assertThat(cctActivity.action).isEqualTo("android.intent.action.VIEW")
         assertThat(cctActivity.`package`).isEqualTo("com.android.chrome")
     }
 
-    @Test fun testCustomizeTabsIntentCallback_InvokedBeforeEventHandler() {
+    @Test
+    fun testCustomizeTabsIntentCallback_InvokedBeforeEventHandler() {
         val callOrder = mutableListOf<String>()
         val webAuthenticationProvider =
             DefaultWebAuthenticationProvider(
@@ -121,22 +125,24 @@ class DefaultWebAuthenticationProviderTest {
                 customizeTabsIntent = { _, _ -> callOrder.add("callback") }
             )
         val activity = Robolectric.buildActivity(Activity::class.java)
-        webAuthenticationProvider.launch(activity.get(), "https://example.com/not_used".toHttpUrl())
+        webAuthenticationProvider.launchCustomTab(activity.get(), "https://example.com/not_used".toHttpUrl())
         assertThat(callOrder).containsExactly("callback", "eventHandler").inOrder()
     }
 
-    @Test fun testCustomizeTabsIntentCallback_BuilderMutationApplied() {
+    @Test
+    fun testCustomizeTabsIntentCallback_BuilderMutationApplied() {
         var capturedBuilder: androidx.browser.customtabs.CustomTabsIntent.Builder? = null
         val webAuthenticationProvider =
             DefaultWebAuthenticationProvider(
                 customizeTabsIntent = { _, builder -> capturedBuilder = builder }
             )
         val activity = Robolectric.buildActivity(Activity::class.java)
-        webAuthenticationProvider.launch(activity.get(), "https://example.com/not_used".toHttpUrl())
+        webAuthenticationProvider.launchCustomTab(activity.get(), "https://example.com/not_used".toHttpUrl())
         assertThat(capturedBuilder).isNotNull()
     }
 
-    @Test fun testLaunchWithPreferredBrowsersConstructorParam() {
+    @Test
+    fun testLaunchWithPreferredBrowsersConstructorParam() {
         installCustomTabsProvider("com.android.chrome.beta")
         installCustomTabsProvider("my.custom.preferred.browser")
         installCustomTabsProvider("com.android.chrome")
@@ -145,18 +151,101 @@ class DefaultWebAuthenticationProviderTest {
                 preferredBrowsers = listOf("my.custom.preferred.browser")
             )
         val activity = Robolectric.buildActivity(Activity::class.java)
-        assertThat(webAuthenticationProvider.launch(activity.get(), "https://example.com/not_used".toHttpUrl())).isNull()
+        assertThat(webAuthenticationProvider.launchCustomTab(activity.get(), "https://example.com/not_used".toHttpUrl()).isSuccess).isTrue()
         val activityShadow = shadowOf(activity.get())
         val cctActivity = activityShadow.nextStartedActivity
         assertThat(cctActivity.action).isEqualTo("android.intent.action.VIEW")
         assertThat(cctActivity.`package`).isEqualTo("my.custom.preferred.browser")
     }
 
-    @Test fun testDefaultPreferredBrowsers_IsThreeChromeBrowsers() {
+    @Test
+    fun testDefaultPreferredBrowsers_IsThreeChromeBrowsers() {
         assertThat(DefaultWebAuthenticationProvider.DEFAULT_PREFERRED_BROWSERS).hasSize(3)
     }
 
-    @Test fun testLaunchCausesActivityNotFound() {
+    @Test
+    fun testLaunchWithNoBrowserAvailable_surfacesNoBrowserFoundException() {
+        // No browser or Custom Tabs provider installed, so both browser selection and the
+        // unrestricted fallback launch fail — the more specific NoBrowserFoundException from
+        // selection should be surfaced rather than the generic ActivityNotFoundException.
+        shadowOf(RuntimeEnvironment.getApplication()).checkActivities(true)
+        val activity = Robolectric.buildActivity(Activity::class.java)
+        val webAuthenticationProvider = DefaultWebAuthenticationProvider(EventCoordinator(emptyList()))
+        val result = webAuthenticationProvider.launchCustomTab(activity.get(), "https://example.com/not_used".toHttpUrl())
+        assertThat(result.isFailure).isTrue()
+        assertThat(result.exceptionOrNull()).isInstanceOf(NoBrowserFoundException::class.java)
+    }
+
+    @Test
+    fun testLaunchSkipsCustomTabsProviderThatIsNotABrowser() {
+        installCustomTabsProvider("my.custom.notABrowser", isBrowser = false)
+        installCustomTabsProvider("my.custom.realBrowser")
+        val activity = Robolectric.buildActivity(Activity::class.java)
+        val webAuthenticationProvider = DefaultWebAuthenticationProvider(EventCoordinator(emptyList()))
+        assertThat(webAuthenticationProvider.launchCustomTab(activity.get(), "https://example.com/not_used".toHttpUrl()).isSuccess).isTrue()
+        val activityShadow = shadowOf(activity.get())
+        val cctActivity = activityShadow.nextStartedActivity
+        assertThat(cctActivity.`package`).isEqualTo("my.custom.realBrowser")
+    }
+
+    @Test
+    fun testLaunchSkipsPreferredBrowserThatIsNotABrowser_fallsBackToNextPreferredBrowser() {
+        installCustomTabsProvider("my.custom.preferred.notABrowser", isBrowser = false)
+        installCustomTabsProvider("my.custom.preferred.realBrowser")
+        val webAuthenticationProvider =
+            DefaultWebAuthenticationProvider(
+                preferredBrowsers = listOf("my.custom.preferred.notABrowser", "my.custom.preferred.realBrowser")
+            )
+        val activity = Robolectric.buildActivity(Activity::class.java)
+        assertThat(webAuthenticationProvider.launchCustomTab(activity.get(), "https://example.com/not_used".toHttpUrl()).isSuccess).isTrue()
+        val activityShadow = shadowOf(activity.get())
+        val cctActivity = activityShadow.nextStartedActivity
+        assertThat(cctActivity.`package`).isEqualTo("my.custom.preferred.realBrowser")
+    }
+
+    @Test
+    fun testLaunchWithNoRealBrowsers_launchesWithoutPackageRestriction() {
+        installCustomTabsProvider("my.custom.notABrowser", isBrowser = false)
+        val activity = Robolectric.buildActivity(Activity::class.java)
+        val webAuthenticationProvider = DefaultWebAuthenticationProvider(EventCoordinator(emptyList()))
+        assertThat(webAuthenticationProvider.launchCustomTab(activity.get(), "https://example.com/not_used".toHttpUrl()).isSuccess).isTrue()
+        val activityShadow = shadowOf(activity.get())
+        val cctActivity = activityShadow.nextStartedActivity
+        assertThat(cctActivity.`package`).isNull()
+    }
+
+    @Test
+    fun testLaunchWithBrowserFoundButActivityNotFound_surfacesActivityNotFoundException() {
+        // Browser selection succeeds, but the launch itself still fails (e.g. the browser was
+        // uninstalled between selection and launch) — the raw ActivityNotFoundException should
+        // surface since browser selection itself did not fail.
+        installCustomTabsProvider("com.android.chrome")
+        shadowOf(RuntimeEnvironment.getApplication()).checkActivities(true)
+        val activity = Robolectric.buildActivity(Activity::class.java)
+        val webAuthenticationProvider = DefaultWebAuthenticationProvider(EventCoordinator(emptyList()))
+        val result = webAuthenticationProvider.launchCustomTab(activity.get(), "https://example.com/not_used".toHttpUrl())
+        assertThat(result.isFailure).isTrue()
+        assertThat(result.exceptionOrNull()).isInstanceOf(ActivityNotFoundException::class.java)
+    }
+
+    @Suppress("DEPRECATION")
+    @Test
+    fun testDeprecatedLaunch_returnsNullOnSuccess() {
+        val activity = Robolectric.buildActivity(Activity::class.java)
+        val webAuthenticationProvider = DefaultWebAuthenticationProvider(EventCoordinator(emptyList()))
+        assertThat(webAuthenticationProvider.launch(activity.get(), "https://example.com/not_used".toHttpUrl())).isNull()
+        val activityShadow = shadowOf(activity.get())
+        val cctActivity = activityShadow.nextStartedActivity
+        assertThat(cctActivity.action).isEqualTo("android.intent.action.VIEW")
+    }
+
+    @Suppress("DEPRECATION")
+    @Test
+    fun testDeprecatedLaunch_returnsExceptionOnFailure() {
+        // Mirrors testLaunchWithBrowserFoundButActivityNotFound_surfacesActivityNotFoundException,
+        // but through the deprecated launch() entry point, which folds launchCustomTab()'s Result
+        // back into a nullable Exception.
+        installCustomTabsProvider("com.android.chrome")
         shadowOf(RuntimeEnvironment.getApplication()).checkActivities(true)
         val activity = Robolectric.buildActivity(Activity::class.java)
         val webAuthenticationProvider = DefaultWebAuthenticationProvider(EventCoordinator(emptyList()))
@@ -164,19 +253,20 @@ class DefaultWebAuthenticationProviderTest {
         assertThat(exception).isInstanceOf(ActivityNotFoundException::class.java)
     }
 
-    @Test fun testLaunchAuthTabWhenSupported() {
+    @Test
+    fun testLaunchAuthTabWhenSupported() {
         installAuthTabProvider("com.android.chrome")
         val activity = Robolectric.buildActivity(Activity::class.java)
         val webAuthenticationProvider = DefaultWebAuthenticationProvider(EventCoordinator(emptyList()))
         val launcher = mock<ActivityResultLauncher<Intent>>()
-        val exception =
+        val result =
             webAuthenticationProvider.launchAuthTab(
                 activity.get(),
                 "https://example.com/authorize".toHttpUrl(),
                 "unitTest:/callback",
                 launcher
             )
-        assertThat(exception).isNull()
+        assertThat(result.isSuccess).isTrue()
 
         val captor = argumentCaptor<Intent>()
         verify(launcher).launch(captor.capture())
@@ -188,7 +278,8 @@ class DefaultWebAuthenticationProviderTest {
         assertThat(headers!!.getString(DefaultWebAuthenticationProvider.X_OKTA_USER_AGENT)).isEqualTo(DefaultWebAuthenticationProvider.USER_AGENT_HEADER)
     }
 
-    @Test fun testLaunchAuthTabWithHttpsRedirect() {
+    @Test
+    fun testLaunchAuthTabWithHttpsRedirect() {
         installAuthTabProvider("com.android.chrome")
         val activity = Robolectric.buildActivity(Activity::class.java)
         val webAuthenticationProvider = DefaultWebAuthenticationProvider(EventCoordinator(emptyList()))
@@ -207,19 +298,20 @@ class DefaultWebAuthenticationProviderTest {
         assertThat(intent.getStringExtra(AuthTabIntent.EXTRA_HTTPS_REDIRECT_PATH)).isEqualTo("/callback")
     }
 
-    @Test fun testLaunchAuthTabFallsBackToCustomTabsWhenUnsupported() {
+    @Test
+    fun testLaunchAuthTabFallsBackToCustomTabsWhenUnsupported() {
         installCustomTabsProvider("com.android.chrome")
         val activity = Robolectric.buildActivity(Activity::class.java)
         val webAuthenticationProvider = DefaultWebAuthenticationProvider(EventCoordinator(emptyList()))
         val launcher = mock<ActivityResultLauncher<Intent>>()
-        val exception =
+        val result =
             webAuthenticationProvider.launchAuthTab(
                 activity.get(),
                 "https://example.com/authorize".toHttpUrl(),
                 "unitTest:/callback",
                 launcher
             )
-        assertThat(exception).isNull()
+        assertThat(result.isSuccess).isTrue()
         verifyNoInteractions(launcher)
 
         val activityShadow = shadowOf(activity.get())
@@ -228,24 +320,53 @@ class DefaultWebAuthenticationProviderTest {
         assertThat(cctActivity.`package`).isEqualTo("com.android.chrome")
     }
 
-    @Test fun testLaunchAuthTabCausesActivityNotFound() {
-        installAuthTabProvider("com.android.chrome")
+    @Test
+    fun testLaunchAuthTabSkipsProviderThatIsNotABrowser_fallsBackToCustomTabsWithoutPackageRestriction() {
+        // launchAuthTab() resolves the browser via the same browserSelector as launchCustomTab(),
+        // so an AuthTab-capable package that fails the isBrowserPackage check must be rejected here
+        // too, not just for plain Custom Tabs.
+        installAuthTabProvider("my.custom.notABrowser", isBrowser = false)
         val activity = Robolectric.buildActivity(Activity::class.java)
         val webAuthenticationProvider = DefaultWebAuthenticationProvider(EventCoordinator(emptyList()))
         val launcher = mock<ActivityResultLauncher<Intent>>()
-        doThrow(ActivityNotFoundException("From Test!")).whenever(launcher).launch(any())
-        val exception =
+        val result =
             webAuthenticationProvider.launchAuthTab(
                 activity.get(),
                 "https://example.com/authorize".toHttpUrl(),
                 "unitTest:/callback",
                 launcher
             )
-        assertThat(exception).isInstanceOf(ActivityNotFoundException::class.java)
-        assertThat(exception).hasMessageThat().isEqualTo("From Test!")
+        assertThat(result.isSuccess).isTrue()
+        verifyNoInteractions(launcher)
+
+        val activityShadow = shadowOf(activity.get())
+        val cctActivity = activityShadow.nextStartedActivity
+        assertThat(cctActivity.action).isEqualTo("android.intent.action.VIEW")
+        assertThat(cctActivity.`package`).isNull()
     }
 
-    @Test fun testCustomizeAuthTabIntentCallback_BuilderMutationApplied() {
+    @Test
+    fun testLaunchAuthTabCausesActivityNotFound() {
+        installAuthTabProvider("com.android.chrome")
+        val activity = Robolectric.buildActivity(Activity::class.java)
+        val webAuthenticationProvider = DefaultWebAuthenticationProvider(EventCoordinator(emptyList()))
+        val launcher = mock<ActivityResultLauncher<Intent>>()
+        doThrow(ActivityNotFoundException("From Test!")).whenever(launcher).launch(any())
+        val result =
+            webAuthenticationProvider.launchAuthTab(
+                activity.get(),
+                "https://example.com/authorize".toHttpUrl(),
+                "unitTest:/callback",
+                launcher
+            )
+        assertThat(result.isFailure).isTrue()
+        val exception = result.exceptionOrNull()
+        assertThat(exception).isInstanceOf(ActivityNotFoundException::class.java)
+        assertThat(exception?.message).isEqualTo("From Test!")
+    }
+
+    @Test
+    fun testCustomizeAuthTabIntentCallback_BuilderMutationApplied() {
         installAuthTabProvider("com.android.chrome")
         var capturedBuilder: AuthTabIntent.Builder? = null
         val webAuthenticationProvider =
@@ -262,8 +383,41 @@ class DefaultWebAuthenticationProviderTest {
         assertThat(capturedBuilder).isNotNull()
     }
 
-    private fun installAuthTabProvider(packageName: String) {
-        installBrowser(packageName)
+    @Test
+    fun testBrowserSelectorOverride_isUsedInsteadOfDefaultSelection() {
+        installCustomTabsProvider("com.android.chrome")
+        val webAuthenticationProvider =
+            DefaultWebAuthenticationProvider(
+                browserSelector = BrowserSelector { Result.success("my.custom.overridden.browser") }
+            )
+        val activity = Robolectric.buildActivity(Activity::class.java)
+        assertThat(webAuthenticationProvider.launchCustomTab(activity.get(), "https://example.com/not_used".toHttpUrl()).isSuccess).isTrue()
+        val activityShadow = shadowOf(activity.get())
+        val cctActivity = activityShadow.nextStartedActivity
+        assertThat(cctActivity.`package`).isEqualTo("my.custom.overridden.browser")
+    }
+
+    @Test
+    fun testBrowserSelectorOverride_failureLaunchesWithoutPackageRestriction() {
+        installCustomTabsProvider("com.android.chrome")
+        val webAuthenticationProvider =
+            DefaultWebAuthenticationProvider(
+                browserSelector = BrowserSelector { Result.failure(NoBrowserFoundException()) }
+            )
+        val activity = Robolectric.buildActivity(Activity::class.java)
+        assertThat(webAuthenticationProvider.launchCustomTab(activity.get(), "https://example.com/not_used".toHttpUrl()).isSuccess).isTrue()
+        val activityShadow = shadowOf(activity.get())
+        val cctActivity = activityShadow.nextStartedActivity
+        assertThat(cctActivity.`package`).isNull()
+    }
+
+    private fun installAuthTabProvider(
+        packageName: String,
+        isBrowser: Boolean = true,
+    ) {
+        if (isBrowser) {
+            installBrowser(packageName)
+        }
         val intent = Intent().setAction(CustomTabsService.ACTION_CUSTOM_TABS_CONNECTION)
         val resolveInfo = ResolveInfo()
         resolveInfo.serviceInfo = ServiceInfo()
@@ -282,6 +436,7 @@ class DefaultWebAuthenticationProviderTest {
                 .setData(Uri.parse("http://"))
                 .setAction(Intent.ACTION_VIEW)
                 .addCategory(Intent.CATEGORY_BROWSABLE)
+                .setPackage(packageName)
         val resolveInfo = ResolveInfo()
         resolveInfo.activityInfo = ActivityInfo()
         resolveInfo.activityInfo.packageName = packageName
@@ -290,8 +445,13 @@ class DefaultWebAuthenticationProviderTest {
         packageManager.addResolveInfoForIntent(intent, resolveInfo)
     }
 
-    private fun installCustomTabsProvider(packageName: String) {
-        installBrowser(packageName)
+    private fun installCustomTabsProvider(
+        packageName: String,
+        isBrowser: Boolean = true,
+    ) {
+        if (isBrowser) {
+            installBrowser(packageName)
+        }
         val intent = Intent().setAction(CustomTabsService.ACTION_CUSTOM_TABS_CONNECTION)
         val resolveInfo = ResolveInfo()
         resolveInfo.serviceInfo = ServiceInfo()

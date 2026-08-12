@@ -43,25 +43,33 @@ internal object SingletonRedirectCoordinator : RedirectCoordinator by DefaultRed
 internal class DefaultRedirectCoordinator(
     private val coroutineScope: CoroutineScope,
 ) : RedirectCoordinator {
-    @Volatile private var initializationContinuation: Continuation<RedirectInitializationResult<*>>? = null
+    @Volatile
+    private var initializationContinuation: Continuation<RedirectInitializationResult<*>>? = null
 
-    @VisibleForTesting var initializerContinuationListeningCallback: (() -> Unit)? = null
+    @VisibleForTesting
+    var initializerContinuationListeningCallback: (() -> Unit)? = null
 
-    @Volatile private var initializer: (suspend () -> RedirectInitializationResult<*>)? = null
+    @Volatile
+    private var initializer: (suspend () -> RedirectInitializationResult<*>)? = null
 
-    @Volatile private var redirectContinuation: Continuation<RedirectResult>? = null
+    @Volatile
+    private var redirectContinuation: Continuation<RedirectResult>? = null
 
-    @VisibleForTesting var redirectContinuationListeningCallback: (() -> Unit)? = null
+    @VisibleForTesting
+    var redirectContinuationListeningCallback: (() -> Unit)? = null
 
-    @Volatile private var webAuthenticationProvider: WebAuthenticationProvider? = null
+    @Volatile
+    private var webAuthenticationProvider: WebAuthenticationProvider? = null
 
-    @Volatile private var redirectUrl: String? = null
+    @Volatile
+    private var redirectUrl: String? = null
 
     private var emitErrorJob: Job? = null
 
     private val flowMutex = Mutex()
 
-    @Volatile private var isFlowActive = false
+    @Volatile
+    private var isFlowActive = false
 
     @Suppress("UNCHECKED_CAST")
     override suspend fun <T> initialize(
@@ -131,17 +139,16 @@ internal class DefaultRedirectCoordinator(
         redirectUrl = null
 
         if (localWebAuthenticationProvider != null && localRedirectUrl != null) {
-            val exception =
+            val result =
                 if (localWebAuthenticationProvider is AuthTabWebAuthenticationProvider) {
                     localWebAuthenticationProvider.launchAuthTab(context, url, localRedirectUrl, authTabLauncher)
                 } else {
-                    localWebAuthenticationProvider.launch(context, url)
+                    localWebAuthenticationProvider.launchCustomTab(context, url)
                 }
-            if (exception == null) {
-                return true
-            } else {
-                emitError(exception)
-            }
+            result
+                .onSuccess {
+                    return true
+                }.onFailure { emitError(it as? Exception ?: Exception(it)) }
         } else {
             emitError(IllegalStateException("RedirectListener has not been initialized."))
         }
