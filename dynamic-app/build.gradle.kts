@@ -62,7 +62,6 @@ android {
     }
 
     compileOptions {
-        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = SOURCE_COMPATIBILITY
         targetCompatibility = TARGET_COMPATIBILITY
     }
@@ -92,7 +91,6 @@ kotlin {
 }
 
 dependencies {
-    coreLibraryDesugaring(libs.core.library.desugaring)
     implementation(project(":okta-idx-kotlin"))
 
     implementation(libs.kotlin.stdlib)

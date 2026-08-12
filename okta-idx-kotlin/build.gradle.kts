@@ -32,7 +32,6 @@ android {
     }
 
     compileOptions {
-        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = SOURCE_COMPATIBILITY
         targetCompatibility = TARGET_COMPATIBILITY
     }
@@ -54,7 +53,6 @@ binaryCompatValidationExtension {
 }
 
 dependencies {
-    coreLibraryDesugaring(libs.core.library.desugaring)
     api(libs.kotlin.stdlib)
     api(libs.okhttp.core)
     api(libs.okio.core)

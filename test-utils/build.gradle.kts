@@ -21,7 +21,6 @@ android {
     }
 
     compileOptions {
-        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = SOURCE_COMPATIBILITY
         targetCompatibility = TARGET_COMPATIBILITY
     }
@@ -45,7 +44,6 @@ kotlin {
 }
 
 dependencies {
-    coreLibraryDesugaring(libs.core.library.desugaring)
     api(libs.okta.auth.foundation)
     api(libs.junit)
     api(libs.okhttp.mock.web.server)

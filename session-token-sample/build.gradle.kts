@@ -39,7 +39,6 @@ android {
     }
 
     compileOptions {
-        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = SOURCE_COMPATIBILITY
         targetCompatibility = TARGET_COMPATIBILITY
     }
@@ -62,8 +61,6 @@ kotlin {
 }
 
 dependencies {
-    coreLibraryDesugaring(libs.core.library.desugaring)
-
     implementation(project(":oauth2"))
 
     implementation(libs.okta.authn.api)

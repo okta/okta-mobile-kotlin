@@ -167,7 +167,3 @@ java {
     sourceCompatibility = SOURCE_COMPATIBILITY
     targetCompatibility = TARGET_COMPATIBILITY
 }
-
-dependencies {
-    coreLibraryDesugaring(libs.core.library.desugaring)
-}

@@ -30,7 +30,6 @@ android {
     }
 
     compileOptions {
-        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = SOURCE_COMPATIBILITY
         targetCompatibility = TARGET_COMPATIBILITY
     }
@@ -56,8 +55,6 @@ binaryCompatValidationExtension {
 }
 
 dependencies {
-    coreLibraryDesugaring(libs.core.library.desugaring)
-
     api(libs.okta.legacy.oidc)
     api(project(":auth-foundation"))
     api(libs.kotlin.stdlib)
