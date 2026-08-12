@@ -154,12 +154,17 @@ class OAuth2FlowViewModel :
      * On Desktop, uses a localhost HTTP server to capture the redirect.
      *
      * @param platformContext platform-specific context (Android Context or null for JVM)
+     * @param enableEphemeralBrowsing whether to request an ephemeral browsing session on Android
+     * (no persisted cookies/session data). Has no effect on JVM Desktop.
      */
-    fun startBrowserAuth(platformContext: Any?) {
+    fun startBrowserAuth(
+        platformContext: Any?,
+        enableEphemeralBrowsing: Boolean = false,
+    ) {
         cancelAndLaunch {
             _flowState.value = OAuth2FlowState.BrowserAuthWaiting
             log("Starting Browser Auth flow")
-            platformBrowserLogin(platformContext, client, AppConfig.SIGN_IN_REDIRECT_URI, defaultScope).fold(
+            platformBrowserLogin(platformContext, client, AppConfig.SIGN_IN_REDIRECT_URI, defaultScope, enableEphemeralBrowsing).fold(
                 onSuccess = { tokenInfo ->
                     log("Browser Auth flow succeeded")
                     _flowState.value = OAuth2FlowState.Authenticated(tokenInfo)

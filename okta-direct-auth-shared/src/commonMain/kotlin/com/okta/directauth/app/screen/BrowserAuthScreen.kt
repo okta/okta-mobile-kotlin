@@ -17,17 +17,23 @@ package com.okta.directauth.app.screen
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -41,17 +47,20 @@ import com.okta.directauth.app.ui.theme.Dimens
  * Shows a "Sign In with Browser" button. When tapped, opens the system browser
  * for Okta authorization and waits for the redirect callback.
  *
- * @param onSignIn callback to initiate the browser authentication flow
+ * @param onSignIn callback to initiate the browser authentication flow, given whether ephemeral
+ * browsing was requested
  * @param onBack callback to navigate back to the home menu
  * @param isLoading whether the browser flow is currently in progress
  */
 @Composable
 fun BrowserAuthScreen(
-    onSignIn: () -> Unit,
+    onSignIn: (enableEphemeralBrowsing: Boolean) -> Unit,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
     isLoading: Boolean = false,
 ) {
+    var enableEphemeralBrowsing by remember { mutableStateOf(false) }
+
     Column(
         modifier =
             Modifier
@@ -80,8 +89,16 @@ fun BrowserAuthScreen(
             Spacer(modifier = Modifier.height(Dimens.spaceMedium))
             Text(text = "Waiting for browser redirect...")
         } else {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Checkbox(
+                    checked = enableEphemeralBrowsing,
+                    onCheckedChange = { enableEphemeralBrowsing = it }
+                )
+                Text(text = "Use ephemeral browsing")
+            }
+            Spacer(modifier = Modifier.height(Dimens.spaceMedium))
             Button(
-                onClick = onSignIn,
+                onClick = { onSignIn(enableEphemeralBrowsing) },
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(text = "Sign In with Browser")

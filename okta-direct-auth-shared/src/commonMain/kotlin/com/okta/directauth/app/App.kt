@@ -133,7 +133,9 @@ fun App(appStorage: AppStorage) {
                         }
                     ) { onBack ->
                         com.okta.directauth.app.screen.BrowserAuthScreen(
-                            onSignIn = { oauth2ViewModel.startBrowserAuth(platformContext) },
+                            onSignIn = { enableEphemeralBrowsing ->
+                                oauth2ViewModel.startBrowserAuth(platformContext, enableEphemeralBrowsing)
+                            },
                             onBack = onBack
                         )
                     }

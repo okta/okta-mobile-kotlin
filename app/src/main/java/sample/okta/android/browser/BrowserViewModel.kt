@@ -22,6 +22,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.okta.authfoundation.client.OAuth2ClientResult
 import com.okta.authfoundation.credential.kmp.TokenData
+import com.okta.webauthenticationui.DefaultWebAuthenticationProvider
 import com.okta.webauthenticationui.WebAuthentication
 import kotlinx.coroutines.launch
 import sample.okta.android.BuildConfig
@@ -37,11 +38,22 @@ class BrowserViewModel : ViewModel() {
     fun login(
         context: Context,
         addDeviceSsoScope: Boolean,
+        enableEphemeralBrowsing: Boolean,
     ) {
         viewModelScope.launch {
             _state.value = BrowserState.Loading
 
-            val webAuthentication = WebAuthentication(SampleApplication.oAuth2Client)
+            val webAuthentication =
+                if (enableEphemeralBrowsing) {
+                    WebAuthentication(
+                        SampleApplication.oAuth2Client,
+                        DefaultWebAuthenticationProvider(
+                            customizeTabsIntent = { _, builder -> builder.setEphemeralBrowsingEnabled(true) }
+                        )
+                    )
+                } else {
+                    WebAuthentication(SampleApplication.oAuth2Client)
+                }
             val scope =
                 if (addDeviceSsoScope) {
                     "${SampleHelper.DEFAULT_SCOPE} device_sso"

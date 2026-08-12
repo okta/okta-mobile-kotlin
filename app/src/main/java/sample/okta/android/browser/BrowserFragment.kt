@@ -36,7 +36,11 @@ internal class BrowserFragment :
         super.onViewCreated(view, savedInstanceState)
 
         binding.loginWithBrowserButton.setOnClickListener {
-            viewModel.login(requireContext(), binding.addDeviceSsoScopeCheckBox.isChecked)
+            viewModel.login(
+                requireContext(),
+                binding.addDeviceSsoScopeCheckBox.isChecked,
+                binding.useEphemeralBrowsingCheckBox.isChecked
+            )
         }
 
         viewModel.state.observe(viewLifecycleOwner) { state ->

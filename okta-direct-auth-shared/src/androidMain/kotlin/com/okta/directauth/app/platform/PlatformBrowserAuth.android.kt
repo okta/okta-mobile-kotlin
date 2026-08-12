@@ -20,6 +20,7 @@ import com.okta.authfoundation.client.OAuth2ClientResult
 import com.okta.authfoundation.client.TokenInfo
 import com.okta.authfoundation.client.kmp.OAuth2Client
 import com.okta.authfoundation.credential.Token
+import com.okta.webauthenticationui.DefaultWebAuthenticationProvider
 import com.okta.webauthenticationui.WebAuthentication
 
 /**
@@ -37,8 +38,19 @@ actual suspend fun platformBrowserLogin(
     client: OAuth2Client,
     redirectUrl: String,
     scope: List<String>,
+    enableEphemeralBrowsing: Boolean,
 ): Result<TokenInfo> {
     val context = platformContext as Context
-    val webAuthentication = WebAuthentication(client)
+    val webAuthentication =
+        if (enableEphemeralBrowsing) {
+            WebAuthentication(
+                client,
+                DefaultWebAuthenticationProvider(
+                    customizeTabsIntent = { _, builder -> builder.setEphemeralBrowsingEnabled(true) }
+                )
+            )
+        } else {
+            WebAuthentication(client)
+        }
     return webAuthentication.login(context = context, redirectUrl = redirectUrl, scope = scope)
 }
