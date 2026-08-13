@@ -7,6 +7,32 @@
   when the resolved browser supports it, falling back to Chrome Custom Tabs otherwise. New
   `customizeAuthTabIntent` constructor parameter, symmetric with the existing `customizeTabsIntent`
   (#372).
+- `BrowserSelector`, a `fun interface` for fully overriding how `DefaultWebAuthenticationProvider`
+  picks the browser package used to host the Chrome Custom Tab (e.g. for testing or
+  device-specific overrides), plus a new `browserSelector` constructor parameter on
+  `DefaultWebAuthenticationProvider` to supply one. `NoBrowserFoundException` is the failure cause
+  returned by the built-in selector when no usable browser is found.
+- `WebAuthenticationProvider.launchCustomTab(context, url)`, a `Result`-based replacement for the
+  now-deprecated `launch(context, url)`. It has a default implementation that delegates to
+  `launch()`, so existing `WebAuthenticationProvider` implementations keep compiling unchanged.
+
+#### Changed
+- `DefaultWebAuthenticationProvider.launchCustomTab()` (and the now-deprecated `launch()`, which
+  delegates to it) surfaces `NoBrowserFoundException` (instead of the generic
+  `ActivityNotFoundException`) when no usable browser is found on the device and the unrestricted
+  fallback launch also fails to resolve to an activity — giving integrators a distinct, catchable
+  exception for "no browser available" separate from `ActivityNotFoundException` (e.g. a
+  stale/misconfigured `Intent`) and `WebAuthentication.FlowCancelledException` (a browser opened
+  but was closed before completing the redirect).
+
+#### Fixed
+- `DefaultWebAuthenticationProvider` could select a non-browser package as the Custom Tabs host:
+  the internal browser-selection logic returned the first (or first preferred) package that merely
+  resolved `CustomTabsService.ACTION_CUSTOM_TABS_CONNECTION`, without confirming it could actually
+  handle `http(s)` links. On devices where a non-browser app implements that service, this caused
+  `launch()` to fail. Candidates are now also required to resolve `ACTION_VIEW` +
+  `CATEGORY_BROWSABLE` for `http://` or `https://` before being selected, and each preferred
+  browser is checked in order rather than stopping at the first Custom-Tabs match.
 
 ## auth-foundation 3.0.0 - 2026-08-05
 

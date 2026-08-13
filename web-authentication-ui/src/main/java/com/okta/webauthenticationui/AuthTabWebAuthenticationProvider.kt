@@ -25,14 +25,14 @@ import okhttp3.HttpUrl
  * redirect flow via Chrome's Auth Tab (`androidx.browser.auth.AuthTabIntent`) instead of standard
  * Custom Tabs.
  *
- * Kept internal: [RedirectCoordinator] prefers this over [WebAuthenticationProvider.launch] when a
+ * Kept internal: [RedirectCoordinator] prefers this over [WebAuthenticationProvider.launchCustomTab] when a
  * provider implements it, but never needs to know whether a given launch actually used Auth Tab or
  * fell back to Custom Tabs — that decision belongs entirely to the implementation of [launchAuthTab].
  */
 internal interface AuthTabWebAuthenticationProvider {
     /**
      * Launches the OIDC redirect flow via Auth Tab, or falls back to
-     * [WebAuthenticationProvider.launch] if the resolved browser doesn't support it.
+     * [WebAuthenticationProvider.launchCustomTab] if the resolved browser doesn't support it.
      *
      * @param context the Android [android.app.Activity] [Context] which is used to display the flow.
      * @param url to authorize url the instance should display.
@@ -41,12 +41,13 @@ internal interface AuthTabWebAuthenticationProvider {
      * @param launcher the launcher returned by `AuthTabIntent.registerActivityResultLauncher`, used to
      * launch the Auth Tab and receive its result.
      *
-     * @return `null` if the flow launched successfully, or the [Exception] that caused the launch to fail.
+     * @return [Result.success] if the flow launched successfully, or [Result.failure] with the
+     * launch exception if it fails.
      */
     fun launchAuthTab(
         context: Context,
         url: HttpUrl,
         redirectUrl: String,
         launcher: ActivityResultLauncher<Intent>,
-    ): Exception?
+    ): Result<Unit>
 }
