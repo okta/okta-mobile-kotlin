@@ -19,9 +19,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import com.okta.authfoundation.client.kmp.DefaultAccessTokenValidator;
+import com.okta.authfoundation.client.kmp.DefaultDeviceSecretValidator;
+import com.okta.authfoundation.client.kmp.DefaultIdTokenValidator;
 import com.okta.authfoundation.client.kmp.OAuth2Client;
 import java.util.Arrays;
 import java.util.Collections;
+import kotlinx.serialization.json.Json;
 import org.junit.Test;
 
 /** Pure Java tests verifying that the JvmOAuth2ClientBuilder API is usable from Java. */
@@ -71,6 +75,21 @@ public class OAuth2ClientBuilderJavaTest {
             .getOrThrow();
 
     assertNotNull("Client should not be null after chaining", client);
+  }
+
+  @Test
+  public void build_WithAllOptionalSetters_Succeeds() {
+    OAuth2Client client =
+        new OAuth2ClientBuilder(BASE_URL, CLIENT_ID, Arrays.asList(SCOPE.split(" ")))
+            .setJson(Json.Default)
+            .setIdTokenValidator(new DefaultIdTokenValidator(600))
+            .setAccessTokenValidator(new DefaultAccessTokenValidator())
+            .setDeviceSecretValidator(new DefaultDeviceSecretValidator())
+            .setRateLimitRetryCallback(retryCount -> null)
+            .build()
+            .getOrThrow();
+
+    assertNotNull("Client should not be null after chaining all optional setters", client);
   }
 
   @Test
