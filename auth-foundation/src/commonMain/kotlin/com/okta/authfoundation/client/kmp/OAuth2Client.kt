@@ -182,7 +182,17 @@ class OAuth2Client internal constructor(
         extraRequestParameters: Map<String, String>,
     ): Result<TokenInfo> =
         runCatching {
-            val reserved = setOf("grant_type", "client_id", "refresh_token")
+            // client_secret/client_assertion_type/client_assertion are added by tokenRequest,
+            // which strips and re-derives them itself so they can't be overridden here.
+            val reserved =
+                setOf(
+                    "grant_type",
+                    "client_id",
+                    "refresh_token",
+                    "client_secret",
+                    "client_assertion_type",
+                    "client_assertion"
+                )
             val formParams =
                 buildMap {
                     put("client_id", configuration.clientId)
@@ -224,6 +234,18 @@ class OAuth2Client internal constructor(
     ): Result<TokenInfo> =
         runCatching {
             val endpoints = endpointsOrThrow()
+            val clientAuthenticationParams = configuration.clientAuthenticationFormParameters(endpoints.tokenEndpoint)
+            val reserved =
+                setOf(
+                    "client_secret",
+                    "client_assertion_type",
+                    "client_assertion"
+                )
+            val mergedFormParams =
+                buildMap {
+                    putAll(formParams.filterKeys { it !in reserved })
+                    putAll(clientAuthenticationParams)
+                }
 
             val result =
                 withRateLimitRetry {
@@ -231,7 +253,7 @@ class OAuth2Client internal constructor(
                         apiExecutor = configuration.apiExecutor,
                         json = configuration.json,
                         url = endpoints.tokenEndpoint,
-                        formParams = formParams,
+                        formParams = mergedFormParams,
                         deserializer = OAuth2TokenResponse.serializer(),
                         onRateLimitExceeded = { event -> _events.tryEmit(event) }
                     )

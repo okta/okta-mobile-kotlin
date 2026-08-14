@@ -9,6 +9,22 @@
 - `TokenCredentialManager` (jvm wrapper) gained `setMetadata(TokenMetadata)`,
   `find(Predicate<TokenMetadata>)`, and `findByCredential(Predicate<Credential>)`, restoring parity
   with the commonMain `TokenCredentialManager`.
+- `clientAssertionProvider` (`ClientAssertionProvider`/`ClientAssertion`) on
+  `OAuth2ClientBuilder`/`OAuth2ClientConfiguration` for `private_key_jwt` client authentication
+  (mutually exclusive with `clientSecret`). Invoked fresh for every token/PAR request — passing the
+  exact endpoint URL as `audience` — so the returned assertion can carry a unique `jti` and a
+  correctly scoped `aud`/`exp`, per
+  [Okta's client authentication guide](https://developer.okta.com/docs/api/openapi/okta-oauth/guides/client-auth).
+  Invoked on `computeDispatcher` (new on `OAuth2ClientBuilder`/`OAuth2ClientConfiguration`,
+  defaults to `Dispatchers.Default`) — implementations must be non-blocking; use an IO-appropriate
+  `computeDispatcher` if signing requires blocking I/O.
+- `enablePushedAuthorizationRequests`/`allowPushedAuthorizationRequestFallback` on
+  `OAuth2ClientBuilder`/`OAuth2ClientConfiguration` to opt in to Pushed Authorization Requests (PAR).
+  Both disabled by default: a PAR failure is fail-closed (surfaces as a thrown exception) unless
+  `allowPushedAuthorizationRequestFallback` is explicitly enabled to allow silently downgrading to
+  the classic authorization URL instead.
+- `OAuth2EndpointOverrides.pushedAuthorizationRequestEndpoint` so PAR remains usable when discovery
+  is skipped via the all-8-fields override optimization.
 
 #### Fixed
 - `OAuth2ClientBuilder` (jvm wrapper)'s `clientSecret` was tracked internally as a nullable
@@ -19,6 +35,7 @@
 ## web-authentication-ui Unreleased
 
 #### Added
+
 - `DefaultWebAuthenticationProvider` now launches via Chrome's Auth Tab (`androidx.browser.auth.AuthTabIntent`)
   when the resolved browser supports it, falling back to Chrome Custom Tabs otherwise. New
   `customizeAuthTabIntent` constructor parameter, symmetric with the existing `customizeTabsIntent`
@@ -50,6 +67,25 @@
   `CATEGORY_BROWSABLE` for `http://` or `https://` before being selected, and each preferred
   browser is checked in order rather than stopping at the first Custom-Tabs match.
 
+## oauth2 Unreleased
+
+#### Added
+
+- Pushed Authorization Request (PAR) support in `AuthorizationCodeFlow.start()`: when
+  `enablePushedAuthorizationRequests` is enabled (or the authorization server advertises
+  `require_pushed_authorization_requests`) and a PAR endpoint is discovered, pushes the
+  authorization parameters to it and builds the browser URL from the returned `request_uri`. When
+  PAR is optional and fails, `start()` fails closed with `PushedAuthorizationRequestException`
+  unless `allowPushedAuthorizationRequestFallback` is explicitly enabled, in which case it falls
+  back to the classic authorization URL instead.
+- `AuthorizationCodeFlow.PushedAuthorizationException` (sealed base) with subtypes
+  `PushedAuthorizationRequiredException`/`PushedAuthorizationRequestException`.
+- `AuthorizationCodeFlowContext.usedPushedAuthorizationRequest`/`pushedAuthorizationRequestUri`
+  (appended at the end of the constructor with `@JvmOverloads`, so direct construction against the
+  released oauth2 3.0.0's 6-parameter constructor keeps working. `copy`/`copy$default` don't get
+  the same treatment — Kotlin always generates those with every parameter for a data class — so a
+  3.0.0-compiled call to `context.copy(...)` would still hit `NoSuchMethodError` until recompiled).
+
 ## auth-foundation 3.0.0 - 2026-08-05
 
 [Commits](https://github.com/okta/okta-mobile-kotlin/compare/auth-foundation@2.0.5...auth-foundation@3.0.0)
@@ -58,6 +94,7 @@ Converted from an Android-only library to a Kotlin Multiplatform module (Android
 major release with breaking changes to the credential-event and cache APIs.
 
 #### Breaking changes
+
 - Module artifact shape changed from a single Android AAR to a KMP artifact (Android + JVM
   variants). Consumers pulling `auth-foundation` directly (not via a flow module) may need to
   re-resolve dependencies.
@@ -85,6 +122,7 @@ major release with breaking changes to the credential-event and cache APIs.
 - `OAuth2ClientConfiguration.defaultScope` return type changed from `String` to `List<String>`.
 
 #### Added
+
 - KMP `OAuth2Client`, `OAuth2ClientBuilder`, `OAuth2ClientConfiguration`, `OAuth2EndpointOverrides`
   (#379, #380, #383, #398).
 - Cross-platform credential management: `TokenCredentialManager`, KMP `Credential`,
@@ -112,6 +150,7 @@ major release with breaking changes to the credential-event and cache APIs.
   list rather than requiring an exact string match (#414).
 
 #### Fixed
+
 - NPE when `getCertificate()` returns null in `TokenEncryptionHandler` (#402).
 - Uncaught `ProviderException` in `AndroidKeystoreUtil.getOrCreateAesKey` (#403).
 - `CoalescingOrchestrator` reimplemented with `Mutex` instead of `synchronized`, removing a
@@ -122,6 +161,7 @@ major release with breaking changes to the credential-event and cache APIs.
 [Commits](https://github.com/okta/okta-mobile-kotlin/compare/e70ffa5c...oauth2@3.0.0)
 
 #### Breaking changes
+
 - Removed the `String`-scope overloads of `start(...)` on `AuthorizationCodeFlow`,
   `DeviceAuthorizationFlow`, `ResourceOwnerFlow`, `SessionTokenFlow`, and `TokenExchangeFlow` —
   scopes must now be passed as `List<String>`.
@@ -134,6 +174,7 @@ major release with breaking changes to the credential-event and cache APIs.
   must add it to keep compiling.
 
 #### Added
+
 - Entire `com.okta.oauth2.kmp` package: KMP `ResourceOwnerFlow`, `DeviceAuthorizationFlow`,
   `TokenExchangeFlow`, `AuthorizationCodeFlow`, `SessionTokenFlow`, `RedirectEndSessionFlow`
   (#389–#394).
@@ -151,6 +192,7 @@ major release with breaking changes to the credential-event and cache APIs.
   with migration guidance in `oauth2/README.md`.
 
 #### Changed
+
 - Module converted from an Android-only build to Kotlin Multiplatform (Android + JVM) (#386).
 
 ## web-authentication-ui 3.0.0 - 2026-08-05
@@ -158,6 +200,7 @@ major release with breaking changes to the credential-event and cache APIs.
 [Commits](https://github.com/okta/okta-mobile-kotlin/compare/e70ffa5c...web-authentication-ui@3.0.0)
 
 #### Breaking changes
+
 - `WebAuthentication.authorizationCodeFlow` and `.redirectEndSessionFlow` changed from public `var`
   properties to internal, removing their public getters/setters (#406).
 - The `login(..., scope: List<String>, ...)` overload added in #406 had its `scope`/extra-params
@@ -165,6 +208,7 @@ major release with breaking changes to the credential-event and cache APIs.
   for existing callers of that overload.
 
 #### Added
+
 - New `WebAuthentication(OAuth2Client, WebAuthenticationProvider)` constructor accepting the KMP
   `OAuth2Client`, added alongside the existing constructors (#406).
 - New `login(..., scope: List<String>, ...)` overload alongside the existing `String` overload
@@ -174,15 +218,18 @@ major release with breaking changes to the credential-event and cache APIs.
 - ABI validation rolled out (#411).
 
 #### Fixed
+
 - Step-up redirect race condition in `DefaultRedirectCoordinator` (#401).
 
 #### Changed
+
 - Internally now uses the KMP `AuthorizationCodeFlow`; deprecated the Android-only
   `OidcConfiguration`-based path (#406).
 - `ForegroundActivityEvent`/`CustomizeBrowserEvent`/`CustomizeCustomTabsEvent` reparented under a
   new `UIEvent` marker interface — still `Event` subtypes, non-breaking (#407).
 
 ## [2.0.3] - 2025-02-18
+
 - Make SDK defaults configurable by third party SDKs [#323](https://github.com/okta/okta-mobile-kotlin/pull/323)
 - Update dependencies
 
@@ -191,6 +238,7 @@ major release with breaking changes to the credential-event and cache APIs.
 [Commits](https://github.com/okta/okta-mobile-kotlin/compare/2.0.1...2.0.2)
 
 ### Fixed
+
 - Fix AEADBadTagException issues caused by corrupt encrypted files [#313](https://github.com/okta/okta-mobile-kotlin/pull/313)
 - Fix default token migration from 1.x to 2.x [#314](https://github.com/okta/okta-mobile-kotlin/pull/314)
 - Allow using accessToken if idToken is missing [#315](https://github.com/okta/okta-mobile-kotlin/pull/315)
@@ -208,15 +256,20 @@ This version exposes ApplicationContextHolder for use by [okta-idx-android](http
 This is a major version release with a number of breaking API changes and new features. Please check README.md changes under the above Commits link.
 
 ### Migration
+
 - See [Migrating from okta-mobile-kotlin 1.x to 2.x](https://github.com/okta/okta-mobile-kotlin?tab=readme-ov-file#migrating-from-okta-mobile-kotlin-1x-to-2x) for a full description of how to migrate.
 
 ### Major changes
+
 - The SDK now includes first class support for Biometric encryption. See [Biometric Credentials](https://github.com/okta/okta-mobile-kotlin?tab=readme-ov-file#biometric-credentials)
-- TokenStorage interface is redefined and reimplemented. If using a custom TokenStorage, please migrate it using [Token Migration guide](https://github.com/okta/okta-mobile-kotlin?tab=readme-ov-file#token-migration)
+- TokenStorage interface is redefined and reimplemented. If using a custom TokenStorage, please migrate it
+  using [Token Migration guide](https://github.com/okta/okta-mobile-kotlin?tab=readme-ov-file#token-migration)
 - OAuth APIs are instantiated differently from before. Users no longer need to manage references to OidcClient for instantiating OAuth flows.
-- Internally, EncryptedSharedPreferences have been removed from the SDK, and replaced with Room DB. Encryption is done using AndroidKeyStore primitives, and SQLCipher. Migration to the new storage is handled automatically for most cases.
+- Internally, EncryptedSharedPreferences have been removed from the SDK, and replaced with Room DB. Encryption is done using AndroidKeyStore primitives, and SQLCipher. Migration to the new storage is
+  handled automatically for most cases.
 
 ### Minor changes
+
 - Jetpack startup has been removed from the SDK. This should resolve any startup initializer issues.
 - DT cookie has been removed from this SDK. That will be moved to [okta-idx-android](https://github.com/okta/okta-idx-android) instead.
 - EventCoordinator events now subclass Event class. This should make it easier to find Events.
@@ -226,20 +279,25 @@ This is a major version release with a number of breaking API changes and new fe
 [Commits](https://github.com/okta/okta-mobile-kotlin/compare/1.2.0...1.2.1)
 
 ### Added
+
 - Added state value customization to AuthorizationCodeFlow.start [#278](https://github.com/okta/okta-mobile-kotlin/pull/278)
 
 ### Fixed
-- DeviceTokenProvider initialization issues have been mostly fixed. A possible crash can still be encountered in case of corrupt key in keystore [#278](https://github.com/okta/okta-mobile-kotlin/pull/278)
+
+- DeviceTokenProvider initialization issues have been mostly fixed. A possible crash can still be encountered in case of corrupt key in
+  keystore [#278](https://github.com/okta/okta-mobile-kotlin/pull/278)
 
 ## [1.2.0] - 2023-11-06
 
 [Commits](https://github.com/okta/okta-mobile-kotlin/compare/1.1.5...1.2.0)
 
 ### Added
+
 - Updated libraries across several commits: [#269](https://github.com/okta/okta-mobile-kotlin/pull/269) [#264](https://github.com/okta/okta-mobile-kotlin/pull/264)
 - Add optional debounce functionality to browser redirect cancellation: [#263](https://github.com/okta/okta-mobile-kotlin/pull/263)
 
 ### Fixed
+
 - Reorder okhttp interceptors to prioritize user-defined interceptors [#265](https://github.com/okta/okta-mobile-kotlin/pull/265)
 
 ## [1.1.5] - 2023-08-04
@@ -247,6 +305,7 @@ This is a major version release with a number of breaking API changes and new fe
 [Commits](https://github.com/okta/okta-mobile-kotlin/compare/1.1.4...1.1.5)
 
 ### Fixed
+
 - Fix DT (device token) cookie formatting to fix "remember device" functionality in downstream SDKs. [#260](https://github.com/okta/okta-mobile-kotlin/pull/260)
 
 ## [1.1.4] - 2023-08-03
@@ -254,9 +313,11 @@ This is a major version release with a number of breaking API changes and new fe
 [Commits](https://github.com/okta/okta-mobile-kotlin/compare/1.1.3...1.1.4)
 
 ### Added
+
 - CredentialBootstrap.reset() is now publicly visible for easier testing. [#258](https://github.com/okta/okta-mobile-kotlin/pull/258)
 
 ### Fixed
+
 - Fix issues with activity lifecycle destroying browser login state. [#258](https://github.com/okta/okta-mobile-kotlin/pull/258)
 - Handle possible concurrent access to SharedTokenStorage. [#256](https://github.com/okta/okta-mobile-kotlin/pull/256)
 
@@ -265,6 +326,7 @@ This is a major version release with a number of breaking API changes and new fe
 [Commits](https://github.com/okta/okta-mobile-kotlin/compare/1.1.2...1.1.3)
 
 ### Added
+
 - Added DT (device token) cookie to okHttpClient for supporting "remember device" functionality in downstream SDKs. [#240](https://github.com/okta/okta-mobile-kotlin/pull/240)
 
 ## [1.1.2] - 2023-02-13
@@ -272,6 +334,7 @@ This is a major version release with a number of breaking API changes and new fe
 [Commits](https://github.com/okta/okta-mobile-kotlin/compare/1.1.1...1.1.2)
 
 ### Fixed
+
 - Fix a race condition caused by activity lifecycle when multiple login/logout are called too quickly. [#238](https://github.com/okta/okta-mobile-kotlin/pull/238)
 
 ## [1.1.1] - 2022-10-17
@@ -279,6 +342,7 @@ This is a major version release with a number of breaking API changes and new fe
 [Commits](https://github.com/okta/okta-mobile-kotlin/compare/1.1.0...1.1.1)
 
 ### Fixed
+
 - Fix a potential race when writing exceptionPairs. [#222](https://github.com/okta/okta-mobile-kotlin/pull/222)
 
 ## [1.1.0] - 2022-09-13
@@ -286,6 +350,7 @@ This is a major version release with a number of breaking API changes and new fe
 [Commits](https://github.com/okta/okta-mobile-kotlin/compare/1.0.0...1.1.0)
 
 ### Added
+
 - Add revokeAllTokens to Credential. [#201](https://github.com/okta/okta-mobile-kotlin/pull/201)
 - Add support for biometric backed storage. [#207](https://github.com/okta/okta-mobile-kotlin/pull/207)
 - Add Credential.tokenStateFlow. [#211](https://github.com/okta/okta-mobile-kotlin/pull/211)
@@ -299,12 +364,14 @@ This is a major version release with a number of breaking API changes and new fe
 [Commits](https://github.com/okta/okta-mobile-kotlin/compare/0.6.0-BETA...1.0.0)
 
 ### Added
+
 - Added support for amr and acr claims [#175](https://github.com/okta/okta-mobile-kotlin/pull/175)
 - Support for more OpenID Providers
 - Support for Device Authorization Grant slow_down [#186](https://github.com/okta/okta-mobile-kotlin/pull/186)
 - Added `errorId` to `AuthorizationCodeFlow.ResumeException` [#184](https://github.com/okta/okta-mobile-kotlin/pull/184)
 
 ### Changed
+
 - Updated IdTokenValidator to include an object for validation parameters [#181](https://github.com/okta/okta-mobile-kotlin/pull/181)
 
 ## [0.6.0-BETA] - 2022-06-03
@@ -312,16 +379,19 @@ This is a major version release with a number of breaking API changes and new fe
 [Commits](https://github.com/okta/okta-mobile-kotlin/compare/0.5.0-BETA...0.6.0-BETA)
 
 ### Added
+
 - `SessionTokenFlow` which aids migration from legacy Authn APIs.
 - Cache .well-known/openid-configuration results.
 
 ### Changed
+
 - Made most of `OidcConfiguration` internal, use `AuthFoundationDefaults` for customization.
 - Add extra parameters to the `DeviceAuthorizationFlow`.
 - Remove the default on `Credential.revoke`.
 - Expose `JwtParser.parse` instead of `OidcClient.parseJwt`.
 
 ### Fixed
+
 - Listen for configuration changes in `ForegroundActivity`.
 - Fix missing slash in SDK version.
 
@@ -330,12 +400,14 @@ This is a major version release with a number of breaking API changes and new fe
 [Commits](https://github.com/okta/okta-mobile-kotlin/compare/0.4.0-BETA...0.5.0-BETA)
 
 ### Changed
+
 - `OidcClient.refresh` no longer accepts scopes, as they are not used.
 - Changed the way id token validation customization happens.
 - Made scope a string, rather than a set.
 - Renamed metadata to tags.
 
 ### Fixed
+
 - Fixed issues with non Chrome browsers.
 - Eagerly error when launching a web based flow when an Activity is backgrounded.
 - Properly support backgrounded internal Activities during web authentication.
@@ -345,6 +417,7 @@ This is a major version release with a number of breaking API changes and new fe
 [Commits](https://github.com/okta/okta-mobile-kotlin/compare/0.3.0-BETA...0.4.0-BETA)
 
 ### Added
+
 - Legacy token migration - migrate tokens from okta-oidc-android, see [migrate.md](migrate.md).
 - Consumer proguard rules, allowing R8 including with full mode.
 - Attempt to fix storage/crypto errors automatically.
@@ -353,11 +426,13 @@ This is a major version release with a number of breaking API changes and new fe
 - Added `CredentialBootstrap.oidcClient` to preserve ease of use.
 
 ### Changed
+
 - `Credential.oidcClient` is now an implementation detail, and not publicly accessible.
 - Minting tokens no longer automatically stores tokens, it's now an explicit action.
 - Renamed `CredentialBootstrap.credential` to `CredentialBootstrap.defaultCredential`.
 
 ### Fixed
+
 - Fixed an issue where the chrome custom tab would linger after authentication.
 
 ## [0.3.0-BETA] - 2022-04-14
@@ -365,16 +440,21 @@ This is a major version release with a number of breaking API changes and new fe
 [Commits](https://github.com/okta/okta-mobile-kotlin/compare/0.2.0-BETA...0.3.0-BETA)
 
 ### Added
+
 - Added CredentialBootstrap for handling common `Credential` use cases.
 - Added a tag to OkHttp requests with the associated `Credential`.
 
 ### Changed
+
 - Simplified WebAuthenticationClient to return a Token in a single API call.
 
 ### Fixed
+
 - Fixed an issue where a valid issuer might fail validation.
 - Numerous bug fixes and improvements.
 
 ## [0.2.0-BETA] - 2022-03-25
+
 ### Added
+
 - Initial release!

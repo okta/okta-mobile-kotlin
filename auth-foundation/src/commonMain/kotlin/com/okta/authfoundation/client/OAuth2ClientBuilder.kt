@@ -99,7 +99,27 @@ class OAuth2ClientBuilder private constructor(
     var authorizationServerId: String? = null
 
     /** Optional client secret for confidential clients. */
-    var clientSecret: String? = null
+    var clientSecret: String = ""
+
+    /**
+     * Optional provider for private_key_jwt (or similar JWT-based) client authentication.
+     *
+     * Invoked fresh for every token/PAR request — never cached or reused by the SDK — so the
+     * returned assertion can carry a unique `jti` and a correctly scoped `aud`/`exp`. Mutually
+     * exclusive with [clientSecret].
+     *
+     * ```kotlin
+     * clientAssertionProvider = ClientAssertionProvider { audience ->
+     *     ClientAssertion(
+     *         type = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+     *         assertion = signJwt(issuer = clientId, subject = clientId, audience = audience)
+     *     )
+     * }
+     * ```
+     *
+     * @see ClientAssertionProvider
+     */
+    var clientAssertionProvider: ClientAssertionProvider? = null
 
     /** Optional ACR values. */
     var acrValues: String? = null
@@ -130,6 +150,26 @@ class OAuth2ClientBuilder private constructor(
      * @see OAuth2EndpointOverrides
      */
     var endpointOverrides: OAuth2EndpointOverrides? = null
+
+    /**
+     * Enables Pushed Authorization Requests (PAR) for browser-based authorization flows.
+     *
+     * Disabled by default; opt in explicitly. When enabled, PAR is used whenever the discovered
+     * authorization server metadata advertises a `pushed_authorization_request_endpoint` — this
+     * applies to the org authorization server as well as custom ones. Independently of this
+     * setting, a server that advertises `require_pushed_authorization_requests` always uses PAR.
+     */
+    var enablePushedAuthorizationRequests: Boolean = false
+
+    /**
+     * Allows browser-based authorization flows to fall back to the classic authorization URL
+     * when PAR is optional and unavailable/fails.
+     *
+     * Disabled by default (fail-closed): a PAR failure surfaces as a thrown exception instead of
+     * silently downgrading to a request that omits PAR's protections. Set to `true` to allow that
+     * downgrade instead — the PAR failure's cause is not otherwise surfaced when it does.
+     */
+    var allowPushedAuthorizationRequestFallback: Boolean = false
 
     /**
      * Optional callback invoked when an HTTP 429 rate-limit response is received.
@@ -183,19 +223,23 @@ class OAuth2ClientBuilder private constructor(
                 val builder = OAuth2ClientBuilder(issuerUrl, clientId, scope)
                 buildAction?.invoke(builder)
 
+                require(builder.clientSecret.isBlank() || builder.clientAssertionProvider == null) {
+                    "clientSecret cannot be combined with clientAssertionProvider."
+                }
+
                 // Validate endpoint override URLs
                 builder.endpointOverrides?.let { overrides ->
                     fun validateOverrideUrl(
                         value: String?,
                         fieldName: String,
                     ) {
-                        if (value == null) return
-                        require(
-                            runCatching {
-                                val url = Url(value)
-                                url.protocol == URLProtocol.HTTPS && url.host.isNotBlank()
-                            }.getOrDefault(false)
-                        ) { "endpointOverrides.$fieldName must be a valid https URL." }
+                        value?.let {
+                            require(
+                                runCatching {
+                                    with(Url(value)) { protocol == URLProtocol.HTTPS && host.isNotBlank() }
+                                }.getOrDefault(false)
+                            ) { "endpointOverrides.$fieldName must be a valid https URL." }
+                        }
                     }
                     validateOverrideUrl(overrides.authorizationEndpoint, "authorizationEndpoint")
                     validateOverrideUrl(overrides.tokenEndpoint, "tokenEndpoint")
@@ -205,6 +249,7 @@ class OAuth2ClientBuilder private constructor(
                     validateOverrideUrl(overrides.revocationEndpoint, "revocationEndpoint")
                     validateOverrideUrl(overrides.endSessionEndpoint, "endSessionEndpoint")
                     validateOverrideUrl(overrides.deviceAuthorizationEndpoint, "deviceAuthorizationEndpoint")
+                    validateOverrideUrl(overrides.pushedAuthorizationRequestEndpoint, "pushedAuthorizationRequestEndpoint")
                 }
 
                 val config = builder.build()
@@ -238,11 +283,15 @@ class OAuth2ClientBuilder private constructor(
             cache = cache,
             authorizationServerId = authorizationServerId,
             clientSecret = clientSecret,
+            clientAssertionProvider = clientAssertionProvider,
             acrValues = acrValues,
             idTokenValidator = idTokenValidator,
             accessTokenValidator = accessTokenValidator,
             deviceSecretValidator = deviceSecretValidator,
             endpointOverrides = endpointOverrides,
-            rateLimitRetryCallback = rateLimitRetryCallback
+            enablePushedAuthorizationRequests = enablePushedAuthorizationRequests,
+            allowPushedAuthorizationRequestFallback = allowPushedAuthorizationRequestFallback,
+            rateLimitRetryCallback = rateLimitRetryCallback,
+            computeDispatcher = computeDispatcher
         )
 }

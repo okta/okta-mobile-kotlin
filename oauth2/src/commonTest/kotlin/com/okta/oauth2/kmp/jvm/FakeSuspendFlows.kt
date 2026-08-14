@@ -242,4 +242,49 @@ internal object FakeSuspendFlows {
                 flowContext: AuthorizationCodeFlowContext,
             ): Result<TokenInfo> = Result.failure(IllegalStateException("OIDC Endpoints not available."))
         }
+
+    @JvmStatic
+    fun parRequiredAuthorizationCodeDelegate(): KotlinAuthorizationCodeFlow =
+        object : KotlinAuthorizationCodeFlow {
+            override val client: OAuth2Client = fakeClient
+
+            override suspend fun start(
+                redirectUrl: String,
+                scope: List<String>,
+                extraRequestParameters: Map<String, String>,
+            ): Result<AuthorizationCodeFlowContext> =
+                Result.failure(
+                    KotlinAuthorizationCodeFlow.PushedAuthorizationRequiredException(
+                        "Authorization server requires PAR, but no pushed_authorization_request_endpoint was discovered."
+                    )
+                )
+
+            override suspend fun resume(
+                uri: String,
+                flowContext: AuthorizationCodeFlowContext,
+            ): Result<TokenInfo> = Result.failure(IllegalStateException("start() should have failed before resume() was called."))
+        }
+
+    @JvmStatic
+    fun parRequestFailedAuthorizationCodeDelegate(): KotlinAuthorizationCodeFlow =
+        object : KotlinAuthorizationCodeFlow {
+            override val client: OAuth2Client = fakeClient
+
+            override suspend fun start(
+                redirectUrl: String,
+                scope: List<String>,
+                extraRequestParameters: Map<String, String>,
+            ): Result<AuthorizationCodeFlowContext> =
+                Result.failure(
+                    KotlinAuthorizationCodeFlow.PushedAuthorizationRequestException(
+                        "Pushed Authorization Request failed and fallback is not allowed.",
+                        IllegalStateException("PAR endpoint returned 500.")
+                    )
+                )
+
+            override suspend fun resume(
+                uri: String,
+                flowContext: AuthorizationCodeFlowContext,
+            ): Result<TokenInfo> = Result.failure(IllegalStateException("start() should have failed before resume() was called."))
+        }
 }

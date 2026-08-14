@@ -15,6 +15,7 @@
  */
 package com.okta.authfoundation.client
 
+import com.okta.authfoundation.InternalAuthFoundationApi
 import com.okta.authfoundation.api.http.ApiExecutor
 import com.okta.authfoundation.client.kmp.AccessTokenValidator
 import com.okta.authfoundation.client.kmp.DefaultAccessTokenValidator
@@ -23,7 +24,10 @@ import com.okta.authfoundation.client.kmp.DefaultIdTokenValidator
 import com.okta.authfoundation.client.kmp.DeviceSecretValidator
 import com.okta.authfoundation.client.kmp.IdTokenValidator
 import com.okta.authfoundation.client.kmp.RateLimitRetryConfig
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
+import kotlin.coroutines.CoroutineContext
 
 /**
  * Immutable configuration for [OAuth2Client].
@@ -59,7 +63,12 @@ class OAuth2ClientConfiguration internal constructor(
      */
     val authorizationServerId: String?,
     /** Optional client secret for confidential clients. */
-    val clientSecret: String?,
+    val clientSecret: String = "",
+    /**
+     * Optional provider for private_key_jwt (or similar JWT-based) client authentication.
+     * Mutually exclusive with [clientSecret]. See [ClientAssertionProvider].
+     */
+    val clientAssertionProvider: ClientAssertionProvider? = null,
     /** Optional ACR values. */
     val acrValues: String?,
     /** Validator for ID tokens. ID tokens are validated after token refresh. */
@@ -70,6 +79,28 @@ class OAuth2ClientConfiguration internal constructor(
     val deviceSecretValidator: DeviceSecretValidator = DefaultDeviceSecretValidator(),
     /** Optional per-endpoint URL overrides. Non-null fields win over discovery results. */
     val endpointOverrides: OAuth2EndpointOverrides? = null,
+    /**
+     * Enables Pushed Authorization Requests (PAR) for browser-based authorization flows.
+     *
+     * Disabled by default. When enabled, supported flows use PAR whenever the discovered
+     * authorization server metadata advertises a `pushed_authorization_request_endpoint` — this
+     * applies to the org authorization server as well as custom ones; it is not gated on which
+     * kind of server is configured. Independently of this setting, a server that advertises
+     * `require_pushed_authorization_requests` always uses PAR.
+     */
+    val enablePushedAuthorizationRequests: Boolean = false,
+    /**
+     * Allows browser-based authorization flows to fall back to the classic authorization request
+     * URL when PAR is optional but unavailable or the push request fails.
+     *
+     * Disabled by default (fail-closed): a PAR failure surfaces as a thrown exception (e.g.
+     * oauth2's `AuthorizationCodeFlow.PushedAuthorizationRequestException`) from the calling flow,
+     * rather than silently downgrading to a request that omits PAR's replay/tampering protections.
+     * Set to `true` to allow that downgrade instead — note that the PAR failure's cause is not
+     * otherwise surfaced (no logging or event) when the fallback succeeds, so this is an explicit
+     * trade of visibility for availability.
+     */
+    val allowPushedAuthorizationRequestFallback: Boolean = false,
     /**
      * Optional callback invoked when an HTTP 429 rate-limit response is received.
      *
@@ -89,4 +120,40 @@ class OAuth2ClientConfiguration internal constructor(
      * ```
      */
     val rateLimitRetryCallback: ((retryCount: Int) -> RateLimitRetryConfig?)? = null,
-)
+    /**
+     * The dispatcher used for CPU-bound work, such as invoking [clientAssertionProvider].
+     */
+    val computeDispatcher: CoroutineContext = Dispatchers.Default,
+) {
+    /**
+     * Builds the client-authentication form parameters for a request to [audience] (the exact
+     * endpoint URL being called), invoking [clientAssertionProvider] fresh if configured so its
+     * assertion can carry a unique `jti` and a correctly scoped `aud`/`exp`.
+     *
+     * [clientAssertionProvider] is invoked on [computeDispatcher] — never on whatever dispatcher
+     * the caller happens to be on — since signing an assertion is CPU-bound work that must not
+     * block a UI/main thread.
+     *
+     * Internal cross-module API: called by flow implementations (e.g. in the `oauth2` module),
+     * not intended as public SDK surface.
+     */
+    @InternalAuthFoundationApi
+    suspend fun clientAuthenticationFormParameters(audience: String): Map<String, String> =
+        when {
+            clientAssertionProvider != null -> {
+                val assertion = withContext(computeDispatcher) { clientAssertionProvider.provide(audience) }
+                mapOf(
+                    "client_assertion_type" to assertion.type,
+                    "client_assertion" to assertion.assertion
+                )
+            }
+
+            clientSecret.isNotBlank() -> {
+                mapOf("client_secret" to clientSecret)
+            }
+
+            else -> {
+                emptyMap()
+            }
+        }
+}

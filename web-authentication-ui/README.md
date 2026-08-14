@@ -101,6 +101,15 @@ always safe to set.
 
 ## Troubleshooting
 
+### PAR with custom authorization servers
+
+`WebAuthentication` uses `AuthorizationCodeFlow` under the hood. PAR is opt-in: set
+`enablePushedAuthorizationRequests = true` on `OAuth2ClientBuilder` along with a custom
+authorization server (`authorizationServerId` set) that advertises `pushed_authorization_request_endpoint`.
+
+- Optional PAR: falls back to the classic browser authorization URL when PAR is unavailable.
+- Required PAR (`require_pushed_authorization_requests=true`): browser sign-in fails if PAR cannot complete.
+
 ### `FlowCancelledException`
 
 `WebAuthentication.FlowCancelledException` is meant to be thrown when the user cancels the login

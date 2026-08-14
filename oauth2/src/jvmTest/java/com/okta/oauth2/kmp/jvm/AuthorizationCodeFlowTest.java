@@ -98,6 +98,65 @@ public class AuthorizationCodeFlowTest {
   }
 
   @Test
+  public void start_WhenParRequired_CompletesExceptionallyWithPushedAuthorizationRequiredException()
+      throws TimeoutException, InterruptedException {
+    try (AuthorizationCodeFlow flow = TestFlowFactory.createParRequiredAuthorizationCodeFlow()) {
+      CompletableFuture<TokenInfo> future =
+          flow.start(
+              "com.example.app:/callback",
+              FAKE_REDIRECT_HANDLER,
+              List.of("openid"),
+              Collections.emptyMap());
+      try {
+        future.get(5, TimeUnit.SECONDS);
+        fail("Should have thrown ExecutionException");
+      } catch (ExecutionException e) {
+        assertTrue(
+            "Cause should be PushedAuthorizationRequiredException",
+            e.getCause()
+                instanceof
+                com.okta.oauth2.kmp.AuthorizationCodeFlow.PushedAuthorizationRequiredException);
+        assertEquals(
+            "Authorization server requires PAR, but no pushed_authorization_request_endpoint was"
+                + " discovered.",
+            e.getCause().getMessage());
+      }
+    }
+  }
+
+  @Test
+  public void
+      start_WhenParRequestFailsAndFallbackDisabled_CompletesExceptionallyWithPushedAuthorizationRequestException()
+          throws TimeoutException, InterruptedException {
+    try (AuthorizationCodeFlow flow =
+        TestFlowFactory.createParRequestFailedAuthorizationCodeFlow()) {
+      CompletableFuture<TokenInfo> future =
+          flow.start(
+              "com.example.app:/callback",
+              FAKE_REDIRECT_HANDLER,
+              List.of("openid"),
+              Collections.emptyMap());
+      try {
+        future.get(5, TimeUnit.SECONDS);
+        fail("Should have thrown ExecutionException");
+      } catch (ExecutionException e) {
+        Throwable parFailure = e.getCause();
+        assertTrue(
+            "Cause should be PushedAuthorizationRequestException",
+            parFailure
+                instanceof
+                com.okta.oauth2.kmp.AuthorizationCodeFlow.PushedAuthorizationRequestException);
+        assertEquals(
+            "Pushed Authorization Request failed and fallback is not allowed.",
+            parFailure.getMessage());
+        assertNotNull(
+            "Underlying PAR failure should be preserved as the cause", parFailure.getCause());
+        assertEquals("PAR endpoint returned 500.", parFailure.getCause().getMessage());
+      }
+    }
+  }
+
+  @Test
   public void constructor_WithOAuth2Client_CreatesFlow() {
     com.okta.authfoundation.client.kmp.OAuth2Client kmpClient = TestOAuth2Client.create();
     AuthorizationCodeFlow flow = new AuthorizationCodeFlow(kmpClient);

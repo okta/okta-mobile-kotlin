@@ -56,13 +56,52 @@ interface AuthorizationCodeFlow {
     class MissingResultCodeException : Exception()
 
     /**
+     * Common base for the two exceptions [start] throws when Pushed Authorization Requests (PAR)
+     * cannot be completed. Catch this type to handle "PAR didn't work" generically, or catch the
+     * specific subtype ([PushedAuthorizationRequiredException] or [PushedAuthorizationRequestException])
+     * to distinguish a server-mandated failure from an optional one.
+     */
+    sealed class PushedAuthorizationException(
+        message: String,
+        cause: Throwable? = null,
+    ) : Exception(message, cause)
+
+    /**
+     * Thrown by [start] when PAR is required by the authorization server (`require_pushed_authorization_requests`)
+     * but cannot be used — either no PAR endpoint was discovered, or the PAR request itself failed
+     * and fallback is not applicable because the server mandates PAR.
+     */
+    class PushedAuthorizationRequiredException(
+        message: String,
+        cause: Throwable? = null,
+    ) : PushedAuthorizationException(message, cause)
+
+    /**
+     * Thrown by [start] when PAR is optional, the PAR request fails, and
+     * [OAuth2Client.configuration]'s `allowPushedAuthorizationRequestFallback` is disabled.
+     */
+    class PushedAuthorizationRequestException(
+        message: String,
+        cause: Throwable? = null,
+    ) : PushedAuthorizationException(message, cause)
+
+    /**
      * Initiates the Authorization Code redirect flow.
      *
      * @param redirectUrl the registered redirect URI for this client.
      * @param scope the scopes to request. If omitted, the client's configured
      * default scopes are used.
      * @param extraRequestParameters additional query parameters for the authorization endpoint.
-     * @return a [Result] containing an [AuthorizationCodeFlowContext] with the authorization URL and state.
+     * @return a [Result] containing an [AuthorizationCodeFlowContext] with the authorization URL and
+     * state on success. On failure the [Result] wraps [PushedAuthorizationRequiredException] (PAR is
+     * mandated by the server but unavailable) or [PushedAuthorizationRequestException] (PAR is
+     * optional, the request failed, and `allowPushedAuthorizationRequestFallback` is disabled), in
+     * addition to any underlying network or server failure.
+     *
+     * When PAR is enabled in [OAuth2Client.configuration] — or required by the discovered server
+     * metadata, regardless of that setting — and a PAR endpoint is discovered, the returned
+     * authorization URL is composed with `request_uri`. This is not limited to custom authorization
+     * servers.
      */
     suspend fun start(
         redirectUrl: String,

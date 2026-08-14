@@ -9,6 +9,7 @@ A pure Java CLI application demonstrating two Okta authentication approaches:
 
 - [Prerequisites](#prerequisites)
 - [Configuration](#configuration)
+  - [Confidential client authentication (local testing only)](#confidential-client-authentication-local-testing-only)
 - [Org Setup](#org-setup)
 - [Build](#build)
 - [Run](#run)
@@ -54,6 +55,46 @@ desktopSignInRedirectUri=http://localhost:8080/callback
 
 `desktopSignInRedirectUri` defaults to `http://localhost:8080/callback` if not set. It is required for Browser Sign-In and Session Token flows.
 
+### Confidential client authentication (local testing only)
+
+Browser Sign-In builds a plain `OAuth2ClientBuilder` — a public client by default, which is the
+correct and only recommended setup for a distributed CLI or desktop app. To try this sample against
+a **confidential** client (for example, to exercise PAR with `private_key_jwt` or `client_secret`
+authentication), `ClientAuthentication` reads one of the following from `local.properties`
+**at runtime** — never bake either of these into `AppConfig` or any other compiled constant:
+
+```properties
+clientSecret=your-client-secret
+```
+
+or, for `private_key_jwt` (generate a PKCS#8 key with
+`openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 | openssl pkcs8 -topk8 -nocrypt`,
+then paste it on one line with newlines escaped as `\n`):
+
+```properties
+clientAssertionPrivateKeyPem=-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBg...\n-----END PRIVATE KEY-----\n
+```
+
+If both are set, the private_key_jwt assertion takes precedence. If neither is set, the client
+stays public and Browser Sign-In behaves exactly as before.
+
+The private_key_jwt path registers a `ClientAssertionProvider` rather than a static assertion
+string: the SDK invokes it fresh for every token/PAR request, so each signed JWT gets a unique
+`jti` and an `aud` scoped to the exact endpoint being called — required by
+[Okta's client authentication guide](https://developer.okta.com/docs/api/openapi/okta-oauth/guides/client-auth),
+which only allows a given `jti` to be used once.
+
+> **SECURITY**: This exists only to make the confidential-client and PAR code paths easy to try
+> locally. A client secret or private key must **never** ship inside a mobile app, desktop app, or
+> any other binary distributed to end users — anything embedded in a shipped artifact can be
+> extracted from it, no matter how it's obfuscated. Confidential-client authentication only makes
+> sense for a client that can actually keep a secret, such as a backend service. For a real
+> deployment, load the secret from a proper secrets manager or KMS/HSM-backed signer (e.g. AWS
+> Secrets Manager, HashiCorp Vault, Google Secret Manager, or your cloud provider's KMS for a
+> private_key_jwt signer) — never from a checked-in or checked-out properties file. Keep
+> `local.properties` out of version control (it already is, via `.gitignore`) and out of any CI
+> build artifact.
+
 ## Org Setup
 
 Org setup is identical to the current Direct Auth sample except for the OAuth2 additions:
@@ -68,6 +109,11 @@ Org setup is identical to the current Direct Auth sample except for the OAuth2 a
    | Browser Sign-In | `authorization_code` (PKCE) |
    | Token Exchange | `urn:ietf:params:oauth:grant-type:token-exchange` |
    | Session Token | `authorization_code` (PKCE) + session token support |
+
+3. **Enable PAR on a custom authorization server** for Browser Sign-In PAR demos:
+   - Use a custom authorization server (for example, `default`) and keep `authorizationServerId=default` in configuration.
+   - In Okta Admin, open **Security > API > Authorization Servers > _your server_ > Settings**, then enable PAR.
+   - Confirm discovery metadata includes `pushed_authorization_request_endpoint`. If `require_pushed_authorization_requests=true`, Browser Sign-In requires PAR and will fail when PAR cannot be completed.
 
 > **Note**: Tokens are displayed in-memory for demonstration purposes only and are not persisted.
 
@@ -207,6 +253,7 @@ Select option: 3
 Opening browser for sign-in. Waiting for redirect...
 # System browser opens to Okta sign-in page.
 # After sign-in, the CLI captures the loopback redirect automatically.
+# If PAR is enabled on the custom auth server, Browser Sign-In uses request_uri automatically.
 
 === Authentication Successful ===
 ...

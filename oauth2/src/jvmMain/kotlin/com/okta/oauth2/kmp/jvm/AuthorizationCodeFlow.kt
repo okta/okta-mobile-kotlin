@@ -45,6 +45,19 @@ import com.okta.oauth2.kmp.AuthorizationCodeFlow as KotlinAuthorizationCodeFlow
  *
  * Must be [closed][close] when no longer needed to release coroutine resources.
  *
+ * **Pushed Authorization Requests (PAR) note**: because this wrapper performs the full
+ * start+resume round trip internally, the intermediate
+ * [com.okta.oauth2.kmp.AuthorizationCodeFlowContext] —
+ * including `usedPushedAuthorizationRequest`/`pushedAuthorizationRequestUri` — is never
+ * constructed as a value Java callers can observe; it's an intermediate `flowContext` local in
+ * [start] below. PAR itself is fully supported here and is configured on the client via
+ * `OAuth2ClientBuilder.setEnablePushedAuthorizationRequests`/`setAllowPushedAuthorizationRequestFallback` —
+ * only the diagnostic "did this call use PAR" signal is unavailable to Java callers. The two PAR
+ * failure exceptions ([KotlinAuthorizationCodeFlow.PushedAuthorizationRequiredException] and
+ * [KotlinAuthorizationCodeFlow.PushedAuthorizationRequestException]) propagate normally through the
+ * returned [CompletableFuture] (retrievable via `ExecutionException.getCause()`), so no error
+ * information is lost — only the successful-PAR-usage signal.
+ *
  * @param delegate the underlying Kotlin [KotlinAuthorizationCodeFlow] instance.
  */
 class AuthorizationCodeFlow(
@@ -69,8 +82,12 @@ class AuthorizationCodeFlow(
      * @param browserRedirectHandler handles opening the browser and capturing the redirect.
      * @param scope the scopes to request.
      * @param extraRequestParameters additional authorization endpoint parameters.
-     * @return a [CompletableFuture] that completes with [TokenInfo] on success,
-     *   or completes exceptionally on failure.
+     * @return a [CompletableFuture] that completes with [TokenInfo] on success, or completes
+     *   exceptionally on failure — including with
+     *   [KotlinAuthorizationCodeFlow.PushedAuthorizationRequiredException] when the authorization
+     *   server requires PAR, but it cannot be used, or
+     *   [KotlinAuthorizationCodeFlow.PushedAuthorizationRequestException] when a PAR request fails
+     *   and fallback is disabled (retrievable via `ExecutionException.getCause()`).
      */
     @JvmOverloads
     fun start(
