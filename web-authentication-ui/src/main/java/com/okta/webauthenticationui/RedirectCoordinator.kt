@@ -96,8 +96,11 @@ internal class DefaultRedirectCoordinator(
             }
         }
 
-        context.startActivity(ForegroundActivity.createIntent(context))
-
+        context.startActivity(
+            ForegroundActivity.createIntent(context).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            },
+        )
         return suspendCancellableCoroutine { continuation ->
             continuation.invokeOnCancellation { reset() }
             this.initializationContinuation = continuation as Continuation<RedirectInitializationResult<*>>
