@@ -36,6 +36,7 @@ import com.okta.directauth.model.OobChannel;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import kotlinx.coroutines.Dispatchers;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -60,6 +61,8 @@ final class TestStateFactory {
         /* scope= */ List.of("openid", "email", "profile", "offline_access"),
         /* authorizationServerId= */ "",
         /* clientSecret= */ "test_client_secret",
+        /* clientAssertionProvider= */ null,
+        /* computeDispatcher= */ Dispatchers.getDefault(),
         /* grantTypes= */ List.of(GrantType.Password.INSTANCE, GrantType.WebAuthn.INSTANCE),
         /* acrValues= */ Collections.emptyList(),
         /* directAuthenticationIntent= */ DirectAuthenticationIntent.SIGN_IN,

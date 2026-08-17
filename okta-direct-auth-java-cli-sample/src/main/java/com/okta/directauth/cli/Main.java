@@ -144,18 +144,22 @@ public final class Main implements Callable<Integer> {
     List<String> recoveryScopes = List.of("okta.myAccount.password.manage");
 
     CliLogger.info(TAG, "Building Direct Auth sign-in flow (scopes: " + signInScopes + ")");
-    DirectAuthResult<DirectAuthenticationFlow> signInResult =
+    DirectAuthenticationFlowBuilder signInBuilder =
         new DirectAuthenticationFlowBuilder(issuer, clientId, signInScopes)
             .setAuthorizationServerId(authorizationServerId)
-            .setIntent(DirectAuthenticationIntent.SIGN_IN)
-            .build();
+            .setIntent(DirectAuthenticationIntent.SIGN_IN);
+    // Testing only: reads a client secret or private_key_jwt key from local.properties at
+    // runtime. See ClientAuthentication for why this must not be done in a shipped app.
+    ClientAuthentication.configure(signInBuilder, clientId);
+    DirectAuthResult<DirectAuthenticationFlow> signInResult = signInBuilder.build();
 
     CliLogger.info(TAG, "Building Direct Auth recovery flow (scopes: " + recoveryScopes + ")");
-    DirectAuthResult<DirectAuthenticationFlow> recoveryResult =
+    DirectAuthenticationFlowBuilder recoveryBuilder =
         new DirectAuthenticationFlowBuilder(issuer, clientId, recoveryScopes)
             .setAuthorizationServerId(authorizationServerId)
-            .setIntent(DirectAuthenticationIntent.RECOVERY)
-            .build();
+            .setIntent(DirectAuthenticationIntent.RECOVERY);
+    ClientAuthentication.configure(recoveryBuilder, clientId);
+    DirectAuthResult<DirectAuthenticationFlow> recoveryResult = recoveryBuilder.build();
 
     if (signInResult.isFailure()) {
       Throwable cause = signInResult.exceptionOrNull();

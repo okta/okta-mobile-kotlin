@@ -6,8 +6,10 @@ public final class com/okta/directauth/DirectAuthenticationFlowBuilder {
 	public final fun getAdditionalParameter ()Ljava/util/Map;
 	public final fun getApiExecutor ()Lcom/okta/authfoundation/api/http/ApiExecutor;
 	public final fun getAuthorizationServerId ()Ljava/lang/String;
+	public final fun getClientAssertionProvider ()Lcom/okta/authfoundation/client/ClientAssertionProvider;
 	public final fun getClientSecret ()Ljava/lang/String;
 	public final fun getClock ()Lcom/okta/authfoundation/client/OidcClock;
+	public final fun getComputeDispatcher ()Lkotlin/coroutines/CoroutineContext;
 	public final fun getDirectAuthenticationIntent ()Lcom/okta/directauth/model/DirectAuthenticationIntent;
 	public final fun getLogger ()Lcom/okta/authfoundation/api/log/AuthFoundationLogger;
 	public final fun getSupportedGrantType ()Ljava/util/List;
@@ -15,8 +17,10 @@ public final class com/okta/directauth/DirectAuthenticationFlowBuilder {
 	public final fun setAdditionalParameter (Ljava/util/Map;)V
 	public final fun setApiExecutor (Lcom/okta/authfoundation/api/http/ApiExecutor;)V
 	public final fun setAuthorizationServerId (Ljava/lang/String;)V
+	public final fun setClientAssertionProvider (Lcom/okta/authfoundation/client/ClientAssertionProvider;)V
 	public final fun setClientSecret (Ljava/lang/String;)V
 	public final fun setClock (Lcom/okta/authfoundation/client/OidcClock;)V
+	public final fun setComputeDispatcher (Lkotlin/coroutines/CoroutineContext;)V
 	public final fun setDirectAuthenticationIntent (Lcom/okta/directauth/model/DirectAuthenticationIntent;)V
 	public final fun setLogger (Lcom/okta/authfoundation/api/log/AuthFoundationLogger;)V
 	public final fun setSupportedGrantType (Ljava/util/List;)V
@@ -56,11 +60,13 @@ public final class com/okta/directauth/http/DirectAuthStartRequest$DefaultImpls 
 }
 
 public abstract class com/okta/directauth/http/DirectAuthTokenRequest : com/okta/directauth/http/DirectAuthStartRequest {
-	public synthetic fun <init> (Lcom/okta/directauth/model/DirectAuthenticationContext;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Lcom/okta/directauth/model/DirectAuthenticationContext;Lcom/okta/authfoundation/client/ClientAssertion;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Lcom/okta/directauth/model/DirectAuthenticationContext;Lcom/okta/authfoundation/client/ClientAssertion;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun contentType ()Ljava/lang/String;
 	public fun headers ()Ljava/util/Map;
 	public fun method ()Lcom/okta/authfoundation/api/http/ApiRequestMethod;
 	public fun query ()Ljava/util/Map;
+	protected final fun sharedFormParameters ()Ljava/util/Map;
 	public fun url ()Ljava/lang/String;
 }
 

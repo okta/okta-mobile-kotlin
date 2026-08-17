@@ -20,6 +20,8 @@ import com.okta.authfoundation.GrantType
 import com.okta.authfoundation.api.http.KtorHttpExecutor
 import com.okta.authfoundation.api.log.AuthFoundationLogger
 import com.okta.authfoundation.api.log.LogLevel
+import com.okta.authfoundation.client.ClientAssertion
+import com.okta.authfoundation.client.ClientAssertionProvider
 import com.okta.directauth.AUTHORIZATION_PENDING_JSON
 import com.okta.directauth.TOKEN_RESPONSE_JSON
 import com.okta.directauth.contentType
@@ -158,6 +160,30 @@ class DirectAuthContinuationTransferStateTest {
         assertIs<Authenticated>(collectedValues.last())
 
         job.cancel()
+    }
+
+    @Test
+    fun `proceed resolves a fresh clientAssertion for each poll request`() {
+        val mockEngine = MockEngine.Queue()
+        mockEngine.enqueue { respond(AUTHORIZATION_PENDING_JSON, HttpStatusCode.BadRequest, contentType) }
+        mockEngine.enqueue { respond(TOKEN_RESPONSE_JSON, HttpStatusCode.OK, contentType) }
+
+        val providedAudiences = mutableListOf<String>()
+        val clientAssertionProvider =
+            ClientAssertionProvider { audience ->
+                providedAudiences.add(audience)
+                ClientAssertion("urn:ietf:params:oauth:client-assertion-type:jwt-bearer", "jwt-${providedAudiences.size}")
+            }
+
+        val context =
+            createDirectAuthenticationContext(apiExecutor = KtorHttpExecutor(HttpClient(mockEngine)))
+                .copy(clientSecret = "", clientAssertionProvider = clientAssertionProvider)
+        val transferState = DirectAuthContinuation.Transfer(bindingContext.copy(interval = 0), context)
+
+        val result = runBlocking { transferState.proceed() }
+
+        assertIs<Authenticated>(result)
+        assertEquals(listOf("https://example.okta.com/oauth2/v1/token", "https://example.okta.com/oauth2/v1/token"), providedAudiences)
     }
 
     @Test

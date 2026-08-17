@@ -106,7 +106,8 @@ sealed interface DirectAuthenticationState {
             challengeTypesSupported: List<ChallengeGrantType> = listOf(WebAuthnMfa, OobMfa, OtpMfa),
         ): DirectAuthenticationState {
             val channel = if (secondaryFactor is PrimaryFactor.Oob) secondaryFactor.channel else null
-            val request = DirectAuthChallengeRequest(context, mfaContext, challengeTypesSupported, channel)
+            val clientAssertion = context.resolveClientAssertion(context.endpointUrl("challenge"))
+            val request = DirectAuthChallengeRequest(context, mfaContext, challengeTypesSupported, channel, clientAssertion)
 
             val result =
                 runCatching { ChallengeStepHandler(request, context, mfaContext).process() }.getOrElse {
@@ -145,7 +146,8 @@ sealed interface DirectAuthenticationState {
                 runCatching {
                     when (secondaryFactor) {
                         is PrimaryFactor.Otp -> {
-                            val request = DirectAuthTokenRequest.MfaOtp(context.copy(grantTypes = challengeTypesSupported), secondaryFactor.passCode, mfaContext)
+                            val clientAssertion = context.resolveClientAssertion(context.endpointUrl("token"))
+                            val request = DirectAuthTokenRequest.MfaOtp(context.copy(grantTypes = challengeTypesSupported), secondaryFactor.passCode, mfaContext, clientAssertion)
                             TokenStepHandler(request, context).process()
                         }
 

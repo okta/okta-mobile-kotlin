@@ -21,6 +21,7 @@ import com.okta.authfoundation.api.http.ApiExecutor
 import com.okta.authfoundation.api.http.KtorHttpExecutor
 import com.okta.authfoundation.api.log.AuthFoundationLogger
 import com.okta.authfoundation.api.log.getDefaultAuthFoundationLogger
+import com.okta.authfoundation.client.ClientAssertionProvider
 import com.okta.authfoundation.client.OidcClock
 import com.okta.directauth.DirectAuthenticationFlowBuilder.Companion.create
 import com.okta.directauth.api.DirectAuthenticationFlow
@@ -28,6 +29,8 @@ import com.okta.directauth.model.DirectAuthenticationContext
 import com.okta.directauth.model.DirectAuthenticationIntent
 import io.ktor.http.URLProtocol
 import io.ktor.http.Url
+import kotlinx.coroutines.Dispatchers
+import kotlin.coroutines.CoroutineContext
 import kotlin.time.Clock
 
 /**
@@ -60,6 +63,26 @@ class DirectAuthenticationFlowBuilder private constructor() {
      * Defaults to an empty string.
      */
     var clientSecret: String = ""
+
+    /**
+     * Optional provider for private_key_jwt (or similar JWT-based) client authentication.
+     *
+     * Invoked fresh for every client-authenticated request this flow makes — including each
+     * iteration of an OOB poll — so the returned assertion can carry a unique `jti` and a
+     * correctly scoped, non-expired `exp`/`aud`. Mutually exclusive with [clientSecret].
+     *
+     * @see ClientAssertionProvider
+     */
+    var clientAssertionProvider: ClientAssertionProvider? = null
+
+    /**
+     * The dispatcher used for CPU-bound work, such as invoking [clientAssertionProvider].
+     *
+     * Defaults to [Dispatchers.Default]. If your [clientAssertionProvider] performs blocking I/O
+     * (e.g. a network call to a remote signer), set this to [Dispatchers.IO] or another
+     * IO-appropriate dispatcher.
+     */
+    var computeDispatcher: CoroutineContext = Dispatchers.Default
 
     /**
      * The intended user action for the authentication flow.
@@ -157,6 +180,9 @@ class DirectAuthenticationFlowBuilder private constructor() {
 
                 require(clientId.isNotBlank()) { "clientId must be set and not empty." }
                 require(scope.isNotEmpty()) { "scope must be set and not empty." }
+                require(builder.clientSecret.isBlank() || builder.clientAssertionProvider == null) {
+                    "clientSecret cannot be combined with clientAssertionProvider."
+                }
 
                 Result.success(
                     DirectAuthenticationFlowImpl(
@@ -166,6 +192,8 @@ class DirectAuthenticationFlowBuilder private constructor() {
                             scope,
                             builder.authorizationServerId,
                             builder.clientSecret,
+                            builder.clientAssertionProvider,
+                            builder.computeDispatcher,
                             builder.supportedGrantType,
                             builder.acrValues,
                             builder.directAuthenticationIntent,

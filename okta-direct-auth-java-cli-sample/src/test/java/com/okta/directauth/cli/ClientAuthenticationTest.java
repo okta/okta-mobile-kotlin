@@ -26,6 +26,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import com.okta.authfoundation.client.ClientAssertion;
 import com.okta.authfoundation.client.ClientAssertionProvider;
 import com.okta.authfoundation.client.jvm.OAuth2ClientBuilder;
+import com.okta.directauth.jvm.DirectAuthenticationFlowBuilder;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import java.security.KeyPair;
@@ -148,6 +149,68 @@ public class ClientAuthenticationTest {
   @Test
   public void configure_WithNeitherConfigured_LeavesBuilderUntouched() {
     OAuth2ClientBuilder builder = mock(OAuth2ClientBuilder.class);
+
+    ClientAuthentication.configure(builder, CLIENT_ID, new Properties());
+
+    verifyNoMoreInteractions(builder);
+  }
+
+  @Test
+  public void configure_DirectAuthBuilder_WithClientSecretOnly_SetsClientSecretOnly() {
+    DirectAuthenticationFlowBuilder builder = mock(DirectAuthenticationFlowBuilder.class);
+    Properties properties = new Properties();
+    properties.setProperty("clientSecret", "test-secret");
+
+    ClientAuthentication.configure(builder, CLIENT_ID, properties);
+
+    verify(builder).setClientSecret("test-secret");
+    verify(builder, never()).setClientAssertionProvider(any());
+  }
+
+  @Test
+  public void
+      configure_DirectAuthBuilder_WithClientAssertionPemOnly_RegistersProviderThatSignsFreshJwtPerCall()
+          throws NoSuchAlgorithmException {
+    DirectAuthenticationFlowBuilder builder = mock(DirectAuthenticationFlowBuilder.class);
+    KeyPair keyPair = generateRsaKeyPair();
+    Properties properties = new Properties();
+    properties.setProperty("clientAssertionPrivateKeyPem", toPem(keyPair.getPrivate()));
+
+    ClientAuthentication.configure(builder, CLIENT_ID, properties);
+
+    verify(builder, never()).setClientSecret(any());
+    ArgumentCaptor<ClientAssertionProvider> providerCaptor =
+        ArgumentCaptor.forClass(ClientAssertionProvider.class);
+    verify(builder).setClientAssertionProvider(providerCaptor.capture());
+    ClientAssertionProvider provider = providerCaptor.getValue();
+
+    ClientAssertion first = provider.provide("https://example.okta.com/oauth2/default/v1/token");
+    ClientAssertion second =
+        provider.provide("https://example.okta.com/oauth2/default/v1/challenge");
+
+    // Each call must be freshly signed (unique jti) and scoped to the audience it was asked for.
+    assertThat(first.getAssertion()).isNotEqualTo(second.getAssertion());
+    Claims firstClaims =
+        Jwts.parser()
+            .verifyWith(keyPair.getPublic())
+            .build()
+            .parseSignedClaims(first.getAssertion())
+            .getPayload();
+    assertThat(firstClaims.getAudience())
+        .containsExactly("https://example.okta.com/oauth2/default/v1/token");
+    Claims secondClaims =
+        Jwts.parser()
+            .verifyWith(keyPair.getPublic())
+            .build()
+            .parseSignedClaims(second.getAssertion())
+            .getPayload();
+    assertThat(secondClaims.getAudience())
+        .containsExactly("https://example.okta.com/oauth2/default/v1/challenge");
+  }
+
+  @Test
+  public void configure_DirectAuthBuilder_WithNeitherConfigured_LeavesBuilderUntouched() {
+    DirectAuthenticationFlowBuilder builder = mock(DirectAuthenticationFlowBuilder.class);
 
     ClientAuthentication.configure(builder, CLIENT_ID, new Properties());
 

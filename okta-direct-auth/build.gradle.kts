@@ -155,3 +155,8 @@ binaryCompatValidationExtension {
     javaCompileTaskName.set("")
     ignoredClasses.add("com.okta.directauth.BuildInfo")
 }
+
+java {
+    sourceCompatibility = SOURCE_COMPATIBILITY
+    targetCompatibility = TARGET_COMPATIBILITY
+}

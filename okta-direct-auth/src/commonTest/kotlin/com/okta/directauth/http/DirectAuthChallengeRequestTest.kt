@@ -21,6 +21,7 @@ import com.okta.authfoundation.api.http.ApiRequestMethod
 import com.okta.authfoundation.api.http.KtorHttpExecutor
 import com.okta.authfoundation.api.log.AuthFoundationLogger
 import com.okta.authfoundation.api.log.LogLevel
+import com.okta.authfoundation.client.ClientAssertion
 import com.okta.directauth.model.DirectAuthenticationContext
 import com.okta.directauth.model.DirectAuthenticationIntent
 import com.okta.directauth.model.MfaContext
@@ -130,5 +131,26 @@ class DirectAuthChallengeRequestTest {
         assertEquals(listOf("test_mfa_token"), formParameters["mfa_token"])
         assertEquals(listOf("${ChallengeGrantType.OobMfa.value} ${ChallengeGrantType.OtpMfa.value} ${ChallengeGrantType.WebAuthnMfa.value}"), formParameters["challenge_types_supported"])
         assertEquals(listOf("push"), formParameters["channel_hint"])
+    }
+
+    @Test
+    fun challengeRequest_WithClientAssertionParameters() {
+        val assertionContext = context.copy(clientSecret = "")
+        val clientAssertion = ClientAssertion("urn:ietf:params:oauth:client-assertion-type:jwt-bearer", "test-signed-jwt")
+
+        val mfaContext = MfaContext(listOf(ChallengeGrantType.OobMfa, ChallengeGrantType.OtpMfa), "test_mfa_token")
+        val request =
+            DirectAuthChallengeRequest(
+                context = assertionContext,
+                mfaContext = mfaContext,
+                challengeTypesSupported = listOf(ChallengeGrantType.OobMfa, ChallengeGrantType.OtpMfa),
+                oobChannel = null,
+                clientAssertion = clientAssertion
+            )
+
+        val formParameters = request.formParameters()
+        assertEquals(listOf("urn:ietf:params:oauth:client-assertion-type:jwt-bearer"), formParameters["client_assertion_type"])
+        assertEquals(listOf("test-signed-jwt"), formParameters["client_assertion"])
+        assertFalse(formParameters.containsKey("client_secret"))
     }
 }

@@ -22,11 +22,15 @@ import com.okta.authfoundation.api.http.ApiRequest
 import com.okta.authfoundation.api.http.ApiResponse
 import com.okta.authfoundation.api.log.AuthFoundationLogger
 import com.okta.authfoundation.api.log.LogLevel
+import com.okta.authfoundation.client.ClientAssertion
+import com.okta.authfoundation.client.ClientAssertionProvider
 import com.okta.authfoundation.client.OidcClock
 import com.okta.directauth.model.DirectAuthenticationIntent
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
+import kotlin.test.assertNull
+import kotlin.test.assertSame
 import kotlin.test.assertTrue
 
 class DirectAuthenticationFlowBuilderTest {
@@ -149,5 +153,47 @@ class DirectAuthenticationFlowBuilderTest {
 
         assertIs<IllegalArgumentException>(exception)
         assertEquals("scope must be set and not empty.", exception.message)
+    }
+
+    @Test
+    fun create_withClientSecretAndAssertionProvider_returnsFailure() {
+        val result =
+            DirectAuthenticationFlowBuilder.create(issuerUrl, clientId, scope) {
+                clientSecret = "custom_secret"
+                clientAssertionProvider = ClientAssertionProvider { ClientAssertion("urn:ietf:params:oauth:client-assertion-type:jwt-bearer", "signed-jwt") }
+            }
+
+        assertTrue(result.isFailure)
+        assertEquals(
+            "clientSecret cannot be combined with clientAssertionProvider.",
+            result.exceptionOrNull()?.message
+        )
+    }
+
+    @Test
+    fun create_withClientAssertionProvider_usesCustomValue() {
+        val customProvider = ClientAssertionProvider { audience -> ClientAssertion("urn:ietf:params:oauth:client-assertion-type:jwt-bearer", "signed-jwt-for-$audience") }
+
+        val result =
+            DirectAuthenticationFlowBuilder.create(issuerUrl, clientId, scope) {
+                clientAssertionProvider = customProvider
+            }
+
+        assertTrue(result.isSuccess)
+
+        val flow = result.getOrThrow() as DirectAuthenticationFlowImpl
+        val context = flow.context
+
+        assertSame(customProvider, context.clientAssertionProvider)
+        assertEquals("", context.clientSecret)
+    }
+
+    @Test
+    fun create_withRequiredParameters_hasNoClientAssertionProviderByDefault() {
+        val result = DirectAuthenticationFlowBuilder.create(issuerUrl, clientId, scope)
+        assertTrue(result.isSuccess)
+
+        val flow = result.getOrThrow() as DirectAuthenticationFlowImpl
+        assertNull(flow.context.clientAssertionProvider)
     }
 }

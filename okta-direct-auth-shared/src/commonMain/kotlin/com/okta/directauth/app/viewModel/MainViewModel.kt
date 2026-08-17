@@ -26,6 +26,7 @@ import com.okta.directauth.app.AppConfig
 import com.okta.directauth.app.http.MyAccountReplacePasswordRequest
 import com.okta.directauth.app.model.AuthMethod
 import com.okta.directauth.app.model.OktaErrorResponse
+import com.okta.directauth.app.platform.configureClientAuthentication
 import com.okta.directauth.app.util.AppLogger
 import com.okta.directauth.model.DirectAuthContinuation
 import com.okta.directauth.model.DirectAuthenticationIntent
@@ -123,6 +124,10 @@ class MainViewModel : ViewModel() {
         DirectAuthenticationFlowBuilder
             .create(AppConfig.ISSUER, AppConfig.CLIENT_ID, scopes) {
                 authorizationServerId = AppConfig.AUTHORIZATION_SERVER_ID
+                // Testing only: reads a client secret or private_key_jwt key from
+                // local.properties at runtime. See configureClientAuthentication for
+                // why this must not be done in a shipped app.
+                configureClientAuthentication(clientId = AppConfig.CLIENT_ID)
             }.getOrThrow()
 
     /**
@@ -137,6 +142,7 @@ class MainViewModel : ViewModel() {
         DirectAuthenticationFlowBuilder
             .create(AppConfig.ISSUER, AppConfig.CLIENT_ID, ssprScope) {
                 directAuthenticationIntent = DirectAuthenticationIntent.RECOVERY
+                configureClientAuthentication(clientId = AppConfig.CLIENT_ID)
             }.getOrThrow()
 
     /**

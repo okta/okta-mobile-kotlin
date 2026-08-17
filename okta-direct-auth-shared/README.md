@@ -123,9 +123,10 @@ Ensure your test user is enrolled in the authenticators you intend to use.
 
 ### Confidential client authentication (local testing only)
 
-Browser Sign-In builds a public `OAuth2Client` by default — the correct and only recommended setup
-for a distributed Android or desktop app. To try this sample against a **confidential** client (for
-example, to exercise PAR with `private_key_jwt` or `client_secret` authentication), add one of the
+Browser Sign-In and Direct Authentication both build public clients by default — the correct and
+only recommended setup for a distributed Android or desktop app. To try either against a
+**confidential** client (for example, to exercise PAR with `private_key_jwt` or `client_secret`
+authentication, or to run Direct Authentication as a confidential client), add one of the
 following to `local.properties`:
 
 ```properties
@@ -140,10 +141,12 @@ then paste it on one line with newlines escaped as `\n`):
 clientAssertionPrivateKeyPem=-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBg...\n-----END PRIVATE KEY-----\n
 ```
 
-If both are set, the private_key_jwt assertion takes precedence. If neither is set, the client
-stays public and Browser Sign-In behaves exactly as before. See `configureClientAuthentication`
-(`src/commonMain/.../platform/PlatformClientAuthentication.kt` and its two platform actuals) for
-how each platform applies this — the two platforms get there very differently:
+If both are set, the private_key_jwt assertion takes precedence. If neither is set, both clients
+stay public and Browser Sign-In/Direct Authentication behave exactly as before. See the two
+`configureClientAuthentication` overloads — one for `OAuth2ClientBuilder`, one for
+`DirectAuthenticationFlowBuilder` — in `src/commonMain/.../platform/PlatformClientAuthentication.kt`
+and its two platform actuals for how each platform applies this — the two platforms get there very
+differently:
 
 *   **Desktop** (`src/jvmMain`) reads `local.properties` directly **at runtime**, deliberately not
     via the `AppConfig` pattern used for the rest of this sample's config, so the secret is never
@@ -154,8 +157,11 @@ how each platform applies this — the two platforms get there very differently:
     non-secret values (issuer, client ID, etc.) already are.
 
 On both platforms, the private_key_jwt path registers a `ClientAssertionProvider` rather than a
-static assertion string: the SDK invokes it fresh for every token/PAR request, so each signed JWT
-gets a unique `jti` and an `aud` scoped to the exact endpoint being called — required by
+static assertion string: the SDK invokes it fresh for every client-authenticated request — every
+token/PAR request for `OAuth2ClientBuilder`, and every token/challenge/oob-authenticate/
+primary-authenticate request (including each iteration of an OOB poll) for
+`DirectAuthenticationFlowBuilder` — so each signed JWT gets a unique `jti` and an `aud` scoped to
+the exact endpoint being called — required by
 [Okta's client authentication guide](https://developer.okta.com/docs/api/openapi/okta-oauth/guides/client-auth),
 which only allows a given `jti` to be used once.
 

@@ -34,6 +34,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
 import io.ktor.http.HttpStatusCode
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -128,6 +129,7 @@ class DirectAuthContinuationOobPendingStateTest {
     fun `poll returns Authenticated after one pending response`() {
         val mockEngine = MockEngine.Queue()
         val collectedValues = mutableListOf<DirectAuthenticationState>()
+        val flowFinished = CompletableDeferred<Unit>()
 
         mockEngine.enqueue { respond(AUTHORIZATION_PENDING_JSON, HttpStatusCode.BadRequest, contentType) }
         mockEngine.enqueue { respond(TOKEN_RESPONSE_JSON, HttpStatusCode.OK, contentType) }
@@ -138,10 +140,16 @@ class DirectAuthContinuationOobPendingStateTest {
             CoroutineScope(Dispatchers.Default).launch {
                 context.authenticationStateFlow.collect { value ->
                     if (value !is DirectAuthenticationState.Idle) collectedValues.add(value)
+                    if (value is Authenticated) flowFinished.complete(Unit)
                 }
             }
 
-        val result = runBlocking { oobState.proceed() }
+        val result =
+            runBlocking {
+                val proceedResult = oobState.proceed()
+                flowFinished.await()
+                proceedResult
+            }
 
         assertIs<Authenticated>(result)
         assertEquals(result, context.authenticationStateFlow.value)

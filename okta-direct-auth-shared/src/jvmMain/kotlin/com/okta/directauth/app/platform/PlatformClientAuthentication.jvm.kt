@@ -18,6 +18,7 @@ package com.okta.directauth.app.platform
 import com.okta.authfoundation.client.ClientAssertion
 import com.okta.authfoundation.client.ClientAssertionProvider
 import com.okta.authfoundation.client.OAuth2ClientBuilder
+import com.okta.directauth.DirectAuthenticationFlowBuilder
 import com.okta.directauth.app.util.AppLogger
 import io.jsonwebtoken.Jwts
 import java.io.File
@@ -52,6 +53,36 @@ private const val MAX_PARENT_DIRECTORIES_TO_SEARCH = 8
  * https://developer.okta.com/docs/api/openapi/okta-oauth/guides/client-auth).
  */
 actual fun OAuth2ClientBuilder.configureClientAuthentication(clientId: String) {
+    applyLocalClientAuthentication(
+        clientId = clientId,
+        setClientSecret = { this.clientSecret = it },
+        setClientAssertionProvider = { this.clientAssertionProvider = it }
+    )
+}
+
+/**
+ * JVM Desktop implementation for the Direct Authentication demo. Same source
+ * (`local.properties`) and precedence as [OAuth2ClientBuilder.configureClientAuthentication] —
+ * see its KDoc for the full security rationale.
+ */
+actual fun DirectAuthenticationFlowBuilder.configureClientAuthentication(clientId: String) {
+    applyLocalClientAuthentication(
+        clientId = clientId,
+        setClientSecret = { this.clientSecret = it },
+        setClientAssertionProvider = { this.clientAssertionProvider = it }
+    )
+}
+
+/**
+ * Reads a client secret or private_key_jwt signing key from `local.properties` and applies
+ * whichever is present via [setClientSecret]/[setClientAssertionProvider], shared by both
+ * [OAuth2ClientBuilder] and [DirectAuthenticationFlowBuilder].
+ */
+private fun applyLocalClientAuthentication(
+    clientId: String,
+    setClientSecret: (String) -> Unit,
+    setClientAssertionProvider: (ClientAssertionProvider) -> Unit,
+) {
     val localProperties = findLocalProperties()
     val clientSecret = localProperties.getProperty(CLIENT_SECRET_PROPERTY, "").trim()
     val clientAssertionPem = localProperties.getProperty(CLIENT_ASSERTION_PEM_PROPERTY, "").trim()
@@ -66,13 +97,14 @@ actual fun OAuth2ClientBuilder.configureClientAuthentication(clientId: String) {
                 )
             }
             val privateKey = parsePkcs8PrivateKey(clientAssertionPem)
-            this.clientAssertionProvider =
+            setClientAssertionProvider(
                 ClientAssertionProvider { audience ->
                     ClientAssertion(
                         type = JWT_BEARER_CLIENT_ASSERTION_TYPE,
                         assertion = buildClientAssertionJwt(clientId, audience, privateKey)
                     )
                 }
+            )
             AppLogger.write(
                 TAG,
                 "Using a private_key_jwt client assertion provider from local.properties (testing only; " +
@@ -81,7 +113,7 @@ actual fun OAuth2ClientBuilder.configureClientAuthentication(clientId: String) {
         }
 
         clientSecret.isNotEmpty() -> {
-            this.clientSecret = clientSecret
+            setClientSecret(clientSecret)
             AppLogger.write(TAG, "Using a client_secret from local.properties (testing only).")
         }
 

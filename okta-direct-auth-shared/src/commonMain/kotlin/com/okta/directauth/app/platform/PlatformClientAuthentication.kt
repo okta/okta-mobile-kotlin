@@ -16,6 +16,7 @@
 package com.okta.directauth.app.platform
 
 import com.okta.authfoundation.client.OAuth2ClientBuilder
+import com.okta.directauth.DirectAuthenticationFlowBuilder
 
 /**
  * Applies a client secret or private_key_jwt [ClientAssertionProvider][com.okta.authfoundation.client.ClientAssertionProvider]
@@ -58,3 +59,21 @@ import com.okta.authfoundation.client.OAuth2ClientBuilder
  *   assertion
  */
 expect fun OAuth2ClientBuilder.configureClientAuthentication(clientId: String)
+
+/**
+ * Applies a client secret or private_key_jwt [ClientAssertionProvider][com.okta.authfoundation.client.ClientAssertionProvider]
+ * to [this] builder, so the Direct Authentication demo (username/password, OTP, OOB, WebAuthn)
+ * can be tried against a confidential OAuth2 client.
+ *
+ * Same source, precedence, and security rationale as
+ * [OAuth2ClientBuilder.configureClientAuthentication] — see its KDoc. The private_key_jwt path
+ * is especially relevant here: Direct Authentication issues more than one client-authenticated
+ * request per flow (e.g. an OOB poll makes repeated `/token` calls), and a
+ * [ClientAssertionProvider][com.okta.authfoundation.client.ClientAssertionProvider] is invoked
+ * fresh for each one, unlike a single statically-built assertion which could only ever satisfy
+ * the first request.
+ *
+ * @param clientId the OAuth 2.0 client ID, used as the `iss`/`sub` claims of a private_key_jwt
+ *   assertion
+ */
+expect fun DirectAuthenticationFlowBuilder.configureClientAuthentication(clientId: String)

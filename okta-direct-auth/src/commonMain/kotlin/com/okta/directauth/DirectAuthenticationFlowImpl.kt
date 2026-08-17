@@ -28,6 +28,8 @@ import com.okta.directauth.model.DirectAuthenticationContext
 import com.okta.directauth.model.DirectAuthenticationError
 import com.okta.directauth.model.DirectAuthenticationState
 import com.okta.directauth.model.PrimaryFactor
+import com.okta.directauth.model.endpointUrl
+import com.okta.directauth.model.resolveClientAssertion
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlin.coroutines.cancellation.CancellationException
@@ -35,12 +37,27 @@ import kotlin.coroutines.cancellation.CancellationException
 internal class DirectAuthenticationFlowImpl(
     internal val context: DirectAuthenticationContext,
 ) : DirectAuthenticationFlow {
-    private fun PrimaryFactor.startRequest(loginHint: String): StepHandler =
+    private suspend fun PrimaryFactor.startRequest(loginHint: String): StepHandler =
         when (this) {
-            is PrimaryFactor.Password -> TokenStepHandler(DirectAuthTokenRequest.Password(context, loginHint, password), context)
-            is PrimaryFactor.Oob -> OobStepHandler(DirectAuthOobAuthenticateRequest(context, loginHint, channel), context)
-            is PrimaryFactor.Otp -> TokenStepHandler(DirectAuthTokenRequest.Otp(context, loginHint, passCode), context)
-            PrimaryFactor.WebAuthn -> PrimaryAuthenticateStepHandler(DirectAuthPrimaryAuthenticateRequest(context, loginHint), context)
+            is PrimaryFactor.Password -> {
+                val clientAssertion = context.resolveClientAssertion(context.endpointUrl("token"))
+                TokenStepHandler(DirectAuthTokenRequest.Password(context, loginHint, password, clientAssertion), context)
+            }
+
+            is PrimaryFactor.Oob -> {
+                val clientAssertion = context.resolveClientAssertion(context.endpointUrl("oob-authenticate"))
+                OobStepHandler(DirectAuthOobAuthenticateRequest(context, loginHint, channel, clientAssertion), context)
+            }
+
+            is PrimaryFactor.Otp -> {
+                val clientAssertion = context.resolveClientAssertion(context.endpointUrl("token"))
+                TokenStepHandler(DirectAuthTokenRequest.Otp(context, loginHint, passCode, clientAssertion), context)
+            }
+
+            PrimaryFactor.WebAuthn -> {
+                val clientAssertion = context.resolveClientAssertion(context.endpointUrl("primary-authenticate"))
+                PrimaryAuthenticateStepHandler(DirectAuthPrimaryAuthenticateRequest(context, loginHint, clientAssertion), context)
+            }
         }
 
     override val authenticationState: StateFlow<DirectAuthenticationState> = context.authenticationStateFlow.asStateFlow()

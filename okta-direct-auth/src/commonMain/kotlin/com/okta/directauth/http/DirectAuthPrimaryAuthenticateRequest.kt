@@ -17,7 +17,10 @@ package com.okta.directauth.http
 
 import com.okta.authfoundation.GrantType
 import com.okta.authfoundation.api.http.ApiRequestMethod
+import com.okta.authfoundation.client.ClientAssertion
 import com.okta.directauth.model.DirectAuthenticationContext
+import com.okta.directauth.model.clientAuthenticationFormParameters
+import com.okta.directauth.model.endpointUrl
 
 /**
  * HTTP request to the `/primary-authenticate` endpoint for primary WebAuthn flows.
@@ -28,15 +31,9 @@ import com.okta.directauth.model.DirectAuthenticationContext
 internal class DirectAuthPrimaryAuthenticateRequest(
     internal val context: DirectAuthenticationContext,
     val loginHint: String? = null,
+    private val clientAssertion: ClientAssertion? = null,
 ) : DirectAuthStartRequest {
-    private val path =
-        if (context.authorizationServerId.isBlank()) {
-            "/oauth2/v1/primary-authenticate"
-        } else {
-            "/oauth2/${context.authorizationServerId}/v1/primary-authenticate"
-        }
-
-    override fun url(): String = context.issuerUrl.trimEnd('/') + path
+    override fun url(): String = context.endpointUrl("primary-authenticate")
 
     override fun method(): ApiRequestMethod = ApiRequestMethod.POST
 
@@ -46,7 +43,7 @@ internal class DirectAuthPrimaryAuthenticateRequest(
 
     override fun formParameters(): Map<String, List<String>> =
         buildMap {
-            if (context.clientSecret.isNotBlank()) put("client_secret", listOf(context.clientSecret))
+            putAll(context.clientAuthenticationFormParameters(clientAssertion))
             put("client_id", listOf(context.clientId))
             put("challenge_hint", listOf(GrantType.WebAuthn.value))
             loginHint?.let { put("login_hint", listOf(it)) }
