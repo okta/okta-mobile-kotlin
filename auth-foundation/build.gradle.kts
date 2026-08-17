@@ -215,5 +215,4 @@ room {
 dependencies {
     add("kspAndroid", libs.room.compiler)
     add("kspJvm", libs.room.compiler)
-    coreLibraryDesugaring(libs.core.library.desugaring)
 }

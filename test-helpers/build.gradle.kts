@@ -21,7 +21,6 @@ android {
     }
 
     compileOptions {
-        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = SOURCE_COMPATIBILITY
         targetCompatibility = TARGET_COMPATIBILITY
     }
@@ -35,8 +34,6 @@ kotlin {
 }
 
 dependencies {
-    coreLibraryDesugaring(libs.core.library.desugaring)
-
     api(project(":auth-foundation"))
     api(libs.kotlin.stdlib)
     api(libs.okhttp.core)

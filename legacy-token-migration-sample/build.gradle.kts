@@ -54,7 +54,6 @@ android {
     }
 
     compileOptions {
-        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = SOURCE_COMPATIBILITY
         targetCompatibility = TARGET_COMPATIBILITY
     }
@@ -81,8 +80,6 @@ kotlin {
 }
 
 dependencies {
-    coreLibraryDesugaring(libs.core.library.desugaring)
-
     implementation(project(":web-authentication-ui"))
     implementation(project(":legacy-token-migration"))
 
