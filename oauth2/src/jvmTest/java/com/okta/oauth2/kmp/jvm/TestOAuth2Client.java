@@ -31,8 +31,13 @@ class TestOAuth2Client {
   private TestOAuth2Client() {}
 
   static OAuth2Client create() {
+    return create("test-client");
+  }
+
+  /** Same issuer as {@link #create()}, but with a caller-supplied clientId. */
+  static OAuth2Client create(String clientId) {
     return new OAuth2ClientBuilder(
-            "https://example.okta.com", "test-client", Collections.singletonList("openid"))
+            "https://example.okta.com", clientId, Collections.singletonList("openid"))
         .build()
         .getOrThrow();
   }
