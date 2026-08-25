@@ -139,6 +139,9 @@ class CrossAppAccessFlow(
          * @return a [CompletableFuture] that completes with the [KotlinSubjectAssertion] on
          *   success, or completes exceptionally with an `IllegalStateException` naming the
          *   missing token on failure.
+         *
+         * Runs on its own short-lived coroutine scope; unlike the instance methods above, it is
+         * unaffected by [close].
          */
         @JvmStatic
         @JvmOverloads
@@ -161,6 +164,9 @@ class CrossAppAccessFlow(
          * @param scope requested scopes at the target; see [start].
          * @return a [CompletableFuture] that completes with the resource access [TokenInfo] on
          *   success, or completes exceptionally on failure.
+         *
+         * Runs on its own short-lived coroutine scope; unlike the instance methods above, it is
+         * unaffected by [close].
          */
         @JvmStatic
         @JvmOverloads
