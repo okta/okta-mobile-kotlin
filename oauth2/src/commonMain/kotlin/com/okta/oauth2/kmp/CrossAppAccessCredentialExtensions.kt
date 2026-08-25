@@ -32,22 +32,65 @@ import com.okta.authfoundation.credential.kmp.Credential
  *   [IllegalStateException] naming the missing token, produced before any network request, if
  *   [type]'s corresponding token is absent from this credential.
  */
-suspend fun Credential.crossAppAccessSubject(type: SubjectAssertion.Type = SubjectAssertion.Type.ID_TOKEN): Result<SubjectAssertion> =
-    TODO("implemented in the https://oktainc.atlassian.net/browse/OKTA-1258537")
+fun Credential.crossAppAccessSubject(type: SubjectAssertion.Type = SubjectAssertion.Type.ID_TOKEN): Result<SubjectAssertion> =
+    runCatching {
+        when (type) {
+            SubjectAssertion.Type.ID_TOKEN -> {
+                SubjectAssertion.idToken(
+                    token.idToken ?: throw IllegalStateException("This credential has no ID token to use as a Cross App Access subject.")
+                )
+            }
+
+            SubjectAssertion.Type.ACCESS_TOKEN -> {
+                SubjectAssertion.accessToken(token.accessToken)
+            }
+
+            SubjectAssertion.Type.REFRESH_TOKEN -> {
+                SubjectAssertion.refreshToken(
+                    token.refreshToken
+                        ?: throw IllegalStateException("This credential has no refresh token to use as a Cross App Access subject.")
+                )
+            }
+        }
+    }
 
 /**
  * One-call convenience that derives a subject assertion from this credential and runs the
  * complete Cross App Access exchange against [target], without mutating, replacing, or
  * invalidating this credential.
  *
- * @param idpClient the primary client, already configured against the IdP authorization server.
+ * [idpClient] must be the client that actually manages this credential — i.e. its configured
+ * issuer and client ID must match [Credential.token]'s [TokenInfo.issuerUrl] and
+ * [TokenInfo.clientId]. Otherwise the derived subject assertion would be presented to an IdP
+ * authorization server that never minted it.
+ *
+ * @param idpClient the primary client, already configured against the IdP authorization server
+ *   that minted this credential's token.
  * @param target the resource authorization server to redeem an ID-JAG at.
+ * @param subjectType which of the credential's stored tokens to derive the subject assertion
+ *   from; see [crossAppAccessSubject]. Defaults to the ID token.
  * @param scope requested scopes at the target; see [CrossAppAccessFlow.start].
- * @return [Result.success] with the resource access [TokenInfo], or [Result.failure] from
- *   deriving the subject assertion, from [CrossAppAccessFlow.create], or from the exchange itself.
+ * @return [Result.success] with the resource access [TokenInfo], or [Result.failure] with an
+ *   [IllegalArgumentException] if [idpClient] does not match this credential's issuer or client
+ *   ID, or otherwise from deriving the subject assertion, from [CrossAppAccessFlow.create], or
+ *   from the exchange itself.
  */
 suspend fun Credential.crossAppAccessToken(
     idpClient: OAuth2Client,
     target: CrossAppAccessTarget,
+    subjectType: SubjectAssertion.Type = SubjectAssertion.Type.ID_TOKEN,
     scope: List<String>? = null,
-): Result<TokenInfo> = TODO("implemented in the https://oktainc.atlassian.net/browse/OKTA-1258537")
+): Result<TokenInfo> =
+    runCatching {
+        require(idpClient.configuration.issuerUrl.trimEnd('/') == token.issuerUrl.trimEnd('/')) {
+            "idpClient is configured for issuer ${idpClient.configuration.issuerUrl}, but this credential's token " +
+                "was minted by ${token.issuerUrl}. Pass the OAuth2Client that manages this credential."
+        }
+        require(idpClient.configuration.clientId == token.clientId) {
+            "idpClient's client ID (${idpClient.configuration.clientId}) does not match this credential's token " +
+                "client ID (${token.clientId}). Pass the OAuth2Client that manages this credential."
+        }
+        val subject = crossAppAccessSubject(subjectType).getOrThrow()
+        val flow = CrossAppAccessFlow.create(idpClient, target).getOrThrow()
+        flow.exchange(subject, scope).getOrThrow()
+    }

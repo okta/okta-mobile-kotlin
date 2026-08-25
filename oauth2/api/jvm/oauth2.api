@@ -66,10 +66,10 @@ public abstract interface class com/okta/oauth2/kmp/BrowserRedirectHandler {
 }
 
 public final class com/okta/oauth2/kmp/CrossAppAccessCredentialExtensionsKt {
-	public static final fun crossAppAccessSubject (Lcom/okta/authfoundation/credential/kmp/Credential;Lcom/okta/oauth2/kmp/SubjectAssertion$Type;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun crossAppAccessSubject$default (Lcom/okta/authfoundation/credential/kmp/Credential;Lcom/okta/oauth2/kmp/SubjectAssertion$Type;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
-	public static final fun crossAppAccessToken (Lcom/okta/authfoundation/credential/kmp/Credential;Lcom/okta/authfoundation/client/kmp/OAuth2Client;Lcom/okta/oauth2/kmp/CrossAppAccessTarget;Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun crossAppAccessToken$default (Lcom/okta/authfoundation/credential/kmp/Credential;Lcom/okta/authfoundation/client/kmp/OAuth2Client;Lcom/okta/oauth2/kmp/CrossAppAccessTarget;Ljava/util/List;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final fun crossAppAccessSubject (Lcom/okta/authfoundation/credential/kmp/Credential;Lcom/okta/oauth2/kmp/SubjectAssertion$Type;)Ljava/lang/Object;
+	public static synthetic fun crossAppAccessSubject$default (Lcom/okta/authfoundation/credential/kmp/Credential;Lcom/okta/oauth2/kmp/SubjectAssertion$Type;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final fun crossAppAccessToken (Lcom/okta/authfoundation/credential/kmp/Credential;Lcom/okta/authfoundation/client/kmp/OAuth2Client;Lcom/okta/oauth2/kmp/CrossAppAccessTarget;Lcom/okta/oauth2/kmp/SubjectAssertion$Type;Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun crossAppAccessToken$default (Lcom/okta/authfoundation/credential/kmp/Credential;Lcom/okta/authfoundation/client/kmp/OAuth2Client;Lcom/okta/oauth2/kmp/CrossAppAccessTarget;Lcom/okta/oauth2/kmp/SubjectAssertion$Type;Ljava/util/List;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public abstract class com/okta/oauth2/kmp/CrossAppAccessException : java/lang/Exception {
