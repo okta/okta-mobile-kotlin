@@ -1,6 +1,6 @@
 # Okta OAuth2
 
-Standard OAuth2 authentication flows for Kotlin Multiplatform (Android + JVM), including Resource Owner Password, Device Authorization, Authorization Code with PKCE, Token Exchange (Native SSO), Session Token, and Redirect End Session.
+Standard OAuth2 authentication flows for Kotlin Multiplatform (Android + JVM), including Resource Owner Password, Device Authorization, Authorization Code with PKCE, Token Exchange (Native SSO), Session Token, Redirect End Session, and Cross App Access.
 
 ## Table of Contents
 
@@ -17,6 +17,7 @@ Standard OAuth2 authentication flows for Kotlin Multiplatform (Android + JVM), i
   - [Token Exchange Flow](#token-exchange-flow)
   - [Session Token Flow](#session-token-flow)
   - [Redirect End Session Flow](#redirect-end-session-flow)
+  - [Cross App Access](#cross-app-access)
 - [Complete Example](#complete-example)
 - [Java Usage (CompletableFuture API)](#java-usage-completablefuture-api)
 - [Sample Applications](#sample-applications)
@@ -29,6 +30,7 @@ This module provides KMP flow classes for standard OAuth2 grant types. All flows
 Each flow follows a consistent pattern:
 - **Single-step flows** (`ResourceOwnerFlow`, `TokenExchangeFlow`, `SessionTokenFlow`) — call `start()` and get a `Result<TokenInfo>`.
 - **Two-step flows** (`DeviceAuthorizationFlow`, `AuthorizationCodeFlow`, `RedirectEndSessionFlow`) — call `start()` to get a context object, then `resume()` to complete the flow.
+- **Cross App Access** (`CrossAppAccessFlow`) — the exception to the pattern above: it spans two authorization servers, so it is obtained from `CrossAppAccessFlow.create(idpClient, target)` (which returns `Result<CrossAppAccessFlow>`) rather than constructed, and its second step is `redeem()` rather than `resume()`.
 
 ## Requirements
 
@@ -334,9 +336,84 @@ flow.resume(uri = capturedRedirectUri, flowContext = context).fold(
 )
 ```
 
+### Cross App Access
+
+> [Okta Cross App Access concepts](https://developer.okta.com/docs/concepts/xaa/) · [draft-ietf-oauth-identity-assertion-authz-grant](https://datatracker.ietf.org/doc/draft-ietf-oauth-identity-assertion-authz-grant/)
+
+Cross App Access (XAA) lets a signed-in user's session in a *requesting app* call a *resource app*'s API in a different security domain — with no second consent prompt and no static API key. It uses the Identity Assertion JWT Authorization Grant (ID-JAG), an OAuth 2.0 authorization-chaining extension, in two steps:
+
+1. `start()` presents the user's assertion (ID token, access token, or refresh token) to the **IdP authorization server** and receives a short-lived **ID-JAG** assertion.
+2. `redeem()` presents that ID-JAG to the **resource authorization server** and receives a short-lived, scoped **resource access token**.
+
+**Prerequisite:** an administrator must configure a trusted connection between the requesting app and the resource app at the identity provider, with the scopes that connection allows. Without it, the first step fails with the server's denial reported through a `CrossAppAccessException.IdpExchangeFailed`.
+
+**When not to use it:** Cross App Access requires an active, signed-in human user — it is not a substitute for machine-to-machine or background-job authentication with no user session. It also requires a confidential client at both steps (a credential to authenticate with); `create()` enforces this for the target client, while a public primary client is instead rejected remotely at the first step. A public client that cannot hold a credential should use the [Authorization Code Flow](#authorization-code-flow-browser-sign-in) instead.
+
+```kotlin
+import com.okta.oauth2.kmp.CrossAppAccessFlow
+import com.okta.oauth2.kmp.CrossAppAccessTarget
+import com.okta.oauth2.kmp.SubjectAssertion
+
+// idpClient is the OAuth2Client already used to sign the user in.
+val target = CrossAppAccessTarget.forIssuer("https://resource.example.com") {
+    scope = listOf("chat.read", "chat.history")
+    clientSecret = "target-app-client-secret" // or clientAssertionProvider for private_key_jwt
+}
+
+val flow = CrossAppAccessFlow.create(idpClient, target).getOrThrow()
+
+flow.exchange(SubjectAssertion.idToken(idToken)).fold(
+    onSuccess = { resourceToken ->
+        // Use resourceToken.accessToken as a Bearer token against the resource app's API.
+    },
+    onFailure = { error ->
+        // A CrossAppAccessException.IdpExchangeFailed or .TargetRedemptionFailed
+        // names which server rejected the exchange; error.cause carries the
+        // server's error code and description.
+    }
+)
+```
+
+A target reached through a custom authorization server in your own org can instead be named by its authorization server identifier:
+
+```kotlin
+val target = CrossAppAccessTarget.forAuthorizationServerId("default") {
+    scope = listOf("chat.read")
+    clientSecret = "target-app-client-secret"
+}
+```
+
+**Target client identity and extras.** By default the target client reuses the primary client's client ID; set `clientId` when the target app is registered separately (it is only ever used at the second step — the first step always sends the primary client's ID). `resource` sends an RFC 8707 resource indicator with the first step, and `endpointOverrides` bypasses discovery for the target authorization server. For any target-client setting this builder does not name directly — a clock, a cache, an executor — use `clientBuildAction`, which is applied to the target's `OAuth2ClientBuilder` last and therefore wins on conflict (so keep credentials in `clientSecret`/`clientAssertionProvider`, not in there).
+
+**Starting from a stored credential.** If you already hold a `Credential`, skip pulling the raw subject assertion out by hand:
+
+```kotlin
+import com.okta.oauth2.kmp.crossAppAccessToken
+
+val resourceToken = credential.crossAppAccessToken(idpClient, target).getOrThrow()
+```
+
+`idpClient` must be the client that manages this credential — its configured issuer and client ID must match the credential's token, or the call fails with `IllegalArgumentException` before any network request. Use `credential.crossAppAccessSubject(type)` if you want the `SubjectAssertion` alone (for example to reuse it across several `start()` calls). Neither call mutates, replaces, or invalidates the credential.
+
+**Subject assertion forms.** `SubjectAssertion.idToken(...)` and `SubjectAssertion.refreshToken(...)` are defined by the governing specification and are the portable choices across authorization servers. `SubjectAssertion.accessToken(...)` is accepted by Okta as a deployment extension — via an administrator-configured delegation link — but is not part of the specification itself; verify it against your own org before depending on it. An ID token is the safest default.
+
+**Scopes are effectively required.** The specification marks the exchange's `scope` parameter optional, but Okta rejects a request that omits it. `start()` therefore fails locally, before any network request, when neither the target nor the call itself supplies a scope — converting what would otherwise be a remote `invalid_scope` rejection into an immediate, actionable local error.
+
+**Renewing tokens.** An ID-JAG is reusable, not single-use — it stands in for a refresh token at the resource authorization server:
+- When the resource access token expires, call `redeem()` again with the same `IdJagAssertion` — no second trip to the IdP is needed.
+- When the ID-JAG itself expires (`idJag.isExpired(idpClient.configuration.clock)`), call `start()` again with the original subject assertion.
+- If the subject assertion has also expired, obtain a fresh one without an interactive sign-in: either present the org refresh token directly as the subject (`SubjectAssertion.refreshToken(...)`, where that form is available), or refresh to a new ID token and call `start()` with it. The ID-token route is the portable one; the refresh-token route is shorter where the deployment accepts it.
+- Across a process restart, persist the assertion's fields and rebuild it with `IdJagAssertion.restore(value, audience, expiresIn, issuedAt, scope, issuedTokenType)`, then `redeem()` it. Pass the *original* `issuedAt` you recorded at issuance — a later value overstates the assertion's remaining lifetime. An ID-JAG is bearer-equivalent at the target: persist it with the same care as a refresh token.
+
+**Requested vs. granted scope.** `start(scope = ...)` and `CrossAppAccessTarget.scope` both take a `List<String>` of discrete values — a per-call value takes precedence, with the target's configured value as the default. The scope the server actually *granted* is reported on `IdJagAssertion.scope` as a single, space-delimited `String` (matching `TokenInfo.scope` elsewhere in this SDK), and may legitimately be narrower than what was requested.
+
+**Externally-signed client credentials.** If your target client authenticates with a credential this SDK cannot re-sign itself, configure a `clientAssertionProvider` instead of a `clientSecret`. It is invoked fresh for every request with the exact target endpoint as the audience, and your signer is responsible for producing `iss`, `sub`, `aud`, `exp`, and a fresh `jti` on each call.
+
+**Observability.** Cross App Access has no bespoke listener interface — it surfaces through the client's existing `events` stream. Collect `idpClient.events` for the ID-JAG issuance and `flow.targetClient.events` for the resource-token issuance; both arrive as `TokenCreatedEvent`. Distinguish the intermediate ID-JAG issuance from an ordinary sign-in by checking `tokenInfo.issuedTokenType == "urn:ietf:params:oauth:token-type:id-jag"` — a consumer that does not check this field will not tell the two apart.
+
 ## Complete Example
 
-Here's a complete ViewModel example managing all OAuth2 flows:
+Here's a complete ViewModel example managing the Resource Owner, Device Authorization, Token Exchange, and Session Token flows:
 
 ```kotlin
 import com.okta.directauth.app.AppConfig
@@ -542,6 +619,45 @@ flow.start("current-id-token", "http://localhost:8080/logout-callback", handler)
 flow.close();
 ```
 
+### Cross App Access (Java)
+
+```java
+import com.okta.oauth2.kmp.CrossAppAccessTarget;
+import com.okta.oauth2.kmp.SubjectAssertion;
+import com.okta.oauth2.kmp.jvm.CrossAppAccessFlow;
+import com.okta.oauth2.kmp.jvm.CrossAppAccessTargetBuilder;
+import com.okta.authfoundation.client.jvm.AuthFoundationResult;
+import com.okta.authfoundation.client.TokenInfo;
+
+CrossAppAccessTarget target = CrossAppAccessTargetBuilder.forIssuer("https://resource.example.com")
+    .setScope(java.util.List.of("chat.read", "chat.history"))
+    .setClientSecret("target-app-client-secret")
+    .build();
+
+// client is the OAuth2Client already used to sign the user in.
+AuthFoundationResult<CrossAppAccessFlow> result = CrossAppAccessFlow.create(client, target);
+CrossAppAccessFlow flow = result.getOrThrow();
+
+TokenInfo resourceToken = flow.exchange(SubjectAssertion.idToken(idToken)).join();
+String accessToken = resourceToken.getAccessToken();
+flow.close();
+```
+
+For deep target-client customization — a shared executor, a custom cache — either use `setClientBuildAction`, or build the target client directly with `OAuth2ClientBuilder` and wrap it. The wrapping route is usually more comfortable from Java, since `setClientBuildAction` hands you the Kotlin `OAuth2ClientBuilder` rather than this module's Java wrapper:
+
+```java
+import com.okta.authfoundation.client.jvm.OAuth2ClientBuilder;
+import com.okta.authfoundation.client.kmp.OAuth2Client;
+
+OAuth2Client targetClient = new OAuth2ClientBuilder(
+        "https://resource.example.com", "target-client-id", java.util.List.of("chat.read"))
+    .setClientSecret("target-app-client-secret")
+    .build()
+    .getOrThrow();
+
+CrossAppAccessTarget target = CrossAppAccessTarget.wrapping(targetClient, null, java.util.List.of("chat.read"));
+```
+
 ## Sample Applications
 
 ### Kotlin Multiplatform (Compose)
@@ -575,3 +691,5 @@ See the [Java CLI sample README](../okta-direct-auth-java-cli-sample/README.md) 
 - [Device Authorization Grant](https://developer.okta.com/docs/guides/device-authorization-grant/main/)
 - [Configure Native SSO (Token Exchange)](https://developer.okta.com/docs/guides/configure-native-sso/main/)
 - [Authentication API (Session Tokens)](https://developer.okta.com/docs/reference/api/authn/)
+- [Cross App Access concepts](https://developer.okta.com/docs/concepts/xaa/)
+- [draft-ietf-oauth-identity-assertion-authz-grant (ID-JAG specification)](https://datatracker.ietf.org/doc/draft-ietf-oauth-identity-assertion-authz-grant/)

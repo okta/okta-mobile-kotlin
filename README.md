@@ -23,7 +23,7 @@ module that matches how you want users to sign in.
 **Libraries**
 
 - **[`auth-foundation/README.md`](auth-foundation/README.md)** — Start here. The core module every other library depends on: how to build an `OAuth2Client`, store and refresh credentials (immutable KMP snapshots via `TokenCredentialManager`, SQLCipher-encrypted Room storage on Android), use biometric-backed storage, and customize networking and rate-limit retries. Also holds the guide for migrating from the deprecated Android-only APIs to the KMP `*.kmp.*` packages.
-- **[`oauth2/README.md`](oauth2/README.md)** — Reach for this when you drive a standard OAuth2 grant yourself: Resource Owner Password, Device Authorization, Authorization Code + PKCE, Token Exchange (Native SSO), Session Token, and Redirect End Session. Per-flow Kotlin `Result` examples plus Java `CompletableFuture` wrappers, and the Android-only → KMP migration guide.
+- **[`oauth2/README.md`](oauth2/README.md)** — Reach for this when you drive a standard OAuth2 grant yourself: Resource Owner Password, Device Authorization, Authorization Code + PKCE, Token Exchange (Native SSO), Session Token, Redirect End Session, and Cross App Access. Per-flow Kotlin `Result` examples plus Java `CompletableFuture` wrappers, and the Android-only → KMP migration guide.
 - **[`web-authentication-ui/README.md`](web-authentication-ui/README.md)** — Use when you want browser-based sign-in/sign-out handled for you: launches a Chrome Custom Tab and wraps `oauth2`'s Authorization Code and Redirect End Session flows. Android-only.
 - **[`okta-direct-auth/README.md`](okta-direct-auth/README.md)** — Choose this to build a fully native (no browser) sign-in UI on Okta's Direct Authentication API: password, OTP, out-of-band push/SMS/voice, WebAuthn/passkeys, MFA, and self-service password recovery. Covers the coroutine `StateFlow` API and the Java `CompletableFuture` API.
 - **[`okta-idx-kotlin/README.md`](okta-idx-kotlin/README.md)** — Use when you need Okta Identity Engine's dynamic, policy-driven sign-in via the interaction code flow — the SDK walks you through server-defined remediations step by step. Documents `InteractionCodeFlow` (`start`/`resume`/`proceed`/`exchangeInteractionCodeForTokens`). Android-only.
@@ -42,7 +42,7 @@ module that matches how you want users to sign in.
 | Module | Target | Purpose |
 | --- | --- | --- |
 | `auth-foundation` | KMP (Android + JVM) | Core SDK — `OAuth2Client`, credential/token storage (encrypted Room on Android), and shared config every other module depends on |
-| `oauth2` | KMP (Android + JVM) | Standard OAuth2 grant flows (Auth Code + PKCE, Device, Resource Owner, Token Exchange, Session Token, End Session) with Kotlin `Result` + Java `CompletableFuture` wrappers |
+| `oauth2` | KMP (Android + JVM) | Standard OAuth2 grant flows (Auth Code + PKCE, Device, Resource Owner, Token Exchange, Session Token, End Session, Cross App Access) with Kotlin `Result` + Java `CompletableFuture` wrappers |
 | [`web-authentication-ui`](web-authentication-ui/README.md) | Android | Browser-based OIDC sign-in/sign-out via Chrome Custom Tabs; wraps oauth2's Authorization Code and Redirect End Session flows |
 | `legacy-token-migration` | Android | One-time migration of tokens from the legacy Okta OIDC Android SDK's `SessionClient` into a `Credential` |
 | `okta-idx-kotlin` | Android | Okta Identity Engine interaction code flow — policy-driven, server-remediation sign-in |
