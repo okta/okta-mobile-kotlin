@@ -32,7 +32,7 @@ Add the `Okta IDX Kotlin` dependency to your `build.gradle.kts` file:
 
 ```kotlin
 dependencies {
-    implementation(platform("com.okta.kotlin:bom:3.0.0"))
+    implementation(platform("com.okta.kotlin:bom:3.1.0"))
     implementation("com.okta.kotlin:okta-idx-kotlin")
 }
 ```

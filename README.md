@@ -69,7 +69,7 @@ Use the BOM to keep versions aligned:
 
 ```kotlin
 dependencies {
-    implementation(platform("com.okta.kotlin:bom:3.0.0"))
+    implementation(platform("com.okta.kotlin:bom:3.1.0"))
     implementation("com.okta.kotlin:auth-foundation")
     implementation("com.okta.kotlin:oauth2")
     implementation("com.okta.kotlin:web-authentication-ui")
@@ -87,7 +87,7 @@ The BOM is a Gradle `java-platform`, which publishes as a standard Maven BOM —
         <dependency>
             <groupId>com.okta.kotlin</groupId>
             <artifactId>bom</artifactId>
-            <version>3.0.0</version>
+            <version>3.1.0</version>
             <type>pom</type>
             <scope>import</scope>
         </dependency>
