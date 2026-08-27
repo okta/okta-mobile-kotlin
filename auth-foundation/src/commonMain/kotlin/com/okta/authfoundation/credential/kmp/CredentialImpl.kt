@@ -246,7 +246,8 @@ class CredentialImpl internal constructor(
                 idToken = newToken.idToken,
                 deviceSecret = newToken.deviceSecret ?: token.deviceSecret,
                 issuedTokenType = newToken.issuedTokenType,
-                configuration = token.configuration
+                configuration = token.configuration,
+                issuedAt = token.configuration.clock.currentTimeEpochSecond()
             )
         val updated = dataSource.replaceToken(rekeyed)
         val snapshotToken = updated ?: token
