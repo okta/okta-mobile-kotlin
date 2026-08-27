@@ -44,7 +44,7 @@ Unlike browser-based authentication flows, Direct Authentication gives you full 
 
 ```kotlin
 dependencies {
-    implementation(platform("com.okta.kotlin:bom:3.0.0"))
+    implementation(platform("com.okta.kotlin:bom:3.1.0"))
     implementation("com.okta.kotlin:auth-foundation")
     implementation("com.okta.kotlin:okta-direct-auth")
 }
