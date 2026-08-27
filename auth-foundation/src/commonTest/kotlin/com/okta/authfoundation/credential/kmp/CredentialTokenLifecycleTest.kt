@@ -324,6 +324,19 @@ class CredentialTokenLifecycleTest {
             assertNotEquals(credential.token.accessToken, snapshot.token.accessToken)
         }
 
+    // Regression test for OKTA-1261812 / GitHub #431: a freshly refreshed token must not
+    // report as expired the instant it's issued, even with a clock that hasn't advanced.
+    @Test
+    fun refreshToken_SuccessfulResponse_NewTokenNotImmediatelyExpired() =
+        runTest {
+            val body = """{"token_type":"Bearer","expires_in":7200,"access_token":"new-at","scope":"openid","refresh_token":"new-rt"}"""
+            val credential = createCredential(createClient(successExecutor(body)))
+
+            val snapshot = credential.refreshToken().getOrThrow()
+
+            assertEquals("new-at", snapshot.accessTokenIfNotExpired())
+        }
+
     @Test
     fun refreshIfExpired_ValidToken_ReturnsSameInstance() =
         runTest {

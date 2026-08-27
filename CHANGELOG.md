@@ -31,6 +31,11 @@
   `String?` and only forwarded to the underlying KMP builder when set, diverging from
   `OAuth2ClientConfiguration.clientSecret`'s actual non-null `String` type (default `""`). It's now
   tracked as `String = ""` and always forwarded.
+- `accessTokenIfNotExpired()` on the KMP credential path always returned `null` immediately after
+  `refreshToken()`. `CredentialImpl.replaceToken()` built the refreshed `TokenData` without an
+  explicit `issuedAt`, falling back to `TokenData`'s conservative "worst case" default
+  (`now - expiresIn`), which computes the refreshed token's expiration as the instant of the
+  refresh itself. `replaceToken()` now passes the actual refresh time as `issuedAt` (#431).
 
 ## web-authentication-ui Unreleased
 
