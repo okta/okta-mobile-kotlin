@@ -95,26 +95,26 @@
     <h1 class="cover"><span>Oidc</span><wbr><span><span>Configuration</span></span></h1>
     <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
       <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain" data-active="" data-toggle=":auth-foundation/androidMain">android</button></div>
-<div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><span data-unresolved-link="kotlinx.serialization/Serializable///PointingToDeclaration/"><span class="token annotation builtin">Serializable</span></span></div></div><span class="token keyword">class </span><a href="index.html">OidcConfiguration</a></div><p class="paragraph">Configuration options for an OAuth2Client.</p><p class="paragraph">This class is used to define the configuration, as defined in your Okta application settings, that will be used to interact with the OIDC Authorization Server.</p></div>    </div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><span data-unresolved-link="kotlinx.serialization/Serializable///PointingToDeclaration/"><span class="token annotation builtin">Serializable</span></span></div></div><span class="token keyword">class </span><a href="index.html"><strike>OidcConfiguration</strike></a></div><div class="deprecation-content"><h3 class="">Deprecated</h3><p class="paragraph">OidcConfiguration is deprecated in favor of the KMP OAuth2ClientBuilder, which works on Android and JVM. Use OAuth2ClientBuilder.create(issuerUrl, clientId, scope) to build a com.okta.authfoundation.client.kmp.OAuth2Client instead. This class will be removed in a future major release.</p></div><p class="paragraph">Configuration options for an OAuth2Client.</p><p class="paragraph">This class is used to define the configuration, as defined in your Okta application settings, that will be used to interact with the OIDC Authorization Server.</p></div>    </div>
   </div>
   <div class="tabbedcontent">
     <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
     <div class="tabs-section-body">
       <div data-togglable="CONSTRUCTOR">
         <h2 class="tableheader">Constructors</h2>
-        <div class="table"><a data-name="-82644301%2FConstructors%2F606929609" anchor-label="OidcConfiguration" id="-82644301%2FConstructors%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
+        <div class="table"><a data-name="460189293%2FConstructors%2F606929609" anchor-label="OidcConfiguration" id="460189293%2FConstructors%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
           <div class="table-row table-row_content" data-togglable="CONSTRUCTOR" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-oidc-configuration.html"><span>Oidc</span><wbr><span><span>Configuration</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-82644301%2FConstructors%2F606929609"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="460189293%2FConstructors%2F606929609"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
                   <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
                     <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain" data-active="" data-toggle=":auth-foundation/androidMain">android</button></div>
-<div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">clientId<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">defaultScope<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">issuer<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Used to create an OidcConfiguration.</p></div></div>                  </div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">clientId<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">defaultScope<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">issuer<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Used to create an OidcConfiguration.</p></div><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">clientId<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">defaultScope<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">issuer<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">endpointOverrides<span class="token operator">: </span><a href="../-o-auth2-endpoint-overrides/index.html">OAuth2EndpointOverrides</a><span class="token operator">?</span></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Used to create an OidcConfiguration with custom endpoint overrides.</p></div></div>                  </div>
                 </div>
               </div>
             </div>
@@ -280,6 +280,23 @@
               </div>
             </div>
           </div>
+<a data-name="-2000415034%2FProperties%2F606929609" anchor-label="endpointOverrides" id="-2000415034%2FProperties%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="endpoint-overrides.html"><span>endpoint</span><wbr><span><span>Overrides</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2000415034%2FProperties%2F606929609"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain" data-active="" data-toggle=":auth-foundation/androidMain">android</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><span data-unresolved-link="kotlinx.serialization/Transient///PointingToDeclaration/"><span class="token annotation builtin">Transient</span></span></div></div><span class="token keyword">val </span><a href="endpoint-overrides.html">endpointOverrides</a><span class="token operator">: </span><a href="../-o-auth2-endpoint-overrides/index.html">OAuth2EndpointOverrides</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">Optional per-endpoint URL overrides. Non-null fields take precedence over discovery values. When all fields are non-null the discovery document fetch is skipped entirely. See <a href="../-o-auth2-endpoint-overrides/index.html">OAuth2EndpointOverrides</a> for details and URL validation rules.</p></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
 <a data-name="-1099938292%2FProperties%2F606929609" anchor-label="eventCoordinator" id="-1099938292%2FProperties%2F606929609" data-filterable-set=":auth-foundation/androidMain"></a>
           <div class="table-row table-row_content" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain">
             <div class="main-subrow keyValue ">
@@ -292,7 +309,7 @@
                 <div class="title">
                   <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
                     <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":auth-foundation/androidMain" data-filterable-set=":auth-foundation/androidMain" data-active="" data-toggle=":auth-foundation/androidMain">android</button></div>
-<div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><span data-unresolved-link="kotlinx.serialization/Transient///PointingToDeclaration/"><span class="token annotation builtin">Transient</span></span></div></div><span class="token keyword">val </span><a href="event-coordinator.html">eventCoordinator</a><span class="token operator">: </span><a href="../../com.okta.authfoundation.events/-event-coordinator/index.html">EventCoordinator</a></div><div class="brief "><p class="paragraph">The EventCoordinator which the OAuth2Client should emit events to.</p></div></div>                  </div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/androidMain"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><span data-unresolved-link="kotlinx.serialization/Transient///PointingToDeclaration/"><span class="token annotation builtin">Transient</span></span></div></div><span class="token keyword">val </span><a href="event-coordinator.html"><strike>eventCoordinator</strike></a><span class="token operator">: </span><a href="../../com.okta.authfoundation.events/-event-coordinator/index.html">EventCoordinator</a></div><div class="brief "><p class="paragraph">The EventCoordinator which the OAuth2Client should emit events to.</p></div></div>                  </div>
                 </div>
               </div>
             </div>

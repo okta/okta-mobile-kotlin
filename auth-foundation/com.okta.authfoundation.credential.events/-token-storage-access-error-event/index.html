@@ -95,7 +95,7 @@
     <h1 class="cover"><span>Token</span><wbr><span>Storage</span><wbr><span>Access</span><wbr><span>Error</span><wbr><span><span>Event</span></span></h1>
     <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
       <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain" data-active="" data-toggle=":auth-foundation/commonMain">common</button></div>
-<div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/commonMain"><div class="symbol monospace"><span class="token keyword">class </span><a href="index.html">TokenStorageAccessErrorEvent</a> : <a href="../../com.okta.authfoundation.events/-event/index.html">Event</a></div><p class="paragraph">Emitted via <a href="../../com.okta.authfoundation.events/-event-handler/on-event.html">EventHandler.onEvent</a> when a storage call causes an exception.</p><p class="paragraph">The default implementation automatically clears storage so it can try again, see <a href="../../../auth-foundation/com.okta.authfoundation.credential.events/-token-storage-access-error-event/--root--.html">shouldClearStorageAndTryAgain</a>.</p></div>    </div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/commonMain"><div class="symbol monospace"><span class="token keyword">class </span><a href="index.html">TokenStorageAccessErrorEvent</a> : <a href="../../com.okta.authfoundation.events/-credential-event/index.html">CredentialEvent</a></div><p class="paragraph">Emitted via <a href="../../com.okta.authfoundation.events/-event-handler/on-event.html">EventHandler.onEvent</a> when a storage call causes an exception.</p><p class="paragraph">In the KMP credential system, <a href="../../../auth-foundation/com.okta.authfoundation.credential.events/-token-storage-access-error-event/--root--.html">shouldClearStorageAndTryAgain</a> reflects the decision made by the <code class="lang-kotlin">onStorageError</code> callback configured on <a href="../../com.okta.authfoundation.credential.kmp/-token-credential-manager/index.html">com.okta.authfoundation.credential.kmp.TokenCredentialManager</a>. This event is notification-only on KMP; mutating it does not affect retry behavior. On Android (legacy path), use <a href="with-should-clear-storage-and-try-again.html">withShouldClearStorageAndTryAgain</a> to request a retry.</p></div>    </div>
   </div>
   <div class="tabbedcontent">
     <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
@@ -131,7 +131,28 @@
                 <div class="title">
                   <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
                     <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain" data-active="" data-toggle=":auth-foundation/commonMain">common</button></div>
-<div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/commonMain"><div class="symbol monospace"><span class="token keyword">var </span><a href="should-clear-storage-and-try-again.html">shouldClearStorageAndTryAgain</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">Allows the app developer to change the behavior of attempted remediation. If true, the storage implementation will attempt to clear all existing items in storage.</p></div></div>                  </div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/commonMain"><div class="symbol monospace"><span class="token keyword">var </span><a href="should-clear-storage-and-try-again.html">shouldClearStorageAndTryAgain</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">If true, the operation will be (or was) retried.</p></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="FUNCTION">
+        <h2 class="tableheader">Functions</h2>
+        <div class="table"><a data-name="-1089929686%2FFunctions%2F-1771157707" anchor-label="withShouldClearStorageAndTryAgain" id="-1089929686%2FFunctions%2F-1771157707" data-filterable-set=":auth-foundation/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="with-should-clear-storage-and-try-again.html"><span>with</span><wbr><span>Should</span><wbr><span>Clear</span><wbr><span>Storage</span><wbr><span>And</span><wbr><span>Try</span><wbr><span><span>Again</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1089929686%2FFunctions%2F-1771157707"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain" data-active="" data-toggle=":auth-foundation/commonMain">common</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="with-should-clear-storage-and-try-again.html"><span class="token function">withShouldClearStorageAndTryAgain</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">value<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">TokenStorageAccessErrorEvent</a></div><div class="brief "><p class="paragraph">Sets <a href="../../../auth-foundation/com.okta.authfoundation.credential.events/-token-storage-access-error-event/--root--.html">shouldClearStorageAndTryAgain</a> and returns this event for chaining.</p></div></div>                  </div>
                 </div>
               </div>
             </div>

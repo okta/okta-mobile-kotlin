@@ -95,7 +95,7 @@
     <h1 class="cover"><span>OAuth2Client</span><wbr><span><span>Builder</span></span></h1>
     <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
       <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain" data-active="" data-toggle=":auth-foundation/commonMain">common</button></div>
-<div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/commonMain"><div class="symbol monospace"><span class="token keyword">class </span><a href="index.html">OAuth2ClientBuilder</a></div><p class="paragraph">Builder for creating an <a href="../../com.okta.authfoundation.client.kmp/-o-auth2-client/index.html">OAuth2Client</a>.</p><p class="paragraph">Use the <a href="-companion/create.html">create</a> factory method to construct an instance.</p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">val client = OAuth2ClientBuilder.create(<br>    issuerUrl = "https://your-okta-domain.okta.com/oauth2/default",<br>    clientId = "your-client-id",<br>    scope = "openid profile offline_access",<br>) {<br>    clock = OidcClock { customTimeSource() }<br>}.getOrThrow()</code></pre><span class="copy-tooltip"><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div><span class="copy-icon"></span></span></div></div>    </div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/commonMain"><div class="symbol monospace"><span class="token keyword">class </span><a href="index.html">OAuth2ClientBuilder</a></div><p class="paragraph">Builder for creating an <a href="../../com.okta.authfoundation.client.kmp/-o-auth2-client/index.html">OAuth2Client</a>.</p><p class="paragraph">Use the <a href="-companion/create.html">create</a> factory method to construct an instance.</p><p class="paragraph">Pass the base org URL as <span data-unresolved-link="com.okta.authfoundation.client/OAuth2ClientBuilder//#kotlin.String#kotlin.String#kotlin.collections.List[kotlin.String]/PointingToCallableParameters(0)/">issuerUrl</span> and optionally set <a href="authorization-server-id.html">authorizationServerId</a> to target a custom authorization server. The effective issuer URL used for OIDC discovery is derived as:</p><ul><li><p class="paragraph">No <a href="authorization-server-id.html">authorizationServerId</a>: <code class="lang-kotlin">issuerUrl</code> is used as-is (org authorization server).</p></li><li><p class="paragraph">With <a href="authorization-server-id.html">authorizationServerId</a>: <code class="lang-kotlin">"$issuerUrl/oauth2/$authorizationServerId"</code> (custom authorization server).</p></li></ul><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">// Org authorization server<br>val orgClient = OAuth2ClientBuilder.create(<br>    issuerUrl = "https://your-okta-domain.okta.com",<br>    clientId = "your-client-id",<br>    scope = listOf("openid", "profile", "offline_access"),<br>).getOrThrow()<br><br>// Custom authorization server<br>val customClient = OAuth2ClientBuilder.create(<br>    issuerUrl = "https://your-okta-domain.okta.com",<br>    clientId = "your-client-id",<br>    scope = listOf("openid", "profile", "offline_access"),<br>) {<br>    authorizationServerId = "default"<br>}.getOrThrow()</code></pre><span class="copy-tooltip"><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div><span class="copy-icon"></span></span></div></div>    </div>
   </div>
   <div class="tabbedcontent">
     <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
@@ -157,6 +157,23 @@
               </div>
             </div>
           </div>
+<a data-name="-1971256474%2FProperties%2F-1771157707" anchor-label="allowPushedAuthorizationRequestFallback" id="-1971256474%2FProperties%2F-1771157707" data-filterable-set=":auth-foundation/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="allow-pushed-authorization-request-fallback.html"><span>allow</span><wbr><span>Pushed</span><wbr><span>Authorization</span><wbr><span>Request</span><wbr><span><span>Fallback</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1971256474%2FProperties%2F-1771157707"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain" data-active="" data-toggle=":auth-foundation/commonMain">common</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/commonMain"><div class="symbol monospace"><span class="token keyword">var </span><a href="allow-pushed-authorization-request-fallback.html">allowPushedAuthorizationRequestFallback</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">Allows browser-based authorization flows to fall back to the classic authorization URL when PAR is optional and unavailable/fails.</p></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
 <a data-name="570170387%2FProperties%2F-1771157707" anchor-label="apiExecutor" id="570170387%2FProperties%2F-1771157707" data-filterable-set=":auth-foundation/commonMain"></a>
           <div class="table-row table-row_content" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain">
             <div class="main-subrow keyValue ">
@@ -208,6 +225,23 @@
               </div>
             </div>
           </div>
+<a data-name="1388864120%2FProperties%2F-1771157707" anchor-label="clientAssertionProvider" id="1388864120%2FProperties%2F-1771157707" data-filterable-set=":auth-foundation/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="client-assertion-provider.html"><span>client</span><wbr><span>Assertion</span><wbr><span><span>Provider</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1388864120%2FProperties%2F-1771157707"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain" data-active="" data-toggle=":auth-foundation/commonMain">common</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/commonMain"><div class="symbol monospace"><span class="token keyword">var </span><a href="client-assertion-provider.html">clientAssertionProvider</a><span class="token operator">: </span><a href="../-client-assertion-provider/index.html">ClientAssertionProvider</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">Optional provider for private_key_jwt (or similar JWT-based) client authentication.</p></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
 <a data-name="1495097695%2FProperties%2F-1771157707" anchor-label="clientSecret" id="1495097695%2FProperties%2F-1771157707" data-filterable-set=":auth-foundation/commonMain"></a>
           <div class="table-row table-row_content" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain">
             <div class="main-subrow keyValue ">
@@ -220,7 +254,7 @@
                 <div class="title">
                   <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
                     <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain" data-active="" data-toggle=":auth-foundation/commonMain">common</button></div>
-<div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/commonMain"><div class="symbol monospace"><span class="token keyword">var </span><a href="client-secret.html">clientSecret</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">Optional client secret for confidential clients.</p></div></div>                  </div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/commonMain"><div class="symbol monospace"><span class="token keyword">var </span><a href="client-secret.html">clientSecret</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></div><div class="brief "><p class="paragraph">Optional client secret for confidential clients.</p></div></div>                  </div>
                 </div>
               </div>
             </div>
@@ -276,6 +310,40 @@
               </div>
             </div>
           </div>
+<a data-name="-1904267457%2FProperties%2F-1771157707" anchor-label="enablePushedAuthorizationRequests" id="-1904267457%2FProperties%2F-1771157707" data-filterable-set=":auth-foundation/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="enable-pushed-authorization-requests.html"><span>enable</span><wbr><span>Pushed</span><wbr><span>Authorization</span><wbr><span><span>Requests</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1904267457%2FProperties%2F-1771157707"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain" data-active="" data-toggle=":auth-foundation/commonMain">common</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/commonMain"><div class="symbol monospace"><span class="token keyword">var </span><a href="enable-pushed-authorization-requests.html">enablePushedAuthorizationRequests</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">Enables Pushed Authorization Requests (PAR) for browser-based authorization flows.</p></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="2030666350%2FProperties%2F-1771157707" anchor-label="endpointOverrides" id="2030666350%2FProperties%2F-1771157707" data-filterable-set=":auth-foundation/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="endpoint-overrides.html"><span>endpoint</span><wbr><span><span>Overrides</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2030666350%2FProperties%2F-1771157707"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain" data-active="" data-toggle=":auth-foundation/commonMain">common</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/commonMain"><div class="symbol monospace"><span class="token keyword">var </span><a href="endpoint-overrides.html">endpointOverrides</a><span class="token operator">: </span><a href="../-o-auth2-endpoint-overrides/index.html">OAuth2EndpointOverrides</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">Optional per-endpoint URL overrides.</p></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
 <a data-name="1243523078%2FProperties%2F-1771157707" anchor-label="idTokenValidator" id="1243523078%2FProperties%2F-1771157707" data-filterable-set=":auth-foundation/commonMain"></a>
           <div class="table-row table-row_content" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain">
             <div class="main-subrow keyValue ">
@@ -323,6 +391,23 @@
                   <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
                     <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain" data-active="" data-toggle=":auth-foundation/commonMain">common</button></div>
 <div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/commonMain"><div class="symbol monospace"><span class="token keyword">var </span><a href="json.html">json</a><span class="token operator">: </span>ERROR CLASS: Symbol not found for Json</div><div class="brief "><p class="paragraph">The JSON serializer for encoding/decoding responses.</p></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-885548216%2FProperties%2F-1771157707" anchor-label="rateLimitRetryCallback" id="-885548216%2FProperties%2F-1771157707" data-filterable-set=":auth-foundation/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="rate-limit-retry-callback.html"><span>rate</span><wbr><span>Limit</span><wbr><span>Retry</span><wbr><span><span>Callback</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-885548216%2FProperties%2F-1771157707"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain" data-active="" data-toggle=":auth-foundation/commonMain">common</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/commonMain"><div class="symbol monospace"><span class="token keyword">var </span><a href="rate-limit-retry-callback.html">rateLimitRetryCallback</a><span class="token operator">: </span><span class="token punctuation">(</span>retryCount<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="../../com.okta.authfoundation.client.kmp/-rate-limit-retry-config/index.html">RateLimitRetryConfig</a><span class="token operator">?</span><span class="token operator">?</span></div><div class="brief "><p class="paragraph">Optional callback invoked when an HTTP 429 rate-limit response is received.</p></div></div>                  </div>
                 </div>
               </div>
             </div>

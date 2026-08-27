@@ -95,7 +95,7 @@
     <h1 class="cover"><span>Direct</span><wbr><span>Authentication</span><wbr><span>Flow</span><wbr><span><span>Builder</span></span></h1>
     <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
       <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":okta-direct-auth/commonMain" data-filterable-set=":okta-direct-auth/commonMain" data-active="" data-toggle=":okta-direct-auth/commonMain">common</button></div>
-<div class="content sourceset-dependent-content" data-active="" data-togglable=":okta-direct-auth/commonMain"><div class="symbol monospace"><span class="token keyword">class </span><a href="index.html">DirectAuthenticationFlowBuilder</a></div><p class="paragraph">A builder used to configure and create an instance of <a href="../../com.okta.directauth.api/-direct-authentication-flow/index.html">DirectAuthenticationFlow</a>.</p><p class="paragraph">This class provides a fluent API for setting the necessary parameters for the Direct Authentication flow, such as the issuer URL, client ID, and scopes.</p><p class="paragraph">An instance of this builder should be created using the <a href="-companion/create.html">create</a> factory method.</p></div>    </div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":okta-direct-auth/commonMain"><div class="symbol monospace"><span class="token keyword">class </span><a href="index.html">DirectAuthenticationFlowBuilder</a></div><p class="paragraph">Configures a <a href="../../com.okta.directauth.api/-direct-authentication-flow/index.html">DirectAuthenticationFlow</a>.</p><p class="paragraph">Rather than instantiating this builder directly, call <a href="-companion/create.html">create</a> and configure the instance inside the trailing lambda, e.g. <code class="lang-kotlin">DirectAuthenticationFlowBuilder.create(issuerUrl, clientId, scope) { clientSecret = "..." }</code>.</p></div>    </div>
   </div>
   <div class="tabbedcontent">
     <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
@@ -191,6 +191,23 @@
               </div>
             </div>
           </div>
+<a data-name="-1576043042%2FProperties%2F8072595" anchor-label="clientAssertionProvider" id="-1576043042%2FProperties%2F8072595" data-filterable-set=":okta-direct-auth/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":okta-direct-auth/commonMain" data-filterable-set=":okta-direct-auth/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="client-assertion-provider.html"><span>client</span><wbr><span>Assertion</span><wbr><span><span>Provider</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1576043042%2FProperties%2F8072595"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":okta-direct-auth/commonMain" data-filterable-set=":okta-direct-auth/commonMain" data-active="" data-toggle=":okta-direct-auth/commonMain">common</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":okta-direct-auth/commonMain"><div class="symbol monospace"><span class="token keyword">var </span><a href="client-assertion-provider.html">clientAssertionProvider</a><span class="token operator">: </span>ERROR CLASS: Symbol not found for ClientAssertionProvider?<span class="token operator">?</span></div><div class="brief "><p class="paragraph">Optional provider for private_key_jwt (or similar JWT-based) client authentication.</p></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
 <a data-name="1148545465%2FProperties%2F8072595" anchor-label="clientSecret" id="1148545465%2FProperties%2F8072595" data-filterable-set=":okta-direct-auth/commonMain"></a>
           <div class="table-row table-row_content" data-filterable-current=":okta-direct-auth/commonMain" data-filterable-set=":okta-direct-auth/commonMain">
             <div class="main-subrow keyValue ">
@@ -221,6 +238,23 @@
                   <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
                     <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":okta-direct-auth/commonMain" data-filterable-set=":okta-direct-auth/commonMain" data-active="" data-toggle=":okta-direct-auth/commonMain">common</button></div>
 <div class="content sourceset-dependent-content" data-active="" data-togglable=":okta-direct-auth/commonMain"><div class="symbol monospace"><span class="token keyword">var </span><a href="clock.html">clock</a><span class="token operator">: </span>ERROR CLASS: Symbol not found for OidcClock</div><div class="brief "><p class="paragraph">The clock used for time-sensitive operations.</p></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1902878120%2FProperties%2F8072595" anchor-label="computeDispatcher" id="1902878120%2FProperties%2F8072595" data-filterable-set=":okta-direct-auth/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":okta-direct-auth/commonMain" data-filterable-set=":okta-direct-auth/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="compute-dispatcher.html"><span>compute</span><wbr><span><span>Dispatcher</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1902878120%2FProperties%2F8072595"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":okta-direct-auth/commonMain" data-filterable-set=":okta-direct-auth/commonMain" data-active="" data-toggle=":okta-direct-auth/commonMain">common</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":okta-direct-auth/commonMain"><div class="symbol monospace"><span class="token keyword">var </span><a href="compute-dispatcher.html">computeDispatcher</a><span class="token operator">: </span>ERROR CLASS: Symbol not found for CoroutineContext</div><div class="brief "><p class="paragraph">The dispatcher used for CPU-bound work, such as invoking <a href="client-assertion-provider.html">clientAssertionProvider</a>.</p></div></div>                  </div>
                 </div>
               </div>
             </div>

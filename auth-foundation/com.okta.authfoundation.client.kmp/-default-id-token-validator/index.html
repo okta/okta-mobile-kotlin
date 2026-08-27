@@ -95,26 +95,47 @@
     <h1 class="cover"><span>Default</span><wbr><span>Id</span><wbr><span>Token</span><wbr><span><span>Validator</span></span></h1>
     <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
       <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain" data-active="" data-toggle=":auth-foundation/commonMain">common</button></div>
-<div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/commonMain"><div class="symbol monospace"><span class="token keyword">class </span><a href="index.html">DefaultIdTokenValidator</a> : <a href="../-id-token-validator/index.html">IdTokenValidator</a></div><p class="paragraph">Default <a href="../-id-token-validator/index.html">IdTokenValidator</a> implementing the <a href="https://openid.net/specs/openid-connect-core-1_0.html#IDTokenValidation">OpenID Connect Core 1.0 ID Token Validation</a> checks.</p><p class="paragraph">Validates: issuer, audience, HTTPS, algorithm (RS256), expiration, issued-at grace period, nonce, max_age, and subject.</p></div>    </div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/commonMain"><div class="symbol monospace"><span class="token keyword">class </span><a href="index.html">DefaultIdTokenValidator</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>issuedAtGracePeriodInSeconds<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">600</span></span></span><span class="token punctuation">)</span> : <a href="../-id-token-validator/index.html">IdTokenValidator</a></div><p class="paragraph">Default <a href="../-id-token-validator/index.html">IdTokenValidator</a> implementing the <a href="https://openid.net/specs/openid-connect-core-1_0.html#IDTokenValidation">OpenID Connect Core 1.0 ID Token Validation</a> checks.</p><p class="paragraph">Validates: issuer, audience, HTTPS, algorithm (RS256), expiration, issued-at grace period, nonce, max_age, and subject.</p><h4 class="tableheader">Parameters</h4><div class="table"><div class="table-row table-row_content" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span>issued</span><wbr><span>At</span><wbr><span>Grace</span><wbr><span>Period</span><wbr><span>In</span><wbr><span><span>Seconds</span></span></u></div></span></div><div><div class="title"><p class="paragraph">the allowed difference in seconds between the token's <code class="lang-kotlin">iat</code> claim and the current time. Defaults to 600 seconds (10 minutes).</p></div></div></div></div></div></div>    </div>
   </div>
   <div class="tabbedcontent">
     <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
     <div class="tabs-section-body">
       <div data-togglable="CONSTRUCTOR">
         <h2 class="tableheader">Constructors</h2>
-        <div class="table"><a data-name="-2065032917%2FConstructors%2F-1771157707" anchor-label="DefaultIdTokenValidator" id="-2065032917%2FConstructors%2F-1771157707" data-filterable-set=":auth-foundation/commonMain"></a>
+        <div class="table"><a data-name="-9512695%2FConstructors%2F-1771157707" anchor-label="DefaultIdTokenValidator" id="-9512695%2FConstructors%2F-1771157707" data-filterable-set=":auth-foundation/commonMain"></a>
           <div class="table-row table-row_content" data-togglable="CONSTRUCTOR" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-default-id-token-validator.html"><span>Default</span><wbr><span>Id</span><wbr><span>Token</span><wbr><span><span>Validator</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2065032917%2FConstructors%2F-1771157707"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-9512695%2FConstructors%2F-1771157707"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
                   <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
                     <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain" data-active="" data-toggle=":auth-foundation/commonMain">common</button></div>
-<div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/commonMain"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div>                  </div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/commonMain"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">issuedAtGracePeriodInSeconds<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">600</span></span></span><span class="token punctuation">)</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="PROPERTY">
+        <h2 class="tableheader">Properties</h2>
+        <div class="table"><a data-name="1088625595%2FProperties%2F-1771157707" anchor-label="issuedAtGracePeriodInSeconds" id="1088625595%2FProperties%2F-1771157707" data-filterable-set=":auth-foundation/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="issued-at-grace-period-in-seconds.html"><span>issued</span><wbr><span>At</span><wbr><span>Grace</span><wbr><span>Period</span><wbr><span>In</span><wbr><span><span>Seconds</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1088625595%2FProperties%2F-1771157707"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain" data-active="" data-toggle=":auth-foundation/commonMain">common</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="issued-at-grace-period-in-seconds.html">issuedAtGracePeriodInSeconds</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div>                  </div>
                 </div>
               </div>
             </div>
@@ -123,19 +144,19 @@
       </div>
       <div data-togglable="FUNCTION">
         <h2 class="tableheader">Functions</h2>
-        <div class="table"><a data-name="1425204949%2FFunctions%2F-1771157707" anchor-label="validate" id="1425204949%2FFunctions%2F-1771157707" data-filterable-set=":auth-foundation/commonMain"></a>
+        <div class="table"><a data-name="718725972%2FFunctions%2F-1771157707" anchor-label="validate" id="718725972%2FFunctions%2F-1771157707" data-filterable-set=":auth-foundation/commonMain"></a>
           <div class="table-row table-row_content" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="validate.html"><span><span>validate</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1425204949%2FFunctions%2F-1771157707"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="718725972%2FFunctions%2F-1771157707"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
                   <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
                     <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":auth-foundation/commonMain" data-filterable-set=":auth-foundation/commonMain" data-active="" data-toggle=":auth-foundation/commonMain">common</button></div>
-<div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">suspend override </span><span class="token keyword">fun </span><a href="validate.html"><span class="token function">validate</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">issuerUrl<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">clientId<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">idToken<span class="token operator">: </span><a href="../../com.okta.authfoundation.jwt/-jwt/index.html">Jwt</a><span class="token punctuation">, </span></span><span class="parameter ">clock<span class="token operator">: </span><a href="../../com.okta.authfoundation.client/-oidc-clock/index.html">OidcClock</a><span class="token punctuation">, </span></span><span class="parameter ">issuedAtGracePeriodInSeconds<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">600</span><span class="token punctuation">, </span></span><span class="parameter ">parameters<span class="token operator">: </span><a href="../-id-token-validator/-parameters/index.html">IdTokenValidator.Parameters</a><span class="token operator"> = </span>Parameters(nonce = null, maxAge = null)</span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Validates the given <a href="../-id-token-validator/validate.html">idToken</a>.</p></div></div>                  </div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":auth-foundation/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">suspend override </span><span class="token keyword">fun </span><a href="validate.html"><span class="token function">validate</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">issuerUrl<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">clientId<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">idToken<span class="token operator">: </span><a href="../../com.okta.authfoundation.jwt/-jwt/index.html">Jwt</a><span class="token punctuation">, </span></span><span class="parameter ">clock<span class="token operator">: </span><a href="../../com.okta.authfoundation.client/-oidc-clock/index.html">OidcClock</a><span class="token punctuation">, </span></span><span class="parameter ">parameters<span class="token operator">: </span><a href="../-id-token-validator/-parameters/index.html">IdTokenValidator.Parameters</a><span class="token operator"> = </span>Parameters(nonce = null, maxAge = null)</span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Validates the given <a href="../-id-token-validator/validate.html">idToken</a>.</p></div></div>                  </div>
                 </div>
               </div>
             </div>

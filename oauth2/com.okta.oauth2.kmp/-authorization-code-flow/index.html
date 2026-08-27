@@ -103,7 +103,7 @@
     <h1 class="cover"><span>Authorization</span><wbr><span>Code</span><wbr><span><span>Flow</span></span></h1>
     <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
       <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":oauth2/commonMain" data-filterable-set=":oauth2/commonMain" data-active="" data-toggle=":oauth2/commonMain">common</button></div>
-<div class="content sourceset-dependent-content" data-active="" data-togglable=":oauth2/commonMain"><div class="symbol monospace"><span class="token keyword">interface </span><a href="index.html">AuthorizationCodeFlow</a></div><p class="paragraph">Encapsulates the behavior required to authenticate using the OIDC Authorization Code flow with PKCE.</p><p class="paragraph">See <a href="https://developer.okta.com/docs/guides/implement-grant-type/authcodepkce/main/">Authorization Code Flow documentation</a></p></div>    </div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":oauth2/commonMain"><div class="symbol monospace"><span class="token keyword">interface </span><a href="index.html">AuthorizationCodeFlow</a></div><p class="paragraph">Encapsulates the behavior required to authenticate using the OIDC Authorization Code flow with PKCE.</p><p class="paragraph">Call <a href="start.html">start</a> to obtain an <a href="../-authorization-code-flow-context/index.html">AuthorizationCodeFlowContext</a> whose <a href="../-authorization-code-flow-context/url.html">AuthorizationCodeFlowContext.url</a> you open with a <a href="../-browser-redirect-handler/index.html">BrowserRedirectHandler</a>. Once the browser redirects back to the registered redirect URI, pass that captured URI along with the same <a href="../-authorization-code-flow-context/index.html">AuthorizationCodeFlowContext</a> to <a href="resume.html">resume</a> to exchange the authorization code for tokens.</p><p class="paragraph">See <a href="https://developer.okta.com/docs/guides/implement-grant-type/authcodepkce/main/">Authorization Code Flow documentation</a></p></div>    </div>
   </div>
   <div class="tabbedcontent">
     <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button><button class="section-tab" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION,EXTENSION_PROPERTY,EXTENSION_FUNCTION">Members &amp; Extensions</button></div>
@@ -144,6 +144,57 @@
               </div>
             </div>
           </div>
+<a data-name="1229877484%2FClasslikes%2F1844834752" anchor-label="PushedAuthorizationException" id="1229877484%2FClasslikes%2F1844834752" data-filterable-set=":oauth2/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":oauth2/commonMain" data-filterable-set=":oauth2/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-pushed-authorization-exception/index.html"><span>Pushed</span><wbr><span>Authorization</span><wbr><span><span>Exception</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1229877484%2FClasslikes%2F1844834752"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":oauth2/commonMain" data-filterable-set=":oauth2/commonMain" data-active="" data-toggle=":oauth2/commonMain">common</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":oauth2/commonMain"><div class="symbol monospace"><span class="token keyword">sealed </span><span class="token keyword">class </span><a href="-pushed-authorization-exception/index.html">PushedAuthorizationException</a> : <a href="https://developer.android.com/reference/kotlin/java/lang/Exception.html">Exception</a></div><div class="brief "><p class="paragraph">Common base for the two exceptions <a href="start.html">start</a> throws when Pushed Authorization Requests (PAR) cannot be completed. Catch this type to handle "PAR didn't work" generically, or catch the specific subtype (<a href="-pushed-authorization-required-exception/index.html">PushedAuthorizationRequiredException</a> or <a href="-pushed-authorization-request-exception/index.html">PushedAuthorizationRequestException</a>) to distinguish a server-mandated failure from an optional one.</p></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1647980473%2FClasslikes%2F1844834752" anchor-label="PushedAuthorizationRequestException" id="-1647980473%2FClasslikes%2F1844834752" data-filterable-set=":oauth2/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":oauth2/commonMain" data-filterable-set=":oauth2/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-pushed-authorization-request-exception/index.html"><span>Pushed</span><wbr><span>Authorization</span><wbr><span>Request</span><wbr><span><span>Exception</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1647980473%2FClasslikes%2F1844834752"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":oauth2/commonMain" data-filterable-set=":oauth2/commonMain" data-active="" data-toggle=":oauth2/commonMain">common</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":oauth2/commonMain"><div class="symbol monospace"><span class="token keyword">class </span><a href="-pushed-authorization-request-exception/index.html">PushedAuthorizationRequestException</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">message<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">cause<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-throwable/index.html">Throwable</a><span class="token operator">?</span><span class="token operator"> = </span>null</span></span><span class="token punctuation">)</span> : <a href="-pushed-authorization-exception/index.html">AuthorizationCodeFlow.PushedAuthorizationException</a></div><div class="brief "><p class="paragraph">Thrown by <a href="start.html">start</a> when PAR is optional, the PAR request fails, and OAuth2Client.configuration's <code class="lang-kotlin">allowPushedAuthorizationRequestFallback</code> is disabled.</p></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1439586581%2FClasslikes%2F1844834752" anchor-label="PushedAuthorizationRequiredException" id="-1439586581%2FClasslikes%2F1844834752" data-filterable-set=":oauth2/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":oauth2/commonMain" data-filterable-set=":oauth2/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-pushed-authorization-required-exception/index.html"><span>Pushed</span><wbr><span>Authorization</span><wbr><span>Required</span><wbr><span><span>Exception</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1439586581%2FClasslikes%2F1844834752"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":oauth2/commonMain" data-filterable-set=":oauth2/commonMain" data-active="" data-toggle=":oauth2/commonMain">common</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":oauth2/commonMain"><div class="symbol monospace"><span class="token keyword">class </span><a href="-pushed-authorization-required-exception/index.html">PushedAuthorizationRequiredException</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">message<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">cause<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-throwable/index.html">Throwable</a><span class="token operator">?</span><span class="token operator"> = </span>null</span></span><span class="token punctuation">)</span> : <a href="-pushed-authorization-exception/index.html">AuthorizationCodeFlow.PushedAuthorizationException</a></div><div class="brief "><p class="paragraph">Thrown by <a href="start.html">start</a> when PAR is required by the authorization server (<code class="lang-kotlin">require_pushed_authorization_requests</code>) but cannot be used — either no PAR endpoint was discovered, or the PAR request itself failed and fallback is not applicable because the server mandates PAR.</p></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
 <a data-name="-1683574233%2FClasslikes%2F1844834752" anchor-label="RedirectSchemeMismatchException" id="-1683574233%2FClasslikes%2F1844834752" data-filterable-set=":oauth2/commonMain"></a>
           <div class="table-row table-row_content" data-filterable-current=":oauth2/commonMain" data-filterable-set=":oauth2/commonMain">
             <div class="main-subrow keyValue ">
@@ -173,7 +224,28 @@
                 <div class="title">
                   <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
                     <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":oauth2/commonMain" data-filterable-set=":oauth2/commonMain" data-active="" data-toggle=":oauth2/commonMain">common</button></div>
-<div class="content sourceset-dependent-content" data-active="" data-togglable=":oauth2/commonMain"><div class="symbol monospace"><span class="token keyword">class </span><a href="-resume-exception/index.html">ResumeException</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">message<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>errorId<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></span></span><span class="token punctuation">)</span> : <a href="https://developer.android.com/reference/kotlin/java/lang/Exception.html">Exception</a></div><div class="brief "><p class="paragraph">Thrown by <a href="resume.html">resume</a> when the authorization server returns an error.</p></div></div>                  </div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":oauth2/commonMain"><div class="symbol monospace"><span class="token keyword">class </span><a href="-resume-exception/index.html">ResumeException</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">message<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>errorId<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></span></span><span class="token punctuation">)</span> : <a href="https://developer.android.com/reference/kotlin/java/lang/Exception.html">Exception</a></div><div class="brief "><p class="paragraph">Thrown by <a href="resume.html">resume</a> when the redirect could not be validated or the authorization server returned an error.</p></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="PROPERTY">
+        <h2 class="tableheader">Properties</h2>
+        <div class="table"><a data-name="71472667%2FProperties%2F1844834752" anchor-label="client" id="71472667%2FProperties%2F1844834752" data-filterable-set=":oauth2/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":oauth2/commonMain" data-filterable-set=":oauth2/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="client.html"><span><span>client</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="71472667%2FProperties%2F1844834752"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":oauth2/commonMain" data-filterable-set=":oauth2/commonMain" data-active="" data-toggle=":oauth2/commonMain">common</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":oauth2/commonMain"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">val </span><a href="client.html">client</a><span class="token operator">: </span>ERROR CLASS: Symbol not found for OAuth2Client</div><div class="brief "><p class="paragraph">The OAuth2Client instance used for token requests.</p></div></div>                  </div>
                 </div>
               </div>
             </div>
@@ -216,19 +288,19 @@
               </div>
             </div>
           </div>
-<a data-name="2034804648%2FFunctions%2F1844834752" anchor-label="start" id="2034804648%2FFunctions%2F1844834752" data-filterable-set=":oauth2/commonMain"></a>
+<a data-name="1806923560%2FFunctions%2F1844834752" anchor-label="start" id="1806923560%2FFunctions%2F1844834752" data-filterable-set=":oauth2/commonMain"></a>
           <div class="table-row table-row_content" data-filterable-current=":oauth2/commonMain" data-filterable-set=":oauth2/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="start.html"><span><span>start</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2034804648%2FFunctions%2F1844834752"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1806923560%2FFunctions%2F1844834752"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
                   <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
                     <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":oauth2/commonMain" data-filterable-set=":oauth2/commonMain" data-active="" data-toggle=":oauth2/commonMain">common</button></div>
-<div class="content sourceset-dependent-content" data-active="" data-togglable=":oauth2/commonMain"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="start.html"><span class="token function">start</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">redirectUrl<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">extraRequestParameters<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-map/index.html">Map</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">&gt;</span><span class="token operator"> = </span>emptyMap()<span class="token punctuation">, </span></span><span class="parameter ">scope<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator"> = </span><span class="token string">"openid profile email offline_access"</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span>ERROR CLASS: Symbol not found for Result&lt;com/okta/oauth2/kmp/AuthorizationCodeFlowContext&gt;</div><div class="brief "><p class="paragraph">Initiates the Authorization Code redirect flow.</p></div></div>                  </div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":oauth2/commonMain"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="start.html"><span class="token function">start</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">redirectUrl<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">scope<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">&gt;</span><span class="token operator"> = </span>client.configuration.defaultScope<span class="token punctuation">, </span></span><span class="parameter ">extraRequestParameters<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-map/index.html">Map</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">&gt;</span><span class="token operator"> = </span>emptyMap()</span></span><span class="token punctuation">)</span><span class="token operator">: </span>ERROR CLASS: Symbol not found for Result&lt;com/okta/oauth2/kmp/AuthorizationCodeFlowContext&gt;</div><div class="brief "><p class="paragraph">Initiates the Authorization Code redirect flow.</p></div></div>                  </div>
                 </div>
               </div>
             </div>
