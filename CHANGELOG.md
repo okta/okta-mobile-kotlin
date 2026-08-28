@@ -1,6 +1,8 @@
 # Changelog
 
-## auth-foundation Unreleased
+## auth-foundation 3.1.0 - 2026-08-27
+
+[Commits](https://github.com/okta/okta-mobile-kotlin/compare/auth-foundation@3.0.0...auth-foundation@3.1.0)
 
 #### Added
 - `OAuth2ClientBuilder` (jvm wrapper) gained `setJson`, `setIdTokenValidator`,
@@ -37,7 +39,9 @@
   (`now - expiresIn`), which computes the refreshed token's expiration as the instant of the
   refresh itself. `replaceToken()` now passes the actual refresh time as `issuedAt` (#431).
 
-## web-authentication-ui Unreleased
+## web-authentication-ui 3.1.0 - 2026-08-27
+
+[Commits](https://github.com/okta/okta-mobile-kotlin/compare/web-authentication-ui@3.0.0...web-authentication-ui@3.1.0)
 
 #### Added
 
@@ -72,7 +76,9 @@
   `CATEGORY_BROWSABLE` for `http://` or `https://` before being selected, and each preferred
   browser is checked in order rather than stopping at the first Custom-Tabs match.
 
-## oauth2 Unreleased
+## oauth2 3.1.0 - 2026-08-27
+
+[Commits](https://github.com/okta/okta-mobile-kotlin/compare/oauth2@3.0.0...oauth2@3.1.0)
 
 #### Added
 
