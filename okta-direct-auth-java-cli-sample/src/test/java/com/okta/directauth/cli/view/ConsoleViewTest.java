@@ -179,6 +179,7 @@ public class ConsoleViewTest {
     verify(output, atLeastOnce()).print(contains("OTP"));
     verify(output, atLeastOnce()).print(contains("SMS"));
     verify(output, atLeastOnce()).print(contains("Voice"));
+    verify(output, atLeastOnce()).print(contains("Email"));
     verify(output, atLeastOnce()).print(contains("Push (Okta Verify)"));
   }
 
@@ -205,6 +206,7 @@ public class ConsoleViewTest {
     verify(output, atLeastOnce()).print(contains("OTP"));
     verify(output, atLeastOnce()).print(contains("SMS"));
     verify(output, atLeastOnce()).print(contains("Voice"));
+    verify(output, atLeastOnce()).print(contains("Email"));
     verify(output, atLeastOnce()).print(contains("Push (Okta Verify)"));
   }
 

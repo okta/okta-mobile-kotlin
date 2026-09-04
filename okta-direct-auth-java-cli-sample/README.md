@@ -195,7 +195,8 @@ Select authentication method:
 [2] OTP
 [3] SMS
 [4] Voice
-[5] Push (Okta Verify)
+[5] Email
+[6] Push (Okta Verify)
 [0] Back
 Select option: 1
 
@@ -278,7 +279,7 @@ Press Enter to continue...
 
 ### Direct Authentication
 - **Password authentication** — Sign in with username and password
-- **MFA** — OTP, SMS, Voice, and Okta Verify push
+- **MFA** — OTP, SMS, Voice, Email, and Okta Verify push
 - **Device transfer with binding code** — Okta Verify number challenge
 - **Self-service password recovery (SSPR)** — Reset password via the MyAccount API
 

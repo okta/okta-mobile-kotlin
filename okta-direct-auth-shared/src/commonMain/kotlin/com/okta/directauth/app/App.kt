@@ -27,6 +27,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.okta.directauth.app.model.AppNavigationState
 import com.okta.directauth.app.model.AuthMethod
+import com.okta.directauth.app.model.AuthMethod.Mfa.Email
 import com.okta.directauth.app.model.AuthMethod.Mfa.OktaVerify
 import com.okta.directauth.app.model.AuthMethod.Mfa.Otp
 import com.okta.directauth.app.model.AuthMethod.Mfa.Passkeys
@@ -269,8 +270,8 @@ private fun DirectAuthFlow(
         when (currentState) {
             is DirectAuthContinuation.OobPending -> {
                 when (selectAuthMethod) {
-                    Sms, Voice -> {
-                        val supportedAuthenticators: List<AuthMethod> = listOf(Password, OktaVerify, Otp, Passkeys, Sms, Voice)
+                    Sms, Voice, Email -> {
+                        val supportedAuthenticators: List<AuthMethod> = listOf(Password, OktaVerify, Otp, Passkeys, Sms, Voice, Email)
                         AuthenticationFlow(
                             state = authFlowState,
                             selectedAuthMethod = selectAuthMethod,
@@ -415,7 +416,7 @@ private fun DirectAuthFlow(
             DirectAuthenticationState.Idle,
             is DirectAuthenticationState.MfaRequired,
             -> {
-                val supportedAuthenticators: List<AuthMethod> = listOf(Password, OktaVerify, Otp, Passkeys, Sms, Voice)
+                val supportedAuthenticators: List<AuthMethod> = listOf(Password, OktaVerify, Otp, Passkeys, Sms, Voice, Email)
                 AuthenticationFlow(
                     state = authFlowState,
                     selectedAuthMethod = selectAuthMethod,

@@ -52,6 +52,13 @@ public class AuthMethodTest {
   }
 
   @Test
+  public void asFactor_Email_ReturnsOobWithEmailChannel() {
+    PrimaryFactor factor = AuthMethod.EMAIL.asFactor("");
+    assertThat(factor).isInstanceOf(PrimaryFactor.Oob.class);
+    assertThat(((PrimaryFactor.Oob) factor).getChannel()).isEqualTo(OobChannel.EMAIL);
+  }
+
+  @Test
   public void asFactor_OktaVerify_ReturnsOobWithPushChannel() {
     PrimaryFactor factor = AuthMethod.OKTA_VERIFY.asFactor("");
     assertThat(factor).isInstanceOf(PrimaryFactor.Oob.class);
@@ -64,6 +71,7 @@ public class AuthMethodTest {
     assertThat(AuthMethod.OTP.getLabel()).isEqualTo("OTP");
     assertThat(AuthMethod.SMS.getLabel()).isEqualTo("SMS");
     assertThat(AuthMethod.VOICE.getLabel()).isEqualTo("Voice");
+    assertThat(AuthMethod.EMAIL.getLabel()).isEqualTo("Email");
     assertThat(AuthMethod.OKTA_VERIFY.getLabel()).isEqualTo("Push (Okta Verify)");
   }
 }

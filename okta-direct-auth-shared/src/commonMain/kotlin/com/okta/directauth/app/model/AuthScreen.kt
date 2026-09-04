@@ -59,6 +59,12 @@ sealed class AuthScreen(
         val codeSent: Boolean = false,
     ) : AuthScreen(username)
 
+    class Email(
+        username: String,
+        val mfaRequired: DirectAuthenticationState.MfaRequired?,
+        val codeSent: Boolean = false,
+    ) : AuthScreen(username)
+
     class MfaRequired(
         username: String,
         val mfaRequired: DirectAuthenticationState.MfaRequired,

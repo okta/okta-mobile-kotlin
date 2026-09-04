@@ -20,6 +20,8 @@ import com.okta.authfoundation.api.http.ApiExecutor
 import com.okta.authfoundation.api.http.KtorHttpExecutor
 import com.okta.authfoundation.api.log.AuthFoundationLogger
 import com.okta.authfoundation.api.log.LogLevel
+import com.okta.directauth.challengeOobCodeNotForMfaTokenErrorMockEngine
+import com.okta.directauth.challengeOobEmailPromptResponseMockEngine
 import com.okta.directauth.challengeOtpResponseMockEngine
 import com.okta.directauth.challengeWebAuthnResponseMockEngine
 import com.okta.directauth.notJsonMockEngine
@@ -127,6 +129,18 @@ class DirectAuthenticationStateMfaRequiredTest {
         }
 
     @Test
+    fun `challenge with Oob(Email) returns Oauth2Error when oob_code does not match mfa_token`() =
+        runTest {
+            val context = createDirectAuthenticationContext(KtorHttpExecutor(HttpClient(challengeOobCodeNotForMfaTokenErrorMockEngine)))
+            val mfaRequired = DirectAuthenticationState.MfaRequired(context, mfaContext)
+
+            val result = mfaRequired.challenge(PrimaryFactor.Oob(OobChannel.EMAIL))
+
+            assertIs<DirectAuthenticationError.HttpError.Oauth2Error>(result)
+            assertEquals("invalid_request", result.error)
+        }
+
+    @Test
     fun `challenge returns ApiError on server error`() =
         runTest {
             val context = createDirectAuthenticationContext(KtorHttpExecutor(HttpClient(serverErrorMockEngine)))
@@ -159,6 +173,18 @@ class DirectAuthenticationStateMfaRequiredTest {
             val result = mfaRequired.challenge(PrimaryFactor.Oob(OobChannel.PUSH))
 
             assertIs<DirectAuthContinuation.Transfer>(result)
+        }
+
+    @Test
+    fun `challenge with Oob(Email) calls returns Prompt`() =
+        runTest {
+            val context = createDirectAuthenticationContext(KtorHttpExecutor(HttpClient(challengeOobEmailPromptResponseMockEngine)))
+            val mfaRequired = DirectAuthenticationState.MfaRequired(context, mfaContext)
+
+            val result = mfaRequired.challenge(PrimaryFactor.Oob(OobChannel.EMAIL))
+
+            assertIs<DirectAuthContinuation.Prompt>(result)
+            assertEquals(OobChannel.EMAIL, result.bindingContext.channel)
         }
 
     @Test

@@ -47,7 +47,7 @@ To build and run this application, you first need to configure your Okta organiz
 Follow these steps in your Okta Admin Console to configure your application for Direct Authentication.
 
 #### 1. Enable Authenticators
-Ensure the authenticators you want to use (e.g., Okta Verify, Google Authenticator, SMS) are enabled in your Okta organization.
+Ensure the authenticators you want to use (e.g., Okta Verify, Google Authenticator, SMS, Email) are enabled in your Okta organization.
 
 *   In the Admin Console, go to **Security > Authenticators**.
 *   On the **Setup** tab, add or verify that your desired authenticators are present.

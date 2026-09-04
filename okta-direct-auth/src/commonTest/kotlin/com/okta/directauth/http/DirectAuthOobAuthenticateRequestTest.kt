@@ -36,6 +36,7 @@ import com.okta.directauth.oobAuthenticatePushResponseMockEngine
 import com.okta.directauth.oobAuthenticateSmsResponseMockEngine
 import com.okta.directauth.oobAuthenticateTransferNoBindingCodeResponseMockEngine
 import com.okta.directauth.oobAuthenticateTransferResponseMockEngine
+import com.okta.directauth.oobAuthenticateUnsupportedChannelResponseMockEngine
 import com.okta.directauth.oobAuthenticateVoiceResponseMockEngine
 import com.okta.directauth.serverErrorMockEngine
 import com.okta.directauth.unknownJsonTypeMockEngine
@@ -232,16 +233,33 @@ class DirectAuthOobAuthenticateRequestTest {
         }
 
     @Test
+    fun oobAuthenticateRequest_returnsPromptStateWhenUsingEmailChannel() =
+        runTest {
+            val request = DirectAuthOobAuthenticateRequest(context, "test_user", OobChannel.EMAIL)
+            val testContext = context.copy(apiExecutor = KtorHttpExecutor(HttpClient(oobAuthenticateEmailResponseMockEngine)))
+
+            val state = OobStepHandler(request, testContext).process()
+
+            assertIs<DirectAuthContinuation.Prompt>(state)
+            assertEquals("example_oob_code", state.bindingContext.oobCode)
+            assertEquals(OobChannel.EMAIL, state.bindingContext.channel)
+            assertEquals(120, state.bindingContext.expiresIn)
+            assertNull(state.bindingContext.interval)
+            assertEquals(BindingMethod.PROMPT, state.bindingContext.bindingMethod)
+            assertNull(state.bindingContext.bindingCode)
+        }
+
+    @Test
     fun oobAuthenticateRequest_returnsInternalErrorStateWhenUnsupportedChannelReturned() =
         runTest {
             val request = DirectAuthOobAuthenticateRequest(context, "test_user", OobChannel.SMS)
-            val testContext = context.copy(apiExecutor = KtorHttpExecutor(HttpClient(oobAuthenticateEmailResponseMockEngine)))
+            val testContext = context.copy(apiExecutor = KtorHttpExecutor(HttpClient(oobAuthenticateUnsupportedChannelResponseMockEngine)))
 
             val state = OobStepHandler(request, testContext).process()
 
             assertIs<DirectAuthenticationError.InternalError>(state)
             assertEquals(EXCEPTION, state.errorCode)
-            assertEquals("Unknown OOB channel: email", state.description)
+            assertEquals("Unknown OOB channel: carrier_pigeon", state.description)
         }
 
     @Test
@@ -261,6 +279,19 @@ class DirectAuthOobAuthenticateRequestTest {
     fun oobAuthenticateRequest_returnsOauth2ErrorStateOnApiError() =
         runTest {
             val request = DirectAuthOobAuthenticateRequest(context, "test_user", OobChannel.PUSH)
+            val testContext = context.copy(apiExecutor = KtorHttpExecutor(HttpClient(oobAuthenticateOauth2ErrorMockEngine)))
+
+            val state = OobStepHandler(request, testContext).process()
+
+            assertIs<DirectAuthenticationError.HttpError.Oauth2Error>(state)
+            assertEquals("invalid_request", state.error)
+            assertEquals("abc is not a valid channel hint", state.errorDescription)
+        }
+
+    @Test
+    fun oobAuthenticateRequest_returnsOauth2ErrorStateOnApiErrorWhenUsingEmailChannel() =
+        runTest {
+            val request = DirectAuthOobAuthenticateRequest(context, "test_user", OobChannel.EMAIL)
             val testContext = context.copy(apiExecutor = KtorHttpExecutor(HttpClient(oobAuthenticateOauth2ErrorMockEngine)))
 
             val state = OobStepHandler(request, testContext).process()

@@ -42,6 +42,12 @@ enum class OobChannel(
      * to the user's registered phone number.
      */
     VOICE("voice"),
+
+    /**
+     * Specifies that the OOB challenge should be sent via email to the user's
+     * registered email address.
+     */
+    EMAIL("email"),
     ;
 
     internal companion object {
@@ -50,6 +56,7 @@ enum class OobChannel(
                 PUSH.value -> PUSH
                 SMS.value -> SMS
                 VOICE.value -> VOICE
+                EMAIL.value -> EMAIL
                 else -> throw IllegalArgumentException("Unknown OOB channel: $oobChannel")
             }
     }

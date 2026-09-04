@@ -209,6 +209,8 @@ public final class AuthViewModel implements Closeable {
       factor = new PrimaryFactor.Oob(OobChannel.SMS);
     } else if (mfaMethod == AuthMethod.VOICE) {
       factor = new PrimaryFactor.Oob(OobChannel.VOICE);
+    } else if (mfaMethod == AuthMethod.EMAIL) {
+      factor = new PrimaryFactor.Oob(OobChannel.EMAIL);
     } else if (mfaMethod == AuthMethod.OKTA_VERIFY) {
       factor = new PrimaryFactor.Oob(OobChannel.PUSH);
     } else {

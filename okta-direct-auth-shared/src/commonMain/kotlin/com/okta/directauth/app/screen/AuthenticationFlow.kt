@@ -220,8 +220,40 @@ fun AuthenticationFlow(
             }
         }
 
+        is AuthScreen.Email -> {
+            context(
+                AuthenticatorNavContext(
+                    backToSignIn = { onResetNav(state.username) },
+                    verifyWithSomethingElse = { onSelectAuthenticator(state.username, state.mfaRequired) }
+                )
+            ) {
+                if (state.codeSent) {
+                    CodeEntryScreen(username = state.username) { code ->
+                        if (state.mfaRequired != null) {
+                            onResume(code, AuthMethod.Mfa.Email, state.mfaRequired)
+                        } else {
+                            onSignIn(state.username, code, AuthMethod.Mfa.Email)
+                        }
+                    }
+                } else {
+                    ChallengeScreen(
+                        title = "Get a code via email",
+                        buttonText = "Send code",
+                        username = state.username,
+                        onChallenge = {
+                            if (state.mfaRequired != null) {
+                                onResume("", AuthMethod.Mfa.Email, state.mfaRequired)
+                            } else {
+                                onSignIn(state.username, "", AuthMethod.Mfa.Email)
+                            }
+                        }
+                    )
+                }
+            }
+        }
+
         is AuthScreen.MfaRequired -> {
-            val mfaMethods = listOf(Mfa.OktaVerify, Mfa.Otp, Mfa.Passkeys, Mfa.Sms, Mfa.Voice)
+            val mfaMethods = listOf(Mfa.OktaVerify, Mfa.Otp, Mfa.Passkeys, Mfa.Sms, Mfa.Voice, Mfa.Email)
             // filter out the auth method used by initial authentication
             val authMethods =
                 selectedAuthMethod?.let { exclude ->
