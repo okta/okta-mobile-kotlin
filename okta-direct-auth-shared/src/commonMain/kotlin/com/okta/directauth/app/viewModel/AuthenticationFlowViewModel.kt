@@ -37,8 +37,8 @@ import kotlinx.coroutines.flow.asStateFlow
  * - MainViewModel: Manages authentication logic (API calls, state from SDK)
  *
  * Screen Navigation Flow:
- * 1. UsernameInput -> SelectAuthenticator -> (Password/OktaVerify/Otp/Sms/Voice/Passkeys)
- * 2. If MFA required: MfaRequired -> (OktaVerify/Otp/Sms/Voice/Passkeys)
+ * 1. UsernameInput -> SelectAuthenticator -> (Password/OktaVerify/Otp/Sms/Voice/Email/Passkeys)
+ * 2. If MFA required: MfaRequired -> (OktaVerify/Otp/Sms/Voice/Email/Passkeys)
  */
 class AuthenticationFlowViewModel : ViewModel() {
     private val _uiState = MutableStateFlow<AuthScreen>(AuthScreen.UsernameInput(""))
@@ -147,6 +147,7 @@ class AuthenticationFlowViewModel : ViewModel() {
      * - OTP -> Otp screen (code entry)
      * - SMS -> Sms screen (code entry)
      * - Voice -> Voice screen (code entry)
+     * - Email -> Email screen (code entry)
      * - Passkeys -> Passkeys screen (WebAuthn)
      *
      * The method also saves the selected auth method, which is used to:
@@ -169,6 +170,7 @@ class AuthenticationFlowViewModel : ViewModel() {
             AuthMethod.Mfa.Passkeys -> _uiState.value = AuthScreen.Passkeys(username, mfaRequired)
             AuthMethod.Mfa.Sms -> _uiState.value = AuthScreen.Sms(username, mfaRequired)
             AuthMethod.Mfa.Voice -> _uiState.value = AuthScreen.Voice(username, mfaRequired)
+            AuthMethod.Mfa.Email -> _uiState.value = AuthScreen.Email(username, mfaRequired)
             AuthMethod.Password -> _uiState.value = AuthScreen.PasswordAuthenticator(username)
         }
     }
@@ -184,8 +186,8 @@ class AuthenticationFlowViewModel : ViewModel() {
      * display a message like "A code has been sent to your phone."
      *
      * The function checks the current UI state and, if it's a screen that supports sending codes
-     * (like `AuthScreen.Sms` or `AuthScreen.Voice`), it creates a new state with the `codeSent`
-     * flag set to `true`.
+     * (like `AuthScreen.Sms`, `AuthScreen.Voice`, or `AuthScreen.Email`), it creates a new state
+     * with the `codeSent` flag set to `true`.
      */
     fun codeSent() {
         when (val currentState = _uiState.value) {
@@ -201,6 +203,15 @@ class AuthenticationFlowViewModel : ViewModel() {
             is AuthScreen.Voice -> {
                 _uiState.value =
                     AuthScreen.Voice(
+                        username = currentState.username,
+                        mfaRequired = currentState.mfaRequired,
+                        codeSent = true
+                    )
+            }
+
+            is AuthScreen.Email -> {
+                _uiState.value =
+                    AuthScreen.Email(
                         username = currentState.username,
                         mfaRequired = currentState.mfaRequired,
                         codeSent = true
@@ -243,6 +254,7 @@ class AuthenticationFlowViewModel : ViewModel() {
             is AuthScreen.Passkeys,
             is AuthScreen.Sms,
             is AuthScreen.Voice,
+            is AuthScreen.Email,
             -> {
                 _uiState.value = AuthScreen.SelectAuthenticator(currentState.username)
             }

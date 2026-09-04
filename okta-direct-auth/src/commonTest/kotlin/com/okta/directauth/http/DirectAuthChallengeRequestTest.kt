@@ -134,6 +134,21 @@ class DirectAuthChallengeRequestTest {
     }
 
     @Test
+    fun challengeRequest_WithEmailChannelHint() {
+        val mfaContext = MfaContext(listOf(ChallengeGrantType.OobMfa, ChallengeGrantType.OtpMfa), "test_mfa_token")
+        val request =
+            DirectAuthChallengeRequest(
+                context = context,
+                mfaContext = mfaContext,
+                challengeTypesSupported = listOf(ChallengeGrantType.OobMfa),
+                oobChannel = OobChannel.EMAIL
+            )
+
+        val formParameters = request.formParameters()
+        assertEquals(listOf("email"), formParameters["channel_hint"])
+    }
+
+    @Test
     fun challengeRequest_WithClientAssertionParameters() {
         val assertionContext = context.copy(clientSecret = "")
         val clientAssertion = ClientAssertion("urn:ietf:params:oauth:client-assertion-type:jwt-bearer", "test-signed-jwt")

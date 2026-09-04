@@ -371,6 +371,7 @@ public final class com/okta/directauth/model/DirectAuthenticationState$MfaRequir
 }
 
 public final class com/okta/directauth/model/OobChannel : java/lang/Enum {
+	public static final field EMAIL Lcom/okta/directauth/model/OobChannel;
 	public static final field PUSH Lcom/okta/directauth/model/OobChannel;
 	public static final field SMS Lcom/okta/directauth/model/OobChannel;
 	public static final field VOICE Lcom/okta/directauth/model/OobChannel;

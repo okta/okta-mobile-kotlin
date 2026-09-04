@@ -2,6 +2,10 @@
 
 ### Added
 
+- `OobChannel.EMAIL` — email is now a supported out-of-band channel for primary (1FA) authentication,
+  MFA step-up, and self-service password recovery, alongside the existing Push, SMS, and Voice
+  channels. No new API surface beyond the enum entry; the emailed code is submitted the same way as
+  SMS/Voice, via `binding_code`.
 - `DirectAuthenticationFlowBuilder.clientAssertionProvider`/`computeDispatcher` (and the
   corresponding `jvm.DirectAuthenticationFlowBuilder.setClientAssertionProvider`/
   `setComputeDispatcher`) for `private_key_jwt` client authentication. The provider is invoked

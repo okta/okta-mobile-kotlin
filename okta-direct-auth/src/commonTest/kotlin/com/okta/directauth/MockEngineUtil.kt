@@ -38,16 +38,21 @@ const val OOB_AUTHENTICATE_TRANSFER_RESPONSE_JSON =
     """{"challenge_type":"http://auth0.com/oauth/grant-type/mfa-oob","oob_code":"example_oob_code","channel":"push","binding_method":"transfer","binding_code":"95","expires_in":120,"interval":5}"""
 const val OOB_AUTHENTICATE_TRANSFER_NO_BINDING_CODE_RESPONSE_JSON = """{"oob_code":"example_oob_code","channel":"push","binding_method":"transfer","expires_in":120,"interval":5}"""
 const val CHALLENGE_OTP_RESPONSE_JSON = """{"challenge_type":"http://auth0.com/oauth/grant-type/mfa-otp"}"""
+const val CHALLENGE_OOB_EMAIL_PROMPT_RESPONSE_JSON =
+    """{"challenge_type":"http://auth0.com/oauth/grant-type/mfa-oob","oob_code":"example_oob_code","channel":"email","binding_method":"prompt","expires_in":120}"""
 const val CHALLENGE_WEBAUTHN_RESPONSE_JSON =
     """{"challengeType":"urn:okta:params:oauth:grant-type:mfa-webauthn","publicKey":{"challenge":"dGVzdC1jaGFsbGVuZ2U","rpId":"example.okta.com","allowCredentials":[{"type":"public-key","id":"Y3JlZC0x"}],"timeout":60000,"userVerification":"preferred"}}"""
 const val PRIMARY_AUTHENTICATE_WEBAUTHN_RESPONSE_JSON =
     """{"publicKey":{"challenge":"dGVzdC1jaGFsbGVuZ2U","rpId":"example.okta.com","allowCredentials":[{"type":"public-key","id":"Y3JlZC0x"}],"timeout":60000,"userVerification":"preferred"}}"""
 
-// email is not a unsupported channel
 const val OOB_AUTHENTICATE_EMAIL_RESPONSE_JSON = """{"oob_code":"example_oob_code","channel":"email","binding_method":"prompt","expires_in":120}"""
+const val OOB_AUTHENTICATE_UNSUPPORTED_CHANNEL_RESPONSE_JSON =
+    """{"oob_code":"example_oob_code","channel":"carrier_pigeon","binding_method":"prompt","expires_in":120}"""
 const val OOB_AUTHENTICATE_INVALID_BINDING_RESPONSE_JSON = """{"oob_code":"example_oob_code","channel":"push","binding_method":"bluetooth","expires_in":120}"""
 
 const val OOB_AUTHENTICATE_OAUTH2_ERROR_JSON = """{"error":"invalid_request","error_description":"abc is not a valid channel hint"}"""
+const val CHALLENGE_OOB_CODE_NOT_FOR_MFA_TOKEN_ERROR_JSON =
+    """{"error":"invalid_request","error_description":"The 'oob_code' provided is not associated with the provided 'mfa_token'."}"""
 
 // Malformed JSON with trailing comma
 const val MALFORMED_JSON = """{"access_token": "token","token_type": "Bearer",}"""
@@ -113,9 +118,13 @@ val oobAuthenticateTransferNoBindingCodeResponseMockEngine = createMockEngine(OO
 
 val oobAuthenticateEmailResponseMockEngine = createMockEngine(OOB_AUTHENTICATE_EMAIL_RESPONSE_JSON, HttpStatusCode.OK)
 
+val oobAuthenticateUnsupportedChannelResponseMockEngine = createMockEngine(OOB_AUTHENTICATE_UNSUPPORTED_CHANNEL_RESPONSE_JSON, HttpStatusCode.OK)
+
 val oobAuthenticateInvalidBindingResponseMockEngine = createMockEngine(OOB_AUTHENTICATE_INVALID_BINDING_RESPONSE_JSON, HttpStatusCode.OK)
 
 val oobAuthenticateOauth2ErrorMockEngine = createMockEngine(OOB_AUTHENTICATE_OAUTH2_ERROR_JSON, HttpStatusCode.BadRequest)
+
+val challengeOobCodeNotForMfaTokenErrorMockEngine = createMockEngine(CHALLENGE_OOB_CODE_NOT_FOR_MFA_TOKEN_ERROR_JSON, HttpStatusCode.BadRequest)
 
 const val API_ERROR_WITH_CAUSES_JSON =
     """{"errorCode":"E0000011","errorSummary":"Invalid token provided","errorLink":"E0000011","errorId":"test_error_id","errorCauses":[{"errorSummary":"Invalid token: token is expired"}]}"""
@@ -123,6 +132,8 @@ const val API_ERROR_WITH_CAUSES_JSON =
 val apiErrorClientMockEngine = createMockEngine(API_ERROR_WITH_CAUSES_JSON, HttpStatusCode.BadRequest)
 
 val challengeOtpResponseMockEngine = createMockEngine(CHALLENGE_OTP_RESPONSE_JSON, HttpStatusCode.OK)
+
+val challengeOobEmailPromptResponseMockEngine = createMockEngine(CHALLENGE_OOB_EMAIL_PROMPT_RESPONSE_JSON, HttpStatusCode.OK)
 
 val challengeWebAuthnResponseMockEngine = createMockEngine(CHALLENGE_WEBAUTHN_RESPONSE_JSON, HttpStatusCode.OK)
 

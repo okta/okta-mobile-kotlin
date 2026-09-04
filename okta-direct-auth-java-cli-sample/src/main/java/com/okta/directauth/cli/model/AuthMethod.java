@@ -29,6 +29,7 @@ public enum AuthMethod {
   OTP("OTP"),
   SMS("SMS"),
   VOICE("Voice"),
+  EMAIL("Email"),
   OKTA_VERIFY("Push (Okta Verify)");
 
   private final String label;
@@ -61,6 +62,8 @@ public enum AuthMethod {
       return new PrimaryFactor.Oob(OobChannel.SMS);
     } else if (this == VOICE) {
       return new PrimaryFactor.Oob(OobChannel.VOICE);
+    } else if (this == EMAIL) {
+      return new PrimaryFactor.Oob(OobChannel.EMAIL);
     } else if (this == OKTA_VERIFY) {
       return new PrimaryFactor.Oob(OobChannel.PUSH);
     }

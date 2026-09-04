@@ -104,6 +104,18 @@ class DirectAuthContinuationPromptStateTest {
     }
 
     @Test
+    fun `proceed returns Authenticated when channel is email`() {
+        val context = createDirectAuthenticationContext(KtorHttpExecutor(HttpClient(tokenResponseMockEngine)))
+        val promptState = DirectAuthContinuation.Prompt(bindingContext.copy(channel = OobChannel.EMAIL), context)
+
+        val result = runBlocking { promptState.proceed("123456") }
+
+        assertIs<Authenticated>(result)
+        assertEquals(result, context.authenticationStateFlow.value)
+        assertEquals("example_access_token", result.token.accessToken)
+    }
+
+    @Test
     fun `proceed returns Authenticated with a mfa context`() {
         val context = createDirectAuthenticationContext(KtorHttpExecutor(HttpClient(tokenResponseMockEngine)))
         val promptState = DirectAuthContinuation.Prompt(bindingContext, context, mfaContext)

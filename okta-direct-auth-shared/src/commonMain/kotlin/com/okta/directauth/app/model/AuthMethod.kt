@@ -29,6 +29,7 @@ sealed class AuthMethod(
             Mfa.OktaVerify -> PrimaryFactor.Oob(OobChannel.PUSH)
             Mfa.Sms -> PrimaryFactor.Oob(OobChannel.SMS)
             Mfa.Voice -> PrimaryFactor.Oob(OobChannel.VOICE)
+            Mfa.Email -> PrimaryFactor.Oob(OobChannel.EMAIL)
             Mfa.Passkeys -> PrimaryFactor.WebAuthn
         }
 
@@ -42,6 +43,7 @@ sealed class AuthMethod(
                 OktaVerify -> PrimaryFactor.Oob(OobChannel.PUSH)
                 Sms -> PrimaryFactor.Oob(OobChannel.SMS)
                 Voice -> PrimaryFactor.Oob(OobChannel.VOICE)
+                Email -> PrimaryFactor.Oob(OobChannel.EMAIL)
                 Passkeys -> PrimaryFactor.WebAuthn
             }
 
@@ -52,6 +54,8 @@ sealed class AuthMethod(
         data object Sms : Mfa("SMS")
 
         data object Voice : Mfa("Voice")
+
+        data object Email : Mfa("Email")
 
         data object Passkeys : Mfa("Passkeys")
     }
@@ -70,6 +74,7 @@ sealed class AuthMethod(
                 "Okta Verify" -> Mfa.OktaVerify
                 "SMS" -> Mfa.Sms
                 "Voice" -> Mfa.Voice
+                "Email" -> Mfa.Email
                 "Passkeys" -> Mfa.Passkeys
                 else -> null
             }

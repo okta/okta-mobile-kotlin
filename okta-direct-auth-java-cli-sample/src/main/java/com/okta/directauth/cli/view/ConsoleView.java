@@ -157,7 +157,11 @@ public final class ConsoleView implements AuthViewModelListener {
     if (viewModel.isRecoveryMode()) {
       methods =
           new AuthMethod[] {
-            AuthMethod.OTP, AuthMethod.SMS, AuthMethod.VOICE, AuthMethod.OKTA_VERIFY
+            AuthMethod.OTP,
+            AuthMethod.SMS,
+            AuthMethod.VOICE,
+            AuthMethod.EMAIL,
+            AuthMethod.OKTA_VERIFY
           };
     } else {
       methods = AuthMethod.values();
@@ -231,7 +235,7 @@ public final class ConsoleView implements AuthViewModelListener {
 
   private void promptMfa() {
     AuthMethod[] methods = {
-      AuthMethod.OTP, AuthMethod.SMS, AuthMethod.VOICE, AuthMethod.OKTA_VERIFY
+      AuthMethod.OTP, AuthMethod.SMS, AuthMethod.VOICE, AuthMethod.EMAIL, AuthMethod.OKTA_VERIFY
     };
     List<String> labels =
         Arrays.stream(methods).map(AuthMethod::getLabel).collect(Collectors.toList());
