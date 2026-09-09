@@ -122,6 +122,11 @@ internal class CrossAppAccessFlowImpl(
             runCatching {
                 val targetClient = buildTargetClient(idpClient, target)
                 val configuration = targetClient.configuration
+                require(configuration.issuerUrl.trimEnd('/') != idpClient.configuration.issuerUrl.trimEnd('/')) {
+                    "The target resource authorization server (${configuration.issuerUrl}) resolves to the same issuer as " +
+                        "the IdP authorization server (${idpClient.configuration.issuerUrl}). Cross App Access requires " +
+                        "two distinct authorization servers."
+                }
                 require(configuration.clientSecret.isNotBlank() || configuration.clientAssertionProvider != null) {
                     "The target resource authorization server has no client secret or client assertion " +
                         "provider configured. Cross App Access requires a confidential client at both steps."

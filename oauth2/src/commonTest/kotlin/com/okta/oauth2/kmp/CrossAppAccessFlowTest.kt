@@ -84,6 +84,38 @@ class CrossAppAccessFlowTest {
         }
 
     @Test
+    fun create_WithTargetIssuerMatchingIdpIssuer_FailsBeforeAnyNetworkRequest() =
+        runTest {
+            val executor = RoutingApiExecutor()
+            val target =
+                CrossAppAccessTarget.forIssuer(idpIssuer) {
+                    clientSecret = "target-secret"
+                    clientBuildAction = { apiExecutor = executor }
+                }
+
+            val result = CrossAppAccessFlow.create(buildIdpClient(executor), target)
+
+            assertTrue(result.isFailure)
+            assertEquals(emptyList(), executor.capturedRequests)
+        }
+
+    @Test
+    fun create_WithTargetIssuerMatchingIdpIssuerModuloTrailingSlash_Fails() =
+        runTest {
+            val executor = RoutingApiExecutor()
+            val target =
+                CrossAppAccessTarget.forIssuer("$idpIssuer/") {
+                    clientSecret = "target-secret"
+                    clientBuildAction = { apiExecutor = executor }
+                }
+
+            val result = CrossAppAccessFlow.create(buildIdpClient(executor), target)
+
+            assertTrue(result.isFailure)
+            assertEquals(emptyList(), executor.capturedRequests)
+        }
+
+    @Test
     fun create_WithNoTargetCredentialConfigured_Fails() =
         runTest {
             val executor = RoutingApiExecutor()
