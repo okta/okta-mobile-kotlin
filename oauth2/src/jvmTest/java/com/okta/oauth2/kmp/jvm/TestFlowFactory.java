@@ -118,4 +118,14 @@ public final class TestFlowFactory {
   public static AuthorizationCodeFlow createParRequestFailedAuthorizationCodeFlow() {
     return new AuthorizationCodeFlow(FakeSuspendFlows.parRequestFailedAuthorizationCodeDelegate());
   }
+
+  /** Creates a {@link CrossAppAccessFlow} that always succeeds. */
+  public static CrossAppAccessFlow createSuccessCrossAppAccessFlow() {
+    return new CrossAppAccessFlow(FakeSuspendFlows.successCrossAppAccessDelegate());
+  }
+
+  /** Creates a {@link CrossAppAccessFlow} that always fails. */
+  public static CrossAppAccessFlow createFailingCrossAppAccessFlow() {
+    return new CrossAppAccessFlow(FakeSuspendFlows.failingCrossAppAccessDelegate());
+  }
 }
