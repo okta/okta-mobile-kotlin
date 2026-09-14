@@ -1,5 +1,22 @@
 # Changelog
 
+## oauth2 Unreleased
+
+#### Added
+
+- Cross App Access (XAA): `CrossAppAccessFlow` performs the two-step ID-JAG
+  authorization-chaining exchange — `start()` exchanges a subject assertion (ID token, access
+  token, or refresh token) for an ID-JAG at the IdP authorization server, `redeem()` presents it
+  at a target resource authorization server for a scoped resource access token, and `exchange()`
+  composes the two. `CrossAppAccessTarget` (with a builder for its seven settings) names the
+  target by issuer, by Okta custom authorization server id, or by an already-built `OAuth2Client`.
+  `Credential.crossAppAccessSubject`/`crossAppAccessToken` derive the exchange from a stored
+  credential in one call. New public types: `IdJagAssertion`, `SubjectAssertion`, and
+  `CrossAppAccessException` (with `IdpExchangeFailed`/`TargetRedemptionFailed` subtypes). Includes
+  a Java `CompletableFuture` wrapper (`CrossAppAccessFlow`) and chaining target builder
+  (`CrossAppAccessTargetBuilder`). See the [`oauth2` README](oauth2/README.md#cross-app-access) for
+  details.
+
 ## auth-foundation 3.1.0 - 2026-08-27
 
 [Commits](https://github.com/okta/okta-mobile-kotlin/compare/auth-foundation@3.0.0...auth-foundation@3.1.0)
