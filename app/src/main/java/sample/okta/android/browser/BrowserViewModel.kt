@@ -47,9 +47,7 @@ class BrowserViewModel : ViewModel() {
                 if (enableEphemeralBrowsing) {
                     WebAuthentication(
                         SampleApplication.oAuth2Client,
-                        DefaultWebAuthenticationProvider(
-                            customizeTabsIntent = { _, builder -> builder.setEphemeralBrowsingEnabled(true) }
-                        )
+                        DefaultWebAuthenticationProvider(ephemeralBrowsingEnabled = true)
                     )
                 } else {
                     WebAuthentication(SampleApplication.oAuth2Client)

@@ -45,9 +45,7 @@ actual suspend fun platformBrowserLogin(
         if (enableEphemeralBrowsing) {
             WebAuthentication(
                 client,
-                DefaultWebAuthenticationProvider(
-                    customizeTabsIntent = { _, builder -> builder.setEphemeralBrowsingEnabled(true) }
-                )
+                DefaultWebAuthenticationProvider(ephemeralBrowsingEnabled = true)
             )
         } else {
             WebAuthentication(client)

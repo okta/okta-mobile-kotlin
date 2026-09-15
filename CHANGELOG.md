@@ -29,6 +29,19 @@
   merges the same client authentication parameters as `tokenRequest`; unaffected for public
   clients, which continue sending no credential.
 
+## web-authentication-ui Unreleased
+
+#### Fixed
+
+- `DefaultWebAuthenticationProvider`'s ephemeral browsing support (`customizeTabsIntent { builder
+  -> builder.setEphemeralBrowsingEnabled(true) }`, per the README) only took effect when the
+  resolved browser fell back to classic Chrome Custom Tabs. On any browser supporting Chrome's
+  newer Auth Tab (added in 3.1.0), `WebAuthentication` routes through `customizeAuthTabIntent`
+  instead, so the flag set via `customizeTabsIntent` was silently dropped and a normal,
+  non-ephemeral session was used. Added a new `ephemeralBrowsingEnabled` constructor parameter on
+  `DefaultWebAuthenticationProvider` that applies to whichever of Custom Tabs or Auth Tab actually
+  launches, so it can no longer be half-wired.
+
 ## auth-foundation 3.1.0 - 2026-08-27
 
 [Commits](https://github.com/okta/okta-mobile-kotlin/compare/auth-foundation@3.0.0...auth-foundation@3.1.0)

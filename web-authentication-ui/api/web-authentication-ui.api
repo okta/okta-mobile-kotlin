@@ -12,7 +12,8 @@ public final class com/okta/webauthenticationui/DefaultWebAuthenticationProvider
 	public fun <init> (Lcom/okta/authfoundation/events/EventCoordinator;Ljava/util/List;ILkotlin/jvm/functions/Function2;)V
 	public fun <init> (Lcom/okta/authfoundation/events/EventCoordinator;Ljava/util/List;ILkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;)V
 	public fun <init> (Lcom/okta/authfoundation/events/EventCoordinator;Ljava/util/List;ILkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;Lcom/okta/webauthenticationui/BrowserSelector;)V
-	public synthetic fun <init> (Lcom/okta/authfoundation/events/EventCoordinator;Ljava/util/List;ILkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;Lcom/okta/webauthenticationui/BrowserSelector;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lcom/okta/authfoundation/events/EventCoordinator;Ljava/util/List;ILkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;Lcom/okta/webauthenticationui/BrowserSelector;Z)V
+	public synthetic fun <init> (Lcom/okta/authfoundation/events/EventCoordinator;Ljava/util/List;ILkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;Lcom/okta/webauthenticationui/BrowserSelector;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getPreferredBrowsers ()Ljava/util/List;
 	public final fun getQueryIntentServicesFlags ()I
 	public fun launch (Landroid/content/Context;Lokhttp3/HttpUrl;)Ljava/lang/Exception;
