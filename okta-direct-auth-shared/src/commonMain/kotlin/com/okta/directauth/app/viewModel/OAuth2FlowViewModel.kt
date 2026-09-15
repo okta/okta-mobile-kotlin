@@ -46,9 +46,14 @@ import kotlinx.coroutines.launch
  *
  * Creates a shared [OAuth2Client] from [AppConfig] and provides methods to start each
  * OAuth2 flow. The current flow state is exposed via [flowState].
+ *
+ * @param sessionStore every successful sign-in is published here, so it remains available as a
+ *   Cross App Access subject after this view model's own state resets to [OAuth2FlowState.Idle]
+ *   on [reset].
  */
-class OAuth2FlowViewModel :
-    ViewModel(),
+class OAuth2FlowViewModel(
+    private val sessionStore: SessionStore,
+) : ViewModel(),
     LogScope {
     private val defaultScope = listOf("openid", "profile", "email", "offline_access")
 
@@ -61,7 +66,12 @@ class OAuth2FlowViewModel :
 
     private var activeJob: Job? = null
 
-    private val client: OAuth2Client =
+    /**
+     * The shared OAuth2 client — also the IdP authorization server client a
+     * [CrossAppAccessViewModel] must use, since Cross App Access requires the exact client that
+     * manages the session it presents as a subject.
+     */
+    val client: OAuth2Client =
         OAuth2ClientBuilder
             .create(
                 issuerUrl = AppConfig.ISSUER,
@@ -107,6 +117,7 @@ class OAuth2FlowViewModel :
             flow.start(username, password, defaultScope).fold(
                 onSuccess = { tokenInfo ->
                     log("Resource Owner flow succeeded")
+                    sessionStore.publish(tokenInfo, "Resource Owner")
                     _flowState.value = OAuth2FlowState.Authenticated(tokenInfo)
                 },
                 onFailure = { error ->
@@ -141,6 +152,7 @@ class OAuth2FlowViewModel :
                     flow.resume(context).fold(
                         onSuccess = { tokenInfo ->
                             log("Device Authorization flow succeeded")
+                            sessionStore.publish(tokenInfo, "Device Authorization")
                             _flowState.value = OAuth2FlowState.Authenticated(tokenInfo)
                         },
                         onFailure = { error ->
@@ -178,6 +190,7 @@ class OAuth2FlowViewModel :
             platformBrowserLogin(platformContext, client, AppConfig.SIGN_IN_REDIRECT_URI, defaultScope, enableEphemeralBrowsing).fold(
                 onSuccess = { tokenInfo ->
                     log("Browser Auth flow succeeded")
+                    sessionStore.publish(tokenInfo, "Browser Sign-In")
                     _flowState.value = OAuth2FlowState.Authenticated(tokenInfo)
                 },
                 onFailure = { error ->
@@ -205,6 +218,7 @@ class OAuth2FlowViewModel :
             flow.start(idToken, deviceSecret, scope = defaultScope).fold(
                 onSuccess = { tokenInfo ->
                     log("Token Exchange flow succeeded")
+                    sessionStore.publish(tokenInfo, "Token Exchange")
                     _flowState.value = OAuth2FlowState.Authenticated(tokenInfo)
                 },
                 onFailure = { error ->
@@ -230,6 +244,7 @@ class OAuth2FlowViewModel :
             flow.start(sessionToken, AppConfig.SIGN_IN_REDIRECT_URI, scope = defaultScope).fold(
                 onSuccess = { tokenInfo ->
                     log("Session Token flow succeeded")
+                    sessionStore.publish(tokenInfo, "Session Token")
                     _flowState.value = OAuth2FlowState.Authenticated(tokenInfo)
                 },
                 onFailure = { error ->

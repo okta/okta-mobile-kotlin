@@ -25,6 +25,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.okta.authfoundation.api.http.KtorHttpExecutor
+import com.okta.authfoundation.api.http.getHttpClientEngine
+import com.okta.authfoundation.client.OAuth2ClientBuilder
+import com.okta.authfoundation.client.kmp.OAuth2Client
 import com.okta.directauth.app.model.AppNavigationState
 import com.okta.directauth.app.model.AuthMethod
 import com.okta.directauth.app.model.AuthMethod.Mfa.Email
@@ -38,11 +42,14 @@ import com.okta.directauth.app.model.AuthScreen
 import com.okta.directauth.app.model.OAuth2FlowState
 import com.okta.directauth.app.platform.AppStorage
 import com.okta.directauth.app.platform.PlatformBackHandler
+import com.okta.directauth.app.platform.TargetCredential
+import com.okta.directauth.app.platform.crossAppAccessIdpCredential
 import com.okta.directauth.app.platform.rememberWebAuthnCeremonyHandler
 import com.okta.directauth.app.screen.AuthenticatedScreen
 import com.okta.directauth.app.screen.AuthenticationFlow
 import com.okta.directauth.app.screen.AuthenticatorNavContext
 import com.okta.directauth.app.screen.CodeEntryScreen
+import com.okta.directauth.app.screen.CrossAppAccessScreen
 import com.okta.directauth.app.screen.ErrorScreen
 import com.okta.directauth.app.screen.HomeMenuScreen
 import com.okta.directauth.app.screen.OAuth2AuthenticatedScreen
@@ -54,8 +61,10 @@ import com.okta.directauth.app.screen.asString
 import com.okta.directauth.app.ui.theme.DirectAuthAppTheme
 import com.okta.directauth.app.util.AppLogger
 import com.okta.directauth.app.viewModel.AuthenticationFlowViewModel
+import com.okta.directauth.app.viewModel.CrossAppAccessViewModel
 import com.okta.directauth.app.viewModel.MainViewModel
 import com.okta.directauth.app.viewModel.OAuth2FlowViewModel
+import com.okta.directauth.app.viewModel.SessionStore
 import com.okta.directauth.model.DirectAuthContinuation
 import com.okta.directauth.model.DirectAuthenticationError
 import com.okta.directauth.model.DirectAuthenticationIntent
@@ -66,7 +75,17 @@ private const val TAG = "App"
 
 @Composable
 fun App(appStorage: AppStorage) {
-    val oauth2ViewModel: OAuth2FlowViewModel = viewModel { OAuth2FlowViewModel() }
+    // Hoisted here — not inside any single flow's screen — so that no flow's own reset() can
+    // clear it. A flow's reset() means "abandon this attempt and return to the menu", a different
+    // lifetime from "the user has a session", and Cross App Access needs the latter to survive.
+    val sessionStore = remember { SessionStore() }
+    val oauth2ViewModel: OAuth2FlowViewModel = viewModel { OAuth2FlowViewModel(sessionStore) }
+    // Cross App Access owns its own IdP client and session, entirely separate from sessionStore
+    // above — see CrossAppAccessViewModel's KDoc for why it cannot safely reuse the primary
+    // client's session.
+    val xaaIdpClient = remember { buildXaaIdpClient() }
+    val crossAppAccessViewModel: CrossAppAccessViewModel =
+        viewModel { CrossAppAccessViewModel(xaaIdpClient) }
     var navigationState by remember { mutableStateOf<AppNavigationState>(AppNavigationState.HomeMenu) }
 
     val platformContext =
@@ -83,14 +102,39 @@ fun App(appStorage: AppStorage) {
                         onDeviceAuthorization = { navigationState = AppNavigationState.DeviceAuthorization },
                         onBrowserAuth = { navigationState = AppNavigationState.BrowserAuth },
                         onTokenExchange = { navigationState = AppNavigationState.TokenExchange },
-                        onSessionToken = { navigationState = AppNavigationState.SessionToken }
+                        onSessionToken = { navigationState = AppNavigationState.SessionToken },
+                        onCrossAppAccess = { navigationState = AppNavigationState.CrossAppAccess }
                     )
                 }
 
                 AppNavigationState.DirectAuth -> {
                     DirectAuthFlow(
                         appStorage = appStorage,
+                        sessionStore = sessionStore,
                         onBackToHome = { navigationState = AppNavigationState.HomeMenu }
+                    )
+                }
+
+                AppNavigationState.CrossAppAccess -> {
+                    // Recomputes fresh against the current session and configuration both on
+                    // entry and (via the same reset()) on leaving, so re-entry always starts clean.
+                    LaunchedEffect(Unit) { crossAppAccessViewModel.reset() }
+                    val crossAppAccessState by crossAppAccessViewModel.state.collectAsState()
+                    CrossAppAccessScreen(
+                        config = crossAppAccessViewModel.config,
+                        state = crossAppAccessState,
+                        onSignIn = { crossAppAccessViewModel.signIn(platformContext) },
+                        onSelectSubjectKind = crossAppAccessViewModel::selectSubjectKind,
+                        onScopeInputChange = crossAppAccessViewModel::updateScopeInput,
+                        onExchange = crossAppAccessViewModel::exchange,
+                        onStart = crossAppAccessViewModel::start,
+                        onRedeem = crossAppAccessViewModel::redeem,
+                        onIntrospect = crossAppAccessViewModel::introspect,
+                        onReset = crossAppAccessViewModel::reset,
+                        onBack = {
+                            crossAppAccessViewModel.reset()
+                            navigationState = AppNavigationState.HomeMenu
+                        }
                     )
                 }
 
@@ -177,6 +221,34 @@ fun App(appStorage: AppStorage) {
 }
 
 /**
+ * Builds Cross App Access's own, dedicated requesting-app client from `xaaIdpIssuer`/
+ * `xaaIdpClientId`, or `null` if either is absent or the build fails (logged, never thrown) — the
+ * absence/failure case is reported to the developer via [CrossAppAccessState.NotConfigured]
+ * instead. Deliberately built without an `authorizationServerId`: the ID-JAG exchange must be
+ * submitted to the org's own authorization server, never a custom one.
+ */
+private fun buildXaaIdpClient(): OAuth2Client? {
+    val issuer = AppConfig.XAA_IDP_ISSUER.trim()
+    val clientId = AppConfig.XAA_IDP_CLIENT_ID.trim()
+    if (issuer.isEmpty() || clientId.isEmpty()) return null
+
+    return OAuth2ClientBuilder
+        .create(
+            issuerUrl = issuer,
+            clientId = clientId,
+            scope = listOf("openid", "profile", "offline_access")
+        ) {
+            when (val credential = crossAppAccessIdpCredential()) {
+                is TargetCredential.Secret -> clientSecret = credential.value
+                is TargetCredential.Assertion -> clientAssertionProvider = credential.provider
+                TargetCredential.None -> Unit
+            }
+            apiExecutor = KtorHttpExecutor(getHttpClientEngine())
+        }.onFailure { error -> AppLogger.write(TAG, "Failed to build Cross App Access IdP client: ${error.message}") }
+        .getOrNull()
+}
+
+/**
  * Helper composable that renders an OAuth2 flow screen with shared authenticated/error handling.
  *
  * When the flow state is [OAuth2FlowState.Authenticated], shows [OAuth2AuthenticatedScreen].
@@ -218,6 +290,7 @@ private fun OAuth2FlowScreen(
 @Composable
 private fun DirectAuthFlow(
     appStorage: AppStorage,
+    sessionStore: SessionStore,
     onBackToHome: () -> Unit,
 ) {
     val mainViewModel: MainViewModel = viewModel { MainViewModel() }
@@ -259,6 +332,14 @@ private fun DirectAuthFlow(
 
         if (signInState is DirectAuthContinuation.OobPending) {
             authenticationFlowViewModel.codeSent()
+        }
+
+        // Direct Authentication produces a session too — Cross App Access must be reachable from
+        // it exactly as it is from any OAuth2 flow's sign-in. Excludes the RECOVERY intent: that
+        // flow's "Authenticated" state carries only a password-management-scoped token, not a
+        // general-purpose session a developer would expect to reuse.
+        if (signInState is DirectAuthenticationState.Authenticated && intent.value == DirectAuthenticationIntent.SIGN_IN) {
+            sessionStore.publish((signInState as DirectAuthenticationState.Authenticated).token, "Direct Authentication")
         }
 
         if (signInState !is DirectAuthenticationState.AuthorizationPending) {

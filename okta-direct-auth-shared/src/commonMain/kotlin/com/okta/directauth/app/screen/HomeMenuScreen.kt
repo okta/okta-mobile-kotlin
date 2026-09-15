@@ -34,10 +34,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.okta.directauth.app.platform.AppStrings
 import com.okta.directauth.app.platform.appLogoPainter
 import com.okta.directauth.app.ui.theme.Dimens
+import com.okta.directauth.app.ui.theme.DirectAuthAppTheme
 
 /**
  * Home menu screen presenting all available authentication flow options.
@@ -51,6 +53,7 @@ import com.okta.directauth.app.ui.theme.Dimens
  * @param onBrowserAuth navigate to the Browser Sign-In (Authorization Code + PKCE) flow
  * @param onTokenExchange navigate to the Token Exchange flow
  * @param onSessionToken navigate to the Session Token flow
+ * @param onCrossAppAccess navigate to the Cross App Access screen
  */
 @Composable
 fun HomeMenuScreen(
@@ -60,6 +63,7 @@ fun HomeMenuScreen(
     onBrowserAuth: () -> Unit,
     onTokenExchange: () -> Unit,
     onSessionToken: () -> Unit,
+    onCrossAppAccess: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -141,5 +145,29 @@ fun HomeMenuScreen(
         ) {
             Text(text = "Session Token Flow")
         }
+        Spacer(modifier = Modifier.height(Dimens.spaceSmall))
+
+        OutlinedButton(
+            onClick = onCrossAppAccess,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(text = "Cross App Access")
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun HomeMenuScreenPreview() {
+    DirectAuthAppTheme {
+        HomeMenuScreen(
+            onDirectAuth = {},
+            onResourceOwner = {},
+            onDeviceAuthorization = {},
+            onBrowserAuth = {},
+            onTokenExchange = {},
+            onSessionToken = {},
+            onCrossAppAccess = {}
+        )
     }
 }

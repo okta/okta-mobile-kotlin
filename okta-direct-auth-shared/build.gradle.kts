@@ -30,6 +30,41 @@ val desktopSignInRedirectUri = localProperties.getProperty("desktopSignInRedirec
 // it.
 val clientSecret = localProperties.getProperty("clientSecret") ?: ""
 val clientAssertionPrivateKeyPem = localProperties.getProperty("clientAssertionPrivateKeyPem") ?: ""
+// The registered key's Key ID (as shown for it in the app integration's Public Keys admin
+// console tab) — private_key_jwt requires the assertion's JWT header to carry this so Okta knows
+// which registered key to verify against when the client has more than one active key. Only
+// meaningful alongside clientAssertionPrivateKeyPem.
+val clientAssertionKid = localProperties.getProperty("clientAssertionKid") ?: ""
+
+// Cross App Access (XAA) — resource app target, all optional. Absence of any of these must never
+// fail the build; the sample simply reports Cross App Access as not configured. See
+// CrossAppAccessConfig.kt for validation and CrossAppAccessCredential.kt for the target credential,
+// which follows the same testing-only, per-platform sourcing as clientSecret/
+// clientAssertionPrivateKeyPem above.
+val xaaTargetIssuer = localProperties.getProperty("xaaTargetIssuer") ?: ""
+val xaaTargetAuthorizationServerId = localProperties.getProperty("xaaTargetAuthorizationServerId") ?: ""
+val xaaTargetClientId = localProperties.getProperty("xaaTargetClientId") ?: ""
+val xaaTargetClientSecret = localProperties.getProperty("xaaTargetClientSecret") ?: ""
+val xaaTargetClientAssertionPrivateKeyPem = localProperties.getProperty("xaaTargetClientAssertionPrivateKeyPem") ?: ""
+// The registered key's Key ID (as shown for it in the app integration's Public Keys admin
+// console tab) — private_key_jwt requires the assertion's JWT header to carry this so Okta knows
+// which registered key to verify against; omitting it fails with "The client_assertion JWT kid is
+// invalid." Only meaningful alongside xaaTargetClientAssertionPrivateKeyPem.
+val xaaTargetClientAssertionKid = localProperties.getProperty("xaaTargetClientAssertionKid") ?: ""
+val xaaTargetResource = localProperties.getProperty("xaaTargetResource") ?: ""
+
+// Cross App Access (XAA) — the requesting app's OWN identity, separate from the primary app
+// above. The ID-JAG exchange (first step) must be submitted to the org's own authorization
+// server, never a custom one — so there is deliberately no xaaIdpAuthorizationServerId key.
+// Registering this as a second, independent app integration in Okta (rather than reusing the
+// primary app/authorizationServerId) is what lets a developer test the primary flows against a
+// custom authorization server and Cross App Access in the same running app.
+val xaaIdpIssuer = localProperties.getProperty("xaaIdpIssuer") ?: ""
+val xaaIdpClientId = localProperties.getProperty("xaaIdpClientId") ?: ""
+val xaaIdpClientSecret = localProperties.getProperty("xaaIdpClientSecret") ?: ""
+val xaaIdpClientAssertionPrivateKeyPem = localProperties.getProperty("xaaIdpClientAssertionPrivateKeyPem") ?: ""
+// See xaaTargetClientAssertionKid above for why this is needed.
+val xaaIdpClientAssertionKid = localProperties.getProperty("xaaIdpClientAssertionKid") ?: ""
 
 val isCi = System.getenv("CI")?.toBoolean() ?: false
 if (!isCi && (issuer.isEmpty() || clientId.isEmpty() || authorizationServerId.isEmpty())) {
@@ -83,6 +118,19 @@ val generateAppConfig =
             |    const val DESKTOP_SIGN_IN_REDIRECT_URI: String = "$desktopSignInRedirectUri"
             |    const val CLIENT_SECRET: String = "${escapeForKotlinStringLiteral(clientSecret)}"
             |    const val CLIENT_ASSERTION_PRIVATE_KEY_PEM: String = "${escapeForKotlinStringLiteral(clientAssertionPrivateKeyPem)}"
+            |    const val CLIENT_ASSERTION_KID: String = "${escapeForKotlinStringLiteral(clientAssertionKid)}"
+            |    const val XAA_TARGET_ISSUER: String = "$xaaTargetIssuer"
+            |    const val XAA_TARGET_AUTHORIZATION_SERVER_ID: String = "$xaaTargetAuthorizationServerId"
+            |    const val XAA_TARGET_CLIENT_ID: String = "$xaaTargetClientId"
+            |    const val XAA_TARGET_CLIENT_SECRET: String = "${escapeForKotlinStringLiteral(xaaTargetClientSecret)}"
+            |    const val XAA_TARGET_CLIENT_ASSERTION_PRIVATE_KEY_PEM: String = "${escapeForKotlinStringLiteral(xaaTargetClientAssertionPrivateKeyPem)}"
+            |    const val XAA_TARGET_CLIENT_ASSERTION_KID: String = "${escapeForKotlinStringLiteral(xaaTargetClientAssertionKid)}"
+            |    const val XAA_TARGET_RESOURCE: String = "$xaaTargetResource"
+            |    const val XAA_IDP_ISSUER: String = "$xaaIdpIssuer"
+            |    const val XAA_IDP_CLIENT_ID: String = "$xaaIdpClientId"
+            |    const val XAA_IDP_CLIENT_SECRET: String = "${escapeForKotlinStringLiteral(xaaIdpClientSecret)}"
+            |    const val XAA_IDP_CLIENT_ASSERTION_PRIVATE_KEY_PEM: String = "${escapeForKotlinStringLiteral(xaaIdpClientAssertionPrivateKeyPem)}"
+            |    const val XAA_IDP_CLIENT_ASSERTION_KID: String = "${escapeForKotlinStringLiteral(xaaIdpClientAssertionKid)}"
             |}
                 """.trimMargin()
             )
@@ -145,6 +193,13 @@ kotlin {
         }
 
         jvmMain.dependencies {
+        }
+
+        jvmTest {
+            dependencies {
+                implementation(libs.kotlin.test)
+                implementation(libs.coroutines.test)
+            }
         }
     }
 }

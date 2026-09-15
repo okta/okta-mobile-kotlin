@@ -37,8 +37,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.okta.directauth.app.ui.theme.Dimens
+import com.okta.directauth.app.ui.theme.DirectAuthAppTheme
 
 /**
  * Screen for the Resource Owner Password grant flow.
@@ -116,5 +118,13 @@ fun ResourceOwnerScreen(
         TextButton(onClick = onBack) {
             Text(text = "Back to Home")
         }
+    }
+}
+
+@Preview
+@Composable
+private fun ResourceOwnerScreenPreview() {
+    DirectAuthAppTheme {
+        ResourceOwnerScreen(onSignIn = { _, _ -> }, onBack = {})
     }
 }
