@@ -334,7 +334,7 @@ class OAuth2Client internal constructor(
                     "client_id" to configuration.clientId,
                     "token" to token,
                     "token_type_hint" to tokenTypeHint
-                )
+                ) + configuration.clientAuthenticationFormParameters(endpoint)
 
             val result =
                 withRateLimitRetry {

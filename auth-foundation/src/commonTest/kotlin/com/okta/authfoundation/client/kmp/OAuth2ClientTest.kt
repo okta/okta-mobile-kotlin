@@ -218,6 +218,87 @@ class OAuth2ClientTest {
         }
 
     @Test
+    fun introspectToken_WithClientSecret_AddsClientSecretToIntrospectionRequest() =
+        runTest {
+            val requests = mutableListOf<ApiRequest>()
+            val client =
+                createClient(
+                    capturingApiExecutor(
+                        """
+                        {
+                            "active": true
+                        }
+                        """.trimIndent(),
+                        requests
+                    )
+                ) {
+                    clientSecret = "test-client-secret"
+                }
+
+            val result = client.introspectToken("access_token", "some-token")
+
+            assertTrue(result.isSuccess)
+            val form = (requests.single() as com.okta.authfoundation.api.http.ApiFormRequest).formParameters().mapValues { it.value.first() }
+            assertEquals("test-client-secret", form["client_secret"])
+            assertEquals("test-client-id", form["client_id"])
+            assertEquals("some-token", form["token"])
+        }
+
+    @Test
+    fun introspectToken_WithClientAssertionProvider_AddsAssertionFieldsToIntrospectionRequest() =
+        runTest {
+            val requests = mutableListOf<ApiRequest>()
+            val client =
+                createClient(
+                    capturingApiExecutor(
+                        """
+                        {
+                            "active": true
+                        }
+                        """.trimIndent(),
+                        requests
+                    )
+                ) {
+                    this.clientAssertionProvider =
+                        ClientAssertionProvider { audience ->
+                            ClientAssertion(type = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer", assertion = "jwt-for-$audience")
+                        }
+                }
+
+            val result = client.introspectToken("access_token", "some-token")
+
+            assertTrue(result.isSuccess)
+            val form = (requests.single() as com.okta.authfoundation.api.http.ApiFormRequest).formParameters().mapValues { it.value.first() }
+            assertEquals("jwt-for-https://example.okta.com/oauth2/default/v1/introspect", form["client_assertion"])
+            assertEquals("urn:ietf:params:oauth:client-assertion-type:jwt-bearer", form["client_assertion_type"])
+        }
+
+    @Test
+    fun introspectToken_WithNoCredential_OmitsClientAuthenticationFields() =
+        runTest {
+            val requests = mutableListOf<ApiRequest>()
+            val client =
+                createClient(
+                    capturingApiExecutor(
+                        """
+                        {
+                            "active": false
+                        }
+                        """.trimIndent(),
+                        requests
+                    )
+                )
+
+            val result = client.introspectToken("access_token", "some-token")
+
+            assertTrue(result.isSuccess)
+            val form = (requests.single() as com.okta.authfoundation.api.http.ApiFormRequest).formParameters().mapValues { it.value.first() }
+            assertEquals("test-client-id", form["client_id"])
+            assertEquals(null, form["client_secret"])
+            assertEquals(null, form["client_assertion"])
+        }
+
+    @Test
     fun getUserInfo_returnsOidcUserInfo() =
         runTest {
             val userInfoJson =
