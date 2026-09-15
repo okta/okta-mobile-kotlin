@@ -17,6 +17,18 @@
   (`CrossAppAccessTargetBuilder`). See the [`oauth2` README](oauth2/README.md#cross-app-access) for
   details.
 
+## auth-foundation Unreleased
+
+#### Fixed
+
+- `OAuth2Client.introspectToken()` (KMP) never added client authentication to the introspection
+  request — only `client_id`/`token`/`token_type_hint` were sent, unlike `tokenRequest`/
+  `refreshToken`, which both merge in `clientAuthenticationFormParameters`. Okta's introspection
+  endpoint requires client authentication for confidential clients (`client_secret_post` or
+  `private_key_jwt`), so this caused `invalid_client` for any confidential-client caller. Now
+  merges the same client authentication parameters as `tokenRequest`; unaffected for public
+  clients, which continue sending no credential.
+
 ## auth-foundation 3.1.0 - 2026-08-27
 
 [Commits](https://github.com/okta/okta-mobile-kotlin/compare/auth-foundation@3.0.0...auth-foundation@3.1.0)
