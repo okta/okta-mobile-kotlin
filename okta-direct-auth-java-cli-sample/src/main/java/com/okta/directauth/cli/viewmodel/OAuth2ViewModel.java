@@ -45,6 +45,12 @@ public final class OAuth2ViewModel implements Closeable {
   private volatile TokenDisplay lastTokenDisplay;
   private volatile CompletableFuture<?> pendingFuture;
 
+  // Retained across reset() — unlike lastTokenDisplay above — so it remains available as a Cross
+  // App Access subject after the user returns to the menu. reset() means "abandon this flow
+  // attempt", a different lifetime from "the user has a session"; only close()/a fresh success
+  // ever replaces this.
+  private volatile TokenInfo lastSuccessfulToken;
+
   /**
    * Creates a new OAuth2ViewModel.
    *
@@ -81,6 +87,17 @@ public final class OAuth2ViewModel implements Closeable {
    */
   public TokenDisplay getLastTokenDisplay() {
     return lastTokenDisplay;
+  }
+
+  /**
+   * Returns the raw token from the last successful flow, retained across {@link #reset()} so it
+   * remains available as a Cross App Access subject after returning to the menu. Null if no flow
+   * has succeeded yet (or after {@link #close()}).
+   *
+   * @return last successful token, or null
+   */
+  public TokenInfo getLastSuccessfulToken() {
+    return lastSuccessfulToken;
   }
 
   /**
@@ -233,6 +250,7 @@ public final class OAuth2ViewModel implements Closeable {
 
   private void handleSuccess(TokenInfo tokenInfo) {
     CliLogger.info(TAG, "Flow succeeded");
+    lastSuccessfulToken = tokenInfo;
     lastTokenDisplay = TokenDisplay.fromTokenInfo(tokenInfo);
     setScreen(OAuth2Screen.AUTHENTICATED);
     for (OAuth2ViewModelListener listener : listeners) {

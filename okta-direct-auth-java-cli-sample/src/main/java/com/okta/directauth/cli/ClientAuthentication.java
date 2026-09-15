@@ -19,6 +19,7 @@ import com.okta.authfoundation.client.ClientAssertion;
 import com.okta.authfoundation.client.ClientAssertionProvider;
 import com.okta.authfoundation.client.jvm.OAuth2ClientBuilder;
 import com.okta.directauth.jvm.DirectAuthenticationFlowBuilder;
+import com.okta.oauth2.kmp.jvm.CrossAppAccessTargetBuilder;
 import io.jsonwebtoken.Jwts;
 import java.io.File;
 import java.io.FileInputStream;
@@ -85,6 +86,12 @@ final class ClientAuthentication {
   private static final String TAG = "ClientAuthentication";
   private static final String CLIENT_SECRET_PROPERTY = "clientSecret";
   private static final String CLIENT_ASSERTION_PEM_PROPERTY = "clientAssertionPrivateKeyPem";
+  private static final String TARGET_CLIENT_SECRET_PROPERTY = "xaaTargetClientSecret";
+  private static final String TARGET_CLIENT_ASSERTION_PEM_PROPERTY =
+      "xaaTargetClientAssertionPrivateKeyPem";
+  private static final String IDP_CLIENT_SECRET_PROPERTY = "xaaIdpClientSecret";
+  private static final String IDP_CLIENT_ASSERTION_PEM_PROPERTY =
+      "xaaIdpClientAssertionPrivateKeyPem";
   private static final String JWT_BEARER_CLIENT_ASSERTION_TYPE =
       "urn:ietf:params:oauth:client-assertion-type:jwt-bearer";
   private static final Duration CLIENT_ASSERTION_LIFETIME = Duration.ofMinutes(5);
@@ -111,7 +118,12 @@ final class ClientAuthentication {
    */
   static void configure(OAuth2ClientBuilder builder, String clientId, Properties localProperties) {
     applyLocalClientCredentials(
-        clientId, localProperties, builder::setClientSecret, builder::setClientAssertionProvider);
+        CLIENT_SECRET_PROPERTY,
+        CLIENT_ASSERTION_PEM_PROPERTY,
+        clientId,
+        localProperties,
+        builder::setClientSecret,
+        builder::setClientAssertionProvider);
   }
 
   /**
@@ -139,30 +151,113 @@ final class ClientAuthentication {
   static void configure(
       DirectAuthenticationFlowBuilder builder, String clientId, Properties localProperties) {
     applyLocalClientCredentials(
-        clientId, localProperties, builder::setClientSecret, builder::setClientAssertionProvider);
+        CLIENT_SECRET_PROPERTY,
+        CLIENT_ASSERTION_PEM_PROPERTY,
+        clientId,
+        localProperties,
+        builder::setClientSecret,
+        builder::setClientAssertionProvider);
   }
 
   /**
-   * Shared credential-selection logic for both {@link OAuth2ClientBuilder} and {@link
-   * DirectAuthenticationFlowBuilder}: reads {@code clientSecret}/{@code
-   * clientAssertionPrivateKeyPem} from {@code localProperties} and applies whichever is present via
-   * {@code setClientSecret}/{@code setClientAssertionProvider}.
+   * Applies a client secret or private_key_jwt client assertion provider to the Cross App Access
+   * resource app target {@code builder}, if either is present in {@code local.properties} under
+   * {@code xaaTargetClientSecret} / {@code xaaTargetClientAssertionPrivateKeyPem}. Does nothing if
+   * neither is configured.
+   *
+   * <p>Applied via {@link CrossAppAccessTargetBuilder#setClientSecret} / {@link
+   * CrossAppAccessTargetBuilder#setClientAssertionProvider} — never via {@code
+   * setClientBuildAction}, which is applied last by the SDK and would overwrite the target's
+   * credential with the requesting app's own.
+   *
+   * @param builder the target builder to configure
+   * @param clientId the target-side client id, used as the {@code iss}/{@code sub} claims of a
+   *     private_key_jwt assertion
+   */
+  static void configureTarget(CrossAppAccessTargetBuilder builder, String clientId) {
+    configureTarget(builder, clientId, findLocalProperties());
+  }
+
+  /**
+   * Overload taking an already-loaded {@link Properties}, so the credential-selection logic can be
+   * unit-tested without touching the filesystem.
+   */
+  static void configureTarget(
+      CrossAppAccessTargetBuilder builder, String clientId, Properties localProperties) {
+    applyLocalClientCredentials(
+        TARGET_CLIENT_SECRET_PROPERTY,
+        TARGET_CLIENT_ASSERTION_PEM_PROPERTY,
+        clientId,
+        localProperties,
+        builder::setClientSecret,
+        builder::setClientAssertionProvider);
+  }
+
+  /**
+   * Whether a Cross App Access target credential is present in {@code localProperties}, without
+   * exposing its value.
+   *
+   * @param localProperties the loaded properties to check
+   * @return true if either {@code xaaTargetClientSecret} or {@code
+   *     xaaTargetClientAssertionPrivateKeyPem} is set
+   */
+  static boolean hasTargetCredential(Properties localProperties) {
+    String clientSecret = localProperties.getProperty(TARGET_CLIENT_SECRET_PROPERTY, "").trim();
+    String clientAssertionPem =
+        localProperties.getProperty(TARGET_CLIENT_ASSERTION_PEM_PROPERTY, "").trim();
+    return !clientSecret.isEmpty() || !clientAssertionPem.isEmpty();
+  }
+
+  /**
+   * Applies a client secret or private_key_jwt client assertion provider to the Cross App Access
+   * requesting app's own (IdP-side) {@code builder}, if either is present in {@code
+   * local.properties} under {@code xaaIdpClientSecret} / {@code
+   * xaaIdpClientAssertionPrivateKeyPem}. Does nothing if neither is configured.
+   *
+   * @param builder the IdP client builder to configure
+   * @param clientId the IdP-side client id, used as the {@code iss}/{@code sub} claims of a
+   *     private_key_jwt assertion
+   * @param localProperties the loaded properties to read the credential from
+   */
+  static void configureIdpClient(
+      OAuth2ClientBuilder builder, String clientId, Properties localProperties) {
+    applyLocalClientCredentials(
+        IDP_CLIENT_SECRET_PROPERTY,
+        IDP_CLIENT_ASSERTION_PEM_PROPERTY,
+        clientId,
+        localProperties,
+        builder::setClientSecret,
+        builder::setClientAssertionProvider);
+  }
+
+  /**
+   * Shared credential-selection logic for {@link OAuth2ClientBuilder}, {@link
+   * DirectAuthenticationFlowBuilder}, and {@link CrossAppAccessTargetBuilder}: reads the client
+   * secret / private_key_jwt PEM properties named by {@code secretProperty} / {@code pemProperty}
+   * from {@code localProperties} and applies whichever is present via {@code
+   * setClientSecret}/{@code setClientAssertionProvider}.
    */
   private static void applyLocalClientCredentials(
+      String secretProperty,
+      String pemProperty,
       String clientId,
       Properties localProperties,
       Consumer<String> setClientSecret,
       Consumer<ClientAssertionProvider> setClientAssertionProvider) {
-    String clientSecret = localProperties.getProperty(CLIENT_SECRET_PROPERTY, "").trim();
-    String clientAssertionPem =
-        localProperties.getProperty(CLIENT_ASSERTION_PEM_PROPERTY, "").trim();
+    String clientSecret = localProperties.getProperty(secretProperty, "").trim();
+    String clientAssertionPem = localProperties.getProperty(pemProperty, "").trim();
 
     if (!clientAssertionPem.isEmpty()) {
       if (!clientSecret.isEmpty()) {
         CliLogger.info(
             TAG,
-            "Both clientSecret and clientAssertionPrivateKeyPem are set in local.properties; "
-                + "using the private_key_jwt assertion and ignoring clientSecret.");
+            "Both "
+                + secretProperty
+                + " and "
+                + pemProperty
+                + " are set in local.properties; using the private_key_jwt assertion and ignoring "
+                + secretProperty
+                + ".");
       }
       PrivateKey privateKey = parsePkcs8PrivateKey(clientAssertionPem);
       setClientAssertionProvider.accept(
@@ -172,16 +267,22 @@ final class ClientAuthentication {
                   buildClientAssertionJwt(clientId, audience, privateKey)));
       CliLogger.info(
           TAG,
-          "Using a private_key_jwt client assertion provider from local.properties (testing"
-              + " only; a fresh JWT is signed for every request).");
+          "Using a private_key_jwt client assertion provider from local.properties ("
+              + pemProperty
+              + "; testing only, a fresh JWT is signed for every request).");
     } else if (!clientSecret.isEmpty()) {
       setClientSecret.accept(clientSecret);
-      CliLogger.info(TAG, "Using a client_secret from local.properties (testing only).");
+      CliLogger.info(
+          TAG,
+          "Using a client_secret from local.properties (" + secretProperty + "; testing only).");
     } else {
       CliLogger.debug(
           TAG,
-          "No clientSecret or clientAssertionPrivateKeyPem in local.properties; continuing as a"
-              + " public client.");
+          "No "
+              + secretProperty
+              + " or "
+              + pemProperty
+              + " in local.properties; continuing without this credential.");
     }
   }
 
@@ -228,8 +329,12 @@ final class ClientAuthentication {
    * Searches {@code local.properties} starting at the current working directory and walking up
    * parent directories, since the CLI may be launched from the repo root (Gradle {@code run}) or
    * from an unpacked distribution directory.
+   *
+   * <p>Package-private (not private) so {@code Main} can load it once and reuse it for both {@link
+   * #hasTargetCredential} and {@link #configureTarget(CrossAppAccessTargetBuilder, String,
+   * Properties)} rather than re-reading the file.
    */
-  private static Properties findLocalProperties() {
+  static Properties findLocalProperties() {
     File directory = new File(System.getProperty("user.dir")).getAbsoluteFile();
     for (int i = 0; directory != null && i < MAX_PARENT_DIRECTORIES_TO_SEARCH; i++) {
       File candidate = new File(directory, "local.properties");

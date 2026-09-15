@@ -15,13 +15,17 @@
  */
 package com.okta.directauth.cli.model;
 
-/** The five OAuth2 standard flows demonstrated by this sample. */
+/** The OAuth2 flows demonstrated by this sample: five standard grants, plus Cross App Access. */
 public enum OAuth2Flow {
   RESOURCE_OWNER("Resource Owner Password", true, false, false),
   DEVICE_AUTHORIZATION("Device Authorization", false, false, false),
   BROWSER_SIGN_IN("Browser Sign-In (Auth Code + PKCE)", false, false, false),
   TOKEN_EXCHANGE("Token Exchange", false, true, false),
-  SESSION_TOKEN("Session Token", false, false, true);
+  SESSION_TOKEN("Session Token", false, false, true),
+  // Cross App Access's inputs (a chosen subject kind, from a session or pasted) don't fit the
+  // three booleans above, which describe the first five flows' inputs specifically — its console
+  // prompt is handled in its own dedicated branch in OAuth2ConsoleView instead of overloading them.
+  CROSS_APP_ACCESS("Cross App Access", false, false, false);
 
   private final String label;
   private final boolean requiresCredentials;

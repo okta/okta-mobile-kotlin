@@ -22,5 +22,20 @@ public enum OAuth2Screen {
   DEVICE_POLLING,
   BROWSER_WAITING,
   AUTHENTICATED,
-  ERROR
+  ERROR,
+
+  /** Cross App Access: choosing a subject kind, ready to start either mode. */
+  CROSS_APP_ACCESS_MENU,
+  /** Cross App Access: the dedicated sign-in's browser flow is in flight. */
+  CROSS_APP_ACCESS_SIGN_IN_WAITING,
+  /** Cross App Access: the dedicated sign-in succeeded — a session is now available. */
+  CROSS_APP_ACCESS_SIGNED_IN,
+  /** Cross App Access: a step is in flight. */
+  CROSS_APP_ACCESS_WORKING,
+  /** Cross App Access: the ID-JAG was obtained (step-by-step mode only). */
+  CROSS_APP_ACCESS_ID_JAG,
+  /** Cross App Access: a resource access token was obtained. */
+  CROSS_APP_ACCESS_RESULT,
+  /** Cross App Access: the exchange failed. */
+  CROSS_APP_ACCESS_ERROR
 }

@@ -33,7 +33,7 @@ module that matches how you want users to sign in.
 - **[`app/README.md`](app/README.md)** — Android sample wiring `oauth2` + `web-authentication-ui` + `auth-foundation` together: browser sign-in (Authorization Code via Chrome Custom Tabs), Resource Owner Password, Device Authorization, and Token Exchange, with a post-login dashboard. Copy from here for a typical Android OAuth2 integration.
 - **[`dynamic-app/README.md`](dynamic-app/README.md)** — Android sample for the `okta-idx-kotlin` interaction code flow: builds its sign-in UI dynamically from server remediations. Look here (rather than `app`) when integrating Identity Engine, and for the Cucumber/e2e test setup.
 - **[`okta-direct-auth-shared/README.md`](okta-direct-auth-shared/README.md)** — The setup reference for the Compose Multiplatform direct-auth sample (Android + desktop runners): full Okta org configuration and `local.properties` for both the Direct Auth and OAuth2 flows the sample demonstrates.
-- **[`okta-direct-auth-java-cli-sample/README.md`](okta-direct-auth-java-cli-sample/README.md)** — Pure-Java (no Kotlin) CLI exercising the `CompletableFuture` wrappers for both `okta-direct-auth` and all five `oauth2` flows. The reference to follow if you integrate from Java.
+- **[`okta-direct-auth-java-cli-sample/README.md`](okta-direct-auth-java-cli-sample/README.md)** — Pure-Java (no Kotlin) CLI exercising the `CompletableFuture` wrappers for both `okta-direct-auth` and all six `oauth2` flows, including Cross App Access. The reference to follow if you integrate from Java.
 
 ## Repository layout
 
