@@ -53,6 +53,13 @@ import okhttp3.HttpUrl
  * )
  * val webAuth = WebAuthentication(client, provider)
  * ```
+ *
+ * To request an ephemeral (no persisted cookies/session) browsing session, set
+ * [ephemeralBrowsingEnabled] rather than calling `setEphemeralBrowsingEnabled` from
+ * [customizeTabsIntent] or [customizeAuthTabIntent] directly: [RedirectCoordinator] picks between
+ * Custom Tabs and Auth Tab per-launch depending on what the resolved browser supports, and only one
+ * of those two hooks runs for a given launch, so setting the flag on just one builder means it's
+ * silently dropped whenever the other path is taken.
  */
 class DefaultWebAuthenticationProvider @JvmOverloads constructor(
     /**
@@ -94,8 +101,8 @@ class DefaultWebAuthenticationProvider @JvmOverloads constructor(
      *
      * ```kotlin
      * DefaultWebAuthenticationProvider(
-     *     customizeAuthTabIntent = { _, builder ->
-     *         builder.setEphemeralBrowsingEnabled(true)
+     *     customizeAuthTabIntent = { context, builder ->
+     *         builder.setToolbarColor(ContextCompat.getColor(context, R.color.brand_primary))
      *     }
      * )
      * ```
@@ -107,6 +114,17 @@ class DefaultWebAuthenticationProvider @JvmOverloads constructor(
      * Override this to fully replace browser-selection logic, e.g. for testing.
      */
     private val browserSelector: BrowserSelector = defaultBrowserSelector(eventCoordinator, preferredBrowsers, queryIntentServicesFlags),
+    /**
+     * Whether to request an ephemeral browsing session (no cookies or session data persisted from
+     * or to the browser), useful when a device is shared between accounts and you want to avoid
+     * silently reusing a previous user's browser session. Applied to whichever of Custom Tabs or
+     * Auth Tab actually launches, so it can't be silently dropped by [RedirectCoordinator]'s
+     * per-launch choice between the two — unlike calling `setEphemeralBrowsingEnabled` directly
+     * from [customizeTabsIntent] or [customizeAuthTabIntent], which only covers one of the two
+     * paths. Browsers that don't support ephemeral browsing silently ignore the flag rather than
+     * failing, so it's always safe to set.
+     */
+    private val ephemeralBrowsingEnabled: Boolean = false,
 ) : WebAuthenticationProvider,
     AuthTabWebAuthenticationProvider {
     companion object {
@@ -185,6 +203,9 @@ class DefaultWebAuthenticationProvider @JvmOverloads constructor(
         url: HttpUrl,
     ): Result<Unit> {
         val intentBuilder: CustomTabsIntent.Builder = CustomTabsIntent.Builder()
+        if (ephemeralBrowsingEnabled) {
+            intentBuilder.setEphemeralBrowsingEnabled(true)
+        }
         customizeTabsIntent?.invoke(context, intentBuilder)
         @Suppress("DEPRECATION")
         eventCoordinator.sendEvent(CustomizeCustomTabsEvent(context, intentBuilder))
@@ -220,6 +241,9 @@ class DefaultWebAuthenticationProvider @JvmOverloads constructor(
         }
 
         val intentBuilder = AuthTabIntent.Builder()
+        if (ephemeralBrowsingEnabled) {
+            intentBuilder.setEphemeralBrowsingEnabled(true)
+        }
         customizeAuthTabIntent?.invoke(context, intentBuilder)
         val authTabIntent = intentBuilder.build()
         authTabIntent.intent.setPackage(packageBrowser)

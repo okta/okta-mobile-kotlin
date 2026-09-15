@@ -26,6 +26,7 @@ import android.net.Uri
 import android.provider.Browser
 import androidx.activity.result.ActivityResultLauncher
 import androidx.browser.auth.AuthTabIntent
+import androidx.browser.customtabs.CustomTabsIntent
 import androidx.browser.customtabs.CustomTabsService
 import androidx.core.net.toUri
 import com.google.common.truth.Truth.assertThat
@@ -381,6 +382,71 @@ class DefaultWebAuthenticationProviderTest {
             mock()
         )
         assertThat(capturedBuilder).isNotNull()
+    }
+
+    @Test
+    fun testEphemeralBrowsingDisabledByDefault_customTab() {
+        val webAuthenticationProvider = DefaultWebAuthenticationProvider(EventCoordinator(emptyList()))
+        val activity = Robolectric.buildActivity(Activity::class.java)
+        webAuthenticationProvider.launchCustomTab(activity.get(), "https://example.com/not_used".toHttpUrl())
+        val cctActivity = shadowOf(activity.get()).nextStartedActivity
+        assertThat(cctActivity.getBooleanExtra(CustomTabsIntent.EXTRA_ENABLE_EPHEMERAL_BROWSING, false)).isFalse()
+    }
+
+    @Test
+    fun testEphemeralBrowsingDisabledByDefault_authTab() {
+        installAuthTabProvider("com.android.chrome")
+        val webAuthenticationProvider = DefaultWebAuthenticationProvider(EventCoordinator(emptyList()))
+        val activity = Robolectric.buildActivity(Activity::class.java)
+        val launcher = mock<ActivityResultLauncher<Intent>>()
+        webAuthenticationProvider.launchAuthTab(
+            activity.get(),
+            "https://example.com/authorize".toHttpUrl(),
+            "unitTest:/callback",
+            launcher
+        )
+        val captor = argumentCaptor<Intent>()
+        verify(launcher).launch(captor.capture())
+        assertThat(captor.firstValue.getBooleanExtra(CustomTabsIntent.EXTRA_ENABLE_EPHEMERAL_BROWSING, false)).isFalse()
+    }
+
+    @Test
+    fun testEphemeralBrowsingEnabled_setOnCustomTabIntent() {
+        val webAuthenticationProvider = DefaultWebAuthenticationProvider(ephemeralBrowsingEnabled = true)
+        val activity = Robolectric.buildActivity(Activity::class.java)
+        webAuthenticationProvider.launchCustomTab(activity.get(), "https://example.com/not_used".toHttpUrl())
+        val cctActivity = shadowOf(activity.get()).nextStartedActivity
+        assertThat(cctActivity.getBooleanExtra(CustomTabsIntent.EXTRA_ENABLE_EPHEMERAL_BROWSING, false)).isTrue()
+    }
+
+    @Test
+    fun testEphemeralBrowsingEnabled_setOnAuthTabIntent() {
+        installAuthTabProvider("com.android.chrome")
+        val webAuthenticationProvider = DefaultWebAuthenticationProvider(ephemeralBrowsingEnabled = true)
+        val activity = Robolectric.buildActivity(Activity::class.java)
+        val launcher = mock<ActivityResultLauncher<Intent>>()
+        webAuthenticationProvider.launchAuthTab(
+            activity.get(),
+            "https://example.com/authorize".toHttpUrl(),
+            "unitTest:/callback",
+            launcher
+        )
+        val captor = argumentCaptor<Intent>()
+        verify(launcher).launch(captor.capture())
+        assertThat(captor.firstValue.getBooleanExtra(CustomTabsIntent.EXTRA_ENABLE_EPHEMERAL_BROWSING, false)).isTrue()
+    }
+
+    @Test
+    fun testEphemeralBrowsingEnabled_customizeTabsIntentCanStillOverride() {
+        val webAuthenticationProvider =
+            DefaultWebAuthenticationProvider(
+                ephemeralBrowsingEnabled = true,
+                customizeTabsIntent = { _, builder -> builder.setEphemeralBrowsingEnabled(false) }
+            )
+        val activity = Robolectric.buildActivity(Activity::class.java)
+        webAuthenticationProvider.launchCustomTab(activity.get(), "https://example.com/not_used".toHttpUrl())
+        val cctActivity = shadowOf(activity.get()).nextStartedActivity
+        assertThat(cctActivity.getBooleanExtra(CustomTabsIntent.EXTRA_ENABLE_EPHEMERAL_BROWSING, false)).isFalse()
     }
 
     @Test

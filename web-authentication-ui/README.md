@@ -85,16 +85,20 @@ android {
 
 To request an **ephemeral browsing session** (no cookies or session data persisted from or to the
 browser, useful when a device is shared between accounts and you want to avoid silently reusing a
-previous user's browser session), set `customizeTabsIntent` on `DefaultWebAuthenticationProvider`:
+previous user's browser session), set `ephemeralBrowsingEnabled` on `DefaultWebAuthenticationProvider`:
 
 ```kotlin
 val webAuthentication = WebAuthentication(
     client,
-    DefaultWebAuthenticationProvider(
-        customizeTabsIntent = { _, builder -> builder.setEphemeralBrowsingEnabled(true) }
-    )
+    DefaultWebAuthenticationProvider(ephemeralBrowsingEnabled = true)
 )
 ```
+
+Use this instead of calling `setEphemeralBrowsingEnabled` directly from `customizeTabsIntent` or
+`customizeAuthTabIntent`: `WebAuthentication` picks between Chrome Custom Tabs and Auth Tab per-launch
+depending on what the resolved browser supports, and only one of those two hooks runs for a given
+launch — setting the flag on just one builder means it's silently dropped whenever the other path is
+taken. `ephemeralBrowsingEnabled` applies to whichever path actually launches.
 
 Browsers that don't support ephemeral browsing silently ignore the flag rather than failing, so it's
 always safe to set.
