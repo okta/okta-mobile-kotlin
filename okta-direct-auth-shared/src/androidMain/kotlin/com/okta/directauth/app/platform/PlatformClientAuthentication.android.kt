@@ -89,6 +89,7 @@ private fun applyBakedClientAuthentication(
 ) {
     val clientSecret = AppConfig.CLIENT_SECRET.trim()
     val clientAssertionPem = AppConfig.CLIENT_ASSERTION_PRIVATE_KEY_PEM.trim()
+    val clientAssertionKid = AppConfig.CLIENT_ASSERTION_KID.trim()
 
     when {
         clientAssertionPem.isNotEmpty() -> {
@@ -104,7 +105,7 @@ private fun applyBakedClientAuthentication(
                 ClientAssertionProvider { audience ->
                     ClientAssertion(
                         type = JWT_BEARER_CLIENT_ASSERTION_TYPE,
-                        assertion = buildClientAssertionJwt(clientId, audience, privateKey)
+                        assertion = buildClientAssertionJwt(clientId, audience, privateKey, clientAssertionKid)
                     )
                 }
             )
@@ -133,21 +134,25 @@ private fun buildClientAssertionJwt(
     clientId: String,
     audience: String,
     privateKey: PrivateKey,
+    kid: String,
 ): String {
     val now = Date()
     val expiration = Date(now.time + CLIENT_ASSERTION_LIFETIME.inWholeMilliseconds)
-    return Jwts
-        .builder()
-        .issuer(clientId)
-        .subject(clientId)
-        .audience()
-        .add(audience)
-        .and()
-        .id(UUID.randomUUID().toString())
-        .issuedAt(now)
-        .expiration(expiration)
-        .signWith(privateKey)
-        .compact()
+    val builder =
+        Jwts
+            .builder()
+            .issuer(clientId)
+            .subject(clientId)
+            .audience()
+            .add(audience)
+            .and()
+            .id(UUID.randomUUID().toString())
+            .issuedAt(now)
+            .expiration(expiration)
+    if (kid.isNotEmpty()) {
+        builder.header().keyId(kid).and()
+    }
+    return builder.signWith(privateKey).compact()
 }
 
 /**

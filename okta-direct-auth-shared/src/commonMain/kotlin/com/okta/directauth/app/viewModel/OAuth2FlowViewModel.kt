@@ -61,7 +61,8 @@ class OAuth2FlowViewModel :
 
     private var activeJob: Job? = null
 
-    private val client: OAuth2Client =
+    /** The shared OAuth2 client used by every flow this view model exposes. */
+    val client: OAuth2Client =
         OAuth2ClientBuilder
             .create(
                 issuerUrl = AppConfig.ISSUER,

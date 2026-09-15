@@ -17,8 +17,7 @@ package com.okta.directauth.app.platform
 
 import com.okta.authfoundation.client.ClientAssertion
 import com.okta.authfoundation.client.ClientAssertionProvider
-import com.okta.authfoundation.client.OAuth2ClientBuilder
-import com.okta.directauth.DirectAuthenticationFlowBuilder
+import com.okta.directauth.app.AppConfig
 import com.okta.directauth.app.util.AppLogger
 import io.jsonwebtoken.Jwts
 import java.io.File
@@ -33,97 +32,96 @@ import java.util.Properties
 import java.util.UUID
 import kotlin.time.Duration.Companion.minutes
 
-private const val TAG = "LocalTestClientAuth"
-private const val CLIENT_SECRET_PROPERTY = "clientSecret"
-private const val CLIENT_ASSERTION_PEM_PROPERTY = "clientAssertionPrivateKeyPem"
-private const val CLIENT_ASSERTION_KID_PROPERTY = "clientAssertionKid"
+private const val TAG = "CrossAppAccessCredential"
+private const val TARGET_CLIENT_SECRET_PROPERTY = "xaaTargetClientSecret"
+private const val TARGET_CLIENT_ASSERTION_PEM_PROPERTY = "xaaTargetClientAssertionPrivateKeyPem"
+private const val TARGET_CLIENT_ASSERTION_KID_PROPERTY = "xaaTargetClientAssertionKid"
+private const val TARGET_CLIENT_ID_PROPERTY = "xaaTargetClientId"
+private const val IDP_CLIENT_SECRET_PROPERTY = "xaaIdpClientSecret"
+private const val IDP_CLIENT_ASSERTION_PEM_PROPERTY = "xaaIdpClientAssertionPrivateKeyPem"
+private const val IDP_CLIENT_ASSERTION_KID_PROPERTY = "xaaIdpClientAssertionKid"
+private const val IDP_CLIENT_ID_PROPERTY = "xaaIdpClientId"
 private const val JWT_BEARER_CLIENT_ASSERTION_TYPE = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
 private val CLIENT_ASSERTION_LIFETIME = 5.minutes
 private const val MAX_PARENT_DIRECTORIES_TO_SEARCH = 8
 
 /**
- * JVM Desktop implementation: reads a client secret or private_key_jwt signing key from
- * `local.properties` at runtime. See the KDoc on the `expect` declaration for the security
- * rationale — this is for local testing only, and specifically not the build-time-baked
- * [com.okta.directauth.app.AppConfig] pattern used for the rest of this sample's config.
- *
- * For private_key_jwt, this registers a [ClientAssertionProvider] that the SDK invokes fresh for
- * every token/PAR request, signing a new JWT scoped to the exact [audience][ClientAssertionProvider.provide]
- * each time — required for spec compliance (a `jti` may only be used once, and `aud` must match
- * the endpoint actually being called; see
- * https://developer.okta.com/docs/api/openapi/okta-oauth/guides/client-auth).
+ * JVM Desktop implementation: reads the Cross App Access target credential from
+ * `local.properties` at runtime — deliberately not the build-time-baked [AppConfig] pattern used
+ * for the rest of this sample's config. See the KDoc on the `expect` declaration for the full
+ * security rationale.
  */
-actual fun OAuth2ClientBuilder.configureClientAuthentication(clientId: String) {
-    applyLocalClientAuthentication(
-        clientId = clientId,
-        setClientSecret = { this.clientSecret = it },
-        setClientAssertionProvider = { this.clientAssertionProvider = it }
-    )
-}
-
-/**
- * JVM Desktop implementation for the Direct Authentication demo. Same source
- * (`local.properties`) and precedence as [OAuth2ClientBuilder.configureClientAuthentication] —
- * see its KDoc for the full security rationale.
- */
-actual fun DirectAuthenticationFlowBuilder.configureClientAuthentication(clientId: String) {
-    applyLocalClientAuthentication(
-        clientId = clientId,
-        setClientSecret = { this.clientSecret = it },
-        setClientAssertionProvider = { this.clientAssertionProvider = it }
-    )
-}
-
-/**
- * Reads a client secret or private_key_jwt signing key from `local.properties` and applies
- * whichever is present via [setClientSecret]/[setClientAssertionProvider], shared by both
- * [OAuth2ClientBuilder] and [DirectAuthenticationFlowBuilder].
- */
-private fun applyLocalClientAuthentication(
-    clientId: String,
-    setClientSecret: (String) -> Unit,
-    setClientAssertionProvider: (ClientAssertionProvider) -> Unit,
-) {
+actual fun crossAppAccessTargetCredential(): TargetCredential {
     val localProperties = findLocalProperties()
-    val clientSecret = localProperties.getProperty(CLIENT_SECRET_PROPERTY, "").trim()
-    val clientAssertionPem = localProperties.getProperty(CLIENT_ASSERTION_PEM_PROPERTY, "").trim()
-    val clientAssertionKid = localProperties.getProperty(CLIENT_ASSERTION_KID_PROPERTY, "").trim()
+    return resolveCredential(
+        localProperties = localProperties,
+        secretProperty = TARGET_CLIENT_SECRET_PROPERTY,
+        pemProperty = TARGET_CLIENT_ASSERTION_PEM_PROPERTY,
+        kidProperty = TARGET_CLIENT_ASSERTION_KID_PROPERTY,
+        assertionClientId = localProperties.getProperty(TARGET_CLIENT_ID_PROPERTY, "").trim().ifBlank { AppConfig.CLIENT_ID }
+    )
+}
 
-    when {
+/**
+ * JVM Desktop implementation: reads the Cross App Access requesting app's own credential from
+ * `local.properties` at runtime. See [crossAppAccessTargetCredential] for the shared rationale.
+ */
+actual fun crossAppAccessIdpCredential(): TargetCredential {
+    val localProperties = findLocalProperties()
+    return resolveCredential(
+        localProperties = localProperties,
+        secretProperty = IDP_CLIENT_SECRET_PROPERTY,
+        pemProperty = IDP_CLIENT_ASSERTION_PEM_PROPERTY,
+        kidProperty = IDP_CLIENT_ASSERTION_KID_PROPERTY,
+        assertionClientId = localProperties.getProperty(IDP_CLIENT_ID_PROPERTY, "").trim()
+    )
+}
+
+/** Shared credential-selection logic for [crossAppAccessTargetCredential] and [crossAppAccessIdpCredential]. */
+private fun resolveCredential(
+    localProperties: Properties,
+    secretProperty: String,
+    pemProperty: String,
+    kidProperty: String,
+    assertionClientId: String,
+): TargetCredential {
+    val clientSecret = localProperties.getProperty(secretProperty, "").trim()
+    val clientAssertionPem = localProperties.getProperty(pemProperty, "").trim()
+    val clientAssertionKid = localProperties.getProperty(kidProperty, "").trim()
+
+    return when {
         clientAssertionPem.isNotEmpty() -> {
             if (clientSecret.isNotEmpty()) {
                 AppLogger.write(
                     TAG,
-                    "Both clientSecret and clientAssertionPrivateKeyPem are set in local.properties; " +
-                        "using the private_key_jwt assertion and ignoring clientSecret."
+                    "Both $secretProperty and $pemProperty are set in local.properties; using the " +
+                        "private_key_jwt assertion and ignoring $secretProperty."
                 )
             }
             val privateKey = parsePkcs8PrivateKey(clientAssertionPem)
-            setClientAssertionProvider(
-                ClientAssertionProvider { audience ->
-                    ClientAssertion(
-                        type = JWT_BEARER_CLIENT_ASSERTION_TYPE,
-                        assertion = buildClientAssertionJwt(clientId, audience, privateKey, clientAssertionKid)
-                    )
-                }
-            )
             AppLogger.write(
                 TAG,
                 "Using a private_key_jwt client assertion provider from local.properties (testing only; " +
                     "a fresh JWT is signed for every request)."
             )
+            TargetCredential.Assertion(
+                ClientAssertionProvider { audience ->
+                    ClientAssertion(
+                        type = JWT_BEARER_CLIENT_ASSERTION_TYPE,
+                        assertion = buildClientAssertionJwt(assertionClientId, audience, privateKey, clientAssertionKid)
+                    )
+                }
+            )
         }
 
         clientSecret.isNotEmpty() -> {
-            setClientSecret(clientSecret)
-            AppLogger.write(TAG, "Using a client_secret from local.properties (testing only).")
+            AppLogger.write(TAG, "Using a client_secret from local.properties (testing only; $secretProperty).")
+            TargetCredential.Secret(clientSecret)
         }
 
         else -> {
-            AppLogger.write(
-                TAG,
-                "No clientSecret or clientAssertionPrivateKeyPem in local.properties; continuing as a public client."
-            )
+            AppLogger.write(TAG, "No $secretProperty or $pemProperty in local.properties; unconfigured.")
+            TargetCredential.None
         }
     }
 }
@@ -173,7 +171,7 @@ private fun parsePkcs8PrivateKey(pem: String): PrivateKey {
     }
 
     throw IllegalStateException(
-        "clientAssertionPrivateKeyPem must be a PKCS#8 RSA or EC private key (-----BEGIN PRIVATE KEY-----)."
+        "xaaTargetClientAssertionPrivateKeyPem must be a PKCS#8 RSA or EC private key (-----BEGIN PRIVATE KEY-----)."
     )
 }
 

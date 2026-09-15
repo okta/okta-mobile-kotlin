@@ -34,8 +34,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.okta.directauth.app.ui.theme.Dimens
+import com.okta.directauth.app.ui.theme.DirectAuthAppTheme
 
 /**
  * Screen for the Session Token flow.
@@ -101,5 +103,13 @@ fun SessionTokenScreen(
         TextButton(onClick = onBack) {
             Text(text = "Back to Home")
         }
+    }
+}
+
+@Preview
+@Composable
+private fun SessionTokenScreenPreview() {
+    DirectAuthAppTheme {
+        SessionTokenScreen(onStartFlow = {}, onBack = {})
     }
 }
