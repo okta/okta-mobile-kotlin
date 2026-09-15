@@ -137,6 +137,17 @@ class CrossAppAccessFlow(
         coroutineScope.cancel()
     }
 
+    /**
+     * Fully releases this flow's resources, including [introspectionScope] — unlike [close],
+     * which deliberately leaves it running so [introspectResourceToken] remains callable on this
+     * same instance afterward. Call this only once nothing will call [introspectResourceToken] on
+     * this instance again, e.g. when discarding it in favor of a freshly created flow.
+     */
+    fun closeCompletely() {
+        coroutineScope.cancel()
+        introspectionScope.cancel()
+    }
+
     companion object {
         /**
          * Builds the target client from [target] (or adopts one already built), validates that

@@ -24,7 +24,9 @@
 - The Java `CompletableFuture` wrapper's `CrossAppAccessFlow` gained `introspectResourceToken()`,
   checking a resource access token against the resource authorization server per RFC 7662 — proves
   the token is actually accepted server-side, which a successful `redeem()`/`exchange()` alone does
-  not. Runs on its own coroutine scope, so it works even after the flow has been `close()`d.
+  not. Runs on its own coroutine scope, so it works even after the flow has been `close()`d. Also
+  gained `closeCompletely()`, which additionally cancels that scope for callers that are discarding
+  the flow for good and know `introspectResourceToken()` will never be called on it again.
 
 ## auth-foundation Unreleased
 

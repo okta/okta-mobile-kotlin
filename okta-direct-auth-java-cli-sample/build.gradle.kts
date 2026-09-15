@@ -42,6 +42,28 @@ val authorizationServerId = localProperties.getProperty("authorizationServerId")
 val signInRedirectUri = localProperties.getProperty("signInRedirectUri") ?: ""
 val desktopSignInRedirectUri = localProperties.getProperty("desktopSignInRedirectUri") ?: ""
 
+// Cross App Access (XAA) — resource app target, all optional; absence must never fail the build.
+// Only the non-credential values are baked here, mirroring issuer/clientId/authorizationServerId
+// above. The target credential (xaaTargetClientSecret / xaaTargetClientAssertionPrivateKeyPem) is
+// deliberately NOT baked into AppConfig — like this sample's own clientSecret/
+// clientAssertionPrivateKeyPem, it is read from local.properties at runtime by
+// ClientAuthentication instead, so a secret never lands in generated build output.
+val xaaTargetIssuer = localProperties.getProperty("xaaTargetIssuer") ?: ""
+val xaaTargetAuthorizationServerId = localProperties.getProperty("xaaTargetAuthorizationServerId") ?: ""
+val xaaTargetClientId = localProperties.getProperty("xaaTargetClientId") ?: ""
+val xaaTargetResource = localProperties.getProperty("xaaTargetResource") ?: ""
+
+// Cross App Access (XAA) — the requesting app's OWN identity, separate from the primary app
+// above. The ID-JAG exchange (first step) must be submitted to the org's own authorization
+// server, never a custom one — so there is deliberately no xaaIdpAuthorizationServerId key.
+// Registering this as a second, independent app integration in Okta (rather than reusing the
+// primary app/authorizationServerId) is what lets a developer test the primary flows against a
+// custom authorization server and Cross App Access in the same run. The credential itself
+// (xaaIdpClientSecret / xaaIdpClientAssertionPrivateKeyPem) is deliberately NOT baked here, for
+// the same reason as xaaTargetClientSecret above.
+val xaaIdpIssuer = localProperties.getProperty("xaaIdpIssuer") ?: ""
+val xaaIdpClientId = localProperties.getProperty("xaaIdpClientId") ?: ""
+
 val isCi = System.getenv("CI")?.toBoolean() ?: false
 if (!isCi && (issuer.isEmpty() || clientId.isEmpty() || authorizationServerId.isEmpty())) {
     logger.warn(
@@ -75,6 +97,12 @@ val generateAppConfig =
             |  public static final String AUTHORIZATION_SERVER_ID = "$authorizationServerId";
             |  public static final String SIGN_IN_REDIRECT_URI = "$signInRedirectUri";
             |  public static final String DESKTOP_SIGN_IN_REDIRECT_URI = "$desktopSignInRedirectUri";
+            |  public static final String XAA_TARGET_ISSUER = "$xaaTargetIssuer";
+            |  public static final String XAA_TARGET_AUTHORIZATION_SERVER_ID = "$xaaTargetAuthorizationServerId";
+            |  public static final String XAA_TARGET_CLIENT_ID = "$xaaTargetClientId";
+            |  public static final String XAA_TARGET_RESOURCE = "$xaaTargetResource";
+            |  public static final String XAA_IDP_ISSUER = "$xaaIdpIssuer";
+            |  public static final String XAA_IDP_CLIENT_ID = "$xaaIdpClientId";
             |
             |  private AppConfig() {}
             |}

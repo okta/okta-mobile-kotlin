@@ -18,12 +18,11 @@
 language: "en-US"
 early_access: false
 
-tone_instructions: |
-  Review a Kotlin Multiplatform auth SDK (Android/JVM/JS/WASM). Focus on correctness,
-  security (token/PKCE/crypto handling), coroutine/concurrency safety, public-API
-  breakage, and JVM-wrapper/KMP parity drift. Ignore issues already caught by
-  ktlint/spotless or the binary-compatibility validators. Include the Review Tier;
-  favor high-signal comments over restating mechanical lint output.
+tone_instructions: >-
+  Review a Kotlin Multiplatform Android/JVM auth SDK. Focus on security
+  (token/PKCE/crypto), coroutine safety, public-API breakage, and JVM-wrapper
+  parity drift. Skip issues already caught by ktlint/spotless/ABI checks.
+  Include the Review Tier.
 
 reviews:
   profile: "chill"
