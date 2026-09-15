@@ -151,6 +151,7 @@ internal class CrossAppAccessFlowImpl(
                             clientId = target.clientId ?: idpClient.configuration.clientId,
                             scope = target.scope ?: listOf(INERT_PLACEHOLDER_SCOPE)
                         ) {
+                            authorizationServerId = target.authorizationServerId
                             clientSecret = target.clientSecret ?: ""
                             clientAssertionProvider = target.clientAssertionProvider
                             endpointOverrides = target.endpointOverrides

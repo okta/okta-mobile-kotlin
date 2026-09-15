@@ -383,6 +383,18 @@ val target = CrossAppAccessTarget.forAuthorizationServerId("default") {
 }
 ```
 
+A custom authorization server on the *same* different org as `forIssuer`'s own origin — rather than your own org, or that org's default server — combines both: set `authorizationServerId` in `forIssuer`'s build block, exactly like `OAuth2ClientBuilder`'s own `issuerUrl`+`authorizationServerId` combine.
+
+```kotlin
+val target = CrossAppAccessTarget.forIssuer("https://resource.example.com") {
+    authorizationServerId = "customAuthServer" // resolves to https://resource.example.com/oauth2/customAuthServer
+    scope = listOf("chat.read")
+    clientSecret = "target-app-client-secret"
+}
+```
+
+`issuer` must still carry no path of its own: it is forwarded to `OAuth2ClientBuilder` as `issuerUrl`, which derives the effective issuer from scheme, host, and port only — a path there is silently discarded rather than combined, which is exactly why `authorizationServerId` exists as its own property instead.
+
 **Target client identity and extras.** By default the target client reuses the primary client's client ID; set `clientId` when the target app is registered separately (it is only ever used at the second step — the first step always sends the primary client's ID). `resource` sends an RFC 8707 resource indicator with the first step, and `endpointOverrides` bypasses discovery for the target authorization server. For any target-client setting this builder does not name directly — a clock, a cache, an executor — use `clientBuildAction`, which is applied to the target's `OAuth2ClientBuilder` last and therefore wins on conflict (so keep credentials in `clientSecret`/`clientAssertionProvider`, not in there).
 
 **Starting from a stored credential.** If you already hold a `Credential`, skip pulling the raw subject assertion out by hand:
@@ -641,6 +653,16 @@ CrossAppAccessFlow flow = result.getOrThrow();
 TokenInfo resourceToken = flow.exchange(SubjectAssertion.idToken(idToken)).join();
 String accessToken = resourceToken.getAccessToken();
 flow.close();
+```
+
+A custom authorization server on that *different* org — rather than your own org (`forAuthorizationServerId`), or that org's default server — combines both via `setAuthorizationServerId`, exactly like `OAuth2ClientBuilder`'s own `issuerUrl`+`authorizationServerId`:
+
+```java
+CrossAppAccessTarget target = CrossAppAccessTargetBuilder.forIssuer("https://resource.example.com")
+    .setAuthorizationServerId("customAuthServer") // resolves to https://resource.example.com/oauth2/customAuthServer
+    .setScope(java.util.List.of("chat.read"))
+    .setClientSecret("target-app-client-secret")
+    .build();
 ```
 
 For deep target-client customization — a shared executor, a custom cache — either use `setClientBuildAction`, or build the target client directly with `OAuth2ClientBuilder` and wrap it. The wrapping route is usually more comfortable from Java, since `setClientBuildAction` hands you the Kotlin `OAuth2ClientBuilder` rather than this module's Java wrapper:

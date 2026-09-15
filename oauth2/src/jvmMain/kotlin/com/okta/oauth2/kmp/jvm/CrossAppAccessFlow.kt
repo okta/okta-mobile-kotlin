@@ -16,6 +16,7 @@
 package com.okta.oauth2.kmp.jvm
 
 import com.okta.authfoundation.client.TokenInfo
+import com.okta.authfoundation.client.dto.IntrospectInfo
 import com.okta.authfoundation.client.jvm.AuthFoundationResult
 import com.okta.oauth2.kmp.crossAppAccessSubject
 import com.okta.oauth2.kmp.crossAppAccessToken
@@ -103,6 +104,27 @@ class CrossAppAccessFlow(
         subjectAssertion: KotlinSubjectAssertion,
         scope: List<String>? = null,
     ): CompletableFuture<TokenInfo> = coroutineScope.future { delegate.exchange(subjectAssertion, scope).getOrThrow() }
+
+    /**
+     * Checks [token] with the resource authorization server per
+     * [RFC 7662](https://datatracker.ietf.org/doc/html/rfc7662) — proves the token is actually
+     * accepted server-side, which a successful [redeem]/[exchange] alone does not (that only
+     * proves the resource authorization server *issued* it).
+     *
+     * Runs on its own short-lived coroutine scope; unlike [start]/[redeem]/[exchange], it is
+     * unaffected by [close] — useful for checking a token after the flow that obtained it has
+     * already been closed.
+     *
+     * @param token the resource access token to introspect.
+     * @param tokenTypeHint a hint about the type of token; defaults to `"access_token"`.
+     * @return a [CompletableFuture] that completes with the [IntrospectInfo] on success, or
+     *   completes exceptionally on failure.
+     */
+    @JvmOverloads
+    fun introspectResourceToken(
+        token: String,
+        tokenTypeHint: String = "access_token",
+    ): CompletableFuture<IntrospectInfo> = CoroutineScope(Dispatchers.Default).future { delegate.targetClient.introspectToken(tokenTypeHint, token).getOrThrow() }
 
     override fun toString(): String = delegate.toString()
 

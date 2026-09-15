@@ -49,12 +49,20 @@ sealed class CrossAppAccessTarget {
     abstract override fun toString(): String
 
     /**
-     * A target named by its issuer **origin** — scheme, host, and non-default port, with no path.
-     * This is the shape of an org authorization server's issuer.
+     * A target named by its issuer **origin** — scheme, host, and non-default port, with no path —
+     * and, optionally, a custom authorization server id on that same origin.
      */
     class Issuer internal constructor(
         /** The target's issuer origin, e.g. `https://resource.example.com`. */
         val issuer: String,
+        /**
+         * A custom authorization server id on [issuer]'s org, or `null` for that org's default
+         * authorization server. Combines with [issuer] exactly like
+         * [com.okta.authfoundation.client.OAuth2ClientBuilder]'s own `issuerUrl` +
+         * `authorizationServerId` — `"$issuer/oauth2/$authorizationServerId"` — since that is
+         * the same builder this target's client is built through.
+         */
+        val authorizationServerId: String?,
         override val scope: List<String>?,
         override val resource: String?,
         /** The client identifier to authenticate with at this target, or `null` to use the primary's. */
@@ -68,7 +76,12 @@ sealed class CrossAppAccessTarget {
         /** Applied to the target client's builder last, after every setting above. */
         val clientBuildAction: (OAuth2ClientBuilder.() -> Unit)?,
     ) : CrossAppAccessTarget() {
-        override fun toString(): String = "CrossAppAccessTarget.Issuer(issuer=$issuer)"
+        override fun toString(): String =
+            if (authorizationServerId != null) {
+                "CrossAppAccessTarget.Issuer(issuer=$issuer, authorizationServerId=$authorizationServerId)"
+            } else {
+                "CrossAppAccessTarget.Issuer(issuer=$issuer)"
+            }
     }
 
     /**
@@ -109,15 +122,23 @@ sealed class CrossAppAccessTarget {
 
     companion object {
         /**
-         * Names a target by its issuer **origin**.
+         * Names a target by its issuer **origin**, for a resource app in a different Okta org
+         * than the primary client's.
          *
          * The origin must carry no path — a full issuer URL such as
-         * `https://example.okta.com/oauth2/default` should instead be split into its origin and
-         * authorization server id and passed to [forAuthorizationServerId], since a path-bearing
-         * value would otherwise resolve to a different server than the one named.
+         * `https://example.okta.com/oauth2/default` would otherwise resolve to a different server
+         * than the one named, since [issuer] is forwarded to
+         * [com.okta.authfoundation.client.OAuth2ClientBuilder] as its `issuerUrl`, which derives
+         * the effective issuer from scheme, host, and port only — silently discarding any path —
+         * then appends `"/oauth2/<id>"` itself only when
+         * [CrossAppAccessTargetBuilder.authorizationServerId] is set. To target a *custom*
+         * authorization server on this different org, set that property in [buildAction] rather
+         * than folding its path into [issuer] directly.
          *
          * @param issuer the target's issuer origin.
-         * @param buildAction optional configuration block for the target's remaining settings.
+         * @param buildAction optional configuration block for the target's remaining settings,
+         *   including [CrossAppAccessTargetBuilder.authorizationServerId] for a custom
+         *   authorization server on this same origin.
          */
         @JvmStatic
         @JvmOverloads
@@ -129,6 +150,7 @@ sealed class CrossAppAccessTarget {
             buildAction?.invoke(builder)
             return Issuer(
                 issuer = issuer,
+                authorizationServerId = builder.authorizationServerId,
                 scope = builder.scope,
                 resource = builder.resource,
                 clientId = builder.clientId,
@@ -142,6 +164,11 @@ sealed class CrossAppAccessTarget {
         /**
          * Names a target by an Okta custom authorization server identifier, resolved against the
          * primary client's own org.
+         *
+         * [CrossAppAccessTargetBuilder.authorizationServerId] set in [buildAction] is ignored
+         * here — it exists for [forIssuer], to combine with a *different* org's origin; this
+         * factory's own [authorizationServerId] parameter already names the id against the
+         * primary's org.
          *
          * @param authorizationServerId the custom authorization server identifier.
          * @param buildAction optional configuration block for the target's remaining settings.
@@ -192,6 +219,17 @@ sealed class CrossAppAccessTarget {
  * rule; the product built from them remains immutable.
  */
 class CrossAppAccessTargetBuilder internal constructor() {
+    /**
+     * A custom authorization server id, combined with [CrossAppAccessTarget.forIssuer]'s own
+     * `issuer` origin — `"$issuer/oauth2/$authorizationServerId"` — to name a custom
+     * authorization server on that different org. Leave `null` for that org's default
+     * authorization server instead.
+     *
+     * Ignored by [CrossAppAccessTarget.forAuthorizationServerId], whose own `authorizationServerId`
+     * parameter already names the id against the primary client's org.
+     */
+    var authorizationServerId: String? = null
+
     /**
      * The client identifier to authenticate with at the target only. Never sent on the first
      * step, whose client identifier is always the primary client's.

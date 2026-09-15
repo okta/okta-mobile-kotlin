@@ -593,6 +593,37 @@ class CrossAppAccessFlowImplTest {
         }
 
     @Test
+    fun start_WithIssuerAndAuthorizationServerId_ResolvesCustomServerOnThatDifferentOrg() =
+        runTest {
+            // Both set names a custom authorization server on the DIFFERENT org named by
+            // `issuer` — not the primary client's own org (which forAuthorizationServerId alone
+            // would resolve against), and not that org's default server (which forIssuer alone
+            // would resolve against).
+            val executor = RoutingApiExecutor()
+            val resolvedTargetIssuer = "$targetIssuer/oauth2/customAuthServer"
+            stubIdpDiscovery(executor)
+            executor.stub("$resolvedTargetIssuer/.well-known/openid-configuration", 200, discoveryDocument(resolvedTargetIssuer))
+            executor.enqueue("$idpIssuer/v1/token", 200, idJagResponse())
+            executor.enqueue("$resolvedTargetIssuer/v1/token", 200, resourceTokenResponse())
+            val target =
+                CrossAppAccessTarget.forIssuer(targetIssuer) {
+                    authorizationServerId = "customAuthServer"
+                    scope = listOf("chat.read")
+                    clientSecret = "target-secret"
+                    clientBuildAction = { apiExecutor = executor }
+                }
+            val flow = CrossAppAccessFlow.create(buildIdpClient(executor), target).getOrThrow()
+
+            val idJag = flow.start(SubjectAssertion.idToken("id-token")).getOrThrow()
+            val redemption = flow.redeem(idJag)
+
+            assertEquals(resolvedTargetIssuer, idJag.audience)
+            assertTrue(redemption.isSuccess)
+            assertEquals(1, executor.countTo("$resolvedTargetIssuer/v1/token"))
+            assertEquals(0, executor.countTo("$targetIssuer/v1/token"))
+        }
+
+    @Test
     fun start_WithWrappedNonStandardIssuer_SendsResolvedValueVerbatimAsAudience() =
         runTest {
             val executor = RoutingApiExecutor()
