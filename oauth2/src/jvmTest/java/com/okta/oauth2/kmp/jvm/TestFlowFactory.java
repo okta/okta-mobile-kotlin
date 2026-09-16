@@ -128,4 +128,14 @@ public final class TestFlowFactory {
   public static CrossAppAccessFlow createFailingCrossAppAccessFlow() {
     return new CrossAppAccessFlow(FakeSuspendFlows.failingCrossAppAccessDelegate());
   }
+
+  /**
+   * Creates a {@link CrossAppAccessFlow} whose target client's introspection endpoint is stubbed to
+   * report the token as active or inactive, for testing {@code introspectResourceToken}.
+   */
+  public static CrossAppAccessFlow createCrossAppAccessFlowWithIntrospectableTarget(
+      boolean active) {
+    return new CrossAppAccessFlow(
+        FakeSuspendFlows.crossAppAccessDelegateWithIntrospectableTarget(active));
+  }
 }

@@ -84,6 +84,26 @@ class CrossAppAccessFlowTest {
         }
 
     @Test
+    fun create_WithAuthorizationServerIdTargetAndIssuerAuthorizationServerIdSet_FailsBeforeAnyNetworkRequest() =
+        runTest {
+            // authorizationServerId set in forAuthorizationServerId's own build block only combines
+            // with forIssuer's issuer origin — setting it here is a developer mistake that must
+            // surface as a failure rather than being silently dropped.
+            val executor = RoutingApiExecutor()
+            val target =
+                CrossAppAccessTarget.forAuthorizationServerId("default") {
+                    authorizationServerId = "customAuthServer"
+                    clientSecret = "target-secret"
+                    clientBuildAction = { apiExecutor = executor }
+                }
+
+            val result = CrossAppAccessFlow.create(buildIdpClient(executor), target)
+
+            assertTrue(result.isFailure)
+            assertEquals(emptyList(), executor.capturedRequests)
+        }
+
+    @Test
     fun create_WithTargetIssuerMatchingIdpIssuer_FailsBeforeAnyNetworkRequest() =
         runTest {
             val executor = RoutingApiExecutor()

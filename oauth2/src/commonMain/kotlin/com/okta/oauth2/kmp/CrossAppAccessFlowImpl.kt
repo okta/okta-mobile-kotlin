@@ -151,6 +151,7 @@ internal class CrossAppAccessFlowImpl(
                             clientId = target.clientId ?: idpClient.configuration.clientId,
                             scope = target.scope ?: listOf(INERT_PLACEHOLDER_SCOPE)
                         ) {
+                            authorizationServerId = target.authorizationServerId
                             clientSecret = target.clientSecret ?: ""
                             clientAssertionProvider = target.clientAssertionProvider
                             endpointOverrides = target.endpointOverrides
@@ -161,6 +162,12 @@ internal class CrossAppAccessFlowImpl(
                 is CrossAppAccessTarget.AuthorizationServerId -> {
                     require(target.authorizationServerId.isNotBlank()) {
                         "CrossAppAccessTarget.AuthorizationServerId.authorizationServerId must not be blank."
+                    }
+                    require(target.ignoredIssuerAuthorizationServerId == null) {
+                        "CrossAppAccessTargetBuilder.authorizationServerId (\"${target.ignoredIssuerAuthorizationServerId}\") was " +
+                            "set, but only combines with CrossAppAccessTarget.forIssuer's issuer origin — it has no effect on " +
+                            "forAuthorizationServerId, whose own authorizationServerId parameter already names the id " +
+                            "(\"${target.authorizationServerId}\") against the primary client's org. Remove one of the two."
                     }
                     OAuth2ClientBuilder
                         .create(

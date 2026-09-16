@@ -16,6 +16,7 @@
 package com.okta.oauth2.kmp.jvm
 
 import com.okta.authfoundation.client.TokenInfo
+import com.okta.authfoundation.client.dto.IntrospectInfo
 import com.okta.authfoundation.client.jvm.AuthFoundationResult
 import com.okta.oauth2.kmp.crossAppAccessSubject
 import com.okta.oauth2.kmp.crossAppAccessToken
@@ -58,6 +59,12 @@ class CrossAppAccessFlow(
     private val delegate: KotlinCrossAppAccessFlow,
 ) : Closeable {
     private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
+    /**
+     * Backs [introspectResourceToken] only. Kept separate from [coroutineScope] so it survives
+     * [close]; a [SupervisorJob] so one call's failure cannot cancel a concurrent one.
+     */
+    private val introspectionScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     /** The **IdP authorization server** client — used for [start]. */
     fun getIdpClient(): KmpOAuth2Client = delegate.idpClient
@@ -103,6 +110,26 @@ class CrossAppAccessFlow(
         subjectAssertion: KotlinSubjectAssertion,
         scope: List<String>? = null,
     ): CompletableFuture<TokenInfo> = coroutineScope.future { delegate.exchange(subjectAssertion, scope).getOrThrow() }
+
+    /**
+     * Checks [token] with the resource authorization server per
+     * [RFC 7662](https://datatracker.ietf.org/doc/html/rfc7662) — proves the token is actually
+     * accepted server-side, which a successful [redeem]/[exchange] alone does not (that only
+     * proves the resource authorization server *issued* it).
+     *
+     * Runs on its own coroutine scope, separate from [start]/[redeem]/[exchange]'s — so it remains
+     * callable, and unaffected by concurrent calls' failures, even after [close].
+     *
+     * @param token the resource access token to introspect.
+     * @param tokenTypeHint a hint about the type of token; defaults to `"access_token"`.
+     * @return a [CompletableFuture] that completes with the [IntrospectInfo] on success, or
+     *   completes exceptionally on failure.
+     */
+    @JvmOverloads
+    fun introspectResourceToken(
+        token: String,
+        tokenTypeHint: String = "access_token",
+    ): CompletableFuture<IntrospectInfo> = introspectionScope.future { delegate.targetClient.introspectToken(tokenTypeHint, token).getOrThrow() }
 
     override fun toString(): String = delegate.toString()
 

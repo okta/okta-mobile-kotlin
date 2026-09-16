@@ -16,6 +16,7 @@
 package com.okta.oauth2.kmp.jvm
 
 import com.okta.authfoundation.client.OAuth2ClientBuilder
+import com.okta.authfoundation.client.OAuth2EndpointOverrides
 import com.okta.authfoundation.client.TokenInfo
 import com.okta.authfoundation.client.dto.IntrospectInfo
 import com.okta.authfoundation.client.dto.OidcUserInfo
@@ -30,6 +31,7 @@ import com.okta.oauth2.kmp.DeviceAuthorizationFlowContext
 import com.okta.oauth2.kmp.FakeTokenInfo
 import com.okta.oauth2.kmp.IdJagAssertion
 import com.okta.oauth2.kmp.RedirectEndSessionFlowContext
+import com.okta.oauth2.kmp.RoutingApiExecutor
 import com.okta.oauth2.kmp.SubjectAssertion
 import kotlinx.coroutines.flow.Flow
 import com.okta.oauth2.kmp.AuthorizationCodeFlow as KotlinAuthorizationCodeFlow
@@ -316,6 +318,55 @@ internal object FakeSuspendFlows {
 
             override fun toString(): String = "CrossAppAccessFlow(idp=https://example.okta.com, target=https://example.okta.com)"
         }
+
+    /**
+     * A [KotlinCrossAppAccessFlow] whose [KotlinCrossAppAccessFlow.targetClient] is wired to a
+     * stubbed introspection endpoint returning `{"active": [active]}` — for testing the Java
+     * wrapper's `introspectResourceToken`, which calls `targetClient.introspectToken` directly
+     * rather than through a delegate method this object could otherwise fake.
+     */
+    @JvmStatic
+    fun crossAppAccessDelegateWithIntrospectableTarget(active: Boolean): KotlinCrossAppAccessFlow {
+        val targetIssuer = "https://introspectable-target.example.com"
+        val introspectionEndpoint = "$targetIssuer/v1/introspect"
+        val executor = RoutingApiExecutor()
+        executor.stub(
+            "$targetIssuer/.well-known/openid-configuration",
+            200,
+            """{"issuer":"$targetIssuer","authorization_endpoint":"$targetIssuer/v1/authorize","token_endpoint":"$targetIssuer/v1/token"}"""
+        )
+        executor.stub(introspectionEndpoint, 200, """{"active":$active}""")
+        val introspectableTargetClient =
+            OAuth2ClientBuilder
+                .create(
+                    issuerUrl = targetIssuer,
+                    clientId = "test-client-id",
+                    scope = listOf("openid")
+                ) {
+                    apiExecutor = executor
+                    endpointOverrides = OAuth2EndpointOverrides(introspectionEndpoint = introspectionEndpoint)
+                }.getOrThrow()
+        return object : KotlinCrossAppAccessFlow {
+            override val idpClient: OAuth2Client = fakeClient
+            override val targetClient: OAuth2Client = introspectableTargetClient
+
+            override suspend fun start(
+                subjectAssertion: SubjectAssertion,
+                scope: List<String>?,
+            ): Result<IdJagAssertion> = notImplemented()
+
+            override suspend fun redeem(idJag: IdJagAssertion): Result<com.okta.authfoundation.client.TokenInfo> = notImplemented()
+
+            override suspend fun exchange(
+                subjectAssertion: SubjectAssertion,
+                scope: List<String>?,
+            ): Result<com.okta.authfoundation.client.TokenInfo> = notImplemented()
+
+            override fun toString(): String = "CrossAppAccessFlow(idp=https://example.okta.com, target=https://introspectable-target.example.com)"
+
+            private fun notImplemented(): Nothing = throw NotImplementedError("not used by this test")
+        }
+    }
 
     /**
      * A fake [Credential] holding [idToken], for Java tests that cannot implement the

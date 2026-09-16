@@ -16,11 +16,13 @@
 package com.okta.oauth2.kmp.jvm;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import com.okta.authfoundation.client.TokenInfo;
+import com.okta.authfoundation.client.dto.IntrospectInfo;
 import com.okta.authfoundation.client.jvm.AuthFoundationResult;
 import com.okta.authfoundation.client.kmp.OAuth2Client;
 import com.okta.authfoundation.credential.kmp.Credential;
@@ -60,6 +62,24 @@ public class CrossAppAccessFlowTest {
   public void create_WithTargetNamedByAuthorizationServerId_AndNoCredential_ReturnsFailedResult() {
     CrossAppAccessTarget target =
         CrossAppAccessTargetBuilder.forAuthorizationServerId("default").build();
+
+    AuthFoundationResult<CrossAppAccessFlow> result =
+        CrossAppAccessFlow.create(idpClient(), target);
+
+    assertTrue(result.isFailure());
+  }
+
+  @Test
+  public void
+      create_WithAuthorizationServerIdBuilderAndSetAuthorizationServerId_ReturnsFailedResult() {
+    // setAuthorizationServerId only combines with forIssuer's issuer origin; setting it on a
+    // forAuthorizationServerId builder is a developer mistake that must fail rather than being
+    // silently dropped.
+    CrossAppAccessTarget target =
+        CrossAppAccessTargetBuilder.forAuthorizationServerId("default")
+            .setAuthorizationServerId("customAuthServer")
+            .setClientSecret("target-secret")
+            .build();
 
     AuthFoundationResult<CrossAppAccessFlow> result =
         CrossAppAccessFlow.create(idpClient(), target);
@@ -183,6 +203,57 @@ public class CrossAppAccessFlowTest {
             "Should contain error message", e.getCause().getMessage().contains("access_denied"));
       }
     }
+  }
+
+  @Test
+  public void introspectResourceToken_WithActiveToken_ReturnsActiveIntrospectInfo()
+      throws ExecutionException, InterruptedException, TimeoutException {
+    try (CrossAppAccessFlow flow =
+        TestFlowFactory.createCrossAppAccessFlowWithIntrospectableTarget(true)) {
+      IntrospectInfo info =
+          flow.introspectResourceToken("resource-access-token").get(5, TimeUnit.SECONDS);
+
+      assertTrue(info.getActive());
+    }
+  }
+
+  @Test
+  public void introspectResourceToken_WithInactiveToken_ReturnsInactiveIntrospectInfo()
+      throws ExecutionException, InterruptedException, TimeoutException {
+    try (CrossAppAccessFlow flow =
+        TestFlowFactory.createCrossAppAccessFlowWithIntrospectableTarget(false)) {
+      IntrospectInfo info =
+          flow.introspectResourceToken("resource-access-token").get(5, TimeUnit.SECONDS);
+
+      assertFalse(info.getActive());
+    }
+  }
+
+  @Test
+  public void introspectResourceToken_WithJvmOverloadsShortForm_OmitsTokenTypeHint()
+      throws ExecutionException, InterruptedException, TimeoutException {
+    try (CrossAppAccessFlow flow =
+        TestFlowFactory.createCrossAppAccessFlowWithIntrospectableTarget(true)) {
+      IntrospectInfo info =
+          flow.introspectResourceToken("resource-access-token").get(5, TimeUnit.SECONDS);
+
+      assertNotNull(info);
+    }
+  }
+
+  @Test
+  public void introspectResourceToken_AfterClose_StillCompletes()
+      throws ExecutionException, InterruptedException, TimeoutException {
+    // introspectResourceToken runs on its own coroutine scope, independent of close(), so it must
+    // remain callable afterward.
+    CrossAppAccessFlow flow =
+        TestFlowFactory.createCrossAppAccessFlowWithIntrospectableTarget(true);
+    flow.close();
+
+    IntrospectInfo info =
+        flow.introspectResourceToken("resource-access-token").get(5, TimeUnit.SECONDS);
+
+    assertTrue(info.getActive());
   }
 
   @Test

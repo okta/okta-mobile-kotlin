@@ -144,6 +144,7 @@ public final class com/okta/oauth2/kmp/CrossAppAccessTarget$Companion {
 }
 
 public final class com/okta/oauth2/kmp/CrossAppAccessTarget$Issuer : com/okta/oauth2/kmp/CrossAppAccessTarget {
+	public final fun getAuthorizationServerId ()Ljava/lang/String;
 	public final fun getClientAssertionProvider ()Lcom/okta/authfoundation/client/ClientAssertionProvider;
 	public final fun getClientBuildAction ()Lkotlin/jvm/functions/Function1;
 	public final fun getClientId ()Ljava/lang/String;
@@ -162,6 +163,7 @@ public final class com/okta/oauth2/kmp/CrossAppAccessTarget$Prebuilt : com/okta/
 }
 
 public final class com/okta/oauth2/kmp/CrossAppAccessTargetBuilder {
+	public final fun getAuthorizationServerId ()Ljava/lang/String;
 	public final fun getClientAssertionProvider ()Lcom/okta/authfoundation/client/ClientAssertionProvider;
 	public final fun getClientBuildAction ()Lkotlin/jvm/functions/Function1;
 	public final fun getClientId ()Ljava/lang/String;
@@ -169,6 +171,7 @@ public final class com/okta/oauth2/kmp/CrossAppAccessTargetBuilder {
 	public final fun getEndpointOverrides ()Lcom/okta/authfoundation/client/OAuth2EndpointOverrides;
 	public final fun getResource ()Ljava/lang/String;
 	public final fun getScope ()Ljava/util/List;
+	public final fun setAuthorizationServerId (Ljava/lang/String;)V
 	public final fun setClientAssertionProvider (Lcom/okta/authfoundation/client/ClientAssertionProvider;)V
 	public final fun setClientBuildAction (Lkotlin/jvm/functions/Function1;)V
 	public final fun setClientId (Ljava/lang/String;)V
@@ -381,6 +384,9 @@ public final class com/okta/oauth2/kmp/jvm/CrossAppAccessFlow : java/io/Closeabl
 	public static synthetic fun exchange$default (Lcom/okta/oauth2/kmp/jvm/CrossAppAccessFlow;Lcom/okta/oauth2/kmp/SubjectAssertion;Ljava/util/List;ILjava/lang/Object;)Ljava/util/concurrent/CompletableFuture;
 	public final fun getIdpClient ()Lcom/okta/authfoundation/client/kmp/OAuth2Client;
 	public final fun getTargetClient ()Lcom/okta/authfoundation/client/kmp/OAuth2Client;
+	public final fun introspectResourceToken (Ljava/lang/String;)Ljava/util/concurrent/CompletableFuture;
+	public final fun introspectResourceToken (Ljava/lang/String;Ljava/lang/String;)Ljava/util/concurrent/CompletableFuture;
+	public static synthetic fun introspectResourceToken$default (Lcom/okta/oauth2/kmp/jvm/CrossAppAccessFlow;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Ljava/util/concurrent/CompletableFuture;
 	public final fun redeem (Lcom/okta/oauth2/kmp/IdJagAssertion;)Ljava/util/concurrent/CompletableFuture;
 	public final fun start (Lcom/okta/oauth2/kmp/SubjectAssertion;)Ljava/util/concurrent/CompletableFuture;
 	public final fun start (Lcom/okta/oauth2/kmp/SubjectAssertion;Ljava/util/List;)Ljava/util/concurrent/CompletableFuture;
@@ -404,6 +410,7 @@ public final class com/okta/oauth2/kmp/jvm/CrossAppAccessTargetBuilder {
 	public final fun build ()Lcom/okta/oauth2/kmp/CrossAppAccessTarget;
 	public static final fun forAuthorizationServerId (Ljava/lang/String;)Lcom/okta/oauth2/kmp/jvm/CrossAppAccessTargetBuilder;
 	public static final fun forIssuer (Ljava/lang/String;)Lcom/okta/oauth2/kmp/jvm/CrossAppAccessTargetBuilder;
+	public final fun setAuthorizationServerId (Ljava/lang/String;)Lcom/okta/oauth2/kmp/jvm/CrossAppAccessTargetBuilder;
 	public final fun setClientAssertionProvider (Lcom/okta/authfoundation/client/ClientAssertionProvider;)Lcom/okta/oauth2/kmp/jvm/CrossAppAccessTargetBuilder;
 	public final fun setClientBuildAction (Ljava/util/function/Consumer;)Lcom/okta/oauth2/kmp/jvm/CrossAppAccessTargetBuilder;
 	public final fun setClientId (Ljava/lang/String;)Lcom/okta/oauth2/kmp/jvm/CrossAppAccessTargetBuilder;

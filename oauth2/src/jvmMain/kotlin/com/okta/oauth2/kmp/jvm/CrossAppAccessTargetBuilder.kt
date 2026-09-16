@@ -41,6 +41,7 @@ class CrossAppAccessTargetBuilder private constructor(
     private val issuer: String?,
     private val authorizationServerId: String?,
 ) {
+    private var issuerAuthorizationServerId: String? = null
     private var clientId: String? = null
     private var scope: List<String>? = null
     private var clientSecret: String? = null
@@ -48,6 +49,21 @@ class CrossAppAccessTargetBuilder private constructor(
     private var endpointOverrides: OAuth2EndpointOverrides? = null
     private var resource: String? = null
     private var clientBuildAction: Consumer<OAuth2ClientBuilder>? = null
+
+    /**
+     * Sets a custom authorization server id, combined with [forIssuer]'s own `issuer` origin —
+     * `"$issuer/oauth2/$authorizationServerId"` — to name a custom authorization server on that
+     * different org. Leave unset for that org's default authorization server instead.
+     *
+     * Does not apply when this builder was started with [forAuthorizationServerId], whose own
+     * `authorizationServerId` argument already names the id against the primary client's org —
+     * calling this in that case builds successfully, but [CrossAppAccessFlow.create] then fails
+     * rather than silently dropping the setting.
+     *
+     * @param authorizationServerId the custom authorization server id.
+     * @return this builder, for chaining.
+     */
+    fun setAuthorizationServerId(authorizationServerId: String): CrossAppAccessTargetBuilder = apply { this.issuerAuthorizationServerId = authorizationServerId }
 
     /**
      * Sets the client identifier to authenticate with at the target only.
@@ -120,6 +136,7 @@ class CrossAppAccessTargetBuilder private constructor(
      * @return the built target.
      */
     fun build(): KotlinCrossAppAccessTarget {
+        val capturedIssuerAuthorizationServerId = issuerAuthorizationServerId
         val capturedClientId = clientId
         val capturedScope = scope
         val capturedClientSecret = clientSecret
@@ -129,6 +146,7 @@ class CrossAppAccessTargetBuilder private constructor(
         val capturedClientBuildAction: (OAuth2ClientBuilder.() -> Unit)? = clientBuildAction?.let { consumer -> { consumer.accept(this) } }
 
         val configure: KotlinCrossAppAccessTargetBuilder.() -> Unit = {
+            authorizationServerId = capturedIssuerAuthorizationServerId
             clientId = capturedClientId
             scope = capturedScope
             clientSecret = capturedClientSecret
