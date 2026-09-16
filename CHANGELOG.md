@@ -11,7 +11,10 @@
   composes the two. `CrossAppAccessTarget` (with a builder for its eight settings) names the
   target by issuer (optionally paired with a custom authorization server id on that same origin),
   by Okta custom authorization server id resolved against the primary client's own org, or by an
-  already-built `OAuth2Client`.
+  already-built `OAuth2Client`. Setting that custom authorization server id on a target named by
+  Okta custom authorization server id instead — where it has no effect, since that factory's own
+  id parameter already names the server — fails from `CrossAppAccessFlow.create()` rather than
+  being silently dropped.
   `Credential.crossAppAccessSubject`/`crossAppAccessToken` derive the exchange from a stored
   credential in one call. New public types: `IdJagAssertion`, `SubjectAssertion`, and
   `CrossAppAccessException` (with `IdpExchangeFailed`/`TargetRedemptionFailed` subtypes). Includes

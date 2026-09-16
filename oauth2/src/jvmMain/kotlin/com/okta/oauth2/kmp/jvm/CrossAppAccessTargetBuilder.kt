@@ -55,8 +55,10 @@ class CrossAppAccessTargetBuilder private constructor(
      * `"$issuer/oauth2/$authorizationServerId"` — to name a custom authorization server on that
      * different org. Leave unset for that org's default authorization server instead.
      *
-     * Ignored when this builder was started with [forAuthorizationServerId], whose own
-     * `authorizationServerId` argument already names the id against the primary client's org.
+     * Does not apply when this builder was started with [forAuthorizationServerId], whose own
+     * `authorizationServerId` argument already names the id against the primary client's org —
+     * calling this in that case builds successfully, but [CrossAppAccessFlow.create] then fails
+     * rather than silently dropping the setting.
      *
      * @param authorizationServerId the custom authorization server id.
      * @return this builder, for chaining.

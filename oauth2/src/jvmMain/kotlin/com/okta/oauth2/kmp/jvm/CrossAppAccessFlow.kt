@@ -60,6 +60,12 @@ class CrossAppAccessFlow(
 ) : Closeable {
     private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
+    /**
+     * Backs [introspectResourceToken] only. Kept separate from [coroutineScope] so it survives
+     * [close]; a [SupervisorJob] so one call's failure cannot cancel a concurrent one.
+     */
+    private val introspectionScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
     /** The **IdP authorization server** client — used for [start]. */
     fun getIdpClient(): KmpOAuth2Client = delegate.idpClient
 
@@ -111,9 +117,8 @@ class CrossAppAccessFlow(
      * accepted server-side, which a successful [redeem]/[exchange] alone does not (that only
      * proves the resource authorization server *issued* it).
      *
-     * Runs on its own short-lived coroutine scope; unlike [start]/[redeem]/[exchange], it is
-     * unaffected by [close] — useful for checking a token after the flow that obtained it has
-     * already been closed.
+     * Runs on its own coroutine scope, separate from [start]/[redeem]/[exchange]'s — so it remains
+     * callable, and unaffected by concurrent calls' failures, even after [close].
      *
      * @param token the resource access token to introspect.
      * @param tokenTypeHint a hint about the type of token; defaults to `"access_token"`.
@@ -124,7 +129,7 @@ class CrossAppAccessFlow(
     fun introspectResourceToken(
         token: String,
         tokenTypeHint: String = "access_token",
-    ): CompletableFuture<IntrospectInfo> = CoroutineScope(Dispatchers.Default).future { delegate.targetClient.introspectToken(tokenTypeHint, token).getOrThrow() }
+    ): CompletableFuture<IntrospectInfo> = introspectionScope.future { delegate.targetClient.introspectToken(tokenTypeHint, token).getOrThrow() }
 
     override fun toString(): String = delegate.toString()
 

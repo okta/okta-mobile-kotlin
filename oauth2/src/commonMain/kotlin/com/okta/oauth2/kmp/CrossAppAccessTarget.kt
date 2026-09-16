@@ -103,6 +103,13 @@ sealed class CrossAppAccessTarget {
         val endpointOverrides: OAuth2EndpointOverrides?,
         /** Applied to the target client's builder last, after every setting above. */
         val clientBuildAction: (OAuth2ClientBuilder.() -> Unit)?,
+        /**
+         * [CrossAppAccessTargetBuilder.authorizationServerId], carried through only so
+         * [CrossAppAccessFlow.create] can reject it — this factory's own [authorizationServerId]
+         * parameter above already names the id, so a non-null value here means the builder
+         * property was set on the wrong factory.
+         */
+        internal val ignoredIssuerAuthorizationServerId: String?,
     ) : CrossAppAccessTarget() {
         override fun toString(): String = "CrossAppAccessTarget.AuthorizationServerId(authorizationServerId=$authorizationServerId)"
     }
@@ -165,10 +172,11 @@ sealed class CrossAppAccessTarget {
          * Names a target by an Okta custom authorization server identifier, resolved against the
          * primary client's own org.
          *
-         * [CrossAppAccessTargetBuilder.authorizationServerId] set in [buildAction] is ignored
+         * [CrossAppAccessTargetBuilder.authorizationServerId] set in [buildAction] does not apply
          * here — it exists for [forIssuer], to combine with a *different* org's origin; this
          * factory's own [authorizationServerId] parameter already names the id against the
-         * primary's org.
+         * primary's org. Setting it anyway is treated as a developer mistake: it fails later, from
+         * [CrossAppAccessFlow.create], rather than being silently dropped.
          *
          * @param authorizationServerId the custom authorization server identifier.
          * @param buildAction optional configuration block for the target's remaining settings.
@@ -189,7 +197,8 @@ sealed class CrossAppAccessTarget {
                 clientSecret = builder.clientSecret,
                 clientAssertionProvider = builder.clientAssertionProvider,
                 endpointOverrides = builder.endpointOverrides,
-                clientBuildAction = builder.clientBuildAction
+                clientBuildAction = builder.clientBuildAction,
+                ignoredIssuerAuthorizationServerId = builder.authorizationServerId
             )
         }
 
@@ -225,8 +234,10 @@ class CrossAppAccessTargetBuilder internal constructor() {
      * authorization server on that different org. Leave `null` for that org's default
      * authorization server instead.
      *
-     * Ignored by [CrossAppAccessTarget.forAuthorizationServerId], whose own `authorizationServerId`
-     * parameter already names the id against the primary client's org.
+     * Does not apply to [CrossAppAccessTarget.forAuthorizationServerId], whose own
+     * `authorizationServerId` parameter already names the id against the primary client's org —
+     * setting this property there fails later, from [CrossAppAccessFlow.create], rather than
+     * being silently dropped.
      */
     var authorizationServerId: String? = null
 
