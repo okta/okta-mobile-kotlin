@@ -44,6 +44,9 @@ import kotlin.time.Clock
  * custom authorization server. The effective issuer URL used for OIDC discovery is derived as:
  * - No [authorizationServerId]: `issuerUrl` is used as-is (org authorization server).
  * - With [authorizationServerId]: `"$issuerUrl/oauth2/$authorizationServerId"` (custom authorization server).
+ * - With [useIssuerUrlAsIs]: `issuerUrl` is used exactly as given (minus a trailing slash),
+ *   including any path — for reverse-proxy/gateway URLs or non-Okta-shaped issuers. Mutually
+ *   exclusive with [authorizationServerId].
  *
  * ```kotlin
  * // Org authorization server
@@ -97,6 +100,21 @@ class OAuth2ClientBuilder private constructor(
      * custom authorization server ID from your Okta org.
      */
     var authorizationServerId: String? = null
+
+    /**
+     * When `true`, [issuerUrl] is used exactly as given (minus a trailing slash) — including any
+     * path, query, or fragment — instead of being normalized to the org base URL (optionally with
+     * `/oauth2/$authorizationServerId` appended). Use this to target a reverse-proxy/gateway URL
+     * with a custom path, or a general-purpose (non-Okta) OAuth2/OIDC authorization server whose
+     * issuer doesn't follow Okta's `/oauth2/{id}` convention.
+     *
+     * Mutually exclusive with [authorizationServerId] — combining "use issuerUrl exactly as
+     * given" with "append this authorization server id" is ambiguous; [create] throws if both
+     * are set.
+     *
+     * Defaults to `false` (existing normalization behavior).
+     */
+    var useIssuerUrlAsIs: Boolean = false
 
     /** Optional client secret for confidential clients. */
     var clientSecret: String = ""
@@ -227,6 +245,10 @@ class OAuth2ClientBuilder private constructor(
                     "clientSecret cannot be combined with clientAssertionProvider."
                 }
 
+                require(!builder.useIssuerUrlAsIs || builder.authorizationServerId.isNullOrBlank()) {
+                    "useIssuerUrlAsIs cannot be combined with authorizationServerId."
+                }
+
                 // Validate endpoint override URLs
                 builder.endpointOverrides?.let { overrides ->
                     fun validateOverrideUrl(
@@ -266,6 +288,7 @@ class OAuth2ClientBuilder private constructor(
     }
 
     private fun effectiveIssuerUrl(): String {
+        if (useIssuerUrlAsIs) return issuerUrl.trimEnd('/')
         val url = Url(issuerUrl)
         val portSuffix = if (url.port == url.protocol.defaultPort) "" else ":${url.port}"
         val base = "${url.protocol.name}://${url.host}$portSuffix"

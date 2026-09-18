@@ -38,6 +38,9 @@ import kotlin.coroutines.CoroutineContext
  * custom authorization server. The effective issuer URL used for OIDC discovery is derived as:
  * - No authorization server ID: [issuerUrl] is used as-is (org authorization server).
  * - With authorization server ID: `"$issuerUrl/oauth2/$authorizationServerId"` (custom authorization server).
+ * - With [setUseIssuerUrlAsIs]: [issuerUrl] is used exactly as given (minus a trailing slash),
+ *   including any path — for reverse-proxy/gateway URLs or non-Okta-shaped issuers. Mutually
+ *   exclusive with an authorization server ID.
  *
  * @param issuerUrl The base URL of the Okta org (e.g. `"https://your-domain.okta.com"`). Must use HTTPS.
  * @param clientId The client ID of the application.
@@ -55,6 +58,7 @@ class OAuth2ClientBuilder(
     private var json: Json? = null
     private var cache: Cache? = null
     private var authorizationServerId: String? = null
+    private var useIssuerUrlAsIs: Boolean? = null
     private var clientSecret: String = ""
     private var clientAssertionProvider: ClientAssertionProvider? = null
     private var acrValues: String? = null
@@ -145,6 +149,22 @@ class OAuth2ClientBuilder(
     fun setAuthorizationServerId(authorizationServerId: String): com.okta.authfoundation.client.jvm.OAuth2ClientBuilder =
         apply {
             this.authorizationServerId = authorizationServerId
+        }
+
+    /**
+     * When `true`, [issuerUrl] is used exactly as given (minus a trailing slash) — including any
+     * path, query, or fragment — instead of being normalized to the org base URL (optionally with
+     * an authorization server ID appended). Use this to target a reverse-proxy/gateway URL with a
+     * custom path, or a general-purpose (non-Okta) OAuth2/OIDC authorization server whose issuer
+     * doesn't follow Okta's `/oauth2/{id}` convention. Mutually exclusive with an authorization
+     * server ID — [build] returns a failed [AuthFoundationResult] if both are set.
+     *
+     * @param useIssuerUrlAsIs Whether to use [issuerUrl] exactly as given.
+     * @return This builder for chaining.
+     */
+    fun setUseIssuerUrlAsIs(useIssuerUrlAsIs: Boolean): com.okta.authfoundation.client.jvm.OAuth2ClientBuilder =
+        apply {
+            this.useIssuerUrlAsIs = useIssuerUrlAsIs
         }
 
     /**
@@ -293,6 +313,7 @@ class OAuth2ClientBuilder(
                 this@OAuth2ClientBuilder.json?.let { json = it }
                 this@OAuth2ClientBuilder.cache?.let { cache = it }
                 this@OAuth2ClientBuilder.authorizationServerId?.let { authorizationServerId = it }
+                this@OAuth2ClientBuilder.useIssuerUrlAsIs?.let { useIssuerUrlAsIs = it }
                 clientSecret = this@OAuth2ClientBuilder.clientSecret
                 this@OAuth2ClientBuilder.clientAssertionProvider?.let { clientAssertionProvider = it }
                 this@OAuth2ClientBuilder.acrValues?.let { acrValues = it }

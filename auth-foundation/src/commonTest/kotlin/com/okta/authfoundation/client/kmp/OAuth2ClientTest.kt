@@ -675,4 +675,39 @@ class OAuth2ClientTest {
         assertSame(originalClient.configuration, recreated.configuration)
         assertEquals("test-client-id", recreated.configuration.clientId)
     }
+
+    @Test
+    fun endpointsOrNull_WithUseIssuerUrlAsIs_DiscoversAtCustomPath() =
+        runTest {
+            // Proves the custom path actually reaches discovery end-to-end, not just that the
+            // configuration field looks right (regression coverage for #446).
+            val customIssuerUrl = "https://gateway.example.com/tenant-a/oidc"
+            val discoveryRequests = mutableListOf<ApiRequest>()
+            val discoveryJson =
+                """
+                {
+                    "issuer": "$customIssuerUrl",
+                    "token_endpoint": "$customIssuerUrl/v1/token"
+                }
+                """.trimIndent()
+
+            val config =
+                OAuth2ClientBuilder
+                    .create(
+                        issuerUrl = customIssuerUrl,
+                        clientId = "test-client-id",
+                        scope = listOf("openid")
+                    ) {
+                        useIssuerUrlAsIs = true
+                        apiExecutor = capturingApiExecutor(discoveryJson, discoveryRequests)
+                    }.getOrThrow()
+                    .configuration
+
+            val client = OAuth2Client.createFromConfiguration(config)
+            val endpoints = client.endpointsOrNull()
+
+            assertNotNull(endpoints)
+            assertEquals("$customIssuerUrl/.well-known/openid-configuration", discoveryRequests.single().url())
+            assertEquals("$customIssuerUrl/v1/token", endpoints.tokenEndpoint)
+        }
 }

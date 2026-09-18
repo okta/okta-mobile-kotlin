@@ -132,6 +132,35 @@ public class OAuth2ClientBuilderJavaTest {
   }
 
   @Test
+  public void build_WithUseIssuerUrlAsIs_PreservesFullPath() {
+    String customIssuerUrl = "https://gateway.example.com/tenant-a/oidc";
+    OAuth2Client client =
+        new OAuth2ClientBuilder(customIssuerUrl, CLIENT_ID, Arrays.asList(SCOPE.split(" ")))
+            .setUseIssuerUrlAsIs(true)
+            .build()
+            .getOrThrow();
+
+    assertEquals(
+        "Issuer should be used exactly as given",
+        customIssuerUrl,
+        client.getConfiguration().getIssuerUrl());
+  }
+
+  @Test
+  public void build_WithUseIssuerUrlAsIsAndAuthorizationServerId_Fails() {
+    OAuth2ClientBuilder builder =
+        new OAuth2ClientBuilder(BASE_URL, CLIENT_ID, Arrays.asList(SCOPE.split(" ")))
+            .setUseIssuerUrlAsIs(true)
+            .setAuthorizationServerId("default");
+
+    AuthFoundationResult<OAuth2Client> result = builder.build();
+
+    assertTrue(
+        "Combining useIssuerUrlAsIs with an authorization server ID should fail",
+        result.isFailure());
+  }
+
+  @Test
   public void build_WithInvalidIssuerUrl_Fails() {
     OAuth2ClientBuilder builder =
         new OAuth2ClientBuilder(
