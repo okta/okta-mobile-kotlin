@@ -1,0 +1,188 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+#
+# CodeRabbit configuration for okta-mobile-kotlin.
+#
+# Design notes:
+#   - Mechanical checks (spotlessCheck/ktlint, checkLegacyAbi's binary-compatibility
+#     validators, license-header check) already cover the deterministic part of review.
+#     CodeRabbit's job is judgment calls: crypto/token/PKCE handling, breaking API
+#     changes, JVM-wrapper/KMP parity drift, and coroutine/concurrency correctness.
+#   - Every path rule below is labeled with a Review Tier (Very High/High/Medium/Low/
+#     Very Low) so reviewers can see which findings need deeper attention.
+#   - "JVM wrapper parity" refers to this project's convention: jvm sub-package
+#     wrappers (OAuth2ClientBuilder, DirectAuthenticationFlowBuilder, flow wrappers,
+#     etc.) must stay at full parity with their commonMain Kotlin counterpart. This has
+#     drifted for real before.
+#   - Path-instruction rules are ordered specific-first.
+
+language: "en-US"
+early_access: false
+
+tone_instructions: |
+  Review a Kotlin Multiplatform auth SDK (Android/JVM/JS/WASM). Focus on correctness,
+  security (token/PKCE/crypto handling), coroutine/concurrency safety, public-API
+  breakage, and JVM-wrapper/KMP parity drift. Ignore issues already caught by
+  ktlint/spotless or the binary-compatibility validators. Include the Review Tier;
+  favor high-signal comments over restating mechanical lint output.
+
+reviews:
+  profile: "chill"
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: false
+  review_status: true
+  review_details: true
+
+  auto_review:
+    enabled: true
+    drafts: false
+
+  path_filters:
+    - "!**/build/**"
+    - "!.gradle/**"
+    - "!.kotlin/**"
+    - "!.idea/**"
+    - "!.vscode/**"
+    - "!.release-drafts/**"
+    - "!gradle/wrapper/**"
+    - "!**/*.jks"
+    - "!**/*.keystore"
+
+  path_instructions:
+    # ---------------------------------------------------------------
+    # Very High — security-sensitive, JVM/KMP parity, public API
+    # ---------------------------------------------------------------
+    - path: "auth-foundation/**/{OAuth2Client,CredentialDataSource,Credential,TokenCredentialManager,RoomTokenStorage}*"
+      instructions: |
+        Review Tier: Very High. Core token/session management and the OAuth2 client.
+        Flag: (1) any change to token storage, serialization, or encryption (SQLCipher),
+        (2) logging or exceptions that could leak tokens/secrets, (3) CoalescingOrchestrator
+        misuse that could cause duplicate network requests or race conditions,
+        (4) any blocking call on Dispatchers.Main/Default (should be IO/withContext),
+        (5) direct .value mutation on MutableStateFlow instead of .update{}.
+
+    - path: "{auth-foundation,oauth2}/**/*{Pkce,Crypto,Jwt,Biometric}*"
+      instructions: |
+        Review Tier: Very High. PKCE, crypto, JWT parsing, and biometric key handling.
+        Flag any weakening of code_verifier/state/nonce generation, any use of a
+        non-cryptographically-secure RNG, and any biometric key invalidation edge case
+        that isn't handled.
+
+    - path: "{auth-foundation,oauth2}/**/jvm/**"
+      instructions: |
+        Review Tier: Very High. Java-idiomatic wrapper layer (builders, flow wrappers,
+        AuthFoundationResult/DirectAuthResult) that must stay at full parity with its
+        commonMain Kotlin counterpart.
+        If a commonMain builder/flow file also changed in this PR, verify every added,
+        renamed, or removed public property/setter/method has a corresponding update
+        here. If this file changed alone, ask whether the commonMain counterpart also
+        needs a matching change (or confirm this is intentional wrapper-only work).
+
+    - path: "okta-direct-auth/**/jvm/**"
+      instructions: |
+        Review Tier: Very High. Same JVM-wrapper parity rule as auth-foundation/oauth2 —
+        check DirectAuthenticationFlowBuilder and related wrappers stay in sync with
+        their commonMain equivalents.
+
+    - path: "*/api/**"
+      instructions: |
+        Review Tier: Very High if hand-edited; Very Low if machine-regenerated.
+        These are checked-in binary-compatibility-validator dumps. They should only ever
+        change via `./gradlew updateKotlinAbi` / `androidApiDump` / `releaseApiDump`
+        after a real API change — flag any dump edit that isn't accompanied by a matching
+        source change, and flag any *removed* public API signature as a breaking change
+        needing a major version bump.
+
+    # ---------------------------------------------------------------
+    # High — CI, build/version config, flows, event coordination
+    # ---------------------------------------------------------------
+    - path: ".circleci/config.yml"
+      instructions: |
+        Review Tier: High. Removing or weakening a required job (spotless-check,
+        api-check, unit-test, unit-test-android-host, snyk-scan, reversing-labs) is High
+        tier and should be called out explicitly. Adding a job is generally fine.
+
+    - path: "{buildSrc/src/main/java/Configuration.kt,gradle/libs.versions.toml,gradle.properties}"
+      instructions: |
+        Review Tier: High. SDK version bumps, dependency version changes, and
+        GROUP/VERSION_NAME changes. Flag any dependency downgrade, any version pin
+        removed in favor of a range (supply-chain risk), and any MIN_SDK/COMPILE_SDK/
+        TARGET_SDK change without justification.
+
+    - path: "{auth-foundation,oauth2,okta-direct-auth,okta-idx-kotlin}/**/*{Flow,EventCoordinator}*"
+      instructions: |
+        Review Tier: High. Auth flow classes (AuthorizationCodeFlow, ResourceOwnerFlow,
+        DeviceAuthorizationFlow, SessionTokenFlow, TokenExchangeFlow,
+        RedirectEndSessionFlow, InteractionCodeFlow, DirectAuthenticationFlow) and
+        EventCoordinator pub/sub. Flag missing suspend-function cancellation handling,
+        GlobalScope usage, unstructured coroutine launches, and Result-wrapping
+        inconsistencies with sibling flows.
+
+    - path: "**/build.gradle.kts"
+      instructions: |
+        Review Tier: High if publishing/signing/dependency-visibility changes; Medium
+        otherwise. Flag any new `api()` dependency that should be `implementation()`
+        (leaks transitive deps into consumers), and any change to
+        publishToMavenCentral/signing config.
+
+    # ---------------------------------------------------------------
+    # Medium — module code not covered above, samples' shared logic
+    # ---------------------------------------------------------------
+    - path: "{web-authentication-ui,legacy-token-migration,native-authentication}/**/*.kt"
+      instructions: |
+        Review Tier: Medium. Browser-redirect UI and legacy-SDK migration code.
+        Flag lifecycle/Activity-result handling bugs and any migration path that could
+        silently drop or duplicate a migrated token.
+
+    - path: "**/src/{commonMain,androidMain,jvmMain}/**/*.kt"
+      instructions: |
+        Review Tier: Medium (unless already covered by a more specific rule above).
+        Check for: singleton usage (discouraged per project convention except DB
+        instances), `lateinit` usage (disallowed), mutable public properties (should be
+        immutable), and blocking I/O/CPU-heavy work not wrapped in
+        `withContext(Dispatchers.IO/Default)`.
+
+    # ---------------------------------------------------------------
+    # Low — tests, sample apps
+    # ---------------------------------------------------------------
+    - path: "**/src/{commonTest,androidHostTest,androidDeviceTest,jvmTest}/**"
+      instructions: |
+        Review Tier: Low. Unit/host/device tests.
+        Flag: tests asserting compiler/type-system guarantees (banned per project
+        convention), disabled/`@Ignore`d tests without a linked reason, hard-coded
+        credentials or real tenant URLs, and new functionality shipped without an
+        accompanying test in the same PR.
+
+    - path: "{app,session-token-sample,legacy-token-migration-sample,dynamic-app,okta-direct-auth-android-app,okta-direct-auth-desktop-app,okta-direct-auth-java-cli-sample}/**"
+      instructions: |
+        Review Tier: Low. Sample apps. Skim for real client IDs/secrets/tenant URLs.
+        If a sample works around an SDK gap instead of the SDK exposing the fix, flag it
+        (per project convention: fix unreleased SDK gaps at the SDK layer, not with a
+        sample-side workaround).
+
+    # ---------------------------------------------------------------
+    # Very Low — docs, config, license headers
+    # ---------------------------------------------------------------
+    - path: "**/*.md"
+      instructions: |
+        Review Tier: Very Low, except CHANGELOG.md.
+        Check for typos, broken links, and stale API references after a signature
+        change. For CHANGELOG.md specifically: flag any "Fixed" entry for a bug that
+        never shipped in a released version (should just be omitted, not listed as
+        fixed).
+
+    - path: "{config/license,config/license.xml,.editorconfig,.gitignore,.gitattributes}"
+      instructions: |
+        Review Tier: Very Low. License header templates and editor/VCS config. Only
+        flag if a change would materially affect what spotless enforces.
+
+chat:
+  auto_reply: true
+
+knowledge_base:
+  code_guidelines:
+    filePatterns:
+      - "CONTRIBUTING.md"
+      - "AGENTS.md"
+  learnings:
+    scope: "auto"
