@@ -36,7 +36,12 @@ interface TokenInfo {
     val clientId: String
 
     /**
-     * The issuer url of the token.
+     * The issuer url this token's client is configured with (i.e. [OAuth2ClientConfiguration.issuerUrl]).
+     *
+     * This mirrors the *configured* issuer, not necessarily the token's own `iss` claim — the two
+     * can differ behind a reverse proxy/gateway, where OIDC discovery returns a different `issuer`
+     * than the URL used to reach it. ID token `iss` validation is performed separately against the
+     * discovery-returned issuer; this property is used to re-derive client/credential configuration.
      */
     val issuerUrl: String
 

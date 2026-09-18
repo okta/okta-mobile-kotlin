@@ -37,6 +37,13 @@
   `private_key_jwt`), so this caused `invalid_client` for any confidential-client caller. Now
   merges the same client authentication parameters as `tokenRequest`; unaffected for public
   clients, which continue sending no credential.
+- `OAuth2Client` (KMP) validated an ID token's `iss` claim against the builder-configured
+  `issuerUrl` instead of the `issuer` returned by OIDC discovery (`.well-known/openid-configuration`),
+  which are discarded after being fetched. Any deployment where the two differ — e.g. a
+  reverse-proxy/gateway domain in front of the real authorization server — caused otherwise-valid
+  ID tokens to fail with `INVALID_ISSUER`, breaking sign-in entirely. Now validates against the
+  discovery-returned issuer, matching the existing (correct) behavior of the legacy Android-only
+  `OAuth2Client`.
 
 ## web-authentication-ui Unreleased
 
