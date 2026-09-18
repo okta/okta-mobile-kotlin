@@ -35,4 +35,6 @@ sealed class AppNavigationState {
     data object TokenExchange : AppNavigationState()
 
     data object SessionToken : AppNavigationState()
+
+    data object CrossAppAccess : AppNavigationState()
 }

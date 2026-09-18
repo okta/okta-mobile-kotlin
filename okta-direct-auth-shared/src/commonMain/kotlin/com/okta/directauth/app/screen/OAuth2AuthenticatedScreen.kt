@@ -24,8 +24,10 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.okta.authfoundation.client.TokenInfo
+import com.okta.directauth.app.ui.theme.DirectAuthAppTheme
 import com.okta.directauth.app.util.AppLogger
 import com.okta.directauth.app.viewModel.OAuth2FlowViewModel
 import io.jsonwebtoken.Jwts
@@ -127,5 +129,28 @@ private fun buildTokenDisplayText(tokenInfo: TokenInfo): String {
             appendLine("Device Secret: ${it.take(20)}...")
             AppLogger.write("OAuth2AuthenticatedScreen", "Device Secret: $it")
         }
+    }
+}
+
+private class OAuth2AuthenticatedPreviewTokenInfo(
+    override val idToken: String?,
+) : TokenInfo {
+    override val id: String = "preview-token"
+    override val clientId: String = "preview-client-id"
+    override val issuerUrl: String = "https://example.okta.com/oauth2/default"
+    override val tokenType: String = "Bearer"
+    override val expiresIn: Int = 3600
+    override val accessToken: String = "preview-access-token"
+    override val scope: String? = "openid profile offline_access"
+    override val refreshToken: String? = "preview-refresh-token"
+    override val deviceSecret: String? = null
+    override val issuedTokenType: String? = null
+}
+
+@Preview
+@Composable
+private fun OAuth2AuthenticatedScreenPreview() {
+    DirectAuthAppTheme {
+        OAuth2AuthenticatedScreen(tokenInfo = OAuth2AuthenticatedPreviewTokenInfo(idToken = null), onBackToHome = {})
     }
 }

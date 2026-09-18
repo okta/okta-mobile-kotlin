@@ -34,9 +34,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.okta.directauth.app.model.OAuth2FlowState
 import com.okta.directauth.app.ui.theme.Dimens
+import com.okta.directauth.app.ui.theme.DirectAuthAppTheme
 
 /**
  * Screen for the Device Authorization grant flow.
@@ -155,5 +157,39 @@ private fun DeviceCodePollingContent(
                 textAlign = TextAlign.Center
             )
         }
+    }
+}
+
+@Preview
+@Composable
+private fun DeviceAuthorizationScreenIdlePreview() {
+    DirectAuthAppTheme {
+        DeviceAuthorizationScreen(flowState = OAuth2FlowState.Idle, onStart = {}, onCancel = {})
+    }
+}
+
+@Preview
+@Composable
+private fun DeviceAuthorizationScreenLoadingPreview() {
+    DirectAuthAppTheme {
+        DeviceAuthorizationScreen(flowState = OAuth2FlowState.Loading, onStart = {}, onCancel = {})
+    }
+}
+
+@Preview
+@Composable
+private fun DeviceAuthorizationScreenPollingPreview() {
+    DirectAuthAppTheme {
+        DeviceAuthorizationScreen(
+            flowState =
+                OAuth2FlowState.DeviceAuthPolling(
+                    userCode = "WDJB-MJHT",
+                    verificationUri = "https://example.okta.com/activate",
+                    verificationUriComplete = "https://example.okta.com/activate?user_code=WDJB-MJHT",
+                    expiresIn = 300
+                ),
+            onStart = {},
+            onCancel = {}
+        )
     }
 }
