@@ -73,7 +73,7 @@ public final class WrapperCrossAppAccessFlows implements CrossAppAccessFlows {
     if (result.isFailure()) {
       return failedFuture(result.exceptionOrNull());
     }
-    return result.getOrThrow().start(subject, scope.isEmpty() ? null : scope);
+    return result.getOrThrow().start(subject, normalizeScope(scope));
   }
 
   @Override
@@ -97,7 +97,7 @@ public final class WrapperCrossAppAccessFlows implements CrossAppAccessFlows {
     // itself is kept (not nulled out) so introspectResourceToken() can still find it afterward —
     // safe, since close() only cancels this flow's own future-bridging coroutine scope, never the
     // underlying target client introspectResourceToken() runs on its own separate scope.
-    return flow.exchange(subject, scope.isEmpty() ? null : scope)
+    return flow.exchange(subject, normalizeScope(scope))
         .whenComplete((tokenInfo, throwable) -> closeQuietly(flow));
   }
 
@@ -139,6 +139,13 @@ public final class WrapperCrossAppAccessFlows implements CrossAppAccessFlows {
       // deliberately keeps introspection alive on the flow it just completed.
       closeCompletelyQuietly(flow);
     }
+  }
+
+  // The underlying JVM CrossAppAccessFlow.start/exchange document null as "use the target's
+  // configured default", so an omitted (null) scope must reach them as null, not NPE here. An
+  // empty list is normalized the same way since it carries no scope either.
+  static List<String> normalizeScope(List<String> scope) {
+    return (scope == null || scope.isEmpty()) ? null : scope;
   }
 
   private static <T> CompletableFuture<T> failedFuture(Throwable error) {

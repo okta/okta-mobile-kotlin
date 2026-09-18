@@ -159,6 +159,33 @@ public final class CrossAppAccessConfig {
     return missing.isEmpty() ? new Validation.Complete() : new Validation.Incomplete(missing);
   }
 
+  /**
+   * Validates the resource app target and IdP identity configuration, additionally requiring that
+   * the requesting-app IdP client actually built successfully.
+   *
+   * <p>{@link #validate(boolean)} alone cannot see this: a {@code Complete} result there only
+   * means {@code xaaIdpIssuer}/{@code xaaIdpClientId} are non-null static fields, not that {@code
+   * OAuth2ClientBuilder} succeeded in building a client from them. Only checked when the
+   * single-argument overload would otherwise return {@link Validation.Complete} — if it didn't,
+   * {@code idpIssuer}/{@code idpClientId} can't both be non-null anyway, so {@code idpFlowAvailable}
+   * being false there is expected, not a build failure.
+   *
+   * @param hasTargetCredential see {@link #validate(boolean)}
+   * @param idpFlowAvailable whether the requesting-app IdP client (and the flow built from it)
+   *     actually built successfully
+   * @return the validation outcome
+   */
+  public Validation validate(boolean hasTargetCredential, boolean idpFlowAvailable) {
+    Validation result = validate(hasTargetCredential);
+    if (idpFlowAvailable || !(result instanceof Validation.Complete)) {
+      return result;
+    }
+    List<String> missing = new ArrayList<>();
+    missing.add(
+        "the Cross App Access IdP client failed to build — see startup logs for details");
+    return new Validation.Incomplete(missing);
+  }
+
   private static boolean issuerHasPath(String issuer) {
     int schemeEnd = issuer.indexOf("://");
     String withoutScheme = schemeEnd >= 0 ? issuer.substring(schemeEnd + 3) : issuer;

@@ -250,6 +250,7 @@ public final class StateRenderer {
     StringBuilder sb = new StringBuilder();
     sb.append("=== Resource Access Token ===\n");
     sb.append("This token is for the resource app — not your signed-in app.\n");
+    sb.append("Access Token:\n").append(token.getAccessToken()).append("\n");
     sb.append("Granted Scope: ")
         .append(token.getScope() == null ? "(none reported)" : token.getScope())
         .append("\n");

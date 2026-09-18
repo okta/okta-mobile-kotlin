@@ -112,7 +112,7 @@ public final class CrossAppAccessViewModel implements Closeable {
    * @return the validation outcome
    */
   public CrossAppAccessConfig.Validation validateConfig() {
-    return config.validate(hasTargetCredential);
+    return config.validate(hasTargetCredential, idpFlow != null);
   }
 
   /**
@@ -224,6 +224,10 @@ public final class CrossAppAccessViewModel implements Closeable {
   /**
    * Performs the dedicated Cross App Access sign-in (Authorization Code + PKCE), separate from
    * every other flow's session (non-blocking).
+   *
+   * <p>Clears any previous {@link #xaaSession} and ID-JAG/resource-token state up front, before
+   * starting the new browser flow — so a failed re-authentication cannot leave {@link #exchange}/
+   * {@link #start} still acting under a stale, previously signed-in identity.
    */
   public void signIn() {
     if (idpFlow == null) {
@@ -231,6 +235,12 @@ public final class CrossAppAccessViewModel implements Closeable {
       return;
     }
     CliLogger.info(TAG, "Starting Cross App Access dedicated sign-in");
+    xaaSession = null;
+    lastIdJag = null;
+    lastIdJagDisplay = null;
+    lastTokenDisplay = null;
+    introspectionActive = null;
+    redemptionCount.set(0);
     setScreen(OAuth2Screen.CROSS_APP_ACCESS_SIGN_IN_WAITING);
     pendingFuture =
         idpFlow

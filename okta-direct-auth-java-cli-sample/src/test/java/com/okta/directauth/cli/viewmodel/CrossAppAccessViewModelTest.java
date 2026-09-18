@@ -105,6 +105,23 @@ public class CrossAppAccessViewModelTest {
     assertThat(viewModel.hasSession()).isFalse();
   }
 
+  @Test
+  public void signIn_FailsAfterPriorSuccess_ClearsStaleSession() throws Exception {
+    // A first sign-in succeeds, establishing a session — then a second sign-in (e.g. the session
+    // expired and the user re-authenticates) fails. The stale session from the first sign-in must
+    // not remain available to exchange()/start() as if reauthentication had succeeded.
+    signInWithSession();
+    assertThat(viewModel.hasSession()).isTrue();
+    listener.reset();
+
+    fakeIdpFlow.signInFailWith(new IllegalStateException("reauthentication failed"));
+    viewModel.signIn();
+    listener.awaitTerminal();
+
+    assertThat(viewModel.getCurrentScreen()).isEqualTo(OAuth2Screen.CROSS_APP_ACCESS_ERROR);
+    assertThat(viewModel.hasSession()).isFalse();
+  }
+
   // ── One-action exchange ───────────────────────────────────────────────────────
 
   @Test

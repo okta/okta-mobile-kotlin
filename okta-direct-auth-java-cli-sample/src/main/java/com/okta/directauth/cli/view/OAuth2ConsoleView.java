@@ -353,8 +353,7 @@ public final class OAuth2ConsoleView
       output.println("of this CLI — sign in below.");
       output.print("Opening browser for sign-in. Waiting for redirect...");
       output.println("");
-      if (!awaitCrossAppAccessAction(crossAppAccessViewModel::signIn)) {
-        showCrossAppAccessError();
+      if (!runCrossAppAccessAction(crossAppAccessViewModel::signIn)) {
         return;
       }
     }
@@ -447,8 +446,7 @@ public final class OAuth2ConsoleView
   }
 
   private void runCrossAppAccessOneAction() {
-    if (!awaitCrossAppAccessAction(crossAppAccessViewModel::exchange)) {
-      showCrossAppAccessError();
+    if (!runCrossAppAccessAction(crossAppAccessViewModel::exchange)) {
       return;
     }
     runIntrospectPrompt();
@@ -476,16 +474,14 @@ public final class OAuth2ConsoleView
         crossAppAccessViewModel.reset();
         return;
       }
-      if (!awaitCrossAppAccessAction(crossAppAccessViewModel::introspect)) {
-        showCrossAppAccessError();
+      if (!runCrossAppAccessAction(crossAppAccessViewModel::introspect)) {
         return;
       }
     }
   }
 
   private void runCrossAppAccessStepByStep() {
-    if (!awaitCrossAppAccessAction(crossAppAccessViewModel::start)) {
-      showCrossAppAccessError();
+    if (!runCrossAppAccessAction(crossAppAccessViewModel::start)) {
       return;
     }
 
@@ -506,13 +502,11 @@ public final class OAuth2ConsoleView
       String line = input.readLine();
       String trimmed = line == null ? "" : line.trim();
       if ("1".equals(trimmed)) {
-        if (!awaitCrossAppAccessAction(crossAppAccessViewModel::redeem)) {
-          showCrossAppAccessError();
+        if (!runCrossAppAccessAction(crossAppAccessViewModel::redeem)) {
           return;
         }
       } else if ("2".equals(trimmed) && resourceToken != null) {
-        if (!awaitCrossAppAccessAction(crossAppAccessViewModel::introspect)) {
-          showCrossAppAccessError();
+        if (!runCrossAppAccessAction(crossAppAccessViewModel::introspect)) {
           return;
         }
       } else {
@@ -522,12 +516,24 @@ public final class OAuth2ConsoleView
     }
   }
 
+  /** The outcome of one {@link #awaitCrossAppAccessAction} latch cycle. */
+  private enum ActionOutcome {
+    SUCCEEDED,
+    FAILED,
+    /** {@link #stop()} released the latch before the ViewModel settled; {@link #running} is now false. */
+    STOPPED
+  }
+
   /**
    * Runs {@code action} through one latch cycle, blocking until it settles.
    *
-   * @return false if the action ended in {@link OAuth2Screen#CROSS_APP_ACCESS_ERROR}
+   * @return {@link ActionOutcome#STOPPED} if {@link #stop()} released the latch instead of the
+   *     action settling — checked first, since the current screen at that point is whatever it
+   *     was before the action ran and would otherwise be misread as success; {@link
+   *     ActionOutcome#FAILED} if the action ended in {@link OAuth2Screen#CROSS_APP_ACCESS_ERROR};
+   *     {@link ActionOutcome#SUCCEEDED} otherwise
    */
-  private boolean awaitCrossAppAccessAction(Runnable action) {
+  private ActionOutcome awaitCrossAppAccessAction(Runnable action) {
     CountDownLatch latch = new CountDownLatch(1);
     activeLatch.set(latch);
     action.run();
@@ -536,15 +542,39 @@ public final class OAuth2ConsoleView
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
     }
-    return crossAppAccessViewModel.getCurrentScreen() != OAuth2Screen.CROSS_APP_ACCESS_ERROR;
+    if (!running) {
+      return ActionOutcome.STOPPED;
+    }
+    return crossAppAccessViewModel.getCurrentScreen() == OAuth2Screen.CROSS_APP_ACCESS_ERROR
+        ? ActionOutcome.FAILED
+        : ActionOutcome.SUCCEEDED;
+  }
+
+  /**
+   * Runs {@code action} through one latch cycle and handles the {@link ActionOutcome#FAILED} case
+   * (shows the Cross App Access error screen) so call sites only need to branch on whether they
+   * should keep going.
+   *
+   * @return true if {@code action} succeeded and the caller should proceed with its next prompt;
+   *     false if the caller must return immediately — either the error screen was already shown
+   *     ({@link ActionOutcome#FAILED}), or the CLI is shutting down ({@link
+   *     ActionOutcome#STOPPED}, where showing anything or reading another prompt would hang)
+   */
+  private boolean runCrossAppAccessAction(Runnable action) {
+    ActionOutcome outcome = awaitCrossAppAccessAction(action);
+    if (outcome == ActionOutcome.FAILED) {
+      showCrossAppAccessError();
+    }
+    return outcome == ActionOutcome.SUCCEEDED;
   }
 
   /**
    * Displays the Cross App Access error screen and returns to the menu.
    *
-   * <p>Every call site only reaches this after {@link #awaitCrossAppAccessAction} returns {@code
-   * false}, which happens only when the current screen is already {@link
-   * OAuth2Screen#CROSS_APP_ACCESS_ERROR} — there is no success case to render here.
+   * <p>Only called from {@link #runCrossAppAccessAction} on {@link ActionOutcome#FAILED}, which
+   * happens only when the current screen is already {@link OAuth2Screen#CROSS_APP_ACCESS_ERROR} —
+   * there is no success case to render here, and {@link ActionOutcome#STOPPED} deliberately skips
+   * this (see {@link #awaitCrossAppAccessAction}).
    */
   private void showCrossAppAccessError() {
     output.println("");

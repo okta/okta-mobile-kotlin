@@ -154,4 +154,16 @@ public class StateRendererTest {
 
     assertThat(result).contains("=== Password Changed Successfully ===");
   }
+
+  @Test
+  public void renderCrossAppAccessResult_ShowsAccessToken() {
+    TokenDisplay token =
+        new TokenDisplay.Builder("resource-access-token", "Bearer", 3600).scope("chat.read").build();
+
+    String result = StateRenderer.renderCrossAppAccessResult(token);
+
+    assertThat(result).contains("=== Resource Access Token ===");
+    assertThat(result).contains("Access Token:");
+    assertThat(result).contains("resource-access-token");
+  }
 }

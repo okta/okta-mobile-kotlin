@@ -61,6 +61,39 @@ public class CrossAppAccessConfigTest {
   }
 
   @Test
+  public void validate_TwoArgWithIdpFlowAvailable_ReturnsComplete() {
+    CrossAppAccessConfig config =
+        config(IDP_ISSUER, IDP_CLIENT_ID, null, "ausOther", TARGET_CLIENT_ID, null);
+
+    assertThat(config.validate(true, true))
+        .isInstanceOf(CrossAppAccessConfig.Validation.Complete.class);
+  }
+
+  @Test
+  public void validate_TwoArgWithIdpFlowUnavailable_ReturnsIncomplete() {
+    // Otherwise-complete configuration, but Main.java's IdP client build failed at startup —
+    // xaaIdpFlow is null even though idpIssuer/idpClientId are both set.
+    CrossAppAccessConfig config =
+        config(IDP_ISSUER, IDP_CLIENT_ID, null, "ausOther", TARGET_CLIENT_ID, null);
+
+    Object result = config.validate(true, false);
+
+    assertThat(result).isInstanceOf(CrossAppAccessConfig.Validation.Incomplete.class);
+    assertThat(((CrossAppAccessConfig.Validation.Incomplete) result).getMissingDescriptions())
+        .isNotEmpty();
+  }
+
+  @Test
+  public void validate_TwoArgAlreadyIncompleteWithIdpFlowUnavailable_UnaffectedByIdpFlowFlag() {
+    // Static config is already incomplete on its own; idpFlowAvailable=false must not be
+    // reported as a second, misleading reason (idpIssuer/idpClientId can't both be set here).
+    CrossAppAccessConfig config = config(null, null, null, null, null, null);
+
+    assertThat(config.validate(false, false))
+        .isInstanceOf(CrossAppAccessConfig.Validation.NotConfigured.class);
+  }
+
+  @Test
   public void validate_IssuerOriginAndCredentials_ReturnsComplete() {
     CrossAppAccessConfig config =
         config(

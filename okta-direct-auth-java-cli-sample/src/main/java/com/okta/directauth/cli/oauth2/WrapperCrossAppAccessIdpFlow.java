@@ -22,6 +22,7 @@ import com.okta.oauth2.kmp.jvm.AuthorizationCodeFlow;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Production implementation of {@link CrossAppAccessIdpFlow}, backed by the OAuth2 module's JVM
@@ -40,6 +41,11 @@ public final class WrapperCrossAppAccessIdpFlow implements CrossAppAccessIdpFlow
   private final String redirectUrl;
   private final int redirectPort;
   private final String redirectPath;
+
+  // Retained only while a browserSignIn() is in flight, so close() can cancel it if the view
+  // model is closed before the browser redirect arrives. Cleared once the future settles so a
+  // later close() (after a normal completion) has nothing left to cancel.
+  private final AtomicReference<AuthorizationCodeFlow> activeFlow = new AtomicReference<>();
 
   /**
    * Creates a {@link WrapperCrossAppAccessIdpFlow}.
@@ -66,14 +72,23 @@ public final class WrapperCrossAppAccessIdpFlow implements CrossAppAccessIdpFlow
     LocalhostBrowserRedirectHandler handler =
         new LocalhostBrowserRedirectHandler(redirectPort, redirectPath);
     AuthorizationCodeFlow flow = new AuthorizationCodeFlow(idpClient);
+    activeFlow.set(flow);
     return flow.start(redirectUrl, handler, scope, Collections.emptyMap())
-        .whenComplete((r, t) -> closeQuietly(flow));
+        .whenComplete(
+            (r, t) -> {
+              activeFlow.compareAndSet(flow, null);
+              closeQuietly(flow);
+            });
   }
 
   @Override
   public void close() {
-    // No retained state between calls — nothing to release here beyond what browserSignIn()
-    // already closes itself on completion.
+    AuthorizationCodeFlow flow = activeFlow.getAndSet(null);
+    if (flow != null) {
+      // Cancels the still-pending browserSignIn() call; a flow that already completed on its
+      // own was cleared from activeFlow (and closed) by browserSignIn()'s own whenComplete above.
+      closeQuietly(flow);
+    }
   }
 
   private static void closeQuietly(AutoCloseable c) {
