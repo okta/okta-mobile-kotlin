@@ -28,6 +28,17 @@
 
 ## auth-foundation Unreleased
 
+#### Added
+
+- `OAuth2ClientBuilder` gained `useIssuerUrlAsIs` — when `true`, `issuerUrl` is used exactly as
+  given (minus a trailing slash), including any path, instead of being normalized to the org base
+  URL. Enables targeting a reverse-proxy/gateway URL with a custom path, or a general-purpose
+  (non-Okta) OAuth2/OIDC authorization server whose issuer doesn't follow Okta's `/oauth2/{id}`
+  convention. `issuerUrl` must not contain a query or fragment component in this mode (invalid for
+  an OIDC issuer per RFC 8414). Mutually exclusive with `authorizationServerId`. Defaults to
+  `false`; existing normalization behavior is unchanged. Java wrapper gained the matching
+  `setUseIssuerUrlAsIs`.
+
 #### Fixed
 
 - `OAuth2Client.introspectToken()` (KMP) never added client authentication to the introspection

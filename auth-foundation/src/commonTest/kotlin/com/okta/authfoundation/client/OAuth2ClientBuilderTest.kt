@@ -233,6 +233,89 @@ class OAuth2ClientBuilderTest {
     }
 
     @Test
+    fun create_WithUseIssuerUrlAsIs_PreservesFullPath() {
+        val customIssuerUrl = "https://gateway.example.com/tenant-a/oidc"
+        val result =
+            OAuth2ClientBuilder.create(
+                issuerUrl = customIssuerUrl,
+                clientId = "test-client-id",
+                scope = listOf("openid")
+            ) {
+                useIssuerUrlAsIs = true
+            }
+
+        assertTrue(result.isSuccess)
+        assertEquals(customIssuerUrl, result.getOrThrow().configuration.issuerUrl)
+    }
+
+    @Test
+    fun create_WithUseIssuerUrlAsIsAndTrailingSlash_TrimsOnlyTrailingSlash() {
+        val result =
+            OAuth2ClientBuilder.create(
+                issuerUrl = "https://gateway.example.com/tenant-a/oidc/",
+                clientId = "test-client-id",
+                scope = listOf("openid")
+            ) {
+                useIssuerUrlAsIs = true
+            }
+
+        assertTrue(result.isSuccess)
+        assertEquals(
+            "https://gateway.example.com/tenant-a/oidc",
+            result.getOrThrow().configuration.issuerUrl
+        )
+    }
+
+    @Test
+    fun create_WithUseIssuerUrlAsIsAndAuthorizationServerId_Fails() {
+        val result =
+            OAuth2ClientBuilder.create(
+                issuerUrl = "https://gateway.example.com/tenant-a/oidc",
+                clientId = "test-client-id",
+                scope = listOf("openid")
+            ) {
+                useIssuerUrlAsIs = true
+                authorizationServerId = "default"
+            }
+
+        assertTrue(result.isFailure)
+        assertTrue(result.exceptionOrNull() is IllegalArgumentException)
+    }
+
+    @Test
+    fun create_WithUseIssuerUrlAsIsAndQueryComponent_Fails() {
+        // An OIDC issuer identifier can't contain a query component (RFC 8414), and discovery
+        // appends "/.well-known/openid-configuration" directly to the issuer string, which a
+        // query would corrupt (e.g. "...?tenant=a/.well-known/openid-configuration").
+        val result =
+            OAuth2ClientBuilder.create(
+                issuerUrl = "https://gateway.example.com/tenant-a/oidc?tenant=a",
+                clientId = "test-client-id",
+                scope = listOf("openid")
+            ) {
+                useIssuerUrlAsIs = true
+            }
+
+        assertTrue(result.isFailure)
+        assertTrue(result.exceptionOrNull() is IllegalArgumentException)
+    }
+
+    @Test
+    fun create_WithUseIssuerUrlAsIsAndFragmentComponent_Fails() {
+        val result =
+            OAuth2ClientBuilder.create(
+                issuerUrl = "https://gateway.example.com/tenant-a/oidc#section",
+                clientId = "test-client-id",
+                scope = listOf("openid")
+            ) {
+                useIssuerUrlAsIs = true
+            }
+
+        assertTrue(result.isFailure)
+        assertTrue(result.exceptionOrNull() is IllegalArgumentException)
+    }
+
+    @Test
     fun create_WithNonDefaultPort_PreservesPort() {
         val result =
             OAuth2ClientBuilder.create(
