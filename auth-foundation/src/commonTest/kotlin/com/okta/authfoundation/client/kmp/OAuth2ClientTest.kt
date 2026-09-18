@@ -23,6 +23,7 @@ import com.okta.authfoundation.client.ClientAssertion
 import com.okta.authfoundation.client.ClientAssertionProvider
 import com.okta.authfoundation.client.OAuth2ClientBuilder
 import com.okta.authfoundation.client.OAuth2ClientResult
+import com.okta.authfoundation.client.OidcClock
 import com.okta.authfoundation.client.dto.IntrospectInfo
 import com.okta.authfoundation.client.internal.OAuth2Endpoints
 import com.okta.authfoundation.util.CoalescingOrchestrator
@@ -31,6 +32,8 @@ import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.boolean
 import kotlinx.serialization.json.jsonPrimitive
+import kotlin.io.encoding.Base64
+import kotlin.io.encoding.ExperimentalEncodingApi
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
@@ -456,6 +459,150 @@ class OAuth2ClientTest {
             assertEquals("jwt-for-$receivedAudience", form["client_assertion"])
             assertEquals("test-client-id", form["client_id"])
             assertNotNull(receivedAudience)
+        }
+
+    /**
+     * Builds a minimal, unsigned ID token JWT with the given claims. The signature segment is
+     * garbage — these tests set `jwksUri = null` on the discovery endpoints so signature
+     * verification is skipped, and omit `at_hash` so access-token-hash validation is skipped too.
+     * Only issuer/audience/exp/iat/sub validation (the concern under test) is exercised.
+     */
+    @OptIn(ExperimentalEncodingApi::class)
+    private fun buildTestIdToken(
+        issuer: String,
+        clientId: String,
+        iat: Long,
+        exp: Long,
+        sub: String = "test-sub",
+    ): String {
+        // {"kid":"FJA0HGNtsuuda_Pl45J42kvQqcsu_0C4Fg7pbJLXTHY","alg":"RS256"}
+        val header = "eyJraWQiOiJGSkEwSEdOdHN1dWRhX1BsNDVKNDJrdlFxY3N1XzBDNEZnN3BiSkxYVEhZIiwiYWxnIjoiUlMyNTYifQ"
+        val payloadJson = """{"iss":"$issuer","aud":"$clientId","iat":$iat,"exp":$exp,"sub":"$sub"}"""
+        val payload = Base64.UrlSafe.encode(payloadJson.encodeToByteArray()).trimEnd('=')
+        return "$header.$payload.fake-signature"
+    }
+
+    private fun endpointsWithIssuer(issuer: String): OAuth2Endpoints =
+        OAuth2Endpoints(
+            issuer = issuer,
+            authorizationEndpoint = testEndpoints.authorizationEndpoint,
+            tokenEndpoint = testEndpoints.tokenEndpoint,
+            userInfoEndpoint = testEndpoints.userInfoEndpoint,
+            jwksUri = null,
+            introspectionEndpoint = testEndpoints.introspectionEndpoint,
+            revocationEndpoint = testEndpoints.revocationEndpoint,
+            endSessionEndpoint = testEndpoints.endSessionEndpoint,
+            deviceAuthorizationEndpoint = testEndpoints.deviceAuthorizationEndpoint
+        )
+
+    @Test
+    fun tokenRequest_WithConfiguredIssuerUrlDifferentFromDiscoveredIssuer_ValidatesIdTokenAgainstDiscoveredIssuer() =
+        runTest {
+            // Regression test for a gateway/reverse-proxy setup: the configured issuerUrl (used to
+            // reach the server) differs from the issuer OIDC discovery actually returns. The ID
+            // token's `iss` matches the discovered issuer, not the configured issuerUrl — this must
+            // still validate successfully.
+            val configuredIssuerUrl = "https://oauth-gateway.example.com"
+            val discoveredIssuer = "https://example.okta.com/oauth2/default"
+            val clientId = "gateway-test-client-id"
+            val clock = OidcClock { 2_000_000_000L }
+            val idToken =
+                buildTestIdToken(
+                    issuer = discoveredIssuer,
+                    clientId = clientId,
+                    iat = 2_000_000_000L - 30,
+                    exp = 2_000_000_000L + 3600
+                )
+            val tokenJson =
+                """
+                {
+                    "token_type": "Bearer",
+                    "expires_in": 3600,
+                    "access_token": "gw-access-token",
+                    "id_token": "$idToken"
+                }
+                """.trimIndent()
+
+            val config =
+                OAuth2ClientBuilder
+                    .create(
+                        issuerUrl = configuredIssuerUrl,
+                        clientId = clientId,
+                        scope = listOf("openid")
+                    ) {
+                        apiExecutor = mockApiExecutor(tokenJson)
+                        this.clock = clock
+                    }.getOrThrow()
+                    .configuration
+
+            val client =
+                OAuth2Client(
+                    configuration = config,
+                    endpointsOrchestrator =
+                        CoalescingOrchestrator(
+                            factory = { OAuth2ClientResult.Success(endpointsWithIssuer(discoveredIssuer)) },
+                            keepDataInMemory = { true }
+                        )
+                )
+
+            val result = client.tokenRequest(mapOf("grant_type" to "authorization_code", "code" to "code-123"))
+
+            assertTrue(result.isSuccess)
+        }
+
+    @Test
+    fun tokenRequest_WithIdTokenIssuerNotMatchingDiscoveredIssuer_Fails() =
+        runTest {
+            // A token whose `iss` doesn't match what discovery actually returned must still be
+            // rejected — the fix must not accidentally stop validating the issuer altogether.
+            val issuerUrl = "https://example.okta.com/oauth2/default"
+            val spoofedIssuer = "https://attacker.example.com"
+            val clientId = "gateway-test-client-id"
+            val clock = OidcClock { 2_000_000_000L }
+            val idToken =
+                buildTestIdToken(
+                    issuer = spoofedIssuer,
+                    clientId = clientId,
+                    iat = 2_000_000_000L - 30,
+                    exp = 2_000_000_000L + 3600
+                )
+            val tokenJson =
+                """
+                {
+                    "token_type": "Bearer",
+                    "expires_in": 3600,
+                    "access_token": "gw-access-token",
+                    "id_token": "$idToken"
+                }
+                """.trimIndent()
+
+            val config =
+                OAuth2ClientBuilder
+                    .create(
+                        issuerUrl = issuerUrl,
+                        clientId = clientId,
+                        scope = listOf("openid")
+                    ) {
+                        apiExecutor = mockApiExecutor(tokenJson)
+                        this.clock = clock
+                    }.getOrThrow()
+                    .configuration
+
+            val client =
+                OAuth2Client(
+                    configuration = config,
+                    endpointsOrchestrator =
+                        CoalescingOrchestrator(
+                            factory = { OAuth2ClientResult.Success(endpointsWithIssuer(issuerUrl)) },
+                            keepDataInMemory = { true }
+                        )
+                )
+
+            val result = client.tokenRequest(mapOf("grant_type" to "authorization_code", "code" to "code-123"))
+
+            assertTrue(result.isFailure)
+            val error = assertIs<IdTokenValidator.Error>(result.exceptionOrNull())
+            assertEquals(IdTokenValidator.Error.INVALID_ISSUER, error.identifier)
         }
 
     @Test

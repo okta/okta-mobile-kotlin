@@ -261,7 +261,7 @@ class OAuth2Client internal constructor(
             when (result) {
                 is OAuth2ClientResult.Success -> {
                     val tokenInfo = result.result.toTokenInfo(configuration.clientId, configuration.issuerUrl)
-                    processTokenResponse(tokenInfo, nonce, maxAge)
+                    processTokenResponse(tokenInfo, endpoints.issuer, nonce, maxAge)
                     tokenInfo
                 }
 
@@ -441,11 +441,16 @@ class OAuth2Client internal constructor(
      * If no ID token is present, steps 1–5 are skipped and only [TokenCreatedEvent] is emitted.
      *
      * @param tokenInfo the token response to validate.
+     * @param issuer the issuer returned by OIDC discovery ([OAuth2Endpoints.issuer]), used to
+     *   validate the ID token's `iss` claim. This may differ from [configuration]'s configured
+     *   `issuerUrl` (e.g. behind a reverse proxy/gateway) — the discovery-returned value is the
+     *   one that must match the token, per OpenID Connect Core 1.0 §3.1.3.7.
      * @param nonce the nonce sent with the authorization request, if applicable.
      * @param maxAge the max_age sent with the authorization request, if applicable.
      */
     private suspend fun processTokenResponse(
         tokenInfo: TokenInfo,
+        issuer: String,
         nonce: String? = null,
         maxAge: Int? = null,
     ) {
@@ -456,7 +461,7 @@ class OAuth2Client internal constructor(
 
             // 1. Validate ID token claims
             configuration.idTokenValidator.validate(
-                issuerUrl = configuration.issuerUrl,
+                issuerUrl = issuer,
                 clientId = configuration.clientId,
                 idToken = jwt,
                 clock = configuration.clock,
