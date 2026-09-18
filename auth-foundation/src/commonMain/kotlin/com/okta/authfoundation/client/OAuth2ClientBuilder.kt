@@ -103,10 +103,16 @@ class OAuth2ClientBuilder private constructor(
 
     /**
      * When `true`, [issuerUrl] is used exactly as given (minus a trailing slash) — including any
-     * path, query, or fragment — instead of being normalized to the org base URL (optionally with
+     * path — instead of being normalized to the org base URL (optionally with
      * `/oauth2/$authorizationServerId` appended). Use this to target a reverse-proxy/gateway URL
      * with a custom path, or a general-purpose (non-Okta) OAuth2/OIDC authorization server whose
      * issuer doesn't follow Okta's `/oauth2/{id}` convention.
+     *
+     * [issuerUrl] must not contain a query or fragment component when this is `true` — an OIDC
+     * issuer identifier can't contain either per
+     * [RFC 8414](https://www.rfc-editor.org/rfc/rfc8414), and discovery appends
+     * `/.well-known/openid-configuration` directly to the issuer, which a query string would
+     * corrupt. [create] throws if one is present.
      *
      * Mutually exclusive with [authorizationServerId] — combining "use issuerUrl exactly as
      * given" with "append this authorization server id" is ambiguous; [create] throws if both
@@ -247,6 +253,10 @@ class OAuth2ClientBuilder private constructor(
 
                 require(!builder.useIssuerUrlAsIs || builder.authorizationServerId.isNullOrBlank()) {
                     "useIssuerUrlAsIs cannot be combined with authorizationServerId."
+                }
+
+                require(!builder.useIssuerUrlAsIs || Url(issuerUrl).let { it.encodedQuery.isEmpty() && it.fragment.isEmpty() }) {
+                    "useIssuerUrlAsIs does not support a query or fragment component in issuerUrl."
                 }
 
                 // Validate endpoint override URLs

@@ -153,11 +153,14 @@ class OAuth2ClientBuilder(
 
     /**
      * When `true`, [issuerUrl] is used exactly as given (minus a trailing slash) — including any
-     * path, query, or fragment — instead of being normalized to the org base URL (optionally with
-     * an authorization server ID appended). Use this to target a reverse-proxy/gateway URL with a
-     * custom path, or a general-purpose (non-Okta) OAuth2/OIDC authorization server whose issuer
-     * doesn't follow Okta's `/oauth2/{id}` convention. Mutually exclusive with an authorization
-     * server ID — [build] returns a failed [AuthFoundationResult] if both are set.
+     * path — instead of being normalized to the org base URL (optionally with an authorization
+     * server ID appended). Use this to target a reverse-proxy/gateway URL with a custom path, or
+     * a general-purpose (non-Okta) OAuth2/OIDC authorization server whose issuer doesn't follow
+     * Okta's `/oauth2/{id}` convention.
+     *
+     * [issuerUrl] must not contain a query or fragment component when this is `true` —
+     * [build] returns a failed [AuthFoundationResult] if one is present, or if combined with an
+     * authorization server ID.
      *
      * @param useIssuerUrlAsIs Whether to use [issuerUrl] exactly as given.
      * @return This builder for chaining.

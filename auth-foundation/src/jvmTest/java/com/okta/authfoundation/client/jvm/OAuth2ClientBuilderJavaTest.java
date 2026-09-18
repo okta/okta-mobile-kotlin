@@ -161,6 +161,21 @@ public class OAuth2ClientBuilderJavaTest {
   }
 
   @Test
+  public void build_WithUseIssuerUrlAsIsAndQueryComponent_Fails() {
+    OAuth2ClientBuilder builder =
+        new OAuth2ClientBuilder(
+                "https://gateway.example.com/tenant-a/oidc?tenant=a",
+                CLIENT_ID,
+                Arrays.asList(SCOPE.split(" ")))
+            .setUseIssuerUrlAsIs(true);
+
+    AuthFoundationResult<OAuth2Client> result = builder.build();
+
+    assertTrue(
+        "A query component in issuerUrl should fail with useIssuerUrlAsIs", result.isFailure());
+  }
+
+  @Test
   public void build_WithInvalidIssuerUrl_Fails() {
     OAuth2ClientBuilder builder =
         new OAuth2ClientBuilder(
