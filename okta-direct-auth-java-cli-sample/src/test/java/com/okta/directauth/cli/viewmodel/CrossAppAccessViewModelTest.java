@@ -106,6 +106,20 @@ public class CrossAppAccessViewModelTest {
   }
 
   @Test
+  public void notifyError_StoresMessageBeforeErrorScreenTransition() throws Exception {
+    // OAuth2ConsoleView's listener wakes a waiting thread on the CROSS_APP_ACCESS_ERROR screen
+    // change and only then reads the stored error message — so the message must already be
+    // stored by the time that screen-change callback fires, not after.
+    fakeIdpFlow.signInFailWith(new IllegalStateException("browser closed"));
+
+    viewModel.signIn();
+    listener.awaitTerminal();
+
+    assertThat(listener.lastErrorAtErrorScreenChange).isNotNull();
+    assertThat(listener.lastErrorAtErrorScreenChange).contains("browser closed");
+  }
+
+  @Test
   public void signIn_FailsAfterPriorSuccess_ClearsStaleSession() throws Exception {
     // A first sign-in succeeds, establishing a session — then a second sign-in (e.g. the session
     // expired and the user re-authenticates) fails. The stale session from the first sign-in must
@@ -529,6 +543,11 @@ public class CrossAppAccessViewModelTest {
     volatile TokenDisplay lastResourceToken;
     volatile Boolean lastIntrospectionActive;
     volatile String lastError;
+    // Snapshots lastError from inside onScreenChanged itself, at the exact moment the
+    // CROSS_APP_ACCESS_ERROR transition fires — mirrors OAuth2ConsoleView's own listener, which
+    // reads lastErrorMessage only after being woken by this same screen change. Proves onError is
+    // called before setScreen(CROSS_APP_ACCESS_ERROR), not after.
+    volatile String lastErrorAtErrorScreenChange;
 
     /** Resets the latch so a second action within the same test can be awaited independently. */
     void reset() {
@@ -543,6 +562,9 @@ public class CrossAppAccessViewModelTest {
 
     @Override
     public void onScreenChanged(OAuth2Screen screen) {
+      if (screen == OAuth2Screen.CROSS_APP_ACCESS_ERROR) {
+        lastErrorAtErrorScreenChange = lastError;
+      }
       if (screen == OAuth2Screen.CROSS_APP_ACCESS_SIGNED_IN
           || screen == OAuth2Screen.CROSS_APP_ACCESS_ID_JAG
           || screen == OAuth2Screen.CROSS_APP_ACCESS_RESULT

@@ -492,11 +492,17 @@ public final class CrossAppAccessViewModel implements Closeable {
    * Single source of truth for the error screen transition and error callbacks.
    *
    * <p>Callers must NOT call {@link #setScreen(OAuth2Screen)} with the error screen separately.
+   *
+   * <p>Notifies {@code onError} before {@link #setScreen}, not after: {@code setScreen}'s own
+   * {@code onScreenChanged(CROSS_APP_ACCESS_ERROR)} callback is what releases {@code
+   * OAuth2ConsoleView}'s waiting latch, so if the screen changed first, the console thread could
+   * wake up and read {@code lastErrorMessage} before this method's {@code onError} call below
+   * ever stored it.
    */
   private void notifyError(String message) {
-    setScreen(OAuth2Screen.CROSS_APP_ACCESS_ERROR);
     for (CrossAppAccessViewModelListener listener : listeners) {
       listener.onError(message);
     }
+    setScreen(OAuth2Screen.CROSS_APP_ACCESS_ERROR);
   }
 }

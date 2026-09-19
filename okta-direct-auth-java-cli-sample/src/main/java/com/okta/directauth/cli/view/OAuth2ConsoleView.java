@@ -520,7 +520,10 @@ public final class OAuth2ConsoleView
   private enum ActionOutcome {
     SUCCEEDED,
     FAILED,
-    /** {@link #stop()} released the latch before the ViewModel settled; {@link #running} is now false. */
+    /**
+     * {@link #stop()} released the latch before the ViewModel settled; {@link #running} is now
+     * false.
+     */
     STOPPED
   }
 
@@ -528,8 +531,8 @@ public final class OAuth2ConsoleView
    * Runs {@code action} through one latch cycle, blocking until it settles.
    *
    * @return {@link ActionOutcome#STOPPED} if {@link #stop()} released the latch instead of the
-   *     action settling — checked first, since the current screen at that point is whatever it
-   *     was before the action ran and would otherwise be misread as success; {@link
+   *     action settling — checked first, since the current screen at that point is whatever it was
+   *     before the action ran and would otherwise be misread as success; {@link
    *     ActionOutcome#FAILED} if the action ended in {@link OAuth2Screen#CROSS_APP_ACCESS_ERROR};
    *     {@link ActionOutcome#SUCCEEDED} otherwise
    */
@@ -557,8 +560,8 @@ public final class OAuth2ConsoleView
    *
    * @return true if {@code action} succeeded and the caller should proceed with its next prompt;
    *     false if the caller must return immediately — either the error screen was already shown
-   *     ({@link ActionOutcome#FAILED}), or the CLI is shutting down ({@link
-   *     ActionOutcome#STOPPED}, where showing anything or reading another prompt would hang)
+   *     ({@link ActionOutcome#FAILED}), or the CLI is shutting down ({@link ActionOutcome#STOPPED},
+   *     where showing anything or reading another prompt would hang)
    */
   private boolean runCrossAppAccessAction(Runnable action) {
     ActionOutcome outcome = awaitCrossAppAccessAction(action);

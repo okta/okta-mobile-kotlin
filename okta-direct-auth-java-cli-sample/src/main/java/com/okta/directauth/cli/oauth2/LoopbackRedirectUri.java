@@ -43,10 +43,20 @@ final class LoopbackRedirectUri {
   /**
    * Parses and validates {@code signInRedirectUri}.
    *
+   * <p>Deliberately stricter than "any loopback URI": {@code LocalhostBrowserRedirectHandler}'s
+   * callback always answers back as the literal {@code http://localhost:<port><path>} — built
+   * from the actual HTTP request line, which never carries a fragment, with a port that is always
+   * explicit. A {@code signInRedirectUri} using {@code 127.0.0.1}/{@code ::1}, an omitted port, or
+   * a fragment would pass this parse but then never match {@code
+   * AuthorizationCodeFlowImpl.resume}'s {@code uri.startsWith(redirectUrl)} check once the browser
+   * actually calls back — so those forms are rejected here instead, at startup, with an actionable
+   * message.
+   *
    * @param signInRedirectUri the loopback redirect URI (e.g. {@code
    *     http://localhost:8080/callback})
    * @return the parsed port and path
-   * @throws IllegalArgumentException if {@code signInRedirectUri} is not a valid http loopback URI
+   * @throws IllegalArgumentException if {@code signInRedirectUri} is not a URI {@code
+   *     LocalhostBrowserRedirectHandler} can round-trip
    */
   static LoopbackRedirectUri parse(String signInRedirectUri) {
     try {
@@ -57,25 +67,30 @@ final class LoopbackRedirectUri {
         throw new IllegalArgumentException(
             "signInRedirectUri must use the http scheme; got: " + signInRedirectUri);
       }
-      if (host == null || !isLoopbackHost(host)) {
+      if (!"localhost".equals(host)) {
         throw new IllegalArgumentException(
-            "signInRedirectUri must be a loopback address (localhost / 127.0.0.1 / ::1); got: "
+            "signInRedirectUri must use the literal loopback host \"localhost\" — the local HTTP"
+                + " listener always answers back as \"localhost\", so 127.0.0.1/::1/other loopback"
+                + " forms cannot be matched against it once the browser calls back; got: "
                 + signInRedirectUri);
       }
       int port = uri.getPort();
+      if (port == -1) {
+        throw new IllegalArgumentException(
+            "signInRedirectUri must include an explicit port — the local HTTP listener's callback"
+                + " always includes one, so an omitted port cannot be matched against it; got: "
+                + signInRedirectUri);
+      }
+      if (uri.getRawFragment() != null) {
+        throw new IllegalArgumentException(
+            "signInRedirectUri must not include a fragment — fragments are never sent to the local"
+                + " HTTP listener, so they cannot be matched against its callback; got: "
+                + signInRedirectUri);
+      }
       String path = uri.getPath();
-      return new LoopbackRedirectUri(
-          port == -1 ? 80 : port, (path == null || path.isEmpty()) ? "/" : path);
+      return new LoopbackRedirectUri(port, (path == null || path.isEmpty()) ? "/" : path);
     } catch (URISyntaxException e) {
       throw new IllegalArgumentException("Invalid signInRedirectUri: " + signInRedirectUri, e);
     }
-  }
-
-  private static boolean isLoopbackHost(String host) {
-    // URI.getHost() strips brackets from IPv6 addresses (returns "::1" not "[::1]").
-    return host.equals("localhost")
-        || host.equals("127.0.0.1")
-        || host.equals("::1")
-        || host.equals("[::1]"); // guard against JDK implementations that retain brackets
   }
 }

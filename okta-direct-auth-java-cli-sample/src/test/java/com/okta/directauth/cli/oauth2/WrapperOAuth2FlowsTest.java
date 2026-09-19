@@ -35,30 +35,6 @@ public class WrapperOAuth2FlowsTest {
   }
 
   @Test
-  public void signInRedirectUri_LoopbackIp_Accepted() {
-    WrapperOAuth2Flows flows =
-        new WrapperOAuth2Flows(mockClient(), scopes(), "http://127.0.0.1:9090/auth");
-    flows.close();
-  }
-
-  @Test
-  public void signInRedirectUri_Ipv6Loopback_Accepted() {
-    // URI.getHost() may return "::1" (brackets stripped) or "[::1]" (brackets retained) depending
-    // on JDK parsing. Both are accepted.
-    WrapperOAuth2Flows flows =
-        new WrapperOAuth2Flows(mockClient(), scopes(), "http://[::1]:8080/callback");
-    flows.close();
-  }
-
-  @Test
-  public void signInRedirectUri_DefaultPort_Accepted() {
-    // Port omitted → treated as 80.
-    WrapperOAuth2Flows flows =
-        new WrapperOAuth2Flows(mockClient(), scopes(), "http://localhost/callback");
-    flows.close();
-  }
-
-  @Test
   public void signInRedirectUri_CustomPath_Accepted() {
     WrapperOAuth2Flows flows =
         new WrapperOAuth2Flows(mockClient(), scopes(), "http://localhost:8080/oauth/callback");
@@ -103,6 +79,51 @@ public class WrapperOAuth2FlowsTest {
             () ->
                 new WrapperOAuth2Flows(mockClient(), scopes(), "http://192.168.1.1:8080/callback"));
     assertThat(ex.getMessage()).contains("loopback");
+  }
+
+  @Test
+  public void signInRedirectUri_LoopbackIp_Rejected() {
+    // The local HTTP listener's callback always answers back as "http://localhost:<port>...",
+    // never "http://127.0.0.1:...", so this form can never match at resume() time even though
+    // 127.0.0.1 is itself a loopback address.
+    IllegalArgumentException ex =
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> new WrapperOAuth2Flows(mockClient(), scopes(), "http://127.0.0.1:9090/auth"));
+    assertThat(ex.getMessage()).contains("localhost");
+  }
+
+  @Test
+  public void signInRedirectUri_Ipv6Loopback_Rejected() {
+    IllegalArgumentException ex =
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> new WrapperOAuth2Flows(mockClient(), scopes(), "http://[::1]:8080/callback"));
+    assertThat(ex.getMessage()).contains("localhost");
+  }
+
+  @Test
+  public void signInRedirectUri_OmittedPort_Rejected() {
+    // The local HTTP listener's callback always includes an explicit port, so an omitted port
+    // (implicitly 80) could never match at resume() time.
+    IllegalArgumentException ex =
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> new WrapperOAuth2Flows(mockClient(), scopes(), "http://localhost/callback"));
+    assertThat(ex.getMessage()).contains("port");
+  }
+
+  @Test
+  public void signInRedirectUri_Fragment_Rejected() {
+    // Fragments are never sent to the local HTTP listener, so they could never match at
+    // resume() time.
+    IllegalArgumentException ex =
+        assertThrows(
+            IllegalArgumentException.class,
+            () ->
+                new WrapperOAuth2Flows(
+                    mockClient(), scopes(), "http://localhost:8080/callback#fragment"));
+    assertThat(ex.getMessage()).contains("fragment");
   }
 
   @Test

@@ -22,8 +22,8 @@ import java.util.List;
 import org.junit.Test;
 
 /**
- * Verifies {@link WrapperCrossAppAccessFlows#normalizeScope}, the helper that stands between
- * {@link CrossAppAccessFlows#start}/{@link CrossAppAccessFlows#exchange}'s scope parameter and the
+ * Verifies {@link WrapperCrossAppAccessFlows#normalizeScope}, the helper that stands between {@link
+ * CrossAppAccessFlows#start}/{@link CrossAppAccessFlows#exchange}'s scope parameter and the
  * underlying JVM {@code CrossAppAccessFlow}, which documents {@code null} as "use the target's
  * configured default".
  *
