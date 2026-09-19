@@ -496,8 +496,8 @@ public final class CrossAppAccessViewModel implements Closeable {
    * <p>Notifies {@code onError} before {@link #setScreen}, not after: {@code setScreen}'s own
    * {@code onScreenChanged(CROSS_APP_ACCESS_ERROR)} callback is what releases {@code
    * OAuth2ConsoleView}'s waiting latch, so if the screen changed first, the console thread could
-   * wake up and read {@code lastErrorMessage} before this method's {@code onError} call below
-   * ever stored it.
+   * wake up and read {@code lastErrorMessage} before this method's {@code onError} call below ever
+   * stored it.
    */
   private void notifyError(String message) {
     for (CrossAppAccessViewModelListener listener : listeners) {

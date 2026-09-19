@@ -44,8 +44,8 @@ final class LoopbackRedirectUri {
    * Parses and validates {@code signInRedirectUri}.
    *
    * <p>Deliberately stricter than "any loopback URI": {@code LocalhostBrowserRedirectHandler}'s
-   * callback always answers back as the literal {@code http://localhost:<port><path>} — built
-   * from the actual HTTP request line, which never carries a fragment, with a port that is always
+   * callback always answers back as the literal {@code http://localhost:<port><path>} — built from
+   * the actual HTTP request line, which never carries a fragment, with a port that is always
    * explicit. A {@code signInRedirectUri} using {@code 127.0.0.1}/{@code ::1}, an omitted port, or
    * a fragment would pass this parse but then never match {@code
    * AuthorizationCodeFlowImpl.resume}'s {@code uri.startsWith(redirectUrl)} check once the browser
