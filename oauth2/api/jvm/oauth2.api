@@ -373,6 +373,7 @@ public final class com/okta/oauth2/kmp/jvm/CrossAppAccessFlow : java/io/Closeabl
 	public static final field Companion Lcom/okta/oauth2/kmp/jvm/CrossAppAccessFlow$Companion;
 	public fun <init> (Lcom/okta/oauth2/kmp/CrossAppAccessFlow;)V
 	public fun close ()V
+	public final fun closeCompletely ()V
 	public static final fun create (Lcom/okta/authfoundation/client/kmp/OAuth2Client;Lcom/okta/oauth2/kmp/CrossAppAccessTarget;)Lcom/okta/authfoundation/client/jvm/AuthFoundationResult;
 	public static final fun crossAppAccessSubject (Lcom/okta/authfoundation/credential/kmp/Credential;)Ljava/util/concurrent/CompletableFuture;
 	public static final fun crossAppAccessSubject (Lcom/okta/authfoundation/credential/kmp/Credential;Lcom/okta/oauth2/kmp/SubjectAssertion$Type;)Ljava/util/concurrent/CompletableFuture;

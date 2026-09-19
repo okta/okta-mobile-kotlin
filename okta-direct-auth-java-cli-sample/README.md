@@ -3,13 +3,14 @@
 A pure Java CLI application demonstrating two Okta authentication approaches:
 
 1. **Direct Authentication** — the `okta-direct-auth` CompletableFuture API (password, OTP, MFA, SSPR)
-2. **OAuth2 flows** — all five OAuth2 standard flows via the `oauth2` module's Java-friendly wrappers
+2. **OAuth2 flows** — all six OAuth2 standard flows via the `oauth2` module's Java-friendly wrappers, including Cross App Access
 
 ## Table of Contents
 
 - [Prerequisites](#prerequisites)
 - [Configuration](#configuration)
   - [Confidential client authentication (local testing only)](#confidential-client-authentication-local-testing-only)
+  - [Cross App Access (local testing only)](#cross-app-access-local-testing-only)
 - [Org Setup](#org-setup)
 - [Build](#build)
 - [Run](#run)
@@ -20,6 +21,7 @@ A pure Java CLI application demonstrating two Okta authentication approaches:
   - [OAuth2 — Resource Owner Password](#oauth2--resource-owner-password)
   - [OAuth2 — Device Authorization](#oauth2--device-authorization)
   - [OAuth2 — Browser Sign-In](#oauth2--browser-sign-in)
+  - [OAuth2 — Cross App Access](#oauth2--cross-app-access)
 - [Features](#features)
   - [Direct Authentication](#direct-authentication)
   - [OAuth2 Flows (Java-friendly wrappers)](#oauth2-flows-java-friendly-wrappers)
@@ -98,11 +100,89 @@ which only allows a given `jti` to be used once.
 > `local.properties` out of version control (it already is, via `.gitignore`) and out of any CI
 > build artifact.
 
+### Cross App Access (local testing only)
+
+Cross App Access requires an **administrator-configured trust relationship** between your identity provider org and a separate resource app org — this CLI cannot set that up for you. Configure the trust relationship and the resource app per the
+[Cross App Access documentation](https://developer.okta.com/docs/concepts/xaa/) (see also the [requesting app token exchange guide](https://developer.okta.com/docs/guides/xaa-request-token-ex/openidconnect/main/)), then note the resource app's issuer (or authorization server ID) and client ID — scope is entered later, at the CLI prompt, not configured here. Only the **resource app target** needs a confidential-client credential (a client secret or `private_key_jwt`) — this SDK enforces it there. The dedicated IdP app below does not: Okta's own "AI agent" registration explicitly supports a credential-less "Client ID only" requesting app for clients that can't store a secret, so a credential is optional there. **Exception**: if your resource app target is a custom authorization server in the *same* org as the IdP app, the target reuses the IdP's client ID and credential instead of having its own — see [Same-org custom authorization server: extra requirements](#same-org-custom-authorization-server-extra-requirements) below.
+
+#### The requesting app (IdP) identity is separate from the rest of this CLI
+
+Cross App Access's ID-JAG exchange must always be submitted to the org's own authorization server (`/oauth2/v1/token`), never a custom one (`/oauth2/{authorizationServerId}/token`) — Okta's own documentation calls out `/oauth2/default/` by name as unsupported here. This CLI's primary `issuer`/`authorizationServerId`/`clientId` are shared by every other flow (Resource Owner, Browser Sign-In, PAR, etc.) and may legitimately point at a custom authorization server, which would break Cross App Access if it reused that same client. So Cross App Access has its **own, independent requesting-app identity** — its own Okta app registration, its own `OAuth2Client`, and its own dedicated Browser Sign-In — configured through `xaaIdpIssuer`/`xaaIdpClientId` below, always built without an `authorizationServerId`. This also mirrors how a real Cross App Access requesting app works: it's registered as its own "AI agent" app integration in Okta, separate from any other OIDC app.
+
+Register a **second** app integration in Okta for this (an OIDC app with the Authorization Code grant enabled works, since this CLI's IdP flow is just Browser Sign-In against it), and register the *same* loopback redirect URI (`desktopSignInRedirectUri`, e.g. `http://localhost:8080/callback`) as one of its redirect URIs too — the redirect URI is a per-call value, not a per-app-registration one, so the same registered URI can safely serve both app registrations.
+
+`AppConfig` bakes in the non-secret pieces:
+
+```properties
+xaaIdpIssuer=<idp_app_issuer>
+xaaIdpClientId=<idp_app_client_id>
+```
+
+`xaaIdpIssuer` and `xaaIdpClientId` are both required — the Cross App Access menu entry reports what's missing until they, plus the resource app target keys below, are set. A credential is **not** required here: Okta's own "AI agent" registration explicitly supports registering this app as "Client ID only" (a public client with no secret), recommended for clients that can't store one — this CLI included. If you'd rather register it as a confidential client (Okta's "Client secret" or "Public/private key" options), this CLI supports that too — the credential is read **at runtime** by `ClientAuthentication`, the same way `clientSecret`/`clientAssertionPrivateKeyPem` are above — never baked into `AppConfig`:
+
+```properties
+xaaIdpClientSecret=<idp_app_client_secret>
+```
+
+or, for `private_key_jwt`:
+
+```properties
+xaaIdpClientAssertionPrivateKeyPem=-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBg...\n-----END PRIVATE KEY-----\n
+```
+
+Set at most one of the two — whichever is present is applied to the IdP client; leaving both unset builds it as a public client.
+
+#### The resource app target
+
+`xaaTargetIssuer` and `xaaTargetAuthorizationServerId` name the resource app's authorization server, similarly to `issuer`/`authorizationServerId` above — but they aren't the same pair applied to a different org, because they cover three distinct cases, not one:
+
+*   `xaaTargetIssuer` alone — the resource app is a **different Okta org's default authorization server**. Must be a bare origin (scheme + host, no path), e.g. `https://resource-org.okta.com`. A path here is silently discarded (the SDK derives the effective issuer from scheme/host/port only) — see the next case for a custom server on that org.
+*   `xaaTargetAuthorizationServerId` alone — a **custom authorization server in your own org**, i.e. the same host as your primary `issuer` above. There's no separate origin to set here because it reuses your primary client's host — this is exactly `forAuthorizationServerId`'s behavior, unrelated to `xaaTargetIssuer`. **This is the only one of the three cases that works against Okta today — this case has its own extra requirements; see [Same-org custom authorization server: extra requirements](#same-org-custom-authorization-server-extra-requirements) below.**
+*   Both set — a **custom authorization server on the different org** named by `xaaTargetIssuer`. The two combine exactly like the primary `issuer`+`authorizationServerId` do: `xaaTargetAuthorizationServerId` is appended as a path onto `xaaTargetIssuer`'s origin.
+
+> **Okta-to-Okta cross-org Cross App Access — the first and third cases above, i.e. any case with `xaaTargetIssuer` set — does not work today.** The redeeming (resource) org's authorization server unconditionally requires the ID-JAG's issuer to be one of its own org's issuers, with no allowance for a trusted foreign org; this is a server-side limitation, not something `local.properties` or this sample can configure around. Only the **same-org custom authorization server** case below (`xaaTargetAuthorizationServerId` alone, no `xaaTargetIssuer`) is expected to work against Okta today. If cross-org/cross-vendor Cross App Access is what you're after, the resource side needs to be a non-Okta authorization server that implements its own trust logic for a foreign `iss`+JWKS (for example Keycloak) — this sample only demonstrates the Okta-to-Okta case.
+
+Add the following to `local.properties`, leaving out whichever of the two you don't need:
+
+```properties
+xaaTargetIssuer=<resource_app_issuer_or_leave_blank>
+xaaTargetAuthorizationServerId=<resource_app_authorization_server_id_or_leave_blank>
+xaaTargetClientId=<resource_app_client_id>
+xaaTargetResource=<resource_indicator_or_leave_blank>
+```
+
+The resource app credential is read **at runtime** by `ClientAuthentication`, the same way `clientSecret`/`clientAssertionPrivateKeyPem` are above — never baked into `AppConfig`:
+
+```properties
+xaaTargetClientSecret=<resource_app_client_secret>
+```
+
+or, for `private_key_jwt` (same key format as [Confidential client authentication](#confidential-client-authentication-local-testing-only) above):
+
+```properties
+xaaTargetClientAssertionPrivateKeyPem=-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBg...\n-----END PRIVATE KEY-----\n
+```
+
+Also set exactly one of `xaaTargetClientSecret` or `xaaTargetClientAssertionPrivateKeyPem` for the target's credential. All six keys are optional as a group: if none are set, the Cross App Access menu entry reports what's missing instead of failing, and the rest of the CLI is unaffected.
+
+There is no `xaaTargetScopes` config key: the CLI prompts for scope right after subject-kind selection, taking precedence over any scope the SDK's `CrossAppAccessTarget` might otherwise default to. The prompt is prefilled with `chat.read` — for sample testing purposes only — and leaving it blank uses that default rather than sending a scope-less request. It must be a **custom, resource-specific scope defined on the target's own authorization server** (e.g. `chat.read`) — standard OIDC scopes like `openid`/`profile`/`email`/`offline_access` are valid for the dedicated sign-in below, but the org authorization server rejects them at this step with `The following scopes are not allowed for this request`. This applies to every case above, not just the same-org one.
+
+##### Same-org custom authorization server: extra requirements
+
+If your resource app target is a custom authorization server **in the same Okta org** as the `xaaIdp*` app above (the `xaaTargetAuthorizationServerId`-alone case — the only one of the three cases above that Okta supports today; see the warning above), a few things differ from what you might otherwise expect:
+
+*   **`xaaTargetClientId` must be the same value as `xaaIdpClientId`**, and the target's credential must be the *same* credential as the IdP's (`xaaIdpClientSecret`/`xaaIdpClientAssertionPrivateKeyPem`), not an independently-registered one. Okta requires the IdP and target to share a single client registration whenever they're in the same org. Using a separate target client/credential here fails with `The 'client_id' in the JWT Bearer Grant must match the 'client_id' used to authenticate the client`.
+*   In the Okta Admin Console, this needs a Resource Connection created directly against the **authorization server** (Directory → AI agents → your agent → Resource connections → Add → select the authorization server itself as the resource) — not the more discoverable "Application instance" option, which computes the wrong issuer for audience matching in this case and fails with `Token Exchange requests must include a valid audience of the authorization server`.
+
+Cross App Access has its **own dedicated Browser Sign-In**, separate from every other flow's session — the CLI opens a browser for it the first time you select Cross App Access from the menu. Every subject kind the SDK accepts (identity token, access token, and refresh token) is available to pick from in both modes; which one your resource app's authorization server actually accepts depends on its own configuration.
+
+> **SECURITY**: Exactly like the confidential-client keys above, `xaaTargetClientSecret`/`xaaTargetClientAssertionPrivateKeyPem` and `xaaIdpClientSecret`/`xaaIdpClientAssertionPrivateKeyPem` exist only to make this demonstration easy to try locally, and the same shipped-artifact and secrets-manager guidance applies without exception. Neither credential is ever displayed or logged anywhere in this sample — only its presence (a boolean) is ever read back. This is distinct from this CLI's existing `--format=raw` default, which does print full access/ID tokens to the console as a developer-only convenience — that behavior is unchanged and does not apply to either credential.
+
 ## Org Setup
 
 Org setup is identical to the current Direct Auth sample except for the OAuth2 additions:
 
-1. **Register the loopback redirect URI** `http://localhost:8080/callback` (or your configured `desktopSignInRedirectUri`) as a Sign-in redirect URI on the Okta app.
+1. **Register the loopback redirect URI** `http://localhost:8080/callback` (or your configured `desktopSignInRedirectUri`) as a Sign-in redirect URI on the Okta app. For Cross App Access, also register this same URI on the **second, dedicated IdP app** described in [Cross App Access (local testing only)](#cross-app-access-local-testing-only) — it's a different app registration from the primary one.
 2. **Enable the required grant types** on the Okta app for the flows you want to demo:
 
    | Flow | Required grant type |
@@ -112,6 +192,7 @@ Org setup is identical to the current Direct Auth sample except for the OAuth2 a
    | Browser Sign-In | `authorization_code` (PKCE) |
    | Token Exchange | `urn:ietf:params:oauth:grant-type:token-exchange` |
    | Session Token | `authorization_code` (PKCE) + session token support |
+   | Cross App Access | requires an administrator-configured trust relationship — see [Cross App Access (local testing only)](#cross-app-access-local-testing-only) |
 
 3. **Enable PAR on a custom authorization server** for Browser Sign-In PAR demos:
    - Use a custom authorization server (for example, `default`) and keep `authorizationServerId=default` in configuration.
@@ -222,6 +303,7 @@ Press Enter to sign out...
 [3] Browser Sign-In (Auth Code + PKCE)
 [4] Token Exchange
 [5] Session Token
+[6] Cross App Access
 [0] Back
 Select option: 1
 
@@ -263,6 +345,52 @@ Opening browser for sign-in. Waiting for redirect...
 ...
 ```
 
+### OAuth2 — Cross App Access
+
+```
+Select option: 6
+
+=== Cross App Access ===
+Cross App Access lets this session be used to obtain a scoped access token for another
+app (the resource app) in a different security domain — no second consent prompt,
+no static API key.
+IdP Client ID: 0oa...
+IdP Issuer: https://your-org.okta.com
+Resource App Target: https://your-org.okta.com
+
+Cross App Access needs its own signed-in session, separate from the rest
+of this CLI — sign in below.
+Opening browser for sign-in. Waiting for redirect...
+# System browser opens against the dedicated xaaIdp* app; after sign-in, the CLI
+# captures the loopback redirect automatically, same as OAuth2 Browser Sign-In.
+
+=== Subject ===
+Only the identity token is universally accepted; access and refresh tokens depend on
+your org's own configuration.
+[1] IDENTITY
+[2] ACCESS
+[3] REFRESH
+Select subject kind (default 1 - IDENTITY): 1
+
+=== Scope ===
+Requested scopes (space-separated) [chat.read]:
+
+[1] One-action exchange
+[2] Step-by-step (inspect the ID-JAG, redeem separately)
+[0] Back
+Select option: 1
+
+=== Resource Access Token ===
+This token is for the resource app — not your signed-in app.
+Granted Scope: chat.read
+Token Type: Bearer
+Expires In: 3600s
+
+[1] Introspect this token
+[0] Back to menu
+Select option: 0
+```
+
 With `--format=decoded`, success output shows parsed JWT claims:
 
 ```
@@ -289,10 +417,13 @@ Press Enter to continue...
 - **Browser Sign-In** — `AuthorizationCodeFlow` + `LocalhostBrowserRedirectHandler`: opens the system browser and captures the loopback redirect
 - **Token Exchange** — `TokenExchangeFlow`: exchange an existing ID token + device secret
 - **Session Token** — `SessionTokenFlow`: exchange a legacy session token
+- **Cross App Access** — `CrossAppAccessFlow`: sign in with its own dedicated Browser Sign-In (a requesting-app identity separate from the rest of the CLI) to obtain a scoped access token for a separate resource app; one-action exchange or step-by-step mode with a reusable ID-JAG, subject kind selectable (identity/access/refresh token)
 
 ### Shared
 - **JWT decoding** — View token claims with `--format=decoded`
 - **Username persistence** — Direct Auth mode remembers your last username across sessions
+
+> **Note on raw token output**: With the default `--format=raw`, this CLI prints full access and ID token values to the console for every flow above, including the resource access token obtained via Cross App Access — this is an existing, unchanged developer-only convenience of this sample, not something Cross App Access introduces. The values Cross App Access never prints, in either format, are the IdP app's and the resource app's own client secrets or private keys (`xaaIdpClientSecret`/`xaaIdpClientAssertionPrivateKeyPem` and `xaaTargetClientSecret`/`xaaTargetClientAssertionPrivateKeyPem`) — only whether each is present.
 
 ## Tests
 

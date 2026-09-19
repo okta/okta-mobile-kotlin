@@ -214,7 +214,15 @@ public final class OAuth2ViewModel implements Closeable {
                 });
   }
 
-  /** Cancels any pending flow and returns to the OAuth2 menu. */
+  /**
+   * Abandons any pending flow and returns to the OAuth2 menu.
+   *
+   * <p>"Abandons", not "cancels": {@link CompletableFuture#cancel} only marks the tail stage
+   * returned by the {@code thenAccept}/{@code exceptionally} chain as cancelled — it does not stop
+   * the underlying flow call in progress, which keeps running and will still invoke {@code
+   * handleSuccess}/{@code handleError} once it completes. Only {@link #close} actually stops
+   * in-flight work, by cancelling the flow's coroutine scope.
+   */
   public void reset() {
     CompletableFuture<?> pending = pendingFuture;
     if (pending != null) {

@@ -27,6 +27,7 @@ import com.okta.authfoundation.client.ClientAssertion;
 import com.okta.authfoundation.client.ClientAssertionProvider;
 import com.okta.authfoundation.client.jvm.OAuth2ClientBuilder;
 import com.okta.directauth.jvm.DirectAuthenticationFlowBuilder;
+import com.okta.oauth2.kmp.jvm.CrossAppAccessTargetBuilder;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import java.security.KeyPair;
@@ -46,18 +47,28 @@ public class ClientAuthenticationTest {
   public void parsePkcs8PrivateKey_RsaPem_ParsesToEquivalentKey() throws NoSuchAlgorithmException {
     PrivateKey originalKey = generateRsaKeyPair().getPrivate();
 
-    PrivateKey parsedKey = ClientAuthentication.parsePkcs8PrivateKey(toPem(originalKey));
+    PrivateKey parsedKey =
+        ClientAuthentication.parsePkcs8PrivateKey(
+            toPem(originalKey), "clientAssertionPrivateKeyPem");
 
     assertThat(parsedKey.getAlgorithm()).isEqualTo("RSA");
     assertThat(parsedKey.getEncoded()).isEqualTo(originalKey.getEncoded());
   }
 
   @Test
-  public void parsePkcs8PrivateKey_NotAValidKey_ThrowsIllegalStateException() {
+  public void parsePkcs8PrivateKey_NotAValidKey_ThrowsIllegalStateExceptionNamingTheProperty() {
     String garbagePem = "-----BEGIN PRIVATE KEY-----\nbm90LWEta2V5\n-----END PRIVATE KEY-----";
 
-    assertThrows(
-        IllegalStateException.class, () -> ClientAuthentication.parsePkcs8PrivateKey(garbagePem));
+    IllegalStateException e =
+        assertThrows(
+            IllegalStateException.class,
+            () ->
+                ClientAuthentication.parsePkcs8PrivateKey(
+                    garbagePem, "xaaTargetClientAssertionPrivateKeyPem"));
+
+    // A dev with more than one PEM property configured (this sample has three) must be pointed
+    // at the one that's actually invalid, not always told about clientAssertionPrivateKeyPem.
+    assertThat(e).hasMessageThat().contains("xaaTargetClientAssertionPrivateKeyPem");
   }
 
   @Test
@@ -215,6 +226,93 @@ public class ClientAuthenticationTest {
     ClientAuthentication.configure(builder, CLIENT_ID, new Properties());
 
     verifyNoMoreInteractions(builder);
+  }
+
+  @Test
+  public void configureTarget_ReadsTargetScopedPropertiesOnly() {
+    CrossAppAccessTargetBuilder builder = mock(CrossAppAccessTargetBuilder.class);
+    Properties properties = new Properties();
+    properties.setProperty("clientSecret", "primary-secret");
+    properties.setProperty("xaaIdpClientSecret", "idp-secret");
+    properties.setProperty("xaaTargetClientSecret", "target-secret");
+
+    ClientAuthentication.configureTarget(builder, "target-client-id", properties);
+
+    verify(builder).setClientSecret("target-secret");
+    verify(builder, never()).setClientAssertionProvider(any());
+  }
+
+  @Test
+  public void configureTarget_WithNeitherConfigured_LeavesBuilderUntouched() {
+    CrossAppAccessTargetBuilder builder = mock(CrossAppAccessTargetBuilder.class);
+
+    ClientAuthentication.configureTarget(builder, "target-client-id", new Properties());
+
+    verifyNoMoreInteractions(builder);
+  }
+
+  @Test
+  public void configureIdpClient_ReadsIdpScopedPropertiesOnly() {
+    OAuth2ClientBuilder builder = mock(OAuth2ClientBuilder.class);
+    Properties properties = new Properties();
+    properties.setProperty("clientSecret", "primary-secret");
+    properties.setProperty("xaaTargetClientSecret", "target-secret");
+    properties.setProperty("xaaIdpClientSecret", "idp-secret");
+
+    ClientAuthentication.configureIdpClient(builder, "idp-client-id", properties);
+
+    verify(builder).setClientSecret("idp-secret");
+    verify(builder, never()).setClientAssertionProvider(any());
+  }
+
+  @Test
+  public void configureIdpClient_WithNeitherConfigured_LeavesBuilderUntouched() {
+    OAuth2ClientBuilder builder = mock(OAuth2ClientBuilder.class);
+
+    ClientAuthentication.configureIdpClient(builder, "idp-client-id", new Properties());
+
+    verifyNoMoreInteractions(builder);
+  }
+
+  @Test
+  public void hasTargetCredential_ClientSecretSet_ReturnsTrue() {
+    Properties properties = new Properties();
+    properties.setProperty("xaaTargetClientSecret", "target-secret");
+
+    assertThat(ClientAuthentication.hasTargetCredential(properties)).isTrue();
+  }
+
+  @Test
+  public void hasTargetCredential_AssertionPemSet_ReturnsTrue() {
+    Properties properties = new Properties();
+    properties.setProperty("xaaTargetClientAssertionPrivateKeyPem", "-----BEGIN PRIVATE KEY-----");
+
+    assertThat(ClientAuthentication.hasTargetCredential(properties)).isTrue();
+  }
+
+  @Test
+  public void hasTargetCredential_OnlyBlankValues_ReturnsFalse() {
+    Properties properties = new Properties();
+    properties.setProperty("xaaTargetClientSecret", "   ");
+    properties.setProperty("xaaTargetClientAssertionPrivateKeyPem", "");
+
+    assertThat(ClientAuthentication.hasTargetCredential(properties)).isFalse();
+  }
+
+  @Test
+  public void hasTargetCredential_NeitherSet_ReturnsFalse() {
+    assertThat(ClientAuthentication.hasTargetCredential(new Properties())).isFalse();
+  }
+
+  @Test
+  public void hasTargetCredential_IgnoresPrimaryAndIdpScopedProperties() {
+    // A developer who only configured the primary client's or IdP client's credential must not
+    // be told the target has one too.
+    Properties properties = new Properties();
+    properties.setProperty("clientSecret", "primary-secret");
+    properties.setProperty("xaaIdpClientSecret", "idp-secret");
+
+    assertThat(ClientAuthentication.hasTargetCredential(properties)).isFalse();
   }
 
   private static KeyPair generateRsaKeyPair() throws NoSuchAlgorithmException {
