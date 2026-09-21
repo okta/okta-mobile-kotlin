@@ -24,8 +24,6 @@ import com.okta.oauth2.kmp.jvm.DeviceAuthorizationFlow;
 import com.okta.oauth2.kmp.jvm.ResourceOwnerFlow;
 import com.okta.oauth2.kmp.jvm.SessionTokenFlow;
 import com.okta.oauth2.kmp.jvm.TokenExchangeFlow;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.List;
@@ -70,26 +68,9 @@ public final class WrapperOAuth2Flows implements OAuth2Flows {
     this.scope = scope;
     this.redirectUrl = signInRedirectUri;
 
-    try {
-      URI uri = new URI(signInRedirectUri);
-      String scheme = uri.getScheme();
-      String host = uri.getHost();
-      if (!"http".equalsIgnoreCase(scheme)) {
-        throw new IllegalArgumentException(
-            "signInRedirectUri must use the http scheme; got: " + signInRedirectUri);
-      }
-      if (host == null || !isLoopbackHost(host)) {
-        throw new IllegalArgumentException(
-            "signInRedirectUri must be a loopback address (localhost / 127.0.0.1 / ::1); got: "
-                + signInRedirectUri);
-      }
-      int port = uri.getPort();
-      this.redirectPort = (port == -1) ? 80 : port;
-      String path = uri.getPath();
-      this.redirectPath = (path == null || path.isEmpty()) ? "/" : path;
-    } catch (URISyntaxException e) {
-      throw new IllegalArgumentException("Invalid signInRedirectUri: " + signInRedirectUri, e);
-    }
+    LoopbackRedirectUri parsed = LoopbackRedirectUri.parse(signInRedirectUri);
+    this.redirectPort = parsed.getPort();
+    this.redirectPath = parsed.getPath();
   }
 
   @Override
@@ -155,14 +136,6 @@ public final class WrapperOAuth2Flows implements OAuth2Flows {
     // Close any device flows that were started but never resumed (e.g. on app exit).
     activeDeviceFlows.values().forEach(WrapperOAuth2Flows::closeQuietly);
     activeDeviceFlows.clear();
-  }
-
-  private static boolean isLoopbackHost(String host) {
-    // URI.getHost() strips brackets from IPv6 addresses (returns "::1" not "[::1]").
-    return host.equals("localhost")
-        || host.equals("127.0.0.1")
-        || host.equals("::1")
-        || host.equals("[::1]"); // guard against JDK implementations that retain brackets
   }
 
   private static void closeQuietly(AutoCloseable c) {

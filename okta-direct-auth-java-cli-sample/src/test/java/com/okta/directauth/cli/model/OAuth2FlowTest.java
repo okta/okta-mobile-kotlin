@@ -58,6 +58,14 @@ public class OAuth2FlowTest {
   }
 
   @Test
+  public void crossAppAccess_OverloadsNoneOfTheExistingInputBooleans() {
+    assertThat(OAuth2Flow.CROSS_APP_ACCESS.requiresCredentials()).isFalse();
+    assertThat(OAuth2Flow.CROSS_APP_ACCESS.requiresTokens()).isFalse();
+    assertThat(OAuth2Flow.CROSS_APP_ACCESS.requiresSessionToken()).isFalse();
+    assertThat(OAuth2Flow.CROSS_APP_ACCESS.getLabel()).isNotEmpty();
+  }
+
+  @Test
   public void allFlows_HaveLabels() {
     for (OAuth2Flow flow : OAuth2Flow.values()) {
       assertThat(flow.getLabel()).isNotEmpty();
@@ -65,7 +73,7 @@ public class OAuth2FlowTest {
   }
 
   @Test
-  public void fiveFlows_Defined() {
-    assertThat(OAuth2Flow.values()).hasLength(5);
+  public void sixFlows_Defined() {
+    assertThat(OAuth2Flow.values()).hasLength(6);
   }
 }

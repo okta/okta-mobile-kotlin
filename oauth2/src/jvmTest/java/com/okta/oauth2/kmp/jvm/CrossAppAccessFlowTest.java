@@ -18,6 +18,7 @@ package com.okta.oauth2.kmp.jvm;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -30,6 +31,7 @@ import com.okta.oauth2.kmp.CrossAppAccessTarget;
 import com.okta.oauth2.kmp.IdJagAssertion;
 import com.okta.oauth2.kmp.SubjectAssertion;
 import java.util.List;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -350,5 +352,28 @@ public class CrossAppAccessFlowTest {
     CrossAppAccessFlow flow = TestFlowFactory.createSuccessCrossAppAccessFlow();
     flow.close();
     flow.close(); // Should not throw
+  }
+
+  @Test
+  public void closeCompletely_IsIdempotent() {
+    CrossAppAccessFlow flow = TestFlowFactory.createSuccessCrossAppAccessFlow();
+    flow.closeCompletely();
+    flow.closeCompletely(); // Should not throw
+  }
+
+  @Test
+  public void closeCompletely_IntrospectResourceTokenAfterward_IsCancelled() {
+    // Unlike close(), closeCompletely() also cancels introspectionScope — the whole point of a
+    // full teardown for a flow nothing will call introspectResourceToken() on again. Cancelling
+    // the backing coroutine Job surfaces as CancellationException from get(), not a wrapped
+    // ExecutionException, since the future itself is cancelled rather than completed exceptionally.
+    CrossAppAccessFlow flow =
+        TestFlowFactory.createCrossAppAccessFlowWithIntrospectableTarget(true);
+    flow.closeCompletely();
+
+    CompletableFuture<IntrospectInfo> future =
+        flow.introspectResourceToken("resource-access-token");
+
+    assertThrows(CancellationException.class, () -> future.get(5, TimeUnit.SECONDS));
   }
 }

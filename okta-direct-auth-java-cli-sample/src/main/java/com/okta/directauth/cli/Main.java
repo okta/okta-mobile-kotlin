@@ -15,24 +15,34 @@
  */
 package com.okta.directauth.cli;
 
+import com.okta.authfoundation.client.OidcClock;
 import com.okta.authfoundation.client.jvm.AuthFoundationResult;
 import com.okta.authfoundation.client.jvm.OAuth2ClientBuilder;
 import com.okta.authfoundation.client.kmp.OAuth2Client;
 import com.okta.directauth.cli.model.CliPreferences;
+import com.okta.directauth.cli.model.CrossAppAccessConfig;
+import com.okta.directauth.cli.oauth2.CrossAppAccessFlows;
+import com.okta.directauth.cli.oauth2.CrossAppAccessIdpFlow;
 import com.okta.directauth.cli.oauth2.OAuth2Flows;
+import com.okta.directauth.cli.oauth2.WrapperCrossAppAccessFlows;
+import com.okta.directauth.cli.oauth2.WrapperCrossAppAccessIdpFlow;
 import com.okta.directauth.cli.oauth2.WrapperOAuth2Flows;
 import com.okta.directauth.cli.view.ConsoleView;
 import com.okta.directauth.cli.view.OAuth2ConsoleView;
 import com.okta.directauth.cli.view.SystemConsoleInput;
 import com.okta.directauth.cli.view.SystemConsoleOutput;
 import com.okta.directauth.cli.viewmodel.AuthViewModel;
+import com.okta.directauth.cli.viewmodel.CrossAppAccessViewModel;
 import com.okta.directauth.cli.viewmodel.OAuth2ViewModel;
 import com.okta.directauth.jvm.DirectAuthResult;
 import com.okta.directauth.jvm.DirectAuthenticationFlow;
 import com.okta.directauth.jvm.DirectAuthenticationFlowBuilder;
 import com.okta.directauth.model.DirectAuthenticationIntent;
+import com.okta.oauth2.kmp.CrossAppAccessTarget;
+import com.okta.oauth2.kmp.jvm.CrossAppAccessTargetBuilder;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.Callable;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
@@ -54,6 +64,8 @@ public final class Main implements Callable<Integer> {
       "https://developer.okta.com/docs/guides/configure-direct-auth-grants/";
   private static final List<String> OAUTH2_SCOPES =
       Arrays.asList("openid", "profile", "email", "offline_access");
+  private static final List<String> XAA_IDP_SCOPES =
+      Arrays.asList("openid", "profile", "offline_access");
 
   @Option(names = "--issuer", description = "Okta issuer URL")
   private String issuerArg;
@@ -211,6 +223,102 @@ public final class Main implements Callable<Integer> {
       return 1;
     }
 
+    // --- Build Cross App Access target and flows ---
+    // The target configuration and its non-credential values are all optional: absence must
+    // never fail the build. CrossAppAccessViewModel.validateConfig() is what tells the console
+    // view whether the resource app target is actually usable, before any network request.
+    CliLogger.info(TAG, "Building Cross App Access target");
+    CrossAppAccessConfig xaaConfig = CrossAppAccessConfig.fromAppConfig();
+    Properties xaaLocalProperties = ClientAuthentication.findLocalProperties();
+    boolean hasTargetCredential = ClientAuthentication.hasTargetCredential(xaaLocalProperties);
+
+    // Cross App Access's own, dedicated requesting-app identity — never built with
+    // setAuthorizationServerId, since the ID-JAG exchange must be submitted to the org's own
+    // authorization server, never a custom one. Null when unconfigured; validateConfig() prevents
+    // the console view from ever reaching signIn()/exchange()/start() in that case. Unlike the
+    // target, this client's credential is never required: only CrossAppAccessFlowImpl's target
+    // check enforces one, and Okta's own "AI agent" registration explicitly supports a
+    // credential-less "Client ID only" requesting app, so configureIdpClient() below applies one
+    // only if local.properties happens to have it.
+    OAuth2Client xaaIdpClient = null;
+    CrossAppAccessIdpFlow xaaIdpFlow = null;
+    if (xaaConfig.getIdpIssuer() != null && xaaConfig.getIdpClientId() != null) {
+      try {
+        OAuth2ClientBuilder xaaIdpClientBuilder =
+            new OAuth2ClientBuilder(
+                xaaConfig.getIdpIssuer(), xaaConfig.getIdpClientId(), XAA_IDP_SCOPES);
+        ClientAuthentication.configureIdpClient(
+            xaaIdpClientBuilder, xaaConfig.getIdpClientId(), xaaLocalProperties);
+        AuthFoundationResult<OAuth2Client> xaaIdpClientResult = xaaIdpClientBuilder.build();
+        if (xaaIdpClientResult.isFailure()) {
+          throw new IllegalStateException(
+              "invalid xaaIdpIssuer/xaaIdpClientId", xaaIdpClientResult.exceptionOrNull());
+        }
+        xaaIdpClient = xaaIdpClientResult.getOrThrow();
+        xaaIdpFlow =
+            new WrapperCrossAppAccessIdpFlow(xaaIdpClient, XAA_IDP_SCOPES, signInRedirectUri);
+      } catch (RuntimeException e) {
+        // Absence of Cross App Access config must never fail the whole CLI (see the comment
+        // above) — and neither must a mistake in it. validateConfig() will report this instead,
+        // once the console view actually reaches the Cross App Access menu.
+        CliLogger.error(TAG, "Cross App Access IdP client unavailable", e);
+        System.err.println(
+            "Cross App Access disabled: " + e.getMessage() + ". Other flows are unaffected.");
+        xaaIdpClient = null;
+        xaaIdpFlow = null;
+      }
+    }
+
+    // Naming a target has no failure mode — even the "unconfigured" placeholder id below only
+    // matters if the developer somehow reaches a flows call with incomplete configuration, which
+    // validateConfig() prevents the console view from ever doing. Falls back to the IdP's own
+    // client id (the same-org custom authorization server case requires them to match anyway —
+    // see the README) rather than the primary app's unrelated client id, which would only ever
+    // produce a confusing runtime failure for a config validateConfig() should have caught first.
+    String xaaTargetClientId =
+        xaaConfig.getClientId() != null ? xaaConfig.getClientId() : xaaConfig.getIdpClientId();
+    CrossAppAccessTargetBuilder xaaTargetBuilder =
+        xaaConfig.getIssuer() != null
+            ? CrossAppAccessTargetBuilder.forIssuer(xaaConfig.getIssuer())
+            : CrossAppAccessTargetBuilder.forAuthorizationServerId(
+                xaaConfig.getAuthorizationServerId() != null
+                    ? xaaConfig.getAuthorizationServerId()
+                    : "unconfigured");
+    if (xaaConfig.getIssuer() != null && xaaConfig.getAuthorizationServerId() != null) {
+      // Both set names a custom authorization server on the DIFFERENT org named by getIssuer() —
+      // combines with that origin exactly like the primary client's own issuer+
+      // authorizationServerId. Ignored when getIssuer() is null, since forAuthorizationServerId's
+      // own argument above already names the id against this app's own org in that case.
+      xaaTargetBuilder.setAuthorizationServerId(xaaConfig.getAuthorizationServerId());
+    }
+    if (xaaTargetClientId != null) {
+      xaaTargetBuilder.setClientId(xaaTargetClientId);
+    }
+    if (xaaConfig.getResource() != null) {
+      xaaTargetBuilder.setResource(xaaConfig.getResource());
+    }
+    // Testing only: reads the target's client secret or private_key_jwt key from
+    // local.properties at runtime. See ClientAuthentication for why this must not be done in a
+    // shipped app. Applied to the target builder's own properties — never via a client-build
+    // action, which the SDK would apply last and could overwrite with the requesting app's own
+    // credential.
+    try {
+      ClientAuthentication.configureTarget(xaaTargetBuilder, xaaTargetClientId, xaaLocalProperties);
+    } catch (RuntimeException e) {
+      // A malformed target credential (e.g. an invalid PEM) must not crash the whole CLI either —
+      // validateConfig()/hasTargetCredential will report the target as unusable instead.
+      CliLogger.error(TAG, "Cross App Access target credential unavailable", e);
+      System.err.println(
+          "Cross App Access target credential invalid: "
+              + e.getMessage()
+              + ". Other flows are unaffected.");
+      hasTargetCredential = false;
+    }
+    CrossAppAccessTarget xaaTarget = xaaTargetBuilder.build();
+
+    CrossAppAccessFlows crossAppAccessFlows =
+        new WrapperCrossAppAccessFlows(xaaIdpClient, xaaTarget);
+
     // --- Wire views and view models ---
     CliPreferences preferences = new CliPreferences();
     CliLogger.debug(
@@ -231,8 +339,19 @@ public final class Main implements Callable<Integer> {
             preferences);
 
     OAuth2ViewModel oauth2ViewModel = new OAuth2ViewModel(oauth2Flows, decoded);
+    OidcClock xaaIdpClock =
+        xaaIdpClient != null
+            ? xaaIdpClient.getConfiguration().getClock()
+            : oauth2Client.getConfiguration().getClock();
+    CrossAppAccessViewModel crossAppAccessViewModel =
+        new CrossAppAccessViewModel(
+            crossAppAccessFlows, xaaIdpFlow, xaaConfig, hasTargetCredential, xaaIdpClock);
     OAuth2ConsoleView oauth2View =
-        new OAuth2ConsoleView(oauth2ViewModel, new SystemConsoleInput(), new SystemConsoleOutput());
+        new OAuth2ConsoleView(
+            oauth2ViewModel,
+            crossAppAccessViewModel,
+            new SystemConsoleInput(),
+            new SystemConsoleOutput());
 
     Runtime.getRuntime()
         .addShutdownHook(
@@ -243,6 +362,7 @@ public final class Main implements Callable<Integer> {
                   directAuthViewModel.close();
                   oauth2View.stop();
                   oauth2ViewModel.close();
+                  crossAppAccessViewModel.close();
                 }));
 
     // --- Top-level mode selection ---
@@ -265,6 +385,7 @@ public final class Main implements Callable<Integer> {
       CliLogger.info(TAG, "Exiting.");
       directAuthViewModel.close();
       oauth2ViewModel.close();
+      crossAppAccessViewModel.close();
     }
     return 0;
   }
