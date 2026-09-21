@@ -1,6 +1,8 @@
 # Changelog
 
-## oauth2 Unreleased
+## oauth2 3.2.0 - 2026-09-21
+
+[Commits](https://github.com/okta/okta-mobile-kotlin/compare/oauth2@3.1.0...oauth2@3.2.0)
 
 #### Added
 
@@ -28,7 +30,9 @@
   gained `closeCompletely()`, which additionally cancels that scope for callers that are discarding
   the flow for good and know `introspectResourceToken()` will never be called on it again.
 
-## auth-foundation Unreleased
+## auth-foundation 3.2.0 - 2026-09-21
+
+[Commits](https://github.com/okta/okta-mobile-kotlin/compare/auth-foundation@3.1.0...auth-foundation@3.2.0)
 
 #### Added
 
@@ -58,7 +62,9 @@
   discovery-returned issuer, matching the existing (correct) behavior of the legacy Android-only
   `OAuth2Client`.
 
-## web-authentication-ui Unreleased
+## web-authentication-ui 3.1.1 - 2026-09-21
+
+[Commits](https://github.com/okta/okta-mobile-kotlin/compare/web-authentication-ui@3.1.0...web-authentication-ui@3.1.1)
 
 #### Fixed
 
