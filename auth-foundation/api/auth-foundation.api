@@ -453,6 +453,7 @@ public final class com/okta/authfoundation/client/OAuth2ClientBuilder {
 	public final fun getIoDispatcher ()Lkotlin/coroutines/CoroutineContext;
 	public final fun getJson ()Lkotlinx/serialization/json/Json;
 	public final fun getRateLimitRetryCallback ()Lkotlin/jvm/functions/Function1;
+	public final fun getUseIssuerUrlAsIs ()Z
 	public final fun setAccessTokenValidator (Lcom/okta/authfoundation/client/kmp/AccessTokenValidator;)V
 	public final fun setAcrValues (Ljava/lang/String;)V
 	public final fun setAllowPushedAuthorizationRequestFallback (Z)V
@@ -470,6 +471,7 @@ public final class com/okta/authfoundation/client/OAuth2ClientBuilder {
 	public final fun setIoDispatcher (Lkotlin/coroutines/CoroutineContext;)V
 	public final fun setJson (Lkotlinx/serialization/json/Json;)V
 	public final fun setRateLimitRetryCallback (Lkotlin/jvm/functions/Function1;)V
+	public final fun setUseIssuerUrlAsIs (Z)V
 }
 
 public final class com/okta/authfoundation/client/OAuth2ClientBuilder$Companion {
