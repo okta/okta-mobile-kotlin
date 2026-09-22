@@ -15,6 +15,7 @@
  */
 package com.okta.webauthenticationui
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -96,7 +97,13 @@ internal class DefaultRedirectCoordinator(
             }
         }
 
-        context.startActivity(ForegroundActivity.createIntent(context))
+        val intent = ForegroundActivity.createIntent(context)
+        if (context !is Activity) {
+            // A non-Activity context (e.g. the application context) has no task of its own to
+            // launch into, so ForegroundActivity must be started in a new task.
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        context.startActivity(intent)
 
         return suspendCancellableCoroutine { continuation ->
             continuation.invokeOnCancellation { reset() }
