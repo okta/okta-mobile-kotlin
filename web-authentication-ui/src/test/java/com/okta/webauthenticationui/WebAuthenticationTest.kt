@@ -17,7 +17,9 @@ package com.okta.webauthenticationui
 
 import android.content.Context
 import android.net.Uri
+import androidx.test.core.app.ApplicationProvider
 import com.google.common.truth.Truth.assertThat
+import com.okta.authfoundation.client.ApplicationContextHolder
 import com.okta.authfoundation.client.OAuth2ClientResult
 import com.okta.authfoundation.client.TokenInfo
 import com.okta.authfoundation.client.kmp.OAuth2Client
@@ -202,6 +204,73 @@ class WebAuthenticationTest {
             val tokenInfo = loginResultDeferred.await().getOrThrow()
             assertThat(tokenInfo.accessToken).isEqualTo("exampleAccessToken")
             assertThat(tokenInfo.refreshToken).isEqualTo("exampleRefreshToken")
+        }
+
+    @Test fun testLoginWithoutContextUsesApplicationContext(): Unit =
+        runTest {
+            ApplicationContextHolder.setApplicationContext(ApplicationProvider.getApplicationContext())
+            val webAuthenticationProvider = mock<WebAuthenticationProvider>()
+            val webAuthentication = WebAuthentication(webAuthenticationProvider)
+
+            val redirectCoordinator = DefaultRedirectCoordinator(this)
+            webAuthentication.redirectCoordinator = redirectCoordinator
+            webAuthentication.authorizationCodeFlow = authorizationCodeFlowStub()
+
+            val initializeCountDownLatch = CountDownLatch(1)
+            redirectCoordinator.initializerContinuationListeningCallback = {
+                initializeCountDownLatch.countDown()
+            }
+            val redirectCountDownLatch = CountDownLatch(1)
+            redirectCoordinator.redirectContinuationListeningCallback = {
+                redirectCountDownLatch.countDown()
+            }
+            val loginResultDeferred =
+                async(Dispatchers.IO) {
+                    webAuthentication.login("unitTest:/login", scope = listOf("openid", "profile"))
+                }
+            assertThat(initializeCountDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
+            val initializationResult = redirectCoordinator.runInitializationFunction() as RedirectInitializationResult.Success<*>
+
+            assertThat(redirectCountDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
+            val state = initializationResult.url.queryParameter("state")
+            val uri = Uri.parse("unitTest:/login?state=$state&code=ExampleCode")
+            redirectCoordinator.emit(uri)
+
+            val tokenInfo = loginResultDeferred.await().getOrThrow()
+            assertThat(tokenInfo.accessToken).isEqualTo("exampleAccessToken")
+        }
+
+    @Test fun testLogoutWithoutContextUsesApplicationContext(): Unit =
+        runTest {
+            ApplicationContextHolder.setApplicationContext(ApplicationProvider.getApplicationContext())
+            val webAuthenticationProvider = mock<WebAuthenticationProvider>()
+            val webAuthentication = WebAuthentication(webAuthenticationProvider)
+
+            val redirectCoordinator = DefaultRedirectCoordinator(this)
+            webAuthentication.redirectCoordinator = redirectCoordinator
+            webAuthentication.redirectEndSessionFlow = redirectEndSessionFlowStub()
+
+            val initializeCountDownLatch = CountDownLatch(1)
+            redirectCoordinator.initializerContinuationListeningCallback = {
+                initializeCountDownLatch.countDown()
+            }
+            val redirectCountDownLatch = CountDownLatch(1)
+            redirectCoordinator.redirectContinuationListeningCallback = {
+                redirectCountDownLatch.countDown()
+            }
+            val logoutResultDeferred =
+                async(Dispatchers.IO) {
+                    webAuthentication.logoutOfBrowser("unitTest:/logout", "ExampleIdToken")
+                }
+            assertThat(initializeCountDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
+            val initializationResult = redirectCoordinator.runInitializationFunction() as RedirectInitializationResult.Success<*>
+
+            assertThat(redirectCountDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
+            val state = initializationResult.url.queryParameter("state")
+            val uri = Uri.parse("unitTest:/logout?state=$state")
+            redirectCoordinator.emit(uri)
+
+            assertThat(logoutResultDeferred.await()).isInstanceOf(OAuth2ClientResult.Success::class.java)
         }
 
     @Test fun testLoginResumeError(): Unit =

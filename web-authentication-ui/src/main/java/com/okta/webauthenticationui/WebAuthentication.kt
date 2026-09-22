@@ -18,6 +18,7 @@ package com.okta.webauthenticationui
 import android.app.Activity
 import android.content.Context
 import androidx.annotation.VisibleForTesting
+import com.okta.authfoundation.client.ApplicationContextHolder
 import com.okta.authfoundation.client.OAuth2ClientResult
 import com.okta.authfoundation.client.OidcConfiguration
 import com.okta.authfoundation.client.TokenInfo
@@ -239,6 +240,30 @@ class WebAuthentication private constructor(
     }
 
     /**
+     * Initiates the OIDC Authorization Code redirect flow using the application context captured
+     * via [com.okta.authfoundation.AuthFoundation.initializeAndroidContext]. Suspends until the
+     * browser redirect completes or the user cancels.
+     *
+     * Prefer the [Context]-accepting overload when an [Activity] [Context] is available (e.g. from
+     * a UI interaction). Use this overload when one isn't, such as when initiating login from
+     * application startup/bootstrapping code. [com.okta.authfoundation.AuthFoundation.initializeAndroidContext]
+     * must have already been called, typically from `Application.onCreate()`.
+     *
+     * @param redirectUrl the redirect URL.
+     * @param scope the scopes to request during sign in.
+     * @param extraRequestParameters the extra key value pairs to send to the authorize endpoint.
+     *  See [Authorize Documentation](https://developer.okta.com/docs/reference/api/oidc/#authorize) for parameter options.
+     * @return a [Result] containing [TokenInfo] on success, or a failed [Result] wrapping a
+     *  [FlowCancelledException] if the user dismissed the browser, a [FlowAlreadyInProgressException]
+     *  if another redirect flow was already in progress, or the underlying authorize/token exchange error.
+     */
+    suspend fun login(
+        redirectUrl: String,
+        scope: List<String>,
+        extraRequestParameters: Map<String, String> = emptyMap(),
+    ): Result<TokenInfo> = login(ApplicationContextHolder.appContext, redirectUrl, scope, extraRequestParameters)
+
+    /**
      * Initiates the OIDC Authorization Code redirect flow.
      *
      * @param context the Android [Activity] [Context] which is used to display the login flow via the configured
@@ -312,6 +337,25 @@ class WebAuthentication private constructor(
             onFailure = { OAuth2ClientResult.Error(it.asException()) }
         )
     }
+
+    /**
+     * Initiates the OIDC logout redirect flow using the application context captured via
+     * [com.okta.authfoundation.AuthFoundation.initializeAndroidContext].
+     *
+     * Prefer the [Context]-accepting overload when an [Activity] [Context] is available. Use this
+     * overload when one isn't; see [login] (context-less overload) for details on when that applies.
+     *
+     * > Note: OIDC Logout terminology is nuanced, see [Logout Documentation](https://github.com/okta/okta-mobile-kotlin#logout) for additional details.
+     *
+     * @param redirectUrl the redirect URL.
+     * @param idToken the token used to identify the session to log the user out of.
+     * @return an [OAuth2ClientResult]: [OAuth2ClientResult.Success] of [Unit] on completed logout, or
+     *  [OAuth2ClientResult.Error] (e.g. [FlowCancelledException], [FlowAlreadyInProgressException]).
+     */
+    suspend fun logoutOfBrowser(
+        redirectUrl: String,
+        idToken: String,
+    ): OAuth2ClientResult<Unit> = logoutOfBrowser(ApplicationContextHolder.appContext, redirectUrl, idToken)
 
     private fun Throwable.asException(): Exception = this as? Exception ?: RuntimeException(this)
 

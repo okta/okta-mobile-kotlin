@@ -1,5 +1,22 @@
 # Changelog
 
+## web-authentication-ui Unreleased
+
+#### Added
+
+- `WebAuthentication.login()`/`logoutOfBrowser()` gained context-less overloads that use the
+  application `Context` captured via `AuthFoundation.initializeAndroidContext()` instead of
+  requiring a caller-supplied `Context`. Useful for initiating a web auth flow without an
+  `Activity` on hand, e.g. from application startup/bootstrapping code.
+
+#### Fixed
+
+- `RedirectCoordinator` unconditionally started `ForegroundActivity` without
+  `FLAG_ACTIVITY_NEW_TASK`, so passing a non-`Activity` `Context` (e.g. an application `Context`)
+  to `login()`/`logoutOfBrowser()` crashed. Now adds `FLAG_ACTIVITY_NEW_TASK` only when the
+  provided `Context` isn't already an `Activity`, preserving existing behavior for `Activity`
+  contexts.
+
 ## oauth2 3.2.0 - 2026-09-21
 
 [Commits](https://github.com/okta/okta-mobile-kotlin/compare/oauth2@3.1.0...oauth2@3.2.0)

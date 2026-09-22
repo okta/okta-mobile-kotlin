@@ -16,12 +16,14 @@
 package com.okta.webauthenticationui
 
 import android.app.Activity
+import android.app.Application
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResultLauncher
+import androidx.test.core.app.ApplicationProvider
 import com.google.common.truth.Truth.assertThat
 import com.okta.authfoundation.AuthFoundationDefaults
 import io.mockk.every
@@ -261,6 +263,33 @@ class RedirectCoordinatorTest {
             verify(webAuthenticationProvider).launchCustomTab(launchedFromActivity, url)
             val foregroundActivity = shadowOf(launchedFromActivity).nextStartedActivity
             assertThat(foregroundActivity.component?.className).isEqualTo(ForegroundActivity::class.java.name)
+            assertThat(foregroundActivity.flags and Intent.FLAG_ACTIVITY_NEW_TASK).isEqualTo(0)
+        }
+
+    @Test fun testInitializeStartsForegroundActivityWithNewTaskFlagForNonActivityContext(): Unit =
+        testScope.runTest {
+            val webAuthenticationProvider =
+                mock<WebAuthenticationProvider> {
+                    on { launchCustomTab(any(), any()) } doReturn Result.success(Unit)
+                }
+            val applicationContext = ApplicationProvider.getApplicationContext<Application>()
+            val url = "https://example.com/oauth".toHttpUrl()
+            val initializerCountDownLatch = CountDownLatch(1)
+            subject.initializerContinuationListeningCallback = {
+                initializerCountDownLatch.countDown()
+            }
+            launch(Dispatchers.IO) {
+                subject.initialize(webAuthenticationProvider, applicationContext, "https://example.com/redirect") {
+                    RedirectInitializationResult.Success(url, Any())
+                }
+            }
+            assertThat(initializerCountDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
+            subject.runInitializationFunction()
+            assertThat(subject.launchWebAuthenticationProvider(applicationContext, url, mock())).isTrue()
+            verify(webAuthenticationProvider).launchCustomTab(applicationContext, url)
+            val foregroundActivity = shadowOf(applicationContext).nextStartedActivity
+            assertThat(foregroundActivity.component?.className).isEqualTo(ForegroundActivity::class.java.name)
+            assertThat(foregroundActivity.flags and Intent.FLAG_ACTIVITY_NEW_TASK).isNotEqualTo(0)
         }
 
     @Test fun testInitializeDoesNotStartsForegroundActivityWhenBackgrounded(): Unit =
