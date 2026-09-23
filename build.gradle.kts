@@ -68,6 +68,12 @@ allprojects {
             }
         }
     }
+
+    // Robolectric 4.17's ApplicationSharedMemory shadow reflects into jdk.internal.access,
+    // which the JDK module system hides from unnamed modules by default (JEP 260/403).
+    tasks.withType<Test>().configureEach {
+        jvmArgs("--add-opens", "java.base/jdk.internal.access=ALL-UNNAMED")
+    }
 }
 
 tasks.register("checkLegacyAbi") {
@@ -78,12 +84,11 @@ tasks.register("checkLegacyAbi") {
 gradle.projectsEvaluated {
     tasks.named("checkLegacyAbi").configure {
         subprojects.forEach { subproject ->
-            // checkKotlinAbi: KGP's built-in ABI validation (auth-foundation/oauth2's jvm target).
-            // androidApiCheck: binary-compat-validation, for KMP android targets KGP's validator can't see.
+            // checkKotlinAbi: KGP's built-in ABI validation (jvm target, and the KMP android target for
+            // auth-foundation/oauth2/okta-direct-auth).
             // releaseApiCheck: binary-compat-validation, for Android-only modules on AGP built-in Kotlin.
             listOfNotNull(
                 subproject.tasks.findByName("checkKotlinAbi"),
-                subproject.tasks.findByName("androidApiCheck"),
                 subproject.tasks.findByName("releaseApiCheck")
             ).forEach { dependsOn(it) }
         }

@@ -60,13 +60,11 @@ public final class com/okta/directauth/http/DirectAuthStartRequest$DefaultImpls 
 }
 
 public abstract class com/okta/directauth/http/DirectAuthTokenRequest : com/okta/directauth/http/DirectAuthStartRequest {
-	public synthetic fun <init> (Lcom/okta/directauth/model/DirectAuthenticationContext;Lcom/okta/authfoundation/client/ClientAssertion;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public synthetic fun <init> (Lcom/okta/directauth/model/DirectAuthenticationContext;Lcom/okta/authfoundation/client/ClientAssertion;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun contentType ()Ljava/lang/String;
 	public fun headers ()Ljava/util/Map;
 	public fun method ()Lcom/okta/authfoundation/api/http/ApiRequestMethod;
 	public fun query ()Ljava/util/Map;
-	protected final fun sharedFormParameters ()Ljava/util/Map;
 	public fun url ()Ljava/lang/String;
 }
 
@@ -146,7 +144,6 @@ public final class com/okta/directauth/http/model/AuthenticatorEnrollment$Compan
 }
 
 public abstract class com/okta/directauth/model/DirectAuthContinuation : com/okta/directauth/model/DirectAuthenticationState {
-	public synthetic fun <init> (Lcom/okta/directauth/model/DirectAuthenticationContext;Lcom/okta/directauth/model/MfaContext;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public synthetic fun <init> (Lcom/okta/directauth/model/DirectAuthenticationContext;Lcom/okta/directauth/model/MfaContext;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 }
 

@@ -70,6 +70,6 @@ class DeviceTokenProvider(
 
     private suspend fun setDeviceToken(deviceToken: String) =
         context.dataStore.edit { preferences ->
-            preferences[PREFERENCE_KEY] = aesEncryptionHandler.encryptString(deviceToken)
+            preferences[PREFERENCE_KEY] = aesEncryptionHandler.encryptString(deviceToken).getOrThrow()
         }
 }
