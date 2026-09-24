@@ -361,10 +361,10 @@ class OAuth2ClientTest {
             val client = createClient(mockApiExecutor(tokenJson))
             val formParams =
                 mapOf(
-                    "client_id" to "test-client-id",
-                    "grant_type" to "authorization_code",
-                    "code" to "auth-code-123",
-                    "redirect_uri" to "https://example.com/callback"
+                    "client_id" to listOf("test-client-id"),
+                    "grant_type" to listOf("authorization_code"),
+                    "code" to listOf("auth-code-123"),
+                    "redirect_uri" to listOf("https://example.com/callback")
                 )
             val result = client.tokenRequest(formParams)
 
@@ -403,9 +403,9 @@ class OAuth2ClientTest {
             val result =
                 client.tokenRequest(
                     mapOf(
-                        "client_id" to "test-client-id",
-                        "grant_type" to "authorization_code",
-                        "code" to "auth-code-123"
+                        "client_id" to listOf("test-client-id"),
+                        "grant_type" to listOf("authorization_code"),
+                        "code" to listOf("auth-code-123")
                     )
                 )
 
@@ -447,9 +447,9 @@ class OAuth2ClientTest {
             val result =
                 client.tokenRequest(
                     mapOf(
-                        "client_id" to "test-client-id",
-                        "grant_type" to "authorization_code",
-                        "code" to "auth-code-123"
+                        "client_id" to listOf("test-client-id"),
+                        "grant_type" to listOf("authorization_code"),
+                        "code" to listOf("auth-code-123")
                     )
                 )
 
@@ -545,7 +545,7 @@ class OAuth2ClientTest {
                         )
                 )
 
-            val result = client.tokenRequest(mapOf("grant_type" to "authorization_code", "code" to "code-123"))
+            val result = client.tokenRequest(mapOf("grant_type" to listOf("authorization_code"), "code" to listOf("code-123")))
 
             assertTrue(result.isSuccess)
         }
@@ -598,7 +598,7 @@ class OAuth2ClientTest {
                         )
                 )
 
-            val result = client.tokenRequest(mapOf("grant_type" to "authorization_code", "code" to "code-123"))
+            val result = client.tokenRequest(mapOf("grant_type" to listOf("authorization_code"), "code" to listOf("code-123")))
 
             assertTrue(result.isFailure)
             val error = assertIs<IdTokenValidator.Error>(result.exceptionOrNull())
@@ -633,7 +633,7 @@ class OAuth2ClientTest {
                         )
                 )
 
-            val result = client.tokenRequest(mapOf("grant_type" to "authorization_code"))
+            val result = client.tokenRequest(mapOf("grant_type" to listOf("authorization_code")))
             assertTrue(result.isFailure)
             assertIs<OAuth2ClientResult.Error.OidcEndpointsNotAvailableException>(result.exceptionOrNull())
         }
@@ -663,7 +663,7 @@ class OAuth2ClientTest {
                         )
                 )
 
-            val result = client.tokenRequest(mapOf("grant_type" to "authorization_code"))
+            val result = client.tokenRequest(mapOf("grant_type" to listOf("authorization_code")))
 
             assertTrue(result.isFailure)
             val exception = assertIs<OAuth2ClientResult.Error.OidcEndpointsNotAvailableException>(result.exceptionOrNull())

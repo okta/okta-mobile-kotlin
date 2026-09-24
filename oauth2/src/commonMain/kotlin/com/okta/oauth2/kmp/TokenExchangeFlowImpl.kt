@@ -36,14 +36,14 @@ internal class TokenExchangeFlowImpl(
     ): Result<TokenInfo> {
         val formParams =
             buildMap {
-                if (audience != null) put("audience", audience)
-                put("subject_token_type", "urn:ietf:params:oauth:token-type:id_token")
-                put("subject_token", idToken)
-                put("actor_token_type", "urn:x-oath:params:oauth:token-type:device-secret")
-                put("actor_token", deviceSecret)
-                put("client_id", client.configuration.clientId)
-                put("grant_type", "urn:ietf:params:oauth:grant-type:token-exchange")
-                put("scope", scope.joinToString(" "))
+                if (audience != null) put("audience", listOf(audience))
+                put("subject_token_type", listOf("urn:ietf:params:oauth:token-type:id_token"))
+                put("subject_token", listOf(idToken))
+                put("actor_token_type", listOf("urn:x-oath:params:oauth:token-type:device-secret"))
+                put("actor_token", listOf(deviceSecret))
+                put("client_id", listOf(client.configuration.clientId))
+                put("grant_type", listOf("urn:ietf:params:oauth:grant-type:token-exchange"))
+                put("scope", listOf(scope.joinToString(" ")))
             }
         return client.tokenRequest(formParams = formParams)
     }

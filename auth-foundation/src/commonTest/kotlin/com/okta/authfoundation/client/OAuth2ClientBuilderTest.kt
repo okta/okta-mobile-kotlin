@@ -16,6 +16,7 @@
 package com.okta.authfoundation.client
 
 import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.newSingleThreadContext
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
@@ -131,6 +132,40 @@ class OAuth2ClientBuilderTest {
         assertEquals("https://example.okta.com/oauth2/custom-as", client.configuration.issuerUrl)
         assertEquals(false, client.configuration.enablePushedAuthorizationRequests)
         assertEquals(false, client.configuration.allowPushedAuthorizationRequestFallback)
+    }
+
+    @Test
+    fun create_WithDefaultIoDispatcher_UsesDispatchersIo() {
+        val result =
+            OAuth2ClientBuilder.create(
+                issuerUrl = "https://example.okta.com",
+                clientId = "test-client-id",
+                scope = listOf("openid")
+            )
+
+        assertTrue(result.isSuccess)
+        assertEquals(Dispatchers.IO, result.getOrThrow().configuration.ioDispatcher)
+    }
+
+    @OptIn(DelicateCoroutinesApi::class)
+    @Test
+    fun create_WithCustomIoDispatcher_PassesItIntoConfiguration() {
+        val customIoDispatcher = newSingleThreadContext("test-io-dispatcher")
+        try {
+            val result =
+                OAuth2ClientBuilder.create(
+                    issuerUrl = "https://example.okta.com",
+                    clientId = "test-client-id",
+                    scope = listOf("openid")
+                ) {
+                    ioDispatcher = customIoDispatcher
+                }
+
+            assertTrue(result.isSuccess)
+            assertEquals(customIoDispatcher, result.getOrThrow().configuration.ioDispatcher)
+        } finally {
+            customIoDispatcher.close()
+        }
     }
 
     @Test

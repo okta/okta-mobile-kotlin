@@ -17,6 +17,18 @@
   provided `Context` isn't already an `Activity`, preserving existing behavior for `Activity`
   contexts.
 
+## auth-foundation Unreleased
+
+#### Fixed
+
+- `OAuth2Client.tokenRequest()` collapsed multi-value form parameters to a single value, silently
+  dropping repeated field names, and had no way to attach extra request headers (so, for example,
+  a device-token cookie could never reach the token endpoint). `tokenRequest()` now accepts
+  `formParams` as `Map<String, List<String>>` and a new `extraHeaders` param, both threaded through
+  to the underlying HTTP call.
+- `OAuth2ClientBuilder.ioDispatcher` was declared but never passed into the built
+  `OAuth2ClientConfiguration`, so a custom `ioDispatcher` set on the builder had no effect.
+
 ## oauth2 3.2.0 - 2026-09-21
 
 [Commits](https://github.com/okta/okta-mobile-kotlin/compare/oauth2@3.1.0...oauth2@3.2.0)
