@@ -132,4 +132,7 @@ private class NoOpCache : Cache {
     }
 
     override fun get(key: String): String? = null
+
+    override fun clear() {
+    }
 }

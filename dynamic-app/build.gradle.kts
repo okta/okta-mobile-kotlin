@@ -104,6 +104,7 @@ dependencies {
     implementation(libs.lifecycle.runtime.ktx)
     implementation(libs.material)
     implementation(libs.coroutines.android)
+    implementation(libs.kotlin.serialization.json)
     implementation(libs.okhttp.core)
     implementation(libs.okhttp.tls)
     implementation(libs.okio.core)

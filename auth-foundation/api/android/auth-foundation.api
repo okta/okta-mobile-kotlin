@@ -435,7 +435,6 @@ public final class com/okta/authfoundation/client/OAuth2Client$Companion {
 
 public final class com/okta/authfoundation/client/OAuth2ClientBuilder {
 	public static final field Companion Lcom/okta/authfoundation/client/OAuth2ClientBuilder$Companion;
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getAccessTokenValidator ()Lcom/okta/authfoundation/client/kmp/AccessTokenValidator;
 	public final fun getAcrValues ()Ljava/lang/String;
 	public final fun getAllowPushedAuthorizationRequestFallback ()Z
@@ -1420,7 +1419,6 @@ public final class com/okta/authfoundation/credential/kmp/storage/AndroidTokenDa
 }
 
 public final class com/okta/authfoundation/credential/kmp/storage/RoomDefaultCredentialIdStore : com/okta/authfoundation/credential/kmp/DefaultCredentialIdStore {
-	public static final field DEFAULT_CREDENTIAL_KEY Ljava/lang/String;
 	public fun <init> (Lcom/okta/authfoundation/credential/kmp/storage/TokenDatabase;)V
 	public fun clearDefaultCredentialId-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun getDefaultCredentialId-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
