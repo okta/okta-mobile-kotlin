@@ -15,21 +15,21 @@
  */
 package com.okta.oauth2
 
-import com.okta.authfoundation.crypto.secureRandomBytes
-import com.okta.authfoundation.crypto.sha256Digest
-import kotlin.io.encoding.Base64
+import com.okta.authfoundation.InternalAuthFoundationApi
+import com.okta.authfoundation.crypto.PkceGenerator as SharedPkceGenerator
 
+/**
+ * Delegates to the shared [SharedPkceGenerator] in `auth-foundation` — kept as a same-package
+ * object (rather than having every caller import the `auth-foundation` type directly) so the
+ * frozen, Android-only [AuthorizationCodeFlow] can keep resolving `PkceGenerator` implicitly,
+ * exactly as it did before the algorithm itself moved to `auth-foundation` to de-duplicate it
+ * against `okta-idx-kotlin`'s copy.
+ */
+@OptIn(InternalAuthFoundationApi::class)
 internal object PkceGenerator {
-    const val CODE_CHALLENGE_METHOD = "S256"
+    const val CODE_CHALLENGE_METHOD = SharedPkceGenerator.CODE_CHALLENGE_METHOD
 
-    fun codeChallenge(codeVerifier: String): String {
-        val bytes: ByteArray = codeVerifier.toByteArray(Charsets.US_ASCII)
-        val digest: ByteArray = sha256Digest(bytes)
-        return Base64.UrlSafe.withPadding(Base64.PaddingOption.ABSENT).encode(digest)
-    }
+    fun codeChallenge(codeVerifier: String): String = SharedPkceGenerator.codeChallenge(codeVerifier)
 
-    fun codeVerifier(): String {
-        val codeVerifier = secureRandomBytes(32)
-        return Base64.UrlSafe.withPadding(Base64.PaddingOption.ABSENT).encode(codeVerifier)
-    }
+    fun codeVerifier(): String = SharedPkceGenerator.codeVerifier()
 }

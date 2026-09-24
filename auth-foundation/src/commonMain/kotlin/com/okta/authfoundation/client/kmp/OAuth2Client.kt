@@ -31,6 +31,7 @@ import com.okta.authfoundation.client.internal.SerializableDeviceAuthorizationRe
 import com.okta.authfoundation.client.internal.performFormPost
 import com.okta.authfoundation.client.internal.performJsonFormPost
 import com.okta.authfoundation.client.internal.performJsonGetRequest
+import com.okta.authfoundation.client.internal.toFormParams
 import com.okta.authfoundation.client.kmp.events.TokenCreatedEvent
 import com.okta.authfoundation.events.Event
 import com.okta.authfoundation.jwt.Jwks
@@ -195,11 +196,11 @@ class OAuth2Client internal constructor(
                 )
             val formParams =
                 buildMap {
-                    put("client_id", configuration.clientId)
-                    put("grant_type", "refresh_token")
-                    put("refresh_token", refreshToken)
+                    put("client_id", listOf(configuration.clientId))
+                    put("grant_type", listOf("refresh_token"))
+                    put("refresh_token", listOf(refreshToken))
                     extraRequestParameters.forEach { (key, value) ->
-                        if (key !in reserved) put(key, value)
+                        if (key !in reserved) put(key, listOf(value))
                     }
                 }
             val tokenInfo = tokenRequest(formParams).getOrThrow()
@@ -218,8 +219,11 @@ class OAuth2Client internal constructor(
      * Flow classes should call this instead of making their own HTTP calls to the token endpoint.
      *
      * @param formParams the form parameters for the token request (e.g., `grant_type`, `client_id`, etc.).
+     *   Multiple values per key are preserved and sent as repeated form fields.
      * @param nonce the nonce sent with the authorization request, if applicable.
      * @param maxAge the max_age sent with the authorization request, if applicable.
+     * @param extraHeaders additional headers to include on the token request (e.g. a device-token
+     *   cookie header), merged with the client's default headers.
      * @return [Result.success] with the validated [TokenInfo], or [Result.failure] with:
      * - [OAuth2ClientResult.Error.OidcEndpointsNotAvailableException] if endpoints cannot be resolved.
      * - [OAuth2ClientResult.Error.HttpResponseException] if the server returns an error.
@@ -228,9 +232,10 @@ class OAuth2Client internal constructor(
      */
     @InternalAuthFoundationApi
     suspend fun tokenRequest(
-        formParams: Map<String, String>,
+        formParams: Map<String, List<String>>,
         nonce: String? = null,
         maxAge: Int? = null,
+        extraHeaders: Map<String, List<String>> = emptyMap(),
     ): Result<TokenInfo> =
         runCatching {
             val endpoints = endpointsOrThrow()
@@ -244,7 +249,7 @@ class OAuth2Client internal constructor(
             val mergedFormParams =
                 buildMap {
                     putAll(formParams.filterKeys { it !in reserved })
-                    putAll(clientAuthenticationParams)
+                    putAll(clientAuthenticationParams.toFormParams())
                 }
 
             val result =
@@ -255,6 +260,7 @@ class OAuth2Client internal constructor(
                         url = endpoints.tokenEndpoint,
                         formParams = mergedFormParams,
                         deserializer = OAuth2TokenResponse.serializer(),
+                        headers = extraHeaders,
                         onRateLimitExceeded = { event -> _events.tryEmit(event) }
                     )
                 }
@@ -342,7 +348,7 @@ class OAuth2Client internal constructor(
                         apiExecutor = configuration.apiExecutor,
                         json = configuration.json,
                         url = endpoint,
-                        formParams = formParams,
+                        formParams = formParams.toFormParams(),
                         deserializer = JsonObject.serializer(),
                         onRateLimitExceeded = { event -> _events.tryEmit(event) }
                     )
@@ -378,7 +384,7 @@ class OAuth2Client internal constructor(
                         apiExecutor = configuration.apiExecutor,
                         json = configuration.json,
                         url = endpoint,
-                        formParams = formParams,
+                        formParams = formParams.toFormParams(),
                         deserializer = SerializableDeviceAuthorizationResponse.serializer(),
                         onRateLimitExceeded = { event -> _events.tryEmit(event) }
                     )

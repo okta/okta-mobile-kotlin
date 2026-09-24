@@ -17,6 +17,7 @@ package com.okta.authfoundation.client.internal
 
 import com.okta.authfoundation.InternalAuthFoundationApi
 import com.okta.authfoundation.api.http.ApiExecutor
+import com.okta.authfoundation.api.http.ApiFormRequest
 import com.okta.authfoundation.api.http.ApiRequest
 import com.okta.authfoundation.api.http.ApiResponse
 import com.okta.authfoundation.client.OAuth2ClientResult
@@ -56,6 +57,30 @@ class OAuth2HttpOperationsTest {
                 )
         }
 
+    /**
+     * Mock executor that succeeds with [body] while recording the [ApiRequest] it was invoked
+     * with, so tests can assert on the headers/form parameters actually sent.
+     */
+    private fun capturingExecutor(
+        statusCode: Int,
+        body: String,
+        onRequest: (ApiRequest) -> Unit,
+    ): ApiExecutor =
+        object : ApiExecutor {
+            override suspend fun execute(request: ApiRequest): Result<ApiResponse> {
+                onRequest(request)
+                return Result.success(
+                    object : ApiResponse {
+                        override val statusCode: Int = statusCode
+                        override val body: ByteArray = body.toByteArray()
+                        override val headers: Map<String, List<String>> = emptyMap()
+                        override val contentLength: Long = body.length.toLong()
+                        override val contentType: String = "application/json"
+                    }
+                )
+            }
+        }
+
     // region performJsonFormPost
 
     @Test
@@ -68,7 +93,7 @@ class OAuth2HttpOperationsTest {
                     apiExecutor = executor,
                     json = json,
                     url = "https://example.com/token",
-                    formParams = mapOf("grant_type" to "password"),
+                    formParams = mapOf("grant_type" to listOf("password")),
                     deserializer = TestResponse.serializer()
                 )
 
@@ -86,7 +111,7 @@ class OAuth2HttpOperationsTest {
                     apiExecutor = executor,
                     json = json,
                     url = "https://example.com/token",
-                    formParams = mapOf("grant_type" to "device_code"),
+                    formParams = mapOf("grant_type" to listOf("device_code")),
                     deserializer = TestResponse.serializer()
                 )
 
@@ -116,6 +141,48 @@ class OAuth2HttpOperationsTest {
             assertEquals(500, exception.responseCode)
             assertNull(exception.error)
             assertNull(exception.errorDescription)
+        }
+
+    @Test
+    fun formPost_withMultiValueFormParam_SendsAllValuesForKey() =
+        runTest {
+            var capturedFormParams: Map<String, List<String>>? = null
+            val executor =
+                capturingExecutor(200, """{"value":"hello"}""") { request ->
+                    capturedFormParams = (request as ApiFormRequest).formParameters()
+                }
+
+            performJsonFormPost(
+                apiExecutor = executor,
+                json = json,
+                url = "https://example.com/token",
+                formParams = mapOf("scope" to listOf("openid", "profile")),
+                deserializer = TestResponse.serializer()
+            )
+
+            assertEquals(listOf("openid", "profile"), capturedFormParams?.get("scope"))
+        }
+
+    @Test
+    fun formPost_withExtraHeaders_MergesIntoRequestHeaders() =
+        runTest {
+            var capturedHeaders: Map<String, List<String>>? = null
+            val executor =
+                capturingExecutor(200, """{"value":"hello"}""") { request ->
+                    capturedHeaders = request.headers()
+                }
+
+            performJsonFormPost(
+                apiExecutor = executor,
+                json = json,
+                url = "https://example.com/token",
+                formParams = mapOf("grant_type" to listOf("password")),
+                deserializer = TestResponse.serializer(),
+                headers = mapOf("Cookie" to listOf("device_token=abc123"))
+            )
+
+            assertEquals(listOf("device_token=abc123"), capturedHeaders?.get("Cookie"))
+            assertEquals(listOf("application/json"), capturedHeaders?.get("Accept"))
         }
 
     @Test
