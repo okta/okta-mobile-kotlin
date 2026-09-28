@@ -325,6 +325,7 @@ class OAuth2ClientBuilder private constructor(
             enablePushedAuthorizationRequests = enablePushedAuthorizationRequests,
             allowPushedAuthorizationRequestFallback = allowPushedAuthorizationRequestFallback,
             rateLimitRetryCallback = rateLimitRetryCallback,
-            computeDispatcher = computeDispatcher
+            computeDispatcher = computeDispatcher,
+            ioDispatcher = ioDispatcher
         )
 }

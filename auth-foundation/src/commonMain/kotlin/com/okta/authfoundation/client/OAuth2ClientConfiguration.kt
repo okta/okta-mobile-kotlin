@@ -124,6 +124,11 @@ class OAuth2ClientConfiguration internal constructor(
      * The dispatcher used for CPU-bound work, such as invoking [clientAssertionProvider].
      */
     val computeDispatcher: CoroutineContext = Dispatchers.Default,
+    /**
+     * The dispatcher used for IO-bound work, such as reading locally persisted state (e.g. a
+     * device-token cookie) before issuing a request.
+     */
+    val ioDispatcher: CoroutineContext = Dispatchers.IO,
 ) {
     /**
      * Builds the client-authentication form parameters for a request to [audience] (the exact

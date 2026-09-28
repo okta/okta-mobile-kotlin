@@ -57,9 +57,9 @@ internal class DeviceAuthorizationFlowImpl(
 
             val formParams =
                 mapOf(
-                    "client_id" to client.configuration.clientId,
-                    "device_code" to flowContext.deviceCode,
-                    "grant_type" to "urn:ietf:params:oauth:grant-type:device_code"
+                    "client_id" to listOf(client.configuration.clientId),
+                    "device_code" to listOf(flowContext.deviceCode),
+                    "grant_type" to listOf("urn:ietf:params:oauth:grant-type:device_code")
                 )
 
             var timeLeft = flowContext.expiresIn

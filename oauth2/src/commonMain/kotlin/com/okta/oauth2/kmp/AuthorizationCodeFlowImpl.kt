@@ -19,7 +19,7 @@ import com.okta.authfoundation.InternalAuthFoundationApi
 import com.okta.authfoundation.api.http.ApiFormRequest
 import com.okta.authfoundation.client.TokenInfo
 import com.okta.authfoundation.client.kmp.OAuth2Client
-import com.okta.oauth2.PkceGenerator
+import com.okta.authfoundation.crypto.PkceGenerator
 import com.okta.oauth2.internal.generateUuid
 import com.okta.oauth2.internal.parseQueryParameter
 import com.okta.oauth2.kmp.internal.ParAuthorizationErrorResponse
@@ -147,11 +147,11 @@ internal class AuthorizationCodeFlowImpl(
 
             val formParams =
                 mapOf(
-                    "redirect_uri" to flowContext.redirectUrl,
-                    "code_verifier" to flowContext.codeVerifier,
-                    "client_id" to client.configuration.clientId,
-                    "grant_type" to "authorization_code",
-                    "code" to code
+                    "redirect_uri" to listOf(flowContext.redirectUrl),
+                    "code_verifier" to listOf(flowContext.codeVerifier),
+                    "client_id" to listOf(client.configuration.clientId),
+                    "grant_type" to listOf("authorization_code"),
+                    "code" to listOf(code)
                 )
 
             client

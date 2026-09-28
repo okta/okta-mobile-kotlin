@@ -36,11 +36,11 @@ internal class ResourceOwnerFlowImpl(
         client.tokenRequest(
             formParams =
                 mapOf(
-                    "grant_type" to "password",
-                    "username" to username,
-                    "password" to password,
-                    "scope" to scope.joinToString(" "),
-                    "client_id" to client.configuration.clientId
+                    "grant_type" to listOf("password"),
+                    "username" to listOf(username),
+                    "password" to listOf(password),
+                    "scope" to listOf(scope.joinToString(" ")),
+                    "client_id" to listOf(client.configuration.clientId)
                 )
         )
 }

@@ -51,14 +51,14 @@ internal class CrossAppAccessFlowImpl(
             }
             val formParams =
                 buildMap {
-                    put("grant_type", "urn:ietf:params:oauth:grant-type:token-exchange")
-                    put("requested_token_type", "urn:ietf:params:oauth:token-type:id-jag")
-                    put("audience", targetClient.configuration.issuerUrl)
-                    put("subject_token", subjectAssertion.value)
-                    put("subject_token_type", subjectAssertion.type.subjectTokenTypeUrn())
-                    put("client_id", idpClient.configuration.clientId)
-                    put("scope", resolvedScope.joinToString(" "))
-                    resource?.let { put("resource", it) }
+                    put("grant_type", listOf("urn:ietf:params:oauth:grant-type:token-exchange"))
+                    put("requested_token_type", listOf("urn:ietf:params:oauth:token-type:id-jag"))
+                    put("audience", listOf(targetClient.configuration.issuerUrl))
+                    put("subject_token", listOf(subjectAssertion.value))
+                    put("subject_token_type", listOf(subjectAssertion.type.subjectTokenTypeUrn()))
+                    put("client_id", listOf(idpClient.configuration.clientId))
+                    put("scope", listOf(resolvedScope.joinToString(" ")))
+                    resource?.let { put("resource", listOf(it)) }
                 }
             val tokenInfo =
                 idpClient.tokenRequest(formParams).getOrElse {
@@ -83,9 +83,9 @@ internal class CrossAppAccessFlowImpl(
             require(idJag.value.isNotBlank()) { "The ID-JAG assertion value is blank; it cannot be redeemed." }
             val formParams =
                 buildMap {
-                    put("grant_type", "urn:ietf:params:oauth:grant-type:jwt-bearer")
-                    put("assertion", idJag.value)
-                    put("client_id", targetClient.configuration.clientId)
+                    put("grant_type", listOf("urn:ietf:params:oauth:grant-type:jwt-bearer"))
+                    put("assertion", listOf(idJag.value))
+                    put("client_id", listOf(targetClient.configuration.clientId))
                 }
             targetClient.tokenRequest(formParams).getOrElse {
                 throw CrossAppAccessException.TargetRedemptionFailed(

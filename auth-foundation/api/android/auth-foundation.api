@@ -496,6 +496,7 @@ public final class com/okta/authfoundation/client/OAuth2ClientConfiguration {
 	public final fun getEnablePushedAuthorizationRequests ()Z
 	public final fun getEndpointOverrides ()Lcom/okta/authfoundation/client/OAuth2EndpointOverrides;
 	public final fun getIdTokenValidator ()Lcom/okta/authfoundation/client/kmp/IdTokenValidator;
+	public final fun getIoDispatcher ()Lkotlin/coroutines/CoroutineContext;
 	public final fun getIssuerUrl ()Ljava/lang/String;
 	public final fun getJson ()Lkotlinx/serialization/json/Json;
 	public final fun getRateLimitRetryCallback ()Lkotlin/jvm/functions/Function1;
@@ -846,8 +847,8 @@ public final class com/okta/authfoundation/client/kmp/OAuth2Client {
 	public final fun refreshToken-0E7RQCE (Ljava/lang/String;Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun refreshToken-gIAlu-s (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun revokeToken-gIAlu-s (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public final fun tokenRequest-BWLJW6A (Ljava/util/Map;Ljava/lang/String;Ljava/lang/Integer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun tokenRequest-BWLJW6A$default (Lcom/okta/authfoundation/client/kmp/OAuth2Client;Ljava/util/Map;Ljava/lang/String;Ljava/lang/Integer;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public final fun tokenRequest-yxL6bBk (Ljava/util/Map;Ljava/lang/String;Ljava/lang/Integer;Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun tokenRequest-yxL6bBk$default (Lcom/okta/authfoundation/client/kmp/OAuth2Client;Ljava/util/Map;Ljava/lang/String;Ljava/lang/Integer;Ljava/util/Map;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public final class com/okta/authfoundation/client/kmp/OAuth2Client$Companion {
@@ -1500,6 +1501,13 @@ public final class com/okta/authfoundation/credential/storage/typeconverters/Str
 public final class com/okta/authfoundation/crypto/CryptoProvider_androidKt {
 	public static final fun secureRandomBytes (I)[B
 	public static final fun sha256Digest ([B)[B
+}
+
+public final class com/okta/authfoundation/crypto/PkceGenerator {
+	public static final field CODE_CHALLENGE_METHOD Ljava/lang/String;
+	public static final field INSTANCE Lcom/okta/authfoundation/crypto/PkceGenerator;
+	public final fun codeChallenge (Ljava/lang/String;)Ljava/lang/String;
+	public final fun codeVerifier ()Ljava/lang/String;
 }
 
 public abstract interface class com/okta/authfoundation/events/CredentialEvent : com/okta/authfoundation/events/Event {

@@ -36,6 +36,12 @@ import kotlin.time.Clock
 private val defaultHeaders: Map<String, List<String>> =
     mapOf("User-Agent" to listOf(UserAgent.value))
 
+/**
+ * Promotes a single-value form parameter map to the multi-value shape expected by
+ * [performJsonFormPost]/[performFormPost], wrapping each value in a single-element list.
+ */
+internal fun <K> Map<K, String>.toFormParams(): Map<K, List<String>> = mapValues { (_, v) -> listOf(v) }
+
 @Serializable
 internal class ErrorResponse(
     @SerialName("error") val error: String? = null,
@@ -233,8 +239,10 @@ internal suspend fun <T> performJsonGetRequest(
  * @param apiExecutor the HTTP executor.
  * @param json the JSON serializer.
  * @param url the request URL.
- * @param formParams the form parameters.
+ * @param formParams the form parameters. Multiple values per key are preserved and sent as
+ *   repeated form fields.
  * @param deserializer the response deserializer.
+ * @param headers additional request headers, merged with the default headers.
  * @param onRateLimitExceeded optional callback fired when HTTP 429 is detected.
  */
 @OptIn(InternalAuthFoundationApi::class)
@@ -242,12 +250,13 @@ internal suspend fun <T> performJsonFormPost(
     apiExecutor: ApiExecutor,
     json: Json,
     url: String,
-    formParams: Map<String, String>,
+    formParams: Map<String, List<String>>,
     deserializer: DeserializationStrategy<T>,
+    headers: Map<String, List<String>> = emptyMap(),
     onRateLimitExceeded: ((RateLimitExceededEvent) -> Unit)? = null,
 ): OAuth2ClientResult<T> =
     runCatching {
-        val mergedHeaders = defaultHeaders + mapOf("Accept" to listOf("application/json"))
+        val mergedHeaders = defaultHeaders + mapOf("Accept" to listOf("application/json")) + headers
         val request =
             object : ApiFormRequest {
                 override fun method(): ApiRequestMethod = ApiRequestMethod.POST
@@ -258,7 +267,7 @@ internal suspend fun <T> performJsonFormPost(
 
                 override fun contentType(): String = "application/x-www-form-urlencoded"
 
-                override fun formParameters(): Map<String, List<String>> = formParams.mapValues { (_, v) -> listOf(v) }
+                override fun formParameters(): Map<String, List<String>> = formParams
             }
         val response = apiExecutor.execute(request).getOrThrow()
 
@@ -310,7 +319,7 @@ internal suspend fun performFormPost(
 
                 override fun contentType(): String = "application/x-www-form-urlencoded"
 
-                override fun formParameters(): Map<String, List<String>> = formParams.mapValues { (_, v) -> listOf(v) }
+                override fun formParameters(): Map<String, List<String>> = formParams.toFormParams()
             }
         val response = apiExecutor.execute(request).getOrThrow()
 
