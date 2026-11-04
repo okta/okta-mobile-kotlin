@@ -1,14 +1,16 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-# Okta IDX Android
+# Okta IDX Kotlin
 
-Okta Identity Engine support for Android, enabling dynamic policies and interaction code flows.
-This SDK helps you build or support a wide range of authentication flows and approaches.
+Okta Identity Engine support for Kotlin Multiplatform (Android + JVM), enabling dynamic policies and
+interaction code flows. This SDK helps you build or support a wide range of authentication flows and
+approaches.
 
 ## Table of Contents
 
 - [Introduction](#introduction)
 - [Installation](#installation)
+- [Migrating from Android-only APIs to KMP APIs](#migrating-from-android-only-apis-to-kmp-apis)
 - [Need help?](#need-help)
 - [IDX Kotlin SDK Documentation](#idx-kotlin-sdk-documentation)
   - [idx-kotlin Overview](#idx-kotlin-overview)
@@ -39,6 +41,35 @@ dependencies {
 
 See the [CHANGELOG](CHANGELOG.md) for the most recent changes.
 
+## Migrating from Android-only APIs to KMP APIs
+
+The Android-only `com.okta.idx.kotlin.client.InteractionCodeFlow` and `IdxRedirectResult`, documented
+below, remain available for compatibility but are now deprecated. New code should use the
+cross-platform (Android + JVM) `com.okta.idx.kotlin.kmp.InteractionCodeFlow`, which requires an explicit
+KMP `OAuth2Client` from `auth-foundation` and returns Kotlin `Result` types instead of
+`OAuth2ClientResult`:
+
+```kotlin
+import com.okta.authfoundation.client.OAuth2ClientBuilder
+import com.okta.idx.kotlin.kmp.InteractionCodeFlow
+
+val client = OAuth2ClientBuilder.create(
+    issuerUrl = "https://your-org.okta.com/oauth2/default",
+    clientId = "your-client-id",
+    scope = listOf("openid", "profile", "offline_access")
+).getOrThrow()
+
+val flow = InteractionCodeFlow(client)
+val startResult = flow.start(redirectUri = "com.yourapp:/callback")
+```
+
+`IdxRedirectResult` is replaced by `com.okta.idx.kotlin.kmp.IdxRedirectOutcome` (a `Tokens`/
+`InteractionRequired` sealed type), returned wrapped in a `Result` from `evaluateRedirectUri` instead
+of including its own `Error` case.
+
+The `jvm` target is built and tested but not yet published to Maven Central — only `android` is
+available today.
+
 ## Need help?
 
 If you run into problems using the SDK, you can
@@ -47,6 +78,10 @@ If you run into problems using the SDK, you can
 * Post [issues][github-issues] here on GitHub (for code errors)
 
 ## IDX Kotlin SDK Documentation
+
+> :grey_exclamation: This section documents the Android-only, deprecated `com.okta.idx.kotlin.client.InteractionCodeFlow`. See
+> [Migrating from Android-only APIs to KMP APIs](#migrating-from-android-only-apis-to-kmp-apis) for the forward-looking,
+> cross-platform `com.okta.idx.kotlin.kmp.InteractionCodeFlow`.
 
 ### idx-kotlin Overview
 
