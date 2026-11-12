@@ -14,6 +14,7 @@ This module is **Android only**.
 - [Usage](#usage)
 - [Redirect scheme configuration](#redirect-scheme-configuration)
 - [Ephemeral browsing](#ephemeral-browsing)
+- [Resuming login after process death](#resuming-login-after-process-death)
 - [Troubleshooting](#troubleshooting)
 
 ## Installation
@@ -102,6 +103,97 @@ taken. `ephemeralBrowsingEnabled` applies to whichever path actually launches.
 
 Browsers that don't support ephemeral browsing silently ignore the flag rather than failing, so it's
 always safe to set.
+
+## Resuming login after process death
+
+If Android kills your app while the user is in the browser (low memory, a phone call, a password
+manager), the redirect arrives at a fresh process and the original `login()` call no longer exists.
+To handle this, `login()` persists the in-progress flow state to app-private DataStore for 10
+minutes, and `resumeLogin()` finishes the token exchange once the app restarts:
+
+```kotlin
+// For example in your launching Activity's onCreate, using a lifecycle-aware scope.
+lifecycleScope.launch {
+    // Returns null when there is no interrupted login to resume.
+    val result = webAuthentication.resumeLogin(applicationContext) ?: return@launch
+    result.onSuccess { tokenInfo -> /* signed in */ }
+        .onFailure { /* FlowCancelledException, or the token exchange error */ }
+}
+```
+
+`resumeLogin()` suspends until the browser redirect arrives, or returns `null` once the 10-minute window
+passes without one (for example the user closed the browser without finishing). Cancelling it leaves the
+pending login in place so it can be resumed again. It also returns `null` right away if a `login()`,
+`logoutOfBrowser()` or another `resumeLogin()` is already running in this process, since that call owns
+the redirect. Starting a new `login()` discards any pending login.
+
+### Opting out of persistence
+
+If you don't want the PKCE `code_verifier` written to disk at all, turn persistence off. A login
+interrupted by process death then can't be resumed, and `resumeLogin()` always returns `null`:
+
+```kotlin
+val webAuthentication = WebAuthentication(
+    client,
+    DefaultWebAuthenticationProvider(),
+    PendingLoginPersistence.Disabled
+)
+```
+
+### Encrypting the persisted state
+
+The persisted state includes the PKCE `code_verifier`. The SDK stores it **unencrypted** by default,
+in app-private storage. Whether to encrypt it, and how, is up to your app. To encrypt it, implement
+`PendingLoginEncryptor` and pass it through `PendingLoginPersistence.Enabled`. For example, using a
+key from the Android Keystore:
+
+```kotlin
+class KeystorePendingLoginEncryptor(private val key: SecretKey) : PendingLoginEncryptor {
+    override suspend fun encrypt(plaintext: String): Result<String> = runCatching {
+        val cipher = Cipher.getInstance("AES/GCM/NoPadding").apply { init(Cipher.ENCRYPT_MODE, key) }
+        val encrypted = cipher.iv + cipher.doFinal(plaintext.toByteArray())
+        Base64.encodeToString(encrypted, Base64.NO_WRAP)
+    }
+
+    override suspend fun decrypt(ciphertext: String): Result<String> = runCatching {
+        val bytes = Base64.decode(ciphertext, Base64.NO_WRAP)
+        val cipher = Cipher.getInstance("AES/GCM/NoPadding")
+            .apply { init(Cipher.DECRYPT_MODE, key, GCMParameterSpec(128, bytes, 0, 12)) }
+        String(cipher.doFinal(bytes, 12, bytes.size - 12))
+    }
+}
+
+val webAuthentication = WebAuthentication(
+    client,
+    DefaultWebAuthenticationProvider(),
+    PendingLoginPersistence.Enabled(KeystorePendingLoginEncryptor(myKeystoreKey))
+)
+```
+
+If `encrypt` fails, the login still works but cannot be resumed. If `decrypt` fails (for example the
+key was lost), `resumeLogin()` treats it as nothing to resume.
+
+Android Auto Backup is on by default and backs up your app's `files/` directory, so unless you
+exclude it the persisted state (including the unencrypted `code_verifier`) can end up in cloud backups
+and device-to-device transfers. Exclude the DataStore file, which lives at
+`files/datastore/com.okta.webauthenticationui.pending_login.preferences_pb`, in both backup configs:
+
+```xml
+<!-- res/xml/backup_rules.xml, referenced by android:fullBackupContent (API 30 and lower) -->
+<full-backup-content>
+    <exclude domain="file" path="datastore/com.okta.webauthenticationui.pending_login.preferences_pb" />
+</full-backup-content>
+
+<!-- res/xml/data_extraction_rules.xml, referenced by android:dataExtractionRules (API 31+) -->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="file" path="datastore/com.okta.webauthenticationui.pending_login.preferences_pb" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="file" path="datastore/com.okta.webauthenticationui.pending_login.preferences_pb" />
+    </device-transfer>
+</data-extraction-rules>
+```
 
 ## Troubleshooting
 

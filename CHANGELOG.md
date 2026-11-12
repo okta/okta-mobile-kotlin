@@ -8,6 +8,14 @@
   application `Context` captured via `AuthFoundation.initializeAndroidContext()` instead of
   requiring a caller-supplied `Context`. Useful for initiating a web auth flow without an
   `Activity` on hand, e.g. from application startup/bootstrapping code.
+- `WebAuthentication.resumeLogin()` completes a `login()` that was interrupted by process death
+  while the user was in the browser ([#319](https://github.com/okta/okta-mobile-kotlin/issues/319)).
+  The in-progress flow context is persisted to app-private DataStore for 10 minutes. Call it after the
+  app restarts; it returns `null` when there is nothing to resume.
+- `PendingLoginPersistence` and a `WebAuthentication` constructor accepting it, to control the
+  persisted login state (which includes the PKCE `code_verifier`): `Disabled` writes nothing to disk,
+  `Enabled(encryptor)` stores it, optionally encrypted via a `PendingLoginEncryptor`. Enabled and
+  unencrypted by default.
 
 #### Fixed
 
@@ -16,6 +24,13 @@
   to `login()`/`logoutOfBrowser()` crashed. Now adds `FLAG_ACTIVITY_NEW_TASK` only when the
   provided `Context` isn't already an `Activity`, preserving existing behavior for `Activity`
   contexts.
+
+## oauth2 Unreleased
+
+#### Added
+
+- `AuthorizationCodeFlowContext.toJson()` / `fromJson()` to persist and restore an in-progress
+  authorization code flow. The JSON contains the PKCE `code_verifier`; store it privately.
 
 ## auth-foundation Unreleased
 

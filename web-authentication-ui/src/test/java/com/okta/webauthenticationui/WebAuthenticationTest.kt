@@ -128,6 +128,131 @@ class WebAuthenticationTest {
             ): Result<Unit> = resumeResult
         }
 
+    @Test fun resumeLogin_NoPendingLogin_ReturnsNull(): Unit =
+        runTest {
+            val webAuthentication = WebAuthentication(mock<WebAuthenticationProvider>())
+            webAuthentication.redirectCoordinator = DefaultRedirectCoordinator(this)
+            webAuthentication.authorizationCodeFlow = authorizationCodeFlowStub()
+
+            assertThat(webAuthentication.resumeLogin(ApplicationProvider.getApplicationContext())).isNull()
+        }
+
+    @Test fun resumeLogin_ProcessKilledDuringLogin_CompletesTokenExchange(): Unit =
+        runTest {
+            val appContext = ApplicationProvider.getApplicationContext<Context>()
+            PendingLoginStore(appContext).save(loginFlowContext)
+
+            // New process: a fresh coordinator that receives the redirect with nobody listening.
+            val redirectCoordinator = DefaultRedirectCoordinator(this)
+            val webAuthentication = WebAuthentication(mock<WebAuthenticationProvider>())
+            webAuthentication.redirectCoordinator = redirectCoordinator
+            webAuthentication.authorizationCodeFlow = authorizationCodeFlowStub()
+            redirectCoordinator.emit(Uri.parse("unitTest:/login?state=test-login-state&code=ExampleCode"))
+
+            val result = webAuthentication.resumeLogin(appContext)
+
+            assertThat(result!!.getOrThrow().accessToken).isEqualTo("exampleAccessToken")
+            assertThat(PendingLoginStore(appContext).load()).isNull()
+        }
+
+    @Test fun login_PersistsStateBeforeBrowserOpensAndClearsItOnRedirect(): Unit =
+        runTest {
+            val appContext = ApplicationProvider.getApplicationContext<Context>()
+            val redirectCoordinator = DefaultRedirectCoordinator(this)
+            val webAuthentication = WebAuthentication(mock<WebAuthenticationProvider>())
+            webAuthentication.redirectCoordinator = redirectCoordinator
+            webAuthentication.authorizationCodeFlow = authorizationCodeFlowStub()
+            val initialized = CountDownLatch(1)
+            redirectCoordinator.initializerContinuationListeningCallback = { initialized.countDown() }
+            val listening = CountDownLatch(1)
+            redirectCoordinator.redirectContinuationListeningCallback = { listening.countDown() }
+
+            val login = async(Dispatchers.IO) { webAuthentication.login(appContext, "unitTest:/login", listOf("openid")) }
+            assertThat(initialized.await(1, TimeUnit.SECONDS)).isTrue()
+            redirectCoordinator.runInitializationFunction()
+
+            // The browser can open now, so the state must already be on disk.
+            assertThat(PendingLoginStore(appContext).load()?.flowContext).isEqualTo(loginFlowContext)
+
+            assertThat(listening.await(1, TimeUnit.SECONDS)).isTrue()
+            redirectCoordinator.emit(Uri.parse("unitTest:/login?state=test-login-state&code=ExampleCode"))
+            assertThat(login.await().isSuccess).isTrue()
+            assertThat(PendingLoginStore(appContext).load()).isNull()
+        }
+
+    @Test fun resumeLogin_LoginInFlight_ReturnsNullAndKeepsPendingLogin(): Unit =
+        runTest {
+            val appContext = ApplicationProvider.getApplicationContext<Context>()
+            val redirectCoordinator = DefaultRedirectCoordinator(this)
+            val webAuthentication = WebAuthentication(mock<WebAuthenticationProvider>())
+            webAuthentication.redirectCoordinator = redirectCoordinator
+            webAuthentication.authorizationCodeFlow = authorizationCodeFlowStub()
+            val initialized = CountDownLatch(1)
+            redirectCoordinator.initializerContinuationListeningCallback = { initialized.countDown() }
+            val listening = CountDownLatch(1)
+            redirectCoordinator.redirectContinuationListeningCallback = { listening.countDown() }
+            val login = async(Dispatchers.IO) { webAuthentication.login(appContext, "unitTest:/login", listOf("openid")) }
+            assertThat(initialized.await(1, TimeUnit.SECONDS)).isTrue()
+            redirectCoordinator.runInitializationFunction()
+            assertThat(listening.await(1, TimeUnit.SECONDS)).isTrue()
+
+            // e.g. an Activity recreated by rotation calls resumeLogin() while login() is still waiting.
+            assertThat(webAuthentication.resumeLogin(appContext)).isNull()
+            assertThat(PendingLoginStore(appContext).load()).isNotNull()
+
+            // The original login() is still the one that completes.
+            redirectCoordinator.emit(Uri.parse("unitTest:/login?state=test-login-state&code=ExampleCode"))
+            assertThat(login.await().isSuccess).isTrue()
+        }
+
+    @Test fun login_PersistenceDisabled_WritesNothingAndResumeReturnsNull(): Unit =
+        runTest {
+            val appContext = ApplicationProvider.getApplicationContext<Context>()
+            val redirectCoordinator = DefaultRedirectCoordinator(this)
+            val webAuthentication =
+                WebAuthentication(
+                    mockk<OAuth2Client>(relaxed = true),
+                    mock<WebAuthenticationProvider>(),
+                    PendingLoginPersistence.Disabled
+                )
+            webAuthentication.redirectCoordinator = redirectCoordinator
+            webAuthentication.authorizationCodeFlow = authorizationCodeFlowStub()
+            val initialized = CountDownLatch(1)
+            redirectCoordinator.initializerContinuationListeningCallback = { initialized.countDown() }
+            val listening = CountDownLatch(1)
+            redirectCoordinator.redirectContinuationListeningCallback = { listening.countDown() }
+
+            val login = async(Dispatchers.IO) { webAuthentication.login(appContext, "unitTest:/login", listOf("openid")) }
+            assertThat(initialized.await(1, TimeUnit.SECONDS)).isTrue()
+            redirectCoordinator.runInitializationFunction()
+            assertThat(listening.await(1, TimeUnit.SECONDS)).isTrue()
+
+            assertThat(PendingLoginStore(appContext).load()).isNull()
+            assertThat(webAuthentication.resumeLogin(appContext)).isNull()
+
+            redirectCoordinator.emit(Uri.parse("unitTest:/login?state=test-login-state&code=ExampleCode"))
+            assertThat(login.await().isSuccess).isTrue()
+        }
+
+    @Test fun login_InitializationFails_ClearsEarlierPendingLogin(): Unit =
+        runTest {
+            val appContext = ApplicationProvider.getApplicationContext<Context>()
+            PendingLoginStore(appContext).save(loginFlowContext)
+            val redirectCoordinator = DefaultRedirectCoordinator(this)
+            val webAuthentication = WebAuthentication(mock<WebAuthenticationProvider>())
+            webAuthentication.redirectCoordinator = redirectCoordinator
+            webAuthentication.authorizationCodeFlow = authorizationCodeFlowStub(startResult = Result.failure(IllegalStateException("par")))
+            val initialized = CountDownLatch(1)
+            redirectCoordinator.initializerContinuationListeningCallback = { initialized.countDown() }
+
+            val login = async(Dispatchers.IO) { webAuthentication.login(appContext, "unitTest:/login", listOf("openid")) }
+            assertThat(initialized.await(1, TimeUnit.SECONDS)).isTrue()
+            redirectCoordinator.runInitializationFunction()
+
+            assertThat(login.await().isFailure).isTrue()
+            assertThat(PendingLoginStore(appContext).load()).isNull()
+        }
+
     @Test fun testLogin(): Unit =
         runTest {
             val webAuthenticationProvider = mock<WebAuthenticationProvider>()

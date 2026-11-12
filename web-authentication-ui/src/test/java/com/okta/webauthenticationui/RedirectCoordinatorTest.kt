@@ -89,6 +89,56 @@ class RedirectCoordinatorTest {
         return resultDeferred
     }
 
+    @Test fun listenForResult_RedirectEmittedWithNoListener_DeliversRedirectToNextListener(): Unit =
+        testScope.runTest {
+            val uri = Uri.parse("unitTest:/hello?code=abc")
+            subject.emit(uri)
+
+            val result = subject.listenForResult()
+
+            assertThat((result as RedirectResult.Redirect).uri).isEqualTo(uri)
+        }
+
+    @Test fun emit_NullUriAfterOrphanedRedirect_DoesNotDiscardRedirect(): Unit =
+        testScope.runTest {
+            val uri = Uri.parse("unitTest:/hello?code=abc")
+            subject.emit(uri)
+            subject.emit(null)
+            advanceTimeBy(testDebounceTime + 1.seconds)
+            runCurrent()
+
+            assertThat((subject.listenForResult() as RedirectResult.Redirect).uri).isEqualTo(uri)
+        }
+
+    @Test fun listenForResumedResult_FlowAlreadyActive_ReturnsNullWithoutWaiting(): Unit =
+        testScope.runTest {
+            val first = async(Dispatchers.IO) { subject.listenForResumedResult() }
+            // Wait for the first resume to claim the coordinator.
+            val countDownLatch = CountDownLatch(1)
+            subject.redirectContinuationListeningCallback = { countDownLatch.countDown() }
+            assertThat(countDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
+
+            assertThat(subject.listenForResumedResult()).isNull()
+
+            subject.emit(Uri.parse("unitTest:/hello"))
+            assertThat(first.await()).isInstanceOf(RedirectResult.Redirect::class.java)
+        }
+
+    @Test fun listenForResumedResult_OrphanedRedirect_DeliversItAndReleasesCoordinator(): Unit =
+        testScope.runTest {
+            val uri = Uri.parse("unitTest:/hello?code=abc")
+            subject.emit(uri)
+
+            assertThat((subject.listenForResumedResult() as RedirectResult.Redirect).uri).isEqualTo(uri)
+            // Released, so a later resume can claim it again.
+            val countDownLatch = CountDownLatch(1)
+            subject.redirectContinuationListeningCallback = { countDownLatch.countDown() }
+            val next = async(Dispatchers.IO) { subject.listenForResumedResult() }
+            assertThat(countDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
+            subject.emitError(IllegalStateException("done"))
+            next.await()
+        }
+
     @Test fun testEmitError(): Unit =
         testScope.runTest {
             val startTime = currentTime

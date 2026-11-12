@@ -27,8 +27,10 @@ import com.okta.authfoundation.client.kmp.OAuth2Client
 import com.okta.authfoundation.credential.Token
 import com.okta.authfoundation.events.EventCoordinator
 import com.okta.oauth2.kmp.AuthorizationCodeFlow
+import com.okta.oauth2.kmp.AuthorizationCodeFlowContext
 import com.okta.oauth2.kmp.RedirectEndSessionFlow
 import com.okta.webauthenticationui.BuildConfig.SDK_VERSION
+import kotlinx.coroutines.withTimeoutOrNull
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import com.okta.authfoundation.client.OAuth2Client as AndroidOAuth2Client
 
@@ -52,6 +54,7 @@ class WebAuthentication private constructor(
     private val redirectEndSessionFlowFactory: () -> RedirectEndSessionFlow,
     private val defaultScopeValue: List<String>,
     private val webAuthenticationProvider: WebAuthenticationProvider,
+    private val pendingLoginPersistence: PendingLoginPersistence = PendingLoginPersistence.Enabled(),
 ) {
     companion object {
         init {
@@ -77,6 +80,28 @@ class WebAuthentication private constructor(
         redirectEndSessionFlowFactory = { RedirectEndSessionFlow(oAuth2Client) },
         defaultScopeValue = oAuth2Client.configuration.defaultScope,
         webAuthenticationProvider = webAuthenticationProvider
+    )
+
+    /**
+     * Creates a [WebAuthentication] with explicit control over the login state persisted for [resumeLogin].
+     *
+     * @param oAuth2Client the client used for the authorization code and logout flows.
+     * @param webAuthenticationProvider the provider used to display the browser.
+     * @param pendingLoginPersistence whether, and how, to persist the in-progress login state, which includes
+     *  the PKCE `code_verifier`. Use [PendingLoginPersistence.Disabled] to never write it to disk, or
+     *  [PendingLoginPersistence.Enabled] with a [PendingLoginEncryptor] to encrypt it. Defaults to enabled
+     *  and unencrypted.
+     */
+    constructor(
+        oAuth2Client: OAuth2Client,
+        webAuthenticationProvider: WebAuthenticationProvider,
+        pendingLoginPersistence: PendingLoginPersistence,
+    ) : this(
+        authorizationCodeFlowFactory = { AuthorizationCodeFlow(oAuth2Client) },
+        redirectEndSessionFlowFactory = { RedirectEndSessionFlow(oAuth2Client) },
+        defaultScopeValue = oAuth2Client.configuration.defaultScope,
+        webAuthenticationProvider = webAuthenticationProvider,
+        pendingLoginPersistence = pendingLoginPersistence
     )
 
     /**
@@ -213,11 +238,17 @@ class WebAuthentication private constructor(
         scope: List<String>,
         extraRequestParameters: Map<String, String> = emptyMap(),
     ): Result<TokenInfo> {
+        val pendingLoginStore = pendingLoginStore(context)
         val initializationResult =
             redirectCoordinator.initialize(webAuthenticationProvider, context, redirectUrl) {
+                // Runs only once this login owns the coordinator. Drop any earlier pending login first so a
+                // failed start or save can never leave a stale entry behind, then persist the new state before
+                // the browser opens, so it is on disk by the time the process could be killed.
+                pendingLoginStore?.clear()
                 authorizationCodeFlow
                     .start(redirectUrl, scope, extraRequestParameters)
                     .mapCatching { flowContext ->
+                        pendingLoginStore?.save(flowContext)
                         RedirectInitializationResult.Success(flowContext.url.toHttpUrl(), flowContext)
                     }.getOrElse { e ->
                         RedirectInitializationResult.Error(e.asException())
@@ -230,8 +261,68 @@ class WebAuthentication private constructor(
                 is RedirectInitializationResult.Success -> initializationResult.flowContext
             }
 
+        val redirectResult = redirectCoordinator.listenForResult()
+        // Reached only if the wait was not cancelled, so an interrupted login stays resumable.
+        pendingLoginStore?.clear()
+        return finishLogin(redirectResult, flowContext)
+    }
+
+    /**
+     * Completes a [login] that was interrupted because the app process was killed (or the calling
+     * coroutine was cancelled) while the user was in the browser.
+     *
+     * Call this once the app has restarted, for example from `Application.onCreate()` or the launching
+     * Activity, using a lifecycle-aware scope. If a login was interrupted, this suspends until the
+     * browser redirect arrives and then performs the token exchange. Cancelling the calling coroutine
+     * leaves the pending login in place so it can be resumed again.
+     *
+     * Pending logins are kept in app-private storage for 10 minutes; if no redirect arrives in that
+     * time (for example the user closed the browser without finishing), this returns `null`. Starting a
+     * new [login] discards any pending login.
+     *
+     * Always returns `null` if persistence was turned off with [PendingLoginPersistence.Disabled].
+     *
+     * Returns `null` immediately, leaving the pending login untouched, if a [login], [logoutOfBrowser]
+     * or another [resumeLogin] is already running in this process, since that call owns the redirect.
+     *
+     * @param context the [Context] used to read the pending login. Defaults to the application context
+     *  captured via [com.okta.authfoundation.AuthFoundation.initializeAndroidContext].
+     * @return `null` if there is no login to resume. Otherwise a [Result] containing [TokenInfo] on
+     *  success, or a failed [Result] wrapping the underlying token exchange or authorization error.
+     *  Dismissing the browser after the process was killed is not reported as a
+     *  [FlowCancelledException]; it surfaces as `null` once the pending login expires.
+     */
+    suspend fun resumeLogin(context: Context = ApplicationContextHolder.appContext): Result<TokenInfo>? {
+        val pendingLoginStore = pendingLoginStore(context) ?: return null
+        val pending = pendingLoginStore.load() ?: return null
+
+        // The redirect cannot arrive after the entry expires, so don't wait longer than that.
+        var anotherFlowRunning = false
+        val redirectResult =
+            withTimeoutOrNull(pending.remainingMillis) {
+                redirectCoordinator.listenForResumedResult().also { anotherFlowRunning = it == null }
+            }
+        if (redirectResult == null) {
+            // A flow already running in this process owns the pending login, so leave it. Otherwise it expired.
+            if (!anotherFlowRunning) pendingLoginStore.clear()
+            return null
+        }
+        pendingLoginStore.clear()
+        return finishLogin(redirectResult, pending.flowContext)
+    }
+
+    private fun pendingLoginStore(context: Context): PendingLoginStore? =
+        when (pendingLoginPersistence) {
+            is PendingLoginPersistence.Disabled -> null
+            is PendingLoginPersistence.Enabled -> PendingLoginStore(context, pendingLoginPersistence.encryptor)
+        }
+
+    private suspend fun finishLogin(
+        redirectResult: RedirectResult,
+        flowContext: AuthorizationCodeFlowContext,
+    ): Result<TokenInfo> {
         val uri =
-            when (val redirectResult = redirectCoordinator.listenForResult()) {
+            when (redirectResult) {
                 is RedirectResult.Error -> return Result.failure(redirectResult.exception)
                 is RedirectResult.Redirect -> redirectResult.uri
             }
