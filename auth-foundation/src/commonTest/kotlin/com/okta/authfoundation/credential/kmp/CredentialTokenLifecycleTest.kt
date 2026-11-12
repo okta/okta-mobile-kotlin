@@ -17,6 +17,7 @@ package com.okta.authfoundation.credential.kmp
 
 import com.okta.authfoundation.InternalAuthFoundationApi
 import com.okta.authfoundation.api.http.ApiExecutor
+import com.okta.authfoundation.api.http.ApiFormRequest
 import com.okta.authfoundation.api.http.ApiRequest
 import com.okta.authfoundation.api.http.ApiResponse
 import com.okta.authfoundation.client.OAuth2ClientConfiguration
@@ -335,6 +336,30 @@ class CredentialTokenLifecycleTest {
             val snapshot = credential.refreshToken().getOrThrow()
 
             assertEquals("new-at", snapshot.accessTokenIfNotExpired())
+        }
+
+    // Regression test for GitHub #461: the shared refresh orchestrator must not re-send a rotated refresh token.
+    @Test
+    fun refreshToken_SequentialRefreshOnNewSnapshot_SendsRotatedRefreshToken() =
+        runTest {
+            val sentRefreshTokens = mutableListOf<String?>()
+            var calls = 0
+            val exec =
+                object : ApiExecutor {
+                    override suspend fun execute(request: ApiRequest): Result<ApiResponse> {
+                        sentRefreshTokens += (request as? ApiFormRequest)?.formParameters()?.get("refresh_token")?.firstOrNull()
+                        calls++
+                        val body =
+                            """{"token_type":"Bearer","expires_in":7200,"access_token":"at-$calls","scope":"openid","refresh_token":"rt-$calls"}"""
+                        return Result.success(mockResponse(body = body))
+                    }
+                }
+            val credential = createCredential(createClient(exec), refreshToken = "rt-0")
+
+            val firstSnapshot = credential.refreshToken().getOrThrow()
+            firstSnapshot.refreshToken().getOrThrow()
+
+            assertEquals(listOf<String?>("rt-0", "rt-1"), sentRefreshTokens)
         }
 
     @Test
