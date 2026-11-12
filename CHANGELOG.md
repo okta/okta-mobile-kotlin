@@ -28,6 +28,10 @@
   to the underlying HTTP call.
 - `OAuth2ClientBuilder.ioDispatcher` was declared but never passed into the built
   `OAuth2ClientConfiguration`, so a custom `ioDispatcher` set on the builder had no effect.
+- `Credential.refreshToken()` re-sent an already-consumed refresh token on the second sequential
+  refresh, so the server rejected it with `invalid_grant`. The shared refresh coalescer kept the
+  first snapshot's refresh token; refreshes now read the current (rotated) refresh token from the
+  credential's data source. Fixes [#461](https://github.com/okta/okta-mobile-kotlin/issues/461).
 
 ## oauth2 3.2.0 - 2026-09-21
 

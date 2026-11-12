@@ -130,15 +130,23 @@ class CredentialImpl internal constructor(
         if (extraRequestParameters.isEmpty()) return refreshToken()
         return runCatching {
             val refreshTokenStr =
-                token.refreshToken ?: throw IllegalStateException("No refresh token available.")
+                currentRefreshToken() ?: throw IllegalStateException("No refresh token available.")
             val newToken = client.refreshToken(refreshTokenStr, extraRequestParameters).getOrThrow()
             replaceToken(newToken)
         }
     }
 
+    /**
+     * The refresh token is rotated on every refresh, so this snapshot's [token] may be stale.
+     * The data source is the single source of truth; fall back to this snapshot only if it has no entry.
+     */
+    private suspend fun currentRefreshToken(): String? = runCatching { dataSource.getToken(id)?.refreshToken }.getOrNull() ?: token.refreshToken
+
+    // The refresh orchestrator is shared across snapshots and keeps the first caller's factory, so
+    // this must not read this snapshot's refresh token directly or a rotated token would be re-sent.
     private suspend fun performRealRefresh(): Result<TokenInfo> {
         val refreshTokenStr =
-            token.refreshToken ?: return Result.failure(
+            currentRefreshToken() ?: return Result.failure(
                 IllegalStateException("No refresh token available.")
             )
         return client.refreshToken(refreshTokenStr)
