@@ -22,14 +22,15 @@ package com.okta.webauthenticationui
  */
 sealed interface PendingLoginPersistence {
     /**
-     * Nothing is written to disk. A login interrupted by process death cannot be resumed, and
+     * Nothing is written to disk. This is the default. A login interrupted by process death cannot be resumed, and
      * [WebAuthentication.resumeLogin] always returns `null`.
      */
     data object Disabled : PendingLoginPersistence
 
     /**
      * The login state is stored in app-private storage for a short time (see [WebAuthentication.resumeLogin]).
-     * This is the default.
+     * This is opt-in; [Disabled] is the default. Prefer supplying an [encryptor], and exclude the
+     * `com.okta.webauthenticationui.pending_login` DataStore file from Android backup and device transfer.
      *
      * @param encryptor encrypts the stored state. When `null` the state is stored unencrypted.
      */

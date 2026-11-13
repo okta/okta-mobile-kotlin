@@ -50,22 +50,36 @@ internal class PendingLoginStore(
         val remainingMillis: Long,
     )
 
-    suspend fun save(flowContext: AuthorizationCodeFlowContext): Result<Unit> =
+    suspend fun save(
+        flowContext: AuthorizationCodeFlowContext,
+        clientId: String,
+    ): Result<Unit> =
         runCatchingCancellable {
             val json = flowContext.toJson()
             val stored = encryptor?.encrypt(json)?.getOrThrow() ?: json
             dataStore.edit {
                 it[KEY_CONTEXT] = stored
                 it[KEY_SAVED_AT] = clock()
+                it[KEY_CLIENT_ID] = clientId
             }
             Unit
         }
 
-    /** Returns the pending login, or \`null\` if there is none, it expired, or it is unreadable. */
-    suspend fun load(): Pending? =
+    /**
+     * Returns the pending login for [clientId], or `null` if there is none, it expired, or it is unreadable.
+     * An entry started by a different client is left in place for that client. An entry with no recorded
+     * client (written before client binding existed) cannot be attributed safely and is discarded.
+     */
+    suspend fun load(clientId: String): Pending? =
         runCatchingCancellable {
             val preferences = dataStore.data.firstOrNull() ?: return@runCatchingCancellable null
             val stored = preferences[KEY_CONTEXT] ?: return@runCatchingCancellable null
+            val storedClientId = preferences[KEY_CLIENT_ID]
+            if (storedClientId == null) {
+                clear()
+                return@runCatchingCancellable null
+            }
+            if (storedClientId != clientId) return@runCatchingCancellable null
             val age = clock() - (preferences[KEY_SAVED_AT] ?: 0L)
             // A negative age means the clock moved backwards; treat that as expired rather than immortal.
             if (age < 0 || age > maxAgeMillis) {
@@ -94,6 +108,7 @@ internal class PendingLoginStore(
     private companion object {
         val KEY_CONTEXT = stringPreferencesKey("context")
         val KEY_SAVED_AT = longPreferencesKey("saved_at")
+        val KEY_CLIENT_ID = stringPreferencesKey("client_id")
         const val DEFAULT_MAX_AGE_MILLIS = 10 * 60 * 1000L
     }
 }

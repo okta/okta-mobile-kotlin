@@ -127,22 +127,28 @@ pending login in place so it can be resumed again. It also returns `null` right 
 `logoutOfBrowser()` or another `resumeLogin()` is already running in this process, since that call owns
 the redirect. Starting a new `login()` discards any pending login.
 
-### Opting out of persistence
+### Opting in to persistence
 
-If you don't want the PKCE `code_verifier` written to disk at all, turn persistence off. A login
-interrupted by process death then can't be resumed, and `resumeLogin()` always returns `null`:
+Persistence is **off by default**, because the persisted state includes the PKCE `code_verifier`. Without it,
+a login interrupted by process death can't be resumed and `resumeLogin()` returns `null`. To turn it on:
 
 ```kotlin
 val webAuthentication = WebAuthentication(
     client,
     DefaultWebAuthenticationProvider(),
-    PendingLoginPersistence.Disabled
+    PendingLoginPersistence.Enabled()
 )
 ```
 
+The state is stored in the `com.okta.webauthenticationui.pending_login` DataStore. Exclude that file from
+Android backup and device transfer in your `backup_rules.xml` / `data_extraction_rules.xml`, and prefer an
+encryptor (below). A pending login is tied to the client ID that started it; `resumeLogin()` on a
+`WebAuthentication` for a different client ignores it. If persistence is later disabled, the next
+`resumeLogin()` removes any leftover entry.
+
 ### Encrypting the persisted state
 
-The persisted state includes the PKCE `code_verifier`. The SDK stores it **unencrypted** by default,
+The persisted state includes the PKCE `code_verifier`. The SDK stores it **unencrypted** unless you supply an encryptor,
 in app-private storage. Whether to encrypt it, and how, is up to your app. To encrypt it, implement
 `PendingLoginEncryptor` and pass it through `PendingLoginPersistence.Enabled`. For example, using a
 key from the Android Keystore:

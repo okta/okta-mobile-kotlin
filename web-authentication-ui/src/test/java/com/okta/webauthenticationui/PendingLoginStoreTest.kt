@@ -33,40 +33,40 @@ class PendingLoginStoreTest {
     @Test fun load_AfterSave_ReturnsSavedContext() =
         runTest {
             val store = PendingLoginStore(context)
-            store.save(flowContext)
+            store.save(flowContext, CLIENT_ID)
 
-            assertThat(PendingLoginStore(context).load()?.flowContext).isEqualTo(flowContext)
+            assertThat(PendingLoginStore(context).load(CLIENT_ID)?.flowContext).isEqualTo(flowContext)
         }
 
     @Test fun load_AfterClear_ReturnsNull() =
         runTest {
             val store = PendingLoginStore(context)
-            store.save(flowContext)
+            store.save(flowContext, CLIENT_ID)
             store.clear()
 
-            assertThat(store.load()).isNull()
+            assertThat(store.load(CLIENT_ID)).isNull()
         }
 
     @Test fun load_ExpiredEntry_ReturnsNullAndDiscardsIt() =
         runTest {
             var now = 0L
             val store = PendingLoginStore(context, clock = { now }, maxAgeMillis = 1_000L)
-            store.save(flowContext)
+            store.save(flowContext, CLIENT_ID)
             now = 1_001L
 
-            assertThat(store.load()).isNull()
+            assertThat(store.load(CLIENT_ID)).isNull()
             now = 0L
-            assertThat(store.load()).isNull()
+            assertThat(store.load(CLIENT_ID)).isNull()
         }
 
     @Test fun save_SecondLogin_OverwritesFirst() =
         runTest {
             val store = PendingLoginStore(context)
             val second = flowContext.copy(state = "other-state")
-            store.save(flowContext)
-            store.save(second)
+            store.save(flowContext, CLIENT_ID)
+            store.save(second, CLIENT_ID)
 
-            assertThat(store.load()?.flowContext).isEqualTo(second)
+            assertThat(store.load(CLIENT_ID)?.flowContext).isEqualTo(second)
         }
 
     private val reversingEncryptor =
@@ -78,11 +78,11 @@ class PendingLoginStoreTest {
 
     @Test fun load_WithEncryptor_RoundTripsAndStoresTransformedValue() =
         runTest {
-            PendingLoginStore(context, reversingEncryptor).save(flowContext)
+            PendingLoginStore(context, reversingEncryptor).save(flowContext, CLIENT_ID)
 
-            assertThat(PendingLoginStore(context, reversingEncryptor).load()?.flowContext).isEqualTo(flowContext)
+            assertThat(PendingLoginStore(context, reversingEncryptor).load(CLIENT_ID)?.flowContext).isEqualTo(flowContext)
             // Without the encryptor the reversed (non-JSON) value is unreadable.
-            assertThat(PendingLoginStore(context).load()).isNull()
+            assertThat(PendingLoginStore(context).load(CLIENT_ID)).isNull()
         }
 
     @Test fun save_EncryptorFails_ReturnsFailureAndPersistsNothing() =
@@ -95,13 +95,13 @@ class PendingLoginStoreTest {
                 }
             val store = PendingLoginStore(context, failing)
 
-            assertThat(store.save(flowContext).isFailure).isTrue()
-            assertThat(store.load()).isNull()
+            assertThat(store.save(flowContext, CLIENT_ID).isFailure).isTrue()
+            assertThat(store.load(CLIENT_ID)).isNull()
         }
 
     @Test fun load_DecryptFails_ReturnsNull() =
         runTest {
-            PendingLoginStore(context, reversingEncryptor).save(flowContext)
+            PendingLoginStore(context, reversingEncryptor).save(flowContext, CLIENT_ID)
             val failingDecrypt =
                 object : PendingLoginEncryptor {
                     override suspend fun encrypt(plaintext: String) = Result.success(plaintext)
@@ -109,27 +109,27 @@ class PendingLoginStoreTest {
                     override suspend fun decrypt(ciphertext: String) = Result.failure<String>(IllegalStateException("key lost"))
                 }
 
-            assertThat(PendingLoginStore(context, failingDecrypt).load()).isNull()
+            assertThat(PendingLoginStore(context, failingDecrypt).load(CLIENT_ID)).isNull()
         }
 
     @Test fun load_ReportsRemainingLifetime() =
         runTest {
             var now = 1_000L
             val store = PendingLoginStore(context, clock = { now }, maxAgeMillis = 10_000L)
-            store.save(flowContext)
+            store.save(flowContext, CLIENT_ID)
             now = 4_000L
 
-            assertThat(store.load()?.remainingMillis).isEqualTo(7_000L)
+            assertThat(store.load(CLIENT_ID)?.remainingMillis).isEqualTo(7_000L)
         }
 
     @Test fun load_ClockMovedBackwards_TreatsEntryAsExpired() =
         runTest {
             var now = 5_000L
             val store = PendingLoginStore(context, clock = { now })
-            store.save(flowContext)
+            store.save(flowContext, CLIENT_ID)
             now = 1_000L
 
-            assertThat(store.load()).isNull()
+            assertThat(store.load(CLIENT_ID)).isNull()
         }
 
     @Test(expected = CancellationException::class)
@@ -141,6 +141,19 @@ class PendingLoginStoreTest {
 
                     override suspend fun decrypt(ciphertext: String) = Result.success(ciphertext)
                 }
-            PendingLoginStore(context, cancelling).save(flowContext)
+            PendingLoginStore(context, cancelling).save(flowContext, CLIENT_ID)
         }
+
+    @Test fun load_DifferentClient_ReturnsNullAndKeepsEntryForOwner() =
+        runTest {
+            val store = PendingLoginStore(context)
+            store.save(flowContext, CLIENT_ID)
+
+            assertThat(store.load("other-client")).isNull()
+            assertThat(store.load(CLIENT_ID)?.flowContext).isEqualTo(flowContext)
+        }
+
+    private companion object {
+        const val CLIENT_ID = "client-a"
+    }
 }

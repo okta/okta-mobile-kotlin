@@ -91,10 +91,10 @@ internal class DefaultRedirectCoordinator(
     ): RedirectInitializationResult<T> {
         currentCoroutineContext().ensureActive()
         flowMutex.withLock {
-            orphanedRedirect = null
             if (isFlowActive) {
                 return RedirectInitializationResult.Error(WebAuthentication.FlowAlreadyInProgressException())
             }
+            orphanedRedirect = null
             isFlowActive = true
             this.webAuthenticationProvider = webAuthenticationProvider
             this.redirectUrl = redirectUrl
@@ -153,7 +153,9 @@ internal class DefaultRedirectCoordinator(
                     }
                 }
             if (orphaned != null) {
-                continuation.resume(RedirectResult.Redirect(orphaned))
+                continuation.resume(RedirectResult.Redirect(orphaned)) {
+                    synchronized(stateLock) { orphanedRedirect = orphaned }
+                }
             } else {
                 // Only tear down state this listener owns; another flow may have registered since.
                 continuation.invokeOnCancellation {

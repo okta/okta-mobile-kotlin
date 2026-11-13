@@ -13,9 +13,9 @@
   The in-progress flow context is persisted to app-private DataStore for 10 minutes. Call it after the
   app restarts; it returns `null` when there is nothing to resume.
 - `PendingLoginPersistence` and a `WebAuthentication` constructor accepting it, to control the
-  persisted login state (which includes the PKCE `code_verifier`): `Disabled` writes nothing to disk,
-  `Enabled(encryptor)` stores it, optionally encrypted via a `PendingLoginEncryptor`. Enabled and
-  unencrypted by default.
+  persisted login state (which includes the PKCE `code_verifier`): `Disabled` (the default) writes nothing to disk,
+  `Enabled(encryptor)` opts in, optionally encrypting via a `PendingLoginEncryptor`. A pending login is
+  bound to the client ID that started it.
 
 #### Fixed
 

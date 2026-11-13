@@ -54,7 +54,8 @@ class WebAuthentication private constructor(
     private val redirectEndSessionFlowFactory: () -> RedirectEndSessionFlow,
     private val defaultScopeValue: List<String>,
     private val webAuthenticationProvider: WebAuthenticationProvider,
-    private val pendingLoginPersistence: PendingLoginPersistence = PendingLoginPersistence.Enabled(),
+    private val clientId: String,
+    private val pendingLoginPersistence: PendingLoginPersistence = PendingLoginPersistence.Disabled,
 ) {
     companion object {
         init {
@@ -79,7 +80,8 @@ class WebAuthentication private constructor(
         authorizationCodeFlowFactory = { AuthorizationCodeFlow(oAuth2Client) },
         redirectEndSessionFlowFactory = { RedirectEndSessionFlow(oAuth2Client) },
         defaultScopeValue = oAuth2Client.configuration.defaultScope,
-        webAuthenticationProvider = webAuthenticationProvider
+        webAuthenticationProvider = webAuthenticationProvider,
+        clientId = oAuth2Client.configuration.clientId
     )
 
     /**
@@ -88,9 +90,9 @@ class WebAuthentication private constructor(
      * @param oAuth2Client the client used for the authorization code and logout flows.
      * @param webAuthenticationProvider the provider used to display the browser.
      * @param pendingLoginPersistence whether, and how, to persist the in-progress login state, which includes
-     *  the PKCE `code_verifier`. Use [PendingLoginPersistence.Disabled] to never write it to disk, or
-     *  [PendingLoginPersistence.Enabled] with a [PendingLoginEncryptor] to encrypt it. Defaults to enabled
-     *  and unencrypted.
+     *  the PKCE `code_verifier`. Persistence is opt-in: the other constructors use
+     *  [PendingLoginPersistence.Disabled], which never writes it to disk. Pass [PendingLoginPersistence.Enabled]
+     *  (ideally with a [PendingLoginEncryptor]) to make [resumeLogin] work.
      */
     constructor(
         oAuth2Client: OAuth2Client,
@@ -101,6 +103,7 @@ class WebAuthentication private constructor(
         redirectEndSessionFlowFactory = { RedirectEndSessionFlow(oAuth2Client) },
         defaultScopeValue = oAuth2Client.configuration.defaultScope,
         webAuthenticationProvider = webAuthenticationProvider,
+        clientId = oAuth2Client.configuration.clientId,
         pendingLoginPersistence = pendingLoginPersistence
     )
 
@@ -169,7 +172,8 @@ class WebAuthentication private constructor(
             client.configuration.defaultScope
                 .split(" ")
                 .filter { it.isNotBlank() },
-        webAuthenticationProvider = webAuthenticationProvider
+        webAuthenticationProvider = webAuthenticationProvider,
+        clientId = client.configuration.clientId
     )
 
     private val flowLock = Any()
@@ -248,7 +252,7 @@ class WebAuthentication private constructor(
                 authorizationCodeFlow
                     .start(redirectUrl, scope, extraRequestParameters)
                     .mapCatching { flowContext ->
-                        pendingLoginStore?.save(flowContext)
+                        pendingLoginStore?.save(flowContext, clientId)
                         RedirectInitializationResult.Success(flowContext.url.toHttpUrl(), flowContext)
                     }.getOrElse { e ->
                         RedirectInitializationResult.Error(e.asException())
@@ -280,7 +284,9 @@ class WebAuthentication private constructor(
      * time (for example the user closed the browser without finishing), this returns `null`. Starting a
      * new [login] discards any pending login.
      *
-     * Always returns `null` if persistence was turned off with [PendingLoginPersistence.Disabled].
+     * Always returns `null` unless persistence was opted into with [PendingLoginPersistence.Enabled]. When
+     * persistence is disabled, any pending login left on disk by an earlier enabled configuration is removed.
+     * A pending login started by a different client ID is left untouched and ignored.
      *
      * Returns `null` immediately, leaving the pending login untouched, if a [login], [logoutOfBrowser]
      * or another [resumeLogin] is already running in this process, since that call owns the redirect.
@@ -293,8 +299,13 @@ class WebAuthentication private constructor(
      *  [FlowCancelledException]; it surfaces as `null` once the pending login expires.
      */
     suspend fun resumeLogin(context: Context = ApplicationContextHolder.appContext): Result<TokenInfo>? {
-        val pendingLoginStore = pendingLoginStore(context) ?: return null
-        val pending = pendingLoginStore.load() ?: return null
+        val pendingLoginStore = pendingLoginStore(context)
+        if (pendingLoginStore == null) {
+            // Persistence is disabled. Remove any entry saved while it was enabled.
+            PendingLoginStore(context).clear()
+            return null
+        }
+        val pending = pendingLoginStore.load(clientId) ?: return null
 
         // The redirect cannot arrive after the entry expires, so don't wait longer than that.
         var anotherFlowRunning = false

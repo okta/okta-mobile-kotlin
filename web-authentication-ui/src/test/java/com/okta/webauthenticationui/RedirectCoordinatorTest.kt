@@ -112,10 +112,10 @@ class RedirectCoordinatorTest {
 
     @Test fun listenForResumedResult_FlowAlreadyActive_ReturnsNullWithoutWaiting(): Unit =
         testScope.runTest {
-            val first = async(Dispatchers.IO) { subject.listenForResumedResult() }
-            // Wait for the first resume to claim the coordinator.
             val countDownLatch = CountDownLatch(1)
             subject.redirectContinuationListeningCallback = { countDownLatch.countDown() }
+            val first = async(Dispatchers.IO) { subject.listenForResumedResult() }
+            // Wait for the first resume to claim the coordinator.
             assertThat(countDownLatch.await(1, TimeUnit.SECONDS)).isTrue()
 
             assertThat(subject.listenForResumedResult()).isNull()
