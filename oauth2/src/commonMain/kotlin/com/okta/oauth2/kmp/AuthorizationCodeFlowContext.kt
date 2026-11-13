@@ -15,6 +15,9 @@
  */
 package com.okta.oauth2.kmp
 
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
+
 /**
  * A model representing the context and current state for an authorization code session.
  *
@@ -44,6 +47,42 @@ data class AuthorizationCodeFlowContext
         val usedPushedAuthorizationRequest: Boolean = false,
         val pushedAuthorizationRequestUri: String? = null,
     ) {
+        /**
+         * Serializes this context to a JSON string so an in-progress flow can be persisted and later
+         * restored with [fromJson], for example to survive process death while the user is in the browser.
+         *
+         * The result contains the PKCE `code_verifier`. Treat it as a secret: store it only in
+         * app-private storage and delete it once the flow completes.
+         */
+        fun toJson(): String =
+            persistenceJson.encodeToString(
+                PersistedContext.serializer(),
+                PersistedContext(url, redirectUrl, codeVerifier, state, nonce, maxAge, usedPushedAuthorizationRequest, pushedAuthorizationRequestUri)
+            )
+
+        companion object {
+            /**
+             * Restores a context previously produced by [toJson].
+             *
+             * @return a [Result] containing the context, or a failure if [json] is malformed.
+             */
+            fun fromJson(json: String): Result<AuthorizationCodeFlowContext> =
+                runCatching {
+                    persistenceJson.decodeFromString(PersistedContext.serializer(), json).let {
+                        AuthorizationCodeFlowContext(
+                            it.url,
+                            it.redirectUrl,
+                            it.codeVerifier,
+                            it.state,
+                            it.nonce,
+                            it.maxAge,
+                            it.usedPushedAuthorizationRequest,
+                            it.pushedAuthorizationRequestUri
+                        )
+                    }
+                }
+        }
+
         // codeVerifier is the PKCE secret guarding the authorization code exchange; the default
         // data-class toString() would otherwise print it in full on any log/exception interpolation.
         override fun toString(): String =
@@ -52,3 +91,19 @@ data class AuthorizationCodeFlowContext
                 "usedPushedAuthorizationRequest=$usedPushedAuthorizationRequest, " +
                 "pushedAuthorizationRequestUri=$pushedAuthorizationRequestUri)"
     }
+
+// Tolerates fields added or removed by a later SDK version, so a context written before an app upgrade
+// is still readable after it.
+private val persistenceJson = Json { ignoreUnknownKeys = true }
+
+@Serializable
+private class PersistedContext(
+    val url: String,
+    val redirectUrl: String,
+    val codeVerifier: String,
+    val state: String,
+    val nonce: String,
+    val maxAge: Int? = null,
+    val usedPushedAuthorizationRequest: Boolean = false,
+    val pushedAuthorizationRequestUri: String? = null,
+)

@@ -24,6 +24,7 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.annotation.VisibleForTesting
 import androidx.lifecycle.Lifecycle
 import com.okta.authfoundation.AuthFoundationDefaults
+import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -54,7 +55,7 @@ internal class DefaultRedirectCoordinator(
     private var initializer: (suspend () -> RedirectInitializationResult<*>)? = null
 
     @Volatile
-    private var redirectContinuation: Continuation<RedirectResult>? = null
+    private var redirectContinuation: CancellableContinuation<RedirectResult>? = null
 
     @VisibleForTesting
     var redirectContinuationListeningCallback: (() -> Unit)? = null
@@ -66,6 +67,15 @@ internal class DefaultRedirectCoordinator(
     private var redirectUrl: String? = null
 
     private var emitErrorJob: Job? = null
+
+    // A redirect that arrived while nothing was listening, e.g. because the process was killed while the
+    // user was in the browser. Held so WebAuthentication.resumeLogin can finish the flow.
+    @Volatile
+    private var orphanedRedirect: Uri? = null
+
+    // Makes "is anyone listening? otherwise hold the redirect" atomic with registering a listener.
+    // Only ever held for a few non-suspending field accesses, never across a suspension point.
+    private val stateLock = Any()
 
     private val flowMutex = Mutex()
 
@@ -84,6 +94,7 @@ internal class DefaultRedirectCoordinator(
             if (isFlowActive) {
                 return RedirectInitializationResult.Error(WebAuthentication.FlowAlreadyInProgressException())
             }
+            orphanedRedirect = null
             isFlowActive = true
             this.webAuthenticationProvider = webAuthenticationProvider
             this.redirectUrl = redirectUrl
@@ -129,10 +140,38 @@ internal class DefaultRedirectCoordinator(
         currentCoroutineContext().ensureActive()
 
         return suspendCancellableCoroutine { continuation ->
-            continuation.invokeOnCancellation { reset() }
-            this.redirectContinuation = continuation
-            redirectContinuationListeningCallback?.invoke()
+            val orphaned =
+                synchronized(stateLock) {
+                    orphanedRedirect.also {
+                        if (it != null) {
+                            // No new flow can have started since the redirect arrived: initialize() discards orphans.
+                            orphanedRedirect = null
+                            resetLocked()
+                        } else {
+                            redirectContinuation = continuation
+                        }
+                    }
+                }
+            if (orphaned != null) {
+                continuation.resume(RedirectResult.Redirect(orphaned)) {
+                    synchronized(stateLock) { orphanedRedirect = orphaned }
+                }
+            } else {
+                // Only tear down state this listener owns; another flow may have registered since.
+                continuation.invokeOnCancellation {
+                    synchronized(stateLock) { if (redirectContinuation === continuation) resetLocked() }
+                }
+                redirectContinuationListeningCallback?.invoke()
+            }
         }
+    }
+
+    override suspend fun listenForResumedResult(): RedirectResult? {
+        flowMutex.withLock {
+            if (isFlowActive) return null
+            isFlowActive = true
+        }
+        return listenForResult()
     }
 
     override fun launchWebAuthenticationProvider(
@@ -173,16 +212,23 @@ internal class DefaultRedirectCoordinator(
         emitErrorJob?.cancel()
         emitErrorJob = null
         if (uri != null) {
-            val localContinuation = redirectContinuation
-            reset()
-            localContinuation?.resume(RedirectResult.Redirect(uri))
-        } else {
+            val localContinuation =
+                synchronized(stateLock) {
+                    redirectContinuation.also {
+                        reset()
+                        if (it == null) orphanedRedirect = uri
+                    }
+                }
+            // If the listener is cancelled after being resumed, the redirect was consumed by nobody: hold it again.
+            localContinuation?.resume(RedirectResult.Redirect(uri)) { orphanedRedirect = uri }
+        } else if (orphanedRedirect == null) {
             // Return a redirect error after the debounce time. In some cases, the browser can return a null redirect
             // quickly followed by a non-null redirect. In this case, we wait for loginCancellationDebounceTime before
             // accepting the error.
             emitErrorJob =
                 coroutineScope.launch {
                     delay(AuthFoundationDefaults.loginCancellationDebounceTime)
+                    if (orphanedRedirect != null) return@launch
                     val exception = WebAuthentication.FlowCancelledException()
                     initializationContinuation?.resume(RedirectInitializationResult.Error<Any>(exception))
                     val localContinuation = redirectContinuation
@@ -194,6 +240,10 @@ internal class DefaultRedirectCoordinator(
 
     // Nulls all instance variables.
     private fun reset() {
+        synchronized(stateLock) { resetLocked() }
+    }
+
+    private fun resetLocked() {
         isFlowActive = false
         initializationContinuation = null
         initializerContinuationListeningCallback = null
@@ -216,6 +266,13 @@ internal interface RedirectCoordinator {
     suspend fun runInitializationFunction(): RedirectInitializationResult<*>
 
     suspend fun listenForResult(): RedirectResult
+
+    /**
+     * Like [listenForResult], but for a login interrupted by process death. Claims the coordinator
+     * so no other flow can run concurrently. Returns `null`, without waiting, if a flow is already
+     * running, since that flow owns the pending redirect.
+     */
+    suspend fun listenForResumedResult(): RedirectResult?
 
     fun launchWebAuthenticationProvider(
         context: Context,

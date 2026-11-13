@@ -21,8 +21,10 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.okta.authfoundation.client.OAuth2ClientResult
+import com.okta.authfoundation.client.TokenInfo
 import com.okta.authfoundation.credential.kmp.TokenData
 import com.okta.webauthenticationui.DefaultWebAuthenticationProvider
+import com.okta.webauthenticationui.PendingLoginPersistence
 import com.okta.webauthenticationui.WebAuthentication
 import kotlinx.coroutines.launch
 import sample.okta.android.BuildConfig
@@ -35,6 +37,32 @@ class BrowserViewModel : ViewModel() {
     private val _state = MutableLiveData<BrowserState>(BrowserState.Idle)
     val state: LiveData<BrowserState> = _state
 
+    init {
+        resumeInterruptedLogin()
+    }
+
+    /**
+     * Finishes a login that was interrupted when Android killed this app's process while the user was in the
+     * browser. [WebAuthentication.resumeLogin] returns `null` when there is nothing to resume, and otherwise
+     * suspends until the browser redirect arrives (or the pending login expires).
+     */
+    private fun resumeInterruptedLogin() {
+        viewModelScope.launch {
+            val result = createWebAuthentication(ephemeralBrowsing = false).resumeLogin() ?: return@launch
+            _state.value = BrowserState.Loading
+            result
+                .onSuccess { storeTokens(it) }
+                .onFailure { exception ->
+                    if (exception is WebAuthentication.FlowCancelledException) {
+                        _state.value = BrowserState.Idle
+                    } else {
+                        Timber.e(exception, "Failed to resume login flow.")
+                        _state.value = BrowserState.Error(exception.message ?: "Failed to resume login flow.")
+                    }
+                }
+        }
+    }
+
     fun login(
         context: Context,
         addDeviceSsoScope: Boolean,
@@ -43,15 +71,7 @@ class BrowserViewModel : ViewModel() {
         viewModelScope.launch {
             _state.value = BrowserState.Loading
 
-            val webAuthentication =
-                if (enableEphemeralBrowsing) {
-                    WebAuthentication(
-                        SampleApplication.oAuth2Client,
-                        DefaultWebAuthenticationProvider(ephemeralBrowsingEnabled = true)
-                    )
-                } else {
-                    WebAuthentication(SampleApplication.oAuth2Client)
-                }
+            val webAuthentication = createWebAuthentication(enableEphemeralBrowsing)
             val scope =
                 if (addDeviceSsoScope) {
                     "${SampleHelper.DEFAULT_SCOPE} device_sso"
@@ -74,14 +94,30 @@ class BrowserViewModel : ViewModel() {
                 }
 
                 is OAuth2ClientResult.Success -> {
-                    val credentialManager = SampleApplication.credentialManager
-                    val tokenData = result.result.toTokenData(SampleApplication.oAuth2Client.configuration)
-                    val credential = credentialManager.store(tokenData).getOrThrow()
-                    credentialManager.setDefault(credential)
-                    _state.value = BrowserState.Token
+                    storeTokens(result.result)
                 }
             }
         }
+    }
+
+    /**
+     * Persistence is opt-in because the saved state includes the PKCE `code_verifier`. This sample stores it
+     * unencrypted for brevity; production apps should pass a `PendingLoginEncryptor` and exclude the DataStore
+     * file from backup. See the web-authentication-ui README.
+     */
+    private fun createWebAuthentication(ephemeralBrowsing: Boolean) =
+        WebAuthentication(
+            SampleApplication.oAuth2Client,
+            DefaultWebAuthenticationProvider(ephemeralBrowsingEnabled = ephemeralBrowsing),
+            PendingLoginPersistence.Enabled()
+        )
+
+    private suspend fun storeTokens(tokenInfo: TokenInfo) {
+        val credentialManager = SampleApplication.credentialManager
+        val tokenData = tokenInfo.toTokenData(SampleApplication.oAuth2Client.configuration)
+        val credential = credentialManager.store(tokenData).getOrThrow()
+        credentialManager.setDefault(credential)
+        _state.value = BrowserState.Token
     }
 }
 
