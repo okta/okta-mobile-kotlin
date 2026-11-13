@@ -127,6 +127,9 @@ pending login in place so it can be resumed again. It also returns `null` right 
 `logoutOfBrowser()` or another `resumeLogin()` is already running in this process, since that call owns
 the redirect. Starting a new `login()` discards any pending login.
 
+See the [sample app](../app/README.md#resuming-web-login-after-process-death) for a working example in
+[`BrowserViewModel`](../app/src/main/java/sample/okta/android/browser/BrowserViewModel.kt).
+
 ### Opting in to persistence
 
 Persistence is **off by default**, because the persisted state includes the PKCE `code_verifier`. Without it,
