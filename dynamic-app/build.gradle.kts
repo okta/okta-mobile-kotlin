@@ -94,6 +94,7 @@ dependencies {
     implementation(project(":okta-idx-kotlin"))
 
     implementation(libs.kotlin.stdlib)
+    implementation(libs.kotlin.serialization.json)
     implementation(libs.core.ktx)
     implementation(libs.app.compat)
     implementation(libs.androidx.constraintlayout)
