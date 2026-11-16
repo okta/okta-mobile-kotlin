@@ -167,6 +167,7 @@ public final class com/okta/oauth2/kmp/AuthorizationCodeFlow$ResumeException : j
 }
 
 public final class com/okta/oauth2/kmp/AuthorizationCodeFlowContext {
+	public static final field Companion Lcom/okta/oauth2/kmp/AuthorizationCodeFlowContext$Companion;
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;)V
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Z)V
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;ZLjava/lang/String;)V
@@ -183,7 +184,12 @@ public final class com/okta/oauth2/kmp/AuthorizationCodeFlowContext {
 	public final fun getUrl ()Ljava/lang/String;
 	public final fun getUsedPushedAuthorizationRequest ()Z
 	public fun hashCode ()I
+	public final fun toJson ()Ljava/lang/String;
 	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/okta/oauth2/kmp/AuthorizationCodeFlowContext$Companion {
+	public final fun fromJson-IoAF18A (Ljava/lang/String;)Ljava/lang/Object;
 }
 
 public abstract interface class com/okta/oauth2/kmp/BrowserRedirectHandler {

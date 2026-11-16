@@ -3,7 +3,7 @@
 This is a sample Android application demonstrating how to use the [oauth2](../oauth2) module along with [web-authentication-ui](../web-authentication-ui) and [auth-foundation](../auth-foundation). It
 showcases several OAuth 2.0 flows including:
 
-- **Browser-based login** (Authorization Code Flow via Chrome Custom Tab)
+- **Browser-based login** (Authorization Code Flow via Chrome Custom Tab), including [resuming the login after process death](#resuming-web-login-after-process-death)
 - **Resource Owner Password** flow
 - **Device Authorization** flow
 - **Token Exchange** flow
@@ -16,6 +16,7 @@ showcases several OAuth 2.0 flows including:
   - [2. Locate Your Authorization Server](#2-locate-your-authorization-server)
 - [Configuring `local.properties`](#configuring-localproperties)
 - [Running the Sample](#running-the-sample)
+- [Resuming Web Login After Process Death](#resuming-web-login-after-process-death)
 - [Project Structure](#project-structure)
 
 ## Prerequisites
@@ -82,6 +83,22 @@ Open the project in Android Studio and run the **app** configuration, or build v
 ```bash
 ./gradlew :app:assembleDebug
 ```
+
+## Resuming Web Login After Process Death
+
+If Android kills the app while the user is in the browser, the redirect arrives at a fresh process. The
+sample handles this in [`BrowserViewModel`](src/main/java/sample/okta/android/browser/BrowserViewModel.kt):
+
+- `createWebAuthentication()` passes `PendingLoginPersistence.Enabled()`, which is opt-in, so `login()` saves the flow state.
+- The ViewModel's `init` block calls `WebAuthentication.resumeLogin()`, which returns `null` when there is nothing to resume and otherwise finishes the token exchange once the redirect arrives.
+- Both the normal and resumed paths share `storeTokens()`.
+
+To try it: tap the browser login, then with the browser open run `adb shell am kill sample.okta.oidc.android`,
+then complete sign-in in the browser. The app reopens signed in.
+
+The sample stores the pending state unencrypted for brevity. See the
+[web-authentication-ui README](../web-authentication-ui/README.md#resuming-login-after-process-death) for
+encryption (`PendingLoginEncryptor`) and backup exclusion guidance.
 
 ## Project Structure
 

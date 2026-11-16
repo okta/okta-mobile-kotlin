@@ -72,6 +72,7 @@ dependencies {
     api(libs.kotlin.serialization.json)
     api(project(":auth-foundation"))
     api(project(":oauth2"))
+    implementation(libs.androidx.datastore.preferences)
     api(libs.androidx.browser)
 
     implementation(libs.lifecycle.viewmodel.ktx)
