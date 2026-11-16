@@ -1,5 +1,26 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- Converted `okta-idx-kotlin` to Kotlin Multiplatform (`android` + `jvm`), matching the shape of
+  `auth-foundation`, `oauth2`, and `okta-direct-auth`. Added a new cross-platform
+  `com.okta.idx.kotlin.kmp.InteractionCodeFlow` interface (interface + impl + companion factory,
+  matching `oauth2`'s `AuthorizationCodeFlow`), returning `kotlin.Result` and using the KMP
+  `com.okta.authfoundation.client.kmp.OAuth2Client`/`TokenInfo` from `auth-foundation`. The `jvm`
+  target is built and tested but not yet published to Maven Central.
+- Added `com.okta.idx.kotlin.kmp.IdxRedirectOutcome`, a 2-case replacement for the deprecated
+  `IdxRedirectResult` (`Tokens`/`InteractionRequired`), returned wrapped in a `Result` instead of
+  including an `Error` case.
+
+### Deprecated
+
+- Deprecated the Android-only `com.okta.idx.kotlin.client.InteractionCodeFlow` and
+  `IdxRedirectResult` in favor of their KMP equivalents in `com.okta.idx.kotlin.kmp`, which work on
+  both `android` and `jvm`. No behavior change: the deprecated classes continue to work exactly as
+  before.
+
 ## [3.1.1] 2026-06-12
 
 [Commits](https://github.com/okta/okta-mobile-kotlin/commit/4b13d30c09df3481128b1e23a9351c9d6884d078)
